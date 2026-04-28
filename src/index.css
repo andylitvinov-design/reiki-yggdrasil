@@ -2,341 +2,693 @@
 @tailwind components;
 @tailwind utilities;
 
-body { margin: 0; }
+:root {
+  --ink: #17120c;
+  --muted: #6f6254;
+  --gold: #b8791d;
+  --gold-light: #f5c66a;
+  --panel-line: rgba(203, 152, 64, 0.42);
+}
 
-/* === HEADER === */
-.topbar {
-  height: 98px !important;
-  padding: 0 34px !important;
-  background: linear-gradient(90deg, rgba(255,255,255,.96), rgba(252,247,239,.9) 55%, rgba(247,238,224,.82)) !important;
-  border-bottom: 1px solid rgba(203,152,64,.38) !important;
-  box-shadow: 0 10px 28px rgba(88,58,19,.055) !important;
-  position: relative !important;
+* {
+  box-sizing: border-box;
 }
-.topbar::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -1px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(171,116,35,.5), transparent);
-  pointer-events: none;
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
 }
+
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  background: radial-gradient(circle at 46% 12%, rgba(255, 255, 255, 0.92), transparent 36%),
+    linear-gradient(180deg, #fbf6ee, #f2e7d6 70%, #ead9bf);
+  color: var(--ink);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.appShell {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
 .pianoStrings {
-  right: 0 !important;
-  top: 92px !important;
-  width: 44vw !important;
-  min-width: 460px !important;
-  height: 38px !important;
-  opacity: .25 !important;
-  background: repeating-linear-gradient(165deg, transparent 0, transparent 11px, rgba(151,95,30,.56) 12px, transparent 13px) !important;
-}
-.brandBlock { min-width: 360px !important; gap: 16px !important; }
-.logoSeal {
-  width: 66px !important;
-  height: 66px !important;
-  font-size: 40px !important;
-  background: rgba(255,255,255,.92) !important;
-  border: 1px solid rgba(184,121,29,.62) !important;
-  box-shadow: 0 8px 24px rgba(83,55,16,.11) !important;
-}
-.logoSeal::after {
-  content: "";
   position: absolute;
-  inset: 7px;
-  border-radius: 50%;
-  border: 1px solid rgba(184,121,29,.18);
+  right: -20px;
+  top: 92px;
+  width: 44vw;
+  min-width: 460px;
+  height: 38px;
+  opacity: 0.25;
+  background: repeating-linear-gradient(
+    165deg,
+    transparent 0,
+    transparent 11px,
+    rgba(151, 95, 30, 0.56) 12px,
+    transparent 13px
+  );
   pointer-events: none;
 }
+
+.topbar {
+  height: 98px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 0 34px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.96), rgba(252, 247, 239, 0.9) 55%, rgba(247, 238, 224, 0.82));
+  border-bottom: 1px solid rgba(203, 152, 64, 0.38);
+  box-shadow: 0 10px 28px rgba(88, 58, 19, 0.055);
+  position: relative;
+  z-index: 2;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  min-width: 360px;
+  gap: 16px;
+}
+
+.logoSeal {
+  width: 66px;
+  height: 66px;
+  font-size: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9a6517;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(184, 121, 29, 0.62);
+  box-shadow: 0 8px 24px rgba(83, 55, 16, 0.11);
+}
+
 .brandBlock h1 {
-  font-size: 31px !important;
-  line-height: .98 !important;
-  letter-spacing: .55px !important;
-  text-transform: uppercase !important;
-  color: #1b130b !important;
+  margin: 0;
+  font-size: 31px;
+  line-height: 0.98;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
 }
+
 .brandBlock p {
-  font-size: 11.5px !important;
-  letter-spacing: 1.45px !important;
-  margin-top: 8px !important;
-  color: #7a6b5a !important;
-  text-transform: uppercase !important;
-}
-.mainNav { gap: 22px !important; font-size: 0 !important; letter-spacing: .95px !important; align-items: center !important; }
-.mainNav span { padding-top: 4px !important; color: #2c2117 !important; font-size: 0 !important; position: relative !important; }
-.mainNav span::after { font-size: 11px !important; text-transform: uppercase !important; letter-spacing: .85px !important; white-space: nowrap !important; }
-.mainNav span:nth-child(1)::after { content: "Главная"; }
-.mainNav span:nth-child(2)::after { content: "О системе"; }
-.mainNav span:nth-child(3)::after { content: "Уровни"; }
-.mainNav span:nth-child(4)::after { content: "Настройки"; }
-.mainNav span:nth-child(5)::after { content: "Практика"; }
-.mainNav span:nth-child(6)::after { content: "Мастера"; }
-.mainNav .activeNav { color: #9b681a !important; border-bottom: 1px solid #b97b24 !important; padding-bottom: 9px !important; }
-.mainNav .activeNav::after { color: #9b681a !important; }
-.userTools { min-width: 148px !important; gap: 12px !important; font-size: 12px !important; color: #20170f !important; }
-.userTools strong { font-size: 12px !important; letter-spacing: 1px !important; }
-
-/* Remove old current-step banner */
-.pathProgress { display: none !important; }
-
-/* === 3-COLUMN DESKTOP LAYOUT === */
-@media (max-width: 1600px) {
-  .dashboard {
-    display: grid !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    grid-template-columns: 265px minmax(0, 1fr) 365px !important;
-    grid-template-areas: none !important;
-    gap: 9px !important;
-    padding-left: 9px !important;
-    padding-right: 9px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    overflow-x: hidden !important;
-  }
-  .leftPiano, .stageCard, .practicePanel { grid-area: auto !important; min-width: 0 !important; }
+  margin: 8px 0 0;
+  color: #7a6b5a;
+  font-size: 11.5px;
+  letter-spacing: 1.45px;
+  text-transform: uppercase;
 }
 
-/* === LEFT PIANO PANEL === */
+.mainNav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 11px;
+  letter-spacing: 0.85px;
+  text-transform: uppercase;
+}
+
+.mainNav span {
+  color: #2c2117;
+}
+
+.mainNav .activeNav {
+  color: #9b681a;
+  border-bottom: 1px solid #b97b24;
+  padding-bottom: 9px;
+}
+
+.userTools {
+  min-width: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  font-size: 12px;
+  color: #20170f;
+}
+
+.userTools strong {
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.dashboard {
+  display: grid;
+  width: 100%;
+  max-width: 100vw;
+  grid-template-columns: 265px minmax(0, 1fr) 365px;
+  gap: 10px;
+  padding: 9px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+.leftPiano,
+.stageCard,
+.practicePanel {
+  border-radius: 22px;
+  border: 1px solid var(--panel-line);
+  box-shadow: 0 14px 42px rgba(79, 54, 18, 0.12);
+  min-width: 0;
+}
+
 .leftPiano {
-  padding: 10px !important;
-  background: linear-gradient(180deg, #171716, #080807) !important;
-  border-color: rgba(212,151,47,.55) !important;
+  padding: 10px;
+  background: linear-gradient(180deg, #171716, #080807);
+  border-color: rgba(212, 151, 47, 0.55);
+  color: #fff4d7;
 }
-.panelTitle { font-size: 12px !important; padding-bottom: 12px !important; margin-bottom: 10px !important; }
-.rootLevel, .closedLevel {
-  padding: 10px !important;
-  gap: 9px !important;
-  border-radius: 14px !important;
-  margin-bottom: 7px !important;
-  background: linear-gradient(180deg, rgba(16,15,14,.98), rgba(8,8,7,.98)) !important;
-  border-color: rgba(196,135,34,.5) !important;
+
+.panelTitle {
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(226, 178, 86, 0.25);
 }
-.rootLevel b, .closedLevel b { font-size: 25px !important; min-width: 25px !important; }
-.rootLevel span, .closedLevel span { font-size: 12px !important; }
-.rootLevel small, .closedLevel small { font-size: 11px !important; }
-.keysList { gap: 6px !important; margin: 10px 0 !important; }
+
+.rootLevel,
+.closedLevel {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 14px;
+  margin-bottom: 7px;
+  padding: 10px;
+  border: 1px solid rgba(196, 135, 34, 0.5);
+  background: linear-gradient(180deg, rgba(16, 15, 14, 0.98), rgba(8, 8, 7, 0.98));
+  color: inherit;
+  text-align: left;
+}
+
+.rootLevel b,
+.closedLevel b {
+  font-size: 25px;
+  min-width: 25px;
+  color: #f4be5d;
+  font-weight: 400;
+}
+
+.rootLevel span,
+.closedLevel span {
+  flex: 1;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.rootLevel small,
+.closedLevel small {
+  display: block;
+  font-size: 11px;
+  margin-top: 2px;
+  color: rgba(255, 244, 215, 0.68);
+  text-transform: none;
+}
+
+.keysList {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0;
+}
+
 .pianoKey {
-  height: 56px !important;
-  border-radius: 11px !important;
-  background: linear-gradient(180deg, #fff9ee, #efe2cf) !important;
-  border-color: rgba(92,58,12,.28) !important;
-  box-shadow: inset 0 -9px 18px rgba(50,30,10,.07), 0 1px 0 rgba(255,255,255,.75) !important;
+  position: relative;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  border-radius: 11px;
+  border: 1px solid rgba(92, 58, 12, 0.28);
+  background: linear-gradient(180deg, #fff9ee, #efe2cf);
+  box-shadow: inset 0 -9px 18px rgba(50, 30, 10, 0.07), 0 1px 0 rgba(255, 255, 255, 0.75);
+  overflow: hidden;
 }
+
 .pianoKey i {
-  width: 76px !important;
-  height: 28px !important;
-  left: 12px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  border-radius: 6px !important;
-  background: linear-gradient(180deg, #23211f, #020202 78%) !important;
-  box-shadow: inset 0 2px 4px rgba(255,255,255,.16), 0 6px 12px rgba(0,0,0,.45) !important;
+  position: absolute;
+  width: 76px;
+  height: 28px;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #23211f, #020202 78%);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.16), 0 6px 12px rgba(0, 0, 0, 0.45);
 }
+
 .pianoKey b {
-  margin-left: 104px !important;
-  font-size: 25px !important;
-  color: #9f6918 !important;
+  margin-left: 104px;
+  font-size: 25px;
+  color: #9f6918;
+  z-index: 1;
+  font-weight: 400;
 }
-.pianoKey span { margin-left: 13px !important; font-size: 10px !important; }
+
+.pianoKey span {
+  margin-left: 13px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  z-index: 1;
+}
+
 .pianoKey.selected {
-  background: linear-gradient(90deg, #050505 0%, #7e510f 31%, #d6952d 80%, #ffc861 100%) !important;
-  color: #fff !important;
-  border-color: #ffd374 !important;
-  box-shadow: 0 0 22px rgba(255,180,48,.72), inset 0 0 22px rgba(255,224,130,.22) !important;
+  background: linear-gradient(90deg, #050505 0%, #7e510f 31%, #d6952d 80%, #ffc861 100%);
+  border-color: #ffd374;
+  box-shadow: 0 0 22px rgba(255, 180, 48, 0.72), inset 0 0 22px rgba(255, 224, 130, 0.22);
 }
-.pianoKey.selected b, .pianoKey.selected span { color: #fff !important; }
+
 .pianoKey.selected::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 85% 50%, rgba(255,244,178,.95), transparent 14%), radial-gradient(circle at 72% 58%, rgba(255,196,69,.55), transparent 18%);
-  pointer-events: none;
+  background: radial-gradient(circle at 85% 50%, rgba(255, 244, 178, 0.95), transparent 14%),
+    radial-gradient(circle at 72% 58%, rgba(255, 196, 69, 0.55), transparent 18%);
 }
+
+.pianoKey.selected b,
+.pianoKey.selected span {
+  color: #ffffff;
+}
+
 .glowRune {
-  right: 12px !important;
-  color: #fff1b5 !important;
-  text-shadow: 0 0 18px #ffd15a, 0 0 28px #ffb52e !important;
-  z-index: 3 !important;
+  margin-left: auto;
+  margin-right: 12px;
+  color: #fff1b5;
+  text-shadow: 0 0 18px #ffd15a, 0 0 28px #ffb52e;
+  z-index: 2;
 }
+
 .sideActions {
-  position: relative !important;
-  gap: 0 !important;
-  margin-top: 14px !important;
-  padding: 72px 12px 18px !important;
-  min-height: 130px !important;
-  border-radius: 16px !important;
-  border: 1px solid rgba(215,160,56,.65) !important;
-  background: radial-gradient(circle at 18% 50%, rgba(245,185,72,.28), transparent 22%), linear-gradient(180deg, #11100e, #070706) !important;
-  box-shadow: inset 0 0 0 1px rgba(255,220,130,.08), 0 0 22px rgba(184,121,29,.18) !important;
+  position: relative;
+  margin-top: 14px;
+  padding: 26px 12px 20px 78px;
+  min-height: 130px;
+  border-radius: 16px;
+  border: 1px solid rgba(215, 160, 56, 0.65);
+  background: radial-gradient(circle at 18% 50%, rgba(245, 185, 72, 0.28), transparent 22%),
+    linear-gradient(180deg, #11100e, #070706);
+  box-shadow: inset 0 0 0 1px rgba(255, 220, 130, 0.08), 0 0 22px rgba(184, 121, 29, 0.18);
 }
-.sideActions::before {
-  content: "Пройти Практикум\Aпо РИ БЕСПЛАТНО";
-  white-space: pre-line;
-  position: absolute;
-  left: 78px;
-  right: 12px;
-  top: 28px;
+
+.sideActions p {
+  margin: 0;
   color: #ffe2a3;
   font-size: 19px;
   line-height: 1.25;
-  text-transform: none;
-  text-align: left;
 }
-.sideActions::after {
-  content: "♧";
+
+.promoRune {
   position: absolute;
   left: 22px;
   top: 32px;
   color: #e3aa3f;
   font-size: 42px;
-  text-shadow: 0 0 16px rgba(255,191,64,.55);
 }
-.sideActions button { display: none !important; }
 
-/* === CENTER === */
-.stageCard { padding: 15px !important; }
-.stageHero { grid-template-columns: minmax(0, 1fr) 104px !important; gap: 11px !important; }
-.treeMedallion { width: 104px !important; height: 104px !important; font-size: 50px !important; }
-.treeMedallion::after { inset: -7px !important; }
-.stageCopy h2 { font-size: 34px !important; margin-top: 15px !important; }
-.stageCopy h3 { font-size: 31px !important; margin-bottom: 11px !important; }
-.introText { font-size: 14.5px !important; line-height: 1.5 !important; }
-.infoGrid { gap: 12px !important; margin-top: 13px !important; }
-.framed { padding: 13px !important; }
-.infoBox h4 { font-size: 13.5px !important; margin-bottom: 8px !important; }
-.infoBox p, .infoBox li { font-size: 13px !important; line-height: 1.48 !important; }
-.ctaRow { grid-template-columns: minmax(140px, 1fr) 96px 84px !important; gap: 6px !important; margin: 14px 0 !important; }
-.ctaRow button { font-size: 9.5px !important; padding: 8px 5px !important; border-radius: 10px !important; }
-.primaryCta small { font-size: 8.5px !important; }
-.studentNote { font-size: 12.5px !important; padding-top: 11px !important; }
-.studentNote div { gap: 10px !important; }
-.studentNote span, .studentNote a { font-size: 10.5px !important; }
+.stageCard {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.48);
+}
 
-/* === RIGHT BEIGE PRACTICE PANEL === */
-.practicePanel {
-  padding: 15px !important;
-  background: linear-gradient(180deg, rgba(255,248,236,.94), rgba(244,232,212,.93)) !important;
-  border-color: rgba(203,152,64,.42) !important;
+.stageHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px;
+  gap: 11px;
 }
-.practicePanel h2 { display: none !important; }
-.tabs {
-  display: grid !important;
-  grid-template-columns: repeat(4, 1fr) !important;
-  gap: 2px !important;
-  margin-bottom: 14px !important;
-  border-bottom: 1px solid rgba(174,114,28,.28) !important;
-}
-.tab {
-  font-size: 10px !important;
-  padding: 8px 1px !important;
-  color: #2d2117 !important;
-  border-radius: 10px 10px 0 0 !important;
-}
-.tab.active {
-  color: #9b681a !important;
-  border-bottom: 2px solid #b97b24 !important;
-}
-.exerciseList { gap: 10px !important; }
-.exerciseCard {
-  grid-template-columns: 76px minmax(0, 1fr) 0 34px !important;
-  gap: 10px !important;
-  padding: 9px !important;
-  border-radius: 13px !important;
-  background: linear-gradient(180deg, #171614, #070706) !important;
-  border-color: rgba(212,151,47,.5) !important;
-  box-shadow: 0 8px 18px rgba(44,28,10,.2) !important;
-}
-.exerciseIcon {
-  width: 76px !important;
-  height: 52px !important;
-  border-radius: 8px !important;
-  font-size: 0 !important;
-  background: radial-gradient(circle at 60% 45%, rgba(255,205,94,.65), transparent 22%), linear-gradient(135deg, #142418, #0b0a08 60%, #7d5517) !important;
-  border-color: rgba(226,178,86,.45) !important;
-}
-.exerciseText b { font-size: 12.5px !important; color: #fff4d7 !important; }
-.exerciseText p { font-size: 12px !important; line-height: 1.32 !important; margin: 4px 0 !important; color: rgba(255,244,215,.78) !important; }
-.exerciseText small { font-size: 10.5px !important; color: rgba(255,244,215,.72) !important; }
-.bookmark { display: none !important; }
-.play { width: 32px !important; height: 32px !important; font-size: 10px !important; }
-.allExercises { display: none !important; }
-.masterInvite {
-  grid-template-columns: 58px minmax(0, 1fr) !important;
-  gap: 12px !important;
-  padding: 14px !important;
-  margin: 16px 0 !important;
-  border-radius: 15px !important;
-  background: rgba(255,255,255,.42) !important;
-  border-color: rgba(174,114,28,.32) !important;
-}
-.profileIcon {
-  width: 58px !important;
-  height: 58px !important;
-  font-size: 28px !important;
-}
-.masterInvite b { font-size: 12.5px !important; }
-.masterInvite p { font-size: 12px !important; line-height: 1.4 !important; margin: 6px 0 !important; }
-.masterInvite button { padding: 7px 10px !important; font-size: 10px !important; }
-.pubHeader { margin: 12px 0 9px !important; font-size: 12.5px !important; }
-.pubHeader b { font-size: 0 !important; }
-.pubHeader b::after { content: "Мандалы студентов"; font-size: 13px !important; }
-.pubHeader a { font-size: 11px !important; }
-.publicationGrid {
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 8px !important;
-}
-.publicationCard {
-  display: block !important;
-  padding: 0 0 7px !important;
-  border-radius: 10px !important;
-  overflow: hidden !important;
-  background: rgba(255,255,255,.55) !important;
-}
-.publicationImage {
-  height: 70px !important;
-  border-radius: 0 !important;
-}
-.publicationCard b {
-  display: block !important;
-  padding: 6px 6px 1px !important;
-  font-size: 10px !important;
-  line-height: 1.15 !important;
-}
-.publicationCard small {
-  display: block !important;
-  padding: 0 6px !important;
-  font-size: 9px !important;
-}
-.practicePanel::after {
-  content: "АРТЕФАКТЫ СТУДЕНТОВ\A◉  Амулет Древа     ◉  Кристалл     ◉  Печать силы";
-  white-space: pre-line;
-  display: block;
-  margin-top: 14px;
-  padding: 11px;
-  border-radius: 13px;
-  border: 1px solid rgba(174,114,28,.32);
-  background: rgba(255,255,255,.45);
-  color: #8d5f19;
+
+.crumb {
+  margin: 0;
+  color: #6c6156;
+  text-transform: uppercase;
   font-size: 12px;
-  line-height: 1.7;
+  letter-spacing: 0.9px;
+}
+
+.stageCopy h2 {
+  font-size: 34px;
+  margin: 15px 0 0;
+  text-transform: uppercase;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.stageCopy h3 {
+  font-size: 31px;
+  margin: 8px 0 11px;
+  color: #9c6819;
+  text-transform: uppercase;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.introText {
+  font-size: 14.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.treeMedallion {
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: #080705;
+  border: 1px solid rgba(221, 163, 69, 0.7);
+  color: #f2c364;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+}
+
+.videoSettingsCard {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0 16px;
+}
+
+.videoSettingsCard button {
+  min-height: 46px;
+  width: min(100%, 520px);
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 121, 29, 0.62);
+  background: radial-gradient(circle at 18% 50%, rgba(255, 220, 140, 0.55), transparent 22%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.78), rgba(246, 232, 205, 0.9));
+  color: #7d520f;
+  font-size: 15px;
+  text-transform: uppercase;
+  box-shadow: 0 10px 22px rgba(132, 87, 17, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.framed {
+  padding: 13px;
+  border: 1px solid rgba(203, 152, 64, 0.31);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.43);
+}
+
+.infoBox h4 {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  color: #9a6618;
   text-transform: uppercase;
 }
 
-/* === MOBILE === */
-@media (max-width: 1180px) {
-  .dashboard { grid-template-columns: 245px minmax(0, 1fr) 335px !important; gap: 7px !important; padding-left: 7px !important; padding-right: 7px !important; grid-template-areas: none !important; }
-  .topbar { height: auto !important; min-height: 122px !important; padding: 12px 18px 14px !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; gap: 9px !important; }
-  .mainNav { display: flex !important; flex-wrap: wrap !important; justify-content: center !important; gap: 10px 16px !important; order: 2 !important; }
-  .mainNav span::after { font-size: 10.5px !important; }
-  .userTools { display: none !important; }
-  .brandBlock { min-width: 0 !important; justify-content: center !important; }
-  .brandBlock h1 { font-size: 25px !important; }
-  .brandBlock p { font-size: 10.5px !important; text-align: center !important; }
-  .logoSeal { width: 52px !important; height: 52px !important; font-size: 31px !important; }
-  .pianoStrings { top: 116px !important; min-width: 320px !important; }
+.infoBox p,
+.infoBox li {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.48;
 }
+
+.infoBox ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.practicePanel {
+  padding: 15px;
+  background: linear-gradient(180deg, rgba(255, 248, 236, 0.94), rgba(244, 232, 212, 0.93));
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(174, 114, 28, 0.28);
+}
+
+.tab {
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  padding: 8px 2px;
+  color: #2d2117;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.tab.active {
+  color: #9b681a;
+  border-bottom: 2px solid #b97b24;
+}
+
+.exerciseList {
+  display: grid;
+  gap: 10px;
+}
+
+.exerciseCard {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 34px;
+  gap: 10px;
+  align-items: center;
+  padding: 9px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #171614, #070706);
+  border: 1px solid rgba(212, 151, 47, 0.5);
+}
+
+.exercisePreview {
+  width: 76px;
+  height: 52px;
+  border-radius: 8px;
+  background: radial-gradient(circle at 60% 45%, rgba(255, 205, 94, 0.65), transparent 22%),
+    linear-gradient(135deg, #142418, #0b0a08 60%, #7d5517);
+  border: 1px solid rgba(226, 178, 86, 0.45);
+}
+
+.exerciseText b {
+  font-size: 12.5px;
+  color: #fff4d7;
+  text-transform: uppercase;
+}
+
+.exerciseText p {
+  margin: 4px 0;
+  font-size: 12px;
+  line-height: 1.32;
+  color: rgba(255, 244, 215, 0.78);
+}
+
+.exerciseText small {
+  font-size: 10.5px;
+  color: rgba(255, 244, 215, 0.72);
+}
+
+.play {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(226, 178, 86, 0.55);
+  background: #050504;
+  color: #f5c66a;
+}
+
+.allExercises {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #9a6618;
+  text-transform: uppercase;
+  padding: 10px 0;
+}
+
+.masterInvite {
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 14px;
+  border: 1px solid rgba(203, 152, 64, 0.32);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.38);
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.profileIcon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1px solid rgba(184, 121, 29, 0.5);
+  color: #9a6618;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+}
+
+.masterInvite b {
+  text-transform: uppercase;
+  color: #9a6618;
+}
+
+.masterInvite p {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.masterInvite button {
+  border: 1px solid rgba(184, 121, 29, 0.48);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #7d520f;
+  padding: 8px 12px;
+}
+
+.pubHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 0 8px;
+  color: #9a6618;
+}
+
+.pubHeader b {
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.pubHeader a {
+  font-size: 12px;
+}
+
+.publicationGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.publicationCard {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  border-radius: 12px;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+
+.publicationImage {
+  height: 92px;
+  background: radial-gradient(circle at center, rgba(247, 202, 103, 0.82), transparent 32%),
+    linear-gradient(135deg, #06111d, #0b0a08, #8a5a13);
+}
+
+.publicationImage.variant2 {
+  background: radial-gradient(circle at center, rgba(247, 202, 103, 0.78), transparent 30%),
+    linear-gradient(135deg, #111, #2d1a0b, #a36b16);
+}
+
+.publicationImage.variant3 {
+  background: radial-gradient(circle at center, rgba(247, 202, 103, 0.72), transparent 34%),
+    linear-gradient(135deg, #062018, #0b0a08, #986a1c);
+}
+
+.publicationCard b {
+  display: block;
+  padding: 8px 8px 2px;
+  font-size: 12px;
+}
+
+.publicationCard small {
+  display: block;
+  padding: 0 8px;
+  color: #6d6256;
+  font-size: 11px;
+}
+
+.settingsPanel {
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.settingsPanel h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: #9a6618;
+}
+
+.settingsPanel ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.settingsPanel a {
+  color: #6d4511;
+  font-size: 12px;
+  word-break: break-word;
+}
+
 @media (max-width: 980px) {
-  .dashboard { grid-template-columns: 1fr !important; max-width: 760px !important; }
-  .leftPiano { min-height: auto !important; }
-  .publicationGrid { grid-template-columns: repeat(3, 1fr) !important; }
+  .topbar {
+    height: auto;
+    padding: 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .brandBlock {
+    min-width: 0;
+  }
+
+  .mainNav {
+    width: 100%;
+    overflow-x: auto;
+    gap: 14px;
+  }
+
+  .userTools {
+    display: none;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .publicationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stageHero {
+    grid-template-columns: 1fr;
+  }
+
+  .videoSettingsCard button {
+    width: 100%;
+    font-size: 12.5px;
+  }
 }
