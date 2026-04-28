@@ -62,7 +62,6 @@ body { margin: 0; }
   text-transform: uppercase !important;
 }
 
-/* Visual relabeling of the existing 6 header items to match the desired navigation. */
 .mainNav { gap: 22px !important; font-size: 0 !important; letter-spacing: .95px !important; align-items: center !important; }
 .mainNav span { padding-top: 4px !important; color: #2c2117 !important; font-size: 0 !important; position: relative !important; }
 .mainNav span::after { font-size: 11px !important; text-transform: uppercase !important; letter-spacing: .85px !important; white-space: nowrap !important; }
@@ -77,24 +76,11 @@ body { margin: 0; }
 .userTools { min-width: 148px !important; gap: 12px !important; font-size: 12px !important; color: #20170f !important; }
 .userTools strong { font-size: 12px !important; letter-spacing: 1px !important; }
 
-/* Remove the unnecessary current-step banner everywhere. */
 .pathProgress { display: none !important; }
 
 /* Force compact 3-column desktop/Mac layout. Right column is intentionally wider. */
 @media (max-width: 1600px) {
-  .dashboard {
-    display: grid !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    grid-template-columns: 265px minmax(0, 1fr) 365px !important;
-    grid-template-areas: none !important;
-    gap: 9px !important;
-    padding-left: 9px !important;
-    padding-right: 9px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    overflow-x: hidden !important;
-  }
+  .dashboard { display: grid !important; width: 100% !important; max-width: 100vw !important; grid-template-columns: 265px minmax(0, 1fr) 365px !important; grid-template-areas: none !important; gap: 9px !important; padding-left: 9px !important; padding-right: 9px !important; margin-left: auto !important; margin-right: auto !important; overflow-x: hidden !important; }
   .leftPiano, .stageCard, .practicePanel { grid-area: auto !important; min-width: 0 !important; }
   .leftPiano { padding: 10px !important; }
   .stageCard { padding: 15px !important; }
@@ -155,13 +141,15 @@ body { margin: 0; }
 
 @media (max-width: 1180px) {
   .dashboard { grid-template-columns: 245px minmax(0, 1fr) 335px !important; gap: 7px !important; padding-left: 7px !important; padding-right: 7px !important; grid-template-areas: none !important; }
-  .mainNav, .userTools { display: none !important; }
-  .topbar { height: 82px !important; }
-  .brandBlock { min-width: 270px !important; }
+  .topbar { height: auto !important; min-height: 122px !important; padding: 12px 18px 14px !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; gap: 9px !important; }
+  .mainNav { display: flex !important; flex-wrap: wrap !important; justify-content: center !important; gap: 10px 16px !important; order: 2 !important; }
+  .mainNav span::after { font-size: 10.5px !important; }
+  .userTools { display: none !important; }
+  .brandBlock { min-width: 0 !important; justify-content: center !important; }
   .brandBlock h1 { font-size: 25px !important; }
-  .brandBlock p { font-size: 10.5px !important; }
+  .brandBlock p { font-size: 10.5px !important; text-align: center !important; }
   .logoSeal { width: 52px !important; height: 52px !important; font-size: 31px !important; }
-  .pianoStrings { top: 78px !important; min-width: 320px !important; }
+  .pianoStrings { top: 116px !important; min-width: 320px !important; }
 }
 
 @media (max-width: 980px) {
