@@ -6,13 +6,68 @@ body {
   margin: 0;
 }
 
+/* Refined header closer to the original mockup: light, airy, with subtle piano strings. */
+.topbar {
+  height: 82px !important;
+  padding: 0 26px !important;
+  background: linear-gradient(90deg, rgba(255,255,255,.9), rgba(250,244,235,.8)) !important;
+  border-bottom: 1px solid rgba(203,152,64,.34) !important;
+  box-shadow: 0 8px 24px rgba(88, 58, 19, .05) !important;
+}
+
+.pianoStrings {
+  right: 0 !important;
+  top: 76px !important;
+  width: 34vw !important;
+  min-width: 360px !important;
+  height: 28px !important;
+  opacity: .22 !important;
+  background: repeating-linear-gradient(165deg, transparent 0, transparent 10px, rgba(151,95,30,.55) 11px, transparent 12px) !important;
+}
+
+.brandBlock {
+  min-width: 310px !important;
+  gap: 13px !important;
+}
+
+.logoSeal {
+  width: 56px !important;
+  height: 56px !important;
+  font-size: 34px !important;
+  background: rgba(255,255,255,.85) !important;
+  box-shadow: 0 8px 22px rgba(83,55,16,.09) !important;
+}
+
+.brandBlock h1 {
+  font-size: 27px !important;
+  line-height: 1 !important;
+  letter-spacing: .5px !important;
+}
+
+.brandBlock p {
+  font-size: 10.5px !important;
+  letter-spacing: 1.25px !important;
+  margin-top: 6px !important;
+}
+
+.mainNav {
+  gap: 24px !important;
+  font-size: 11px !important;
+}
+
+.userTools {
+  min-width: 126px !important;
+  gap: 11px !important;
+  font-size: 12px !important;
+}
+
 /* Force compact 3-column desktop/Mac layout. */
 @media (max-width: 1600px) {
   .dashboard {
     display: grid !important;
     width: 100% !important;
     max-width: 100vw !important;
-    grid-template-columns: 275px minmax(0, 1fr) 295px !important;
+    grid-template-columns: 270px minmax(0, 1fr) 335px !important;
     grid-template-areas: none !important;
     gap: 9px !important;
     padding-left: 9px !important;
@@ -34,16 +89,16 @@ body {
   }
 
   .stageCard {
-    padding: 18px !important;
+    padding: 16px !important;
   }
 
   .practicePanel {
-    padding: 12px !important;
+    padding: 14px !important;
   }
 
   .practicePanel h2 {
-    margin: 0 0 10px !important;
-    font-size: 21px !important;
+    margin: 0 0 11px !important;
+    font-size: 23px !important;
   }
 
   .panelTitle {
@@ -112,41 +167,41 @@ body {
   }
 
   .stageHero {
-    grid-template-columns: minmax(0, 1fr) 118px !important;
-    gap: 14px !important;
+    grid-template-columns: minmax(0, 1fr) 112px !important;
+    gap: 12px !important;
   }
 
   .treeMedallion {
-    width: 118px !important;
-    height: 118px !important;
-    font-size: 56px !important;
+    width: 112px !important;
+    height: 112px !important;
+    font-size: 52px !important;
   }
 
   .treeMedallion::after {
-    inset: -9px !important;
+    inset: -8px !important;
   }
 
   .stageCopy h2 {
-    font-size: 38px !important;
-    margin-top: 18px !important;
+    font-size: 36px !important;
+    margin-top: 16px !important;
   }
 
   .stageCopy h3 {
-    font-size: 35px !important;
-    margin-bottom: 14px !important;
+    font-size: 33px !important;
+    margin-bottom: 12px !important;
   }
 
   .introText {
-    font-size: 14px !important;
-    line-height: 1.48 !important;
+    font-size: 13.5px !important;
+    line-height: 1.43 !important;
   }
 
   .pathProgress {
     grid-template-columns: 1fr auto 1fr !important;
-    gap: 8px !important;
-    padding: 10px !important;
-    margin: 16px 0 !important;
-    font-size: 12px !important;
+    gap: 7px !important;
+    padding: 9px !important;
+    margin: 14px 0 !important;
+    font-size: 11.5px !important;
   }
 
   .dot {
@@ -160,44 +215,44 @@ body {
   }
 
   .infoGrid {
-    gap: 14px !important;
-    margin-top: 14px !important;
+    gap: 12px !important;
+    margin-top: 13px !important;
   }
 
   .framed {
-    padding: 15px !important;
+    padding: 13px !important;
   }
 
   .infoBox h4 {
-    font-size: 13px !important;
-    margin-bottom: 8px !important;
+    font-size: 12.5px !important;
+    margin-bottom: 7px !important;
   }
 
   .infoBox p,
   .infoBox li {
-    font-size: 12.5px !important;
-    line-height: 1.45 !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
   }
 
   .ctaRow {
-    grid-template-columns: minmax(160px, 1fr) 112px 98px !important;
+    grid-template-columns: minmax(150px, 1fr) 104px 92px !important;
     gap: 7px !important;
-    margin: 16px 0 !important;
+    margin: 14px 0 !important;
   }
 
   .ctaRow button {
-    font-size: 10px !important;
-    padding: 9px 7px !important;
-    border-radius: 11px !important;
+    font-size: 9.5px !important;
+    padding: 8px 6px !important;
+    border-radius: 10px !important;
   }
 
   .primaryCta small {
-    font-size: 9px !important;
+    font-size: 8.5px !important;
   }
 
   .studentNote {
-    font-size: 12.5px !important;
-    padding-top: 12px !important;
+    font-size: 12px !important;
+    padding-top: 11px !important;
   }
 
   .studentNote div {
@@ -206,56 +261,56 @@ body {
 
   .studentNote span,
   .studentNote a {
-    font-size: 10.5px !important;
+    font-size: 10px !important;
   }
 
   .tabs {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(4, 1fr) !important;
     gap: 2px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 11px !important;
   }
 
   .tab {
-    font-size: 10px !important;
-    padding: 7px 2px !important;
+    font-size: 9px !important;
+    padding: 7px 1px !important;
   }
 
   .exerciseList {
-    gap: 8px !important;
+    gap: 9px !important;
   }
 
   .exerciseCard {
-    grid-template-columns: 38px minmax(0, 1fr) 26px 30px !important;
-    gap: 7px !important;
-    padding: 8px !important;
-    border-radius: 12px !important;
+    grid-template-columns: 42px minmax(0, 1fr) 28px 32px !important;
+    gap: 8px !important;
+    padding: 9px !important;
+    border-radius: 13px !important;
   }
 
   .exerciseIcon {
-    width: 38px !important;
-    height: 38px !important;
-    font-size: 18px !important;
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 19px !important;
   }
 
   .exerciseText b {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
 
   .exerciseText p {
-    font-size: 10.5px !important;
-    line-height: 1.2 !important;
+    font-size: 11px !important;
+    line-height: 1.25 !important;
     margin: 3px 0 !important;
   }
 
   .exerciseText small {
-    font-size: 9.5px !important;
+    font-size: 10px !important;
   }
 
   .bookmark,
   .play {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 9px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 9.5px !important;
   }
 
   .allExercises {
@@ -264,26 +319,26 @@ body {
   }
 
   .masterInvite {
-    grid-template-columns: 38px minmax(0, 1fr) !important;
-    gap: 9px !important;
-    padding: 9px !important;
-    margin: 10px 0 !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 10px !important;
+    margin: 11px 0 !important;
     border-radius: 14px !important;
   }
 
   .profileIcon {
-    width: 38px !important;
-    height: 38px !important;
-    font-size: 21px !important;
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 22px !important;
   }
 
   .masterInvite b {
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
 
   .masterInvite p {
-    font-size: 10.5px !important;
-    line-height: 1.28 !important;
+    font-size: 11px !important;
+    line-height: 1.32 !important;
     margin: 5px 0 !important;
   }
 
@@ -293,7 +348,7 @@ body {
   }
 
   .pubHeader {
-    margin: 10px 0 8px !important;
+    margin: 11px 0 8px !important;
     font-size: 12px !important;
   }
 
@@ -308,7 +363,7 @@ body {
 
   .publicationCard {
     display: grid !important;
-    grid-template-columns: 62px minmax(0, 1fr) !important;
+    grid-template-columns: 68px minmax(0, 1fr) !important;
     column-gap: 8px !important;
     padding: 7px !important;
     border-radius: 12px !important;
@@ -316,7 +371,7 @@ body {
 
   .publicationImage {
     grid-row: span 2 !important;
-    height: 56px !important;
+    height: 60px !important;
     border-radius: 9px !important;
   }
 
@@ -330,18 +385,18 @@ body {
   .publicationCard b {
     padding: 0 !important;
     align-self: end !important;
-    font-size: 11px !important;
+    font-size: 11.5px !important;
   }
 
   .publicationCard small {
     padding: 0 !important;
-    font-size: 10px !important;
+    font-size: 10.5px !important;
   }
 }
 
 @media (max-width: 1180px) {
   .dashboard {
-    grid-template-columns: 255px minmax(0, 1fr) 270px !important;
+    grid-template-columns: 250px minmax(0, 1fr) 310px !important;
     gap: 7px !important;
     padding-left: 7px !important;
     padding-right: 7px !important;
@@ -354,7 +409,7 @@ body {
   }
 
   .topbar {
-    height: 74px !important;
+    height: 72px !important;
   }
 
   .brandBlock {
