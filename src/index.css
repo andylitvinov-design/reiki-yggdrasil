@@ -4,7 +4,7 @@
 
 body { margin: 0; }
 
-/* Header closer to the mockup: light luxury bar, clear navigation, piano strings. */
+/* === HEADER === */
 .topbar {
   height: 98px !important;
   padding: 0 34px !important;
@@ -61,7 +61,6 @@ body { margin: 0; }
   color: #7a6b5a !important;
   text-transform: uppercase !important;
 }
-
 .mainNav { gap: 22px !important; font-size: 0 !important; letter-spacing: .95px !important; align-items: center !important; }
 .mainNav span { padding-top: 4px !important; color: #2c2117 !important; font-size: 0 !important; position: relative !important; }
 .mainNav span::after { font-size: 11px !important; text-transform: uppercase !important; letter-spacing: .85px !important; white-space: nowrap !important; }
@@ -76,69 +75,254 @@ body { margin: 0; }
 .userTools { min-width: 148px !important; gap: 12px !important; font-size: 12px !important; color: #20170f !important; }
 .userTools strong { font-size: 12px !important; letter-spacing: 1px !important; }
 
+/* Remove old current-step banner */
 .pathProgress { display: none !important; }
 
-/* Force compact 3-column desktop/Mac layout. Right column is intentionally wider. */
+/* === 3-COLUMN DESKTOP LAYOUT === */
 @media (max-width: 1600px) {
-  .dashboard { display: grid !important; width: 100% !important; max-width: 100vw !important; grid-template-columns: 265px minmax(0, 1fr) 365px !important; grid-template-areas: none !important; gap: 9px !important; padding-left: 9px !important; padding-right: 9px !important; margin-left: auto !important; margin-right: auto !important; overflow-x: hidden !important; }
+  .dashboard {
+    display: grid !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    grid-template-columns: 265px minmax(0, 1fr) 365px !important;
+    grid-template-areas: none !important;
+    gap: 9px !important;
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow-x: hidden !important;
+  }
   .leftPiano, .stageCard, .practicePanel { grid-area: auto !important; min-width: 0 !important; }
-  .leftPiano { padding: 10px !important; }
-  .stageCard { padding: 15px !important; }
-  .practicePanel { padding: 15px !important; }
-  .practicePanel h2 { margin: 0 0 12px !important; font-size: 25px !important; }
-  .panelTitle { font-size: 12px !important; padding-bottom: 12px !important; margin-bottom: 10px !important; }
-  .rootLevel, .closedLevel { padding: 10px !important; gap: 9px !important; border-radius: 14px !important; margin-bottom: 7px !important; }
-  .rootLevel b, .closedLevel b { font-size: 25px !important; min-width: 25px !important; }
-  .rootLevel span, .closedLevel span { font-size: 12px !important; }
-  .rootLevel small, .closedLevel small { font-size: 11px !important; }
-  .keysList { gap: 6px !important; margin: 10px 0 !important; }
-  .pianoKey { height: 56px !important; border-radius: 12px !important; }
-  .pianoKey i { width: 86px !important; height: 27px !important; }
-  .pianoKey b { margin-left: 86px !important; font-size: 25px !important; }
-  .pianoKey span { margin-left: 13px !important; font-size: 10px !important; }
-  .sideActions { gap: 8px !important; margin-top: 12px !important; }
-  .sideActions button { padding: 10px !important; font-size: 11px !important; }
-  .stageHero { grid-template-columns: minmax(0, 1fr) 104px !important; gap: 11px !important; }
-  .treeMedallion { width: 104px !important; height: 104px !important; font-size: 50px !important; }
-  .treeMedallion::after { inset: -7px !important; }
-  .stageCopy h2 { font-size: 34px !important; margin-top: 15px !important; }
-  .stageCopy h3 { font-size: 31px !important; margin-bottom: 11px !important; }
-  .introText { font-size: 14.5px !important; line-height: 1.5 !important; }
-  .infoGrid { gap: 12px !important; margin-top: 13px !important; }
-  .framed { padding: 13px !important; }
-  .infoBox h4 { font-size: 13.5px !important; margin-bottom: 8px !important; }
-  .infoBox p, .infoBox li { font-size: 13px !important; line-height: 1.48 !important; }
-  .ctaRow { grid-template-columns: minmax(140px, 1fr) 96px 84px !important; gap: 6px !important; margin: 14px 0 !important; }
-  .ctaRow button { font-size: 9.5px !important; padding: 8px 5px !important; border-radius: 10px !important; }
-  .primaryCta small { font-size: 8.5px !important; }
-  .studentNote { font-size: 12.5px !important; padding-top: 11px !important; }
-  .studentNote div { gap: 10px !important; }
-  .studentNote span, .studentNote a { font-size: 10.5px !important; }
-  .tabs { grid-template-columns: repeat(4, 1fr) !important; gap: 2px !important; margin-bottom: 12px !important; }
-  .tab { font-size: 10px !important; padding: 8px 1px !important; }
-  .exerciseList { gap: 10px !important; }
-  .exerciseCard { grid-template-columns: 46px minmax(0, 1fr) 30px 34px !important; gap: 9px !important; padding: 10px !important; border-radius: 14px !important; }
-  .exerciseIcon { width: 46px !important; height: 46px !important; font-size: 21px !important; }
-  .exerciseText b { font-size: 12.5px !important; }
-  .exerciseText p { font-size: 12px !important; line-height: 1.32 !important; margin: 4px 0 !important; }
-  .exerciseText small { font-size: 10.5px !important; }
-  .bookmark, .play { width: 32px !important; height: 32px !important; font-size: 10px !important; }
-  .allExercises { padding: 10px !important; font-size: 11.5px !important; }
-  .masterInvite { grid-template-columns: 46px minmax(0, 1fr) !important; gap: 11px !important; padding: 11px !important; margin: 12px 0 !important; border-radius: 15px !important; }
-  .profileIcon { width: 46px !important; height: 46px !important; font-size: 24px !important; }
-  .masterInvite b { font-size: 12.5px !important; }
-  .masterInvite p { font-size: 12px !important; line-height: 1.4 !important; margin: 6px 0 !important; }
-  .masterInvite button { padding: 7px 10px !important; font-size: 10px !important; }
-  .pubHeader { margin: 12px 0 9px !important; font-size: 12.5px !important; }
-  .pubHeader a { font-size: 11px !important; }
-  .publicationGrid { grid-template-columns: 1fr !important; gap: 8px !important; }
-  .publicationCard { display: grid !important; grid-template-columns: 72px minmax(0, 1fr) !important; column-gap: 9px !important; padding: 8px !important; border-radius: 13px !important; }
-  .publicationImage { grid-row: span 2 !important; height: 64px !important; border-radius: 10px !important; }
-  .publicationImage span { font-size: 8.5px !important; left: 5px !important; bottom: 5px !important; padding: 2px 4px !important; }
-  .publicationCard b { padding: 0 !important; align-self: end !important; font-size: 12.5px !important; }
-  .publicationCard small { padding: 0 !important; font-size: 11px !important; }
 }
 
+/* === LEFT PIANO PANEL === */
+.leftPiano {
+  padding: 10px !important;
+  background: linear-gradient(180deg, #171716, #080807) !important;
+  border-color: rgba(212,151,47,.55) !important;
+}
+.panelTitle { font-size: 12px !important; padding-bottom: 12px !important; margin-bottom: 10px !important; }
+.rootLevel, .closedLevel {
+  padding: 10px !important;
+  gap: 9px !important;
+  border-radius: 14px !important;
+  margin-bottom: 7px !important;
+  background: linear-gradient(180deg, rgba(16,15,14,.98), rgba(8,8,7,.98)) !important;
+  border-color: rgba(196,135,34,.5) !important;
+}
+.rootLevel b, .closedLevel b { font-size: 25px !important; min-width: 25px !important; }
+.rootLevel span, .closedLevel span { font-size: 12px !important; }
+.rootLevel small, .closedLevel small { font-size: 11px !important; }
+.keysList { gap: 6px !important; margin: 10px 0 !important; }
+.pianoKey {
+  height: 56px !important;
+  border-radius: 11px !important;
+  background: linear-gradient(180deg, #fff9ee, #efe2cf) !important;
+  border-color: rgba(92,58,12,.28) !important;
+  box-shadow: inset 0 -9px 18px rgba(50,30,10,.07), 0 1px 0 rgba(255,255,255,.75) !important;
+}
+.pianoKey i {
+  width: 76px !important;
+  height: 28px !important;
+  left: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border-radius: 6px !important;
+  background: linear-gradient(180deg, #23211f, #020202 78%) !important;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,.16), 0 6px 12px rgba(0,0,0,.45) !important;
+}
+.pianoKey b {
+  margin-left: 104px !important;
+  font-size: 25px !important;
+  color: #9f6918 !important;
+}
+.pianoKey span { margin-left: 13px !important; font-size: 10px !important; }
+.pianoKey.selected {
+  background: linear-gradient(90deg, #050505 0%, #7e510f 31%, #d6952d 80%, #ffc861 100%) !important;
+  color: #fff !important;
+  border-color: #ffd374 !important;
+  box-shadow: 0 0 22px rgba(255,180,48,.72), inset 0 0 22px rgba(255,224,130,.22) !important;
+}
+.pianoKey.selected b, .pianoKey.selected span { color: #fff !important; }
+.pianoKey.selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 50%, rgba(255,244,178,.95), transparent 14%), radial-gradient(circle at 72% 58%, rgba(255,196,69,.55), transparent 18%);
+  pointer-events: none;
+}
+.glowRune {
+  right: 12px !important;
+  color: #fff1b5 !important;
+  text-shadow: 0 0 18px #ffd15a, 0 0 28px #ffb52e !important;
+  z-index: 3 !important;
+}
+.sideActions {
+  position: relative !important;
+  gap: 0 !important;
+  margin-top: 14px !important;
+  padding: 72px 12px 18px !important;
+  min-height: 130px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(215,160,56,.65) !important;
+  background: radial-gradient(circle at 18% 50%, rgba(245,185,72,.28), transparent 22%), linear-gradient(180deg, #11100e, #070706) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,220,130,.08), 0 0 22px rgba(184,121,29,.18) !important;
+}
+.sideActions::before {
+  content: "Пройти Практикум\Aпо РИ БЕСПЛАТНО";
+  white-space: pre-line;
+  position: absolute;
+  left: 78px;
+  right: 12px;
+  top: 28px;
+  color: #ffe2a3;
+  font-size: 19px;
+  line-height: 1.25;
+  text-transform: none;
+  text-align: left;
+}
+.sideActions::after {
+  content: "♧";
+  position: absolute;
+  left: 22px;
+  top: 32px;
+  color: #e3aa3f;
+  font-size: 42px;
+  text-shadow: 0 0 16px rgba(255,191,64,.55);
+}
+.sideActions button { display: none !important; }
+
+/* === CENTER === */
+.stageCard { padding: 15px !important; }
+.stageHero { grid-template-columns: minmax(0, 1fr) 104px !important; gap: 11px !important; }
+.treeMedallion { width: 104px !important; height: 104px !important; font-size: 50px !important; }
+.treeMedallion::after { inset: -7px !important; }
+.stageCopy h2 { font-size: 34px !important; margin-top: 15px !important; }
+.stageCopy h3 { font-size: 31px !important; margin-bottom: 11px !important; }
+.introText { font-size: 14.5px !important; line-height: 1.5 !important; }
+.infoGrid { gap: 12px !important; margin-top: 13px !important; }
+.framed { padding: 13px !important; }
+.infoBox h4 { font-size: 13.5px !important; margin-bottom: 8px !important; }
+.infoBox p, .infoBox li { font-size: 13px !important; line-height: 1.48 !important; }
+.ctaRow { grid-template-columns: minmax(140px, 1fr) 96px 84px !important; gap: 6px !important; margin: 14px 0 !important; }
+.ctaRow button { font-size: 9.5px !important; padding: 8px 5px !important; border-radius: 10px !important; }
+.primaryCta small { font-size: 8.5px !important; }
+.studentNote { font-size: 12.5px !important; padding-top: 11px !important; }
+.studentNote div { gap: 10px !important; }
+.studentNote span, .studentNote a { font-size: 10.5px !important; }
+
+/* === RIGHT BEIGE PRACTICE PANEL === */
+.practicePanel {
+  padding: 15px !important;
+  background: linear-gradient(180deg, rgba(255,248,236,.94), rgba(244,232,212,.93)) !important;
+  border-color: rgba(203,152,64,.42) !important;
+}
+.practicePanel h2 { display: none !important; }
+.tabs {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 2px !important;
+  margin-bottom: 14px !important;
+  border-bottom: 1px solid rgba(174,114,28,.28) !important;
+}
+.tab {
+  font-size: 10px !important;
+  padding: 8px 1px !important;
+  color: #2d2117 !important;
+  border-radius: 10px 10px 0 0 !important;
+}
+.tab.active {
+  color: #9b681a !important;
+  border-bottom: 2px solid #b97b24 !important;
+}
+.exerciseList { gap: 10px !important; }
+.exerciseCard {
+  grid-template-columns: 76px minmax(0, 1fr) 0 34px !important;
+  gap: 10px !important;
+  padding: 9px !important;
+  border-radius: 13px !important;
+  background: linear-gradient(180deg, #171614, #070706) !important;
+  border-color: rgba(212,151,47,.5) !important;
+  box-shadow: 0 8px 18px rgba(44,28,10,.2) !important;
+}
+.exerciseIcon {
+  width: 76px !important;
+  height: 52px !important;
+  border-radius: 8px !important;
+  font-size: 0 !important;
+  background: radial-gradient(circle at 60% 45%, rgba(255,205,94,.65), transparent 22%), linear-gradient(135deg, #142418, #0b0a08 60%, #7d5517) !important;
+  border-color: rgba(226,178,86,.45) !important;
+}
+.exerciseText b { font-size: 12.5px !important; color: #fff4d7 !important; }
+.exerciseText p { font-size: 12px !important; line-height: 1.32 !important; margin: 4px 0 !important; color: rgba(255,244,215,.78) !important; }
+.exerciseText small { font-size: 10.5px !important; color: rgba(255,244,215,.72) !important; }
+.bookmark { display: none !important; }
+.play { width: 32px !important; height: 32px !important; font-size: 10px !important; }
+.allExercises { display: none !important; }
+.masterInvite {
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  margin: 16px 0 !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.42) !important;
+  border-color: rgba(174,114,28,.32) !important;
+}
+.profileIcon {
+  width: 58px !important;
+  height: 58px !important;
+  font-size: 28px !important;
+}
+.masterInvite b { font-size: 12.5px !important; }
+.masterInvite p { font-size: 12px !important; line-height: 1.4 !important; margin: 6px 0 !important; }
+.masterInvite button { padding: 7px 10px !important; font-size: 10px !important; }
+.pubHeader { margin: 12px 0 9px !important; font-size: 12.5px !important; }
+.pubHeader b { font-size: 0 !important; }
+.pubHeader b::after { content: "Мандалы студентов"; font-size: 13px !important; }
+.pubHeader a { font-size: 11px !important; }
+.publicationGrid {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+}
+.publicationCard {
+  display: block !important;
+  padding: 0 0 7px !important;
+  border-radius: 10px !important;
+  overflow: hidden !important;
+  background: rgba(255,255,255,.55) !important;
+}
+.publicationImage {
+  height: 70px !important;
+  border-radius: 0 !important;
+}
+.publicationCard b {
+  display: block !important;
+  padding: 6px 6px 1px !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+}
+.publicationCard small {
+  display: block !important;
+  padding: 0 6px !important;
+  font-size: 9px !important;
+}
+.practicePanel::after {
+  content: "АРТЕФАКТЫ СТУДЕНТОВ\A◉  Амулет Древа     ◉  Кристалл     ◉  Печать силы";
+  white-space: pre-line;
+  display: block;
+  margin-top: 14px;
+  padding: 11px;
+  border-radius: 13px;
+  border: 1px solid rgba(174,114,28,.32);
+  background: rgba(255,255,255,.45);
+  color: #8d5f19;
+  font-size: 12px;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+/* === MOBILE === */
 @media (max-width: 1180px) {
   .dashboard { grid-template-columns: 245px minmax(0, 1fr) 335px !important; gap: 7px !important; padding-left: 7px !important; padding-right: 7px !important; grid-template-areas: none !important; }
   .topbar { height: auto !important; min-height: 122px !important; padding: 12px 18px 14px !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; gap: 9px !important; }
@@ -151,8 +335,8 @@ body { margin: 0; }
   .logoSeal { width: 52px !important; height: 52px !important; font-size: 31px !important; }
   .pianoStrings { top: 116px !important; min-width: 320px !important; }
 }
-
 @media (max-width: 980px) {
   .dashboard { grid-template-columns: 1fr !important; max-width: 760px !important; }
   .leftPiano { min-height: auto !important; }
+  .publicationGrid { grid-template-columns: repeat(3, 1fr) !important; }
 }
