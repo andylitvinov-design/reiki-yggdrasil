@@ -153,6 +153,49 @@ button {
   overflow-x: hidden;
 }
 
+.dashboard > * {
+  min-width: 0;
+}
+
+.dashboard-details .contentPane,
+.dashboard-practice .contentPane {
+  grid-column: 2 / 4;
+}
+
+.rightPaneAnchor {
+  display: none;
+}
+
+.contentPane {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mainTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mainTab {
+  min-height: 46px;
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #3a2b1c;
+  font-size: 13px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.mainTab.active {
+  background: linear-gradient(135deg, #14110d, #8a5a13 62%, #d89833);
+  border-color: rgba(245, 198, 106, 0.72);
+  color: #fff4d7;
+  box-shadow: 0 12px 28px rgba(90, 57, 17, 0.18);
+}
+
 .leftPiano,
 .stageCard,
 .practicePanel {
@@ -221,67 +264,99 @@ button {
 
 .keysList {
   display: grid;
-  gap: 6px;
-  margin: 10px 0;
+  gap: 0;
+  margin: 10px 0 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(87, 55, 14, 0.36);
 }
 
 .pianoKey {
   position: relative;
-  height: 56px;
-  display: flex;
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr) auto;
+  gap: 9px;
   align-items: center;
-  border-radius: 11px;
-  border: 1px solid rgba(92, 58, 12, 0.28);
-  background: linear-gradient(180deg, #fff9ee, #efe2cf);
-  box-shadow: inset 0 -9px 18px rgba(50, 30, 10, 0.07), 0 1px 0 rgba(255, 255, 255, 0.75);
+  width: 100%;
+  padding: 9px 20px 9px 14px;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(107, 73, 26, 0.27);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, #fff7e8 62%, #e7d8c3 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset -11px 0 16px rgba(74, 44, 12, 0.12),
+    inset 0 -6px 12px rgba(83, 49, 12, 0.08);
   overflow: hidden;
+  text-align: left;
+  color: #111;
 }
 
-.pianoKey i {
+.pianoKey:last-child {
+  border-bottom: 0;
+}
+
+.pianoKey::before {
+  content: "";
   position: absolute;
-  width: 76px;
-  height: 28px;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  border-radius: 6px;
-  background: linear-gradient(180deg, #23211f, #020202 78%);
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.16), 0 6px 12px rgba(0, 0, 0, 0.45);
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: linear-gradient(180deg, #fefaf1, #c7a56f);
 }
 
-.pianoKey b {
-  margin-left: 104px;
-  font-size: 25px;
-  color: #9f6918;
+.pianoKey::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  bottom: 9px;
+  width: 9px;
+  border-radius: 999px;
+  background: rgba(38, 29, 18, 0.16);
+}
+
+.keyStageName {
+  position: relative;
   z-index: 1;
-  font-weight: 400;
-}
-
-.pianoKey span {
-  margin-left: 13px;
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.7px;
+  color: #050505;
+  line-height: 1.2;
+}
+
+.keyStageTitle {
+  position: relative;
   z-index: 1;
+  min-width: 0;
+  color: #111;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 
 .pianoKey.selected {
-  background: linear-gradient(90deg, #050505 0%, #7e510f 31%, #d6952d 80%, #ffc861 100%);
-  border-color: #ffd374;
+  background: linear-gradient(90deg, #191511 0%, #7e510f 35%, #d6952d 82%, #ffc861 100%);
   box-shadow: 0 0 22px rgba(255, 180, 48, 0.72), inset 0 0 22px rgba(255, 224, 130, 0.22);
 }
 
 .pianoKey.selected::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  border-radius: 0;
   background: radial-gradient(circle at 85% 50%, rgba(255, 244, 178, 0.95), transparent 14%),
     radial-gradient(circle at 72% 58%, rgba(255, 196, 69, 0.55), transparent 18%);
 }
 
-.pianoKey.selected b,
-.pianoKey.selected span {
+.pianoKey.selected .keyStageName,
+.pianoKey.selected .keyStageTitle {
   color: #ffffff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
 }
 
 .glowRune {
@@ -324,6 +399,47 @@ button {
   background: rgba(255, 255, 255, 0.48);
 }
 
+.stageCardDetails {
+  display: grid;
+  gap: 16px;
+}
+
+.practiceLead {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.practiceLeadCard {
+  border: 1px solid rgba(203, 152, 64, 0.31);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 14px;
+}
+
+.practiceLeadCard.accent {
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.92), rgba(248, 236, 211, 0.9));
+}
+
+.practiceLeadCard b,
+.practiceLeadCard a {
+  display: block;
+  color: #8d5d16;
+  text-transform: uppercase;
+}
+
+.practiceLeadCard p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.practiceLeadCard a {
+  margin-top: 10px;
+  text-decoration: none;
+}
+
 .stageHero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 104px;
@@ -361,6 +477,52 @@ button {
   margin: 0;
 }
 
+.stageStepsList {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(162, 117, 43, 0.22);
+}
+
+.stageStepsList > b {
+  display: block;
+  margin-bottom: 7px;
+  color: #8b5d18;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.stageStepsList ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 18px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.stageStepsList li {
+  color: #9c6819;
+  font-size: 13px;
+  line-height: 1.32;
+}
+
+.stageStepsList a {
+  color: #21180f;
+  text-decoration: none;
+}
+
+.stageStepsList a span {
+  color: #8b5d18;
+  font-weight: 700;
+  margin-right: 5px;
+}
+
+.stageStepsList a.active,
+.stageStepsList a:hover {
+  color: #9c6819;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .treeMedallion {
   width: 104px;
   height: 104px;
@@ -392,6 +554,85 @@ button {
   font-size: 15px;
   text-transform: uppercase;
   box-shadow: 0 10px 22px rgba(132, 87, 17, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.detailsLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+  gap: 14px;
+}
+
+.detailsTextCard,
+.detailsVideoCard,
+.detailsMaterialsCard {
+  min-width: 0;
+  border: 1px solid rgba(203, 152, 64, 0.31);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 16px;
+}
+
+.detailsTextCard {
+  grid-row: span 2;
+}
+
+.detailsVideoCard {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 14px;
+  background: linear-gradient(145deg, #11100e, #050504);
+  border-color: rgba(226, 178, 86, 0.42);
+  color: #f4ead9;
+}
+
+.videoGlyph {
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(226, 178, 86, 0.55);
+  border-radius: 50%;
+  color: #f1c06b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 50%, rgba(245, 198, 106, 0.24), transparent 62%);
+}
+
+.detailsTextCard b,
+.detailsVideoCard b,
+.detailsMaterialsCard b {
+  display: block;
+  margin-bottom: 8px;
+  color: #9a6618;
+  text-transform: uppercase;
+}
+
+.detailsVideoCard b {
+  color: #f1c06b;
+}
+
+.detailsTextCard p,
+.detailsVideoCard p,
+.detailsMaterialsCard li {
+  margin: 0 0 9px;
+  line-height: 1.55;
+}
+
+.detailsVideoCard p {
+  color: rgba(244, 234, 217, 0.78);
+}
+
+.detailsActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.detailsMaterialsCard ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
 }
 
 .infoGrid {
@@ -432,6 +673,26 @@ button {
   background: linear-gradient(180deg, rgba(255, 248, 236, 0.94), rgba(244, 232, 212, 0.93));
 }
 
+.practicePanelTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #8d5d16;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.practicePanelTitle span,
+.practicePanelTitle b {
+  font-size: 12px;
+}
+
+.practicePanelFull {
+  min-height: 100%;
+  padding: clamp(18px, 2.4vw, 30px);
+}
+
 .tabs {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -454,24 +715,106 @@ button {
   border-bottom: 2px solid #b97b24;
 }
 
+.practiceFlowHeader {
+  margin-bottom: 12px;
+}
+
+.practiceFlowHeader b {
+  display: block;
+  color: #8d5d16;
+  text-transform: uppercase;
+}
+
+.practiceFlowHeader p,
+.inlineNote {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #6a5b4a;
+}
+
 .exerciseList {
   display: grid;
   gap: 10px;
 }
 
+.audioMeditations {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.audioMeditationsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #8d5d16;
+  text-transform: uppercase;
+}
+
+.audioMeditationsHeader b,
+.audioMeditationsHeader span {
+  font-size: 12px;
+}
+
+.audioMeditationGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.audioMeditationCard {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid rgba(239, 190, 94, 0.28);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #050505, #15110c);
+  color: #f4ead9;
+  padding: 10px;
+  box-shadow: 0 10px 24px rgba(26, 17, 8, 0.2);
+}
+
+.audioMeditationCard b {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.audioMeditationCard p {
+  margin: 0;
+  color: #c9bca8;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.audioMeditationCard audio {
+  width: 100%;
+  height: 34px;
+}
+
+.audioMeditationMeta span {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid rgba(239, 190, 94, 0.3);
+  border-radius: 999px;
+  color: #f1c06b;
+  padding: 3px 7px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
 .exerciseCard {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr) 34px;
+  grid-template-columns: 46px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   padding: 9px;
   border-radius: 13px;
-  background: linear-gradient(180deg, #171614, #070706);
-  border: 1px solid rgba(212, 151, 47, 0.5);
+  background: rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(184, 121, 29, 0.26);
 }
 
 .exercisePreview {
-  width: 76px;
+  width: 42px;
   height: 52px;
   border-radius: 8px;
   background: radial-gradient(circle at 60% 45%, rgba(255, 205, 94, 0.65), transparent 22%),
@@ -479,9 +822,19 @@ button {
   border: 1px solid rgba(226, 178, 86, 0.45);
 }
 
+.exercisePreview span {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  color: #f7d690;
+  font-size: 20px;
+}
+
 .exerciseText b {
   font-size: 12.5px;
-  color: #fff4d7;
+  color: #8d5d16;
   text-transform: uppercase;
 }
 
@@ -489,12 +842,12 @@ button {
   margin: 4px 0;
   font-size: 12px;
   line-height: 1.32;
-  color: rgba(255, 244, 215, 0.78);
+  color: #47382b;
 }
 
 .exerciseText small {
   font-size: 10.5px;
-  color: rgba(255, 244, 215, 0.72);
+  color: #6a5b4a;
 }
 
 .play {
@@ -513,6 +866,71 @@ button {
   color: #9a6618;
   text-transform: uppercase;
   padding: 10px 0;
+}
+
+.practiceItemCard {
+  grid-template-columns: 46px minmax(0, 1fr);
+}
+
+.practiceTile {
+  align-items: start;
+  background: linear-gradient(145deg, #050505, #15110c);
+  border-color: rgba(239, 190, 94, 0.34);
+  color: #f4ead9;
+  box-shadow: 0 14px 28px rgba(26, 17, 8, 0.2);
+}
+
+.practiceTile.large {
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.practiceTile .exerciseText b {
+  color: #f1c06b;
+}
+
+.practiceTile .exerciseText p,
+.practiceTile .exerciseText small {
+  color: rgba(244, 234, 217, 0.78);
+}
+
+.practiceTile.large .exerciseText b {
+  font-size: 15px;
+}
+
+.practiceTile.large .exerciseText p {
+  font-size: 13.5px;
+  line-height: 1.48;
+}
+
+.practiceItemAction {
+  grid-column: 2;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.practiceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 6px;
+}
+
+.btnLike.dark {
+  background: linear-gradient(135deg, #11100e, #050504);
+  border-color: rgba(226, 178, 86, 0.5);
+  color: #f1c06b;
+}
+
+.textAction {
+  color: #7d520f;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.4px;
 }
 
 .masterInvite {
@@ -631,6 +1049,55 @@ button {
   color: #9a6618;
 }
 
+.settingsCardGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.settingsSourceCard {
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 12px;
+}
+
+.settingsSourceCard.disabled {
+  opacity: 0.6;
+}
+
+.settingsSourceMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #8d5d16;
+  letter-spacing: 0.6px;
+}
+
+.settingsSourceCard h3 {
+  margin: 8px 0 6px;
+  font-size: 15px;
+  color: #2c2117;
+}
+
+.settingsSourceCard p {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.settingsSourceCard a,
+.settingsSourceCard button {
+  border: 1px solid rgba(184, 121, 29, 0.48);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #7d520f;
+  padding: 8px 12px;
+  text-decoration: none;
+  display: inline-block;
+}
+
 .settingsPanel ul {
   margin: 0;
   padding-left: 18px;
@@ -690,5 +1157,381 @@ button {
   .videoSettingsCard button {
     width: 100%;
     font-size: 12.5px;
+  }
+}
+
+.mainNav a {
+  color: #2c2117;
+  text-decoration: none;
+}
+
+.btnLike {
+  border: 1px solid rgba(184, 121, 29, 0.48);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  color: #7d520f;
+  padding: 8px 12px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.mastersGrid.compact {
+  grid-template-columns: 1fr;
+}
+
+.langToggle {
+  border: 1px solid rgba(184, 121, 29, 0.48);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #7d520f;
+  padding: 6px 10px;
+}
+
+.profileLayout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.profileCard {
+  border-radius: 22px;
+  border: 1px solid var(--panel-line);
+  box-shadow: 0 14px 42px rgba(79, 54, 18, 0.12);
+  background: linear-gradient(180deg, rgba(255, 248, 236, 0.95), rgba(244, 232, 212, 0.95));
+  padding: 18px;
+}
+
+.stackCol {
+  display: grid;
+  gap: 10px;
+}
+
+.rowActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.rowActions a,
+.rowActions button,
+.panelSection button {
+  border: 1px solid rgba(184, 121, 29, 0.48);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #7d520f;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+
+.gridForm {
+  display: grid;
+  gap: 10px;
+}
+
+.gridForm input,
+.gridForm textarea,
+.gridForm select,
+.stackCol input {
+  border: 1px solid rgba(184, 121, 29, 0.42);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.92);
+  font-family: inherit;
+}
+
+.gridForm textarea {
+  min-height: 80px;
+}
+
+.panelSection {
+  margin-top: 14px;
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 12px;
+}
+
+.panelSection h3 {
+  margin: 0 0 8px;
+  color: #9a6618;
+}
+
+.feedGrid,
+.mastersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.miniCard,
+.masterCard {
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.67);
+  padding: 10px;
+}
+
+.masterAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #1f1610;
+  color: #f0bc67;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorText {
+  color: #8f1f1f;
+}
+
+.successText {
+  color: #2f6f38;
+}
+
+.adminTable {
+  display: grid;
+  gap: 8px;
+}
+
+.adminRow {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  grid-template-columns: minmax(120px, 1fr) 70px repeat(3, auto);
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 10px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 1024px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    height: auto;
+    padding: 16px;
+    flex-wrap: wrap;
+  }
+
+  .mainNav {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .brandBlock {
+    min-width: auto;
+  }
+
+  .adminRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1240px) {
+  .dashboard {
+    grid-template-columns: 240px minmax(0, 1fr) 320px;
+  }
+
+  .practiceLead {
+    grid-template-columns: 1fr;
+  }
+
+  .publicationGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dashboard,
+  .dashboard-details,
+  .dashboard-practice {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 10px;
+  }
+
+  .dashboard-details .contentPane,
+  .dashboard-practice .contentPane {
+    grid-column: auto;
+  }
+
+  .leftPiano,
+  .contentPane,
+  .rightPane,
+  .practicePanel,
+  .stageCard {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .detailsLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .detailsTextCard {
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 12px;
+  }
+
+  .brandBlock {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .logoSeal {
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    font-size: 30px;
+  }
+
+  .brandBlock h1 {
+    font-size: 22px;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .brandBlock p {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+  }
+
+  .mainNav {
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    white-space: nowrap;
+  }
+
+  .dashboard {
+    padding: 8px;
+  }
+
+  .leftPiano,
+  .stageCard,
+  .practicePanel {
+    border-radius: 16px;
+  }
+
+  .mainTabs {
+    gap: 6px;
+  }
+
+  .mainTab {
+    min-height: 42px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  .rootLevel,
+  .closedLevel {
+    align-items: flex-start;
+  }
+
+  .pianoKey {
+    grid-template-columns: 74px minmax(0, 1fr) 18px;
+    padding: 9px 14px 9px 12px;
+  }
+
+  .keyStageTitle {
+    font-size: 9px;
+  }
+
+  .sideActions {
+    min-height: auto;
+    padding: 18px 12px 18px 58px;
+  }
+
+  .sideActions p {
+    font-size: 15px;
+  }
+
+  .promoRune {
+    left: 18px;
+    top: 20px;
+    font-size: 32px;
+  }
+
+  .stageCard {
+    padding: 12px;
+  }
+
+  .stageCopy h2 {
+    font-size: 28px;
+  }
+
+  .stageCopy h3 {
+    font-size: 23px;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+  }
+
+  .introText,
+  .detailsTextCard p,
+  .detailsVideoCard p,
+  .detailsMaterialsCard li {
+    font-size: 13px;
+  }
+
+  .stageStepsList ol {
+    grid-template-columns: 1fr;
+  }
+
+  .treeMedallion {
+    width: 84px;
+    height: 84px;
+    font-size: 40px;
+  }
+
+  .practiceLead,
+  .infoGrid,
+  .publicationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .detailsVideoCard {
+    grid-template-columns: 1fr;
+  }
+
+  .videoGlyph {
+    width: 56px;
+    height: 56px;
+  }
+
+  .practiceTile,
+  .practiceTile.large {
+    grid-template-columns: 42px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .practiceItemAction {
+    grid-column: 1 / -1;
+  }
+
+  .practiceActions,
+  .detailsActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .btnLike,
+  .textAction {
+    width: 100%;
+    text-align: center;
+  }
+
+  .audioMeditationCard audio {
+    max-width: 100%;
   }
 }
