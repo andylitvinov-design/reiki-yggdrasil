@@ -8,7 +8,7 @@ The goal is to keep the public course structure and learning content versioned i
 
 ## Current status
 
-- status: `course_structure_verified_from_screenshots_content_partial`
+- status: `course_structure_verified_from_user_corrections_content_partial`
 - canonical data source: `src/data/reikiKnowledgeBase.js`
 - UI consumer: `src/main.jsx`
 - validator: `scripts/validate-knowledge-base.mjs`
@@ -22,8 +22,8 @@ The goal is to keep the public course structure and learning content versioned i
 | --- | --- |
 | Levels | 7 levels defined |
 | Steps/items | 37 stable records defined |
-| Structure source | user-provided screenshots, 2026-05-05 |
-| Step titles | aligned with screenshots |
+| Structure source | user-provided screenshots + follow-up corrections, 2026-05-05 |
+| Step titles | aligned with latest user corrections |
 | Full descriptions/practices/results | still need author-approved content |
 | Supabase-backed content CMS | needs verification / not confirmed in current `main` |
 
@@ -33,11 +33,11 @@ The goal is to keep the public course structure and learning content versioned i
 | --- | --- | ---: | --- | --- |
 | 1 | Базовая программа Рейки Иггдрасиль | 5 | Уровень | Здоровье · Интуиция · Защита; Очищение · Денежная активация; Предопределение · Сила; Сверхчувственное видение; Уровень мастера |
 | 2 | Инструкторский курс | 6 | Ступень | Целительство; Золотой телец; Мужчина и женщина; Жизненная сила; Сексуальная энергетика; Файербол. Управление энергией |
-| 3 | Храмовая терапия | 4 | Ступень | Работа с эгрегорами; Египетская магия; Греческая магия. Зодиак; Индуистская магия. Кундалини |
-| 4 | Восточная магия | 6 | Ступень | Китайская медицина 1. Элементы; Китайская медицина 2. Сила; Китайское прогнозирование. И Цзин; Славянская магия 1; Славянская магия 2; Цивилизации. Мифы и легенды |
+| 3 | Храмовая магия | 5 | Ступень | Работа с эгрегорами; Египетская магия; Греческая магия. Зодиак; Толтекская магия; Суфизм |
+| 4 | Восточная магия | 5 | Ступень | Китайская медицина 1. Элементы; Китайская медицина 2. Сила; Китайское прогнозирование. И Цзин; Кундалини; Денежная магия |
 | 5 | Западноевропейская магия. Каббала и Таро | 5 | Ступень | Великие арканы Таро; Силы стихий; Дерево Сефирот; Высшие арканы Таро; Предсказания в Таро |
 | 6 | Продвинутая магия рун | 5 | Ступень | Руны и руническая традиция; Миры Древа Иггдрасиль; Круг силы; Руническое предсказание; Руническое исцеление |
-| 7 | Высшая магия | 6 | Ступень | Телепорт. Астральный полет. Ясновидение; Машинный зал. Укрепление видения; Ифриты. Создание помощников; Суфизм; Денежная магия; Магия толтеков |
+| 7 | Высшая магия | 6 | Ступень | Телепорт. Астральный полет. Ясновидение; Машинный зал. Укрепление видения; Ифриты. Создание помощников; Славянская магия 1; Славянская магия 2; Цивилизации |
 
 ## Stable IDs
 
@@ -83,7 +83,7 @@ Each step record should include:
   number: 1,
   label: "Уровень",
   title: "Здоровье · Интуиция · Защита",
-  status: "structure_verified_from_screenshot",
+  status: "structure_verified_from_user_corrections",
   intro: "...",
   meaning: "...",
   opens: ["..."],
@@ -97,7 +97,7 @@ Each step record should include:
 
 | Status | Meaning |
 | --- | --- |
-| `structure_verified_from_screenshot` | Level/step title and order are aligned with user screenshots. |
+| `structure_verified_from_user_corrections` | Level/step title and order are aligned with screenshots and user corrections. |
 | `needs_content` | Structural record exists, but full text/practice/result still needs author content. |
 | `needs_review` | Content exists but must be reviewed by the course author. |
 | `verified` | Reserved for content explicitly reviewed and approved by the course author. |
