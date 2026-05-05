@@ -40,21 +40,31 @@ Not found in current `main` during this audit:
 
 ## Knowledge base state
 
-Branch `codex/reiki-knowledge-base` introduces a GitHub-stored knowledge base for all Reiki Yggdrasil steps.
+Branch `codex/reiki-knowledge-base` introduces a GitHub-stored knowledge base for the public Reiki Yggdrasil course structure.
 
 New canonical knowledge files:
 
 - `src/data/reikiKnowledgeBase.js`
 - `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
 - `scripts/validate-knowledge-base.mjs`
+- `.github/workflows/ci.yml`
 
-Coverage:
+Coverage now aligned with user-provided screenshots:
 
 - 7 levels
-- 41 stable step records
-- Level 1 content preserved from current UI draft and marked `needs_review`
-- Levels 2-7 scaffolded and marked `needs_content`
-- Level 7 currently uses placeholder name `Семена`; exact name/content need author verification
+- 37 stable records
+- Level/step titles match screenshots provided on 2026-05-05
+- Full descriptions, practices, settings, homework, and expected results still need author-approved content
+
+Canonical level map:
+
+1. `Базовая программа Рейки Иггдрасиль` — 5 items, label `Уровень`
+2. `Инструкторский курс` — 6 items, label `Ступень`
+3. `Храмовая терапия` — 4 items, label `Ступень`
+4. `Восточная магия` — 6 items, label `Ступень`
+5. `Западноевропейская магия. Каббала и Таро` — 5 items, label `Ступень`
+6. `Продвинутая магия рун` — 5 items, label `Ступень`
+7. `Высшая магия` — 6 items, label `Ступень`
 
 Stable ID format:
 
@@ -89,11 +99,12 @@ Verified by GitHub file inspection:
 - `vercel.json` points to Vite build output `dist`
 - current UI is built from `src/main.jsx` and `src/index.css`
 - knowledge-base branch adds canonical static data and validation script
-- knowledge-base data now defines 7 levels / 41 steps
+- knowledge-base data now defines 7 levels / 37 records aligned with screenshots
+- PR has Vercel success status on a previous head; latest CI/build status still needs observation after the newest commits
 
-Not verified:
+Not verified locally:
 
-- local `npm install`
+- `npm ci`
 - `npm run validate:knowledge`
 - `npm run build`
 - Vercel live deployment behavior
@@ -105,19 +116,17 @@ Reason local verification was not completed: current execution container could n
 
 ## Risks
 
-- Project memory in `ai-projects-brain` is ahead of or inconsistent with actual repo code.
-- Levels 2-7 currently contain structural placeholders, not final course content.
-- Level 7 name `Семена` is a safe placeholder and needs author confirmation.
+- The structure is aligned with screenshots, but full lesson content is still missing.
+- Long Russian titles may need visual QA on narrow mobile screens.
 - Expanding all levels in the left panel may affect vertical scroll/spacing and needs visual QA.
 - Supabase/profile/admin work should not be resumed until actual repo state is reconciled.
 
 ## Next actions
 
-1. Run `npm install`.
+1. Run `npm ci`.
 2. Run `npm run validate:knowledge`.
 3. Run `npm run build`.
 4. Preview `/` locally and check desktop/mobile layout.
-5. Review Level 1 content and mark approved items as `verified` if accepted.
-6. Confirm the final 7-level structure, especially Level 7 name/theme.
-7. Fill Levels 2-7 with author-approved content.
-8. Update `ai-projects-brain/projects/reiki-yggdrasil/*` to reflect actual repo state.
+5. Check GitHub Actions CI result for this PR.
+6. Fill all 37 records with author-approved descriptions/practices/results.
+7. Update `ai-projects-brain/projects/reiki-yggdrasil/*` to reflect actual repo state.
