@@ -1,8 +1,11 @@
 {
+  "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
+    "check": "npm run validate:knowledge && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
