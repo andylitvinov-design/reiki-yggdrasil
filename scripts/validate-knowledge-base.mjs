@@ -1,4 +1,10 @@
-import { reikiKnowledgeMeta, reikiLevels, reikiSteps } from "../src/data/reikiKnowledgeBase.js";
+import { readFile } from "node:fs/promises";
+import { Buffer } from "node:buffer";
+
+const sourcePath = new URL("../src/data/reikiKnowledgeBase.js", import.meta.url);
+const source = await readFile(sourcePath, "utf8");
+const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`;
+const { reikiKnowledgeMeta, reikiLevels, reikiSteps } = await import(moduleUrl);
 
 const errors = [];
 const idPattern = /^RY-L\d{2}-S\d{2}$/;
