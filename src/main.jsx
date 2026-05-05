@@ -10,6 +10,21 @@ import {
 } from "./data/reikiKnowledgeBase.js";
 import "./index.css";
 
+const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
+
+function publicText(value) {
+  if (!value || value === "needs_content" || value === "needs verification") return PLACEHOLDER_TEXT;
+  return value;
+}
+
+function publicList(items) {
+  if (!Array.isArray(items) || items.length === 0 || items.every((item) => item === "needs_content" || item === "needs verification")) {
+    return ["Материал готовится", "Требуется авторское заполнение"];
+  }
+
+  return items.map(publicText);
+}
+
 function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S03");
   const [openLevelId, setOpenLevelId] = useState(1);
@@ -106,9 +121,9 @@ function App() {
               </p>
               <h2>{current.number} ступень</h2>
               <h3>{current.title}</h3>
-              <p className="introText">{current.intro}</p>
+              <p className="introText">{publicText(current.intro)}</p>
               {current.contentStatus === "needs_content" && (
-                <p className="contentNotice">Материал помечен как needs_content: требуется авторское заполнение.</p>
+                <p className="contentNotice">Материал этой ступени готовится и ждёт авторского заполнения.</p>
               )}
             </div>
             <div className="treeMedallion">
@@ -121,13 +136,13 @@ function App() {
           </div>
 
           <div className="infoGrid">
-            <Info title="Смысл ступени" text={current.meaning} />
-            <Info title="Что открывает" list={current.opens} />
+            <Info title="Смысл ступени" text={publicText(current.meaning)} />
+            <Info title="Что открывает" list={publicList(current.opens)} />
           </div>
 
           <div className="infoGrid framed">
-            <Info title="Ключевые навыки" list={current.skills} />
-            <Info title="Результат" text={current.result} />
+            <Info title="Ключевые навыки" list={publicList(current.skills)} />
+            <Info title="Результат" text={publicText(current.result)} />
           </div>
 
           <div className="knowledgeMeta">
