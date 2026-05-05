@@ -11,6 +11,17 @@ import {
 import "./index.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
+const KNOWLEDGE_STATUS_TEXT = "структура курса подтверждена, материалы дополняются";
+
+function countLabel(count, singular, few, many) {
+  const lastTwo = count % 100;
+  const last = count % 10;
+
+  if (lastTwo >= 11 && lastTwo <= 14) return many;
+  if (last === 1) return singular;
+  if (last >= 2 && last <= 4) return few;
+  return many;
+}
 
 function publicText(value) {
   if (!value || value === "needs_content" || value === "needs verification") return PLACEHOLDER_TEXT;
@@ -27,6 +38,20 @@ function publicList(items) {
 
 function stepLabel(step) {
   return step.label || "Ступень";
+}
+
+function levelCountText(level) {
+  const base = level.stepLabel === "Уровень"
+    ? countLabel(level.steps.length, "уровень", "уровня", "уровней")
+    : countLabel(level.steps.length, "ступень", "ступени", "ступеней");
+
+  return `${level.steps.length} ${base}`;
+}
+
+function publicStatus(value) {
+  if (value === "needs_content") return "материал готовится";
+  if (value === "needs verification") return "требуется проверка";
+  return value || "материал готовится";
 }
 
 function App() {
@@ -85,7 +110,7 @@ function App() {
                   <b>{level.id}</b>
                   <span>
                     <strong>Уровень {level.id}. {level.name}</strong>
-                    <small>{level.steps.length} ступеней</small>
+                    <small>{levelCountText(level)}</small>
                   </span>
                   <em>{isOpen ? "⌃" : "⌄"}</em>
                 </button>
@@ -97,7 +122,7 @@ function App() {
                         key={item.id}
                         className={selectedStepId === item.id ? "pianoKey selected" : "pianoKey"}
                         onClick={() => setSelectedStepId(item.id)}
-                        title={`${item.id} · ${item.contentStatus}`}
+                        title={`${item.id} · ${publicStatus(item.contentStatus)}`}
                       >
                         <i />
                         <b>{item.number}</b>
@@ -153,7 +178,7 @@ function App() {
           </div>
 
           <div className="knowledgeMeta">
-            <b>База знаний:</b> {reikiKnowledgeMeta.totalLevels} уровней · {reikiKnowledgeMeta.totalSteps} ступеней · {reikiKnowledgeMeta.status}
+            <b>База знаний:</b> {reikiKnowledgeMeta.totalLevels} уровней · {reikiKnowledgeMeta.totalSteps} ступеней · {KNOWLEDGE_STATUS_TEXT}
           </div>
         </section>
 

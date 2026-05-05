@@ -22,7 +22,11 @@ Changed on branch `codex/reiki-knowledge-base`:
   - Level 7: `Высшая магия` — 6 items, with `Славянская магия 1`, `Славянская магия 2`, and `Цивилизации` as steps 4-6.
 - Added `stepLabel` support: Level 1 uses `Уровень`, Levels 2-7 use `Ступень`.
 - Updated `src/main.jsx` to render course labels/titles from the knowledge base.
+- Updated the left-menu group count text to use each level's `stepLabel`, so Level 1 does not display the generic `ступеней` wording.
 - Added public placeholder handling so raw `needs_content` values are not shown to learners.
+- Replaced learner-facing technical status strings with readable Russian text and added `public/favicon.svg` so preview does not log a favicon 404.
+- Improved selected left-menu key contrast in `public/knowledge-ui.css` so long Russian titles stay readable after wrapping.
+- Declared `"type": "module"` in `package.json` because existing Vite/PostCSS/Tailwind config files already use ESM syntax.
 - Added status display for not-yet-authored records.
 - Added small status styles in `src/index.css`.
 - Added human-readable knowledge-base documentation in `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`.

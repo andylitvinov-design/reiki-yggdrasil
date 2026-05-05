@@ -111,6 +111,10 @@ Verified by GitHub file inspection:
 - current UI is built from `src/main.jsx` and `src/index.css`
 - knowledge-base branch adds canonical static data and validation script
 - knowledge-base data now defines 7 levels / 37 records aligned with latest user corrections
+- left menu now renders the group item count from each level's `stepLabel`, so Level 1 uses `Уровень` wording and Levels 2-7 use `Ступень` wording
+- learner UI now hides raw technical `needs_content` / internal status strings and uses a local SVG favicon to avoid preview console 404 noise
+- selected long left-menu titles now keep dark readable text over the selected key gradient
+- `package.json` declares `"type": "module"` to match existing ESM config files and avoid Node module-type warnings during build/preview
 - PR has Vercel success status on a previous head; latest CI/build status still needs observation after the newest commits
 
 Not verified locally:
