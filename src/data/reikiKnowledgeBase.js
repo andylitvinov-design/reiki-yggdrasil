@@ -4,7 +4,13 @@ const LEVEL_DEFINITIONS = [
   { id: 3, name: "Ветви", count: 6, theme: "расширение, связь, передача энергии" },
   { id: 4, name: "Листья", count: 6, theme: "тонкость восприятия, дыхание, обновление" },
   { id: 5, name: "Цветы", count: 6, theme: "раскрытие, красота, дар системы" },
-  { id: 6, name: "Плоды", count: 6, theme: "интеграция, мастерство, результат пути" }
+  { id: 6, name: "Плоды", count: 6, theme: "интеграция, мастерство, результат пути" },
+  {
+    id: 7,
+    name: "Семена",
+    count: 6,
+    theme: "передача, преемственность, новое Древо; точное название и содержание уровня needs verification"
+  }
 ];
 
 const levelOneSteps = [
@@ -108,7 +114,8 @@ export const reikiKnowledgeMeta = {
   stableIdPattern: "RY-L{level}-S{step}",
   totalLevels: LEVEL_DEFINITIONS.length,
   totalSteps: LEVEL_DEFINITIONS.reduce((sum, level) => sum + level.count, 0),
-  knownContentPolicy: "Level 1 content is preserved from the current UI draft. Levels 2-6 are scaffolds marked needs_content until authored."
+  knownContentPolicy:
+    "Level 1 content is preserved from the current UI draft. Levels 2-7 are scaffolds marked needs_content until authored. Level 7 name/content need author verification."
 };
 
 export const reikiLevels = LEVEL_DEFINITIONS.map((level) => ({
