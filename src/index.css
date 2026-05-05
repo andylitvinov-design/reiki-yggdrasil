@@ -361,6 +361,17 @@ button {
   margin: 0;
 }
 
+.contentNotice {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.38);
+  background: rgba(255, 255, 255, 0.48);
+  color: #7d520f;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .treeMedallion {
   width: 104px;
   height: 104px;
@@ -425,6 +436,17 @@ button {
 .infoBox ul {
   margin: 0;
   padding-left: 20px;
+}
+
+.knowledgeMeta {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(203, 152, 64, 0.31);
+  background: rgba(255, 255, 255, 0.35);
+  color: #6d6256;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .practicePanel {
