@@ -25,8 +25,12 @@ function publicList(items) {
   return items.map(publicText);
 }
 
+function stepLabel(step) {
+  return step.label || "Ступень";
+}
+
 function App() {
-  const [selectedStepId, setSelectedStepId] = useState("RY-L01-S03");
+  const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
   const [tab, setTab] = useState("exercises");
 
@@ -80,7 +84,7 @@ function App() {
                 <button className={level.id === 1 ? "rootLevel" : "closedLevel"} onClick={() => setOpenLevelId(isOpen ? null : level.id)}>
                   <b>{level.id}</b>
                   <span>
-                    <strong>Уровень · {level.name}</strong>
+                    <strong>Уровень {level.id}. {level.name}</strong>
                     <small>{level.steps.length} ступеней</small>
                   </span>
                   <em>{isOpen ? "⌃" : "⌄"}</em>
@@ -97,7 +101,10 @@ function App() {
                       >
                         <i />
                         <b>{item.number}</b>
-                        <span>{item.title}</span>
+                        <span>
+                          <strong className="keyLabel">{stepLabel(item)} {item.number}</strong>
+                          <em className="keyTitle">{item.title}</em>
+                        </span>
                         {selectedStepId === item.id && <strong className="glowRune">✧</strong>}
                       </button>
                     ))}
@@ -117,9 +124,9 @@ function App() {
           <div className="stageHero">
             <div className="stageCopy">
               <p className="crumb">
-                {selectedLevel.id} уровень · {selectedLevel.name} · Ступень {current.number}
+                Уровень {selectedLevel.id} · {selectedLevel.name} · {stepLabel(current)} {current.number}
               </p>
-              <h2>{current.number} ступень</h2>
+              <h2>{stepLabel(current)} {current.number}</h2>
               <h3>{current.title}</h3>
               <p className="introText">{publicText(current.intro)}</p>
               {current.contentStatus === "needs_content" && (
