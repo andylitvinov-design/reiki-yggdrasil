@@ -11,9 +11,10 @@ Changed on branch `codex/reiki-knowledge-base`:
 - Added this log in `LOG.md`.
 - Added canonical UI-readable knowledge base in `src/data/reikiKnowledgeBase.js`.
 - Moved Level 1 step content out of inline component constants into the knowledge data module.
-- Added structural records for all 6 levels / 35 steps.
+- Added structural records for all 7 levels / 41 steps.
 - Marked Level 1 content as `needs_review`.
-- Marked Levels 2-6 as `needs_content`.
+- Marked Levels 2-7 as `needs_content`.
+- Added Level 7 as placeholder `Семена`; exact canonical name/content need author verification.
 - Updated `src/main.jsx` to consume knowledge-base data and allow opening all levels.
 - Added status display for `needs_content` steps.
 - Added small status styles in `src/index.css`.
@@ -26,10 +27,13 @@ Findings:
 - Current repo `main` is simpler than external project memory.
 - Current repo `main` did not contain `AGENTS.md`, `STATE.md`, `LOG.md`, `src/App.jsx`, `src/pages/*`, `src/lib/supabaseClient.js`, or Supabase migrations during audit.
 - External `ai-projects-brain` memory likely needs update/reconciliation.
+- User clarified that the accepted course structure should be 7 levels, not 6.
+- Exact previous/final names for all 7 levels were not found in accessible repo files; Level 7 is therefore stored as a safe placeholder requiring confirmation.
 
 Verification:
 
 - GitHub file inspection completed.
+- Confirmed `src/data/reikiKnowledgeBase.js` now defines 7 levels and Level 7 placeholder.
 - Local clone/npm verification not completed because the execution container could not resolve `github.com`.
 - Required checks still to run in a networked/dev environment:
   - `npm install`
@@ -39,6 +43,7 @@ Verification:
 
 Risks:
 
-- Levels 2-6 are structure only, not final content.
+- Levels 2-7 are structure only, not final content.
+- Level 7 placeholder name `Семена` may need replacement with the canonical author-approved name.
 - New all-level accordion behavior needs visual QA on desktop/mobile.
 - Stale project memory may mislead future Codex tasks unless updated.
