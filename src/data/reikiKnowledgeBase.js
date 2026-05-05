@@ -30,30 +30,30 @@ const LEVEL_DEFINITIONS = [
   },
   {
     id: 3,
-    name: "Храмовая терапия",
-    count: 4,
+    name: "Храмовая магия",
+    count: 5,
     stepLabel: "Ступень",
-    theme: "эгрегоры, египетская, греческая и индуистская храмовая магия",
+    theme: "эгрегоры, египетская, греческая, толтекская и суфийская традиции",
     stepTitles: [
       "Работа с эгрегорами",
       "Египетская магия",
       "Греческая магия. Зодиак",
-      "Индуистская магия. Кундалини"
+      "Толтекская магия",
+      "Суфизм"
     ]
   },
   {
     id: 4,
     name: "Восточная магия",
-    count: 6,
+    count: 5,
     stepLabel: "Ступень",
-    theme: "китайская медицина, прогнозирование, славянская магия, цивилизации, мифы и легенды",
+    theme: "китайская медицина, прогнозирование, кундалини и денежная магия",
     stepTitles: [
       "Китайская медицина 1. Элементы",
       "Китайская медицина 2. Сила",
       "Китайское прогнозирование. И Цзин",
-      "Славянская магия 1",
-      "Славянская магия 2",
-      "Цивилизации. Мифы и легенды"
+      "Кундалини",
+      "Денежная магия"
     ]
   },
   {
@@ -89,14 +89,14 @@ const LEVEL_DEFINITIONS = [
     name: "Высшая магия",
     count: 6,
     stepLabel: "Ступень",
-    theme: "телепорт, астральный полет, ясновидение, помощники, суфизм, денежная магия и магия толтеков",
+    theme: "телепорт, астральный полет, ясновидение, помощники, славянская магия и цивилизации",
     stepTitles: [
       "Телепорт. Астральный полет. Ясновидение",
       "Машинный зал. Укрепление видения",
       "Ифриты. Создание помощников",
-      "Суфизм",
-      "Денежная магия",
-      "Магия толтеков"
+      "Славянская магия 1",
+      "Славянская магия 2",
+      "Цивилизации"
     ]
   }
 ];
@@ -112,7 +112,7 @@ function makeCourseStep(level, stepTitle, stepNumber) {
     number: stepNumber,
     label: level.stepLabel,
     title: stepTitle,
-    status: "structure_verified_from_screenshot",
+    status: "structure_verified_from_user_corrections",
     intro: "Материал этой ступени готовится. Нужно добавить авторское описание, практику, настройку и критерии результата.",
     meaning: `Тема раздела «${level.name}»: ${level.theme}. Точное описание ступени требует авторского заполнения.`,
     opens: ["Материал готовится", "Требуется авторское заполнение"],
@@ -126,12 +126,12 @@ export const reikiKnowledgeMeta = {
   project: "Reiki Yggdrasil",
   language: "ru",
   source: "src/data/reikiKnowledgeBase.js",
-  status: "course_structure_verified_from_screenshots_content_partial",
+  status: "course_structure_verified_from_user_corrections_content_partial",
   stableIdPattern: "RY-L{level}-S{step}",
   totalLevels: LEVEL_DEFINITIONS.length,
   totalSteps: LEVEL_DEFINITIONS.reduce((sum, level) => sum + level.count, 0),
   knownContentPolicy:
-    "The 7-level / 37-step course structure is aligned with user-provided screenshots. Step titles are structure-level content. Full descriptions, practices, settings, and results still need author-approved content."
+    "The 7-level / 37-step course structure is aligned with user-provided screenshots and follow-up corrections. Step titles are structure-level content. Full descriptions, practices, settings, and results still need author-approved content."
 };
 
 export const reikiLevels = LEVEL_DEFINITIONS.map((level) => ({
