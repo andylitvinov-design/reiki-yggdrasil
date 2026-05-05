@@ -50,16 +50,17 @@ New canonical knowledge files:
 
 Coverage:
 
-- 6 levels
-- 35 stable step records
+- 7 levels
+- 41 stable step records
 - Level 1 content preserved from current UI draft and marked `needs_review`
-- Levels 2-6 scaffolded and marked `needs_content`
+- Levels 2-7 scaffolded and marked `needs_content`
+- Level 7 currently uses placeholder name `Семена`; exact name/content need author verification
 
 Stable ID format:
 
 ```text
 RY-L01-S01
-RY-L06-S06
+RY-L07-S06
 ```
 
 ## Known mismatch with ai-projects-brain memory
@@ -88,6 +89,7 @@ Verified by GitHub file inspection:
 - `vercel.json` points to Vite build output `dist`
 - current UI is built from `src/main.jsx` and `src/index.css`
 - knowledge-base branch adds canonical static data and validation script
+- knowledge-base data now defines 7 levels / 41 steps
 
 Not verified:
 
@@ -104,7 +106,8 @@ Reason local verification was not completed: current execution container could n
 ## Risks
 
 - Project memory in `ai-projects-brain` is ahead of or inconsistent with actual repo code.
-- Levels 2-6 currently contain structural placeholders, not final course content.
+- Levels 2-7 currently contain structural placeholders, not final course content.
+- Level 7 name `Семена` is a safe placeholder and needs author confirmation.
 - Expanding all levels in the left panel may affect vertical scroll/spacing and needs visual QA.
 - Supabase/profile/admin work should not be resumed until actual repo state is reconciled.
 
@@ -115,5 +118,6 @@ Reason local verification was not completed: current execution container could n
 3. Run `npm run build`.
 4. Preview `/` locally and check desktop/mobile layout.
 5. Review Level 1 content and mark approved items as `verified` if accepted.
-6. Fill Levels 2-6 with author-approved content.
-7. Update `ai-projects-brain/projects/reiki-yggdrasil/*` to reflect actual repo state.
+6. Confirm the final 7-level structure, especially Level 7 name/theme.
+7. Fill Levels 2-7 with author-approved content.
+8. Update `ai-projects-brain/projects/reiki-yggdrasil/*` to reflect actual repo state.
