@@ -1,83 +1,103 @@
 const LEVEL_DEFINITIONS = [
-  { id: 1, name: "Корни", count: 5, theme: "опора, вход в систему, базовая чувствительность" },
-  { id: 2, name: "Ствол", count: 6, theme: "устойчивость, вертикаль, накопление силы" },
-  { id: 3, name: "Ветви", count: 6, theme: "расширение, связь, передача энергии" },
-  { id: 4, name: "Листья", count: 6, theme: "тонкость восприятия, дыхание, обновление" },
-  { id: 5, name: "Цветы", count: 6, theme: "раскрытие, красота, дар системы" },
-  { id: 6, name: "Плоды", count: 6, theme: "интеграция, мастерство, результат пути" },
+  {
+    id: 1,
+    name: "Базовая программа Рейки Иггдрасиль",
+    count: 5,
+    stepLabel: "Уровень",
+    theme: "здоровье, интуиция, защита, очищение, денежная активация, сила, видение и мастерский уровень",
+    stepTitles: [
+      "Здоровье · Интуиция · Защита",
+      "Очищение · Денежная активация",
+      "Предопределение · Сила",
+      "Сверхчувственное видение",
+      "Уровень мастера"
+    ]
+  },
+  {
+    id: 2,
+    name: "Инструкторский курс",
+    count: 6,
+    stepLabel: "Ступень",
+    theme: "целительство, ресурсы, отношения, жизненная сила, сексуальная энергетика и управление энергией",
+    stepTitles: [
+      "Целительство",
+      "Золотой телец",
+      "Мужчина и женщина",
+      "Жизненная сила",
+      "Сексуальная энергетика",
+      "Файербол. Управление энергией"
+    ]
+  },
+  {
+    id: 3,
+    name: "Храмовая терапия",
+    count: 4,
+    stepLabel: "Ступень",
+    theme: "эгрегоры, египетская, греческая и индуистская храмовая магия",
+    stepTitles: [
+      "Работа с эгрегорами",
+      "Египетская магия",
+      "Греческая магия. Зодиак",
+      "Индуистская магия. Кундалини"
+    ]
+  },
+  {
+    id: 4,
+    name: "Восточная магия",
+    count: 6,
+    stepLabel: "Ступень",
+    theme: "китайская медицина, прогнозирование, славянская магия, цивилизации, мифы и легенды",
+    stepTitles: [
+      "Китайская медицина 1. Элементы",
+      "Китайская медицина 2. Сила",
+      "Китайское прогнозирование. И Цзин",
+      "Славянская магия 1",
+      "Славянская магия 2",
+      "Цивилизации. Мифы и легенды"
+    ]
+  },
+  {
+    id: 5,
+    name: "Западноевропейская магия. Каббала и Таро",
+    count: 5,
+    stepLabel: "Ступень",
+    theme: "Таро, стихии, Дерево Сефирот и предсказательная практика",
+    stepTitles: [
+      "Великие арканы Таро",
+      "Силы стихий",
+      "Дерево Сефирот",
+      "Высшие арканы Таро",
+      "Предсказания в Таро"
+    ]
+  },
+  {
+    id: 6,
+    name: "Продвинутая магия рун",
+    count: 5,
+    stepLabel: "Ступень",
+    theme: "руны, миры Древа Иггдрасиль, круг силы, предсказание и исцеление",
+    stepTitles: [
+      "Руны и руническая традиция",
+      "Миры Древа Иггдрасиль",
+      "Круг силы",
+      "Руническое предсказание",
+      "Руническое исцеление"
+    ]
+  },
   {
     id: 7,
-    name: "Семена",
+    name: "Высшая магия",
     count: 6,
-    theme: "передача, преемственность, новое Древо; точное название и содержание уровня needs verification"
-  }
-];
-
-const levelOneSteps = [
-  {
-    id: "RY-L01-S01",
-    levelId: 1,
-    number: 1,
-    title: "Основа",
-    status: "draft_from_current_ui",
-    intro: "Вы входите в систему, знакомитесь с картой пути и базовыми принципами Рейки Иггдрасиль.",
-    meaning: "Здесь появляется первое ощущение опоры, безопасности и направления движения.",
-    opens: ["Понимание структуры пути", "Первичное заземление", "Контакт с символом Древа"],
-    skills: ["Внимание к телу", "Наблюдение за состоянием", "Настройка дыхания"],
-    result: "Система начинает восприниматься как карта личного движения.",
-    contentStatus: "needs_review"
-  },
-  {
-    id: "RY-L01-S02",
-    levelId: 1,
-    number: 2,
-    title: "Поток",
-    status: "draft_from_current_ui",
-    intro: "Вы учитесь чувствовать движение энергии и замечать, где поток свободен, а где сжимается.",
-    meaning: "Ступень переводит идею энергии в живой телесный опыт.",
-    opens: ["Чувствительность к движению энергии", "Мягкое снятие напряжения", "Понимание ритма"],
-    skills: ["Дыхание потока", "Сканирование тела", "Мягкое внимание"],
-    result: "Энергия воспринимается не как абстракция, а как опыт.",
-    contentStatus: "needs_review"
-  },
-  {
-    id: "RY-L01-S03",
-    levelId: 1,
-    number: 3,
-    title: "Настройка",
-    status: "draft_from_current_ui",
-    intro: "Вы начинаете слышать тонкие вибрации потока. Настройка соединяет вас с энергией Рейки Иггдрасиль.",
-    meaning: "На этой ступени происходит тонкая настройка каналов восприятия и принятие энергии системы.",
-    opens: ["Чувствительность к потокам", "Усиление интуиции", "Соединение с Древом"],
-    skills: ["Настройка дыхания и внимания", "Ощущение потока в теле", "Работа в тишине"],
-    result: "Вы становитесь проводником. Энергия течёт мягко и осознанно.",
-    contentStatus: "needs_review"
-  },
-  {
-    id: "RY-L01-S04",
-    levelId: 1,
-    number: 4,
-    title: "Очищение",
-    status: "draft_from_current_ui",
-    intro: "Ступень посвящена освобождению от лишнего шума, старых эмоциональных следов и внутреннего напряжения.",
-    meaning: "Очищение возвращает ясность, лёгкость и пространство для нового опыта.",
-    opens: ["Снятие внутреннего напряжения", "Ясность восприятия", "Обновление состояния"],
-    skills: ["Очищающее дыхание", "Работа с символом света", "Наблюдение за эмоциями"],
-    result: "Появляется больше тишины, пространства и внутренней прозрачности.",
-    contentStatus: "needs_review"
-  },
-  {
-    id: "RY-L01-S05",
-    levelId: 1,
-    number: 5,
-    title: "Заземление",
-    status: "draft_from_current_ui",
-    intro: "Эта ступень помогает закрепить опыт в теле, действиях и повседневной жизни.",
-    meaning: "Заземление превращает практику в устойчивый навык.",
-    opens: ["Стабильность", "Телесную опору", "Спокойное присутствие"],
-    skills: ["Контакт со стопами", "Медленное дыхание", "Закрепление результата"],
-    result: "Вы чувствуете больше устойчивости и спокойной силы.",
-    contentStatus: "needs_review"
+    stepLabel: "Ступень",
+    theme: "телепорт, астральный полет, ясновидение, помощники, суфизм, денежная магия и магия толтеков",
+    stepTitles: [
+      "Телепорт. Астральный полет. Ясновидение",
+      "Машинный зал. Укрепление видения",
+      "Ифриты. Создание помощников",
+      "Суфизм",
+      "Денежная магия",
+      "Магия толтеков"
+    ]
   }
 ];
 
@@ -85,42 +105,42 @@ function stepId(levelId, stepNumber) {
   return `RY-L${String(levelId).padStart(2, "0")}-S${String(stepNumber).padStart(2, "0")}`;
 }
 
-function makePlaceholderStep(level, stepNumber) {
+function makeCourseStep(level, stepTitle, stepNumber) {
   return {
     id: stepId(level.id, stepNumber),
     levelId: level.id,
     number: stepNumber,
-    title: `Ступень ${stepNumber}`,
-    status: "needs_content",
+    label: level.stepLabel,
+    title: stepTitle,
+    status: "structure_verified_from_screenshot",
     intro: "Материал этой ступени готовится. Нужно добавить авторское описание, практику, настройку и критерии результата.",
-    meaning: `Тема уровня «${level.name}»: ${level.theme}. Точный смысл ступени требует авторского заполнения.`,
-    opens: ["needs_content"],
-    skills: ["needs_content"],
-    result: "needs_content",
+    meaning: `Тема раздела «${level.name}»: ${level.theme}. Точное описание ступени требует авторского заполнения.`,
+    opens: ["Материал готовится", "Требуется авторское заполнение"],
+    skills: ["Материал готовится", "Требуется авторское заполнение"],
+    result: "Материал готовится. Результат ступени нужно описать после авторского заполнения.",
     contentStatus: "needs_content"
   };
 }
-
-const placeholderSteps = LEVEL_DEFINITIONS.flatMap((level) => {
-  if (level.id === 1) return [];
-  return Array.from({ length: level.count }, (_, index) => makePlaceholderStep(level, index + 1));
-});
 
 export const reikiKnowledgeMeta = {
   project: "Reiki Yggdrasil",
   language: "ru",
   source: "src/data/reikiKnowledgeBase.js",
-  status: "architecture_ready_content_partial",
+  status: "course_structure_verified_from_screenshots_content_partial",
   stableIdPattern: "RY-L{level}-S{step}",
   totalLevels: LEVEL_DEFINITIONS.length,
   totalSteps: LEVEL_DEFINITIONS.reduce((sum, level) => sum + level.count, 0),
   knownContentPolicy:
-    "Level 1 content is preserved from the current UI draft. Levels 2-7 are scaffolds marked needs_content until authored. Level 7 name/content need author verification."
+    "The 7-level / 37-step course structure is aligned with user-provided screenshots. Step titles are structure-level content. Full descriptions, practices, settings, and results still need author-approved content."
 };
 
 export const reikiLevels = LEVEL_DEFINITIONS.map((level) => ({
-  ...level,
-  steps: level.id === 1 ? levelOneSteps : placeholderSteps.filter((step) => step.levelId === level.id)
+  id: level.id,
+  name: level.name,
+  count: level.count,
+  stepLabel: level.stepLabel,
+  theme: level.theme,
+  steps: level.stepTitles.map((title, index) => makeCourseStep(level, title, index + 1))
 }));
 
 export const reikiSteps = reikiLevels.flatMap((level) => level.steps);
