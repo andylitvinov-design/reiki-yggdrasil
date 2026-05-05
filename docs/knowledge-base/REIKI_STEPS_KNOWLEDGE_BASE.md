@@ -19,10 +19,11 @@ The goal is to keep course structure and public learning content versioned in Gi
 
 | Area | Status |
 | --- | --- |
-| Levels | 6 levels defined |
-| Steps | 35 stable step records defined |
+| Levels | 7 levels defined |
+| Steps | 41 stable step records defined |
 | Level 1 content | copied from current UI draft and marked `needs_review` |
-| Levels 2-6 content | scaffolded and marked `needs_content` |
+| Levels 2-7 content | scaffolded and marked `needs_content` |
+| Level 7 name/content | `needs verification`; currently stored as `Семена` placeholder |
 | Private initiations/master-only notes | not stored here |
 | Supabase-backed content CMS | needs verification / not confirmed in current `main` |
 
@@ -36,6 +37,7 @@ The goal is to keep course structure and public learning content versioned in Gi
 | 4 | Листья | 6 | тонкость восприятия, дыхание, обновление |
 | 5 | Цветы | 6 | раскрытие, красота, дар системы |
 | 6 | Плоды | 6 | интеграция, мастерство, результат пути |
+| 7 | Семена | 6 | передача, преемственность, новое Древо; exact name/content needs verification |
 
 ## Stable IDs
 
@@ -46,7 +48,7 @@ RY-L01-S01
 RY-L01-S02
 RY-L02-S01
 ...
-RY-L06-S06
+RY-L07-S06
 ```
 
 Pattern:
@@ -133,8 +135,9 @@ Do not commit:
 
 ## Open questions / needs verification
 
-- Exact final names and content for all levels 2-6.
-- Whether the 35-step structure is final or should change.
+- Exact final names and content for all levels 2-7.
+- Exact canonical name/theme for Level 7.
+- Whether the 41-step structure is final or should change.
 - Whether step content should later move to Supabase CMS or remain static in GitHub.
 - Whether `/profile`, `/masters`, and `/profile/admin` are planned routes or from stale project memory.
 - Whether the live Vercel deployment points to the current `main` branch and latest commit.
@@ -142,6 +145,7 @@ Do not commit:
 ## Next content tasks
 
 1. Review and approve the 5 Level 1 step drafts.
-2. Provide author materials for Levels 2-6.
-3. Add fields only when needed, for example: `practice`, `videoUrl`, `audioUrl`, `mandalaPrompt`, `teacherNotesPublic`, `recommendedDuration`, `homework`.
-4. Keep private/master-only fields outside the public static data unless a proper access model exists.
+2. Confirm the final 7-level structure, especially the canonical Level 7 name.
+3. Provide author materials for Levels 2-7.
+4. Add fields only when needed, for example: `practice`, `videoUrl`, `audioUrl`, `mandalaPrompt`, `teacherNotesPublic`, `recommendedDuration`, `homework`.
+5. Keep private/master-only fields outside the public static data unless a proper access model exists.
