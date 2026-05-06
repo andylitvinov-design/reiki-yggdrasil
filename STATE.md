@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Current verified repo state
 
@@ -14,23 +14,27 @@ Last updated: 2026-05-05
 
 ## Current app structure
 
-The current `main` branch is a Vite/React public prototype.
+The current repo is a Vite/React public prototype with a GitHub-stored course knowledge base.
 
 Confirmed files:
 
+- `AGENTS.md`
 - `README.md`
+- `STATE.md`
+- `LOG.md`
 - `package.json`
 - `vercel.json`
 - `index.html`
 - `src/main.jsx`
 - `src/index.css`
+- `src/data/reikiKnowledgeBase.js`
+- `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
+- `scripts/validate-knowledge-base.mjs`
+- `.github/workflows/ci.yml`
 - `package-lock.json`
 
-Not found in current `main` during this audit:
+Not found / not confirmed in current `main` during prior audits:
 
-- `AGENTS.md`
-- `STATE.md`
-- `LOG.md`
 - `src/App.jsx`
 - `src/pages/ProfilePage.jsx`
 - `src/pages/MastersPage.jsx`
@@ -40,21 +44,25 @@ Not found in current `main` during this audit:
 
 ## Knowledge base state
 
-Branch `codex/reiki-knowledge-base` introduces a GitHub-stored knowledge base for the public Reiki Yggdrasil course structure.
-
-New canonical knowledge files:
+Canonical knowledge files:
 
 - `src/data/reikiKnowledgeBase.js`
 - `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
-- `scripts/validate-knowledge-base.mjs`
-- `.github/workflows/ci.yml`
 
-Coverage now aligned with user screenshots and follow-up corrections:
+Coverage:
 
 - 7 levels
 - 37 stable records
-- Level/step titles follow the latest user corrections from 2026-05-05
-- Full descriptions, practices, settings, homework, and expected results still need author-approved content
+- Level/step titles follow the latest user corrections from 2026-05-05 and 2026-05-06
+- Central learner-facing card fields now have draft content for all 37 records:
+  - `intro`
+  - `meaning`
+  - `opens`
+  - `skills`
+  - `result`
+- All draft-filled records are marked `contentStatus: "needs_review"`.
+- Original methodichki/source text was not found in repo search and still needs verification.
+- Full practices, settings, homework, media, and expected results still need author-approved expansion.
 
 Canonical level map:
 
@@ -66,17 +74,6 @@ Canonical level map:
 6. `Продвинутая магия рун` — 5 items, label `Ступень`
 7. `Высшая магия` — 6 items, label `Ступень`
 
-Latest corrections applied:
-
-- Level 3 renamed/confirmed as `Храмовая магия`.
-- Level 3 step 4 = `Толтекская магия`.
-- Level 3 step 5 = `Суфизм`.
-- Level 4 step 4 = `Кундалини`.
-- Level 4 step 5 = `Денежная магия`.
-- Level 7 step 4 = `Славянская магия 1`.
-- Level 7 step 5 = `Славянская магия 2`.
-- Level 7 step 6 = `Цивилизации`.
-
 Stable ID format:
 
 ```text
@@ -84,11 +81,19 @@ RY-L01-S01
 RY-L07-S06
 ```
 
+## Content status policy
+
+- `needs_content`: record has structure but no usable learner-facing content.
+- `needs_review`: draft content exists but has not been checked against author methodichki.
+- `verified`: reserved only for content explicitly reviewed and approved by the course author.
+
+Current central descriptions are a draft scaffold, not final verified methodichki text.
+
 ## Known mismatch with ai-projects-brain memory
 
-The external project memory currently describes a larger Supabase-backed MVP with `/profile`, `/masters`, `/profile/admin`, and Supabase files. Those files/routes were not found in the current repo `main` during this audit.
+The external project memory currently describes a larger Supabase-backed MVP with `/profile`, `/masters`, `/profile/admin`, and Supabase files. Those files/routes were not found in the current repo state during prior audits.
 
-Conclusion: project memory likely contains stale or future/planned state and must be updated or split into:
+Conclusion: project memory likely contains stale or future/planned state and should be updated or split into:
 
 - current verified repo state
 - planned Supabase/profile/master/admin roadmap
@@ -106,16 +111,12 @@ From project memory only; values are not stored and were not verified:
 Verified by GitHub file inspection:
 
 - repo exists and is accessible
-- current branch is `main`
 - `vercel.json` points to Vite build output `dist`
 - current UI is built from `src/main.jsx` and `src/index.css`
-- knowledge-base branch adds canonical static data and validation script
-- knowledge-base data now defines 7 levels / 37 records aligned with latest user corrections
-- left menu now renders the group item count from each level's `stepLabel`, so Level 1 uses `Уровень` wording and Levels 2-7 use `Ступень` wording
-- learner UI now hides raw technical `needs_content` / internal status strings and uses a local SVG favicon to avoid preview console 404 noise
-- selected long left-menu titles now keep dark readable text over the selected key gradient
-- `package.json` declares `"type": "module"` to match existing ESM config files and avoid Node module-type warnings during build/preview
-- PR has Vercel success status on a previous head; latest CI/build status still needs observation after the newest commits
+- canonical static knowledge data lives in `src/data/reikiKnowledgeBase.js`
+- knowledge-base data defines 7 levels / 37 records
+- central card fields are now populated for all records by draft content
+- raw `needs_content` placeholders should no longer appear for central cards because all records now get `needs_review` draft content
 
 Not verified locally:
 
@@ -127,13 +128,13 @@ Not verified locally:
 - desktop/mobile visual QA
 - Supabase/auth/data flows
 
-Reason local verification was not completed: current execution container could not resolve `github.com` for clone/npm setup.
+Reason local verification was not completed: this task was performed through GitHub file operations, not a local cloned checkout with npm installed.
 
 ## Risks
 
-- The structure is aligned with the latest corrections, but full lesson content is still missing.
-- Long Russian titles may need visual QA on narrow mobile screens.
-- Expanding all levels in the left panel may affect vertical scroll/spacing and needs visual QA.
+- Draft texts are not verified against original methodichki.
+- Some descriptions are safe generalized scaffold copy based on titles/themes rather than exact course text.
+- Long Russian descriptions may need visual QA in the central card on mobile screens.
 - Supabase/profile/admin work should not be resumed until actual repo state is reconciled.
 
 ## Next actions
@@ -141,7 +142,7 @@ Reason local verification was not completed: current execution container could n
 1. Run `npm ci`.
 2. Run `npm run validate:knowledge`.
 3. Run `npm run build`.
-4. Preview `/` locally and check desktop/mobile layout.
-5. Check GitHub Actions CI result for this PR.
-6. Fill all 37 records with author-approved descriptions/practices/results.
+4. Preview `/` locally and check all 37 records across desktop/mobile.
+5. Replace draft descriptions with exact methodichki text where available.
+6. After author review, mark approved records `verified`.
 7. Update `ai-projects-brain/projects/reiki-yggdrasil/*` to reflect actual repo state.
