@@ -11,6 +11,7 @@ import {
 import "./index.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
+const SETTINGS_PLACEHOLDER_TEXT = "Список настроек этой ступени уточняется.";
 const KNOWLEDGE_STATUS_TEXT = "структура курса подтверждена, материалы дополняются";
 
 function countLabel(count, singular, few, many) {
@@ -36,6 +37,26 @@ function publicList(items) {
   return items.map(publicText);
 }
 
+function publicSettings(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return [
+      {
+        id: "settings-placeholder",
+        title: "Настройки уточняются",
+        description: SETTINGS_PLACEHOLDER_TEXT,
+        effect: "После сверки с методичкой здесь появится точный список настроек."
+      }
+    ];
+  }
+
+  return items.map((item, index) => ({
+    id: item.id || `setting-${index + 1}`,
+    title: publicText(item.title),
+    description: publicText(item.description),
+    effect: publicText(item.effect)
+  }));
+}
+
 function stepLabel(step) {
   return step.label || "Ступень";
 }
@@ -50,6 +71,7 @@ function levelCountText(level) {
 
 function publicStatus(value) {
   if (value === "needs_content") return "материал готовится";
+  if (value === "needs_review") return "требует авторской проверки";
   if (value === "needs verification") return "требуется проверка";
   return value || "материал готовится";
 }
@@ -167,6 +189,8 @@ function App() {
             <button type="button">Смотреть видео и описание настроек ступени</button>
           </div>
 
+          <SettingsList settings={current.settings} />
+
           <div className="infoGrid">
             <Info title="Смысл ступени" text={publicText(current.meaning)} />
             <Info title="Что открывает" list={publicList(current.opens)} />
@@ -251,6 +275,32 @@ function CollectionBlock({ title, cards }) {
       <div className="publicationGrid">
         {cards.map((card, index) => (
           <Publication card={card} index={index} key={card.title} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SettingsList({ settings }) {
+  const items = publicSettings(settings);
+
+  return (
+    <div className="stepSettingsSection">
+      <div className="stepSettingsHeader">
+        <span>✦</span>
+        <div>
+          <h4>Настройки ступени</h4>
+          <p>Список настроек для прохождения и закрепления темы.</p>
+        </div>
+      </div>
+
+      <div className="stepSettingsGrid">
+        {items.map((item) => (
+          <article className="stepSettingCard" key={item.id}>
+            <b>{item.title}</b>
+            <p>{item.description}</p>
+            <small>{item.effect}</small>
+          </article>
         ))}
       </div>
     </div>
