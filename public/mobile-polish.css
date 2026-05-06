@@ -16,11 +16,11 @@
   .rootLevel span, .closedLevel span { font-size: 12.5px !important; line-height: 1.13 !important; }
   .rootLevel small, .closedLevel small { font-size: 13px !important; }
   .keysList { gap: 8px !important; }
-  .pianoKey { min-height: 58px !important; height: auto !important; padding: 7px 28px 7px 0 !important; border-radius: 14px !important; }
-  .pianoKey i { width: 82px !important; height: 28px !important; left: 20px !important; }
-  .pianoKey b { margin-left: 118px !important; font-size: 30px !important; }
-  .pianoKey span { margin-left: 18px !important; max-width: calc(100% - 160px) !important; line-height: 1.08 !important; }
-  .pianoKey .keyLabel, .pianoKey .keyTitle { font-size: clamp(9.5px, 2.7vw, 12px) !important; line-height: 1.08 !important; }
+  .pianoKey { min-height: 60px !important; height: auto !important; padding: 7px 26px 7px 0 !important; border-radius: 14px !important; }
+  .pianoKey i { width: 80px !important; height: 28px !important; left: 18px !important; }
+  .pianoKey b { margin-left: 112px !important; font-size: 31px !important; }
+  .pianoKey span { margin-left: 16px !important; max-width: calc(100% - 148px) !important; line-height: 1.08 !important; }
+  .pianoKey .keyLabel, .pianoKey .keyTitle { font-size: clamp(10.5px, 3vw, 13px) !important; line-height: 1.08 !important; letter-spacing: .55px !important; }
 
   .stageCard { padding: 20px 24px !important; }
   .crumb { font-size: clamp(11px, 3vw, 13px) !important; line-height: 1.32 !important; }
@@ -33,12 +33,14 @@
 
   .practicePanel { padding: 20px 24px !important; }
   .tab { padding: 9px 4px !important; font-size: clamp(12px, 3.2vw, 14px) !important; }
-  .exerciseCard { min-height: 104px !important; grid-template-columns: 92px minmax(0, 1fr) 42px !important; gap: 12px !important; padding: 13px 14px !important; border-radius: 16px !important; }
-  .exercisePreview { width: 92px !important; height: 62px !important; }
-  .exerciseText b { font-size: clamp(15px, 4vw, 18px) !important; line-height: 1.12 !important; }
-  .exerciseText p { font-size: clamp(14px, 3.7vw, 17px) !important; line-height: 1.17 !important; }
-  .exerciseText small { font-size: clamp(11px, 3vw, 13px) !important; }
-  .play { width: 42px !important; height: 42px !important; font-size: 17px !important; }
+  .exerciseList { gap: 12px !important; }
+  .exerciseCard { min-height: 112px !important; grid-template-columns: 118px minmax(0, 1fr) 40px !important; gap: 14px !important; padding: 13px 14px !important; border-radius: 18px !important; align-items: center !important; }
+  .exercisePreview { width: 118px !important; height: 70px !important; }
+  .exerciseText { min-width: 0 !important; }
+  .exerciseText b { font-size: clamp(14px, 3.7vw, 17px) !important; line-height: 1.12 !important; letter-spacing: .35px !important; }
+  .exerciseText p { margin: 5px 0 7px !important; font-size: clamp(13px, 3.35vw, 15.5px) !important; line-height: 1.16 !important; }
+  .exerciseText small { font-size: clamp(10.5px, 2.8vw, 12px) !important; }
+  .play { width: 40px !important; height: 40px !important; font-size: 16px !important; }
   .allExercises { padding: 14px 0 16px !important; font-size: clamp(17px, 4.6vw, 21px) !important; }
 
   .masterInvite { grid-template-columns: 76px 1fr !important; gap: 14px !important; padding: 17px 18px !important; margin: 12px 0 20px !important; border-radius: 18px !important; }
@@ -57,11 +59,11 @@
 
 @media (max-width: 420px) {
   .dashboard { padding-left: 14px !important; padding-right: 14px !important; }
-  .pianoKey i { width: 76px !important; left: 16px !important; }
-  .pianoKey b { margin-left: 106px !important; font-size: 29px !important; }
-  .pianoKey span { margin-left: 14px !important; max-width: calc(100% - 146px) !important; }
-  .exerciseCard { grid-template-columns: 82px minmax(0, 1fr) 38px !important; gap: 11px !important; }
-  .exercisePreview { width: 82px !important; height: 56px !important; }
+  .pianoKey i { width: 74px !important; left: 15px !important; }
+  .pianoKey b { margin-left: 102px !important; font-size: 30px !important; }
+  .pianoKey span { margin-left: 14px !important; max-width: calc(100% - 138px) !important; }
+  .exerciseCard { grid-template-columns: 108px minmax(0, 1fr) 38px !important; gap: 12px !important; }
+  .exercisePreview { width: 108px !important; height: 66px !important; }
   .masterInvite { grid-template-columns: 62px 1fr !important; gap: 12px !important; padding: 16px !important; }
   .profileIcon { width: 56px !important; height: 56px !important; }
   .practicePanel .publicationGrid { gap: 8px !important; }
