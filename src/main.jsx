@@ -8,6 +8,7 @@ import {
   settingsSources,
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
+import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import "./index.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
@@ -83,6 +84,7 @@ function App() {
 
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
+  const currentSettings = sourcedStepSettings[current.id] || current.settings;
 
   const cards = useMemo(() => {
     if (tab === "mandalas") return studentCollections.mandalas;
@@ -189,7 +191,7 @@ function App() {
             <button type="button">Смотреть видео и описание настроек ступени</button>
           </div>
 
-          <SettingsList settings={current.settings} />
+          <SettingsList settings={currentSettings} />
 
           <div className="infoGrid">
             <Info title="Смысл ступени" text={publicText(current.meaning)} />
