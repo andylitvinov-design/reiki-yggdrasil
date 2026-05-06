@@ -8,7 +8,7 @@ The goal is to keep the public course structure and learning content versioned i
 
 ## Current status
 
-- status: `course_structure_verified_from_user_corrections_content_partial`
+- status: `course_structure_verified_draft_content_needs_review`
 - canonical data source: `src/data/reikiKnowledgeBase.js`
 - UI consumer: `src/main.jsx`
 - validator: `scripts/validate-knowledge-base.mjs`
@@ -24,8 +24,24 @@ The goal is to keep the public course structure and learning content versioned i
 | Steps/items | 37 stable records defined |
 | Structure source | user-provided screenshots + follow-up corrections, 2026-05-05 and 2026-05-06 |
 | Step titles | aligned with latest user corrections |
-| Full descriptions/practices/results | still need author-approved content |
+| Central learner-facing descriptions | draft content exists for all 37 records |
+| Author methodichki verification | needs verification |
+| Full practices/settings/homework/media | needs author-approved expansion |
 | Supabase-backed content CMS | needs verification / not confirmed in current `main` |
+
+## Content note
+
+All 37 central learner cards now have draft content for:
+
+- `intro`
+- `meaning`
+- `opens`
+- `skills`
+- `result`
+
+These records are intentionally marked `needs_review` in `src/data/reikiKnowledgeBase.js` because the original methodichki/source text was not found in the repo. Do not mark records as `verified` until the course author reviews them against the original methodichki.
+
+The current implementation uses custom draft copy for the базовая программа and safe generated learner-facing scaffold copy for the remaining records, based on verified titles/themes. This is not final sacred/course material.
 
 ## Level map
 
@@ -33,11 +49,11 @@ The goal is to keep the public course structure and learning content versioned i
 | --- | --- | ---: | --- | --- |
 | 1 | Базовая программа Рейки Иггдрасиль | 5 | Уровень | Здоровье · Интуиция · Защита; Очищение · Денежная активация; Предопределение · Сила; Сверхчувственное видение; Уровень мастера |
 | 2 | Инструкторский курс | 6 | Ступень | Целительство; Золотой телец; Мужчина и женщина; Жизненная сила; Сексуальная энергетика; Файербол. Управление энергией |
-| 3 | Храмовая магия | 5 | Ступень | Работа с эгрегорами; Египетская магия; Греческая магия. Зодиак; Толтекская магия; Магия денег |
-| 4 | Восточная магия | 5 | Ступень | Китайская медицина 1. Элементы; Китайская медицина 2. Сила; Китайское прогнозирование. И Цзин; Кундалини; Суфизм |
-| 5 | Западная магия. Каббала и Таро | 5 | Ступень | Великие арканы Таро; Силы стихий; Дерево Сефирот; Высшие арканы Таро; Предсказания в Таро |
-| 6 | Северная магия рун | 5 | Ступень | Руны и руническая традиция; Миры Древа Иггдрасиль; Круг силы; Руническое предсказание; Руническое исцеление |
-| 7 | Высокая магия | 6 | Ступень | Телепорт. Астральный полет. Ясновидение; Машинный зал. Укрепление видения; Ифриты. Создание помощников; Славянская магия 1; Славянская магия 2; Цивилизации |
+| 3 | Храмовая магия | 5 | Ступень | Работа с эгрегорами; Египетская магия; Греческая магия. Зодиак; Толтекская магия; Суфизм |
+| 4 | Восточная магия | 5 | Ступень | Китайская медицина 1. Элементы; Китайская медицина 2. Сила; Китайское прогнозирование. И Цзин; Кундалини; Денежная магия |
+| 5 | Западноевропейская магия. Каббала и Таро | 5 | Ступень | Великие арканы Таро; Силы стихий; Дерево Сефирот; Высшие арканы Таро; Предсказания в Таро |
+| 6 | Продвинутая магия рун | 5 | Ступень | Руны и руническая традиция; Миры Древа Иггдрасиль; Круг силы; Руническое предсказание; Руническое исцеление |
+| 7 | Высшая магия | 6 | Ступень | Телепорт. Астральный полет. Ясновидение; Машинный зал. Укрепление видения; Ифриты. Создание помощников; Славянская магия 1; Славянская магия 2; Цивилизации |
 
 ## Stable IDs
 
@@ -89,7 +105,7 @@ Each step record should include:
   opens: ["..."],
   skills: ["..."],
   result: "...",
-  contentStatus: "needs_content"
+  contentStatus: "needs_review"
 }
 ```
 
@@ -99,14 +115,14 @@ Each step record should include:
 | --- | --- |
 | `structure_verified_from_user_corrections` | Level/step title and order are aligned with screenshots and user corrections. |
 | `needs_content` | Structural record exists, but full text/practice/result still needs author content. |
-| `needs_review` | Content exists but must be reviewed by the course author. |
+| `needs_review` | Draft content exists but must be reviewed by the course author. |
 | `verified` | Reserved for content explicitly reviewed and approved by the course author. |
 
 ## Safe editing workflow
 
 1. Read `AGENTS.md`, `STATE.md`, `LOG.md`, this document, and `src/data/reikiKnowledgeBase.js` first.
 2. Edit `src/data/reikiKnowledgeBase.js` for canonical public course structure/content.
-3. Use `needs_content` when full author material is missing.
+3. Use `needs_review` for draft text that has not been checked against author methodichki.
 4. Run:
 
 ```bash
@@ -119,19 +135,23 @@ npm run build
    - desktop three-column layout
    - mobile layout below 980px
    - level/step switching across all 7 levels
+   - no raw technical statuses shown to learners
    - no console errors
 
 6. Update `STATE.md` and `LOG.md` after meaningful changes.
 
 ## Open questions / needs verification
 
-- Full descriptions, practices, settings, homework, and expected results for each of the 37 records.
+- Original methodichki/source text for each step.
+- Which draft descriptions should be replaced with exact author-approved text.
 - Whether step content should later move to Supabase CMS or remain static in GitHub.
 - Whether `/profile`, `/masters`, and `/profile/admin` are planned routes or from stale project memory.
 - Whether the live Vercel deployment points to the current `main` branch and latest commit.
 
 ## Next content tasks
 
-1. Add author-approved descriptions for each record.
-2. Add fields only when needed, for example: `practice`, `videoUrl`, `audioUrl`, `mandalaPrompt`, `teacherNotesPublic`, `recommendedDuration`, `homework`.
-3. Keep private/master-only fields outside the public static data unless a proper access model exists.
+1. Review all 37 draft descriptions against the methodichki.
+2. Replace generated draft copy with exact author-approved descriptions where available.
+3. Add fields only when needed, for example: `practice`, `videoUrl`, `audioUrl`, `mandalaPrompt`, `teacherNotesPublic`, `recommendedDuration`, `homework`.
+4. Keep private/master-only fields outside the public static data unless a proper access model exists.
+5. After author review, change approved records from `needs_review` to `verified` only where appropriate.
