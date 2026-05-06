@@ -1,0 +1,50 @@
+/* Mobile visual fixes for the Reiki Yggdrasil public UI.
+   Keeps the existing React structure intact and only corrects contrast/grid behavior. */
+
+/* Light piano keys inherit the left panel light text color; make inactive labels readable. */
+.pianoKey:not(.selected),
+.pianoKey:not(.selected) span,
+.pianoKey:not(.selected) .keyLabel,
+.pianoKey:not(.selected) .keyTitle {
+  color: #17120c !important;
+}
+
+.pianoKey:not(.selected) .keyTitle {
+  color: #2c2117 !important;
+}
+
+.pianoKey.selected b,
+.pianoKey.selected span,
+.pianoKey.selected .keyLabel,
+.pianoKey.selected .keyTitle {
+  color: #ffffff !important;
+}
+
+@media (max-width: 980px) {
+  /* The design keeps student mandalas/artifacts in a compact three-card row. */
+  .practicePanel .publicationGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .practicePanel .publicationImage {
+    height: 56px !important;
+  }
+
+  .practicePanel .publicationCard {
+    border-radius: 10px !important;
+    padding-bottom: 7px !important;
+  }
+
+  .practicePanel .publicationCard b {
+    padding: 7px 6px 2px !important;
+    font-size: 10.5px !important;
+    line-height: 1.14 !important;
+  }
+
+  .practicePanel .publicationCard small {
+    padding: 0 6px !important;
+    font-size: 9.5px !important;
+    line-height: 1.15 !important;
+  }
+}
