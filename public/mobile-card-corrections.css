@@ -1,60 +1,65 @@
 @media (max-width: 980px) {
   .exerciseList {
     justify-items: center !important;
+    gap: 10px !important;
   }
 
   .exerciseCard {
-    width: min(100%, 360px) !important;
-    min-height: 92px !important;
-    grid-template-columns: 58px minmax(0, 1fr) 34px !important;
-    gap: 10px !important;
-    padding: 12px 12px !important;
+    width: min(100%, 320px) !important;
+    min-height: 76px !important;
+    grid-template-columns: 46px minmax(0, 1fr) 28px !important;
+    gap: 8px !important;
+    padding: 9px 10px !important;
     margin-inline: auto !important;
-    border-radius: 16px !important;
+    border-radius: 14px !important;
   }
 
   .exercisePreview {
-    width: 58px !important;
-    height: 40px !important;
-    border-radius: 8px !important;
+    width: 46px !important;
+    height: 32px !important;
+    border-radius: 7px !important;
   }
 
   .exerciseText b {
-    font-size: clamp(13px, 3.3vw, 15px) !important;
-    line-height: 1.12 !important;
+    font-size: clamp(11.5px, 3vw, 13px) !important;
+    line-height: 1.1 !important;
+    letter-spacing: .35px !important;
   }
 
   .exerciseText p {
-    margin: 4px 0 6px !important;
-    font-size: clamp(12.5px, 3.2vw, 14px) !important;
-    line-height: 1.14 !important;
+    margin: 3px 0 4px !important;
+    font-size: clamp(11px, 2.85vw, 12.5px) !important;
+    line-height: 1.12 !important;
   }
 
   .exerciseText small {
-    font-size: clamp(10px, 2.6vw, 11.5px) !important;
+    font-size: clamp(9px, 2.35vw, 10.5px) !important;
   }
 
   .play {
-    width: 34px !important;
-    height: 34px !important;
-    font-size: 14px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 12px !important;
   }
 }
 
 @media (max-width: 420px) {
   .exerciseCard {
-    width: min(100%, 330px) !important;
-    grid-template-columns: 54px minmax(0, 1fr) 32px !important;
-    gap: 9px !important;
+    width: min(100%, 300px) !important;
+    min-height: 72px !important;
+    grid-template-columns: 42px minmax(0, 1fr) 27px !important;
+    gap: 8px !important;
+    padding: 8px 9px !important;
   }
 
   .exercisePreview {
-    width: 54px !important;
-    height: 38px !important;
+    width: 42px !important;
+    height: 30px !important;
   }
 
   .play {
-    width: 32px !important;
-    height: 32px !important;
+    width: 27px !important;
+    height: 27px !important;
+    font-size: 11px !important;
   }
 }
