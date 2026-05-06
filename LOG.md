@@ -1,5 +1,62 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-06 — Fill central step cards with draft learner content
+
+Mode: implementation branch.
+
+Changed on branch `codex/fill-reiki-draft-content`:
+
+- Updated `src/data/reikiKnowledgeBase.js`.
+- Added draft learner-facing content for all 37 central course cards.
+- Central card fields now have content for every record:
+  - `intro`
+  - `meaning`
+  - `opens`
+  - `skills`
+  - `result`
+- Kept all stable IDs unchanged: `RY-L01-S01` through `RY-L07-S06`.
+- Kept all level names, step names, counts, and labels aligned with the latest corrected structure.
+- Marked all draft-filled records as `contentStatus: "needs_review"`.
+- Kept methodichki verification explicit: original methodichki/source text was not found in repo search and still needs author review.
+- Updated `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md` with the new draft-content status and review policy.
+- Updated `STATE.md` to reflect draft content coverage and remaining verification risks.
+
+Findings:
+
+- Current repo has canonical course data in `src/data/reikiKnowledgeBase.js`.
+- The central UI in `src/main.jsx` already renders the `intro`, `meaning`, `opens`, `skills`, and `result` fields from the knowledge base.
+- Full source methodichki are not present in the inspected repo state.
+- Because source methodichki were not found, content is a safe draft scaffold based on the verified course structure, titles, and themes, not final verified methodichki text.
+
+Verification:
+
+- GitHub file inspection completed.
+- Confirmed files changed through GitHub API commits.
+- Local npm verification not completed in this assistant session:
+  - `npm ci` not run
+  - `npm run validate:knowledge` not run
+  - `npm run build` not run
+  - browser preview not run
+
+Required checks before merge:
+
+- `npm ci`
+- `npm run validate:knowledge`
+- `npm run build`
+- local or Vercel preview check of `/`
+- desktop three-column layout QA
+- mobile layout below 980px QA
+- click through all 7 levels / 37 records
+- confirm no raw technical statuses are shown to learners
+- confirm no console errors
+
+Risks:
+
+- Draft texts are not verified against author methodichki.
+- Some later-course descriptions are intentionally generalized scaffold copy and should be replaced by exact methodichki content when available.
+- Long Russian texts may need spacing/scroll QA in the central card.
+- External `ai-projects-brain` memory still likely needs reconciliation with current repo state.
+
 ## 2026-05-05 — Align GitHub knowledge base with course screenshots and corrections
 
 Mode: analysis + implementation branch.
