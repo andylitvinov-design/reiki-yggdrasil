@@ -143,6 +143,31 @@ function stepId(levelId, stepNumber) {
   return `RY-L${String(levelId).padStart(2, "0")}-S${String(stepNumber).padStart(2, "0")}`;
 }
 
+function settingId(levelId, stepNumber, index) {
+  return `${stepId(levelId, stepNumber)}-A${String(index).padStart(2, "0")}`;
+}
+
+function splitSettingTopics(stepTitle) {
+  return stepTitle
+    .split(/[·.]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function makeDraftSettings(level, stepTitle, stepNumber) {
+  const topics = splitSettingTopics(stepTitle);
+  const baseTopics = topics.length > 1 ? topics : [stepTitle, "Интеграция в личную практику", "Закрепление результата"];
+
+  return baseTopics.map((topic, index) => ({
+    id: settingId(level.id, stepNumber, index + 1),
+    title: `Настройка «${topic}»`,
+    description: `Черновая карточка настройки для темы «${topic}» в рамках раздела «${level.name}». Точное название, порядок передачи и формулировка должны быть сверены с авторской методичкой.`,
+    effect: `Помогает ученику мягко войти в тему «${topic}», заметить личный отклик и связать настройку с регулярной практикой.`,
+    contentStatus: "needs_review"
+  }));
+}
+
 function makeDraftContent(level, stepTitle, stepNumber) {
   const id = stepId(level.id, stepNumber);
   const customDraft = STEP_DRAFTS[id];
@@ -183,6 +208,7 @@ function makeCourseStep(level, stepTitle, stepNumber) {
     opens: draftContent.opens,
     skills: draftContent.skills,
     result: draftContent.result,
+    settings: makeDraftSettings(level, stepTitle, stepNumber),
     contentStatus: "needs_review"
   };
 }
@@ -191,12 +217,12 @@ export const reikiKnowledgeMeta = {
   project: "Reiki Yggdrasil",
   language: "ru",
   source: "src/data/reikiKnowledgeBase.js",
-  status: "course_structure_verified_draft_content_needs_review",
+  status: "course_structure_verified_draft_content_and_settings_needs_review",
   stableIdPattern: "RY-L{level}-S{step}",
   totalLevels: LEVEL_DEFINITIONS.length,
   totalSteps: LEVEL_DEFINITIONS.reduce((sum, level) => sum + level.count, 0),
   knownContentPolicy:
-    "The 7-level / 37-step course structure is aligned with user-provided screenshots and follow-up corrections. Current learner-facing descriptions are draft copy based on titles/themes and must be reviewed against author methodichki before being marked verified."
+    "The 7-level / 37-step course structure is aligned with user-provided screenshots and follow-up corrections. Current learner-facing descriptions and settings are draft copy based on titles/themes and must be reviewed against author methodichki before being marked verified."
 };
 
 export const reikiLevels = LEVEL_DEFINITIONS.map((level) => ({
