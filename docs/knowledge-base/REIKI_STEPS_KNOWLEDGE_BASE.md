@@ -8,7 +8,7 @@ The goal is to keep the public course structure and learning content versioned i
 
 ## Current status
 
-- status: `course_structure_verified_from_user_corrections_content_partial`
+- status: `course_structure_verified_draft_content_needs_review`
 - canonical data source: `src/data/reikiKnowledgeBase.js`
 - UI consumer: `src/main.jsx`
 - validator: `scripts/validate-knowledge-base.mjs`
@@ -22,10 +22,26 @@ The goal is to keep the public course structure and learning content versioned i
 | --- | --- |
 | Levels | 7 levels defined |
 | Steps/items | 37 stable records defined |
-| Structure source | user-provided screenshots + follow-up corrections, 2026-05-05 |
+| Structure source | user-provided screenshots + follow-up corrections, 2026-05-05 and 2026-05-06 |
 | Step titles | aligned with latest user corrections |
-| Full descriptions/practices/results | still need author-approved content |
+| Learner-facing central descriptions | draft content added for all 37 records |
+| Author methodichki verification | needs verification |
+| Full practices/settings/homework | needs author-approved expansion |
 | Supabase-backed content CMS | needs verification / not confirmed in current `main` |
+
+## Content note
+
+All 37 central learner cards now have draft descriptions for:
+
+- `intro`
+- `meaning`
+- `opens`
+- `skills`
+- `result`
+
+These texts are intentionally marked as `needs_review` in `src/data/reikiKnowledgeBase.js` because the repo does not contain verified methodichki/source text. Do not mark these records as `verified` until the course author reviews them against the original methodichki.
+
+The current implementation uses custom draft copy for the first part of the course and safe generated learner-facing copy for the remaining records, based on the already verified level/step titles and themes. This is a content scaffold, not final sacred/course material.
 
 ## Level map
 
@@ -89,7 +105,7 @@ Each step record should include:
   opens: ["..."],
   skills: ["..."],
   result: "...",
-  contentStatus: "needs_content"
+  contentStatus: "needs_review"
 }
 ```
 
@@ -106,32 +122,37 @@ Each step record should include:
 
 1. Read `AGENTS.md`, `STATE.md`, `LOG.md`, this document, and `src/data/reikiKnowledgeBase.js` first.
 2. Edit `src/data/reikiKnowledgeBase.js` for canonical public course structure/content.
-3. Use `needs_content` when full author material is missing.
-4. Run:
+3. Use `needs_review` for draft text that has not been checked against author methodichki.
+4. Use `needs_content` only when a record has no learner-facing content at all.
+5. Run:
 
 ```bash
 npm run validate:knowledge
 npm run build
 ```
 
-5. Check the public UI:
+6. Check the public UI:
    - `/`
    - desktop three-column layout
    - mobile layout below 980px
    - level/step switching across all 7 levels
+   - no raw technical statuses shown to learners
    - no console errors
 
-6. Update `STATE.md` and `LOG.md` after meaningful changes.
+7. Update `STATE.md` and `LOG.md` after meaningful changes.
 
 ## Open questions / needs verification
 
-- Full descriptions, practices, settings, homework, and expected results for each of the 37 records.
+- Original methodichki/source text for every step.
+- Which draft descriptions should be replaced with exact author-approved text.
 - Whether step content should later move to Supabase CMS or remain static in GitHub.
 - Whether `/profile`, `/masters`, and `/profile/admin` are planned routes or from stale project memory.
 - Whether the live Vercel deployment points to the current `main` branch and latest commit.
 
 ## Next content tasks
 
-1. Add author-approved descriptions for each record.
-2. Add fields only when needed, for example: `practice`, `videoUrl`, `audioUrl`, `mandalaPrompt`, `teacherNotesPublic`, `recommendedDuration`, `homework`.
-3. Keep private/master-only fields outside the public static data unless a proper access model exists.
+1. Review all 37 draft descriptions against the methodichki.
+2. Replace generated draft copy with exact author-approved descriptions where available.
+3. Add fields only when needed, for example: `practice`, `videoUrl`, `audioUrl`, `mandalaPrompt`, `teacherNotesPublic`, `recommendedDuration`, `homework`.
+4. Keep private/master-only fields outside the public static data unless a proper access model exists.
+5. After author review, change reviewed records from `needs_review` to `verified` only where appropriate.
