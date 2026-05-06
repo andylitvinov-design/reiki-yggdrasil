@@ -10,6 +10,7 @@ import {
 } from "./data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import "./index.css";
+import "./stepSettings.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
 const SETTINGS_PLACEHOLDER_TEXT = "Список настроек этой ступени уточняется.";
