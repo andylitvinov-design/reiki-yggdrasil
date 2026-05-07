@@ -83,6 +83,28 @@ function isPublicUrl(value) {
   return typeof value === "string" && /^https?:\/\//.test(value);
 }
 
+function youtubeEmbedUrl(value) {
+  if (!isPublicUrl(value)) return null;
+
+  try {
+    const url = new URL(value);
+    if (url.hostname === "youtu.be") {
+      const id = url.pathname.replace("/", "");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+
+    if (url.hostname.endsWith("youtube.com")) {
+      if (url.pathname.startsWith("/embed/")) return value;
+      const id = url.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
@@ -273,23 +295,47 @@ function App() {
 }
 
 function StepVideo({ video }) {
-  const hasVideo = video && isPublicUrl(video.url);
+  const primaryUrl = video?.primaryUrl || video?.url;
+  const embedUrl = youtubeEmbedUrl(primaryUrl);
+  const links = Array.isArray(video?.videos) && video.videos.length > 0
+    ? video.videos
+    : primaryUrl
+      ? [{ title: video?.title || "Видео ступени", label: "Основное видео", url: primaryUrl }]
+      : [];
 
   return (
     <div className="videoSettingsCard">
-      {hasVideo ? (
-        <a href={video.url} target="_blank" rel="noreferrer">
-          Смотреть видео и описание настроек ступени
-        </a>
+      <div className="stepVideoHeader">
+        <b>Видео ступени</b>
+        {video?.sourceStatus === "source_verified" && <span>проверено по источнику</span>}
+      </div>
+
+      {embedUrl ? (
+        <div className="stepVideoFrame">
+          <iframe
+            src={embedUrl}
+            title={video?.title || "Видео ступени Рейки Иггдрасиль"}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
       ) : (
         <button type="button" disabled>
           Видео к этой ступени готовится
         </button>
       )}
-      {video && (
-        <small>
-          {video.title} · источник: psimaster.net · {video.sourceStatus === "needs_psimaster_youtube_url_verification" ? "нужна проверка YouTube-ссылки" : video.sourceStatus}
-        </small>
+
+      {video && <small>{video.title} · источник: {video.sourcePage ? "reiki-yggdrasil.com" : "needs verification"}</small>}
+
+      {links.length > 0 && (
+        <div className="stepVideoLinks">
+          {links.map((item) => (
+            <a href={item.url} target="_blank" rel="noreferrer" key={`${item.label}-${item.url}`}>
+              {item.label}
+            </a>
+          ))}
+        </div>
       )}
     </div>
   );
