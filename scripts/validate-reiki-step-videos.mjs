@@ -9,6 +9,8 @@ const EXPECTED_BASIC_STEP_IDS = [
   "RY-L01-S05"
 ];
 
+const EXPECTED_VIDEO_COUNT_PER_STEP = 3;
+
 const videosSourcePath = new URL("../src/data/reikiStepVideos.js", import.meta.url);
 const videosSource = await readFile(videosSourcePath, "utf8");
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(videosSource).toString("base64")}`;
@@ -30,14 +32,32 @@ for (const stepId of EXPECTED_BASIC_STEP_IDS) {
   }
 
   if (!video.title) errors.push(`${stepId} video slot is missing title.`);
-  if (!video.sourcePage || !video.sourcePage.startsWith("https://psimaster.net/")) {
-    errors.push(`${stepId} video slot must keep psimaster.net sourcePage.`);
+  if (!video.sourcePage || !video.sourcePage.startsWith("https://reiki-yggdrasil.com/")) {
+    errors.push(`${stepId} video slot must keep the verified reiki-yggdrasil.com sourcePage.`);
+  }
+  if (video.sourceStatus !== "source_verified") {
+    errors.push(`${stepId} video slot must be marked source_verified after source extraction.`);
+  }
+  if (!isYoutubeUrl(video.primaryUrl)) {
+    errors.push(`${stepId} primaryUrl must be a verified https YouTube/youtu.be URL, found: ${video.primaryUrl}`);
+  }
+  if (!Array.isArray(video.videos)) {
+    errors.push(`${stepId} videos must be an array.`);
+    continue;
+  }
+  if (video.videos.length !== EXPECTED_VIDEO_COUNT_PER_STEP) {
+    errors.push(`${stepId} must have ${EXPECTED_VIDEO_COUNT_PER_STEP} video records, found ${video.videos.length}.`);
+  }
+  if (video.videos[0]?.url !== video.primaryUrl) {
+    errors.push(`${stepId} primaryUrl must match the first video URL for embedded playback.`);
   }
 
-  if (video.url === "needs verification") {
-    warnings.push(`${stepId} has no verified YouTube URL yet.`);
-  } else if (!isYoutubeUrl(video.url)) {
-    errors.push(`${stepId} video URL must be a verified https YouTube/youtu.be URL, found: ${video.url}`);
+  for (const [index, item] of video.videos.entries()) {
+    if (!item.title) errors.push(`${stepId} video ${index + 1} is missing title.`);
+    if (!item.label) errors.push(`${stepId} video ${index + 1} is missing label.`);
+    if (!isYoutubeUrl(item.url)) {
+      errors.push(`${stepId} video ${index + 1} URL must be a verified https YouTube/youtu.be URL, found: ${item.url}`);
+    }
   }
 }
 
@@ -57,4 +77,6 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`Reiki step video slots OK: ${EXPECTED_BASIC_STEP_IDS.length} basic step slots present.`);
+console.log(
+  `Reiki step video slots OK: ${EXPECTED_BASIC_STEP_IDS.length} basic step slots, ${EXPECTED_BASIC_STEP_IDS.length * EXPECTED_VIDEO_COUNT_PER_STEP} verified YouTube links.`
+);
