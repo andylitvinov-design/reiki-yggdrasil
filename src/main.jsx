@@ -9,6 +9,7 @@ import {
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
+import { getStepVideo } from "./data/reikiStepVideos.js";
 import "./index.css";
 import "./stepSettings.css";
 
@@ -78,6 +79,10 @@ function publicStatus(value) {
   return value || "материал готовится";
 }
 
+function isPublicUrl(value) {
+  return typeof value === "string" && /^https?:\/\//.test(value);
+}
+
 function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
@@ -86,6 +91,7 @@ function App() {
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
+  const currentVideo = getStepVideo(current.id);
 
   const cards = useMemo(() => {
     if (tab === "mandalas") return studentCollections.mandalas;
@@ -188,9 +194,7 @@ function App() {
             </div>
           </div>
 
-          <div className="videoSettingsCard">
-            <button type="button">Смотреть видео и описание настроек ступени</button>
-          </div>
+          <StepVideo video={currentVideo} />
 
           <SettingsList settings={currentSettings} />
 
@@ -264,6 +268,29 @@ function App() {
           )}
         </aside>
       </main>
+    </div>
+  );
+}
+
+function StepVideo({ video }) {
+  const hasVideo = video && isPublicUrl(video.url);
+
+  return (
+    <div className="videoSettingsCard">
+      {hasVideo ? (
+        <a href={video.url} target="_blank" rel="noreferrer">
+          Смотреть видео и описание настроек ступени
+        </a>
+      ) : (
+        <button type="button" disabled>
+          Видео к этой ступени готовится
+        </button>
+      )}
+      {video && (
+        <small>
+          {video.title} · источник: psimaster.net · {video.sourceStatus === "needs_psimaster_youtube_url_verification" ? "нужна проверка YouTube-ссылки" : video.sourceStatus}
+        </small>
+      )}
     </div>
   );
 }
