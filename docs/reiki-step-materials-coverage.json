@@ -1,0 +1,13 @@
+{
+  "generatedAt": "needs runtime generation",
+  "source": {
+    "knowledgeBase": "src/data/reikiKnowledgeBase.js",
+    "stepSettings": "src/data/reikiStepSettings.js"
+  },
+  "status": "placeholder_until_npm_run_audit_reiki_materials",
+  "expected": {
+    "totalLevels": 7,
+    "totalSteps": 37
+  },
+  "instructions": "Run npm run audit:reiki-materials to replace this placeholder with exact machine-readable coverage."
+}
