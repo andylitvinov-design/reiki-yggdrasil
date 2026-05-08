@@ -15,6 +15,7 @@ import "./stepSettings.css";
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
 const SETTINGS_PLACEHOLDER_TEXT = "Список настроек этой ступени уточняется.";
 const KNOWLEDGE_STATUS_TEXT = "структура курса подтверждена, материалы дополняются";
+const PLACEHOLDER_VALUES = new Set(["", "needs_content", "needs verification", "Материал готовится", "Требуется авторское заполнение"]);
 
 function countLabel(count, singular, few, many) {
   const lastTwo = count % 100;
@@ -26,17 +27,25 @@ function countLabel(count, singular, few, many) {
   return many;
 }
 
+function hasPublicText(value) {
+  return typeof value === "string" && !PLACEHOLDER_VALUES.has(value.trim());
+}
+
 function publicText(value) {
-  if (!value || value === "needs_content" || value === "needs verification") return PLACEHOLDER_TEXT;
+  if (!hasPublicText(value)) return PLACEHOLDER_TEXT;
   return value;
 }
 
+function hasPublicList(items) {
+  return Array.isArray(items) && items.some((item) => hasPublicText(item));
+}
+
 function publicList(items) {
-  if (!Array.isArray(items) || items.length === 0 || items.every((item) => item === "needs_content" || item === "needs verification")) {
+  if (!hasPublicList(items)) {
     return ["Материал готовится", "Требуется авторское заполнение"];
   }
 
-  return items.map(publicText);
+  return items.filter(hasPublicText).map(publicText);
 }
 
 function publicSettings(items) {
@@ -152,7 +161,6 @@ function App() {
                         <i />
                         <b>{item.number}</b>
                         <span>
-                          <strong className="keyLabel">{stepLabel(item)} {item.number}</strong>
                           <em className="keyTitle">{item.title}</em>
                         </span>
                         {selectedStepId === item.id && <strong className="glowRune">✧</strong>}
@@ -188,8 +196,16 @@ function App() {
             </div>
           </div>
 
-          <div className="videoSettingsCard">
-            <button type="button">Смотреть видео и описание настроек ступени</button>
+          <div className="videoStageCard">
+            <div className="videoFrame" aria-label="Окно видео ступени">
+              <div className="videoGlow" />
+              <button type="button" className="videoPlay">▶</button>
+            </div>
+            <div className="videoCaption">
+              <b>Видео и описание настроек ступени</b>
+              <p>Здесь будет центральное видео: объяснение темы, порядок работы и акценты практики.</p>
+              <button type="button">Смотреть видео</button>
+            </div>
           </div>
 
           <SettingsList settings={currentSettings} />
@@ -197,11 +213,6 @@ function App() {
           <div className="infoGrid">
             <Info title="Смысл ступени" text={publicText(current.meaning)} />
             <Info title="Что открывает" list={publicList(current.opens)} />
-          </div>
-
-          <div className="infoGrid framed">
-            <Info title="Ключевые навыки" list={publicList(current.skills)} />
-            <Info title="Результат" text={publicText(current.result)} />
           </div>
 
           <div className="knowledgeMeta">
@@ -293,7 +304,7 @@ function SettingsList({ settings }) {
         <span>✦</span>
         <div>
           <h4>Настройки ступени</h4>
-          <p>Список настроек для прохождения и закрепления темы.</p>
+          <p>Каналы и практические акценты этой ступени. Формулировки держим ближе к авторской методичке.</p>
         </div>
       </div>
 
@@ -302,7 +313,7 @@ function SettingsList({ settings }) {
           <article className="stepSettingCard" key={item.id}>
             <b>{item.title}</b>
             <p>{item.description}</p>
-            <small>{item.effect}</small>
+            <small><span>Акцент:</span> {item.effect}</small>
           </article>
         ))}
       </div>
