@@ -24,14 +24,14 @@
 .stepSettingsHeader h4 {
   margin: 0;
   color: #8d5d16;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
 
 .stepSettingsHeader p {
   margin: 4px 0 0;
-  color: #6d6256;
+  color: #4f4134;
   font-size: 12.5px;
   line-height: 1.4;
 }
@@ -40,41 +40,58 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  align-items: stretch;
 }
 
 .stepSettingCard {
   min-width: 0;
-  padding: 12px;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  padding: 13px 14px;
   border-radius: 14px;
-  border: 1px solid rgba(203, 152, 64, 0.32);
-  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 250, 241, 0.54));
 }
 
 .stepSettingCard b {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
   color: #8d5d16;
-  font-size: 13.5px;
-  line-height: 1.25;
+  font-size: 14px;
+  line-height: 1.18;
   text-transform: uppercase;
 }
 
 .stepSettingCard p {
-  margin: 0 0 8px;
+  margin: 0 0 9px;
   color: #241910;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 13.2px;
+  line-height: 1.42;
 }
 
 .stepSettingCard small {
   display: block;
-  color: #6f6254;
+  margin-top: auto;
+  padding-top: 9px;
+  border-top: 1px solid rgba(184, 121, 29, 0.18);
+  color: #5f5042;
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.36;
+}
+
+.stepSettingCard small span {
+  color: #8d5d16;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 @media (max-width: 980px) {
   .stepSettingsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .stepSettingCard {
+    min-height: 0;
   }
 }
