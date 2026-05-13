@@ -1,82 +1,115 @@
 export const psimasterSourcePageUrl = "https://psimaster.net/service?shs_term_node_tid_depth=12312";
 
+export const freeVideoCategories = [
+  { id: "all", label: "Все" },
+  { id: "greek", label: "Греция" },
+  { id: "egypt", label: "Египет" },
+  { id: "maya", label: "Майя" },
+  { id: "planets", label: "Планеты" },
+  { id: "protection", label: "Защита" }
+];
+
 export const freeCourseLinks = [
   {
     id: "FREE-PSI-DEMETRA",
     title: "Курс Греческие Мистерии. Канал Деметры.",
     type: "course",
     typeLabel: "Курс",
+    category: "greek",
+    categoryLabel: "Греческие мистерии",
     tradition: "Греческие мистерии",
+    description: "Бесплатный материал по греческой мистериальной традиции и каналу Деметры.",
     source: "psimaster",
     sourcePageUrl: psimasterSourcePageUrl,
     courseUrl: null,
+    embedUrl: null,
     urlStatus: "needs verification",
     recommendedPlacement: ["Храмовая магия", "Высшая магия"],
-    notes: "Название взято со скриншота пользователя; прямой URL курса требует проверки."
+    notes: "Название взято со скриншота пользователя; прямой URL курса и прямой video/embed URL требуют проверки."
   },
   {
     id: "FREE-PSI-PLANETS",
     title: "Курс Сила Планет",
     type: "course",
     typeLabel: "Курс",
+    category: "planets",
+    categoryLabel: "Планеты",
     tradition: "Планетарная магия",
+    description: "Бесплатный материал о планетарных силах и их практическом применении.",
     source: "psimaster",
     sourcePageUrl: psimasterSourcePageUrl,
     courseUrl: null,
+    embedUrl: null,
     urlStatus: "needs verification",
     recommendedPlacement: ["Западноевропейская магия. Каббала и Таро", "Высшая магия"],
-    notes: "Название взято со скриншота пользователя; прямой URL курса требует проверки."
+    notes: "Название взято со скриншота пользователя; прямой URL курса и прямой video/embed URL требуют проверки."
   },
   {
     id: "FREE-PSI-PROTECTION-MEDITATIONS",
     title: "Медитации Силы и Защиты",
     type: "meditation",
     typeLabel: "Медитации",
+    category: "protection",
+    categoryLabel: "Защита",
     tradition: "Сила и защита",
+    description: "Бесплатные медитативные материалы для силы, защиты и стабилизации состояния.",
     source: "psimaster",
     sourcePageUrl: psimasterSourcePageUrl,
     courseUrl: null,
+    embedUrl: null,
     urlStatus: "needs verification",
     recommendedPlacement: ["Базовая программа Рейки Иггдрасиль", "Практика"],
-    notes: "Название взято со скриншота пользователя; прямой URL курса требует проверки."
+    notes: "Название взято со скриншота пользователя; прямой URL курса и прямой video/embed URL требуют проверки."
   },
   {
     id: "FREE-PSI-MAYA-ARCHETYPES",
     title: "Архетипы Майя (видео)",
     type: "video",
     typeLabel: "Видео",
+    category: "maya",
+    categoryLabel: "Майя",
     tradition: "Архетипы Майя",
+    description: "Бесплатное видео по архетипам Майя и символической работе с цивилизационными образами.",
     source: "psimaster",
     sourcePageUrl: psimasterSourcePageUrl,
     courseUrl: null,
+    embedUrl: null,
     urlStatus: "needs verification",
     recommendedPlacement: ["Высшая магия", "Цивилизации"],
-    notes: "Название взято со скриншота пользователя; прямой URL курса требует проверки."
+    notes: "Название взято со скриншота пользователя; прямой URL курса и прямой video/embed URL требуют проверки."
   },
   {
     id: "FREE-PSI-EGYPT-OSIRIS",
     title: "Курс Жречество Египта. Осирис",
     type: "course",
     typeLabel: "Курс",
+    category: "egypt",
+    categoryLabel: "Египет",
     tradition: "Египетские мистерии",
+    description: "Бесплатный материал о жреческой египетской линии и мистерии Осириса.",
     source: "psimaster",
     sourcePageUrl: psimasterSourcePageUrl,
     courseUrl: null,
+    embedUrl: null,
     urlStatus: "needs verification",
     recommendedPlacement: ["Храмовая магия", "Высшая магия"],
-    notes: "Название взято со скриншота пользователя; прямой URL курса требует проверки."
+    notes: "Название взято со скриншота пользователя; прямой URL курса и прямой video/embed URL требуют проверки."
   },
   {
     id: "FREE-PSI-DIONYSUS",
     title: "Курс Мистерии Диониса",
     type: "course",
     typeLabel: "Курс",
+    category: "greek",
+    categoryLabel: "Греция",
     tradition: "Греческие мистерии",
+    description: "Бесплатный материал по мистериям Диониса, силе переживания и живой энергии практики.",
     source: "psimaster",
     sourcePageUrl: psimasterSourcePageUrl,
     courseUrl: null,
+    embedUrl: null,
     urlStatus: "needs verification",
     recommendedPlacement: ["Храмовая магия", "Практика"],
-    notes: "Название взято со скриншота пользователя; прямой URL курса требует проверки."
+    notes: "Название взято со скриншота пользователя; прямой URL курса и прямой video/embed URL требуют проверки."
   }
 ];
