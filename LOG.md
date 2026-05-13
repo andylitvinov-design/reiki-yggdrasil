@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-13 — Add psimaster free course links block
+
+Mode: implementation branch.
+
+Changed on branch `codex/add-free-course-links-library`:
+
+- Added `src/data/freeCourseLinks.js` with 6 psimaster free-course records from the user screenshot.
+- Added `docs/knowledge-base/FREE_COURSES_LINKS.md` with source, record list, UI placement, and verification policy.
+- Updated `src/main.jsx` to render a right-panel block `Бесплатные курсы и медитации` in the `Упражнения` and `Мастера` tabs.
+- Added `src/freeCourses.css` for the compact right-panel card styling.
+- Kept every direct individual course URL as `courseUrl: null` and `urlStatus: "needs verification"` because only the source listing page was available.
+
+Records added:
+
+- `FREE-PSI-DEMETRA` — `Курс Греческие Мистерии. Канал Деметры.`
+- `FREE-PSI-PLANETS` — `Курс Сила Планет`
+- `FREE-PSI-PROTECTION-MEDITATIONS` — `Медитации Силы и Защиты`
+- `FREE-PSI-MAYA-ARCHETYPES` — `Архетипы Майя (видео)`
+- `FREE-PSI-EGYPT-OSIRIS` — `Курс Жречество Египта. Осирис`
+- `FREE-PSI-DIONYSUS` — `Курс Мистерии Диониса`
+
+Verification:
+
+- GitHub file inspection completed.
+- Local npm verification not completed in this assistant session because direct network access to GitHub from the execution container failed.
+- Required checks before merge/deploy:
+  - `npm ci`
+  - `npm run validate:knowledge`
+  - `npm run validate:videos`
+  - `npm run build`
+  - `npm run check`
+  - preview `/` on desktop and mobile below 980px
+
+Risks:
+
+- Direct psimaster URLs for individual courses still need manual/browser verification.
+- The block is additive but still needs visual QA inside the accepted three-column layout.
+- External links depend on psimaster availability.
+
 ## 2026-05-06 — Fill central step cards with draft learner content
 
 Mode: implementation branch.
