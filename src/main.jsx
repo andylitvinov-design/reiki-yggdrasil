@@ -8,11 +8,13 @@ import {
   settingsSources,
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
+import { freeCourseLinks } from "./data/freeCourseLinks.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import "./index.css";
 import "./stepSettings.css";
 import "./stepVideos.css";
+import "./freeCourses.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
 const SETTINGS_PLACEHOLDER_TEXT = "Список настроек этой ступени уточняется.";
@@ -272,6 +274,8 @@ function App() {
               </div>
               <button className="allExercises">Все упражнения →</button>
 
+              <FreeCoursesBlock courses={freeCourseLinks} />
+
               <div className="masterInvite">
                 <div className="profileIcon">◎</div>
                 <div>
@@ -367,6 +371,39 @@ function StepVideo({ video }) {
         </div>
       )}
     </div>
+  );
+}
+
+function FreeCoursesBlock({ courses }) {
+  if (!Array.isArray(courses) || courses.length === 0) return null;
+
+  return (
+    <section className="freeCoursesBlock" aria-labelledby="free-courses-title">
+      <div className="freeCoursesHeader">
+        <span>✦</span>
+        <div>
+          <h3 id="free-courses-title">Бесплатные курсы и медитации</h3>
+          <p>Дополнительные материалы Академии: мистерии, архетипы, планеты, защита и медитации.</p>
+        </div>
+      </div>
+
+      <div className="freeCourseList">
+        {courses.map((course) => {
+          const href = course.courseUrl || course.sourcePageUrl;
+          const label = course.courseUrl ? "Открыть курс" : "Открыть список";
+
+          return (
+            <article className="freeCourseCard" key={course.id}>
+              <small>{course.typeLabel} · {course.tradition}</small>
+              <b>{course.title}</b>
+              <a href={href} target="_blank" rel="noreferrer">
+                {label} →
+              </a>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
