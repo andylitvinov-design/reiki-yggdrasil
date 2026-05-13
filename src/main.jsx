@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   practiceExercises,
@@ -106,6 +106,28 @@ function youtubeEmbedUrl(value) {
   return null;
 }
 
+function cleanSettingTitle(value) {
+  return publicText(value)
+    .replace(/^Настройка\s+[«"]/, "")
+    .replace(/[»"]$/, "")
+    .replace(/^Блок\s+[«"]/, "")
+    .replace(/[»"]$/, "")
+    .trim();
+}
+
+function buildStepMeaning(step, settings) {
+  const normalizedSettings = publicSettings(settings).filter((item) => item.id !== "settings-placeholder");
+  const titles = normalizedSettings.map((item) => cleanSettingTitle(item.title)).filter(Boolean).slice(0, 5);
+
+  if (titles.length === 0) return publicText(step.meaning);
+
+  const focus = titles.length === 1
+    ? titles[0]
+    : `${titles.slice(0, -1).join(", ")} и ${titles.at(-1)}`;
+
+  return `Смысл этой ступени — освоить блок «${step.title}» через конкретные настройки: ${focus}. Здесь ученик не просто читает описание, а учится входить в нужное качество потока, наблюдать изменения в теле и состоянии, связывать практику с жизненными задачами и закреплять опыт через повторение. Материал собран по структуре блока и списку настроек этой ступени; точные формулировки остаются открытыми для дальнейшей сверки с методичкой.`;
+}
+
 function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
@@ -115,6 +137,7 @@ function App() {
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
   const currentVideo = getStepVideo(current.id);
+  const currentMeaning = buildStepMeaning(current, currentSettings);
 
   const cards = useMemo(() => {
     if (tab === "mandalas") return studentCollections.mandalas;
@@ -222,13 +245,8 @@ function App() {
           <SettingsList settings={currentSettings} />
 
           <div className="infoGrid">
-            <Info title="Смысл ступени" text={publicText(current.meaning)} />
+            <Info title="Смысл ступени" text={currentMeaning} />
             <Info title="Что открывает" list={publicList(current.opens)} />
-          </div>
-
-          <div className="infoGrid framed">
-            <Info title="Ключевые навыки" list={publicList(current.skills)} />
-            <Info title="Результат" text={publicText(current.result)} />
           </div>
 
           <div className="knowledgeMeta">
@@ -296,15 +314,21 @@ function App() {
 }
 
 function StepVideo({ video }) {
-  const primaryUrl = video?.primaryUrl || video?.url;
-  const embedUrl = youtubeEmbedUrl(primaryUrl);
   const links = Array.isArray(video?.videos) && video.videos.length > 0
     ? video.videos
-    : primaryUrl
-      ? [{ title: video?.title || "Видео ступени", label: "Основное видео", url: primaryUrl }]
+    : video?.primaryUrl
+      ? [{ title: video?.title || "Видео ступени", label: "Основное видео", url: video.primaryUrl }]
       : [];
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedVideoIndex(0);
+  }, [video?.primaryUrl]);
 
   if (!video || links.length === 0) return null;
+
+  const selectedVideo = links[selectedVideoIndex] || links[0];
+  const embedUrl = youtubeEmbedUrl(selectedVideo.url);
 
   return (
     <div className="videoSettingsCard">
@@ -316,8 +340,9 @@ function StepVideo({ video }) {
       {embedUrl ? (
         <div className="stepVideoFrame">
           <iframe
+            key={selectedVideo.url}
             src={embedUrl}
-            title={video?.title || "Видео ступени Рейки Иггдрасиль"}
+            title={selectedVideo.title || video?.title || "Видео ступени Рейки Иггдрасиль"}
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
@@ -325,14 +350,19 @@ function StepVideo({ video }) {
         </div>
       ) : null}
 
-      {video && <small>{video.title} · источник: {video.sourcePage ? "reiki-yggdrasil.com" : "needs verification"}</small>}
+      {video && <small>{video.title} · сейчас: {selectedVideo.label} · источник: {video.sourcePage ? "reiki-yggdrasil.com" : "needs verification"}</small>}
 
       {links.length > 0 && (
-        <div className="stepVideoLinks">
-          {links.map((item) => (
-            <a href={item.url} target="_blank" rel="noreferrer" key={`${item.label}-${item.url}`}>
+        <div className="stepVideoLinks" role="group" aria-label="Выбор записи видео">
+          {links.map((item, index) => (
+            <button
+              type="button"
+              className={index === selectedVideoIndex ? "stepVideoChoice active" : "stepVideoChoice"}
+              onClick={() => setSelectedVideoIndex(index)}
+              key={`${item.label}-${item.url}`}
+            >
               {item.label}
-            </a>
+            </button>
           ))}
         </div>
       )}

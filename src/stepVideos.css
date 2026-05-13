@@ -55,13 +55,32 @@
   margin: 2px auto 0;
 }
 
-.videoSettingsCard .stepVideoLinks a {
+.videoSettingsCard .stepVideoLinks a,
+.videoSettingsCard .stepVideoChoice {
   min-height: 38px;
   width: auto;
   padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 121, 29, 0.42);
+  background: rgba(255, 255, 255, 0.54);
+  color: #7d520f;
   font-size: 11px;
   letter-spacing: 0.35px;
+  text-align: center;
+  text-decoration: none;
   text-transform: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68);
+}
+
+.videoSettingsCard .stepVideoChoice {
+  cursor: pointer;
+}
+
+.videoSettingsCard .stepVideoChoice.active {
+  background: linear-gradient(90deg, rgba(126, 81, 15, 0.92), rgba(214, 149, 45, 0.96));
+  border-color: rgba(255, 211, 116, 0.8);
+  color: #fffaf0;
+  box-shadow: 0 0 16px rgba(255, 180, 48, 0.35);
 }
 
 @media (max-width: 640px) {
