@@ -1,5 +1,46 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-13 — Move psimaster materials into `Бесплатные видео` tab
+
+Mode: implementation branch.
+
+Changed on branch `codex/add-free-course-links-library` after user follow-up:
+
+- Updated `src/main.jsx`:
+  - added a separate right-panel tab `Бесплатные видео`;
+  - removed the free-materials block from `Упражнения` / `Мастера`;
+  - added category filters inside the new tab: `Все`, `Греция`, `Египет`, `Майя`, `Планеты`, `Защита`;
+  - added an in-page `iframe` window for the selected free material;
+  - added a selectable list of the collected materials below the video window.
+- Updated `src/data/freeCourseLinks.js`:
+  - added `freeVideoCategories`;
+  - added `category`, `categoryLabel`, `description`, and `embedUrl` fields to each record;
+  - kept `courseUrl` and `embedUrl` as `null` until direct psimaster course/video URLs are verified.
+- Updated `src/freeCourses.css`:
+  - replaced compact free-course card styles with right-tab video library styles;
+  - adjusted right-panel tab grid so the new sixth tab remains usable.
+- Updated `docs/knowledge-base/FREE_COURSES_LINKS.md` to document the new `Бесплатные видео` tab, categories, iframe behavior, and verification policy.
+- Updated PR #11 description.
+
+Verification:
+
+- GitHub file inspection completed.
+- Local npm verification not completed in this assistant session.
+- Required checks before merge/deploy:
+  - `npm ci`
+  - `npm run validate:knowledge`
+  - `npm run validate:videos`
+  - `npm run build`
+  - `npm run check`
+  - preview `/` on desktop and mobile below 980px
+
+Risks:
+
+- Direct psimaster course/video URLs are still `needs verification`.
+- Until direct `embedUrl` values are added, the iframe uses the source listing page as fallback.
+- `psimaster.net` may block iframe embedding with browser security headers; if so, replace fallback with verified direct video embeds or keep external opening.
+- Visual QA on live/Vercel preview is still required.
+
 ## 2026-05-13 — Add psimaster free course links block
 
 Mode: implementation branch.
@@ -63,7 +104,7 @@ Changed on branch `codex/fill-reiki-draft-content-v2`:
 Findings:
 
 - Current repo has canonical course data in `src/data/reikiKnowledgeBase.js`.
-- The central UI in `src/main.jsx` already renders the `intro`, `meaning`, `opens`, `skills`, and `result` fields from the knowledge base.
+- The central UI in `src/main.jsx` already renders the `intro`, `meaning`, `opens`, and `result` fields from the knowledge base.
 - Full source methodichki are not present in the inspected repo state.
 - Because source methodichki were not found, content is a safe draft scaffold based on the verified course structure, titles, and themes, not final verified methodichki text.
 
