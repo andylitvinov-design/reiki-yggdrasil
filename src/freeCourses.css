@@ -1,75 +1,124 @@
-.freeCoursesBlock {
-  margin: 12px 0;
+.freeVideosPanel {
+  display: grid;
+  gap: 12px;
+}
+
+.freeVideosHeader {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 10px;
+  align-items: start;
   padding: 12px;
   border-radius: 16px;
   border: 1px solid rgba(203, 152, 64, 0.34);
-  background: radial-gradient(circle at 12% 10%, rgba(245, 198, 106, 0.28), transparent 26%),
-    rgba(255, 255, 255, 0.46);
+  background: radial-gradient(circle at 12% 10%, rgba(245, 198, 106, 0.3), transparent 28%),
+    rgba(255, 255, 255, 0.5);
 }
 
-.freeCoursesHeader {
-  display: grid;
-  grid-template-columns: 34px 1fr;
-  gap: 10px;
-  align-items: start;
-  margin-bottom: 10px;
-}
-
-.freeCoursesHeader > span {
-  width: 34px;
-  height: 34px;
+.freeVideosHeader > span {
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(184, 121, 29, 0.44);
+  border: 1px solid rgba(184, 121, 29, 0.46);
   color: #9a6618;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.66);
 }
 
-.freeCoursesHeader h3 {
+.freeVideosHeader h3 {
   margin: 0;
   color: #9a6618;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.18;
   text-transform: uppercase;
 }
 
-.freeCoursesHeader p {
+.freeVideosHeader p,
+.freeVideoNow p,
+.freeVideoNow em {
   margin: 5px 0 0;
   color: #6d6256;
   font-size: 12px;
   line-height: 1.35;
 }
 
-.freeCourseList {
-  display: grid;
-  gap: 8px;
+.freeVideoCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.freeCourseCard {
+.freeVideoCategories button {
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.52);
+  color: #6d4511;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.freeVideoCategories button.active {
+  background: linear-gradient(90deg, #6f4711, #c5892d);
+  border-color: rgba(255, 210, 116, 0.82);
+  color: #fff8e4;
+  box-shadow: 0 8px 18px rgba(132, 87, 17, 0.18);
+}
+
+.freeVideoFrame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 121, 29, 0.42);
+  background: linear-gradient(135deg, #16110b, #2b1a0b 58%, #8b5d18);
+  box-shadow: inset 0 0 0 1px rgba(255, 220, 130, 0.08), 0 14px 26px rgba(80, 52, 16, 0.12);
+}
+
+.freeVideoFrame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #120e09;
+}
+
+.freeVideoNow {
   display: grid;
-  gap: 7px;
-  padding: 10px;
-  border-radius: 13px;
+  gap: 5px;
+  padding: 11px;
+  border-radius: 14px;
   border: 1px solid rgba(184, 121, 29, 0.28);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(250, 240, 221, 0.52));
+  background: rgba(255, 255, 255, 0.52);
 }
 
-.freeCourseCard small {
+.freeVideoNow small,
+.freeVideoItem small {
   color: #7a6b5a;
   font-size: 10.5px;
   letter-spacing: 0.45px;
   text-transform: uppercase;
 }
 
-.freeCourseCard b {
+.freeVideoNow b,
+.freeVideoItem b {
   color: #251a10;
   font-size: 13px;
   line-height: 1.24;
 }
 
-.freeCourseCard a {
+.freeVideoNow em {
+  display: block;
+  padding: 8px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  background: rgba(255, 248, 235, 0.8);
+  font-style: normal;
+}
+
+.freeVideoNow a {
   width: fit-content;
   color: #7d520f;
   font-size: 12px;
@@ -78,8 +127,34 @@
   border-bottom: 1px solid rgba(184, 121, 29, 0.45);
 }
 
+.freeVideoList {
+  display: grid;
+  gap: 8px;
+}
+
+.freeVideoItem {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 13px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(250, 240, 221, 0.52));
+  text-align: left;
+}
+
+.freeVideoItem.active {
+  border-color: rgba(184, 121, 29, 0.72);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.78), rgba(245, 207, 133, 0.52));
+  box-shadow: 0 8px 18px rgba(132, 87, 17, 0.12);
+}
+
 @media (max-width: 980px) {
-  .freeCoursesHeader {
+  .freeVideosHeader {
     grid-template-columns: 1fr;
+  }
+
+  .freeVideoFrame {
+    aspect-ratio: 16 / 9;
   }
 }
