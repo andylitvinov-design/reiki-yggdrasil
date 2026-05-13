@@ -9,8 +9,10 @@ import {
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
+import { getStepVideo } from "./data/reikiStepVideos.js";
 import "./index.css";
 import "./stepSettings.css";
+import "./stepVideos.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
 const SETTINGS_PLACEHOLDER_TEXT = "Список настроек этой ступени уточняется.";
@@ -68,10 +70,6 @@ function publicSettings(items) {
   }));
 }
 
-function getVideoUrl(step) {
-  return hasPublicText(step.videoUrl) ? step.videoUrl.trim() : "";
-}
-
 function stepLabel(step) {
   return step.label || "Ступень";
 }
@@ -91,6 +89,32 @@ function publicStatus(value) {
   return value || "материал готовится";
 }
 
+function isPublicUrl(value) {
+  return typeof value === "string" && /^https?:\/\//.test(value);
+}
+
+function youtubeEmbedUrl(value) {
+  if (!isPublicUrl(value)) return null;
+
+  try {
+    const url = new URL(value);
+    if (url.hostname === "youtu.be") {
+      const id = url.pathname.replace("/", "");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+
+    if (url.hostname.endsWith("youtube.com")) {
+      if (url.pathname.startsWith("/embed/")) return value;
+      const id = url.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
@@ -99,7 +123,7 @@ function App() {
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
-  const currentVideoUrl = getVideoUrl(current);
+  const currentVideo = getStepVideo(current.id);
 
   const cards = useMemo(() => {
     if (tab === "mandalas") return studentCollections.mandalas;
@@ -201,7 +225,7 @@ function App() {
             </div>
           </div>
 
-          <VideoBlock step={current} videoUrl={currentVideoUrl} />
+          <StepVideo video={currentVideo} />
 
           <SettingsList settings={currentSettings} />
 
@@ -274,32 +298,58 @@ function App() {
   );
 }
 
-function VideoBlock({ step, videoUrl }) {
-  const hasVideo = Boolean(videoUrl);
+function StepVideo({ video }) {
+  const rawPrimaryUrl = video?.primaryUrl || video?.url;
+  const primaryUrl = isPublicUrl(rawPrimaryUrl) ? rawPrimaryUrl : "";
+  const embedUrl = youtubeEmbedUrl(primaryUrl);
+  const links = Array.isArray(video?.videos) && video.videos.length > 0
+    ? video.videos
+    : primaryUrl
+      ? [{ title: video?.title || "Видео ступени", label: "Основное видео", url: primaryUrl }]
+      : [];
+  const hasLinks = links.length > 0;
 
   return (
-    <div className="videoStageCard">
-      <div className={hasVideo ? "videoFrame hasVideo" : "videoFrame"} aria-label="Окно видео ступени">
-        {hasVideo ? (
-          <iframe src={videoUrl} title={`Видео: ${step.title}`} allow="fullscreen; picture-in-picture" />
-        ) : (
-          <>
-            <div className="videoGlow" />
-            <div className="videoPlaceholder">
-              <b>Видео не подключено</b>
-              <span>URL видео для этой ступени отсутствует в базе знаний.</span>
-            </div>
-          </>
-        )}
-      </div>
-      <div className="videoCaption">
+    <div className="videoSettingsCard">
+      <div className="stepVideoHeader">
         <b>Видео ступени</b>
-        <p>
-          {hasVideo
-            ? "Окно использует URL из базы знаний ступени."
-            : "Плейбек не имитируется: после добавления реальной ссылки здесь появится встроенное видео."}
-        </p>
+        {video?.sourceStatus === "source_verified" && <span>проверено по источнику</span>}
       </div>
+
+      {embedUrl ? (
+        <div className="stepVideoFrame">
+          <iframe
+            src={embedUrl}
+            title={video?.title || "Видео ступени Рейки Иггдрасиль"}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <div className="stepVideoFrame stepVideoPlaceholder">
+          <b>{hasLinks ? "Встроенное видео недоступно" : "Видео не подключено"}</b>
+          <span>
+            {hasLinks
+              ? "Плейбек не имитируется. Откройте доступную ссылку ниже."
+              : "Для этой ступени в источниках нет реального URL видео."}
+          </span>
+        </div>
+      )}
+
+      <small>
+        {video?.title || "Видео для ступени ожидает источника"} · источник: {video?.sourcePage ? "reiki-yggdrasil.com" : "needs verification"}
+      </small>
+
+      {hasLinks && (
+        <div className="stepVideoLinks">
+          {links.map((item) => (
+            <a href={item.url} target="_blank" rel="noreferrer" key={`${item.label}-${item.url}`}>
+              {item.label}
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,8 @@
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
-    "check": "npm run validate:knowledge && npm run build"
+    "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
+    "check": "npm run validate:knowledge && npm run validate:videos && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
