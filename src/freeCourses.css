@@ -46,7 +46,8 @@
 
 .freeVideosHeader p,
 .freeVideoNow p,
-.freeVideoNow em {
+.freeVideoNow em,
+.freeVideoPlaceholder p {
   margin: 5px 0 0;
   color: #6d6256;
   font-size: 12px;
@@ -76,7 +77,8 @@
   box-shadow: 0 8px 18px rgba(132, 87, 17, 0.18);
 }
 
-.freeVideoFrame {
+.freeVideoFrame,
+.freeVideoPlaceholder {
   position: relative;
   overflow: hidden;
   width: 100%;
@@ -92,6 +94,41 @@
   height: 100%;
   border: 0;
   background: #120e09;
+}
+
+.freeVideoPlaceholder {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+  color: #fff3cf;
+}
+
+.freeVideoPlaceholder span {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 219, 139, 0.55);
+  background: rgba(0, 0, 0, 0.28);
+  color: #f5c66a;
+  font-size: 22px;
+  box-shadow: 0 0 24px rgba(245, 198, 106, 0.28);
+}
+
+.freeVideoPlaceholder b {
+  color: #fff6d8;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.freeVideoPlaceholder p {
+  max-width: 260px;
+  color: rgba(255, 244, 215, 0.78);
 }
 
 .freeVideoNow {
@@ -167,7 +204,8 @@
     grid-template-columns: 1fr;
   }
 
-  .freeVideoFrame {
+  .freeVideoFrame,
+  .freeVideoPlaceholder {
     aspect-ratio: 16 / 9;
   }
 }
