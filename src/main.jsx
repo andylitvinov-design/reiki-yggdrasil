@@ -304,6 +304,8 @@ function StepVideo({ video }) {
       ? [{ title: video?.title || "Видео ступени", label: "Основное видео", url: primaryUrl }]
       : [];
 
+  if (!video || links.length === 0) return null;
+
   return (
     <div className="videoSettingsCard">
       <div className="stepVideoHeader">
@@ -321,11 +323,7 @@ function StepVideo({ video }) {
             allowFullScreen
           />
         </div>
-      ) : (
-        <button type="button" disabled>
-          Видео к этой ступени готовится
-        </button>
-      )}
+      ) : null}
 
       {video && <small>{video.title} · источник: {video.sourcePage ? "reiki-yggdrasil.com" : "needs verification"}</small>}
 
