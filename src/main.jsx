@@ -68,6 +68,10 @@ function publicSettings(items) {
   }));
 }
 
+function getVideoUrl(step) {
+  return hasPublicText(step.videoUrl) ? step.videoUrl.trim() : "";
+}
+
 function stepLabel(step) {
   return step.label || "Ступень";
 }
@@ -95,6 +99,7 @@ function App() {
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
+  const currentVideoUrl = getVideoUrl(current);
 
   const cards = useMemo(() => {
     if (tab === "mandalas") return studentCollections.mandalas;
@@ -196,17 +201,7 @@ function App() {
             </div>
           </div>
 
-          <div className="videoStageCard">
-            <div className="videoFrame" aria-label="Окно видео ступени">
-              <div className="videoGlow" />
-              <button type="button" className="videoPlay">▶</button>
-            </div>
-            <div className="videoCaption">
-              <b>Видео и описание настроек ступени</b>
-              <p>Здесь будет центральное видео: объяснение темы, порядок работы и акценты практики.</p>
-              <button type="button">Смотреть видео</button>
-            </div>
-          </div>
+          <VideoBlock step={current} videoUrl={currentVideoUrl} />
 
           <SettingsList settings={currentSettings} />
 
@@ -279,6 +274,36 @@ function App() {
   );
 }
 
+function VideoBlock({ step, videoUrl }) {
+  const hasVideo = Boolean(videoUrl);
+
+  return (
+    <div className="videoStageCard">
+      <div className={hasVideo ? "videoFrame hasVideo" : "videoFrame"} aria-label="Окно видео ступени">
+        {hasVideo ? (
+          <iframe src={videoUrl} title={`Видео: ${step.title}`} allow="fullscreen; picture-in-picture" />
+        ) : (
+          <>
+            <div className="videoGlow" />
+            <div className="videoPlaceholder">
+              <b>Видео не подключено</b>
+              <span>URL видео для этой ступени отсутствует в базе знаний.</span>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="videoCaption">
+        <b>Видео ступени</b>
+        <p>
+          {hasVideo
+            ? "Окно использует URL из базы знаний ступени."
+            : "Плейбек не имитируется: после добавления реальной ссылки здесь появится встроенное видео."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CollectionBlock({ title, cards }) {
   return (
     <div className="collectionBlock">
@@ -304,7 +329,7 @@ function SettingsList({ settings }) {
         <span>✦</span>
         <div>
           <h4>Настройки ступени</h4>
-          <p>Каналы и практические акценты этой ступени. Формулировки держим ближе к авторской методичке.</p>
+          <p>Список настроек собран из доступных источников. Если авторский текст не найден, ступень остаётся на проверке.</p>
         </div>
       </div>
 
