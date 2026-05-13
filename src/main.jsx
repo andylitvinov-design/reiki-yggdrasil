@@ -8,7 +8,7 @@ import {
   settingsSources,
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
-import { freeCourseLinks } from "./data/freeCourseLinks.js";
+import { freeCourseLinks, freeVideoCategories } from "./data/freeCourseLinks.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import "./index.css";
@@ -135,6 +135,7 @@ function App() {
   const [openLevelId, setOpenLevelId] = useState(1);
   const [tab, setTab] = useState("exercises");
 
+  const panelTabs = useMemo(() => [...rightPanelTabs, ["freeVideos", "Бесплатные видео"]], []);
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
@@ -258,7 +259,7 @@ function App() {
 
         <aside className="practicePanel">
           <div className="tabs">
-            {rightPanelTabs.map(([id, label]) => (
+            {panelTabs.map(([id, label]) => (
               <button key={id} className={tab === id ? "tab active" : "tab"} onClick={() => setTab(id)}>
                 {label}
               </button>
@@ -273,8 +274,6 @@ function App() {
                 ))}
               </div>
               <button className="allExercises">Все упражнения →</button>
-
-              <FreeCoursesBlock courses={freeCourseLinks} />
 
               <div className="masterInvite">
                 <div className="profileIcon">◎</div>
@@ -292,6 +291,8 @@ function App() {
               <CollectionBlock title="Артефакты студентов" cards={studentCollections.artifacts} />
             </>
           )}
+
+          {tab === "freeVideos" && <FreeVideosPanel courses={freeCourseLinks} categories={freeVideoCategories} />}
 
           {(tab === "mandalas" || tab === "artifacts") && (
             <CollectionBlock title={tab === "mandalas" ? "Мандалы студентов" : "Артефакты студентов"} cards={cards} />
@@ -374,34 +375,88 @@ function StepVideo({ video }) {
   );
 }
 
-function FreeCoursesBlock({ courses }) {
-  if (!Array.isArray(courses) || courses.length === 0) return null;
+function FreeVideosPanel({ courses, categories }) {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const visibleCourses = useMemo(() => {
+    if (selectedCategory === "all") return courses;
+    return courses.filter((course) => course.category === selectedCategory);
+  }, [courses, selectedCategory]);
+
+  const [selectedCourseId, setSelectedCourseId] = useState(courses[0]?.id);
+
+  useEffect(() => {
+    if (!visibleCourses.some((course) => course.id === selectedCourseId)) {
+      setSelectedCourseId(visibleCourses[0]?.id);
+    }
+  }, [visibleCourses, selectedCourseId]);
+
+  const selectedCourse = visibleCourses.find((course) => course.id === selectedCourseId) || visibleCourses[0];
+  const frameUrl = selectedCourse?.embedUrl || selectedCourse?.courseUrl || selectedCourse?.sourcePageUrl;
+  const isDirectVideo = Boolean(selectedCourse?.embedUrl || selectedCourse?.courseUrl);
 
   return (
-    <section className="freeCoursesBlock" aria-labelledby="free-courses-title">
-      <div className="freeCoursesHeader">
-        <span>✦</span>
+    <section className="freeVideosPanel" aria-labelledby="free-videos-title">
+      <div className="freeVideosHeader">
+        <span>◉</span>
         <div>
-          <h3 id="free-courses-title">Бесплатные курсы и медитации</h3>
-          <p>Дополнительные материалы Академии: мистерии, архетипы, планеты, защита и медитации.</p>
+          <h3 id="free-videos-title">Бесплатные видео</h3>
+          <p>Курсы и медитации из бесплатной библиотеки Академии, собранные по темам.</p>
         </div>
       </div>
 
-      <div className="freeCourseList">
-        {courses.map((course) => {
-          const href = course.courseUrl || course.sourcePageUrl;
-          const label = course.courseUrl ? "Открыть курс" : "Открыть список";
+      <div className="freeVideoCategories" role="group" aria-label="Категории бесплатных видео">
+        {categories.map((category) => (
+          <button
+            type="button"
+            key={category.id}
+            className={selectedCategory === category.id ? "active" : ""}
+            onClick={() => setSelectedCategory(category.id)}
+          >
+            {category.label}
+          </button>
+        ))}
+      </div>
 
-          return (
-            <article className="freeCourseCard" key={course.id}>
-              <small>{course.typeLabel} · {course.tradition}</small>
-              <b>{course.title}</b>
-              <a href={href} target="_blank" rel="noreferrer">
-                {label} →
-              </a>
-            </article>
-          );
-        })}
+      {selectedCourse && (
+        <>
+          <div className="freeVideoFrame">
+            <iframe
+              key={selectedCourse.id}
+              src={frameUrl}
+              title={selectedCourse.title}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+
+          <div className="freeVideoNow">
+            <small>{selectedCourse.typeLabel} · {selectedCourse.categoryLabel}</small>
+            <b>{selectedCourse.title}</b>
+            <p>{selectedCourse.description}</p>
+            {!isDirectVideo && (
+              <em>Пока открывается общий список материалов. Прямое видеоокно появится после проверки точной ссылки курса.</em>
+            )}
+            <a href={frameUrl} target="_blank" rel="noreferrer">
+              Открыть в новой вкладке →
+            </a>
+          </div>
+        </>
+      )}
+
+      <div className="freeVideoList">
+        {visibleCourses.map((course) => (
+          <button
+            type="button"
+            key={course.id}
+            className={selectedCourse?.id === course.id ? "freeVideoItem active" : "freeVideoItem"}
+            onClick={() => setSelectedCourseId(course.id)}
+          >
+            <small>{course.typeLabel} · {course.categoryLabel}</small>
+            <b>{course.title}</b>
+          </button>
+        ))}
       </div>
     </section>
   );
