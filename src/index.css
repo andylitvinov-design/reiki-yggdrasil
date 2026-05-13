@@ -387,13 +387,20 @@ button {
 
 .videoSettingsCard {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
   margin: 18px 0 16px;
 }
 
-.videoSettingsCard button {
+.videoSettingsCard button,
+.videoSettingsCard a {
   min-height: 46px;
   width: min(100%, 520px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 22px;
   border-radius: 999px;
   border: 1px solid rgba(184, 121, 29, 0.62);
@@ -401,8 +408,23 @@ button {
     linear-gradient(90deg, rgba(255, 255, 255, 0.78), rgba(246, 232, 205, 0.9));
   color: #7d520f;
   font-size: 15px;
+  text-align: center;
+  text-decoration: none;
   text-transform: uppercase;
   box-shadow: 0 10px 22px rgba(132, 87, 17, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.videoSettingsCard button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.videoSettingsCard small {
+  max-width: 520px;
+  color: #7a6b5a;
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .infoGrid {
@@ -709,7 +731,8 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .videoSettingsCard button {
+  .videoSettingsCard button,
+  .videoSettingsCard a {
     width: 100%;
     font-size: 12.5px;
   }

@@ -1,0 +1,76 @@
+.videoSettingsCard {
+  align-items: stretch;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.stepVideoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  color: #9a6618;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+}
+
+.stepVideoHeader span {
+  color: #6d6256;
+  font-size: 10.5px;
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+.stepVideoFrame {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(184, 121, 29, 0.46);
+  background: #080705;
+  box-shadow: 0 14px 30px rgba(79, 54, 18, 0.16);
+}
+
+.stepVideoFrame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.stepVideoLinks {
+  width: 100%;
+  max-width: 640px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 2px auto 0;
+}
+
+.videoSettingsCard .stepVideoLinks a {
+  min-height: 38px;
+  width: auto;
+  padding: 8px 10px;
+  font-size: 11px;
+  letter-spacing: 0.35px;
+  text-transform: none;
+}
+
+@media (max-width: 640px) {
+  .stepVideoHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stepVideoLinks {
+    grid-template-columns: 1fr;
+  }
+}
