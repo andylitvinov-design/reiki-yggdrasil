@@ -392,8 +392,9 @@ function FreeVideosPanel({ courses, categories }) {
   }, [visibleCourses, selectedCourseId]);
 
   const selectedCourse = visibleCourses.find((course) => course.id === selectedCourseId) || visibleCourses[0];
-  const frameUrl = selectedCourse?.embedUrl || selectedCourse?.courseUrl || selectedCourse?.sourcePageUrl;
-  const isDirectVideo = Boolean(selectedCourse?.embedUrl || selectedCourse?.courseUrl);
+  const directEmbedUrl = selectedCourse?.embedUrl || youtubeEmbedUrl(selectedCourse?.courseUrl);
+  const externalUrl = selectedCourse?.courseUrl || selectedCourse?.sourcePageUrl;
+  const canEmbed = Boolean(directEmbedUrl);
 
   return (
     <section className="freeVideosPanel" aria-labelledby="free-videos-title">
@@ -420,26 +421,34 @@ function FreeVideosPanel({ courses, categories }) {
 
       {selectedCourse && (
         <>
-          <div className="freeVideoFrame">
-            <iframe
-              key={selectedCourse.id}
-              src={frameUrl}
-              title={selectedCourse.title}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
-          </div>
+          {canEmbed ? (
+            <div className="freeVideoFrame">
+              <iframe
+                key={selectedCourse.id}
+                src={directEmbedUrl}
+                title={selectedCourse.title}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <div className="freeVideoPlaceholder" role="img" aria-label="Видео будет добавлено после проверки прямой ссылки">
+              <span>▶</span>
+              <b>Видеоокно готово</b>
+              <p>Нужна точная ссылка на видео или курс, чтобы встроить материал прямо здесь.</p>
+            </div>
+          )}
 
           <div className="freeVideoNow">
             <small>{selectedCourse.typeLabel} · {selectedCourse.categoryLabel}</small>
             <b>{selectedCourse.title}</b>
             <p>{selectedCourse.description}</p>
-            {!isDirectVideo && (
-              <em>Пока открывается общий список материалов. Прямое видеоокно появится после проверки точной ссылки курса.</em>
+            {!canEmbed && (
+              <em>Пока доступен общий список материалов. После проверки прямого видео URL этот блок станет встроенным видеоокном.</em>
             )}
-            <a href={frameUrl} target="_blank" rel="noreferrer">
-              Открыть в новой вкладке →
+            <a href={externalUrl} target="_blank" rel="noreferrer">
+              Открыть источник →
             </a>
           </div>
         </>
