@@ -1,5 +1,48 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-15 — Top header buttons switch left menu
+
+Mode: minimal safe implementation branch.
+
+Changed on branch `codex/top-nav-switches-left-course-menu`:
+
+- Replaced the static top header labels with five real buttons:
+  - `ДАО РИ`
+  - `ШКОЛА ВОЛШЕБНИКОВ`
+  - `МИСТЕРИИ`
+  - `УСЛУГИ`
+  - `БЕСПЛАТНЫЕ КУРСЫ`
+- Added `src/data/topSectionMenus.js` for the new top-section and left-menu data.
+- Kept the existing `ДАО РИ` left menu behavior based on `reikiLevels`.
+- Added safe placeholder left-menu cards for the wizard school, mysteries, and services sections.
+- Ported useful PR #11 free-course data into `src/data/freeCourseLinks.js`.
+- Added `scripts/validate-free-course-links.mjs` and `npm run validate:free-courses`.
+- Updated `docs/knowledge-base/FREE_COURSES_LINKS.md` to reflect the corrected placement: top header button switches the left menu, not a right-panel tab.
+- Updated `src/index.css` minimally for button-based top nav and black/gold left-menu cards.
+
+Findings:
+
+- Root cause: the top navigation was static markup and the left panel always rendered the Reiki levels.
+- PR #11 implemented only a right-panel `Бесплатные видео` tab, so it did not satisfy the corrected requirement.
+- Direct free-course URLs and embed URLs are still not verified and remain `null`.
+
+Verification:
+
+- `npm ci` passed.
+- `npm run validate:knowledge` passed.
+- `npm run validate:videos` passed with existing placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+- `npm run validate:free-courses` passed.
+- `npm run check` passed.
+- `npm run build` passed.
+- `npm run preview -- --port 4173` started successfully.
+- Manual QA on `/` passed for desktop and mobile section switching, stable center content, Reiki step selection, mobile nav scroll, left menu overflow, and console health.
+
+Risks:
+
+- Free-course titles are safe to show, but direct course/video URLs still require source verification.
+- Non-Reiki sections are placeholders and should not be treated as final course content.
+- `/profile`, `/masters`, and `/profile/admin` are not present on the target `main` branch and were not added.
+
 ## 2026-05-06 — Fill central step cards with draft learner content
 
 Mode: implementation branch.

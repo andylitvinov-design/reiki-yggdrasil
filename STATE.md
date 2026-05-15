@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-06
+Last updated: 2026-05-15
 
 ## Current verified repo state
 
@@ -114,21 +114,43 @@ Verified by GitHub file inspection:
 - `vercel.json` points to Vite build output `dist`
 - current UI is built from `src/main.jsx` and `src/index.css`
 - canonical static knowledge data lives in `src/data/reikiKnowledgeBase.js`
+- top header section data lives in `src/data/topSectionMenus.js`
+- free-course title/link-status data lives in `src/data/freeCourseLinks.js`
 - knowledge-base data defines 7 levels / 37 records
 - central card fields are now populated for all records by draft content
 - raw `needs_content` placeholders should no longer appear for central cards because all records now get `needs_review` draft content
 
-Not verified locally:
+## Current public navigation state
+
+- The top header now has five buttons:
+  - `ДАО РИ`
+  - `ШКОЛА ВОЛШЕБНИКОВ`
+  - `МИСТЕРИИ`
+  - `УСЛУГИ`
+  - `БЕСПЛАТНЫЕ КУРСЫ`
+- These buttons switch the left menu only.
+- `ДАО РИ` keeps the existing 7-level / 37-step Reiki menu and step-selection behavior.
+- The center card and right practice panel remain tied to the selected Reiki step and do not change when non-Reiki top sections are selected.
+- `БЕСПЛАТНЫЕ КУРСЫ` shows the PR #11 free-course titles as left-menu cards.
+- Direct free-course URLs and embed URLs are not verified; records remain `courseUrl: null`, `embedUrl: null`, and `urlStatus: "needs verification"`.
+
+Verified locally on 2026-05-15:
 
 - `npm ci`
 - `npm run validate:knowledge`
+- `npm run validate:videos`
+- `npm run validate:free-courses`
+- `npm run check`
 - `npm run build`
-- Vercel live deployment behavior
-- browser console
-- desktop/mobile visual QA
-- Supabase/auth/data flows
+- `npm run preview -- --port 4173`
+- `/` desktop top-button switching and Reiki step selection
+- `/` mobile top-nav horizontal scrolling and left-menu overflow check
+- browser console: no warnings or errors during manual QA
 
-Reason local verification was not completed: this task was performed through GitHub file operations, not a local cloned checkout with npm installed.
+Not verified:
+
+- Vercel live deployment behavior
+- Supabase/auth/data flows; these routes/files are not present on the target `main` branch
 
 ## Risks
 

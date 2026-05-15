@@ -117,14 +117,22 @@ button {
   text-transform: uppercase;
 }
 
-.mainNav span {
+.mainNav button {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  padding: 0 0 9px;
+  background: transparent;
   color: #2c2117;
+  font-size: 11px;
+  letter-spacing: 0.85px;
+  text-transform: uppercase;
 }
 
+.mainNav button:hover,
 .mainNav .activeNav {
   color: #9b681a;
   border-bottom: 1px solid #b97b24;
-  padding-bottom: 9px;
 }
 
 .userTools {
@@ -317,6 +325,59 @@ button {
   top: 32px;
   color: #e3aa3f;
   font-size: 42px;
+}
+
+.leftMenuCards {
+  display: grid;
+  gap: 10px;
+}
+
+.leftMenuCard {
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 135, 34, 0.42);
+  background: linear-gradient(180deg, rgba(16, 15, 14, 0.98), rgba(8, 8, 7, 0.98));
+  color: #fff4d7;
+}
+
+.leftMenuCard.active {
+  border-color: #ffd374;
+  box-shadow: 0 0 18px rgba(255, 180, 48, 0.28), inset 0 0 18px rgba(255, 224, 130, 0.08);
+}
+
+.leftMenuCard b {
+  color: #f4be5d;
+  font-size: 13px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.leftMenuCard p {
+  margin: 0;
+  color: rgba(255, 244, 215, 0.78);
+  font-size: 12px;
+  line-height: 1.42;
+}
+
+.leftMenuStatus {
+  color: rgba(255, 226, 163, 0.76);
+  font-size: 11px;
+  line-height: 1.25;
+  text-transform: lowercase;
+}
+
+.leftMenuCta {
+  justify-self: start;
+  min-height: 32px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(226, 178, 86, 0.52);
+  background: rgba(255, 244, 215, 0.08);
+  color: #f5c66a;
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
 .stageCard {
@@ -705,6 +766,7 @@ button {
     width: 100%;
     overflow-x: auto;
     gap: 14px;
+    padding-bottom: 2px;
   }
 
   .userTools {
