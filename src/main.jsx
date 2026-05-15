@@ -10,6 +10,7 @@ import {
 } from "./data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
+import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
 import "./index.css";
 import "./stepSettings.css";
 import "./stepVideos.css";
@@ -132,6 +133,7 @@ function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
   const [tab, setTab] = useState("exercises");
+  const [activeTopSection, setActiveTopSection] = useState("dao-ri");
 
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
@@ -159,12 +161,16 @@ function App() {
         </div>
 
         <nav className="mainNav">
-          <span>Главная</span>
-          <span className="activeNav">О системе</span>
-          <span>Уровни</span>
-          <span>Настройки</span>
-          <span>Практика</span>
-          <span>Мастера</span>
+          {topSections.map((section) => (
+            <button
+              key={section.id}
+              className={activeTopSection === section.id ? "activeNav" : ""}
+              onClick={() => setActiveTopSection(section.id)}
+              type="button"
+            >
+              {section.label}
+            </button>
+          ))}
         </nav>
 
         <div className="userTools">
@@ -177,49 +183,55 @@ function App() {
 
       <main className="dashboard">
         <aside className="leftPiano">
-          <div className="panelTitle">Уровни и ступени</div>
+          {activeTopSection === "dao-ri" ? (
+            <>
+              <div className="panelTitle">Уровни и ступени</div>
 
-          {reikiLevels.map((level) => {
-            const isOpen = openLevelId === level.id;
-            return (
-              <div className="levelGroup" key={level.id}>
-                <button className={level.id === 1 ? "rootLevel" : "closedLevel"} onClick={() => setOpenLevelId(isOpen ? null : level.id)}>
-                  <b>{level.id}</b>
-                  <span>
-                    <strong>Уровень {level.id}. {level.name}</strong>
-                    <small>{levelCountText(level)}</small>
-                  </span>
-                  <em>{isOpen ? "⌃" : "⌄"}</em>
-                </button>
+              {reikiLevels.map((level) => {
+                const isOpen = openLevelId === level.id;
+                return (
+                  <div className="levelGroup" key={level.id}>
+                    <button className={level.id === 1 ? "rootLevel" : "closedLevel"} onClick={() => setOpenLevelId(isOpen ? null : level.id)}>
+                      <b>{level.id}</b>
+                      <span>
+                        <strong>Уровень {level.id}. {level.name}</strong>
+                        <small>{levelCountText(level)}</small>
+                      </span>
+                      <em>{isOpen ? "⌃" : "⌄"}</em>
+                    </button>
 
-                {isOpen && (
-                  <div className="keysList">
-                    {level.steps.map((item) => (
-                      <button
-                        key={item.id}
-                        className={selectedStepId === item.id ? "pianoKey selected" : "pianoKey"}
-                        onClick={() => setSelectedStepId(item.id)}
-                        title={`${item.id} · ${publicStatus(item.contentStatus)}`}
-                      >
-                        <i />
-                        <b>{item.number}</b>
-                        <span>
-                          <strong className="keyLabel">{stepLabel(item)} {item.number}</strong>
-                          <em className="keyTitle">{item.title}</em>
-                        </span>
-                        {selectedStepId === item.id && <strong className="glowRune">✧</strong>}
-                      </button>
-                    ))}
+                    {isOpen && (
+                      <div className="keysList">
+                        {level.steps.map((item) => (
+                          <button
+                            key={item.id}
+                            className={selectedStepId === item.id ? "pianoKey selected" : "pianoKey"}
+                            onClick={() => setSelectedStepId(item.id)}
+                            title={`${item.id} · ${publicStatus(item.contentStatus)}`}
+                          >
+                            <i />
+                            <b>{item.number}</b>
+                            <span>
+                              <strong className="keyLabel">{stepLabel(item)} {item.number}</strong>
+                              <em className="keyTitle">{item.title}</em>
+                            </span>
+                            {selectedStepId === item.id && <strong className="glowRune">✧</strong>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
 
-          <div className="sideActions">
-            <div className="promoRune">♧</div>
-            <p>Пройти Практикум по РИ БЕСПЛАТНО</p>
-          </div>
+              <div className="sideActions">
+                <div className="promoRune">♧</div>
+                <p>Пройти Практикум по РИ БЕСПЛАТНО</p>
+              </div>
+            </>
+          ) : (
+            <LeftMenuSection section={leftMenuSections[activeTopSection]} />
+          )}
         </aside>
 
         <section className="stageCard">
@@ -310,6 +322,30 @@ function App() {
         </aside>
       </main>
     </div>
+  );
+}
+
+function LeftMenuSection({ section }) {
+  if (!section) return null;
+
+  return (
+    <>
+      <div className="panelTitle">{section.title}</div>
+      <div className="leftMenuCards">
+        {section.items.map((item, index) => (
+          <article className={index === 0 ? "leftMenuCard active" : "leftMenuCard"} key={item.id}>
+            <b>{item.label}</b>
+            <p>{item.description}</p>
+            {item.status && <small className="leftMenuStatus">{item.status}</small>}
+            {item.cta && (
+              <button className="leftMenuCta" type="button">
+                {item.cta}
+              </button>
+            )}
+          </article>
+        ))}
+      </div>
+    </>
   );
 }
 
