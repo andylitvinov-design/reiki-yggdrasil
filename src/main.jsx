@@ -11,6 +11,7 @@ import {
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
+import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/youtube.js";
 import "./index.css";
 import "./stepSettings.css";
 import "./stepVideos.css";
@@ -364,7 +365,8 @@ function StepVideo({ video }) {
   if (!video || links.length === 0) return null;
 
   const selectedVideo = links[selectedVideoIndex] || links[0];
-  const embedUrl = youtubeEmbedUrl(selectedVideo.url);
+  const embedUrl = buildYoutubeEmbedUrl(selectedVideo.url) || youtubeEmbedUrl(selectedVideo.url);
+  const watchUrl = youtubeWatchUrl(selectedVideo.url);
 
   return (
     <div className="videoSettingsCard">
@@ -380,6 +382,7 @@ function StepVideo({ video }) {
             src={embedUrl}
             title={selectedVideo.title || video?.title || "Видео ступени Рейки Иггдрасиль"}
             loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
@@ -387,6 +390,12 @@ function StepVideo({ video }) {
       ) : null}
 
       {video && <small>{video.title} · сейчас: {selectedVideo.label} · источник: {video.sourcePage ? "reiki-yggdrasil.com" : "needs verification"}</small>}
+      {watchUrl && (
+        <a className="stepVideoFallback" href={watchUrl} target="_blank" rel="noreferrer">
+          Открыть видео на YouTube →
+        </a>
+      )}
+      {watchUrl && <small>Если видео не загрузилось на телефоне, откройте его напрямую на YouTube.</small>}
 
       {links.length > 0 && (
         <div className="stepVideoLinks" role="group" aria-label="Выбор записи видео">
