@@ -30,7 +30,61 @@ export const topSections = [
   { id: "support-services", label: "Услуги Поддержки" }
 ];
 
+const homeCategoryItems = [
+  {
+    id: "home-free-videos",
+    label: "Бесплатные Видео",
+    description: "Открытые материалы, видео и бесплатные курсы Академии.",
+    targetSection: "free-videos"
+  },
+  {
+    id: "home-dao-ri",
+    label: "Школа Магии ДАО РИ",
+    description: "Основная школа Рейки Иггдрасиль: уровни, ступени, настройки и видео практики.",
+    targetSection: "dao-ri"
+  },
+  {
+    id: "home-mysteries",
+    label: "Школа Мистерий",
+    description: "Греческие, Египетские, Майянские и другие мистериальные программы.",
+    targetSection: "mysteries-school"
+  },
+  {
+    id: "home-artifact-creation",
+    label: "Создание Артефактов",
+    description: "Специализация по талисманам, мандалам, печатям и ритуальным предметам.",
+    targetSection: "artifact-creation"
+  },
+  {
+    id: "home-artifact-shop",
+    label: "Магазин Артефактов",
+    description: "Каталог готовых артефактов и возможность индивидуального заказа.",
+    targetSection: "artifact-shop"
+  },
+  {
+    id: "home-support-services",
+    label: "Услуги Поддержки",
+    description: "Диагностика, сопровождение, ритуалы и персональная поддержка.",
+    targetSection: "support-services"
+  }
+].map((item) => ({
+  ...item,
+  status: "открыть раздел",
+  page: {
+    eyebrow: "Главная карта сайта",
+    title: item.label,
+    subtitle: "Раздел сайта",
+    intro: item.description,
+    points: ["Выберите этот пункт слева, чтобы открыть меню раздела", "Дальше появятся категории выбранного направления", "Центральная страница будет меняться под выбранную категорию"],
+    cta: "Открыть раздел"
+  }
+}));
+
 export const leftMenuSections = {
+  "all-categories": {
+    title: "Все разделы сайта",
+    items: homeCategoryItems
+  },
   "free-videos": {
     title: "Бесплатные Видео",
     items: freeVideoItems
