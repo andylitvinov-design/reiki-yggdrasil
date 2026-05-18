@@ -134,7 +134,7 @@ function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
   const [tab, setTab] = useState("exercises");
-  const [activeTopSection, setActiveTopSection] = useState("dao-ri");
+  const [activeTopSection, setActiveTopSection] = useState("all-categories");
   const [selectedLeftItemId, setSelectedLeftItemId] = useState(null);
 
   useEffect(() => {
@@ -242,6 +242,7 @@ function App() {
               section={activeLeftSection}
               selectedItemId={activeLeftItem?.id}
               onSelect={setSelectedLeftItemId}
+              onOpenSection={setActiveTopSection}
             />
           )}
         </aside>
@@ -278,6 +279,8 @@ function App() {
               <b>База знаний:</b> {reikiKnowledgeMeta.totalLevels} уровней · {reikiKnowledgeMeta.totalSteps} ступеней · {KNOWLEDGE_STATUS_TEXT}
             </div>
           </section>
+        ) : activeTopSection === "all-categories" ? (
+          <HomeStage />
         ) : (
           <SectionStage section={activeLeftSection} item={activeLeftItem} />
         )}
@@ -341,7 +344,7 @@ function App() {
   );
 }
 
-function LeftMenuSection({ section, selectedItemId, onSelect }) {
+function LeftMenuSection({ section, selectedItemId, onSelect, onOpenSection }) {
   if (!section) return null;
 
   return (
@@ -352,7 +355,7 @@ function LeftMenuSection({ section, selectedItemId, onSelect }) {
           <button
             className={selectedItemId === item.id ? "leftMenuCard active" : "leftMenuCard"}
             key={item.id}
-            onClick={() => onSelect(item.id)}
+            onClick={() => item.targetSection ? onOpenSection(item.targetSection) : onSelect(item.id)}
             type="button"
           >
             <b>{item.label}</b>
@@ -363,6 +366,26 @@ function LeftMenuSection({ section, selectedItemId, onSelect }) {
         ))}
       </div>
     </>
+  );
+}
+
+function HomeStage() {
+  return (
+    <section className="stageCard sectionStage">
+      <div className="sectionStageHero">
+        <p className="crumb">Главная страница</p>
+        <h2>Карта разделов сайта</h2>
+        <h3>Выберите направление слева</h3>
+        <p className="introText">
+          Слева открыта общая карта сайта. Нажмите на нужный раздел, чтобы увидеть его собственное левое меню и центральную страницу.
+        </p>
+      </div>
+      <div className="sectionStageGrid">
+        <div className="sectionStagePoint"><span>✦</span><p>Сначала выберите большой раздел сайта.</p></div>
+        <div className="sectionStagePoint"><span>✦</span><p>После выбора слева откроются категории этого направления.</p></div>
+        <div className="sectionStagePoint"><span>✦</span><p>Каждой категории соответствует своя центральная страница.</p></div>
+      </div>
+    </section>
   );
 }
 
