@@ -84,23 +84,23 @@
 }
 
 .videoSettingsCard .stepVideoFallback {
-  width: min(100%, 640px);
-  min-height: 42px;
-  display: flex;
+  width: fit-content;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto;
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: 1px solid rgba(184, 121, 29, 0.62);
-  background: linear-gradient(90deg, rgba(126, 81, 15, 0.94), rgba(214, 149, 45, 0.98));
-  color: #fffaf0;
-  font-size: 12px;
-  letter-spacing: 0.55px;
+  margin: -2px auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9a6618;
+  font-size: 11.5px;
+  letter-spacing: 0.15px;
+  line-height: 1.35;
   text-align: center;
-  text-decoration: none;
-  text-transform: uppercase;
-  box-shadow: 0 10px 22px rgba(132, 87, 17, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-transform: none;
+  box-shadow: none;
 }
 
 @media (max-width: 640px) {
@@ -114,6 +114,6 @@
   }
 
   .videoSettingsCard .stepVideoFallback {
-    width: 100%;
+    width: fit-content;
   }
 }
