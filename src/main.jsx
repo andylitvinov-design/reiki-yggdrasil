@@ -135,12 +135,19 @@ function App() {
   const [openLevelId, setOpenLevelId] = useState(1);
   const [tab, setTab] = useState("exercises");
   const [activeTopSection, setActiveTopSection] = useState("dao-ri");
+  const [selectedLeftItemId, setSelectedLeftItemId] = useState(null);
+
+  useEffect(() => {
+    setSelectedLeftItemId(null);
+  }, [activeTopSection]);
 
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
   const currentVideo = getStepVideo(current.id);
   const currentMeaning = buildStepMeaning(current, currentSettings);
+  const activeLeftSection = leftMenuSections[activeTopSection];
+  const activeLeftItem = activeLeftSection?.items.find((item) => item.id === selectedLeftItemId) || activeLeftSection?.items[0] || null;
 
   const cards = useMemo(() => {
     if (tab === "mandalas") return studentCollections.mandalas;
@@ -231,41 +238,49 @@ function App() {
               </div>
             </>
           ) : (
-            <LeftMenuSection section={leftMenuSections[activeTopSection]} />
+            <LeftMenuSection
+              section={activeLeftSection}
+              selectedItemId={activeLeftItem?.id}
+              onSelect={setSelectedLeftItemId}
+            />
           )}
         </aside>
 
-        <section className="stageCard">
-          <div className="stageHero">
-            <div className="stageCopy">
-              <p className="crumb">
-                Уровень {selectedLevel.id} · {selectedLevel.name} · {stepLabel(current)} {current.number}
-              </p>
-              <h2>{stepLabel(current)} {current.number}</h2>
-              <h3>{current.title}</h3>
-              <p className="introText">{publicText(current.intro)}</p>
-              {current.contentStatus === "needs_content" && (
-                <p className="contentNotice">Материал этой ступени готовится и ждёт авторского заполнения.</p>
-              )}
+        {activeTopSection === "dao-ri" ? (
+          <section className="stageCard">
+            <div className="stageHero">
+              <div className="stageCopy">
+                <p className="crumb">
+                  Уровень {selectedLevel.id} · {selectedLevel.name} · {stepLabel(current)} {current.number}
+                </p>
+                <h2>{stepLabel(current)} {current.number}</h2>
+                <h3>{current.title}</h3>
+                <p className="introText">{publicText(current.intro)}</p>
+                {current.contentStatus === "needs_content" && (
+                  <p className="contentNotice">Материал этой ступени готовится и ждёт авторского заполнения.</p>
+                )}
+              </div>
+              <div className="treeMedallion">
+                <span>♣</span>
+              </div>
             </div>
-            <div className="treeMedallion">
-              <span>♣</span>
+
+            <StepVideo video={currentVideo} />
+
+            <SettingsList settings={currentSettings} />
+
+            <div className="infoGrid">
+              <Info title="Смысл ступени" text={currentMeaning} />
+              <Info title="Что открывает" list={publicList(current.opens)} />
             </div>
-          </div>
 
-          <StepVideo video={currentVideo} />
-
-          <SettingsList settings={currentSettings} />
-
-          <div className="infoGrid">
-            <Info title="Смысл ступени" text={currentMeaning} />
-            <Info title="Что открывает" list={publicList(current.opens)} />
-          </div>
-
-          <div className="knowledgeMeta">
-            <b>База знаний:</b> {reikiKnowledgeMeta.totalLevels} уровней · {reikiKnowledgeMeta.totalSteps} ступеней · {KNOWLEDGE_STATUS_TEXT}
-          </div>
-        </section>
+            <div className="knowledgeMeta">
+              <b>База знаний:</b> {reikiKnowledgeMeta.totalLevels} уровней · {reikiKnowledgeMeta.totalSteps} ступеней · {KNOWLEDGE_STATUS_TEXT}
+            </div>
+          </section>
+        ) : (
+          <SectionStage section={activeLeftSection} item={activeLeftItem} />
+        )}
 
         <aside className="practicePanel">
           <div className="tabs">
@@ -326,27 +341,72 @@ function App() {
   );
 }
 
-function LeftMenuSection({ section }) {
+function LeftMenuSection({ section, selectedItemId, onSelect }) {
   if (!section) return null;
 
   return (
     <>
       <div className="panelTitle">{section.title}</div>
       <div className="leftMenuCards">
-        {section.items.map((item, index) => (
-          <article className={index === 0 ? "leftMenuCard active" : "leftMenuCard"} key={item.id}>
+        {section.items.map((item) => (
+          <button
+            className={selectedItemId === item.id ? "leftMenuCard active" : "leftMenuCard"}
+            key={item.id}
+            onClick={() => onSelect(item.id)}
+            type="button"
+          >
             <b>{item.label}</b>
             <p>{item.description}</p>
             {item.status && <small className="leftMenuStatus">{item.status}</small>}
-            {item.cta && (
-              <button className="leftMenuCta" type="button">
-                {item.cta}
-              </button>
-            )}
-          </article>
+            {item.cta && <span className="leftMenuCta">{item.cta}</span>}
+          </button>
         ))}
       </div>
     </>
+  );
+}
+
+function SectionStage({ section, item }) {
+  if (!section || !item) {
+    return (
+      <section className="stageCard sectionStage">
+        <p className="crumb">Раздел готовится</p>
+        <h2>Материалы скоро появятся</h2>
+      </section>
+    );
+  }
+
+  const page = item.page || {
+    eyebrow: section.title,
+    title: item.label,
+    subtitle: item.status || "материалы готовятся",
+    intro: item.description,
+    points: [item.status || "Материалы готовятся"],
+    cta: item.cta || "Подробнее"
+  };
+
+  return (
+    <section className="stageCard sectionStage">
+      <div className="sectionStageHero">
+        <p className="crumb">{page.eyebrow}</p>
+        <h2>{page.title}</h2>
+        <h3>{page.subtitle}</h3>
+        <p className="introText">{page.intro}</p>
+      </div>
+
+      {Array.isArray(page.points) && page.points.length > 0 && (
+        <div className="sectionStageGrid">
+          {page.points.map((point) => (
+            <div className="sectionStagePoint" key={point}>
+              <span>✦</span>
+              <p>{point}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {page.cta && <div className="knowledgeMeta"><b>Статус:</b> {page.cta}</div>}
+    </section>
   );
 }
 
