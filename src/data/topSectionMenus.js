@@ -22,10 +22,10 @@ const freeVideoItems = freeCourseLinks.map((course) => ({
 }));
 
 export const topSections = [
-  { id: "dao-ri", label: "Школа Магии ДАО РИ" },
-  { id: "mysteries-school", label: "Школа Мистерий" },
-  { id: "artifact-creation", label: "Школа Артефактов" },
-  { id: "artifact-shop", label: "Магазин услуг и Артефактов" }
+  { id: "dao-ri", label: "ДАО РИ" },
+  { id: "mysteries-school", label: "МИСТЕРИИ" },
+  { id: "artifact-creation", label: "АРТЕФАКТЫ" },
+  { id: "artifact-shop", label: "МАГАЗИН" }
 ];
 
 const homeCategoryItems = [
