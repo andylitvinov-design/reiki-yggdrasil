@@ -1,0 +1,17 @@
+.leftMenuCard {
+  min-height: 104px;
+  padding: 18px 18px 18px 110px;
+  border-radius: 18px;
+  border: 1px solid rgba(92,58,12,.32);
+  background: linear-gradient(180deg,#fffaf0,#eadfcc);
+  color: #2b2117;
+  text-align: left;
+  box-shadow: inset 0 -10px 20px rgba(50,30,10,.08),0 1px 0 rgba(255,255,255,.78);
+}
+.leftMenuCard b { color:#9a6618; font-size:16px; line-height:1.12; letter-spacing:.45px; text-transform:uppercase; }
+.leftMenuCard p { margin:0; color:#42382d; font-size:14px; line-height:1.36; }
+.leftMenuStatus { color:#7d520f; font-size:11.5px; line-height:1.25; text-transform:lowercase; }
+.leftMenuCta { justify-self:start; min-height:auto; padding:0; border:0; background:transparent; color:#7d520f; font-size:12px; line-height:1.2; text-transform:lowercase; }
+.leftMenuCard.active { border-color:#ffd374; background:linear-gradient(90deg,#050505,#7e510f 31%,#d6952d 80%,#ffc861); box-shadow:0 0 22px rgba(255,180,48,.62),inset 0 0 22px rgba(255,224,130,.18); }
+.leftMenuCard.active b,.leftMenuCard.active p,.leftMenuCard.active .leftMenuStatus,.leftMenuCard.active .leftMenuCta { color:#fff; }
+@media(max-width:980px){ .leftMenuCard{min-height:104px;padding:16px 14px 16px 100px}.leftMenuCard b{font-size:15px}.leftMenuCard p{font-size:13.5px} }
