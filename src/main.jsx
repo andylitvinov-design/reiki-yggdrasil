@@ -136,6 +136,7 @@ function App() {
   const [tab, setTab] = useState("exercises");
   const [activeTopSection, setActiveTopSection] = useState("all-categories");
   const [selectedLeftItemId, setSelectedLeftItemId] = useState(null);
+  const [seniorLevelsOpen, setSeniorLevelsOpen] = useState(false);
 
   useEffect(() => {
     setSelectedLeftItemId(null);
@@ -154,6 +155,44 @@ function App() {
     if (tab === "artifacts") return studentCollections.artifacts;
     return studentCollections.mandalas;
   }, [tab]);
+
+  const renderLevelGroup = (level) => {
+    const isOpen = openLevelId === level.id;
+
+    return (
+      <div className="levelGroup" key={level.id}>
+        <button className={level.id === 1 ? "rootLevel" : "closedLevel"} onClick={() => setOpenLevelId(isOpen ? null : level.id)}>
+          <b>{level.id}</b>
+          <span>
+            <strong>Уровень {level.id}. {level.name}</strong>
+            <small>{levelCountText(level)}</small>
+          </span>
+          <em>{isOpen ? "⌃" : "⌄"}</em>
+        </button>
+
+        {isOpen && (
+          <div className="keysList">
+            {level.steps.map((item) => (
+              <button
+                key={item.id}
+                className={selectedStepId === item.id ? "pianoKey selected" : "pianoKey"}
+                onClick={() => setSelectedStepId(item.id)}
+                title={`${item.id} · ${publicStatus(item.contentStatus)}`}
+              >
+                <i />
+                <b>{item.number}</b>
+                <span>
+                  <strong className="keyLabel">{stepLabel(item)} {item.number}</strong>
+                  <em className="keyTitle">{item.title}</em>
+                </span>
+                {selectedStepId === item.id && <strong className="glowRune">✧</strong>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="appShell">
@@ -195,42 +234,20 @@ function App() {
             <>
               <div className="panelTitle">Уровни и ступени</div>
 
-              {reikiLevels.map((level) => {
-                const isOpen = openLevelId === level.id;
-                return (
-                  <div className="levelGroup" key={level.id}>
-                    <button className={level.id === 1 ? "rootLevel" : "closedLevel"} onClick={() => setOpenLevelId(isOpen ? null : level.id)}>
-                      <b>{level.id}</b>
-                      <span>
-                        <strong>Уровень {level.id}. {level.name}</strong>
-                        <small>{levelCountText(level)}</small>
-                      </span>
-                      <em>{isOpen ? "⌃" : "⌄"}</em>
-                    </button>
+              {reikiLevels.slice(0, 2).map(renderLevelGroup)}
 
-                    {isOpen && (
-                      <div className="keysList">
-                        {level.steps.map((item) => (
-                          <button
-                            key={item.id}
-                            className={selectedStepId === item.id ? "pianoKey selected" : "pianoKey"}
-                            onClick={() => setSelectedStepId(item.id)}
-                            title={`${item.id} · ${publicStatus(item.contentStatus)}`}
-                          >
-                            <i />
-                            <b>{item.number}</b>
-                            <span>
-                              <strong className="keyLabel">{stepLabel(item)} {item.number}</strong>
-                              <em className="keyTitle">{item.title}</em>
-                            </span>
-                            {selectedStepId === item.id && <strong className="glowRune">✧</strong>}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              <div className="levelGroup seniorLevelGroup">
+                <button className="closedLevel seniorLevelsToggle" onClick={() => setSeniorLevelsOpen((value) => !value)}>
+                  <b>3–7</b>
+                  <span>
+                    <strong>Старшие уровни</strong>
+                    <small>уровни 3–7</small>
+                  </span>
+                  <em>{seniorLevelsOpen ? "⌃" : "⌄"}</em>
+                </button>
+
+                {seniorLevelsOpen && reikiLevels.slice(2).map(renderLevelGroup)}
+              </div>
 
               <div className="sideActions">
                 <div className="promoRune">♧</div>
