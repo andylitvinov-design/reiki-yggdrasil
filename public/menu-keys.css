@@ -1,28 +1,64 @@
-.leftMenuCard {
-  min-height: 108px;
-  padding: 18px 18px 18px 118px;
-  border-radius: 18px;
-  border: 1px solid rgba(92,58,12,.32);
-  background:
-    linear-gradient(180deg,#24211f,#020202) 22px center / 80px 32px no-repeat,
-    radial-gradient(circle at 86% 50%,rgba(255,232,166,.7),transparent 18%),
-    linear-gradient(180deg,#fffaf0,#eadfcc);
-  color: #2b2117;
-  text-align: left;
-  box-shadow: inset 0 -10px 20px rgba(50,30,10,.08),0 1px 0 rgba(255,255,255,.78);
-}
-.leftMenuCard b { color:#9a6618; font-size:16px; line-height:1.12; letter-spacing:.45px; text-transform:uppercase; }
-.leftMenuCard p { margin:0; color:#42382d; font-size:14px; line-height:1.36; }
-.leftMenuStatus { color:#7d520f; font-size:11.5px; line-height:1.25; text-transform:lowercase; }
-.leftMenuCta { justify-self:start; min-height:auto; padding:0; border:0; background:transparent; color:#7d520f; font-size:12px; line-height:1.2; text-transform:lowercase; }
+.leftMenuCard,
 .leftMenuCard.active {
-  border-color:#ffd374;
-  background:
-    linear-gradient(180deg,#24211f,#020202) 22px center / 80px 32px no-repeat,
-    radial-gradient(circle at 86% 50%,rgba(255,244,178,.96),transparent 18%),
-    linear-gradient(90deg,#050505,#7e510f 31%,#d6952d 80%,#ffc861);
-  box-shadow:0 0 22px rgba(255,180,48,.62),inset 0 0 22px rgba(255,224,130,.18);
+  min-height: 92px !important;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding: 12px 22px 12px 108px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(92,58,12,.28) !important;
+  background: linear-gradient(180deg,#23211f,#020202 78%) 28px center / 72px 32px no-repeat, linear-gradient(180deg,#fff9ee,#efe2cf) !important;
+  color: #2b2117 !important;
+  text-align: left !important;
+  overflow: hidden !important;
+  box-shadow: inset 0 -9px 18px rgba(50,30,10,.07),0 1px 0 rgba(255,255,255,.75) !important;
 }
-.leftMenuCard.active b,.leftMenuCard.active p,.leftMenuCard.active .leftMenuStatus,.leftMenuCard.active .leftMenuCta { color:#fff; }
-@media(max-width:980px){ .leftMenuCard{min-height:104px;padding:16px 14px 16px 108px;background-size:72px 30px,auto,auto;background-position:20px center,center,center}.leftMenuCard b{font-size:15px}.leftMenuCard p{font-size:13.5px} }
-@media(max-width:420px){ .leftMenuCard{padding-left:100px;background-size:66px 28px,auto,auto;background-position:18px center,center,center} }
+.leftMenuCard b,
+.leftMenuCard.active b {
+  color:#16110c !important;
+  font-size:18px !important;
+  line-height:1.08 !important;
+  letter-spacing:.55px !important;
+  text-transform:uppercase !important;
+}
+.leftMenuCard p,
+.leftMenuCard.active p {
+  margin:0 !important;
+  color:#42382d !important;
+  font-size:13.5px !important;
+  line-height:1.22 !important;
+}
+.leftMenuStatus,
+.leftMenuCard.active .leftMenuStatus,
+.leftMenuCta,
+.leftMenuCard.active .leftMenuCta {
+  color:#7d520f !important;
+  font-size:12px !important;
+  line-height:1.15 !important;
+  text-transform:lowercase !important;
+  background:transparent !important;
+  border:0 !important;
+  padding:0 !important;
+  min-height:auto !important;
+  text-shadow:none !important;
+}
+@media(max-width:980px){
+  .leftMenuCard,
+  .leftMenuCard.active {
+    min-height:88px !important;
+    padding:12px 18px 12px 106px !important;
+    background-size:72px 32px,auto !important;
+    background-position:26px center,center !important;
+  }
+  .leftMenuCard b,.leftMenuCard.active b{font-size:17px !important;}
+  .leftMenuCard p,.leftMenuCard.active p{font-size:13.5px !important;}
+}
+@media(max-width:420px){
+  .leftMenuCard,
+  .leftMenuCard.active {
+    padding-left:100px !important;
+    background-size:66px 30px,auto !important;
+    background-position:22px center,center !important;
+  }
+}
