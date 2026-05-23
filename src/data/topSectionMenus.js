@@ -22,21 +22,13 @@ const freeVideoItems = freeCourseLinks.map((course) => ({
 }));
 
 export const topSections = [
-  { id: "free-videos", label: "Бесплатные Видео" },
   { id: "dao-ri", label: "Школа Магии ДАО РИ" },
   { id: "mysteries-school", label: "Школа Мистерий" },
-  { id: "artifact-creation", label: "Создание Артефактов" },
-  { id: "artifact-shop", label: "Магазин Артефактов" },
-  { id: "support-services", label: "Услуги Поддержки" }
+  { id: "artifact-creation", label: "Школа Артефактов" },
+  { id: "artifact-shop", label: "Магазин услуг и Артефактов" }
 ];
 
 const homeCategoryItems = [
-  {
-    id: "home-free-videos",
-    label: "Бесплатные Видео",
-    description: "Открытые материалы, видео и бесплатные курсы Академии.",
-    targetSection: "free-videos"
-  },
   {
     id: "home-dao-ri",
     label: "Школа Магии ДАО РИ",
@@ -51,21 +43,15 @@ const homeCategoryItems = [
   },
   {
     id: "home-artifact-creation",
-    label: "Создание Артефактов",
+    label: "Школа Артефактов",
     description: "Специализация по талисманам, мандалам, печатям и ритуальным предметам.",
     targetSection: "artifact-creation"
   },
   {
     id: "home-artifact-shop",
-    label: "Магазин Артефактов",
-    description: "Каталог готовых артефактов и возможность индивидуального заказа.",
+    label: "Магазин услуг и Артефактов",
+    description: "Каталог услуг, готовых артефактов и возможность индивидуального заказа.",
     targetSection: "artifact-shop"
-  },
-  {
-    id: "home-support-services",
-    label: "Услуги Поддержки",
-    description: "Диагностика, сопровождение, ритуалы и персональная поддержка.",
-    targetSection: "support-services"
   }
 ].map((item) => ({
   ...item,
@@ -137,7 +123,7 @@ export const leftMenuSections = {
     ]
   },
   "artifact-creation": {
-    title: "Создание Артефактов",
+    title: "Школа Артефактов",
     items: [
       {
         id: "artifact-specialization-talismans",
@@ -145,7 +131,7 @@ export const leftMenuSections = {
         description: "Специализация по созданию персональных талисманов, амулетов и предметов поддержки.",
         status: "специализация",
         page: {
-          eyebrow: "Создание Артефактов",
+          eyebrow: "Школа Артефактов",
           title: "Талисманы и амулеты",
           subtitle: "Специализация по предметам силы",
           intro: "Центральная страница специализации по созданию артефактов: логика работы, типы предметов, этапы диагностики и правила безопасности.",
@@ -159,7 +145,7 @@ export const leftMenuSections = {
         description: "Создание мандал, печатей, символических форм и визуальных ключей для задач ученика.",
         status: "специализация",
         page: {
-          eyebrow: "Создание Артефактов",
+          eyebrow: "Школа Артефактов",
           title: "Мандалы и печати",
           subtitle: "Символические формы и визуальные ключи",
           intro: "Раздел для обучения созданию мандал и печатей: от диагностики смысла до финального закрепления образа.",
@@ -173,7 +159,7 @@ export const leftMenuSections = {
         description: "Работа с предметами для ритуалов, практик, настройки пространства и личной поддержки.",
         status: "специализация",
         page: {
-          eyebrow: "Создание Артефактов",
+          eyebrow: "Школа Артефактов",
           title: "Ритуальные предметы",
           subtitle: "Предметы для практики и настройки пространства",
           intro: "Будущая страница специализации по ритуальным предметам: назначение, структура создания, хранение и этика применения.",
@@ -184,7 +170,7 @@ export const leftMenuSections = {
     ]
   },
   "artifact-shop": {
-    title: "Магазин Артефактов",
+    title: "Магазин услуг и Артефактов",
     items: [
       {
         id: "shop-ready-artifacts",
@@ -192,7 +178,7 @@ export const leftMenuSections = {
         description: "Каталог готовых предметов силы, талисманов, мандал и символических объектов.",
         status: "каталог готовится",
         page: {
-          eyebrow: "Магазин Артефактов",
+          eyebrow: "Магазин услуг и Артефактов",
           title: "Готовые артефакты",
           subtitle: "Каталог предметов силы",
           intro: "Здесь будет каталог готовых артефактов с описанием назначения, способа применения и статуса доступности.",
@@ -206,7 +192,7 @@ export const leftMenuSections = {
         description: "Создание персонального артефакта под задачу, состояние или этап пути.",
         status: "по согласованию",
         page: {
-          eyebrow: "Магазин Артефактов",
+          eyebrow: "Магазин услуг и Артефактов",
           title: "Индивидуальный заказ",
           subtitle: "Персональный предмет под задачу",
           intro: "Страница для заказа индивидуального артефакта: сначала диагностика задачи, затем подбор формы, символики и способа активации.",
