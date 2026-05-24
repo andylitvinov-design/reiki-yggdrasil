@@ -1,5 +1,66 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-24 — Profile cabinet production follow-up
+
+Mode: post-merge production follow-up branch.
+
+Context:
+
+- PR #26 was merged into `main` at `55e5fb6e5defdcd70c40594e085011c577716918`.
+- PR #26 added `/profile`, `/masters`, `/profile/admin`, Supabase REST/auth helpers, Vercel SPA rewrites, and `supabase/migrations/20260524_profile_cabinet_mvp.sql`.
+
+Changed on branch `codex/profile-cabinet-production-followup`:
+
+- Added `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`.
+- Added a `security definer` admin helper for profile cabinet RLS.
+- Replaced recursive admin policies with policies that call the helper.
+- Replaced the admin self-read policy on `profile_cabinet_admins` with a direct own-row read policy.
+- Allowed owners to update their own profile row as long as the resulting status is `draft`, `pending`, or `rejected`.
+- Updated `/profile` so saving an already approved profile sends it back to moderation with a Russian confirmation message.
+- Set the Vite asset base to `/` so direct refresh on `/profile`, `/masters`, and `/profile/admin` loads JS/CSS from root assets instead of nested route-relative paths.
+- Added README setup steps for env names, migration order, auth redirect URLs, and admin row setup.
+- Updated `STATE.md` to mark the profile cabinet as implemented in `main` while keeping live Supabase setup as needs verification.
+
+Verified before patch:
+
+- Remote `main` points at `55e5fb6e5defdcd70c40594e085011c577716918`.
+- GitHub PR #26 is merged.
+- Vercel status context for the merge commit is successful.
+- Live routes returned HTTP 200:
+  - `https://reiki-yggdrasil.vercel.app/`
+  - `https://reiki-yggdrasil.vercel.app/profile`
+  - `https://reiki-yggdrasil.vercel.app/masters`
+  - `https://reiki-yggdrasil.vercel.app/profile/admin`
+- Live production bundle contained profile cabinet strings and `profile_cabinet_profiles`.
+- Live bundle did not expose a Supabase URL or anon-key-like JWT, so production env is not confirmed configured.
+
+Findings:
+
+- Vercel production deploy succeeded.
+- GitHub Pages workflow failed at `actions/configure-pages` because Pages is not enabled/configured for GitHub Actions. This is not the production deploy path.
+- Supabase live data flow still needs manual setup and verification.
+
+Needs verification:
+
+- Apply both profile cabinet migrations in Supabase.
+- Configure Vercel env names: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`.
+- Configure Supabase auth redirects for `/profile` and `/profile/admin`.
+- Add the first admin row to `profile_cabinet_admins` after admin login.
+- Verify authenticated owner save/submit, public approved read, and admin moderation against real Supabase.
+
+Verification after patch:
+
+- `npm ci` passed.
+- `npm run validate:knowledge` passed.
+- `npm run validate:videos` passed with existing placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+- `npm run validate:free-courses` passed.
+- `npm run check` passed after the Vite base fix.
+- `npm run build` passed.
+- `npm run preview -- --port 4173` started successfully. An older local preview was already bound to `127.0.0.1:4173`, so the new preview was verified through its network URL.
+- Local preview route checks passed for `/`, `/profile`, `/masters`, and `/profile/admin`.
+- Local preview browser automation passed for direct route loads and the `Создать профиль`, `Каталог мастеров`, and `На главную` buttons with no console errors.
+- Supabase CLI is installed, but local migration application was not run because Docker daemon is not running.
+
 ## 2026-05-15 — Top header buttons switch left menu
 
 Mode: minimal safe implementation branch.
