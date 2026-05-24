@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "";
 
 const SESSION_KEY = "reiki-yggdrasil-session";
+const PROFILES_TABLE = "profile_cabinet_profiles";
 
 export const supabaseEnv = {
   url: SUPABASE_URL,
@@ -18,7 +19,7 @@ function cabinetError(message, details = null) {
 
 function requireConfig() {
   if (!supabaseEnv.isConfigured) {
-    throw cabinetError("Кабинет мастера требует настройки подключения Supabase.");
+    throw cabinetError("Кабинет профиля требует настройки подключения Supabase.");
   }
 }
 
@@ -122,7 +123,7 @@ export function isAdminUser(user) {
 export async function getOwnProfile(userId, session = getStoredSession()) {
   if (!userId || !session?.access_token) return null;
 
-  const rows = await request(`/rest/v1/master_profiles?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
+  const rows = await request(`/rest/v1/${PROFILES_TABLE}?user_id=eq.${encodeURIComponent(userId)}&select=*`, {
     accessToken: session.access_token
   });
 
@@ -132,7 +133,7 @@ export async function getOwnProfile(userId, session = getStoredSession()) {
 export async function saveOwnProfile(profile, session = getStoredSession()) {
   if (!session?.access_token) throw cabinetError("Нужно войти в кабинет.");
 
-  const rows = await request("/rest/v1/master_profiles?on_conflict=user_id", {
+  const rows = await request(`/rest/v1/${PROFILES_TABLE}?on_conflict=user_id`, {
     method: "POST",
     accessToken: session.access_token,
     prefer: "resolution=merge-duplicates,return=representation",
@@ -147,13 +148,13 @@ export async function submitOwnProfile(profile, session = getStoredSession()) {
 }
 
 export async function listApprovedProfiles() {
-  return request("/rest/v1/master_profiles?status=eq.approved&select=*&order=updated_at.desc");
+  return request(`/rest/v1/${PROFILES_TABLE}?status=eq.approved&select=*&order=updated_at.desc`);
 }
 
 export async function listPendingProfiles(session = getStoredSession()) {
   if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
 
-  return request("/rest/v1/master_profiles?status=eq.pending&select=*&order=updated_at.asc", {
+  return request(`/rest/v1/${PROFILES_TABLE}?status=eq.pending&select=*&order=updated_at.asc`, {
     accessToken: session.access_token
   });
 }
@@ -161,7 +162,7 @@ export async function listPendingProfiles(session = getStoredSession()) {
 export async function updateProfileStatus(profileId, status, session = getStoredSession()) {
   if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
 
-  const rows = await request(`/rest/v1/master_profiles?id=eq.${encodeURIComponent(profileId)}`, {
+  const rows = await request(`/rest/v1/${PROFILES_TABLE}?id=eq.${encodeURIComponent(profileId)}`, {
     method: "PATCH",
     accessToken: session.access_token,
     prefer: "return=representation",
