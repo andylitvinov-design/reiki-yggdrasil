@@ -1,4 +1,5 @@
 import { reikiKnowledgeMeta, reikiLevels, reikiSteps, reikiStepsById } from "./reikiKnowledgeBase.js";
+import { sourcedStepSettings } from "./reikiStepSettings.js";
 
 const OVERVIEW_TAB = {
   id: "overview",
@@ -40,23 +41,28 @@ function buildSettingTab(setting) {
   };
 }
 
-function buildSettingRecord(setting, step) {
+function buildSettingRecord(setting, step, index) {
   const title = normalizeSettingTitle(setting.title);
+  const id = setting.id || `${step.id}-A${String(index + 1).padStart(2, "0")}`;
+  const hasSourcedSettings = Boolean(sourcedStepSettings[step.id]);
 
   return {
     ...setting,
+    id,
     title,
     originalTitle: setting.title,
     stepId: step.id,
     levelId: step.levelId,
-    tabId: setting.id,
+    tabId: id,
     type: "setting",
-    contentStatus: setting.contentStatus || "needs_review"
+    source: hasSourcedSettings ? "sourcedStepSettings" : "reikiKnowledgeBase",
+    contentStatus: setting.contentStatus || (hasSourcedSettings ? "source_reviewed" : "needs_review")
   };
 }
 
 function buildDegreeStep(step, level) {
-  const settings = (step.settings || []).map((setting) => buildSettingRecord(setting, step));
+  const sourceSettings = sourcedStepSettings[step.id] || step.settings || [];
+  const settings = sourceSettings.map((setting, index) => buildSettingRecord(setting, step, index));
 
   return {
     id: step.id,
@@ -79,13 +85,14 @@ export const degreeSettingsMeta = {
   language: "ru",
   source: "src/data/degreeSettings.js",
   upstreamSource: reikiKnowledgeMeta.source,
+  sourcedSettingsSource: "src/data/reikiStepSettings.js",
   status: "ui_structure_for_degree_right_panel",
   sourceStatus: reikiKnowledgeMeta.status,
   stableIdPattern: reikiKnowledgeMeta.stableIdPattern,
   totalLevels: reikiKnowledgeMeta.totalLevels,
   totalSteps: reikiKnowledgeMeta.totalSteps,
   policy:
-    "This file is a normalized UI layer for levels, steps and setting tabs. It derives data from src/data/reikiKnowledgeBase.js and must not invent course settings. Author-level content verification remains in the upstream knowledge base."
+    "This file is a normalized UI layer for levels, steps and setting tabs. It derives the course hierarchy from src/data/reikiKnowledgeBase.js and prefers author-sourced settings from src/data/reikiStepSettings.js. It must not invent course settings."
 };
 
 export const degreeSettings = reikiLevels.map((level) => ({
