@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-15
+Last updated: 2026-05-24
 
 ## Current verified repo state
 
@@ -14,7 +14,7 @@ Last updated: 2026-05-15
 
 ## Current app structure
 
-The current repo is a Vite/React public prototype with a GitHub-stored course knowledge base.
+The current repo is a Vite/React public prototype with a GitHub-stored course knowledge base and a profile cabinet MVP merged in PR #26.
 
 Confirmed files:
 
@@ -32,14 +32,17 @@ Confirmed files:
 - `scripts/validate-knowledge-base.mjs`
 - `.github/workflows/ci.yml`
 - `package-lock.json`
-
-Not found / not confirmed in current `main` during prior audits:
-
-- `src/App.jsx`
+- `src/lib/supabaseClient.js`
 - `src/pages/ProfilePage.jsx`
 - `src/pages/MastersPage.jsx`
 - `src/pages/AdminPage.jsx`
-- `src/lib/supabaseClient.js`
+- `src/profileCabinet.css`
+- `supabase/migrations/20260524_profile_cabinet_mvp.sql`
+- `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
+
+Still not part of the current app:
+
+- `src/App.jsx`
 - `supabase/migrations/20260428_master_cabinet_mvp.sql`
 
 ## Knowledge base state
@@ -89,22 +92,36 @@ RY-L07-S06
 
 Current central descriptions are a draft scaffold, not final verified methodichki text.
 
-## Known mismatch with ai-projects-brain memory
+## Historical memory note
 
-The external project memory currently describes a larger Supabase-backed MVP with `/profile`, `/masters`, `/profile/admin`, and Supabase files. Those files/routes were not found in the current repo state during prior audits.
-
-Conclusion: project memory likely contains stale or future/planned state and should be updated or split into:
-
-- current verified repo state
-- planned Supabase/profile/master/admin roadmap
+Older audits noted that external project memory described `/profile`, `/masters`, `/profile/admin`, and Supabase files before those files existed on `main`.
+PR #26 reconciled that mismatch by adding the profile cabinet MVP to `main`.
 
 ## Env names
 
-From project memory only; values are not stored and were not verified:
+Used by the profile cabinet MVP. Values are not stored in the repo:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_ADMIN_EMAIL`
+
+## Profile cabinet MVP state
+
+PR #26 added the routed master cabinet as a narrow MVP, not a broad marketplace:
+
+- `/profile` lets a master sign in by magic link, save a profile draft, and submit it for moderation.
+- `/masters` lists approved public profiles.
+- `/profile/admin` lets the configured admin email review pending profiles.
+- `vercel.json` rewrites these SPA routes so direct refresh does not 404.
+- Without Supabase env, all three routes render a Russian fallback instead of crashing.
+
+Live data flow still depends on manual Supabase/Vercel setup:
+
+- apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`
+- apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
+- set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
+- add Supabase auth redirect URLs for `/profile` and `/profile/admin`
+- after first admin login, add a row to `profile_cabinet_admins`
 
 ## Verification status
 
@@ -149,22 +166,24 @@ Verified locally on 2026-05-15:
 
 Not verified:
 
-- Vercel live deployment behavior
-- Supabase/auth/data flows; these routes/files are not present on the target `main` branch
+- Supabase migration applied in the production Supabase project
+- Vercel production env configured
+- Supabase auth redirect URLs configured
+- first admin row exists in `profile_cabinet_admins`
+- full authenticated owner/admin data flow against production Supabase
 
 ## Risks
 
 - Draft texts are not verified against original methodichki.
 - Some descriptions are safe generalized scaffold copy based on titles/themes rather than exact course text.
 - Long Russian descriptions may need visual QA in the central card on mobile screens.
-- Supabase/profile/admin work should not be resumed until actual repo state is reconciled.
+- Profile cabinet live data remains unavailable until Supabase setup is completed and verified.
 
 ## Next actions
 
-1. Run `npm ci`.
-2. Run `npm run validate:knowledge`.
-3. Run `npm run build`.
-4. Preview `/` locally and check all 37 records across desktop/mobile.
+1. Complete Supabase/Vercel profile cabinet setup.
+2. Verify authenticated `/profile` owner save and submit flow.
+3. Verify public approved profile read on `/masters`.
+4. Verify `/profile/admin` moderation with a row in `profile_cabinet_admins`.
 5. Replace draft descriptions with exact methodichki text where available.
-6. After author review, mark approved records `verified`.
-7. Update `ai-projects-brain/projects/reiki-yggdrasil/*` to reflect actual repo state.
+6. After author review, mark approved course records `verified`.
