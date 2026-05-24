@@ -1,0 +1,235 @@
+.cabinetShell {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.94), transparent 34%), linear-gradient(180deg, #fbf6ee, #ead8bd);
+  color: var(--ink, #17120c);
+}
+
+.cabinetTopbar {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) auto minmax(130px, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(203, 152, 64, 0.38);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.cabinetTopbar div {
+  text-align: center;
+}
+
+.cabinetTopbar p,
+.cabinetEyebrow {
+  margin: 0 0 7px;
+  color: #9a6517;
+  font-size: 11px;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+
+.cabinetTopbar h1,
+.cabinetCard h2,
+.cabinetPreview h3 {
+  margin: 0;
+  line-height: 1.06;
+}
+
+.cabinetTopbar button,
+.cabinetPrimary,
+.cabinetSecondary,
+.cabinetGhost {
+  border: 1px solid rgba(184, 121, 29, 0.46);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #24180e;
+  font-weight: 700;
+}
+
+.cabinetTopbar button:last-child {
+  justify-self: end;
+}
+
+.cabinetMain {
+  width: min(1120px, calc(100vw - 28px));
+  margin: 0 auto;
+  padding: 28px 0 46px;
+}
+
+.cabinetGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 18px;
+  align-items: start;
+}
+
+.cabinetCard,
+.cabinetNotice,
+.cabinetError,
+.cabinetSuccess {
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  border-radius: 24px;
+  background: rgba(255, 252, 246, 0.86);
+  box-shadow: 0 14px 42px rgba(79, 54, 18, 0.12);
+  padding: 22px;
+}
+
+.cabinetNotice,
+.cabinetSuccess {
+  margin-bottom: 16px;
+}
+
+.cabinetError {
+  margin-bottom: 16px;
+  border-color: rgba(170, 67, 39, 0.38);
+  background: rgba(255, 241, 235, 0.92);
+}
+
+.cabinetSuccess {
+  border-color: rgba(98, 145, 73, 0.38);
+  background: rgba(240, 249, 232, 0.92);
+}
+
+.authCard {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.profileForm label,
+.authCard label {
+  display: grid;
+  gap: 7px;
+  margin-top: 15px;
+  color: #5f5142;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profileForm input,
+.profileForm textarea,
+.authCard input {
+  width: 100%;
+  border: 1px solid rgba(122, 99, 72, 0.24);
+  border-radius: 14px;
+  padding: 12px 13px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #24180e;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.cabinetTwoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cabinetFormHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.cabinetStatus {
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: rgba(184, 121, 29, 0.13);
+  color: #8a5a14;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-approved {
+  background: rgba(79, 143, 67, 0.13);
+  color: #426e31;
+}
+
+.status-rejected {
+  background: rgba(170, 67, 39, 0.13);
+  color: #903c25;
+}
+
+.cabinetActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.cabinetPrimary {
+  background: linear-gradient(180deg, #e5b35a, #b8791d);
+  color: #170e05;
+}
+
+.cabinetSecondary {
+  background: #171716;
+  color: #fff4d7;
+}
+
+.cabinetGhost {
+  background: transparent;
+}
+
+.masterPreviewImage {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #1c1b19, #5f3b0c);
+  background-size: cover;
+  background-position: center;
+  color: #f5c66a;
+  font-size: 34px;
+}
+
+.mastersCatalogGrid,
+.moderationList {
+  display: grid;
+  gap: 16px;
+}
+
+.mastersCatalogGrid {
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+}
+
+.masterCatalogCard {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.masterLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.masterLinks a {
+  color: #8f5d17;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .cabinetTopbar {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .cabinetTopbar button,
+  .cabinetTopbar button:last-child {
+    justify-self: stretch;
+  }
+
+  .cabinetGrid,
+  .cabinetTwoColumns,
+  .masterCatalogCard {
+    grid-template-columns: 1fr;
+  }
+}
