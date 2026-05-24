@@ -89,10 +89,11 @@ export function storeSessionFromUrlHash() {
   return getStoredSession();
 }
 
-export async function sendMagicLink(email) {
+export async function sendMagicLink(email, redirectPath = "/profile") {
   requireConfig();
 
-  const redirectTo = `${window.location.origin}/profile`;
+  const safePath = redirectPath.startsWith("/") ? redirectPath : "/profile";
+  const redirectTo = `${window.location.origin}${safePath}`;
 
   return request("/auth/v1/otp", {
     method: "POST",
