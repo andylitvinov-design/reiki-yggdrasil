@@ -12,13 +12,24 @@ import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
 import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/youtube.js";
+import ProfilePage from "./pages/ProfilePage.jsx";
+import MastersPage from "./pages/MastersPage.jsx";
+import AdminPage from "./pages/AdminPage.jsx";
 import "./index.css";
 import "./stepSettings.css";
 import "./stepVideos.css";
+import "./profileCabinet.css";
 
 const PLACEHOLDER_TEXT = "Материал готовится. Скоро здесь появится авторское описание ступени.";
 const SETTINGS_PLACEHOLDER_TEXT = "Список настроек этой ступени уточняется.";
 const KNOWLEDGE_STATUS_TEXT = "структура курса подтверждена, материалы дополняются";
+const ROUTE_CHANGE_EVENT = "reiki-route-change";
+
+function navigateTo(path) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 function countLabel(count, singular, few, many) {
   const lastTwo = count % 100;
@@ -128,6 +139,35 @@ function buildStepMeaning(step, settings) {
     : `${titles.slice(0, -1).join(", ")} и ${titles.at(-1)}`;
 
   return `Смысл этой ступени — освоить блок «${step.title}» через конкретные настройки: ${focus}. Здесь ученик не просто читает описание, а учится входить в нужное качество потока, наблюдать изменения в теле и состоянии, связывать практику с жизненными задачами и закреплять опыт через повторение. Материал собран по структуре блока и списку настроек этой ступени; точные формулировки остаются открытыми для дальнейшей сверки с методичкой.`;
+}
+
+function RootRouter() {
+  const [path, setPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const updatePath = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", updatePath);
+    window.addEventListener(ROUTE_CHANGE_EVENT, updatePath);
+
+    return () => {
+      window.removeEventListener("popstate", updatePath);
+      window.removeEventListener(ROUTE_CHANGE_EVENT, updatePath);
+    };
+  }, []);
+
+  if (path === "/profile/admin") {
+    return <AdminPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile") {
+    return <ProfilePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/masters") {
+    return <MastersPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+  }
+
+  return <App />;
 }
 
 function App() {
@@ -328,7 +368,7 @@ function App() {
                     Размещай практики, мандалы и артефакты. Получай обратную связь и развивайся вместе с
                     сообществом.
                   </p>
-                  <button>Создать профиль</button>
+                  <button type="button" onClick={() => navigateTo("/profile")}>Создать профиль</button>
                 </div>
               </div>
 
@@ -599,4 +639,4 @@ function Publication({ card, index }) {
   );
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+createRoot(document.getElementById("root")).render(<RootRouter />);
