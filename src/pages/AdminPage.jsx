@@ -77,7 +77,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
     setMessage("");
 
     try {
-      await sendMagicLink(email.trim());
+      await sendMagicLink(email.trim(), "/profile/admin");
       setMessage("Письмо для входа отправлено. Откройте ссылку из письма на этом устройстве.");
     } catch (err) {
       setError(err.message || "Не удалось отправить ссылку для входа.");
