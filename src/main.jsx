@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
+  practiceExercises,
   reikiLevels,
-  reikiKnowledgeMeta
+  reikiKnowledgeMeta,
+  studentCollections
 } from "./data/reikiKnowledgeBase.js";
-import {
-  getDegreePanelContent,
-  getDegreeTabsForStep
-} from "./data/degreeSettings.js";
+import { getDegreeSettingByTabId, getDegreeTabsForStep } from "./data/degreeSettings.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
@@ -194,7 +193,7 @@ function App() {
   const currentVideo = getStepVideo(current.id);
   const currentMeaning = buildStepMeaning(current, currentSettings);
   const rightTabs = getDegreeTabsForStep(current.id);
-  const rightPanelContent = getDegreePanelContent(current.id, rightPanelTab);
+  const activeRightSetting = rightPanelTab === "overview" ? null : getDegreeSettingByTabId(current.id, rightPanelTab);
   const activeLeftSection = leftMenuSections[activeTopSection];
   const activeLeftItem = activeLeftSection?.items.find((item) => item.id === selectedLeftItemId) || activeLeftSection?.items[0] || null;
 
@@ -358,7 +357,29 @@ function App() {
             ))}
           </div>
 
-          <DegreePanelContent content={rightPanelContent} current={current} selectedLevel={selectedLevel} />
+          <RightPanelContext current={current} selectedLevel={selectedLevel} activeSetting={activeRightSetting} />
+
+          <div className="exerciseList">
+            {practiceExercises.map((item) => (
+              <Exercise item={item} key={item.title} />
+            ))}
+          </div>
+          <button className="allExercises">Все упражнения →</button>
+
+          <div className="masterInvite">
+            <div className="profileIcon">◎</div>
+            <div>
+              <b>Создай свой профиль мастера</b>
+              <p>
+                Размещай практики, мандалы и артефакты. Получай обратную связь и развивайся вместе с
+                сообществом.
+              </p>
+              <button type="button" onClick={() => navigateTo("/profile")}>Создать профиль</button>
+            </div>
+          </div>
+
+          <CollectionBlock title="Мандалы студентов" cards={studentCollections.mandalas} />
+          <CollectionBlock title="Артефакты студентов" cards={studentCollections.artifacts} />
         </aside>
       </main>
     </div>
@@ -454,81 +475,12 @@ function SectionStage({ section, item }) {
   );
 }
 
-function DegreePanelContent({ content, current, selectedLevel }) {
-  if (!content || content.type === "empty") {
-    return (
-      <div className="degreePanelContent">
-        <div className="degreePanelEmpty">
-          <h3>Обзор</h3>
-          <p>Материал правой панели готовится.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (content.type === "setting") {
-    return (
-      <div className="degreePanelContent">
-        <div className="degreePanelHeader">
-          <p className="degreePanelEyebrow">{selectedLevel.name} · {stepLabel(current)} {current.number}</p>
-          <h3>{content.title}</h3>
-          <p>{current.title}</p>
-        </div>
-
-        <article className="degreeSettingPanel">
-          <h3>{content.title}</h3>
-          <p>{publicText(content.description)}</p>
-          <small>{publicText(content.effect)}</small>
-          <span className="degreePanelMeta">Источник: {content.source === "sourcedStepSettings" ? "список настроек ступени" : "черновая база курса"}</span>
-        </article>
-      </div>
-    );
-  }
-
-  if (content.type === "missing") {
-    return (
-      <div className="degreePanelContent">
-        <div className="degreePanelEmpty">
-          <h3>{content.title}</h3>
-          <p>{content.description}</p>
-        </div>
-      </div>
-    );
-  }
-
+function RightPanelContext({ current, selectedLevel, activeSetting }) {
   return (
-    <div className="degreePanelContent">
-      <div className="degreePanelHeader">
-        <p className="degreePanelEyebrow">{selectedLevel.name} · {stepLabel(current)} {current.number}</p>
-        <h3>{current.title}</h3>
-        <p>{publicText(content.intro)}</p>
-      </div>
-
-      <article className="degreeOverviewCard">
-        <h4>Смысл ступени</h4>
-        <p>{publicText(content.meaning)}</p>
-      </article>
-
-      <div className="degreePanelGrid">
-        <div className="degreePanelPoint">
-          <h4>Что открывает</h4>
-          <ul>
-            {publicList(content.opens).map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </div>
-
-        <div className="degreePanelPoint">
-          <h4>Навыки</h4>
-          <ul>
-            {publicList(content.skills).map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </div>
-      </div>
-
-      <article className="degreeOverviewCard">
-        <h4>Результат</h4>
-        <p>{publicText(content.result)}</p>
-      </article>
+    <div className="rightPanelContext">
+      <p className="degreePanelEyebrow">{selectedLevel.name} · {stepLabel(current)} {current.number}</p>
+      <h3>{activeSetting ? activeSetting.title : "Обзор"}</h3>
+      <p>{activeSetting ? publicText(activeSetting.description) : publicText(current.intro)}</p>
     </div>
   );
 }
@@ -598,6 +550,22 @@ function StepVideo({ video }) {
   );
 }
 
+function CollectionBlock({ title, cards }) {
+  return (
+    <div className="collectionBlock">
+      <div className="pubHeader">
+        <b>{title}</b>
+        <a>Смотреть все →</a>
+      </div>
+      <div className="publicationGrid">
+        {cards.map((card, index) => (
+          <Publication card={card} index={index} key={card.title} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SettingsList({ settings }) {
   const items = publicSettings(settings);
 
@@ -636,6 +604,32 @@ function Info({ title, text, list }) {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+function Exercise({ item }) {
+  return (
+    <div className="exerciseCard">
+      <div className="exercisePreview" />
+      <div className="exerciseText">
+        <b>{item.title}</b>
+        <p>{item.text}</p>
+        <small>◷ {item.time}</small>
+      </div>
+      <button className="play">▶</button>
+    </div>
+  );
+}
+
+function Publication({ card, index }) {
+  return (
+    <div className="publicationCard">
+      <div className={`publicationImage variant${index + 1}`} />
+      <b>{card.title}</b>
+      <small>
+        {card.author} · ♥ {card.likes}
+      </small>
     </div>
   );
 }
