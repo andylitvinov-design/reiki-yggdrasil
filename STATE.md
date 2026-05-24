@@ -106,6 +106,15 @@ From project memory only; values are not stored and were not verified:
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_ADMIN_EMAIL`
 
+## Supabase migration order
+
+For the profile cabinet MVP, apply the SQL files in order:
+
+1. `supabase/migrations/20260524_profile_cabinet_mvp.sql`
+2. `supabase/migrations/20260524_profile_publication_step_links.sql`
+
+The publication step-links migration depends on `profile_cabinet_publications`, which is created by the cabinet MVP migration. Do not commit Supabase env values or secrets.
+
 ## Verification status
 
 Verified by GitHub file inspection:
