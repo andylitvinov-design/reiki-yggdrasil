@@ -149,6 +149,19 @@ const createArtifactWorkshopItem = (module, index) => ({
   }
 });
 
+const artifactJuniorItems = [
+  {
+    id: "artifact-workshop-overview",
+    label: "Описание специальности",
+    description: "Общая карта специализации по созданию артефактов, формату обучения и результату программы.",
+    status: "мастерская",
+    page: artifactWorkshopPage
+  },
+  ...artifactWorkshopModules.slice(0, 3).map(createArtifactWorkshopItem)
+];
+
+const artifactSeniorItems = artifactWorkshopModules.slice(3).map((module, index) => createArtifactWorkshopItem(module, index + 3));
+
 export const leftMenuSections = {
   "all-categories": {
     title: "Все разделы сайта",
@@ -207,15 +220,15 @@ export const leftMenuSections = {
   },
   "artifact-creation": {
     title: "Мастерская",
-    items: [
+    items: artifactJuniorItems,
+    groups: [
       {
-        id: "artifact-workshop-overview",
-        label: "Специализация: создание артефактов",
-        description: "Профессиональное обучение по созданию артефактов, амулетов, мандал, талисманов и предметов силы.",
-        status: "мастерская",
-        page: artifactWorkshopPage
-      },
-      ...artifactWorkshopModules.map(createArtifactWorkshopItem)
+        id: "artifact-senior-steps",
+        label: "Старшие ступени",
+        range: "4–8",
+        summary: "ступени 4–8",
+        items: artifactSeniorItems
+      }
     ]
   },
   "artifact-shop": {
