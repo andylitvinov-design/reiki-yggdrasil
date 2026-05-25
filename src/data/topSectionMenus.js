@@ -25,7 +25,8 @@ export const topSections = [
   { id: "dao-ri", label: "ДАО РИ" },
   { id: "mysteries-school", label: "МИСТЕРИИ" },
   { id: "artifact-creation", label: "МАСТЕРСКАЯ" },
-  { id: "artifact-shop", label: "МАГАЗИН" }
+  { id: "artifact-shop", label: "МАГАЗИН" },
+  { id: "personal-cabinet", label: "КАБИНЕТ", path: "/profile" }
 ];
 
 const homeCategoryItems = [
