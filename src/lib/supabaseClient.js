@@ -107,6 +107,19 @@ export async function sendMagicLink(email, redirectPath = "/profile") {
   });
 }
 
+export function signInWithGoogle(redirectPath = "/profile") {
+  requireConfig();
+
+  const safePath = redirectPath.startsWith("/") && !redirectPath.startsWith("//") ? redirectPath : "/profile";
+  const redirectTo = new URL(safePath, window.location.origin).toString();
+  const authorizeUrl = new URL("/auth/v1/authorize", `${SUPABASE_URL}/`);
+
+  authorizeUrl.searchParams.set("provider", "google");
+  authorizeUrl.searchParams.set("redirect_to", redirectTo);
+
+  window.location.assign(authorizeUrl.toString());
+}
+
 export async function getCurrentUser(session = getStoredSession()) {
   if (!session?.access_token) return null;
 

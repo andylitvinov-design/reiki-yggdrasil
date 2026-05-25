@@ -38,6 +38,16 @@ Supabase setup steps:
 4. Add the Vercel production env vars named above.
 5. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
+Google OAuth setup:
+
+1. Enable the Google provider in Supabase Auth.
+2. Configure Google OAuth credentials in the Supabase dashboard.
+3. Add the Supabase callback URL from the Supabase dashboard to Google Cloud OAuth redirect URIs.
+4. Add these auth redirect URLs in Supabase:
+   - `https://reiki-yggdrasil.vercel.app/profile`
+   - `https://reiki-yggdrasil.vercel.app/profile/admin`
+5. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
+
 ## Deploy
 
 The repository includes:

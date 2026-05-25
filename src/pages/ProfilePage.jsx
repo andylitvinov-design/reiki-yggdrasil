@@ -5,6 +5,7 @@ import {
   getOwnProfile,
   getStoredSession,
   sendMagicLink,
+  signInWithGoogle,
   storeSessionFromUrlHash,
   submitOwnProfile,
   supabaseEnv,
@@ -107,6 +108,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const handleGoogleLogin = () => {
+    setMessage("");
+    setError("");
+
+    try {
+      signInWithGoogle();
+    } catch (err) {
+      setError(err.message || "Не удалось начать вход через Google.");
+    }
+  };
+
   const handleSave = async (requestedStatus) => {
     setMessage("");
     setError("");
@@ -159,9 +171,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
       {!loading && !user && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
-          <p className="cabinetEyebrow">Вход по email</p>
+          <p className="cabinetEyebrow">Вход мастера</p>
           <h2>Войдите, чтобы создать профиль мастера</h2>
-          <p>Мы отправим магическую ссылку для входа. После входа можно заполнить профиль и отправить его на модерацию.</p>
+          <p>Войдите через Google или используйте email-ссылку. После входа можно заполнить профиль и отправить его на модерацию.</p>
+          <button className="cabinetGoogle" type="button" onClick={handleGoogleLogin}>Войти через Google</button>
+          <div className="authDivider">или войдите по email</div>
           <label>
             Email
             <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="you@example.com" />
