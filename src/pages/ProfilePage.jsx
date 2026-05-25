@@ -216,11 +216,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
-  const handleSave = async (nextStatus = profile.status || "draft") => {
+  const handleSave = async (requestedStatus) => {
     setMessage("");
     setError("");
 
     try {
+      const nextStatus = requestedStatus || (profile.status === "approved" ? "pending" : profile.status || "draft");
+      const isApprovedResubmission = profile.status === "approved" && nextStatus === "pending";
       const payload = {
         ...profile,
         user_id: user.id,
@@ -233,7 +235,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         : await saveOwnProfile(payload, session);
 
       setProfile(normalizeProfile(saved, user));
-      setMessage(nextStatus === "pending" ? "Профиль отправлен на модерацию." : "Профиль сохранён.");
+      setMessage(isApprovedResubmission ? "Профиль обновлён и отправлен на повторную модерацию." : nextStatus === "pending" ? "Профиль отправлен на модерацию." : "Профиль сохранён.");
     } catch (err) {
       setError(err.message || "Не удалось сохранить профиль.");
     }
@@ -357,7 +359,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </label>
 
               <div className="cabinetActions">
-                <button className="cabinetPrimary" type="submit">Сохранить черновик</button>
+                <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
                 <button className="cabinetSecondary" type="button" onClick={() => handleSave("pending")}>Отправить на модерацию</button>
                 <button className="cabinetGhost" type="button" onClick={handleLogout}>Выйти</button>
               </div>
