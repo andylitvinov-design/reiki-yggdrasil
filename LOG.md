@@ -1,5 +1,22 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-25 — Google OAuth button added to profile cabinet
+
+Mode: minimal safe implementation branch from `origin/main`.
+
+Changed:
+
+- Added a Google OAuth start helper using the existing Supabase public auth endpoint and frontend env names only.
+- Added `Войти через Google` to `/profile` before the existing email magic-link form.
+- Kept magic-link login available as the fallback path.
+- Added minimal cabinet-only styles for the Google login button and email fallback divider.
+- Documented Google OAuth setup steps in `README.md`.
+
+Needs verification:
+
+- Supabase Google provider setup is still needs verification.
+- Production OAuth login must be checked after Google provider credentials and Supabase redirect URLs are configured.
+
 ## 2026-05-25 — Artefacts section renamed to Workshop
 
 Mode: direct small content update on `main`.

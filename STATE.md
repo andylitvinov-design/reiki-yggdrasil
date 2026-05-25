@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-24
+Last updated: 2026-05-25
 
 ## Current verified repo state
 
@@ -110,6 +110,7 @@ Used by the profile cabinet MVP. Values are not stored in the repo:
 PR #26 added the routed master cabinet as a narrow MVP, not a broad marketplace:
 
 - `/profile` lets a master sign in by magic link, save a profile draft, and submit it for moderation.
+- `/profile` now also offers a Google OAuth login button before the email magic-link fallback.
 - `/masters` lists approved public profiles.
 - `/profile/admin` lets the configured admin email review pending profiles.
 - `vercel.json` rewrites these SPA routes so direct refresh does not 404.
@@ -121,6 +122,7 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
+- enable and configure the Google provider in Supabase Auth before treating Google login as live
 - after first admin login, add a row to `profile_cabinet_admins`
 
 ## Verification status
@@ -169,6 +171,7 @@ Not verified:
 - Supabase migration applied in the production Supabase project
 - Vercel production env configured
 - Supabase auth redirect URLs configured
+- Supabase Google provider configured and verified
 - first admin row exists in `profile_cabinet_admins`
 - full authenticated owner/admin data flow against production Supabase
 

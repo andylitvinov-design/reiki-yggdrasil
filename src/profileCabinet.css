@@ -37,7 +37,8 @@
 .cabinetTopbar button,
 .cabinetPrimary,
 .cabinetSecondary,
-.cabinetGhost {
+.cabinetGhost,
+.cabinetGoogle {
   border: 1px solid rgba(184, 121, 29, 0.46);
   border-radius: 999px;
   padding: 10px 16px;
@@ -93,6 +94,33 @@
 .authCard {
   max-width: 620px;
   margin: 0 auto;
+}
+
+.cabinetGoogle {
+  width: 100%;
+  margin-top: 18px;
+  background: #fff;
+  color: #24180e;
+  box-shadow: inset 0 0 0 1px rgba(122, 99, 72, 0.12);
+}
+
+.authDivider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 2px;
+  color: #8c7c69;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.authDivider::before,
+.authDivider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: rgba(203, 152, 64, 0.32);
 }
 
 .profileForm label,
