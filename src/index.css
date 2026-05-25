@@ -354,6 +354,7 @@ button {
   font-size: 13px;
   line-height: 1.2;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .leftMenuCard p {
@@ -361,6 +362,7 @@ button {
   color: rgba(255, 244, 215, 0.78);
   font-size: 12px;
   line-height: 1.42;
+  overflow-wrap: anywhere;
 }
 
 .leftMenuStatus {
@@ -380,6 +382,11 @@ button {
   color: #f5c66a;
   font-size: 11px;
   text-transform: uppercase;
+}
+
+.leftMenuGroup {
+  display: grid;
+  gap: 8px;
 }
 
 .stageCard {
@@ -403,27 +410,34 @@ button {
 
 .stageCopy h2,
 .sectionStage h2 {
-  font-size: 34px;
+  max-width: 100%;
+  font-size: clamp(28px, 5.8vw, 52px);
   margin: 15px 0 0;
   text-transform: uppercase;
-  line-height: 1;
+  line-height: 0.98;
   font-weight: 400;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .stageCopy h3,
 .sectionStage h3 {
-  font-size: 31px;
+  max-width: 100%;
+  font-size: clamp(24px, 4.9vw, 42px);
   margin: 8px 0 11px;
   color: #9c6819;
   text-transform: uppercase;
   line-height: 1;
   font-weight: 400;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .introText {
   font-size: 14.5px;
   line-height: 1.5;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .contentNotice {
@@ -458,6 +472,7 @@ button {
 }
 
 .sectionStageHero {
+  min-width: 0;
   padding: 10px 4px 4px;
 }
 
@@ -469,6 +484,7 @@ button {
 }
 
 .sectionStagePoint {
+  min-width: 0;
   min-height: 112px;
   padding: 14px;
   border-radius: 16px;
@@ -487,6 +503,7 @@ button {
   margin: 0;
   font-size: 13px;
   line-height: 1.42;
+  overflow-wrap: anywhere;
 }
 
 .videoSettingsCard {
@@ -835,6 +852,24 @@ button {
 
   .stageHero {
     grid-template-columns: 1fr;
+  }
+
+  .stageCopy h2,
+  .sectionStage h2 {
+    font-size: clamp(32px, 12vw, 52px);
+  }
+
+  .stageCopy h3,
+  .sectionStage h3 {
+    font-size: clamp(24px, 8.5vw, 38px);
+  }
+
+  .sectionStage {
+    min-height: 0;
+  }
+
+  .sectionStagePoint {
+    min-height: auto;
   }
 
   .videoSettingsCard button,
