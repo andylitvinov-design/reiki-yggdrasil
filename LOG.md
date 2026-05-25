@@ -1,5 +1,42 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-25 — Artefacts section renamed to Workshop
+
+Mode: direct small content update on `main`.
+
+Context:
+
+- User asked to use the existing Artefacts area as a workshop section.
+- Short tab name should be `МАСТЕРСКАЯ`.
+- Expanded heading should be `Специализация: создание артефактов`.
+
+Changed:
+
+- Updated `src/data/topSectionMenus.js`.
+- Renamed top navigation label `АРТЕФАКТЫ` to `МАСТЕРСКАЯ`.
+- Renamed the `artifact-creation` left menu title from `Школа Артефактов` to `Мастерская`.
+- Added the first workshop card `Специализация: создание артефактов`.
+- Added the 9-module workshop outline, format, and price text.
+- Preserved existing `Талисманы и амулеты`, `Мандалы и печати`, and `Ритуальные предметы` cards.
+- Restored `artifact-shop` and `support-services` menu data after a too-narrow intermediate replacement.
+
+Verification:
+
+- GitHub file inspection confirmed the final `src/data/topSectionMenus.js` content on `main`.
+- Vercel commit status for `d309a1f35f67e597ad6596e82ac78d07b2ac0187` returned success.
+- Live site opened at `https://reiki-yggdrasil.vercel.app`.
+
+Not verified:
+
+- Full browser visual QA/click-through in this assistant environment.
+- Local `npm run build` was not run here.
+- Supabase authenticated flows remain outside this content-only change.
+
+Risks:
+
+- Long Russian module lines may need mobile spacing QA in the central card.
+- Production visual state depends on Vercel deploying the latest `main` commit.
+
 ## 2026-05-24 — Profile cabinet production follow-up
 
 Mode: post-merge production follow-up branch.
