@@ -1,5 +1,48 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-25 — Profile cabinet main readiness check
+
+Mode: fresh `origin/main` verification worktree.
+
+Context:
+
+- Target branch was `main`; current verified commit is `065f4479d14095de5834942e77af6048ddb972c5`.
+- The local primary checkout was on a dirty non-main branch, so verification was run in an isolated worktree from `origin/main`.
+- PR #29 is merged, and current `main` also includes the later normalized degree settings right-panel commit.
+
+Findings:
+
+- `/profile`, `/masters`, and `/profile/admin` are connected in `RootRouter`.
+- The `Создать профиль` CTA routes to `/profile`.
+- `vercel.json` has SPA rewrites for `/profile`, `/masters`, and `/profile/admin`.
+- `vite.config.js` uses `base: '/'`.
+- No `.env*` files are present in the clean worktree, and no env files are tracked by git.
+- The live Vercel `index.html` asset hashes match a fresh local `npm run build`.
+- Live `/profile`, `/masters`, and `/profile/admin` render the missing-Supabase fallback, which confirms production Supabase env is still not configured.
+- The live JS bundle contains the profile cabinet code path but no Supabase project URL or JWT-like anon key pattern.
+- Supabase CLI is installed, but this repo is not linked to a Supabase project ref, so remote migrations cannot be verified from the local CLI.
+- Supabase connector did not show a clearly named Reiki Yggdrasil project; the visible active `artefacts-marketplace` project does not contain the profile cabinet migrations/tables.
+- The current schema uses `public.profile_cabinet_admins`; it does not define `public.admin_users`.
+
+Verification:
+
+- `npm ci` passed.
+- `npm run validate:knowledge` passed.
+- `npm run validate:videos` passed with existing placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+- `npm run validate:free-courses` passed.
+- `npm run check` passed.
+- `npm run build` passed.
+- `npm run preview -- --port 4173` served local preview on port 4173.
+- Local HTTP checks for `/`, `/profile`, `/masters`, and `/profile/admin` returned 200.
+- Live HTTP checks for `/`, `/profile`, `/masters`, and `/profile/admin` returned 200.
+- Browser QA confirmed the homepage still renders RU-first, desktop 3-column layout is active at 1440px, mobile 390px has no horizontal overflow, and profile routes show graceful fallback without console warnings/errors.
+- Browser QA confirmed the homepage `Создать профиль` button and `/masters` `Создать профиль` button navigate to `/profile`.
+
+Remaining gap:
+
+- The profile cabinet is code-ready and route-ready, but not Supabase-live-ready until production env, migrations, auth redirects, and `profile_cabinet_admins` admin row are configured and verified.
+- Authenticated owner draft/save/submit, public approved-only data, and admin approve/reject were not verified against production because live env is absent.
+
 ## 2026-05-24 — Profile cabinet production follow-up
 
 Mode: post-merge production follow-up branch.
