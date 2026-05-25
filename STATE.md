@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-24
+Last updated: 2026-05-25
 
 ## Current verified repo state
 
@@ -123,6 +123,18 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - after first admin login, add a row to `profile_cabinet_admins`
 
+Current admin setup table:
+
+```sql
+insert into public.profile_cabinet_admins (user_id, email)
+select id, email
+from auth.users
+where email = '<VITE_ADMIN_EMAIL value>'
+on conflict (user_id) do update set email = excluded.email;
+```
+
+The current schema does not define `public.admin_users`.
+
 ## Verification status
 
 Verified by GitHub file inspection:
@@ -164,6 +176,22 @@ Verified locally on 2026-05-15:
 - `/` mobile top-nav horizontal scrolling and left-menu overflow check
 - browser console: no warnings or errors during manual QA
 
+Verified again from fresh `origin/main` on 2026-05-25:
+
+- current commit: `065f4479d14095de5834942e77af6048ddb972c5`
+- `npm ci`
+- `npm run validate:knowledge`
+- `npm run validate:videos`
+- `npm run validate:free-courses`
+- `npm run check`
+- `npm run build`
+- `npm run preview -- --port 4173`
+- local `/`, `/profile`, `/masters`, and `/profile/admin` returned HTTP 200
+- live `/`, `/profile`, `/masters`, and `/profile/admin` returned HTTP 200
+- live `dist` asset hashes match the fresh local build
+- local browser QA confirmed `/` desktop three-column layout, RU default, no mobile horizontal overflow at 390px, no console warnings/errors, and the `Создать профиль` button routing to `/profile`
+- local and live profile routes still show the missing-Supabase fallback, so authenticated owner/admin flows are not live-ready yet
+
 Not verified:
 
 - Supabase migration applied in the production Supabase project
@@ -171,6 +199,7 @@ Not verified:
 - Supabase auth redirect URLs configured
 - first admin row exists in `profile_cabinet_admins`
 - full authenticated owner/admin data flow against production Supabase
+- authenticated owner magic-link login, profile draft save, submit pending, public approved-only rows, admin access denied, pending list, and approve/reject
 
 ## Risks
 
@@ -178,6 +207,7 @@ Not verified:
 - Some descriptions are safe generalized scaffold copy based on titles/themes rather than exact course text.
 - Long Russian descriptions may need visual QA in the central card on mobile screens.
 - Profile cabinet live data remains unavailable until Supabase setup is completed and verified.
+- Admin moderation cannot work live until production Supabase env, migrations, auth redirects, and the `profile_cabinet_admins` row are configured.
 
 ## Next actions
 
@@ -187,3 +217,4 @@ Not verified:
 4. Verify `/profile/admin` moderation with a row in `profile_cabinet_admins`.
 5. Replace draft descriptions with exact methodichki text where available.
 6. After author review, mark approved course records `verified`.
+7. Update `ai-projects-brain/projects/reiki-yggdrasil/*`: cabinet is code/route-ready on `main`, but live Supabase data flow is still not configured/verified.
