@@ -4,10 +4,9 @@ import {
   practiceExercises,
   reikiLevels,
   reikiKnowledgeMeta,
-  rightPanelTabs,
-  settingsSources,
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
+import { getDegreeSettingByTabId, getDegreeTabsForStep } from "./data/degreeSettings.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
@@ -16,6 +15,7 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import "./index.css";
+import "./degreeSettings.css";
 import "./stepSettings.css";
 import "./stepVideos.css";
 import "./profileCabinet.css";
@@ -90,6 +90,7 @@ function publicStatus(value) {
   if (value === "needs_content") return "материал готовится";
   if (value === "needs_review") return "требует авторской проверки";
   if (value === "needs verification") return "требуется проверка";
+  if (value === "source_reviewed") return "структура настроек подтверждена";
   return value || "материал готовится";
 }
 
@@ -173,7 +174,7 @@ function RootRouter() {
 function App() {
   const [selectedStepId, setSelectedStepId] = useState("RY-L01-S01");
   const [openLevelId, setOpenLevelId] = useState(1);
-  const [tab, setTab] = useState("exercises");
+  const [rightPanelTab, setRightPanelTab] = useState("overview");
   const [activeTopSection, setActiveTopSection] = useState("all-categories");
   const [selectedLeftItemId, setSelectedLeftItemId] = useState(null);
   const [seniorLevelsOpen, setSeniorLevelsOpen] = useState(false);
@@ -182,19 +183,19 @@ function App() {
     setSelectedLeftItemId(null);
   }, [activeTopSection]);
 
+  useEffect(() => {
+    setRightPanelTab("overview");
+  }, [selectedStepId]);
+
   const selectedLevel = reikiLevels.find((level) => level.steps.some((item) => item.id === selectedStepId)) ?? reikiLevels[0];
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
   const currentVideo = getStepVideo(current.id);
   const currentMeaning = buildStepMeaning(current, currentSettings);
+  const rightTabs = getDegreeTabsForStep(current.id);
+  const activeRightSetting = rightPanelTab === "overview" ? null : getDegreeSettingByTabId(current.id, rightPanelTab);
   const activeLeftSection = leftMenuSections[activeTopSection];
   const activeLeftItem = activeLeftSection?.items.find((item) => item.id === selectedLeftItemId) || activeLeftSection?.items[0] || null;
-
-  const cards = useMemo(() => {
-    if (tab === "mandalas") return studentCollections.mandalas;
-    if (tab === "artifacts") return studentCollections.artifacts;
-    return studentCollections.mandalas;
-  }, [tab]);
 
   const renderLevelGroup = (level) => {
     const isOpen = openLevelId === level.id;
@@ -343,58 +344,42 @@ function App() {
         )}
 
         <aside className="practicePanel">
-          <div className="tabs">
-            {rightPanelTabs.map(([id, label]) => (
-              <button key={id} className={tab === id ? "tab active" : "tab"} onClick={() => setTab(id)}>
-                {label}
+          <div className="tabs degreeTabs">
+            {rightTabs.map((item) => (
+              <button
+                key={item.id}
+                className={rightPanelTab === item.id ? "tab active" : "tab"}
+                onClick={() => setRightPanelTab(item.id)}
+                type="button"
+              >
+                {item.label || item.title}
               </button>
             ))}
           </div>
 
-          {(tab === "exercises" || tab === "masters") && (
-            <>
-              <div className="exerciseList">
-                {practiceExercises.map((item) => (
-                  <Exercise item={item} key={item.title} />
-                ))}
-              </div>
-              <button className="allExercises">Все упражнения →</button>
+          <RightPanelContext current={current} selectedLevel={selectedLevel} activeSetting={activeRightSetting} />
 
-              <div className="masterInvite">
-                <div className="profileIcon">◎</div>
-                <div>
-                  <b>Создай свой профиль мастера</b>
-                  <p>
-                    Размещай практики, мандалы и артефакты. Получай обратную связь и развивайся вместе с
-                    сообществом.
-                  </p>
-                  <button type="button" onClick={() => navigateTo("/profile")}>Создать профиль</button>
-                </div>
-              </div>
+          <div className="exerciseList">
+            {practiceExercises.map((item) => (
+              <Exercise item={item} key={item.title} />
+            ))}
+          </div>
+          <button className="allExercises">Все упражнения →</button>
 
-              <CollectionBlock title="Мандалы студентов" cards={studentCollections.mandalas} />
-              <CollectionBlock title="Артефакты студентов" cards={studentCollections.artifacts} />
-            </>
-          )}
-
-          {(tab === "mandalas" || tab === "artifacts") && (
-            <CollectionBlock title={tab === "mandalas" ? "Мандалы студентов" : "Артефакты студентов"} cards={cards} />
-          )}
-
-          {tab === "settings" && (
-            <div className="settingsPanel">
-              <h3>Настройки: источники</h3>
-              <ul>
-                {settingsSources.map((url) => (
-                  <li key={url}>
-                    <a href={url} target="_blank" rel="noreferrer">
-                      {url}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+          <div className="masterInvite">
+            <div className="profileIcon">◎</div>
+            <div>
+              <b>Создай свой профиль мастера</b>
+              <p>
+                Размещай практики, мандалы и артефакты. Получай обратную связь и развивайся вместе с
+                сообществом.
+              </p>
+              <button type="button" onClick={() => navigateTo("/profile")}>Создать профиль</button>
             </div>
-          )}
+          </div>
+
+          <CollectionBlock title="Мандалы студентов" cards={studentCollections.mandalas} />
+          <CollectionBlock title="Артефакты студентов" cards={studentCollections.artifacts} />
         </aside>
       </main>
     </div>
@@ -487,6 +472,16 @@ function SectionStage({ section, item }) {
 
       {page.cta && <div className="knowledgeMeta"><b>Статус:</b> {page.cta}</div>}
     </section>
+  );
+}
+
+function RightPanelContext({ current, selectedLevel, activeSetting }) {
+  return (
+    <div className="rightPanelContext">
+      <p className="degreePanelEyebrow">{selectedLevel.name} · {stepLabel(current)} {current.number}</p>
+      <h3>{activeSetting ? activeSetting.title : "Обзор"}</h3>
+      <p>{activeSetting ? publicText(activeSetting.description) : publicText(current.intro)}</p>
+    </div>
   );
 }
 
