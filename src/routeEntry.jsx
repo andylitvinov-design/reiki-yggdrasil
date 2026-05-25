@@ -12,9 +12,23 @@ const MASTERS_PATH = "/masters";
 const ADMIN_PATH = "/profile/admin";
 
 if (HOME_PATHS.has(window.location.pathname)) {
+  enableHomeCabinetLinks();
   import("./main.jsx");
 } else {
   createRoot(document.getElementById("root")).render(<RouteApp />);
+}
+
+function enableHomeCabinetLinks() {
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const profileButton = target.closest(".masterInvite button");
+    if (!profileButton) return;
+
+    event.preventDefault();
+    window.location.href = PROFILE_PATH;
+  });
 }
 
 function RouteApp() {
