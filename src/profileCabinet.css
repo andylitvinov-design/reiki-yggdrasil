@@ -79,6 +79,11 @@
   margin-bottom: 16px;
 }
 
+.compactNotice {
+  margin: 12px 0;
+  padding: 14px;
+}
+
 .cabinetError {
   margin-bottom: 16px;
   border-color: rgba(170, 67, 39, 0.38);
@@ -96,7 +101,8 @@
 }
 
 .profileForm label,
-.authCard label {
+.authCard label,
+.materialBuilder label {
   display: grid;
   gap: 7px;
   margin-top: 15px;
@@ -107,7 +113,10 @@
 
 .profileForm input,
 .profileForm textarea,
-.authCard input {
+.authCard input,
+.materialBuilder input,
+.materialBuilder textarea,
+.materialBuilder select {
   width: 100%;
   border: 1px solid rgba(122, 99, 72, 0.24);
   border-radius: 14px;
@@ -116,6 +125,65 @@
   color: #24180e;
   font-family: inherit;
   font-size: 15px;
+}
+
+.materialBuilder,
+.materialsList {
+  margin-top: 18px;
+}
+
+.materialBuilder select {
+  min-height: 46px;
+}
+
+.materialHint {
+  margin-top: 16px;
+  border-radius: 16px;
+  padding: 13px 14px;
+  background: rgba(184, 121, 29, 0.1);
+  color: #5f5142;
+}
+
+.materialsGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.materialCard {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 14px;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.materialCard h3 {
+  margin: 0 0 8px;
+}
+
+.materialCard p {
+  margin: 0 0 10px;
+  color: #5f5142;
+}
+
+.materialCard small {
+  color: #7d6b56;
+}
+
+.materialThumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1c1b19, #7a4f13);
+  background-size: cover;
+  background-position: center;
+  color: #f5c66a;
+  font-size: 30px;
 }
 
 .cabinetTwoColumns {
@@ -162,6 +230,12 @@
 .cabinetPrimary {
   background: linear-gradient(180deg, #e5b35a, #b8791d);
   color: #170e05;
+}
+
+.cabinetPrimary:disabled,
+.cabinetSecondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
 }
 
 .cabinetSecondary {
@@ -229,7 +303,8 @@
 
   .cabinetGrid,
   .cabinetTwoColumns,
-  .masterCatalogCard {
+  .masterCatalogCard,
+  .materialCard {
     grid-template-columns: 1fr;
   }
 }
