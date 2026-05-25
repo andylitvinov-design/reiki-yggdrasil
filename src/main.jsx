@@ -178,9 +178,11 @@ function App() {
   const [activeTopSection, setActiveTopSection] = useState("all-categories");
   const [selectedLeftItemId, setSelectedLeftItemId] = useState(null);
   const [seniorLevelsOpen, setSeniorLevelsOpen] = useState(false);
+  const [openLeftGroups, setOpenLeftGroups] = useState({});
 
   useEffect(() => {
     setSelectedLeftItemId(null);
+    setOpenLeftGroups({});
   }, [activeTopSection]);
 
   useEffect(() => {
@@ -195,7 +197,11 @@ function App() {
   const rightTabs = getDegreeTabsForStep(current.id);
   const activeRightSetting = rightPanelTab === "overview" ? null : getDegreeSettingByTabId(current.id, rightPanelTab);
   const activeLeftSection = leftMenuSections[activeTopSection];
-  const activeLeftItem = activeLeftSection?.items.find((item) => item.id === selectedLeftItemId) || activeLeftSection?.items[0] || null;
+  const flatLeftItems = [
+    ...(activeLeftSection?.items || []),
+    ...((activeLeftSection?.groups || []).flatMap((group) => group.items || []))
+  ];
+  const activeLeftItem = flatLeftItems.find((item) => item.id === selectedLeftItemId) || activeLeftSection?.items?.[0] || null;
 
   const renderLevelGroup = (level) => {
     const isOpen = openLevelId === level.id;
@@ -301,6 +307,8 @@ function App() {
               selectedItemId={activeLeftItem?.id}
               onSelect={setSelectedLeftItemId}
               onOpenSection={setActiveTopSection}
+              openGroups={openLeftGroups}
+              onToggleGroup={(groupId) => setOpenLeftGroups((value) => ({ ...value, [groupId]: !value[groupId] }))}
             />
           )}
         </aside>
@@ -343,50 +351,52 @@ function App() {
           <SectionStage section={activeLeftSection} item={activeLeftItem} />
         )}
 
-        <aside className="practicePanel">
-          <div className="tabs degreeTabs">
-            {rightTabs.map((item) => (
-              <button
-                key={item.id}
-                className={rightPanelTab === item.id ? "tab active" : "tab"}
-                onClick={() => setRightPanelTab(item.id)}
-                type="button"
-              >
-                {item.label || item.title}
-              </button>
-            ))}
-          </div>
-
-          <RightPanelContext current={current} selectedLevel={selectedLevel} activeSetting={activeRightSetting} />
-
-          <div className="exerciseList">
-            {practiceExercises.map((item) => (
-              <Exercise item={item} key={item.title} />
-            ))}
-          </div>
-          <button className="allExercises">Все упражнения →</button>
-
-          <div className="masterInvite">
-            <div className="profileIcon">◎</div>
-            <div>
-              <b>Создай свой профиль мастера</b>
-              <p>
-                Размещай практики, мандалы и артефакты. Получай обратную связь и развивайся вместе с
-                сообществом.
-              </p>
-              <button type="button" onClick={() => navigateTo("/profile")}>Создать профиль</button>
+        {activeTopSection === "dao-ri" ? (
+          <aside className="practicePanel">
+            <div className="tabs degreeTabs">
+              {rightTabs.map((item) => (
+                <button
+                  key={item.id}
+                  className={rightPanelTab === item.id ? "tab active" : "tab"}
+                  onClick={() => setRightPanelTab(item.id)}
+                  type="button"
+                >
+                  {item.label || item.title}
+                </button>
+              ))}
             </div>
-          </div>
 
-          <CollectionBlock title="Мандалы студентов" cards={studentCollections.mandalas} />
-          <CollectionBlock title="Артефакты студентов" cards={studentCollections.artifacts} />
-        </aside>
+            <RightPanelContext current={current} selectedLevel={selectedLevel} activeSetting={activeRightSetting} />
+
+            <div className="exerciseList">
+              {practiceExercises.map((item) => (
+                <Exercise item={item} key={item.title} />
+              ))}
+            </div>
+            <button className="allExercises">Все упражнения →</button>
+
+            <div className="masterInvite">
+              <div className="profileIcon">◎</div>
+              <div>
+                <b>Создай свой профиль мастера</b>
+                <p>
+                  Размещай практики, мандалы и артефакты. Получай обратную связь и развивайся вместе с
+                  сообществом.
+                </p>
+                <button type="button" onClick={() => navigateTo("/profile")}>Создать профиль</button>
+              </div>
+            </div>
+
+            <CollectionBlock title="Мандалы студентов" cards={studentCollections.mandalas} />
+            <CollectionBlock title="Артефакты студентов" cards={studentCollections.artifacts} />
+          </aside>
+        ) : null}
       </main>
     </div>
   );
 }
 
-function LeftMenuSection({ section, selectedItemId, onSelect, onOpenSection }) {
+function LeftMenuSection({ section, selectedItemId, onSelect, onOpenSection, openGroups = {}, onToggleGroup }) {
   if (!section) return null;
 
   return (
@@ -406,6 +416,36 @@ function LeftMenuSection({ section, selectedItemId, onSelect, onOpenSection }) {
             {item.cta && <span className="leftMenuCta">{item.cta}</span>}
           </button>
         ))}
+
+        {Array.isArray(section.groups) && section.groups.map((group) => {
+          const isOpen = !!openGroups[group.id];
+
+          return (
+            <div className="leftMenuGroup" key={group.id}>
+              <button className="closedLevel seniorLevelsToggle" onClick={() => onToggleGroup(group.id)} type="button">
+                <b>{group.range}</b>
+                <span>
+                  <strong>{group.label}</strong>
+                  <small>{group.summary}</small>
+                </span>
+                <em>{isOpen ? "⌃" : "⌄"}</em>
+              </button>
+
+              {isOpen && group.items.map((item) => (
+                <button
+                  className={selectedItemId === item.id ? "leftMenuCard active" : "leftMenuCard"}
+                  key={item.id}
+                  onClick={() => onSelect(item.id)}
+                  type="button"
+                >
+                  <b>{item.label}</b>
+                  <p>{item.description}</p>
+                  {item.status && <small className="leftMenuStatus">{item.status}</small>}
+                </button>
+              ))}
+            </div>
+          );
+        })}
       </div>
     </>
   );
