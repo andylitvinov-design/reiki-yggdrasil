@@ -333,6 +333,7 @@ button {
 }
 
 .leftMenuCard {
+  position: relative;
   width: 100%;
   display: grid;
   gap: 8px;
@@ -342,11 +343,38 @@ button {
   background: linear-gradient(180deg, rgba(16, 15, 14, 0.98), rgba(8, 8, 7, 0.98));
   color: #fff4d7;
   text-align: left;
+  overflow: hidden;
 }
 
 .leftMenuCard.active {
   border-color: #ffd374;
-  box-shadow: 0 0 18px rgba(255, 180, 48, 0.28), inset 0 0 18px rgba(255, 224, 130, 0.08);
+  background: linear-gradient(90deg, #050505 0%, #7e510f 31%, #d6952d 80%, #ffc861 100%);
+  box-shadow: 0 0 22px rgba(255, 180, 48, 0.72), inset 0 0 22px rgba(255, 224, 130, 0.22);
+}
+
+.leftMenuCard.active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 50%, rgba(255, 244, 178, 0.95), transparent 14%),
+    radial-gradient(circle at 72% 58%, rgba(255, 196, 69, 0.55), transparent 18%);
+  pointer-events: none;
+}
+
+.leftMenuCard b,
+.leftMenuCard p,
+.leftMenuCard small,
+.leftMenuCard span {
+  position: relative;
+  z-index: 1;
+}
+
+.leftMenuCard.active b,
+.leftMenuCard.active p,
+.leftMenuCard.active small,
+.leftMenuCard.active span {
+  color: #ffffff;
+  text-shadow: 0 1px 12px rgba(70, 32, 0, 0.72);
 }
 
 .leftMenuCard b {
