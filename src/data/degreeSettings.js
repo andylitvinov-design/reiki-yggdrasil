@@ -8,6 +8,13 @@ const OVERVIEW_TAB = {
   type: "overview"
 };
 
+const PRACTICE_TAB = {
+  id: "practice",
+  title: "Практика",
+  label: "Практика",
+  type: "practice"
+};
+
 function normalizeSettingTitle(title = "") {
   return title
     .replace(/^Настройка\s+«/i, "")
@@ -76,7 +83,7 @@ function buildDegreeStep(step, level) {
     contentStatus: step.contentStatus || "needs_review",
     overview: buildOverview(step),
     settings,
-    tabs: [OVERVIEW_TAB, ...settings.map(buildSettingTab)]
+    tabs: [OVERVIEW_TAB, PRACTICE_TAB, ...settings.map(buildSettingTab)]
   };
 }
 
@@ -129,7 +136,7 @@ export function getDegreeStepById(stepId) {
 }
 
 export function getDegreeTabsForStep(stepId) {
-  return getDegreeStepById(stepId)?.tabs || [OVERVIEW_TAB];
+  return getDegreeStepById(stepId)?.tabs || [OVERVIEW_TAB, PRACTICE_TAB];
 }
 
 export function getDegreeOverviewByStepId(stepId) {
@@ -137,7 +144,7 @@ export function getDegreeOverviewByStepId(stepId) {
 }
 
 export function getDegreeSettingByTabId(stepId, tabId) {
-  if (!stepId || !tabId || tabId === OVERVIEW_TAB.id) return null;
+  if (!stepId || !tabId || tabId === OVERVIEW_TAB.id || tabId === PRACTICE_TAB.id) return null;
 
   return getDegreeStepById(stepId)?.settings.find((setting) => setting.tabId === tabId || setting.id === tabId) || null;
 }
@@ -159,6 +166,17 @@ export function getDegreePanelContent(stepId, tabId = OVERVIEW_TAB.id) {
       step,
       tab: OVERVIEW_TAB,
       ...step.overview
+    };
+  }
+
+  if (tabId === PRACTICE_TAB.id) {
+    return {
+      type: "practice",
+      step,
+      tab: PRACTICE_TAB,
+      title: PRACTICE_TAB.title,
+      description: "Практические упражнения и аудио для закрепления выбранной ступени.",
+      contentStatus: step.contentStatus || "needs_review"
     };
   }
 
