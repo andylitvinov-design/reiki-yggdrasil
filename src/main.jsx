@@ -195,7 +195,9 @@ function App() {
   const currentVideo = getStepVideo(current.id);
   const currentMeaning = buildStepMeaning(current, currentSettings);
   const rightTabs = getDegreeTabsForStep(current.id);
-  const activeRightSetting = rightPanelTab === "overview" ? null : getDegreeSettingByTabId(current.id, rightPanelTab);
+  const activeRightSetting = rightPanelTab === "overview" || rightPanelTab === "practice"
+    ? null
+    : getDegreeSettingByTabId(current.id, rightPanelTab);
   const activeLeftSection = leftMenuSections[activeTopSection];
   const flatLeftItems = [
     ...(activeLeftSection?.items || []),
@@ -366,14 +368,23 @@ function App() {
               ))}
             </div>
 
-            <RightPanelContext current={current} selectedLevel={selectedLevel} activeSetting={activeRightSetting} />
+            <RightPanelContext
+              current={current}
+              selectedLevel={selectedLevel}
+              activeSetting={activeRightSetting}
+              rightPanelTab={rightPanelTab}
+            />
 
-            <div className="exerciseList">
-              {practiceExercises.map((item) => (
-                <Exercise item={item} key={item.title} />
-              ))}
-            </div>
-            <button className="allExercises">Все упражнения →</button>
+            {rightPanelTab === "practice" && (
+              <>
+                <div className="exerciseList">
+                  {practiceExercises.map((item) => (
+                    <Exercise item={item} key={item.title} />
+                  ))}
+                </div>
+                <button className="allExercises">Все упражнения →</button>
+              </>
+            )}
 
             <div className="masterInvite">
               <div className="profileIcon">◎</div>
@@ -515,13 +526,70 @@ function SectionStage({ section, item }) {
   );
 }
 
-function RightPanelContext({ current, selectedLevel, activeSetting }) {
+function RightPanelContext({ current, selectedLevel, activeSetting, rightPanelTab }) {
+  if (rightPanelTab === "practice") {
+    return (
+      <div className="rightPanelContext">
+        <p className="degreePanelEyebrow">{selectedLevel.name} · {stepLabel(current)} {current.number}</p>
+        <h3>Практика</h3>
+        <p>
+          Выберите упражнение для мягкого закрепления выбранной ступени. Карточки ниже помогают перейти от
+          описания к личной практике.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="rightPanelContext">
       <p className="degreePanelEyebrow">{selectedLevel.name} · {stepLabel(current)} {current.number}</p>
       <h3>{activeSetting ? activeSetting.title : "Обзор"}</h3>
       <p>{activeSetting ? publicText(activeSetting.description) : publicText(current.intro)}</p>
+      {!activeSetting && <PracticePreparationGuide />}
     </div>
+  );
+}
+
+function PracticePreparationGuide() {
+  const items = [
+    {
+      title: "Намерение",
+      text: "Перед практикой мягко сформулировать цель — восстановление, настройка канала, защита, интуиция или работа с ситуацией."
+    },
+    {
+      title: "Положение тела",
+      text: "Сесть удобно, выпрямить спину без напряжения, расслабить плечи, руки и лицо."
+    },
+    {
+      title: "Дыхание",
+      text: "Несколько минут спокойного дыхания, внимание на естественном движении энергии."
+    },
+    {
+      title: "Связь с Иггдрасилем",
+      text: "Представить Древо как живую вертикаль силы — корни, ствол, крону, поток сверху и снизу."
+    },
+    {
+      title: "Безопасность",
+      text: "Не форсировать ощущения, работать мягко, возвращаться к дыханию при перегрузе."
+    },
+    {
+      title: "Завершение",
+      text: "Поблагодарить поток, закрыть практику, почувствовать тело, сделать несколько обычных движений."
+    }
+  ];
+
+  return (
+    <section className="practiceGuide" aria-labelledby="practice-guide-title">
+      <h4 id="practice-guide-title">Настройки перед практикой</h4>
+      <div className="practiceGuideGrid">
+        {items.map((item) => (
+          <article className="practiceGuideItem" key={item.title}>
+            <b>{item.title}</b>
+            <p>{item.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
