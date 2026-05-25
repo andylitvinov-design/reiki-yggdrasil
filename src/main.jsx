@@ -617,7 +617,7 @@ function Exercise({ item }) {
         <p>{item.text}</p>
         <small>◷ {item.time}</small>
       </div>
-      <button className="play">▶</button>
+      <button className="play" type="button" aria-label={`Запустить практику ${item.title}`} />
     </div>
   );
 }
