@@ -36,7 +36,17 @@ Supabase setup steps:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
 4. Add the Vercel production env vars named above.
-5. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+5. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`:
+
+```sql
+insert into public.profile_cabinet_admins (user_id, email)
+select id, email
+from auth.users
+where email = '<VITE_ADMIN_EMAIL value>'
+on conflict (user_id) do update set email = excluded.email;
+```
+
+Do not commit or publish the real admin email value.
 
 Google OAuth setup:
 
