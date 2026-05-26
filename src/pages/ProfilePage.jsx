@@ -72,7 +72,26 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
 const POWER_SOURCE_COUNTS = [2, 4, 5, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
   { value: "client", label: "Мандала клиенту" },
-  { value: "altar", label: "Алтарь" }
+  { value: "altar", label: "Алтарь" },
+  { value: "business", label: "Бизнес-мандала" },
+  { value: "dao", label: "ДАО" }
+];
+const BUSINESS_VERTEX_ZONE_COUNTS = [1, 3];
+const BUSINESS_VERTICES = [
+  { id: "goal", className: "top", label: "Цель" },
+  { id: "function", className: "left", label: "Функция / продукт" },
+  { id: "structure", className: "right", label: "Структура / связи / клиенты" }
+];
+const DAO_ELEMENTS = [
+  { id: "water", className: "water", label: "Вода" },
+  { id: "wood", className: "wood", label: "Дерево" },
+  { id: "fire", className: "fire", label: "Огонь" },
+  { id: "earth", className: "earth", label: "Земля" },
+  { id: "metal", className: "metal", label: "Металл" }
+];
+const RESOURCE_COMPARISON_MODES = [
+  { value: "client_photo", label: "Фото клиента" },
+  { value: "photo_mandala", label: "Фото + мандала" }
 ];
 const ALTAR_CENTER_RATIOS = [
   { value: "1", label: "1:1" },
@@ -175,9 +194,16 @@ function persistableImageRef(src) {
   return src;
 }
 
-function persistableObjectRefs(refs) {
+function constructorTypeLabel(value) {
+  return CONSTRUCTOR_TYPES.find((item) => item.value === value)?.label || CONSTRUCTOR_TYPES[0].label;
+}
+
+function persistableObjectRefs(refs, allowedIds = null) {
+  const allowed = allowedIds ? new Set(allowedIds) : null;
+
   return Object.fromEntries(
     Object.entries(refs || {})
+      .filter(([key]) => !allowed || allowed.has(key))
       .map(([key, value]) => [key, persistableImageRef(String(value || ""))])
       .filter(([, value]) => Boolean(value))
   );
@@ -202,6 +228,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [fileNotice, setFileNotice] = useState("");
   const [powerSourceCount, setPowerSourceCount] = useState(4);
   const [constructorType, setConstructorType] = useState("client");
+  const [businessVertexZoneCount, setBusinessVertexZoneCount] = useState(1);
   const [altarCenterRatio, setAltarCenterRatio] = useState("1");
   const [objectImages, setObjectImages] = useState({});
   const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
@@ -211,6 +238,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
   const [compositionTitle, setCompositionTitle] = useState("");
   const [selectedCompositionId, setSelectedCompositionId] = useState("");
+  const [resourceComparisonMode, setResourceComparisonMode] = useState("client_photo");
+  const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
+  const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -296,11 +326,27 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       ];
     }
 
+    if (constructorType === "business") {
+      return BUSINESS_VERTICES.flatMap((vertex) =>
+        Array.from({ length: businessVertexZoneCount }, (_, index) => ({
+          id: `business-${vertex.id}-${index + 1}`,
+          label: businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`
+        }))
+      );
+    }
+
+    if (constructorType === "dao") {
+      return DAO_ELEMENTS.map((element) => ({
+        id: `dao-${element.id}`,
+        label: element.label
+      }));
+    }
+
     return Array.from({ length: powerSourceCount }, (_, index) => ({
       id: `source-${index + 1}`,
       label: sourceLabel(powerSourceCount, index)
     }));
-  }, [constructorType, powerSourceCount]);
+  }, [businessVertexZoneCount, constructorType, powerSourceCount]);
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -477,11 +523,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     constructor_type: constructorType,
     geometry: constructorType === "client" ? powerSourceCount : null,
     altar_center_ratio: altarCenterRatio,
+    business_vertex_zone_count: businessVertexZoneCount,
     cover_ref: buildCoverRef(),
-    object_refs: persistableObjectRefs(objectImages),
+    object_refs: persistableObjectRefs(objectImages, activeObjectSlots.map((slot) => slot.id)),
     central_photo_id: selectedCentralPhotoId,
     tradition_id: constructorType === "altar" ? selectedTradition?.id || "" : "",
-    tradition_title: constructorType === "altar" ? selectedTradition?.title || "" : ""
+    tradition_title: constructorType === "altar" ? selectedTradition?.title || "" : "",
+    resource_comparison_mode: resourceComparisonMode,
+    resource_without_mandala_comment: resourceWithoutMandalaComment,
+    resource_with_mandala_comment: resourceWithMandalaComment
   });
 
   const applyComposition = (composition) => {
@@ -489,10 +539,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setCompositionTitle(composition.title || "");
     setConstructorType(composition.constructor_type || "client");
     if (composition.geometry) setPowerSourceCount(Number(composition.geometry));
+    setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
     setAltarCenterRatio(composition.altar_center_ratio || "1");
     setObjectImages(composition.object_refs || {});
     setSelectedCentralPhotoId(composition.central_photo_id || "");
     setSelectedTraditionId(composition.tradition_id || mysteryTraditions[0]?.id || "");
+    setResourceComparisonMode(composition.resource_comparison_mode || "client_photo");
+    setResourceWithoutMandalaComment(composition.resource_without_mandala_comment || "");
+    setResourceWithMandalaComment(composition.resource_with_mandala_comment || "");
 
     if (composition.cover_ref?.id) {
       if (composition.cover_ref.id === "custom-cover" && composition.cover_ref.src) {
@@ -1068,7 +1122,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       </button>
                     ))}
                   </div>
-                  {constructorType === "client" ? (
+                  {constructorType === "client" && (
                     <div className="geometrySelector" aria-label="Геометрия источников силы">
                       {POWER_SOURCE_COUNTS.map((count) => (
                         <button
@@ -1081,7 +1135,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         </button>
                       ))}
                     </div>
-                  ) : (
+                  )}
+                  {constructorType === "altar" && (
                     <>
                       <select value={selectedTraditionId} onChange={(event) => setSelectedTraditionId(event.target.value)}>
                         {mysteryTraditions.map((tradition) => (
@@ -1102,6 +1157,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       </div>
                     </>
                   )}
+                  {constructorType === "business" && (
+                    <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
+                      <span>Зон в каждой вершине</span>
+                      {BUSINESS_VERTEX_ZONE_COUNTS.map((count) => (
+                        <button
+                          className={businessVertexZoneCount === count ? "active" : ""}
+                          key={count}
+                          onClick={() => setBusinessVertexZoneCount(count)}
+                          type="button"
+                        >
+                          {count}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {powerPlaceCompositions.length > 0 && (
                     <select value={selectedCompositionId} onChange={(event) => {
                       const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
@@ -1118,6 +1188,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
               <div className="powerPlacePrintArea">
                 <div className="powerMandalaPanel">
+                  <div className="powerPrintMeta">
+                    <p className="cabinetEyebrow">Формат</p>
+                    <h3>{constructorTypeLabel(constructorType)}</h3>
+                  </div>
                   {constructorType === "client" ? (
                     <div className={`powerMandala geometry-${powerSourceCount}`}>
                       <div className={centerImage ? "powerCenterPhoto hasImage" : "powerCenterPhoto"} style={imageStyle(centerImage)}>
@@ -1142,7 +1216,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         );
                       })}
                     </div>
-                  ) : (
+                  ) : constructorType === "altar" ? (
                     <div className={`altarMandalaSheet ratio-${altarCenterRatio}`}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {Array.from({ length: 5 }, (_, index) => {
@@ -1186,12 +1260,76 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         })}
                       </div>
                     </div>
+                  ) : constructorType === "business" ? (
+                    <div className={`businessMandalaSheet zones-${businessVertexZoneCount}`}>
+                      <div className={centerImage ? "businessCenterPhoto hasImage" : "businessCenterPhoto"} style={imageStyle(centerImage)}>
+                        {!centerImage && <span>◎</span>}
+                      </div>
+                      <div className="businessTriangleLines" aria-hidden="true" />
+                      {BUSINESS_VERTICES.map((vertex) => (
+                        <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
+                          <b>{vertex.label}</b>
+                          <div className="businessVertexZones">
+                            {Array.from({ length: businessVertexZoneCount }, (_, index) => {
+                              const slotId = `business-${vertex.id}-${index + 1}`;
+                              const slotImage = objectImages[slotId];
+
+                              return (
+                                <div
+                                  className={`businessVertexZone${slotImage ? " hasImage" : ""}`}
+                                  key={slotId}
+                                  style={imageStyle(slotImage)}
+                                  title={businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}
+                                >
+                                  {!slotImage && <span>{index + 1}</span>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="daoMandalaSheet">
+                      <div className={centerImage ? "daoCenterPhoto hasImage" : "daoCenterPhoto"} style={imageStyle(centerImage)}>
+                        {!centerImage && <span>◎</span>}
+                      </div>
+                      <div className="daoUsinCore" aria-hidden="true">
+                        <span>УСИН</span>
+                      </div>
+                      {DAO_ELEMENTS.map((element) => {
+                        const slotId = `dao-${element.id}`;
+                        const slotImage = objectImages[slotId];
+
+                        return (
+                          <div className={`daoElement ${element.className}`} key={element.id}>
+                            <div
+                              className={`daoElementImage${slotImage ? " hasImage" : ""}`}
+                              style={imageStyle(slotImage)}
+                              title={element.label}
+                            >
+                              {!slotImage && <span>◎</span>}
+                            </div>
+                            <b>{element.label}</b>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                   <p className="powerPlaceHint">
                     {constructorType === "client"
                       ? "Центр использует только фото из раздела «Фото клиентов / целей». В раскладе 12 добавлены четыре внешних хранителя пространства."
-                      : "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."}
+                      : constructorType === "altar"
+                        ? "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."
+                        : constructorType === "business"
+                          ? "Бизнес-мандала собирает цель, функцию и структуру в треугольник с единым числом зон на каждой вершине."
+                          : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
                   </p>
+                  <div className="resourcePrintNotes">
+                    <p><b>Сравнение ресурса:</b> {RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото клиента"}</p>
+                    <p><b>Ресурс без мандалы:</b> {resourceWithoutMandalaComment || "—"}</p>
+                    <p><b>Ресурс с мандалой:</b> {resourceWithMandalaComment || "—"}</p>
+                  </div>
                 </div>
 
                 <aside className="powerCommandRail">
@@ -1269,6 +1407,37 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     {coverNotice && <p className="coverNotice">{coverNotice}</p>}
                   </div>
                 </aside>
+              </div>
+
+              <div className="resourceComparisonPanel">
+                <div className="resourceModeToggle" aria-label="Сравнение ресурса">
+                  {RESOURCE_COMPARISON_MODES.map((mode) => (
+                    <button
+                      className={resourceComparisonMode === mode.value ? "active" : ""}
+                      key={mode.value}
+                      onClick={() => setResourceComparisonMode(mode.value)}
+                      type="button"
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+                <label>
+                  Ресурс без мандалы
+                  <textarea
+                    value={resourceWithoutMandalaComment}
+                    onChange={(event) => setResourceWithoutMandalaComment(event.target.value)}
+                    rows="2"
+                  />
+                </label>
+                <label>
+                  Ресурс с мандалой
+                  <textarea
+                    value={resourceWithMandalaComment}
+                    onChange={(event) => setResourceWithMandalaComment(event.target.value)}
+                    rows="2"
+                  />
+                </label>
               </div>
 
               <div className="powerPlaceActions">

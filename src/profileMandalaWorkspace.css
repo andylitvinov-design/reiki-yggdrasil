@@ -498,6 +498,8 @@
 .constructorTypeSelector,
 .geometrySelector,
 .altarRatioSelector,
+.businessZoneSelector,
+.resourceModeToggle,
 .coverVariantList {
   display: flex;
   flex-wrap: wrap;
@@ -508,6 +510,8 @@
 .constructorTypeSelector button,
 .geometrySelector button,
 .altarRatioSelector button,
+.businessZoneSelector button,
+.resourceModeToggle button,
 .coverVariantList button {
   border: 1px solid rgba(184, 121, 29, 0.28);
   border-radius: 999px;
@@ -523,10 +527,22 @@
 }
 
 .constructorTypeSelector button,
-.altarRatioSelector button {
+.altarRatioSelector button,
+.businessZoneSelector button,
+.resourceModeToggle button {
   min-height: 34px;
   padding: 7px 12px;
   font-size: 12px;
+}
+
+.businessZoneSelector {
+  align-items: center;
+}
+
+.businessZoneSelector span {
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .coverVariantList button {
@@ -538,6 +554,8 @@
 .constructorTypeSelector button.active,
 .geometrySelector button.active,
 .altarRatioSelector button.active,
+.businessZoneSelector button.active,
+.resourceModeToggle button.active,
 .coverVariantList button.active {
   border-color: rgba(245, 198, 106, 0.72);
   background: linear-gradient(180deg, #2a1a09, #8c570d);
@@ -565,6 +583,18 @@
   gap: 10px;
   padding: 16px;
   overflow: hidden;
+}
+
+.powerPrintMeta {
+  width: min(500px, 100%);
+  text-align: center;
+}
+
+.powerPrintMeta h3 {
+  margin: 2px 0 4px;
+  color: #4a3012;
+  font-size: 20px;
+  line-height: 1.1;
 }
 
 .powerMandala {
@@ -867,6 +897,205 @@
   pointer-events: auto;
 }
 
+.businessMandalaSheet,
+.daoMandalaSheet {
+  position: relative;
+  width: min(500px, 100%);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  background:
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.12) 0 1px, transparent 2px 32px),
+    radial-gradient(circle at 50% 50%, rgba(255, 253, 246, 0.98) 0 16%, rgba(246, 231, 199, 0.9) 17% 62%, rgba(151, 114, 58, 0.16) 63% 100%);
+  box-shadow: inset 0 0 46px rgba(255, 255, 255, 0.78), 0 0 54px rgba(224, 173, 71, 0.14);
+}
+
+.businessMandalaSheet {
+  border-radius: 30px;
+}
+
+.businessTriangleLines {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 17%;
+  bottom: 18%;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  border: 2px solid rgba(137, 85, 18, 0.36);
+  background: linear-gradient(180deg, rgba(245, 198, 106, 0.13), rgba(90, 123, 88, 0.08));
+}
+
+.businessCenterPhoto,
+.daoCenterPhoto {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  width: 28%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 239, 195, 0.88);
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(239, 208, 144, 0.48)),
+    #fff9eb;
+  background-size: cover;
+  background-position: center;
+  color: #9f6614;
+  font-size: 38px;
+  box-shadow: 0 14px 32px rgba(103, 66, 16, 0.16);
+}
+
+.businessCenterPhoto.hasImage span,
+.daoCenterPhoto.hasImage span {
+  display: none;
+}
+
+.businessVertex {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  width: 34%;
+  min-width: 0;
+}
+
+.businessVertex.top {
+  left: 50%;
+  top: 7%;
+  transform: translateX(-50%);
+}
+
+.businessVertex.left {
+  left: 5%;
+  bottom: 8%;
+}
+
+.businessVertex.right {
+  right: 5%;
+  bottom: 8%;
+}
+
+.businessVertex b,
+.daoElement b {
+  min-width: 0;
+  color: #513512;
+  font-size: 12px;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.businessVertexZones {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  width: 100%;
+}
+
+.businessMandalaSheet.zones-1 .businessVertexZones {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.businessVertexZone,
+.daoElementImage {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 117, 0.74);
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #213121 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  font-weight: 900;
+  box-shadow: 0 0 20px rgba(128, 114, 54, 0.24);
+}
+
+.businessVertexZone {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+}
+
+.businessMandalaSheet.zones-1 .businessVertexZone {
+  width: min(92px, 72%);
+}
+
+.businessVertexZone.hasImage span,
+.daoElementImage.hasImage span {
+  display: none;
+}
+
+.daoMandalaSheet {
+  border-radius: 50%;
+  background:
+    conic-gradient(from 198deg, rgba(62, 93, 126, 0.2), rgba(75, 124, 85, 0.2), rgba(169, 68, 43, 0.2), rgba(184, 121, 29, 0.2), rgba(195, 198, 192, 0.24), rgba(62, 93, 126, 0.2)),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 34px),
+    radial-gradient(circle, #fffdf6 0 18%, #f4e4c4 19% 100%);
+}
+
+.daoUsinCore {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: 48%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(137, 85, 18, 0.32);
+  color: rgba(89, 59, 19, 0.44);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.daoElement {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  width: 24%;
+}
+
+.daoElement.water { left: 50%; top: 6%; transform: translateX(-50%); }
+.daoElement.wood { right: 5%; top: 30%; }
+.daoElement.fire { right: 13%; bottom: 9%; }
+.daoElement.earth { left: 13%; bottom: 9%; }
+.daoElement.metal { left: 5%; top: 30%; }
+
+.daoElementImage {
+  width: min(76px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.resourcePrintNotes {
+  width: min(500px, 100%);
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 252, 246, 0.72);
+}
+
+.resourcePrintNotes p {
+  margin: 0;
+  color: #5d4932;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .powerPlaceHint,
 .powerPlaceActions span,
 .coverNotice {
@@ -1118,6 +1347,44 @@
   line-height: 1.4;
 }
 
+.resourceComparisonPanel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+  margin-top: 12px;
+  border: 1px solid rgba(203, 152, 64, 0.28);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 253, 248, 0.66);
+}
+
+.resourceModeToggle {
+  justify-content: flex-start;
+}
+
+.resourceComparisonPanel label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: #5f3e12;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.resourceComparisonPanel textarea {
+  min-width: 0;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #3c2a18;
+  font: inherit;
+  font-size: 13px;
+}
+
 .powerLibraryGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1210,7 +1477,8 @@
   .flowTuningPanel,
   .mandalaAtelierGrid,
   .powerLibraryGrid,
-  .powerPlacePrintArea {
+  .powerPlacePrintArea,
+  .resourceComparisonPanel {
     grid-template-columns: 1fr;
   }
 
@@ -1267,7 +1535,8 @@
   .constructorControls,
   .constructorTypeSelector,
   .geometrySelector,
-  .altarRatioSelector {
+  .altarRatioSelector,
+  .businessZoneSelector {
     width: 100%;
     justify-items: start;
     justify-content: flex-start;
@@ -1306,6 +1575,56 @@
   .altarMandalaSheet {
     width: min(330px, 84vw);
     border-radius: 22px;
+  }
+
+  .businessMandalaSheet,
+  .daoMandalaSheet {
+    width: min(330px, 84vw);
+  }
+
+  .businessVertex {
+    width: 36%;
+  }
+
+  .businessVertex.top {
+    top: 5%;
+  }
+
+  .businessVertex.left {
+    left: 3%;
+    bottom: 6%;
+  }
+
+  .businessVertex.right {
+    right: 3%;
+    bottom: 6%;
+  }
+
+  .businessVertex b,
+  .daoElement b {
+    font-size: 10px;
+  }
+
+  .businessVertexZones {
+    gap: 3px;
+  }
+
+  .businessMandalaSheet.zones-1 .businessVertexZone {
+    width: min(66px, 74%);
+  }
+
+  .businessCenterPhoto,
+  .daoCenterPhoto {
+    width: 30%;
+    font-size: 30px;
+  }
+
+  .daoElement {
+    width: 26%;
+  }
+
+  .daoElementImage {
+    width: min(54px, 100%);
   }
 
   .altarTopRow {
@@ -1364,7 +1683,8 @@
   body.printMandalaOnly .objectImageEditor,
   body.printMandalaOnly .coverVariantList,
   body.printMandalaOnly .coverUploadButton,
-  body.printMandalaOnly .coverNotice {
+  body.printMandalaOnly .coverNotice,
+  body.printMandalaOnly .resourceComparisonPanel {
     display: none !important;
   }
 }
