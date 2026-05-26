@@ -77,6 +77,13 @@ Master chat setup:
 - Chat RLS has no anon access: only authenticated conversation participants can read messages/conversation rows, only participants can send messages, and favorite chats are owner-only.
 - The cabinet-visible master ID is derived from the existing profile UUID as `RY-<first 8 chars>`; no extra secret or service-role key is required.
 
+Supabase migration runner:
+
+- `npm run supabase:migrations:apply` runs `scripts/apply-reiki-supabase-migrations.mjs`.
+- The runner reads only `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` from the local wallet at `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
+- The runner allowlists only the three committed Power Place migrations listed above and stops if the wallet is unavailable, secrets are missing, migration files are dirty, or `supabase db push --dry-run` reports unrelated pending migrations.
+- The runner redacts token-shaped values and prints only secret presence, never secret values.
+
 ## Deploy
 
 The repository includes:

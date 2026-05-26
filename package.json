@@ -3,6 +3,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
+    "supabase:migrations:apply": "node scripts/apply-reiki-supabase-migrations.mjs",
     "test:profile-materials": "node test/profileMaterials.test.mjs",
     "test:power-place": "node test/powerPlaceClient.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "tailwindcss": "^3.4.17",
     "postcss": "latest",
-    "autoprefixer": "latest"
+    "autoprefixer": "latest",
+    "supabase": "^2.101.0"
   }
 }

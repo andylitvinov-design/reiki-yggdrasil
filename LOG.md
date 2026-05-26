@@ -1,5 +1,20 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Wallet-backed Supabase migration runner
+
+Mode: clean replacement branch for PR #57 with only runner/package/docs changes.
+
+Changed:
+
+- Added `scripts/apply-reiki-supabase-migrations.mjs`.
+- Added `npm run supabase:migrations:apply`.
+- Documented wallet-backed execution and safe-stop behavior.
+- Kept existing committed migration files unchanged.
+
+Needs verification:
+
+- Apply the migrations against the live Supabase project after the local wallet contains valid `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`.
+
 ## 2026-05-26 — Power-place upgrade #6: Zodiac and master chat
 
 Mode: additive `/profile` constructor and authenticated chat enhancement on branch `codex/power-place-zodiac-master-chat`.
