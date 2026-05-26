@@ -489,14 +489,25 @@
   line-height: 1;
 }
 
+.constructorControls {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.constructorTypeSelector,
 .geometrySelector,
+.altarRatioSelector,
 .coverVariantList {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 7px;
 }
 
+.constructorTypeSelector button,
 .geometrySelector button,
+.altarRatioSelector button,
 .coverVariantList button {
   border: 1px solid rgba(184, 121, 29, 0.28);
   border-radius: 999px;
@@ -511,13 +522,22 @@
   padding: 0;
 }
 
+.constructorTypeSelector button,
+.altarRatioSelector button {
+  min-height: 34px;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
 .coverVariantList button {
   min-height: 32px;
   padding: 7px 11px;
   font-size: 12px;
 }
 
+.constructorTypeSelector button.active,
 .geometrySelector button.active,
+.altarRatioSelector button.active,
 .coverVariantList button.active {
   border-color: rgba(245, 198, 106, 0.72);
   background: linear-gradient(180deg, #2a1a09, #8c570d);
@@ -636,6 +656,37 @@
     radial-gradient(circle at 45% 35%, #f8ca63, #785017 64%, #130d06 100%);
 }
 
+.powerSource.guardian {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  color: #fff1c9;
+  background:
+    radial-gradient(circle at 45% 35%, #f5c766, #7b5014 62%, #120d06 100%);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.powerSource.guardian span {
+  transform: rotate(-45deg);
+}
+
+.powerSource.hasImage {
+  background-size: cover;
+  background-position: center;
+}
+
+.powerSource.hasImage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 999px rgba(34, 20, 6, 0.04), inset 0 -18px 22px rgba(26, 15, 5, 0.24);
+}
+
+.powerSource.hasImage span {
+  display: none;
+}
+
 .geometry-2 .source-1 { left: 50%; top: 15%; }
 .geometry-2 .source-2 { left: 50%; top: 85%; }
 
@@ -666,6 +717,156 @@
 .geometry-8 .source-7 { left: 10%; top: 50%; }
 .geometry-8 .source-8 { left: 22%; top: 22%; }
 
+.geometry-12 .source-1 { left: 50%; top: 10%; }
+.geometry-12 .source-2 { left: 76%; top: 24%; }
+.geometry-12 .source-3 { left: 90%; top: 50%; }
+.geometry-12 .source-4 { left: 76%; top: 76%; }
+.geometry-12 .source-5 { left: 50%; top: 90%; }
+.geometry-12 .source-6 { left: 24%; top: 76%; }
+.geometry-12 .source-7 { left: 10%; top: 50%; }
+.geometry-12 .source-8 { left: 24%; top: 24%; }
+.geometry-12 .source-9 { left: 15%; top: 15%; }
+.geometry-12 .source-10 { left: 85%; top: 15%; }
+.geometry-12 .source-11 { left: 85%; top: 85%; }
+.geometry-12 .source-12 { left: 15%; top: 85%; }
+
+.altarMandalaSheet {
+  position: relative;
+  width: min(500px, 100%);
+  aspect-ratio: 1 / 1.12;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  background:
+    radial-gradient(circle at 50% 55%, rgba(255, 253, 245, 0.96) 0 17%, transparent 18%),
+    repeating-radial-gradient(circle at 50% 58%, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 28px),
+    linear-gradient(180deg, #fffbf2, #f3e0b9);
+  box-shadow: inset 0 0 46px rgba(255, 255, 255, 0.78), 0 0 54px rgba(224, 173, 71, 0.14);
+}
+
+.altarTopRow {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 6%;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 1fr 1fr minmax(86px, 1.35fr) 1fr 1fr;
+  align-items: end;
+  gap: 8px;
+}
+
+.altarTopSource,
+.altarSupportSource {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 117, 0.74);
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #c78820 62%, #2b1a08 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  font-weight: 900;
+  box-shadow: 0 0 20px rgba(218, 157, 45, 0.24);
+}
+
+.altarTopSource {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 15px;
+}
+
+.altarTopSource.main {
+  aspect-ratio: 1;
+  min-height: 82px;
+  border-radius: 18px;
+}
+
+.altarMandalaSheet.ratio-1-5 .altarTopSource.main { aspect-ratio: 1.5 / 1; }
+.altarMandalaSheet.ratio-2 .altarTopSource.main { aspect-ratio: 2 / 1; }
+.altarMandalaSheet.ratio-3 .altarTopSource.main { aspect-ratio: 3 / 1; }
+
+.altarTopSource.hasImage span,
+.altarSupportSource.hasImage span {
+  display: none;
+}
+
+.altarTopSource.hasImage,
+.altarSupportSource.hasImage {
+  background-size: cover;
+  background-position: center;
+}
+
+.altarCenterPhoto {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  z-index: 3;
+  width: 30%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 239, 195, 0.88);
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(239, 208, 144, 0.48)),
+    #fff9eb;
+  background-size: cover;
+  background-position: center;
+  color: #9f6614;
+  font-size: 40px;
+  box-shadow: 0 14px 32px rgba(103, 66, 16, 0.16);
+}
+
+.altarCenterPhoto.hasImage span {
+  display: none;
+}
+
+.altarMandalaBase {
+  position: absolute;
+  left: 50%;
+  top: 72%;
+  z-index: 2;
+  width: 44%;
+  min-height: 46px;
+  display: grid;
+  place-items: center;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  background: rgba(255, 250, 238, 0.86);
+  box-shadow: 0 10px 24px rgba(116, 70, 13, 0.1);
+}
+
+.altarMandalaBase span {
+  color: #795019;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.altarBottomSupports {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  bottom: 7%;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.altarSupportSource {
+  width: min(74px, 18vw);
+  aspect-ratio: 1;
+  border-radius: 16px;
+  pointer-events: auto;
+}
+
 .powerPlaceHint,
 .powerPlaceActions span,
 .coverNotice {
@@ -680,6 +881,96 @@
   gap: 12px;
   align-content: start;
   padding: 14px;
+}
+
+.objectImageEditor {
+  display: grid;
+  gap: 10px;
+}
+
+.objectSlotList {
+  display: grid;
+  gap: 8px;
+  max-height: 308px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.objectSlotEditor {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 14px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.objectSlotPreview {
+  width: 44px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  background:
+    radial-gradient(circle at 45% 35%, rgba(245, 198, 106, 0.4), rgba(122, 80, 23, 0.24)),
+    #fff8ea;
+  background-size: cover;
+  background-position: center;
+  color: #9f6614;
+}
+
+.objectSlotPreview.hasImage span {
+  display: none;
+}
+
+.objectSlotEditor b {
+  display: block;
+  margin-bottom: 5px;
+  color: #5f3e12;
+  font-size: 12px;
+}
+
+.objectSlotEditor select {
+  width: 100%;
+  min-height: 30px;
+  border: 1px solid rgba(122, 99, 72, 0.24);
+  border-radius: 10px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #392512;
+  font: inherit;
+  font-size: 12px;
+}
+
+.objectSlotActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.objectSlotActions label,
+.objectSlotActions button {
+  position: relative;
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #704812;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.objectSlotActions input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .commandSlots {
@@ -878,6 +1169,14 @@
     flex-direction: column;
   }
 
+  .constructorControls,
+  .constructorTypeSelector,
+  .geometrySelector,
+  .altarRatioSelector {
+    justify-items: start;
+    justify-content: flex-start;
+  }
+
   .powerMandala {
     width: min(320px, 84vw);
   }
@@ -893,13 +1192,44 @@
     height: 34px;
   }
 
+  .powerSource.guardian {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+
   .powerMandalaBase {
     width: 50%;
     min-height: 42px;
   }
 
+  .altarMandalaSheet {
+    width: min(330px, 84vw);
+    border-radius: 22px;
+  }
+
+  .altarTopRow {
+    gap: 5px;
+  }
+
+  .altarTopSource.main {
+    min-height: 56px;
+  }
+
+  .altarCenterPhoto {
+    width: 34%;
+  }
+
+  .altarMandalaBase {
+    width: 54%;
+  }
+
   .powerCommandRail {
     grid-template-columns: 1fr;
+  }
+
+  .objectSlotList {
+    max-height: none;
   }
 }
 
@@ -931,6 +1261,7 @@
   }
 
   body.printMandalaOnly .powerPlaceHint,
+  body.printMandalaOnly .objectImageEditor,
   body.printMandalaOnly .coverVariantList,
   body.printMandalaOnly .coverUploadButton,
   body.printMandalaOnly .coverNotice {

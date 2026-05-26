@@ -55,7 +55,17 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_index: firstSettings.length > 0 ? 1 : null
 });
 
-const POWER_SOURCE_COUNTS = [2, 4, 5, 6, 8];
+const POWER_SOURCE_COUNTS = [2, 4, 5, 6, 8, 12];
+const CONSTRUCTOR_TYPES = [
+  { value: "client", label: "Мандала клиенту" },
+  { value: "altar", label: "Алтарь" }
+];
+const ALTAR_CENTER_RATIOS = [
+  { value: "1", label: "1:1" },
+  { value: "1-5", label: "1.5:1" },
+  { value: "2", label: "2:1" },
+  { value: "3", label: "3:1" }
+];
 
 const FALLBACK_COVER_VARIANTS = [
   { id: "cover-gold", label: "Золотой поток", tone: "gold" },
@@ -123,6 +133,29 @@ function uniqueImageSources(items) {
   });
 }
 
+function sourceClassName(count, index) {
+  const sourceNumber = index + 1;
+  const isIntermediate = (count === 8 || count === 12) && index % 2 === 1 && index < 8;
+  const isGuardian = count === 12 && index >= 8;
+
+  return [
+    "powerSource",
+    `source-${sourceNumber}`,
+    isIntermediate ? "small" : "",
+    isGuardian ? "guardian" : ""
+  ].filter(Boolean).join(" ");
+}
+
+function sourceLabel(count, index) {
+  if (count === 12 && index >= 8) return `Хранитель ${index - 7}`;
+  if ((count === 8 || count === 12) && index % 2 === 1 && index < 8) return `Источник ${index + 1}`;
+  return `Крест ${index + 1}`;
+}
+
+function imageStyle(src) {
+  return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
+}
+
 export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
@@ -136,6 +169,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [error, setError] = useState("");
   const [fileNotice, setFileNotice] = useState("");
   const [powerSourceCount, setPowerSourceCount] = useState(4);
+  const [constructorType, setConstructorType] = useState("client");
+  const [altarCenterRatio, setAltarCenterRatio] = useState("1");
+  const [objectImages, setObjectImages] = useState({});
   const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
   const [customCoverImage, setCustomCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
@@ -188,6 +224,29 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       : "";
 
   const commandSlots = Array.from({ length: 5 }, (_, index) => reusableImages[index] || null);
+
+  const objectImageOptions = useMemo(() => [
+    { id: "", label: "Пусто", src: "" },
+    ...reusableImages
+  ], [reusableImages]);
+
+  const activeObjectSlots = useMemo(() => {
+    if (constructorType === "altar") {
+      return [
+        ...Array.from({ length: 5 }, (_, index) => ({
+          id: `altar-top-${index + 1}`,
+          label: index === 2 ? "Верхний центр" : `Верхний ${index + 1}`
+        })),
+        { id: "altar-support-1", label: "Нижняя опора 1" },
+        { id: "altar-support-2", label: "Нижняя опора 2" }
+      ];
+    }
+
+    return Array.from({ length: powerSourceCount }, (_, index) => ({
+      id: `source-${index + 1}`,
+      label: sourceLabel(powerSourceCount, index)
+    }));
+  }, [constructorType, powerSourceCount]);
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -336,6 +395,33 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     reader.readAsDataURL(file);
   };
 
+  const setObjectImage = (slotId, value) => {
+    setObjectImages((current) => ({ ...current, [slotId]: value }));
+  };
+
+  const handleObjectFile = (slotId, event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setCoverNotice("Выберите изображение для объекта: JPG, PNG или WEBP.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setCoverNotice("Для локального MVP выберите изображение объекта до 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setObjectImage(slotId, String(reader.result || ""));
+      setCoverNotice(`Изображение «${file.name}» добавлено в объект локально.`);
+    };
+    reader.onerror = () => setCoverNotice("Не удалось прочитать изображение объекта. Попробуйте другой файл.");
+    reader.readAsDataURL(file);
+  };
+
   const handlePrintMandala = () => {
     const cleanup = () => document.body.classList.remove("printMandalaOnly");
 
@@ -433,6 +519,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setProfile(EMPTY_PROFILE);
     setMaterials([]);
     setMaterialForm(EMPTY_MATERIAL);
+    setObjectImages({});
     setFileNotice("");
     setMessage("Вы вышли из кабинета.");
   };
@@ -643,42 +730,160 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   <p className="cabinetEyebrow">Места силы</p>
                   <h2>Магическая мандала</h2>
                 </div>
-                <div className="geometrySelector" aria-label="Геометрия источников силы">
-                  {POWER_SOURCE_COUNTS.map((count) => (
-                    <button
-                      className={powerSourceCount === count ? "active" : ""}
-                      key={count}
-                      onClick={() => setPowerSourceCount(count)}
-                      type="button"
-                    >
-                      {count}
-                    </button>
-                  ))}
+                <div className="constructorControls">
+                  <div className="constructorTypeSelector" aria-label="Тип конструктора">
+                    {CONSTRUCTOR_TYPES.map((type) => (
+                      <button
+                        className={constructorType === type.value ? "active" : ""}
+                        key={type.value}
+                        onClick={() => setConstructorType(type.value)}
+                        type="button"
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                  {constructorType === "client" ? (
+                    <div className="geometrySelector" aria-label="Геометрия источников силы">
+                      {POWER_SOURCE_COUNTS.map((count) => (
+                        <button
+                          className={powerSourceCount === count ? "active" : ""}
+                          key={count}
+                          onClick={() => setPowerSourceCount(count)}
+                          type="button"
+                        >
+                          {count}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="altarRatioSelector" aria-label="Пропорция центрального верхнего объекта">
+                      {ALTAR_CENTER_RATIOS.map((ratio) => (
+                        <button
+                          className={altarCenterRatio === ratio.value ? "active" : ""}
+                          key={ratio.value}
+                          onClick={() => setAltarCenterRatio(ratio.value)}
+                          type="button"
+                        >
+                          {ratio.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="powerPlacePrintArea">
                 <div className="powerMandalaPanel">
-                  <div className={`powerMandala geometry-${powerSourceCount}`}>
-                    <div className={centerImage ? "powerCenterPhoto hasImage" : "powerCenterPhoto"} style={centerImage ? { backgroundImage: `url(${centerImage})` } : undefined}>
-                      {!centerImage && <span>◎</span>}
-                    </div>
-                    <div className="powerMandalaBase">
-                      <span>мандала места силы</span>
-                    </div>
-                    {Array.from({ length: powerSourceCount }, (_, index) => (
-                      <div
-                        className={`powerSource source-${index + 1}${powerSourceCount === 8 && index % 2 === 1 ? " small" : ""}`}
-                        key={`source-${powerSourceCount}-${index}`}
-                      >
-                        <span>{index + 1}</span>
+                  {constructorType === "client" ? (
+                    <div className={`powerMandala geometry-${powerSourceCount}`}>
+                      <div className={centerImage ? "powerCenterPhoto hasImage" : "powerCenterPhoto"} style={imageStyle(centerImage)}>
+                        {!centerImage && <span>◎</span>}
                       </div>
-                    ))}
-                  </div>
-                  <p className="powerPlaceHint">Центр использует фото мандалы или фото мастера, если оно доступно.</p>
+                      <div className="powerMandalaBase">
+                        <span>мандала места силы</span>
+                      </div>
+                      {Array.from({ length: powerSourceCount }, (_, index) => {
+                        const slotId = `source-${index + 1}`;
+                        const sourceImage = objectImages[slotId];
+
+                        return (
+                          <div
+                            className={`${sourceClassName(powerSourceCount, index)}${sourceImage ? " hasImage" : ""}`}
+                            key={`source-${powerSourceCount}-${index}`}
+                            style={imageStyle(sourceImage)}
+                            title={sourceLabel(powerSourceCount, index)}
+                          >
+                            {!sourceImage && <span>{index + 1}</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className={`altarMandalaSheet ratio-${altarCenterRatio}`}>
+                      <div className="altarTopRow" aria-label="Верхние источники алтаря">
+                        {Array.from({ length: 5 }, (_, index) => {
+                          const slotId = `altar-top-${index + 1}`;
+                          const slotImage = objectImages[slotId];
+                          const isMain = index === 2;
+
+                          return (
+                            <div
+                              className={`${isMain ? "altarTopSource main" : "altarTopSource"}${slotImage ? " hasImage" : ""}`}
+                              key={slotId}
+                              style={imageStyle(slotImage)}
+                              title={isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}
+                            >
+                              {!slotImage && <span>{index + 1}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className={centerImage ? "altarCenterPhoto hasImage" : "altarCenterPhoto"} style={imageStyle(centerImage)}>
+                        {!centerImage && <span>◎</span>}
+                      </div>
+                      <div className="altarMandalaBase">
+                        <span>мандала места силы</span>
+                      </div>
+                      <div className="altarBottomSupports" aria-label="Нижние опоры алтаря">
+                        {[1, 2].map((number) => {
+                          const slotId = `altar-support-${number}`;
+                          const slotImage = objectImages[slotId];
+
+                          return (
+                            <div
+                              className={`altarSupportSource${slotImage ? " hasImage" : ""}`}
+                              key={slotId}
+                              style={imageStyle(slotImage)}
+                              title={`Нижняя опора ${number}`}
+                            >
+                              {!slotImage && <span>{number}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  <p className="powerPlaceHint">
+                    {constructorType === "client"
+                      ? "Центр использует фото цели или мастера. В раскладе 12 добавлены четыре внешних хранителя пространства."
+                      : "Алтарь ставит цель ниже центра, пять источников сверху и две опоры в нижних углах листа."}
+                  </p>
                 </div>
 
                 <aside className="powerCommandRail">
+                  <div className="objectImageEditor">
+                    <p className="cabinetEyebrow">Объекты композиции</p>
+                    <div className="objectSlotList">
+                      {activeObjectSlots.map((slot) => {
+                        const slotImage = objectImages[slot.id] || "";
+
+                        return (
+                          <div className="objectSlotEditor" key={slot.id}>
+                            <div className={slotImage ? "objectSlotPreview hasImage" : "objectSlotPreview"} style={imageStyle(slotImage)}>
+                              {!slotImage && <span>◎</span>}
+                            </div>
+                            <div>
+                              <b>{slot.label}</b>
+                              <select value={slotImage} onChange={(event) => setObjectImage(slot.id, event.target.value)}>
+                                {objectImageOptions.map((option) => (
+                                  <option key={`${slot.id}-${option.id || "empty"}`} value={option.src}>{option.label}</option>
+                                ))}
+                              </select>
+                              <div className="objectSlotActions">
+                                <label>
+                                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleObjectFile(slot.id, event)} />
+                                  Загрузить
+                                </label>
+                                <button type="button" onClick={() => setObjectImage(slot.id, "")}>Очистить</button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="commandSlots" aria-label="Командные изображения">
                     {COMMAND_SLOT_LABELS.map((label, index) => {
                       const commandImage = commandSlots[index];

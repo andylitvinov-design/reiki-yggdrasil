@@ -1,5 +1,25 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Power-place update #4: 12-position client mandala and altar mode
+
+Mode: additive `/profile` constructor enhancement on branch `codex/power-place-update-4-altar-12`.
+
+Changed:
+
+- Added constructor type selector: `Мандала клиенту` and `Алтарь`.
+- Extended client mandala geometry options to 2, 4, 5, 6, 8, and 12.
+- Added 12-position client layout with four large cross sources, four smaller intermediate sources, and four outer corner `хранители пространства`.
+- Added local object-image placement controls for the active constructor positions, using reusable profile/material image URLs or local image uploads.
+- Added altar layout with five top image squares, larger central top object, center photo placed lower, mandala base, and two bottom support objects.
+- Added altar central-top proportion selector: 1:1, 1.5:1, 2:1, and 3:1.
+- Kept print scoped to the selected constructor composition and hid edit-only object controls from print.
+- Kept Supabase schema, storage, env names, routes, and rewrites unchanged.
+
+Needs verification:
+
+- Constructor persistence remains needs verification; selected type, layout, object images, cover, geometry, and altar proportions are local UI state only.
+- Authenticated production save flow still depends on live Supabase/Vercel setup.
+
 ## 2026-05-26 — Power-place cover and geometry constructor
 
 Mode: additive `/profile` mandala workspace enhancement.

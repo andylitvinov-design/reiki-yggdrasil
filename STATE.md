@@ -128,9 +128,13 @@ Power-place mandala constructor branch `codex/power-place-cover-and-geometry` ex
 
 - Adds a compact `Места силы / Магическая мандала` constructor inside `/profile`.
 - Supports cover selection from reusable profile/material image URLs, local safe custom cover image, and placeholder covers.
-- Supports geometry selection for 2, 4, 5, 6, and 8 power-source objects around the center.
+- Supports type selection between `Мандала клиенту` and `Алтарь`.
+- `Мандала клиенту` supports geometry selection for 2, 4, 5, 6, 8, and 12 power-source objects around the center.
+- The 12-position layout keeps the 8-position cross/intermediate structure and adds four outer corner `хранители пространства`.
+- `Алтарь` supports five top image objects, a larger central top object with 1:1 / 1.5:1 / 2:1 / 3:1 proportions, a slightly lower center photo, and two lower support images.
+- Active constructor object positions support local upload and selection from reusable profile/material image URLs.
 - Adds a print action scoped to the mandala composition only.
-- Does not add Supabase schema, storage buckets, env names, or persistence for selected cover/geometry; persistence remains needs verification.
+- Does not add Supabase schema, storage buckets, env names, or persistence for selected type, layout, object images, cover, geometry, or altar proportions; persistence remains needs verification.
 
 Live data flow still depends on manual Supabase/Vercel setup:
 
