@@ -44,6 +44,14 @@ Confirmed files:
 - `supabase/migrations/20260526_power_place_persistence.sql`
 - `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
+- `scripts/apply-reiki-supabase-migrations.mjs`
+
+Supabase migration runner state:
+
+- `npm run supabase:migrations:apply` applies only the three committed 20260526 Power Place migrations.
+- Credentials are read from the local wallet endpoint `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
+- Required secret names are `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`.
+- Wallet-unavailable and missing-secret states fail before any Supabase CLI command runs.
 
 Still not part of the current app:
 
