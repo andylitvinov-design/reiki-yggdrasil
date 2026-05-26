@@ -22,6 +22,7 @@ import {
   supabaseEnv,
   saveOwnProfile
 } from "../lib/supabaseClient.js";
+import "../profileMandalaWorkspace.css";
 
 const EMPTY_PROFILE = {
   display_name: "",
@@ -37,6 +38,7 @@ const EMPTY_PROFILE = {
 const stepOptions = reikiLevels.flatMap((level) =>
   level.steps.map((step) => ({
     ...step,
+    levelId: level.id,
     levelName: level.name,
     stepLabel: level.stepLabel,
     fullLabel: `${level.id}. ${level.name} · ${level.stepLabel} ${step.number}: ${step.title}`
@@ -87,6 +89,14 @@ function buildMaterialPayload(form, profileId, nextStatus) {
   };
 }
 
+function statusCount(materials, status) {
+  return materials.filter((item) => item.status === status).length;
+}
+
+function isImagePreview(value) {
+  return Boolean(value && (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:image/")));
+}
+
 export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
@@ -98,6 +108,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [fileNotice, setFileNotice] = useState("");
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -106,7 +117,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     return "черновик";
   }, [profile.status]);
 
+  const activeStep = useMemo(
+    () => stepOptions.find((item) => item.id === materialForm.step_id) || firstStep,
+    [materialForm.step_id]
+  );
+
   const activeSettings = useMemo(() => settingsForStep(materialForm.step_id), [materialForm.step_id]);
+
+  const materialCounts = useMemo(() => ({
+    draft: statusCount(materials, "draft"),
+    pending: statusCount(materials, "pending"),
+    approved: statusCount(materials, "approved")
+  }), [materials]);
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -208,6 +230,29 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     });
   };
 
+  const handleMandalaFile = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setFileNotice("Выберите файл изображения: JPG, PNG или WEBP.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setFileNotice("Для первого релиза загрузите изображение до 2 MB или вставьте внешнюю ссылку.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateMaterialField("image_url", String(reader.result || ""));
+      setFileNotice(`Фото «${file.name}» добавлено в алтарь мандалы.`);
+    };
+    reader.onerror = () => setFileNotice("Не удалось прочитать изображение. Попробуйте другой файл.");
+    reader.readAsDataURL(file);
+  };
+
   const handleMagicLink = async (event) => {
     event.preventDefault();
     setMessage("");
@@ -282,6 +327,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         setting_title: current.setting_title,
         setting_index: current.setting_index
       }));
+      setFileNotice("");
       setMessage(nextStatus === "pending" ? "Материал отправлен на модерацию." : "Материал сохранён как черновик.");
     } catch (err) {
       setError(err.message || "Не удалось сохранить материал.");
@@ -295,6 +341,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setProfile(EMPTY_PROFILE);
     setMaterials([]);
     setMaterialForm(EMPTY_MATERIAL);
+    setFileNotice("");
     setMessage("Вы вышли из кабинета.");
   };
 
@@ -393,103 +440,149 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
           </aside>
 
-          <section className="cabinetCard materialBuilder">
-            <div className="cabinetFormHeader">
+          <section className="mandalaWorkspace">
+            <div className="mandalaHero">
+              <div className="mandalaHeroSeal">♣</div>
               <div>
-                <p className="cabinetEyebrow">Материалы мастера</p>
-                <h2>Мандалы и материалы по Рейки Иггдрасиль</h2>
+                <p className="cabinetEyebrow">Рабочее место мастера</p>
+                <h2>Мастерская мандал</h2>
+                <p>Создавайте мандалы, артефакты и практики по ступеням Рейки Иггдрасиль. Выберите поток, поместите мандалу на алтарь и сохраните материал.</p>
               </div>
-              <span className="cabinetStatus">{materials.length}</span>
+              <div className="mandalaHeroStats" aria-label="Статусы материалов">
+                <span><b>{materialCounts.draft}</b> Черновики</span>
+                <span><b>{materialCounts.pending}</b> На модерации</span>
+                <span><b>{materialCounts.approved}</b> Опубликовано</span>
+              </div>
             </div>
 
             {!profile?.id && (
-              <div className="cabinetNotice compactNotice">
+              <div className="mandalaGuide">
                 Сначала сохраните профиль мастера. После этого можно добавлять мандалы, артефакты и практики к ступеням и настройкам.
               </div>
             )}
 
-            <div className="cabinetTwoColumns">
-              <label>
-                Тип материала
-                <select value={materialForm.type} onChange={(event) => updateMaterialField("type", event.target.value)}>
-                  {MATERIAL_TYPES.map((type) => (
-                    <option value={type.value} key={type.value}>{type.label}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Ступень Reiki Yggdrasil
-                <select value={materialForm.step_id} onChange={(event) => updateMaterialField("step_id", event.target.value)}>
-                  {stepOptions.map((step) => (
-                    <option value={step.id} key={step.id}>{step.fullLabel}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label>
-              Настройка этой ступени
-              <select value={materialForm.setting_title} onChange={(event) => updateMaterialField("setting_title", event.target.value)}>
-                {activeSettings.length === 0 && <option value="">Настройки уточняются</option>}
-                {activeSettings.map((setting, index) => (
-                  <option value={setting.title} key={`${setting.title}-${index}`}>{setting.title}</option>
-                ))}
-              </select>
-            </label>
-
-            <label>
-              Название
-              <input value={materialForm.title} onChange={(event) => updateMaterialField("title", event.target.value)} placeholder="Например: Мандала денежной активации" />
-            </label>
-
-            <label>
-              Описание / инструкция
-              <textarea value={materialForm.description} onChange={(event) => updateMaterialField("description", event.target.value)} rows={4} placeholder="Что делает материал, как использовать, для какой задачи создан." />
-            </label>
-
-            <label>
-              URL изображения / мандалы
-              <input value={materialForm.image_url} onChange={(event) => updateMaterialField("image_url", event.target.value)} placeholder="https://..." />
-            </label>
-
-            <div className="cabinetActions">
-              <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={() => handleMaterialSave("draft")}>Сохранить черновик</button>
-              <button className="cabinetSecondary" type="button" disabled={!profile?.id} onClick={() => handleMaterialSave("pending")}>Отправить на модерацию</button>
-            </div>
-
-            <div className="materialHint">
-              Связка: <b>{materialForm.step_id}</b> · {materialForm.step_title || "ступень"} · {materialForm.setting_title || "настройка уточняется"}
-            </div>
-          </section>
-
-          <section className="cabinetCard materialsList">
-            <div className="cabinetFormHeader">
+            <div className="flowTuningPanel">
               <div>
-                <p className="cabinetEyebrow">Мои материалы</p>
-                <h2>Черновики и заявки</h2>
+                <p className="cabinetEyebrow">Настройка потока</p>
+                <h3>{activeStep?.id} · {activeStep?.title}</h3>
+                <p>{materialForm.setting_title || "Выберите настройку этой ступени"}</p>
               </div>
-              <span className="cabinetStatus">{materialsLoading ? "..." : materials.length}</span>
+              <div className="flowTuningGlow">
+                <span>✦</span>
+                <b>{activeStep?.stepLabel} {activeStep?.number}</b>
+                <small>{activeStep?.levelName}</small>
+              </div>
             </div>
 
-            {materialsLoading && <p>Загружаю материалы...</p>}
-            {!materialsLoading && profile?.id && materials.length === 0 && <p>Пока нет мандал и материалов. Добавьте первый материал выше.</p>}
-            {!profile?.id && <p>Список появится после первого сохранения профиля.</p>}
-
-            {materials.length > 0 && (
-              <div className="materialsGrid">
-                {materials.map((item) => (
-                  <article className="materialCard" key={item.id}>
-                    {item.image_url ? <div className="materialThumb" style={{ backgroundImage: `url(${item.image_url})` }} /> : <div className="materialThumb">◎</div>}
-                    <div>
-                      <p className="cabinetEyebrow">{publicationTypeLabel(item.type)} · {materialStatusText(item.status)}</p>
-                      <h3>{item.title}</h3>
-                      <p>{item.description || "Описание не заполнено."}</p>
-                      <small>{[item.step_id, item.step_title, item.setting_title].filter(Boolean).join(" · ")}</small>
-                    </div>
-                  </article>
-                ))}
+            <div className="mandalaAtelierGrid">
+              <div className="mandalaAltarCard">
+                <p className="cabinetEyebrow">Алтарь мандалы</p>
+                <div className={isImagePreview(materialForm.image_url) ? "mandalaPreview hasImage" : "mandalaPreview"} style={isImagePreview(materialForm.image_url) ? { backgroundImage: `url(${materialForm.image_url})` } : undefined}>
+                  {!isImagePreview(materialForm.image_url) && <span>⇧</span>}
+                </div>
+                <label className="mandalaUploadButton">
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleMandalaFile} />
+                  Загрузить фото мандалы
+                </label>
+                <div className="mandalaDropHint">
+                  JPG, PNG, WEBP до 2 MB. Файл будет сохранён как изображение в материале; также можно вставить внешний URL.
+                </div>
+                {fileNotice && <div className="mandalaFileNotice">{fileNotice}</div>}
+                <div className="mandalaFlowLink">
+                  <b>{materialForm.step_id}</b> · {materialForm.step_title || "ступень"} · {materialForm.setting_title || "настройка уточняется"}
+                </div>
               </div>
-            )}
+
+              <form className="mandalaCreationCard" onSubmit={(event) => { event.preventDefault(); handleMaterialSave("draft"); }}>
+                <p className="cabinetEyebrow">Создание материала</p>
+                <div className="materialTypeChips" role="group" aria-label="Тип материала">
+                  {MATERIAL_TYPES.map((type) => (
+                    <button key={type.value} type="button" className={materialForm.type === type.value ? "active" : ""} onClick={() => updateMaterialField("type", type.value)}>
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="cabinetTwoColumns">
+                  <label>
+                    Ступень Reiki Yggdrasil
+                    <select value={materialForm.step_id} onChange={(event) => updateMaterialField("step_id", event.target.value)}>
+                      {stepOptions.map((step) => (
+                        <option value={step.id} key={step.id}>{step.fullLabel}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Настройка ступени
+                    <select value={materialForm.setting_title} onChange={(event) => updateMaterialField("setting_title", event.target.value)}>
+                      {activeSettings.length === 0 && <option value="">Настройки уточняются</option>}
+                      {activeSettings.map((setting, index) => (
+                        <option value={setting.title} key={`${setting.title}-${index}`}>{setting.title}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <label>
+                  Название
+                  <input value={materialForm.title} onChange={(event) => updateMaterialField("title", event.target.value)} placeholder="Например: Мандала денежной активации" />
+                </label>
+
+                <label>
+                  Описание / инструкция
+                  <textarea value={materialForm.description} onChange={(event) => updateMaterialField("description", event.target.value)} rows={4} placeholder="Что делает материал, как использовать, для какой задачи создан." />
+                </label>
+
+                <label>
+                  URL изображения / мандалы
+                  <input value={materialForm.image_url} onChange={(event) => updateMaterialField("image_url", event.target.value)} placeholder="https://... или загрузите фото слева" />
+                </label>
+
+                <div className="cabinetActions">
+                  <button className="cabinetPrimary" type="submit" disabled={!profile?.id}>Сохранить черновик</button>
+                  <button className="cabinetSecondary" type="button" disabled={!profile?.id} onClick={() => handleMaterialSave("pending")}>Отправить на модерацию</button>
+                </div>
+              </form>
+            </div>
+
+            <div className="mandalaGallery">
+              <div className="cabinetFormHeader">
+                <div>
+                  <p className="cabinetEyebrow">Мои мандалы и материалы</p>
+                  <h2>Галерея мастера</h2>
+                </div>
+                <span className="cabinetStatus">{materialsLoading ? "..." : materials.length}</span>
+              </div>
+
+              {materialsLoading && <p>Загружаю материалы...</p>}
+              {!materialsLoading && profile?.id && materials.length === 0 && (
+                <div className="mandalaEmptyState">
+                  <div className="mandalaEmptySeal">✦</div>
+                  <b>Добавьте первую мандалу к выбранной настройке</b>
+                  <p>Она появится здесь как карточка вашей мастерской.</p>
+                </div>
+              )}
+              {!profile?.id && <p>Список появится после первого сохранения профиля.</p>}
+
+              {materials.length > 0 && (
+                <div className="mandalaCardsGrid">
+                  {materials.map((item) => (
+                    <article className="mandalaMaterialCard" key={item.id}>
+                      {item.image_url ? <div className="mandalaCardImage" style={{ backgroundImage: `url(${item.image_url})` }} /> : <div className="mandalaCardImage placeholder">◎</div>}
+                      <div className="mandalaCardBody">
+                        <div className="mandalaCardChips">
+                          <span>{publicationTypeLabel(item.type)}</span>
+                          <span className={`statusChip status-${item.status || "draft"}`}>{materialStatusText(item.status)}</span>
+                        </div>
+                        <h3>{item.title}</h3>
+                        <p>{item.description || "Описание не заполнено."}</p>
+                        <small>{[item.step_id, item.step_title, item.setting_title].filter(Boolean).join(" · ")}</small>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
         </div>
       )}
