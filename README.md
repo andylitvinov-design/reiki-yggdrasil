@@ -32,11 +32,14 @@ Supabase setup steps:
 
 1. Apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`.
 2. Apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`.
-3. Add these auth redirect URLs in Supabase:
+3. Apply `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`.
+4. Apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`.
+5. Apply `supabase/migrations/20260526_power_place_persistence.sql`.
+6. Add these auth redirect URLs in Supabase:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
-4. Add the Vercel production env vars named above.
-5. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+7. Add the Vercel production env vars named above.
+8. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -57,6 +60,12 @@ Google OAuth setup:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
 5. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
+
+Power Place persistence setup:
+
+- `20260526_power_place_persistence.sql` adds the profile `account_plan`, client/goal photo references, tradition image references, and saved Power Place compositions.
+- Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
+- File uploads to Supabase Storage are still needs verification. The current UI persists URL/metadata references and filters local `data:image` previews out of saved composition payloads.
 
 ## Deploy
 
