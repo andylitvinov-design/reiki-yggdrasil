@@ -124,6 +124,14 @@ Issue #41 adds the first profile materials MVP:
 - Materials save into `profile_cabinet_publications` as either `draft` or `pending`.
 - The first version stores an image URL only. Supabase Storage upload is a follow-up requiring a bucket, storage policies, and live verification.
 
+Power-place mandala constructor branch `codex/power-place-cover-and-geometry` extends the authenticated `/profile` mandala workspace as a UI-first local-state MVP:
+
+- Adds a compact `Места силы / Магическая мандала` constructor inside `/profile`.
+- Supports cover selection from reusable profile/material image URLs, local safe custom cover image, and placeholder covers.
+- Supports geometry selection for 2, 4, 5, 6, and 8 power-source objects around the center.
+- Adds a print action scoped to the mandala composition only.
+- Does not add Supabase schema, storage buckets, env names, or persistence for selected cover/geometry; persistence remains needs verification.
+
 Live data flow still depends on manual Supabase/Vercel setup:
 
 - apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`

@@ -55,6 +55,22 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_index: firstSettings.length > 0 ? 1 : null
 });
 
+const POWER_SOURCE_COUNTS = [2, 4, 5, 6, 8];
+
+const FALLBACK_COVER_VARIANTS = [
+  { id: "cover-gold", label: "Золотой поток", tone: "gold" },
+  { id: "cover-forest", label: "Древо силы", tone: "forest" },
+  { id: "cover-night", label: "Ночная мандала", tone: "night" }
+];
+
+const COMMAND_SLOT_LABELS = [
+  "Команда 1",
+  "Команда 2",
+  "Команда 3",
+  "Команда 4",
+  "Команда 5"
+];
+
 function normalizeProfile(profile, user) {
   return {
     ...EMPTY_PROFILE,
@@ -97,6 +113,16 @@ function isImagePreview(value) {
   return Boolean(value && (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:image/")));
 }
 
+function uniqueImageSources(items) {
+  const seen = new Set();
+
+  return items.filter((item) => {
+    if (!isImagePreview(item?.src) || seen.has(item.src)) return false;
+    seen.add(item.src);
+    return true;
+  });
+}
+
 export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
@@ -109,6 +135,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [fileNotice, setFileNotice] = useState("");
+  const [powerSourceCount, setPowerSourceCount] = useState(4);
+  const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
+  const [customCoverImage, setCustomCoverImage] = useState("");
+  const [coverNotice, setCoverNotice] = useState("");
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -129,6 +159,35 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     pending: statusCount(materials, "pending"),
     approved: statusCount(materials, "approved")
   }), [materials]);
+
+  const reusableImages = useMemo(() => uniqueImageSources([
+    { id: "goal", label: "Фото цели", src: materialForm.image_url },
+    { id: "profile", label: "Фото мастера", src: profile.avatar_url },
+    ...materials.map((item, index) => ({
+      id: `material-${item.id || index}`,
+      label: item.title || `Материал ${index + 1}`,
+      src: item.image_url
+    }))
+  ]), [materialForm.image_url, materials, profile.avatar_url]);
+
+  const coverVariants = useMemo(() => [
+    ...reusableImages.map((item) => ({ ...item, type: "image" })),
+    ...(customCoverImage ? [{ id: "custom-cover", label: "Своё изображение", src: customCoverImage, type: "image" }] : []),
+    ...FALLBACK_COVER_VARIANTS.map((item) => ({ ...item, type: "placeholder" }))
+  ], [customCoverImage, reusableImages]);
+
+  const selectedCover = useMemo(
+    () => coverVariants.find((item) => item.id === selectedCoverId) || coverVariants[0],
+    [coverVariants, selectedCoverId]
+  );
+
+  const centerImage = isImagePreview(materialForm.image_url)
+    ? materialForm.image_url
+    : isImagePreview(profile.avatar_url)
+      ? profile.avatar_url
+      : "";
+
+  const commandSlots = Array.from({ length: 5 }, (_, index) => reusableImages[index] || null);
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -251,6 +310,39 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     };
     reader.onerror = () => setFileNotice("Не удалось прочитать изображение. Попробуйте другой файл.");
     reader.readAsDataURL(file);
+  };
+
+  const handleCoverFile = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setCoverNotice("Выберите изображение для заставки: JPG, PNG или WEBP.");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setCoverNotice("Для локального MVP выберите изображение до 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCustomCoverImage(String(reader.result || ""));
+      setSelectedCoverId("custom-cover");
+      setCoverNotice(`Заставка «${file.name}» выбрана локально. Постоянное хранение требует отдельной проверки.`);
+    };
+    reader.onerror = () => setCoverNotice("Не удалось прочитать заставку. Попробуйте другой файл.");
+    reader.readAsDataURL(file);
+  };
+
+  const handlePrintMandala = () => {
+    const cleanup = () => document.body.classList.remove("printMandalaOnly");
+
+    document.body.classList.add("printMandalaOnly");
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.print();
+    window.setTimeout(cleanup, 1200);
   };
 
   const handleMagicLink = async (event) => {
@@ -544,6 +636,98 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </div>
               </form>
             </div>
+
+            <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
+              <div className="powerPlaceHeader">
+                <div>
+                  <p className="cabinetEyebrow">Места силы</p>
+                  <h2>Магическая мандала</h2>
+                </div>
+                <div className="geometrySelector" aria-label="Геометрия источников силы">
+                  {POWER_SOURCE_COUNTS.map((count) => (
+                    <button
+                      className={powerSourceCount === count ? "active" : ""}
+                      key={count}
+                      onClick={() => setPowerSourceCount(count)}
+                      type="button"
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="powerPlacePrintArea">
+                <div className="powerMandalaPanel">
+                  <div className={`powerMandala geometry-${powerSourceCount}`}>
+                    <div className={centerImage ? "powerCenterPhoto hasImage" : "powerCenterPhoto"} style={centerImage ? { backgroundImage: `url(${centerImage})` } : undefined}>
+                      {!centerImage && <span>◎</span>}
+                    </div>
+                    <div className="powerMandalaBase">
+                      <span>мандала места силы</span>
+                    </div>
+                    {Array.from({ length: powerSourceCount }, (_, index) => (
+                      <div
+                        className={`powerSource source-${index + 1}${powerSourceCount === 8 && index % 2 === 1 ? " small" : ""}`}
+                        key={`source-${powerSourceCount}-${index}`}
+                      >
+                        <span>{index + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="powerPlaceHint">Центр использует фото мандалы или фото мастера, если оно доступно.</p>
+                </div>
+
+                <aside className="powerCommandRail">
+                  <div className="commandSlots" aria-label="Командные изображения">
+                    {COMMAND_SLOT_LABELS.map((label, index) => {
+                      const commandImage = commandSlots[index];
+
+                      return (
+                        <div className={commandImage ? "commandSlot hasImage" : "commandSlot"} key={label} style={commandImage ? { backgroundImage: `url(${commandImage.src})` } : undefined}>
+                          {!commandImage && <span>{index + 1}</span>}
+                          <small>{label}</small>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="coverSelector">
+                    <p className="cabinetEyebrow">Заставка места силы</p>
+                    <div className="coverPreviewWrap">
+                      <div
+                        className={`coverPreview ${selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "gold"}`}`}
+                        style={selectedCover?.type === "image" ? { backgroundImage: `url(${selectedCover.src})` } : undefined}
+                      >
+                        <span>{selectedCover?.label || "Заставка"}</span>
+                      </div>
+                    </div>
+                    <div className="coverVariantList" aria-label="Варианты заставки">
+                      {coverVariants.map((cover) => (
+                        <button
+                          className={selectedCover?.id === cover.id ? "active" : ""}
+                          key={cover.id}
+                          onClick={() => setSelectedCoverId(cover.id)}
+                          type="button"
+                        >
+                          {cover.label}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="coverUploadButton">
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleCoverFile} />
+                      Своё изображение
+                    </label>
+                    {coverNotice && <p className="coverNotice">{coverNotice}</p>}
+                  </div>
+                </aside>
+              </div>
+
+              <div className="powerPlaceActions">
+                <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
+                <span>Сохранение геометрии и заставки: needs verification.</span>
+              </div>
+            </section>
 
             <div className="mandalaGallery">
               <div className="cabinetFormHeader">

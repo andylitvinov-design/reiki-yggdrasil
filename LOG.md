@@ -1,5 +1,23 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Power-place cover and geometry constructor
+
+Mode: additive `/profile` mandala workspace enhancement.
+
+Changed:
+
+- Added a compact `Места силы / Магическая мандала` constructor to the authenticated profile mandala workspace.
+- Added local-state cover selection from existing profile/material images, safe local custom image, and placeholder cover variants.
+- Added geometry selection for 2, 4, 5, 6, and 8 power-source objects around the center image.
+- Added five right-side command image slots and placed `Заставка места силы` under them.
+- Added print CSS and a `Распечатать` action scoped to the mandala composition.
+- Kept the feature UI-first without Supabase schema, storage, env, route, or rewrite changes.
+
+Needs verification:
+
+- Cover and geometry persistence remains needs verification.
+- Authenticated production flow still depends on live Supabase/Vercel setup.
+
 ## 2026-05-26 — Greek mysteries moved to top-level Mysteries section
 
 Mode: correction of PR #40 wiring.
