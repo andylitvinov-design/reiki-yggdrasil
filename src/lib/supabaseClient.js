@@ -1,6 +1,6 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "";
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
+const ADMIN_EMAIL = import.meta.env?.VITE_ADMIN_EMAIL || "";
 
 const SESSION_KEY = "reiki-yggdrasil-session";
 const PROFILES_TABLE = "profile_cabinet_profiles";

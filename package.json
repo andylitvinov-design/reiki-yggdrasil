@@ -3,11 +3,12 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
+    "test:profile-materials": "node test/profileMaterials.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
     "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
     "validate:free-courses": "node scripts/validate-free-course-links.mjs",
-    "check": "npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
+    "check": "npm run test:profile-materials && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
