@@ -39,6 +39,7 @@ Confirmed files:
 - `src/profileCabinet.css`
 - `supabase/migrations/20260524_profile_cabinet_mvp.sql`
 - `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
+- `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
 
 Still not part of the current app:
 
@@ -116,10 +117,18 @@ PR #26 added the routed master cabinet as a narrow MVP, not a broad marketplace:
 - `vercel.json` rewrites these SPA routes so direct refresh does not 404.
 - Without Supabase env, all three routes render a Russian fallback instead of crashing.
 
+Issue #41 adds the first profile materials MVP:
+
+- `/profile` shows `Мандалы и материалы по Рейки Иггдрасиль` after an authenticated profile row exists.
+- A master can create `mandala`, `artifact`, or `practice` records linked to a Reiki level/step and sourced setting.
+- Materials save into `profile_cabinet_publications` as either `draft` or `pending`.
+- The first version stores an image URL only. Supabase Storage upload is a follow-up requiring a bucket, storage policies, and live verification.
+
 Live data flow still depends on manual Supabase/Vercel setup:
 
 - apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`
 - apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
+- apply `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live
