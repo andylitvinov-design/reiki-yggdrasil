@@ -4,6 +4,7 @@ const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || "";
 
 const SESSION_KEY = "reiki-yggdrasil-session";
 const PROFILES_TABLE = "profile_cabinet_profiles";
+const PUBLICATIONS_TABLE = "profile_cabinet_publications";
 
 export const supabaseEnv = {
   url: SUPABASE_URL,
@@ -159,6 +160,33 @@ export async function saveOwnProfile(profile, session = getStoredSession()) {
 
 export async function submitOwnProfile(profile, session = getStoredSession()) {
   return saveOwnProfile({ ...profile, status: "pending" }, session);
+}
+
+export async function listOwnMaterials(profileId, session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужно войти в кабинет.");
+  if (!profileId) return [];
+
+  return request(`/rest/v1/${PUBLICATIONS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=updated_at.desc`, {
+    accessToken: session.access_token
+  });
+}
+
+export async function createOwnerMaterial(profileId, material, session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужно войти в кабинет.");
+  if (!profileId) throw cabinetError("Сначала нужен профиль мастера.");
+
+  const rows = await request(`/rest/v1/${PUBLICATIONS_TABLE}`, {
+    method: "POST",
+    accessToken: session.access_token,
+    prefer: "return=representation",
+    body: {
+      ...material,
+      profile_id: profileId,
+      updated_at: new Date().toISOString()
+    }
+  });
+
+  return rows?.[0] || null;
 }
 
 export async function listApprovedProfiles() {

@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { reikiSteps } from "../data/reikiKnowledgeBase.js";
+import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import {
   clearStoredSession,
+  createOwnerMaterial,
   getCurrentUser,
   getOwnProfile,
   getStoredSession,
+  listOwnMaterials,
   sendMagicLink,
   signInWithGoogle,
   storeSessionFromUrlHash,
@@ -11,6 +15,13 @@ import {
   supabaseEnv,
   saveOwnProfile
 } from "../lib/supabaseClient.js";
+import {
+  MATERIAL_TYPES,
+  createEmptyMaterialForm,
+  materialStatusText,
+  normalizeMaterialForm,
+  publicationTypeLabel
+} from "../lib/profileMaterials.js";
 
 const EMPTY_PROFILE = {
   display_name: "",
@@ -22,6 +33,25 @@ const EMPTY_PROFILE = {
   avatar_url: "",
   status: "draft"
 };
+
+function getStepSettings(stepId) {
+  const step = reikiSteps.find((item) => item.id === stepId);
+  return sourcedStepSettings[stepId] || step?.settings || [];
+}
+
+function createInitialMaterialForm() {
+  const base = createEmptyMaterialForm();
+  const step = reikiSteps[0];
+  const setting = getStepSettings(step?.id)?.[0];
+
+  return {
+    ...base,
+    step_id: step?.id || "",
+    step_title: step?.title || "",
+    setting_title: setting?.title || "",
+    setting_index: setting ? 0 : null
+  };
+}
 
 function normalizeProfile(profile, user) {
   return {
@@ -36,9 +66,22 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [session, setSession] = useState(() => getStoredSession());
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(EMPTY_PROFILE);
+  const [materials, setMaterials] = useState([]);
+  const [materialForm, setMaterialForm] = useState(() => createInitialMaterialForm());
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
+  const [materialsLoading, setMaterialsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const selectedMaterialStep = useMemo(
+    () => reikiSteps.find((step) => step.id === materialForm.step_id) || reikiSteps[0],
+    [materialForm.step_id]
+  );
+
+  const selectedMaterialSettings = useMemo(
+    () => getStepSettings(selectedMaterialStep?.id),
+    [selectedMaterialStep?.id]
+  );
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -72,10 +115,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       try {
         const currentUser = await getCurrentUser(session);
         const currentProfile = await getOwnProfile(currentUser.id, session);
+        const currentMaterials = currentProfile?.id
+          ? await listOwnMaterials(currentProfile.id, session)
+          : [];
 
         if (!cancelled) {
           setUser(currentUser);
           setProfile(normalizeProfile(currentProfile, currentUser));
+          setMaterials(currentMaterials || []);
         }
       } catch (err) {
         if (!cancelled) setError(err.message || "Не удалось загрузить профиль.");
@@ -93,6 +140,35 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const updateField = (field, value) => {
     setProfile((current) => ({ ...current, [field]: value }));
+  };
+
+  const updateMaterialField = (field, value) => {
+    setMaterialForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleMaterialStepChange = (stepId) => {
+    const step = reikiSteps.find((item) => item.id === stepId) || reikiSteps[0];
+    const settings = getStepSettings(step.id);
+    const firstSetting = settings[0];
+
+    setMaterialForm((current) => ({
+      ...current,
+      step_id: step.id,
+      step_title: step.title,
+      setting_title: firstSetting?.title || "",
+      setting_index: firstSetting ? 0 : null
+    }));
+  };
+
+  const handleMaterialSettingChange = (value) => {
+    const index = value === "" ? null : Number(value);
+    const setting = Number.isInteger(index) ? selectedMaterialSettings[index] : null;
+
+    setMaterialForm((current) => ({
+      ...current,
+      setting_title: setting?.title || "",
+      setting_index: setting ? index : null
+    }));
   };
 
   const handleMagicLink = async (event) => {
@@ -144,11 +220,51 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const ensureProfileForMaterials = async () => {
+    if (profile.id) return profile;
+
+    const saved = await saveOwnProfile({
+      ...profile,
+      user_id: user.id,
+      status: profile.status || "draft",
+      updated_at: new Date().toISOString()
+    }, session);
+    const normalized = normalizeProfile(saved, user);
+    setProfile(normalized);
+    return normalized;
+  };
+
+  const handleMaterialSave = async (requestedStatus) => {
+    setMessage("");
+    setError("");
+    setMaterialsLoading(true);
+
+    try {
+      const ownerProfile = await ensureProfileForMaterials();
+      const payload = normalizeMaterialForm(materialForm, requestedStatus);
+
+      if (!payload.title) throw new Error("Укажите название материала.");
+      if (!payload.step_id) throw new Error("Выберите ступень Рейки Иггдрасиль.");
+
+      const saved = await createOwnerMaterial(ownerProfile.id, payload, session);
+
+      setMaterials((current) => [saved, ...current]);
+      setMaterialForm(createInitialMaterialForm());
+      setMessage(payload.status === "pending" ? "Материал отправлен на модерацию." : "Черновик материала сохранён.");
+    } catch (err) {
+      setError(err.message || "Не удалось сохранить материал.");
+    } finally {
+      setMaterialsLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     clearStoredSession();
     setSession(null);
     setUser(null);
     setProfile(EMPTY_PROFILE);
+    setMaterials([]);
+    setMaterialForm(createInitialMaterialForm());
     setMessage("Вы вышли из кабинета.");
   };
 
@@ -185,68 +301,158 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       )}
 
       {!loading && user && (
-        <div className="cabinetGrid">
-          <form className="cabinetCard profileForm" onSubmit={(event) => { event.preventDefault(); handleSave(); }}>
+        <>
+          <div className="cabinetGrid">
+            <form className="cabinetCard profileForm" onSubmit={(event) => { event.preventDefault(); handleSave(); }}>
+              <div className="cabinetFormHeader">
+                <div>
+                  <p className="cabinetEyebrow">Профиль мастера</p>
+                  <h2>{profile.display_name || "Новый профиль"}</h2>
+                </div>
+                <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
+              </div>
+
+              <label>
+                Имя мастера
+                <input value={profile.display_name} onChange={(event) => updateField("display_name", event.target.value)} placeholder="Например: Андрей Ли" required />
+              </label>
+
+              <label>
+                Описание
+                <textarea value={profile.bio} onChange={(event) => updateField("bio", event.target.value)} placeholder="Кратко опишите практики, подход и чем вы можете быть полезны ученикам." rows={6} />
+              </label>
+
+              <div className="cabinetTwoColumns">
+                <label>
+                  Город
+                  <input value={profile.city || ""} onChange={(event) => updateField("city", event.target.value)} placeholder="Город" />
+                </label>
+                <label>
+                  Страна
+                  <input value={profile.country || ""} onChange={(event) => updateField("country", event.target.value)} placeholder="Страна" />
+                </label>
+              </div>
+
+              <div className="cabinetTwoColumns">
+                <label>
+                  Telegram
+                  <input value={profile.telegram || ""} onChange={(event) => updateField("telegram", event.target.value)} placeholder="@username или ссылка" />
+                </label>
+                <label>
+                  Сайт
+                  <input value={profile.website || ""} onChange={(event) => updateField("website", event.target.value)} placeholder="https://..." />
+                </label>
+              </div>
+
+              <label>
+                Аватар / фото URL
+                <input value={profile.avatar_url || ""} onChange={(event) => updateField("avatar_url", event.target.value)} placeholder="https://..." />
+              </label>
+
+              <div className="cabinetActions">
+                <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
+                <button className="cabinetSecondary" type="button" onClick={() => handleSave("pending")}>Отправить на модерацию</button>
+                <button className="cabinetGhost" type="button" onClick={handleLogout}>Выйти</button>
+              </div>
+            </form>
+
+            <aside className="cabinetCard cabinetPreview">
+              <p className="cabinetEyebrow">Как это будет выглядеть</p>
+              <div className="masterPreviewImage" style={profile.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : undefined}>◎</div>
+              <h3>{profile.display_name || "Имя мастера"}</h3>
+              <p>{profile.bio || "Здесь появится описание мастера, практик, мандал и артефактов."}</p>
+              <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
+            </aside>
+          </div>
+
+          <section className="cabinetCard materialCabinet">
             <div className="cabinetFormHeader">
               <div>
-                <p className="cabinetEyebrow">Профиль мастера</p>
-                <h2>{profile.display_name || "Новый профиль"}</h2>
+                <p className="cabinetEyebrow">Мандалы и материалы по Рейки Иггдрасиль</p>
+                <h2>Создать материал</h2>
               </div>
-              <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
             </div>
 
-            <label>
-              Имя мастера
-              <input value={profile.display_name} onChange={(event) => updateField("display_name", event.target.value)} placeholder="Например: Андрей Ли" required />
-            </label>
+            <form className="profileForm materialForm" onSubmit={(event) => { event.preventDefault(); handleMaterialSave("draft"); }}>
+              <div className="cabinetThreeColumns">
+                <label>
+                  Тип
+                  <select value={materialForm.type} onChange={(event) => updateMaterialField("type", event.target.value)}>
+                    {MATERIAL_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
+                </label>
 
-            <label>
-              Описание
-              <textarea value={profile.bio} onChange={(event) => updateField("bio", event.target.value)} placeholder="Кратко опишите практики, подход и чем вы можете быть полезны ученикам." rows={6} />
-            </label>
+                <label>
+                  Ступень
+                  <select value={materialForm.step_id} onChange={(event) => handleMaterialStepChange(event.target.value)}>
+                    {reikiSteps.map((step) => (
+                      <option key={step.id} value={step.id}>{step.label} {step.number}. {step.title}</option>
+                    ))}
+                  </select>
+                </label>
 
-            <div className="cabinetTwoColumns">
+                <label>
+                  Настройка
+                  <select value={materialForm.setting_index ?? ""} onChange={(event) => handleMaterialSettingChange(event.target.value)}>
+                    <option value="">Без настройки</option>
+                    {selectedMaterialSettings.map((setting, index) => (
+                      <option key={`${setting.title}-${index}`} value={index}>{setting.title}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
               <label>
-                Город
-                <input value={profile.city || ""} onChange={(event) => updateField("city", event.target.value)} placeholder="Город" />
+                Название
+                <input value={materialForm.title} onChange={(event) => updateMaterialField("title", event.target.value)} placeholder="Например: Мандала настройки «Лечение»" required />
               </label>
+
               <label>
-                Страна
-                <input value={profile.country || ""} onChange={(event) => updateField("country", event.target.value)} placeholder="Страна" />
+                Описание
+                <textarea value={materialForm.description} onChange={(event) => updateMaterialField("description", event.target.value)} placeholder="Опишите смысл, применение и связь с выбранной ступенью." rows={5} />
               </label>
+
+              <label>
+                Изображение URL
+                <input value={materialForm.image_url} onChange={(event) => updateMaterialField("image_url", event.target.value)} placeholder="https://..." />
+              </label>
+
+              <div className="cabinetActions">
+                <button className="cabinetPrimary" type="submit" disabled={materialsLoading}>Сохранить черновик</button>
+                <button className="cabinetSecondary" type="button" disabled={materialsLoading} onClick={() => handleMaterialSave("pending")}>Отправить на модерацию</button>
+              </div>
+            </form>
+          </section>
+
+          <section className="materialList">
+            <div className="cabinetFormHeader">
+              <div>
+                <p className="cabinetEyebrow">Сохранённые материалы</p>
+                <h2>{materials.length ? `${materials.length} в кабинете` : "Пока нет материалов"}</h2>
+              </div>
             </div>
 
-            <div className="cabinetTwoColumns">
-              <label>
-                Telegram
-                <input value={profile.telegram || ""} onChange={(event) => updateField("telegram", event.target.value)} placeholder="@username или ссылка" />
-              </label>
-              <label>
-                Сайт
-                <input value={profile.website || ""} onChange={(event) => updateField("website", event.target.value)} placeholder="https://..." />
-              </label>
-            </div>
-
-            <label>
-              Аватар / фото URL
-              <input value={profile.avatar_url || ""} onChange={(event) => updateField("avatar_url", event.target.value)} placeholder="https://..." />
-            </label>
-
-            <div className="cabinetActions">
-              <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
-              <button className="cabinetSecondary" type="button" onClick={() => handleSave("pending")}>Отправить на модерацию</button>
-              <button className="cabinetGhost" type="button" onClick={handleLogout}>Выйти</button>
-            </div>
-          </form>
-
-          <aside className="cabinetCard cabinetPreview">
-            <p className="cabinetEyebrow">Как это будет выглядеть</p>
-            <div className="masterPreviewImage" style={profile.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : undefined}>◎</div>
-            <h3>{profile.display_name || "Имя мастера"}</h3>
-            <p>{profile.bio || "Здесь появится описание мастера, практик, мандал и артефактов."}</p>
-            <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
-          </aside>
-        </div>
+            {materials.length === 0 ? (
+              <div className="cabinetNotice">Создайте первый черновик мандалы, артефакта или практики.</div>
+            ) : (
+              <div className="materialCards">
+                {materials.map((material) => (
+                  <article className="cabinetCard materialCard" key={material.id}>
+                    {material.image_url && <div className="materialImage" style={{ backgroundImage: `url(${material.image_url})` }} />}
+                    <div>
+                      <p className="cabinetEyebrow">{publicationTypeLabel(material.type)} · {materialStatusText(material.status)}</p>
+                      <h3>{material.title || "Без названия"}</h3>
+                      <p>{material.description || "Описание не заполнено."}</p>
+                      <small>{[material.step_title, material.setting_title].filter(Boolean).join(" · ") || "Ступень не указана"}</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </>
       )}
     </CabinetShell>
   );

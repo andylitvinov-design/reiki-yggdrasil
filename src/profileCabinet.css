@@ -135,6 +135,7 @@
 
 .profileForm input,
 .profileForm textarea,
+.profileForm select,
 .authCard input {
   width: 100%;
   border: 1px solid rgba(122, 99, 72, 0.24);
@@ -146,9 +147,19 @@
   font-size: 15px;
 }
 
+.profileForm select {
+  min-height: 46px;
+}
+
 .cabinetTwoColumns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cabinetThreeColumns {
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr 1fr;
   gap: 12px;
 }
 
@@ -244,6 +255,48 @@
   font-weight: 700;
 }
 
+.materialCabinet {
+  margin-top: 18px;
+}
+
+.materialList {
+  margin-top: 22px;
+}
+
+.materialCards {
+  display: grid;
+  gap: 14px;
+}
+
+.materialCard {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.materialCard h3 {
+  margin: 0 0 8px;
+}
+
+.materialCard p {
+  margin: 0 0 10px;
+}
+
+.materialCard small {
+  color: #7e6f5e;
+  font-weight: 700;
+}
+
+.materialImage {
+  width: 112px;
+  aspect-ratio: 1;
+  border-radius: 18px;
+  background-color: rgba(122, 99, 72, 0.14);
+  background-position: center;
+  background-size: cover;
+}
+
 @media (max-width: 760px) {
   .cabinetTopbar {
     grid-template-columns: 1fr;
@@ -257,7 +310,14 @@
 
   .cabinetGrid,
   .cabinetTwoColumns,
+  .cabinetThreeColumns,
+  .materialCard,
   .masterCatalogCard {
     grid-template-columns: 1fr;
+  }
+
+  .materialImage {
+    width: 100%;
+    max-width: 220px;
   }
 }
