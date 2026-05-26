@@ -1,7 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
-import { createOwnMaterial, listOwnMaterials } from "../lib/profileMaterialsClient.js";
+import {
+  MATERIAL_TYPES,
+  createEmptyMaterialForm,
+  createOwnMaterial,
+  listOwnMaterials,
+  materialStatusText,
+  normalizeMaterialForm,
+  publicationTypeLabel
+} from "../lib/profileMaterialsClient.js";
 import {
   clearStoredSession,
   getCurrentUser,
@@ -26,14 +34,6 @@ const EMPTY_PROFILE = {
   status: "draft"
 };
 
-const MATERIAL_TYPES = [
-  { value: "mandala", label: "Мандала" },
-  { value: "artifact", label: "Артефакт" },
-  { value: "practice", label: "Практика" }
-];
-
-const materialTypeLabels = Object.fromEntries(MATERIAL_TYPES.map((item) => [item.value, item.label]));
-
 const stepOptions = reikiLevels.flatMap((level) =>
   level.steps.map((step) => ({
     ...step,
@@ -46,16 +46,12 @@ const stepOptions = reikiLevels.flatMap((level) =>
 const firstStep = stepOptions[0];
 const firstSettings = sourcedStepSettings[firstStep?.id] || firstStep?.settings || [];
 
-const EMPTY_MATERIAL = {
-  type: "mandala",
-  title: "",
-  description: "",
-  image_url: "",
+const EMPTY_MATERIAL = createEmptyMaterialForm({
   step_id: firstStep?.id || "",
   step_title: firstStep?.title || "",
   setting_title: firstSettings[0]?.title || "",
   setting_index: firstSettings.length > 0 ? 1 : null
-};
+});
 
 function normalizeProfile(profile, user) {
   return {
@@ -77,15 +73,16 @@ function buildMaterialPayload(form, profileId, nextStatus) {
 
   return {
     profile_id: profileId,
-    type: form.type || "mandala",
-    title: form.title.trim(),
-    description: form.description.trim(),
-    image_url: form.image_url.trim(),
-    status: nextStatus,
-    step_id: step?.id || "",
-    step_title: step?.title || "",
-    setting_title: form.setting_title || "",
-    setting_index: settingIndex >= 0 ? settingIndex + 1 : null,
+    ...normalizeMaterialForm(
+      {
+        ...form,
+        step_id: step?.id || "",
+        step_title: step?.title || "",
+        setting_title: form.setting_title || "",
+        setting_index: settingIndex >= 0 ? settingIndex + 1 : null
+      },
+      nextStatus
+    ),
     updated_at: new Date().toISOString()
   };
 }
@@ -484,7 +481,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   <article className="materialCard" key={item.id}>
                     {item.image_url ? <div className="materialThumb" style={{ backgroundImage: `url(${item.image_url})` }} /> : <div className="materialThumb">◎</div>}
                     <div>
-                      <p className="cabinetEyebrow">{materialTypeLabels[item.type] || item.type} · {item.status === "pending" ? "на модерации" : item.status === "approved" ? "опубликовано" : "черновик"}</p>
+                      <p className="cabinetEyebrow">{publicationTypeLabel(item.type)} · {materialStatusText(item.status)}</p>
                       <h3>{item.title}</h3>
                       <p>{item.description || "Описание не заполнено."}</p>
                       <small>{[item.step_id, item.step_title, item.setting_title].filter(Boolean).join(" · ")}</small>

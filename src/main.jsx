@@ -283,7 +283,7 @@ function App() {
             <button
               key={section.id}
               className={activeTopSection === section.id ? "activeNav" : ""}
-              onClick={() => setActiveTopSection(section.id)}
+              onClick={() => section.path ? navigateTo(section.path) : setActiveTopSection(section.id)}
               type="button"
             >
               {section.label}

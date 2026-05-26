@@ -1,13 +1,81 @@
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const PUBLICATIONS_TABLE = "profile_cabinet_publications";
+
+export const MATERIAL_TYPES = [
+  { value: "mandala", label: "Мандала" },
+  { value: "artifact", label: "Артефакт" },
+  { value: "practice", label: "Практика" }
+];
+
+export const MATERIAL_STATUSES = [
+  { value: "draft", label: "черновик" },
+  { value: "pending", label: "на модерации" },
+  { value: "approved", label: "опубликовано" },
+  { value: "rejected", label: "нужна правка" }
+];
 
 function materialError(message, details = null) {
   const error = new Error(message);
   error.details = details;
   return error;
+}
+
+function cleanText(value) {
+  return String(value || "").trim();
+}
+
+function cleanType(value) {
+  return MATERIAL_TYPES.some((item) => item.value === value) ? value : "mandala";
+}
+
+function cleanStatus(value) {
+  return MATERIAL_STATUSES.some((item) => item.value === value) ? value : "draft";
+}
+
+function cleanSettingIndex(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 0 ? number : null;
+}
+
+export function createEmptyMaterialForm(overrides = {}) {
+  return {
+    type: "mandala",
+    title: "",
+    description: "",
+    image_url: "",
+    step_id: "",
+    step_title: "",
+    setting_title: "",
+    setting_index: null,
+    status: "draft",
+    ...overrides
+  };
+}
+
+export function publicationTypeLabel(type) {
+  return MATERIAL_TYPES.find((item) => item.value === type)?.label || "Мандала";
+}
+
+export function materialStatusText(status) {
+  return MATERIAL_STATUSES.find((item) => item.value === status)?.label || "черновик";
+}
+
+export function normalizeMaterialForm(form, requestedStatus = form?.status) {
+  return {
+    type: cleanType(form?.type),
+    title: cleanText(form?.title),
+    description: cleanText(form?.description),
+    image_url: cleanText(form?.image_url),
+    step_id: cleanText(form?.step_id),
+    step_title: cleanText(form?.step_title),
+    setting_title: cleanText(form?.setting_title),
+    setting_index: cleanSettingIndex(form?.setting_index),
+    status: cleanStatus(requestedStatus)
+  };
 }
 
 async function request(path, options = {}) {
