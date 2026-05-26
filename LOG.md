@@ -1,5 +1,26 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Greek mystery tradition UI integration
+
+Mode: continuation of PR #40 / `codex/mystery-tradition-detail-tabs`.
+
+Changed:
+
+- Wired `src/data/mysteryTraditions.js` into the DAO RI UI.
+- Added a mystery-mode view for `RY-L03-S03` / `Греческая магия. Зодиак`.
+- Replaced the left level list with Greek deity tabs while mystery mode is active.
+- Added `← Все уровни` to return from deity tabs to the normal DAO RI level/step list.
+- Added the central deity detail view with breadcrumb, title, archetype, description, articles, notes, and video placeholder.
+- Added a right panel for initiation CTA, mandalas, and artefacts/shop placeholders.
+- Kept all other DAO RI steps on the existing step card and practice/settings panel.
+
+Verification:
+
+- `npm install` passed.
+- `npm run check` passed; existing video placeholder warnings remain for `RY-L04-S04` and `RY-L04-S05`.
+- `npm run preview -- --port 4174` started successfully.
+- Browser smoke QA passed for desktop DAO RI navigation into `Уровень 3 → Храмовая магия → Греческая магия. Зодиак`, deity tab switching, `← Все уровни`, normal step UI restoration, mobile layout at 390px width, and console errors check.
+
 ## 2026-05-25 — Google OAuth button added to profile cabinet
 
 Mode: minimal safe implementation branch from `origin/main`.
