@@ -417,6 +417,66 @@ button {
   gap: 8px;
 }
 
+.backToLevels {
+  width: 100%;
+  min-height: 42px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(226, 178, 86, 0.52);
+  border-radius: 12px;
+  background: rgba(255, 244, 215, 0.08);
+  color: #f5c66a;
+  font-size: 12px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.mysteryTabs {
+  display: grid;
+  gap: 7px;
+}
+
+.mysteryTab {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 135, 34, 0.42);
+  background: linear-gradient(180deg, rgba(16, 15, 14, 0.98), rgba(8, 8, 7, 0.98));
+  color: #fff4d7;
+  text-align: left;
+}
+
+.mysteryTab b {
+  color: #f4be5d;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mysteryTab span {
+  min-width: 0;
+  color: rgba(255, 244, 215, 0.86);
+  font-size: 13px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.mysteryTab.active {
+  border-color: #ffd374;
+  background: linear-gradient(90deg, #050505 0%, #7e510f 31%, #d6952d 80%, #ffc861 100%);
+  box-shadow: 0 0 22px rgba(255, 180, 48, 0.72), inset 0 0 22px rgba(255, 224, 130, 0.22);
+}
+
+.mysteryTab.active b,
+.mysteryTab.active span {
+  color: #ffffff;
+  text-shadow: 0 1px 12px rgba(70, 32, 0, 0.72);
+}
+
 .stageCard {
   padding: 15px;
   background: rgba(255, 255, 255, 0.48);
@@ -620,9 +680,94 @@ button {
   line-height: 1.4;
 }
 
+.mysteryStage {
+  display: grid;
+  gap: 14px;
+}
+
+.mysteryHero {
+  align-items: start;
+}
+
+.mysteryMedallion {
+  background: radial-gradient(circle at 50% 42%, rgba(245, 198, 106, 0.32), transparent 42%), #080705;
+}
+
+.mysteryInfoGrid {
+  margin-top: 0;
+}
+
+.mysteryVideoPlaceholder {
+  padding: 14px;
+  border: 1px solid rgba(203, 152, 64, 0.31);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.43);
+}
+
+.mysteryVideoPlaceholder b,
+.mysteryPanelBlock h3 {
+  display: block;
+  margin: 0 0 8px;
+  color: #9a6618;
+  font-size: 13px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.mysteryVideoPlaceholder p,
+.mysteryPanelBlock p {
+  margin: 0;
+  color: #5f5347;
+  font-size: 13px;
+  line-height: 1.46;
+}
+
 .practicePanel {
   padding: 15px;
   background: linear-gradient(180deg, rgba(255, 248, 236, 0.94), rgba(244, 232, 212, 0.93));
+}
+
+.mysteryPanel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.mysteryPanelBlock {
+  padding: 13px;
+  border: 1px solid rgba(203, 152, 64, 0.32);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.initiationBlock button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.55);
+  border-radius: 12px;
+  background: linear-gradient(90deg, #161411, #8a5b16 58%, #c38629);
+  color: #fff8e8;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.mysteryLinks {
+  display: grid;
+  gap: 8px;
+}
+
+.mysteryLinks a {
+  color: #6d4511;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.mysteryEmpty {
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.44);
 }
 
 .tabs {

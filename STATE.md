@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-25
+Last updated: 2026-05-26
 
 ## Current verified repo state
 
@@ -152,6 +152,23 @@ Verified by GitHub file inspection:
 - The center card and right practice panel remain tied to the selected Reiki step and do not change when non-Reiki top sections are selected.
 - `БЕСПЛАТНЫЕ КУРСЫ` shows the PR #11 free-course titles as left-menu cards.
 - Direct free-course URLs and embed URLs are not verified; records remain `courseUrl: null`, `embedUrl: null`, and `urlStatus: "needs verification"`.
+
+## Mystery traditions UI state
+
+PR #40 adds static mystery-tradition data in `src/data/mysteryTraditions.js` and wires the first UI mode into DAO RI.
+
+Current implemented trigger:
+
+- `RY-L03-S03` — `Греческая магия. Зодиак`
+
+When this step is selected inside DAO RI:
+
+- the left panel switches from the normal level/step list to Greek deity tabs;
+- `← Все уровни` returns to the normal DAO RI list without changing the selected step;
+- the center panel shows the selected deity archetype, description, articles, notes, and video placeholder;
+- the right panel shows initiation, mandalas, and artefacts/shop placeholders for the selected deity.
+
+All deity content remains `needs_review` / placeholder until author-approved materials are available.
 
 Verified locally on 2026-05-15:
 
