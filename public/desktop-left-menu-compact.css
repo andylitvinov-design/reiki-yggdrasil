@@ -1,0 +1,170 @@
+@media (min-width: 981px) {
+  .dashboard {
+    grid-template-columns: clamp(276px, 22vw, 304px) minmax(0, 1fr) clamp(330px, 28vw, 365px);
+  }
+
+  .leftPiano {
+    padding: 11px;
+  }
+
+  .leftMenuCards {
+    gap: 9px;
+  }
+
+  .leftMenuCard {
+    min-height: 82px;
+    grid-template-columns: 78px minmax(0, 1fr);
+    grid-template-areas:
+      "preview title"
+      "preview description"
+      "preview meta";
+    column-gap: 12px;
+    row-gap: 4px;
+    align-items: center;
+    padding: 12px 13px;
+    border-radius: 16px;
+  }
+
+  .leftMenuCard::before {
+    content: "";
+    grid-area: preview;
+    width: 74px;
+    height: 42px;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #25231f, #030303 78%);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.12), 0 7px 14px rgba(0, 0, 0, 0.42);
+    z-index: 1;
+  }
+
+  .leftMenuCard b {
+    grid-area: title;
+    display: -webkit-box;
+    max-width: 100%;
+    color: #17120c;
+    font-size: clamp(15px, 1.25vw, 19px);
+    line-height: 1.03;
+    letter-spacing: 0.15px;
+    text-transform: uppercase;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: auto;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .leftMenuCard p {
+    grid-area: description;
+    display: -webkit-box;
+    max-width: 100%;
+    margin: 0;
+    color: rgba(42, 31, 20, 0.72);
+    font-size: 11px;
+    line-height: 1.25;
+    word-break: normal;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .leftMenuStatus,
+  .leftMenuCta {
+    grid-area: meta;
+    align-self: start;
+  }
+
+  .leftMenuStatus {
+    max-width: 100%;
+    color: rgba(109, 69, 17, 0.72);
+    font-size: 10.5px;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .leftMenuCta {
+    min-height: 26px;
+    padding: 5px 9px;
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .leftMenuCard.active b,
+  .leftMenuCard.active p,
+  .leftMenuCard.active small,
+  .leftMenuCard.active span {
+    color: #fffaf0;
+  }
+
+  .leftMenuCard.active p,
+  .leftMenuCard.active .leftMenuStatus {
+    color: rgba(255, 250, 240, 0.84);
+  }
+
+  .leftMenuCard.active::before {
+    background: linear-gradient(180deg, #1d1b18, #030303 78%);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.14), 0 0 18px rgba(255, 211, 116, 0.38);
+  }
+
+  .mysteryTabs {
+    gap: 7px;
+  }
+
+  .mysteryTab {
+    min-height: 48px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 9px;
+    padding: 8px 10px;
+  }
+
+  .mysteryTab b {
+    font-size: 16px;
+  }
+
+  .mysteryTab span {
+    display: -webkit-box;
+    font-size: 12px;
+    line-height: 1.15;
+    letter-spacing: 0.25px;
+    word-break: normal;
+    overflow-wrap: normal;
+    hyphens: auto;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1320px) {
+  .dashboard {
+    grid-template-columns: 276px minmax(0, 1fr) 330px;
+  }
+
+  .leftMenuCard {
+    min-height: 76px;
+    grid-template-columns: 68px minmax(0, 1fr);
+    column-gap: 10px;
+    padding: 10px 11px;
+  }
+
+  .leftMenuCard::before {
+    width: 64px;
+    height: 38px;
+  }
+
+  .leftMenuCard b {
+    font-size: 15px;
+    line-height: 1.02;
+  }
+
+  .leftMenuCard p {
+    font-size: 10.5px;
+  }
+
+  .mysteryTab span {
+    font-size: 11.5px;
+  }
+}
