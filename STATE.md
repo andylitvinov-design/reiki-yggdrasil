@@ -42,6 +42,7 @@ Confirmed files:
 - `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
 - `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
 - `supabase/migrations/20260526_power_place_persistence.sql`
+- `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 
 Still not part of the current app:
 
@@ -137,6 +138,7 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Active constructor object positions support local upload and selection from reusable profile/material image URLs.
 - Adds a print action scoped to the mandala composition only.
 - Branch `codex/power-place-persistence-plans` adds metadata persistence for saved compositions, profile-level Start/Pro limits, client/goal photo references, and selected mystery-tradition asset references.
+- Power-place upgrade #5 adds `Бизнес-мандала` and `ДАО` constructor formats, resource comparison mode/comments, and additive persistence fields for those settings.
 - Start allows 7 saved Power Place compositions and 10 client/goal photos.
 - Pro allows 20 saved Power Place compositions and 30 client/goal photos.
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
@@ -150,6 +152,7 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - apply `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
 - apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
 - apply `supabase/migrations/20260526_power_place_persistence.sql`
+- apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live

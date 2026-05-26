@@ -8,9 +8,11 @@ const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
 const VALID_PLANS = ["start", "pro"];
-const VALID_CONSTRUCTOR_TYPES = ["client", "altar"];
+const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
+const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
+const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -29,6 +31,14 @@ function cleanText(value) {
 
 function cleanJsonObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function cleanObjectRefs(value) {
+  return Object.fromEntries(
+    Object.entries(cleanJsonObject(value))
+      .map(([key, item]) => [cleanText(key), cleanText(item)])
+      .filter(([key, item]) => key && item && !item.startsWith("data:image/"))
+  );
 }
 
 function requestSession(session) {
@@ -114,6 +124,8 @@ export function normalizePowerPlaceComposition(composition) {
     : "client";
   const geometry = Number(composition?.geometry);
   const ratio = cleanText(composition?.altar_center_ratio);
+  const businessZoneCount = Number(composition?.business_vertex_zone_count);
+  const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
 
   return {
     profile_id: cleanText(composition?.profile_id),
@@ -121,11 +133,15 @@ export function normalizePowerPlaceComposition(composition) {
     constructor_type: constructorType,
     geometry: constructorType === "client" && VALID_GEOMETRIES.includes(geometry) ? geometry : null,
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
+    business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
     cover_ref: composition?.cover_ref || null,
-    object_refs: cleanJsonObject(composition?.object_refs),
+    object_refs: cleanObjectRefs(composition?.object_refs),
     central_photo_id: cleanText(composition?.central_photo_id) || null,
     tradition_id: constructorType === "altar" ? cleanText(composition?.tradition_id) : "",
-    tradition_title: constructorType === "altar" ? cleanText(composition?.tradition_title) : ""
+    tradition_title: constructorType === "altar" ? cleanText(composition?.tradition_title) : "",
+    resource_comparison_mode: VALID_RESOURCE_COMPARISON_MODES.includes(resourceComparisonMode) ? resourceComparisonMode : "client_photo",
+    resource_without_mandala_comment: cleanText(composition?.resource_without_mandala_comment),
+    resource_with_mandala_comment: cleanText(composition?.resource_with_mandala_comment)
   };
 }
 

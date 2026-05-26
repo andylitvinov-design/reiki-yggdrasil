@@ -61,11 +61,15 @@ assert.deepEqual(
     constructor_type: "altar",
     geometry: 99,
     altar_center_ratio: "3",
+    business_vertex_zone_count: 3,
     cover_ref: { id: "cover-gold", type: "placeholder" },
     object_refs: { "altar-top-3": "https://example.com/object.jpg" },
     central_photo_id: "photo-1",
     tradition_id: "greek",
-    tradition_title: " Греческие мистерии "
+    tradition_title: " Греческие мистерии ",
+    resource_comparison_mode: "photo_mandala",
+    resource_without_mandala_comment: " До: мало сил ",
+    resource_with_mandala_comment: " После: яснее цель "
   }),
   {
     profile_id: "profile-1",
@@ -73,11 +77,15 @@ assert.deepEqual(
     constructor_type: "altar",
     geometry: null,
     altar_center_ratio: "3",
+    business_vertex_zone_count: 3,
     cover_ref: { id: "cover-gold", type: "placeholder" },
     object_refs: { "altar-top-3": "https://example.com/object.jpg" },
     central_photo_id: "photo-1",
     tradition_id: "greek",
-    tradition_title: "Греческие мистерии"
+    tradition_title: "Греческие мистерии",
+    resource_comparison_mode: "photo_mandala",
+    resource_without_mandala_comment: "До: мало сил",
+    resource_with_mandala_comment: "После: яснее цель"
   }
 );
 
@@ -98,10 +106,89 @@ assert.deepEqual(
     constructor_type: "client",
     geometry: 12,
     altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
     cover_ref: null,
     object_refs: {},
     central_photo_id: "photo-2",
     tradition_id: "",
-    tradition_title: ""
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
+  }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Бизнес-цель ",
+    constructor_type: "business",
+    geometry: 8,
+    altar_center_ratio: "2",
+    business_vertex_zone_count: "3",
+    object_refs: {
+      "business-goal-1": "https://example.com/goal.jpg",
+      "business-function-2": "data:image/png;base64,local",
+      "business-structure-3": " https://example.com/structure.jpg "
+    },
+    central_photo_id: "photo-3",
+    tradition_id: "greek",
+    tradition_title: "Греческие мистерии",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "Фото без поддержки",
+    resource_with_mandala_comment: "Фото с мандалой"
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Бизнес-цель",
+    constructor_type: "business",
+    geometry: null,
+    altar_center_ratio: "2",
+    business_vertex_zone_count: 3,
+    cover_ref: null,
+    object_refs: {
+      "business-goal-1": "https://example.com/goal.jpg",
+      "business-structure-3": "https://example.com/structure.jpg"
+    },
+    central_photo_id: "photo-3",
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "Фото без поддержки",
+    resource_with_mandala_comment: "Фото с мандалой"
+  }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " ДАО ",
+    constructor_type: "dao",
+    business_vertex_zone_count: 2,
+    object_refs: {
+      "dao-water": "https://example.com/water.jpg",
+      "dao-fire": "https://example.com/fire.jpg"
+    },
+    central_photo_id: "photo-4",
+    resource_comparison_mode: "bad"
+  }),
+  {
+    profile_id: "profile-1",
+    title: "ДАО",
+    constructor_type: "dao",
+    geometry: null,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    cover_ref: null,
+    object_refs: {
+      "dao-water": "https://example.com/water.jpg",
+      "dao-fire": "https://example.com/fire.jpg"
+    },
+    central_photo_id: "photo-4",
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
   }
 );

@@ -1,5 +1,25 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Power-place upgrade #5: Business mandala and DAO
+
+Mode: additive `/profile` constructor enhancement on branch `codex/power-place-upgrade-5-business-dao`.
+
+Changed:
+
+- Added `Бизнес-мандала` constructor format with an upward triangle, three labeled vertices, and a shared 1/3 zone count per vertex.
+- Added `ДАО` constructor format with a central Usin circle and five selectable element image zones: `Вода`, `Дерево`, `Огонь`, `Земля`, `Металл`.
+- Kept the central photo selector restricted to saved `Фото клиентов / целей`.
+- Added resource comparison mode `Фото клиента` / `Фото + мандала` and comments for resource before/after mandala.
+- Included selected format and resource comments in the print composition area.
+- Extended Power Place composition normalization and tests for `client`, `altar`, `business`, and `dao` payloads.
+- Added `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql` to relax constructor type checks and add business/resource fields.
+
+Needs verification:
+
+- Apply the new Supabase migration in the live project before treating production save/reload for the new fields as verified.
+- Verify authenticated save/reload against production Supabase after migration.
+- Supabase Storage upload remains needs verification; local `data:image` previews are still filtered from saved payloads.
+
 ## 2026-05-26 — Power-place persistence for plans, traditions, and client photos
 
 Mode: additive `/profile` persistence implementation on branch `codex/power-place-persistence-plans`.
