@@ -43,6 +43,7 @@ Confirmed files:
 - `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
 - `supabase/migrations/20260526_power_place_persistence.sql`
 - `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
+- `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
 
 Still not part of the current app:
 
@@ -139,6 +140,7 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Adds a print action scoped to the mandala composition only.
 - Branch `codex/power-place-persistence-plans` adds metadata persistence for saved compositions, profile-level Start/Pro limits, client/goal photo references, and selected mystery-tradition asset references.
 - Power-place upgrade #5 adds `Бизнес-мандала` and `ДАО` constructor formats, resource comparison mode/comments, and additive persistence fields for those settings.
+- Power-place upgrade #6 adds `Зодиак` with 2/4/6/8/12 visible clock positions, `zodiac_visible_count`, and `zodiac-*` image refs in the existing composition `object_refs`.
 - Start allows 7 saved Power Place compositions and 10 client/goal photos.
 - Pro allows 20 saved Power Place compositions and 30 client/goal photos.
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
@@ -153,10 +155,19 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
 - apply `supabase/migrations/20260526_power_place_persistence.sql`
 - apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
+- apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live
 - after first admin login, add a row to `profile_cabinet_admins`
+
+Master chat state:
+
+- `/profile` has a `Чаты` tab for authenticated masters.
+- Master cabinet IDs are displayed as `RY-<first 8 profile uuid chars>` and search matches display name, raw UUID, or formatted ID.
+- Chat tables are private by RLS: no anon policies, only participants can read conversations/messages, only participants can send, and favorites are owner-only.
+- Favorite chats are sorted before non-favorites in the cabinet UI.
+- Live chat persistence remains needs verification until the upgrade #6 migration is applied in Supabase and tested with two authenticated master profiles.
 
 ## Verification status
 
@@ -227,6 +238,7 @@ Not verified:
 - Supabase Google provider configured and verified
 - first admin row exists in `profile_cabinet_admins`
 - full authenticated owner/admin data flow against production Supabase
+- upgrade #6 chat RLS and two-master message flow against production Supabase
 
 ## Risks
 

@@ -35,6 +35,15 @@ import {
   normalizeAccountPlan,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
+import {
+  createConversationWithMaster,
+  formatCabinetId,
+  listApprovedMasterProfiles,
+  listOwnChatThreads,
+  profileMatchesQuery,
+  sendChatMessage,
+  setChatFavorite
+} from "../lib/masterChatClient.js";
 import "../profileMandalaWorkspace.css";
 
 const EMPTY_PROFILE = {
@@ -74,7 +83,23 @@ const CONSTRUCTOR_TYPES = [
   { value: "client", label: "Мандала клиенту" },
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес-мандала" },
-  { value: "dao", label: "ДАО" }
+  { value: "dao", label: "ДАО" },
+  { value: "zodiac", label: "Зодиак" }
+];
+const ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
+const ZODIAC_SIGNS = [
+  { id: "aries", className: "aries", label: "Овен" },
+  { id: "taurus", className: "taurus", label: "Телец" },
+  { id: "gemini", className: "gemini", label: "Близнецы" },
+  { id: "cancer", className: "cancer", label: "Рак" },
+  { id: "leo", className: "leo", label: "Лев" },
+  { id: "virgo", className: "virgo", label: "Дева" },
+  { id: "libra", className: "libra", label: "Весы" },
+  { id: "scorpio", className: "scorpio", label: "Скорпион" },
+  { id: "sagittarius", className: "sagittarius", label: "Стрелец" },
+  { id: "capricorn", className: "capricorn", label: "Козерог" },
+  { id: "aquarius", className: "aquarius", label: "Водолей" },
+  { id: "pisces", className: "pisces", label: "Рыбы" }
 ];
 const BUSINESS_VERTEX_ZONE_COUNTS = [1, 3];
 const BUSINESS_VERTICES = [
@@ -228,6 +253,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [fileNotice, setFileNotice] = useState("");
   const [powerSourceCount, setPowerSourceCount] = useState(4);
   const [constructorType, setConstructorType] = useState("client");
+  const [zodiacVisibleCount, setZodiacVisibleCount] = useState(12);
   const [businessVertexZoneCount, setBusinessVertexZoneCount] = useState(1);
   const [altarCenterRatio, setAltarCenterRatio] = useState("1");
   const [objectImages, setObjectImages] = useState({});
@@ -241,6 +267,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceComparisonMode, setResourceComparisonMode] = useState("client_photo");
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
+  const [workspaceTab, setWorkspaceTab] = useState("workspace");
+  const [approvedMasters, setApprovedMasters] = useState([]);
+  const [chatThreads, setChatThreads] = useState([]);
+  const [selectedConversationId, setSelectedConversationId] = useState("");
+  const [masterSearch, setMasterSearch] = useState("");
+  const [chatDraft, setChatDraft] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -342,11 +375,30 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }));
     }
 
+    if (constructorType === "zodiac") {
+      return ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => ({
+        id: `zodiac-${index + 1}`,
+        label: sign.label
+      }));
+    }
+
     return Array.from({ length: powerSourceCount }, (_, index) => ({
       id: `source-${index + 1}`,
       label: sourceLabel(powerSourceCount, index)
     }));
-  }, [businessVertexZoneCount, constructorType, powerSourceCount]);
+  }, [businessVertexZoneCount, constructorType, powerSourceCount, zodiacVisibleCount]);
+
+  const filteredMasters = useMemo(() => approvedMasters
+    .filter((master) => master.id !== profile?.id)
+    .filter((master) => profileMatchesQuery(master, masterSearch))
+    .slice(0, 12), [approvedMasters, masterSearch, profile?.id]);
+
+  const selectedChatThread = useMemo(
+    () => chatThreads.find((thread) => thread.conversation_id === selectedConversationId) || null,
+    [chatThreads, selectedConversationId]
+  );
+
+  const selectedChatMessages = selectedChatThread?.messages || [];
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -477,6 +529,68 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     };
   }, [profile?.id, selectedTraditionId, session]);
 
+  const refreshChats = async () => {
+    if (!profile?.id || !session?.access_token) {
+      setApprovedMasters([]);
+      setChatThreads([]);
+      return;
+    }
+
+    setChatLoading(true);
+
+    try {
+      const [masters, threads] = await Promise.all([
+        listApprovedMasterProfiles(session),
+        listOwnChatThreads(profile.id, session)
+      ]);
+
+      setApprovedMasters(masters || []);
+      setChatThreads(threads || []);
+      setSelectedConversationId((current) => current || threads?.[0]?.conversation_id || "");
+    } catch (err) {
+      setError(err.message || "Не удалось загрузить чаты мастеров.");
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadChats() {
+      if (!profile?.id || !session?.access_token) {
+        setApprovedMasters([]);
+        setChatThreads([]);
+        return;
+      }
+
+      setChatLoading(true);
+
+      try {
+        const [masters, threads] = await Promise.all([
+          listApprovedMasterProfiles(session),
+          listOwnChatThreads(profile.id, session)
+        ]);
+
+        if (!cancelled) {
+          setApprovedMasters(masters || []);
+          setChatThreads(threads || []);
+          setSelectedConversationId((current) => current || threads?.[0]?.conversation_id || "");
+        }
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Не удалось загрузить чаты мастеров.");
+      } finally {
+        if (!cancelled) setChatLoading(false);
+      }
+    }
+
+    loadChats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
   const updateField = (field, value) => {
     setProfile((current) => ({ ...current, [field]: value }));
   };
@@ -522,6 +636,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     title: compositionTitle,
     constructor_type: constructorType,
     geometry: constructorType === "client" ? powerSourceCount : null,
+    zodiac_visible_count: zodiacVisibleCount,
     altar_center_ratio: altarCenterRatio,
     business_vertex_zone_count: businessVertexZoneCount,
     cover_ref: buildCoverRef(),
@@ -539,6 +654,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setCompositionTitle(composition.title || "");
     setConstructorType(composition.constructor_type || "client");
     if (composition.geometry) setPowerSourceCount(Number(composition.geometry));
+    setZodiacVisibleCount(ZODIAC_VISIBLE_COUNTS.includes(Number(composition.zodiac_visible_count)) ? Number(composition.zodiac_visible_count) : 12);
     setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
     setAltarCenterRatio(composition.altar_center_ratio || "1");
     setObjectImages(composition.object_refs || {});
@@ -796,6 +912,58 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const handleStartChat = async (masterId) => {
+    setMessage("");
+    setError("");
+
+    if (!profile?.id) {
+      setError("Сначала сохраните профиль мастера.");
+      return;
+    }
+
+    try {
+      const conversationId = await createConversationWithMaster(profile.id, masterId, session);
+      await refreshChats();
+      setSelectedConversationId(conversationId);
+      setWorkspaceTab("chats");
+    } catch (err) {
+      setError(err.message || "Не удалось открыть чат.");
+    }
+  };
+
+  const handleToggleFavorite = async (thread) => {
+    setMessage("");
+    setError("");
+
+    try {
+      await setChatFavorite(profile.id, thread.conversation_id, !thread.is_favorite, session);
+      await refreshChats();
+      setSelectedConversationId(thread.conversation_id);
+    } catch (err) {
+      setError(err.message || "Не удалось обновить избранное.");
+    }
+  };
+
+  const handleSendChatMessage = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setError("");
+
+    if (!selectedConversationId) {
+      setError("Выберите чат.");
+      return;
+    }
+
+    try {
+      await sendChatMessage(selectedConversationId, profile.id, chatDraft, session);
+      setChatDraft("");
+      await refreshChats();
+      setSelectedConversationId(selectedConversationId);
+    } catch (err) {
+      setError(err.message || "Не удалось отправить сообщение.");
+    }
+  };
+
   const handleLogout = () => {
     clearStoredSession();
     setSession(null);
@@ -810,6 +978,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedCentralPhotoId("");
     setSelectedCompositionId("");
     setCompositionTitle("");
+    setApprovedMasters([]);
+    setChatThreads([]);
+    setSelectedConversationId("");
+    setMasterSearch("");
+    setChatDraft("");
+    setWorkspaceTab("workspace");
     setFileNotice("");
     setMessage("Вы вышли из кабинета.");
   };
@@ -853,6 +1027,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               <div>
                 <p className="cabinetEyebrow">Профиль мастера</p>
                 <h2>{profile.display_name || "Новый профиль"}</h2>
+                {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
               </div>
               <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
             </div>
@@ -919,7 +1094,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
           </aside>
 
-          <section className="mandalaWorkspace">
+          <section className={`mandalaWorkspace${workspaceTab === "chats" ? " chatMode" : ""}`}>
             <div className="mandalaHero">
               <div className="mandalaHeroSeal">♣</div>
               <div>
@@ -940,6 +1115,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             )}
 
+            <div className="workspaceTabs" role="tablist" aria-label="Разделы кабинета">
+              <button className={workspaceTab === "workspace" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("workspace")}>Мастерская</button>
+              <button className={workspaceTab === "chats" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("chats")}>Чаты</button>
+            </div>
+
+            {workspaceTab !== "chats" && (
+              <>
             <div className="flowTuningPanel">
               <div>
                 <p className="cabinetEyebrow">Настройка потока</p>
@@ -1091,6 +1273,90 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             </section>
 
+              </>
+            )}
+
+            {workspaceTab === "chats" && (
+              <section className="masterChatWorkspace" aria-label="Чаты мастеров">
+                <aside className="chatMasterList">
+                  <div className="chatPanelHeader">
+                    <div>
+                      <p className="cabinetEyebrow">Чаты</p>
+                      <h2>Мастера</h2>
+                    </div>
+                    <span>{chatLoading ? "..." : chatThreads.length}</span>
+                  </div>
+                  <input
+                    value={masterSearch}
+                    onChange={(event) => setMasterSearch(event.target.value)}
+                    placeholder="Поиск по имени или ID"
+                  />
+
+                  <div className="chatThreadList">
+                    {chatThreads.map((thread) => (
+                      <button
+                        className={selectedConversationId === thread.conversation_id ? "active" : ""}
+                        key={thread.conversation_id}
+                        onClick={() => setSelectedConversationId(thread.conversation_id)}
+                        type="button"
+                      >
+                        <span>{thread.is_favorite ? "★" : "☆"}</span>
+                        <b>{thread.master?.display_name || "Мастер"}</b>
+                        <small>{formatCabinetId(thread.master?.id)}</small>
+                      </button>
+                    ))}
+                    {chatThreads.length === 0 && <p>Пока нет начатых чатов.</p>}
+                  </div>
+
+                  <div className="chatSearchResults">
+                    <p className="cabinetEyebrow">Найти мастера</p>
+                    {filteredMasters.map((master) => (
+                      <button key={master.id} type="button" onClick={() => handleStartChat(master.id)}>
+                        <span style={imageStyle(master.avatar_url)}>{!isImagePreview(master.avatar_url) && "◎"}</span>
+                        <b>{master.display_name || "Мастер"}</b>
+                        <small>{formatCabinetId(master.id)}</small>
+                      </button>
+                    ))}
+                    {filteredMasters.length === 0 && <p>Мастера по этому запросу не найдены.</p>}
+                  </div>
+                </aside>
+
+                <section className="chatConversationPanel">
+                  {selectedChatThread ? (
+                    <>
+                      <div className="chatConversationHeader">
+                        <div>
+                          <p className="cabinetEyebrow">{formatCabinetId(selectedChatThread.master?.id)}</p>
+                          <h2>{selectedChatThread.master?.display_name || "Чат мастера"}</h2>
+                        </div>
+                        <button type="button" onClick={() => handleToggleFavorite(selectedChatThread)}>
+                          {selectedChatThread.is_favorite ? "Убрать из избранного" : "В избранное"}
+                        </button>
+                      </div>
+                      <div className="chatMessages" aria-live="polite">
+                        {selectedChatMessages.map((item) => (
+                          <div className={item.sender_profile_id === profile.id ? "own" : ""} key={item.id}>
+                            <p>{item.body}</p>
+                            <small>{new Date(item.created_at).toLocaleString("ru-RU")}</small>
+                          </div>
+                        ))}
+                        {selectedChatMessages.length === 0 && <p className="chatEmpty">Напишите первое сообщение. Чат виден только участникам.</p>}
+                      </div>
+                      <form className="chatComposer" onSubmit={handleSendChatMessage}>
+                        <textarea value={chatDraft} onChange={(event) => setChatDraft(event.target.value)} rows="3" placeholder="Сообщение мастеру" />
+                        <button className="cabinetPrimary" type="submit">Отправить</button>
+                      </form>
+                    </>
+                  ) : (
+                    <div className="chatEmptyState">
+                      <b>Выберите мастера слева</b>
+                      <p>Поиск работает по имени и ID кабинета. Избранные чаты закрепляются сверху.</p>
+                    </div>
+                  )}
+                </section>
+              </section>
+            )}
+
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
               <div className="powerPlaceHeader">
                 <div>
@@ -1165,6 +1431,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           className={businessVertexZoneCount === count ? "active" : ""}
                           key={count}
                           onClick={() => setBusinessVertexZoneCount(count)}
+                          type="button"
+                        >
+                          {count}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {constructorType === "zodiac" && (
+                    <div className="zodiacCountSelector" aria-label="Количество видимых позиций зодиака">
+                      <span>Позиции зодиака</span>
+                      {ZODIAC_VISIBLE_COUNTS.map((count) => (
+                        <button
+                          className={zodiacVisibleCount === count ? "active" : ""}
+                          key={count}
+                          onClick={() => setZodiacVisibleCount(count)}
                           type="button"
                         >
                           {count}
@@ -1289,6 +1570,32 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         </div>
                       ))}
                     </div>
+                  ) : constructorType === "zodiac" ? (
+                    <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount}`}>
+                      <div className={centerImage ? "zodiacCenterPhoto hasImage" : "zodiacCenterPhoto"} style={imageStyle(centerImage)}>
+                        {!centerImage && <span>◎</span>}
+                      </div>
+                      <div className="zodiacClockFace" aria-hidden="true">
+                        <span>ЗОДИАК</span>
+                      </div>
+                      {ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => {
+                        const slotId = `zodiac-${index + 1}`;
+                        const slotImage = objectImages[slotId];
+
+                        return (
+                          <div className={`zodiacPosition ${sign.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
+                            <div
+                              className="zodiacPositionImage"
+                              style={imageStyle(slotImage)}
+                              title={sign.label}
+                            >
+                              {!slotImage && <span>{index + 1}</span>}
+                            </div>
+                            <b>{sign.label}</b>
+                          </div>
+                        );
+                      })}
+                    </div>
                   ) : (
                     <div className="daoMandalaSheet">
                       <div className={centerImage ? "daoCenterPhoto hasImage" : "daoCenterPhoto"} style={imageStyle(centerImage)}>
@@ -1323,7 +1630,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         ? "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."
                         : constructorType === "business"
                           ? "Бизнес-мандала собирает цель, функцию и структуру в треугольник с единым числом зон на каждой вершине."
-                          : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
+                          : constructorType === "zodiac"
+                            ? "Зодиак ставит фото клиента или цели в центр и раскладывает до 12 образов по часовому кругу."
+                            : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
                   </p>
                   <div className="resourcePrintNotes">
                     <p><b>Сравнение ресурса:</b> {RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото клиента"}</p>
@@ -1449,6 +1758,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             </section>
 
+            {workspaceTab !== "chats" && (
             <div className="mandalaGallery">
               <div className="cabinetFormHeader">
                 <div>
@@ -1487,6 +1797,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </div>
               )}
             </div>
+            )}
           </section>
         </div>
       )}

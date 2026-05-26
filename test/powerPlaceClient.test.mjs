@@ -76,6 +76,7 @@ assert.deepEqual(
     title: "Алтарь цели",
     constructor_type: "altar",
     geometry: null,
+    zodiac_visible_count: 12,
     altar_center_ratio: "3",
     business_vertex_zone_count: 3,
     cover_ref: { id: "cover-gold", type: "placeholder" },
@@ -105,6 +106,7 @@ assert.deepEqual(
     title: "Место силы",
     constructor_type: "client",
     geometry: 12,
+    zodiac_visible_count: 12,
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     cover_ref: null,
@@ -143,6 +145,7 @@ assert.deepEqual(
     title: "Бизнес-цель",
     constructor_type: "business",
     geometry: null,
+    zodiac_visible_count: 12,
     altar_center_ratio: "2",
     business_vertex_zone_count: 3,
     cover_ref: null,
@@ -177,6 +180,7 @@ assert.deepEqual(
     title: "ДАО",
     constructor_type: "dao",
     geometry: null,
+    zodiac_visible_count: 12,
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     cover_ref: null,
@@ -185,6 +189,76 @@ assert.deepEqual(
       "dao-fire": "https://example.com/fire.jpg"
     },
     central_photo_id: "photo-4",
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
+  }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Зодиак цели ",
+    constructor_type: "zodiac",
+    geometry: 4,
+    zodiac_visible_count: "8",
+    object_refs: {
+      "zodiac-1": " https://example.com/aries.jpg ",
+      "zodiac-2": "data:image/png;base64,local",
+      "source-1": "https://example.com/old-source.jpg"
+    },
+    central_photo_id: "photo-5",
+    tradition_id: "greek",
+    tradition_title: "Греческие мистерии"
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Зодиак цели",
+    constructor_type: "zodiac",
+    geometry: null,
+    zodiac_visible_count: 8,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    cover_ref: null,
+    object_refs: {
+      "zodiac-1": "https://example.com/aries.jpg",
+      "source-1": "https://example.com/old-source.jpg"
+    },
+    central_photo_id: "photo-5",
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
+  }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Зодиак fallback ",
+    constructor_type: "zodiac",
+    zodiac_visible_count: 5,
+    object_refs: {
+      "zodiac-12": "https://example.com/fish.jpg"
+    },
+    central_photo_id: "photo-6"
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Зодиак fallback",
+    constructor_type: "zodiac",
+    geometry: null,
+    zodiac_visible_count: 12,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    cover_ref: null,
+    object_refs: {
+      "zodiac-12": "https://example.com/fish.jpg"
+    },
+    central_photo_id: "photo-6",
     tradition_id: "",
     tradition_title: "",
     resource_comparison_mode: "client_photo",

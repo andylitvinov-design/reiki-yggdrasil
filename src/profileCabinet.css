@@ -238,6 +238,15 @@
   white-space: nowrap;
 }
 
+.cabinetPublicId {
+  display: inline-block;
+  margin-top: 6px;
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
 .status-approved {
   background: rgba(79, 143, 67, 0.13);
   color: #426e31;
