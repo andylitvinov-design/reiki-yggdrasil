@@ -38,6 +38,16 @@ Supabase setup steps:
 4. Add the Vercel production env vars named above.
 5. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
+Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
+
+```sql
+insert into public.profile_cabinet_admins (user_id, email)
+select id, email
+from auth.users
+where email = '<VITE_ADMIN_EMAIL value>'
+on conflict (user_id) do update set email = excluded.email;
+```
+
 Google OAuth setup:
 
 1. Enable the Google provider in Supabase Auth.
