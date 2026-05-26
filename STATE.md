@@ -40,6 +40,8 @@ Confirmed files:
 - `supabase/migrations/20260524_profile_cabinet_mvp.sql`
 - `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
 - `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
+- `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
+- `supabase/migrations/20260526_power_place_persistence.sql`
 
 Still not part of the current app:
 
@@ -124,7 +126,7 @@ Issue #41 adds the first profile materials MVP:
 - Materials save into `profile_cabinet_publications` as either `draft` or `pending`.
 - The first version stores an image URL only. Supabase Storage upload is a follow-up requiring a bucket, storage policies, and live verification.
 
-Power-place mandala constructor branch `codex/power-place-cover-and-geometry` extends the authenticated `/profile` mandala workspace as a UI-first local-state MVP:
+Power-place mandala constructor branches extend the authenticated `/profile` mandala workspace:
 
 - Adds a compact `Места силы / Магическая мандала` constructor inside `/profile`.
 - Supports cover selection from reusable profile/material image URLs, local safe custom cover image, and placeholder covers.
@@ -134,13 +136,20 @@ Power-place mandala constructor branch `codex/power-place-cover-and-geometry` ex
 - `Алтарь` supports five top image objects, a larger central top object with 1:1 / 1.5:1 / 2:1 / 3:1 proportions, a slightly lower center photo, and two lower support images.
 - Active constructor object positions support local upload and selection from reusable profile/material image URLs.
 - Adds a print action scoped to the mandala composition only.
-- Does not add Supabase schema, storage buckets, env names, or persistence for selected type, layout, object images, cover, geometry, or altar proportions; persistence remains needs verification.
+- Branch `codex/power-place-persistence-plans` adds metadata persistence for saved compositions, profile-level Start/Pro limits, client/goal photo references, and selected mystery-tradition asset references.
+- Start allows 7 saved Power Place compositions and 10 client/goal photos.
+- Pro allows 20 saved Power Place compositions and 30 client/goal photos.
+- Central Power Place photos must come from the `Фото клиентов / целей` section.
+- Altar object selectors use images saved under the selected tradition in `Мистерии`.
+- File picker previews remain local; durable Supabase Storage upload remains needs verification.
 
 Live data flow still depends on manual Supabase/Vercel setup:
 
 - apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`
 - apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
 - apply `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
+- apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
+- apply `supabase/migrations/20260526_power_place_persistence.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live

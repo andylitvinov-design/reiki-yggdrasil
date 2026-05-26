@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
+import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import {
   MATERIAL_TYPES,
@@ -22,6 +23,18 @@ import {
   supabaseEnv,
   saveOwnProfile
 } from "../lib/supabaseClient.js";
+import {
+  ACCOUNT_PLANS,
+  createClientGoalPhoto,
+  createPowerPlaceComposition,
+  createTraditionAsset,
+  getPlanLimits,
+  listClientGoalPhotos,
+  listPowerPlaceCompositions,
+  listTraditionAssets,
+  normalizeAccountPlan,
+  updatePowerPlaceComposition
+} from "../lib/powerPlaceClient.js";
 import "../profileMandalaWorkspace.css";
 
 const EMPTY_PROFILE = {
@@ -32,6 +45,7 @@ const EMPTY_PROFILE = {
   telegram: "",
   website: "",
   avatar_url: "",
+  account_plan: "start",
   status: "draft"
 };
 
@@ -156,13 +170,31 @@ function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
 }
 
+function persistableImageRef(src) {
+  if (!src || src.startsWith("data:image/")) return "";
+  return src;
+}
+
+function persistableObjectRefs(refs) {
+  return Object.fromEntries(
+    Object.entries(refs || {})
+      .map(([key, value]) => [key, persistableImageRef(String(value || ""))])
+      .filter(([, value]) => Boolean(value))
+  );
+}
+
 export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [materials, setMaterials] = useState([]);
+  const [clientGoalPhotos, setClientGoalPhotos] = useState([]);
+  const [traditionAssets, setTraditionAssets] = useState([]);
+  const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
   const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
+  const [clientPhotoForm, setClientPhotoForm] = useState({ title: "", image_url: "", notes: "" });
+  const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "" });
   const [materialsLoading, setMaterialsLoading] = useState(false);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
   const [message, setMessage] = useState("");
@@ -175,6 +207,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
   const [customCoverImage, setCustomCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
+  const [selectedCentralPhotoId, setSelectedCentralPhotoId] = useState("");
+  const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
+  const [compositionTitle, setCompositionTitle] = useState("");
+  const [selectedCompositionId, setSelectedCompositionId] = useState("");
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -196,15 +232,37 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     approved: statusCount(materials, "approved")
   }), [materials]);
 
+  const accountPlan = normalizeAccountPlan(profile.account_plan);
+  const planLimits = getPlanLimits(accountPlan);
+  const selectedTradition = useMemo(
+    () => mysteryTraditions.find((item) => item.id === selectedTraditionId) || mysteryTraditions[0] || null,
+    [selectedTraditionId]
+  );
+  const selectedCentralPhoto = useMemo(
+    () => clientGoalPhotos.find((item) => item.id === selectedCentralPhotoId) || null,
+    [clientGoalPhotos, selectedCentralPhotoId]
+  );
+
   const reusableImages = useMemo(() => uniqueImageSources([
-    { id: "goal", label: "Фото цели", src: materialForm.image_url },
-    { id: "profile", label: "Фото мастера", src: profile.avatar_url },
+    ...clientGoalPhotos.map((item) => ({
+      id: `client-${item.id}`,
+      label: item.title || "Фото клиента / цели",
+      src: item.image_url
+    })),
     ...materials.map((item, index) => ({
       id: `material-${item.id || index}`,
       label: item.title || `Материал ${index + 1}`,
       src: item.image_url
     }))
-  ]), [materialForm.image_url, materials, profile.avatar_url]);
+  ]), [clientGoalPhotos, materials]);
+
+  const traditionImageOptions = useMemo(() => uniqueImageSources(
+    traditionAssets.map((item) => ({
+      id: `tradition-${item.id}`,
+      label: item.title || selectedTradition?.title || "Образ традиции",
+      src: item.image_url
+    }))
+  ), [selectedTradition?.title, traditionAssets]);
 
   const coverVariants = useMemo(() => [
     ...reusableImages.map((item) => ({ ...item, type: "image" })),
@@ -217,18 +275,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     [coverVariants, selectedCoverId]
   );
 
-  const centerImage = isImagePreview(materialForm.image_url)
-    ? materialForm.image_url
-    : isImagePreview(profile.avatar_url)
-      ? profile.avatar_url
-      : "";
+  const centerImage = isImagePreview(selectedCentralPhoto?.image_url) ? selectedCentralPhoto.image_url : "";
 
   const commandSlots = Array.from({ length: 5 }, (_, index) => reusableImages[index] || null);
 
   const objectImageOptions = useMemo(() => [
     { id: "", label: "Пусто", src: "" },
-    ...reusableImages
-  ], [reusableImages]);
+    ...(constructorType === "altar" ? traditionImageOptions : reusableImages)
+  ], [constructorType, reusableImages, traditionImageOptions]);
 
   const activeObjectSlots = useMemo(() => {
     if (constructorType === "altar") {
@@ -320,6 +374,63 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     };
   }, [profile?.id, session]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPowerPlaceData() {
+      if (!profile?.id || !session?.access_token) {
+        setClientGoalPhotos([]);
+        setPowerPlaceCompositions([]);
+        return;
+      }
+
+      try {
+        const [photos, compositions] = await Promise.all([
+          listClientGoalPhotos(profile.id, session),
+          listPowerPlaceCompositions(profile.id, session)
+        ]);
+
+        if (!cancelled) {
+          setClientGoalPhotos(photos || []);
+          setPowerPlaceCompositions(compositions || []);
+          setSelectedCentralPhotoId((current) => current || photos?.[0]?.id || "");
+        }
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Не удалось загрузить места силы.");
+      }
+    }
+
+    loadPowerPlaceData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTraditionImages() {
+      if (!profile?.id || !selectedTraditionId || !session?.access_token) {
+        setTraditionAssets([]);
+        return;
+      }
+
+      try {
+        const rows = await listTraditionAssets(profile.id, selectedTraditionId, session);
+        if (!cancelled) setTraditionAssets(rows || []);
+      } catch (err) {
+        if (!cancelled) setError(err.message || "Не удалось загрузить образы традиции.");
+      }
+    }
+
+    loadTraditionImages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, selectedTraditionId, session]);
+
   const updateField = (field, value) => {
     setProfile((current) => ({ ...current, [field]: value }));
   };
@@ -346,6 +457,49 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
       return { ...current, [field]: value };
     });
+  };
+
+  const buildCoverRef = () => {
+    if (!selectedCover) return null;
+
+    return {
+      id: selectedCover.id,
+      label: selectedCover.label,
+      type: selectedCover.type,
+      tone: selectedCover.tone || "",
+      src: persistableImageRef(selectedCover.src || "")
+    };
+  };
+
+  const buildPowerPlacePayload = () => ({
+    profile_id: profile.id,
+    title: compositionTitle,
+    constructor_type: constructorType,
+    geometry: constructorType === "client" ? powerSourceCount : null,
+    altar_center_ratio: altarCenterRatio,
+    cover_ref: buildCoverRef(),
+    object_refs: persistableObjectRefs(objectImages),
+    central_photo_id: selectedCentralPhotoId,
+    tradition_id: constructorType === "altar" ? selectedTradition?.id || "" : "",
+    tradition_title: constructorType === "altar" ? selectedTradition?.title || "" : ""
+  });
+
+  const applyComposition = (composition) => {
+    setSelectedCompositionId(composition.id || "");
+    setCompositionTitle(composition.title || "");
+    setConstructorType(composition.constructor_type || "client");
+    if (composition.geometry) setPowerSourceCount(Number(composition.geometry));
+    setAltarCenterRatio(composition.altar_center_ratio || "1");
+    setObjectImages(composition.object_refs || {});
+    setSelectedCentralPhotoId(composition.central_photo_id || "");
+    setSelectedTraditionId(composition.tradition_id || mysteryTraditions[0]?.id || "");
+
+    if (composition.cover_ref?.id) {
+      if (composition.cover_ref.id === "custom-cover" && composition.cover_ref.src) {
+        setCustomCoverImage(composition.cover_ref.src);
+      }
+      setSelectedCoverId(composition.cover_ref.id);
+    }
   };
 
   const handleMandalaFile = (event) => {
@@ -512,14 +666,96 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const handleClientPhotoSave = async () => {
+    setMessage("");
+    setError("");
+
+    if (!profile?.id) {
+      setError("Сначала сохраните профиль мастера.");
+      return;
+    }
+
+    try {
+      const saved = await createClientGoalPhoto({ ...clientPhotoForm, profile_id: profile.id }, accountPlan, session);
+      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
+      setSelectedCentralPhotoId((current) => current || saved?.id || "");
+      setClientPhotoForm({ title: "", image_url: "", notes: "" });
+      setMessage("Фото клиента / цели сохранено.");
+    } catch (err) {
+      setError(err.message || "Не удалось сохранить фото клиента / цели.");
+    }
+  };
+
+  const handleTraditionAssetSave = async () => {
+    setMessage("");
+    setError("");
+
+    if (!profile?.id || !selectedTradition) {
+      setError("Сначала сохраните профиль и выберите традицию.");
+      return;
+    }
+
+    try {
+      const saved = await createTraditionAsset({
+        ...traditionAssetForm,
+        profile_id: profile.id,
+        tradition_id: selectedTradition.id,
+        tradition_title: selectedTradition.title
+      }, session);
+      setTraditionAssets((current) => [saved, ...current].filter(Boolean));
+      setTraditionAssetForm({ title: "", image_url: "", notes: "" });
+      setMessage("Образ традиции сохранён.");
+    } catch (err) {
+      setError(err.message || "Не удалось сохранить образ традиции.");
+    }
+  };
+
+  const handleCompositionSave = async () => {
+    setMessage("");
+    setError("");
+
+    if (!profile?.id) {
+      setError("Сначала сохраните профиль мастера.");
+      return;
+    }
+
+    if (!selectedCentralPhotoId) {
+      setError("Выберите центральное фото из раздела «Фото клиентов / целей».");
+      return;
+    }
+
+    try {
+      const payload = buildPowerPlacePayload();
+      const saved = selectedCompositionId
+        ? await updatePowerPlaceComposition(selectedCompositionId, payload, session)
+        : await createPowerPlaceComposition(payload, accountPlan, session);
+
+      setPowerPlaceCompositions((current) => {
+        const withoutSaved = current.filter((item) => item.id !== saved?.id);
+        return [saved, ...withoutSaved].filter(Boolean);
+      });
+      setSelectedCompositionId(saved?.id || "");
+      setCompositionTitle(saved?.title || compositionTitle);
+      setMessage(selectedCompositionId ? "Место силы обновлено." : "Место силы сохранено.");
+    } catch (err) {
+      setError(err.message || "Не удалось сохранить место силы.");
+    }
+  };
+
   const handleLogout = () => {
     clearStoredSession();
     setSession(null);
     setUser(null);
     setProfile(EMPTY_PROFILE);
     setMaterials([]);
+    setClientGoalPhotos([]);
+    setTraditionAssets([]);
+    setPowerPlaceCompositions([]);
     setMaterialForm(EMPTY_MATERIAL);
     setObjectImages({});
+    setSelectedCentralPhotoId("");
+    setSelectedCompositionId("");
+    setCompositionTitle("");
     setFileNotice("");
     setMessage("Вы вышли из кабинета.");
   };
@@ -603,6 +839,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               Аватар / фото URL
               <input value={profile.avatar_url || ""} onChange={(event) => updateField("avatar_url", event.target.value)} placeholder="https://..." />
             </label>
+
+            <label>
+              План кабинета
+              <select value={accountPlan} onChange={(event) => updateField("account_plan", event.target.value)}>
+                {ACCOUNT_PLANS.map((plan) => (
+                  <option key={plan.value} value={plan.value}>{plan.label}</option>
+                ))}
+              </select>
+            </label>
+            <p className="powerPlanNote">Start: 7 мест силы и 10 фото клиентов. Pro: 20 мест силы и 30 фото. Биллинг: needs verification.</p>
 
             <div className="cabinetActions">
               <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
@@ -724,6 +970,73 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </form>
             </div>
 
+            <section className="powerLibraryGrid">
+              <div className="powerLibraryCard">
+                <div className="cabinetFormHeader">
+                  <div>
+                    <p className="cabinetEyebrow">Фото клиентов / целей</p>
+                    <h2>Центр места силы</h2>
+                  </div>
+                  <span className="cabinetStatus">{clientGoalPhotos.length}/{planLimits.clientPhotos}</span>
+                </div>
+                <div className="powerInlineForm">
+                  <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
+                  <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели" />
+                  <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
+                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos} onClick={handleClientPhotoSave}>Сохранить фото</button>
+                </div>
+                <p className="powerPlanNote">Файловое хранилище: needs verification. Сейчас сохраняется URL/ссылка на изображение.</p>
+                <div className="clientPhotoStrip">
+                  {clientGoalPhotos.map((photo) => (
+                    <button
+                      className={selectedCentralPhotoId === photo.id ? "active" : ""}
+                      key={photo.id}
+                      onClick={() => setSelectedCentralPhotoId(photo.id)}
+                      type="button"
+                    >
+                      <span style={imageStyle(photo.image_url)} />
+                      <b>{photo.title || "Фото цели"}</b>
+                    </button>
+                  ))}
+                  {clientGoalPhotos.length === 0 && <p>Добавьте фото клиента или цели, чтобы выбрать центр мандалы или алтаря.</p>}
+                </div>
+              </div>
+
+              <div className="powerLibraryCard">
+                <div className="cabinetFormHeader">
+                  <div>
+                    <p className="cabinetEyebrow">Мистерии</p>
+                    <h2>Традиция алтаря</h2>
+                  </div>
+                  <span className="cabinetStatus">{traditionAssets.length}</span>
+                </div>
+                <label>
+                  Традиция
+                  <select value={selectedTraditionId} onChange={(event) => setSelectedTraditionId(event.target.value)}>
+                    {mysteryTraditions.map((tradition) => (
+                      <option key={tradition.id} value={tradition.id}>{tradition.title}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="powerInlineForm">
+                  <input value={traditionAssetForm.title} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название образа" />
+                  <input value={traditionAssetForm.image_url} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL изображения традиции" />
+                  <input value={traditionAssetForm.notes} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
+                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || !selectedTradition} onClick={handleTraditionAssetSave}>Сохранить образ</button>
+                </div>
+                <p className="powerPlanNote">IA: Личный кабинет → Мистерии → {selectedTradition?.title || "традиция"}. Загрузка файлов в Storage: needs verification.</p>
+                <div className="traditionAssetStrip">
+                  {traditionAssets.map((asset) => (
+                    <span key={asset.id}>
+                      <i style={imageStyle(asset.image_url)} />
+                      <b>{asset.title || selectedTradition?.title}</b>
+                    </span>
+                  ))}
+                  {traditionAssets.length === 0 && <p>Сохранённые образы выбранной традиции появятся в селекторах объектов алтаря.</p>}
+                </div>
+              </div>
+            </section>
+
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
               <div className="powerPlaceHeader">
                 <div>
@@ -731,6 +1044,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   <h2>Магическая мандала</h2>
                 </div>
                 <div className="constructorControls">
+                  <input
+                    className="compositionTitleInput"
+                    value={compositionTitle}
+                    onChange={(event) => setCompositionTitle(event.target.value)}
+                    placeholder="Название места силы"
+                  />
+                  <select value={selectedCentralPhotoId} onChange={(event) => setSelectedCentralPhotoId(event.target.value)}>
+                    <option value="">Центральное фото из раздела клиентов</option>
+                    {clientGoalPhotos.map((photo) => (
+                      <option key={photo.id} value={photo.id}>{photo.title || "Фото клиента / цели"}</option>
+                    ))}
+                  </select>
                   <div className="constructorTypeSelector" aria-label="Тип конструктора">
                     {CONSTRUCTOR_TYPES.map((type) => (
                       <button
@@ -757,18 +1082,36 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       ))}
                     </div>
                   ) : (
-                    <div className="altarRatioSelector" aria-label="Пропорция центрального верхнего объекта">
-                      {ALTAR_CENTER_RATIOS.map((ratio) => (
-                        <button
-                          className={altarCenterRatio === ratio.value ? "active" : ""}
-                          key={ratio.value}
-                          onClick={() => setAltarCenterRatio(ratio.value)}
-                          type="button"
-                        >
-                          {ratio.label}
-                        </button>
+                    <>
+                      <select value={selectedTraditionId} onChange={(event) => setSelectedTraditionId(event.target.value)}>
+                        {mysteryTraditions.map((tradition) => (
+                          <option key={tradition.id} value={tradition.id}>{tradition.title}</option>
+                        ))}
+                      </select>
+                      <div className="altarRatioSelector" aria-label="Пропорция центрального верхнего объекта">
+                        {ALTAR_CENTER_RATIOS.map((ratio) => (
+                          <button
+                            className={altarCenterRatio === ratio.value ? "active" : ""}
+                            key={ratio.value}
+                            onClick={() => setAltarCenterRatio(ratio.value)}
+                            type="button"
+                          >
+                            {ratio.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {powerPlaceCompositions.length > 0 && (
+                    <select value={selectedCompositionId} onChange={(event) => {
+                      const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
+                      if (composition) applyComposition(composition);
+                    }}>
+                      <option value="">Загрузить сохранённое место силы</option>
+                      {powerPlaceCompositions.map((composition) => (
+                        <option key={composition.id} value={composition.id}>{composition.title || "Место силы"}</option>
                       ))}
-                    </div>
+                    </select>
                   )}
                 </div>
               </div>
@@ -846,8 +1189,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   )}
                   <p className="powerPlaceHint">
                     {constructorType === "client"
-                      ? "Центр использует фото цели или мастера. В раскладе 12 добавлены четыре внешних хранителя пространства."
-                      : "Алтарь ставит цель ниже центра, пять источников сверху и две опоры в нижних углах листа."}
+                      ? "Центр использует только фото из раздела «Фото клиентов / целей». В раскладе 12 добавлены четыре внешних хранителя пространства."
+                      : "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."}
                   </p>
                 </div>
 
@@ -929,8 +1272,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
 
               <div className="powerPlaceActions">
+                <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>
+                  {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}
+                </button>
                 <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
-                <span>Сохранение геометрии и заставки: needs verification.</span>
+                <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage upload: needs verification.</span>
               </div>
             </section>
 

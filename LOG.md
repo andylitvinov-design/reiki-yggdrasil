@@ -1,5 +1,29 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Power-place persistence for plans, traditions, and client photos
+
+Mode: additive `/profile` persistence implementation on branch `codex/power-place-persistence-plans`.
+
+Changed:
+
+- Added profile-level account plan support: `Start` and `Pro`.
+- Added Supabase metadata tables for client/goal photos, tradition assets, and saved Power Place compositions.
+- Added owner/admin RLS policies for the new Power Place tables.
+- Added a dedicated Power Place client helper and unit test coverage for limits and payload normalization.
+- Wired `/profile` to load and save client/goal photo references.
+- Restricted Power Place central photo selection to saved `Фото клиентов / целей`.
+- Added altar tradition selection from `src/data/mysteryTraditions.js`.
+- Added tradition-linked image reference saving and altar object selection from the chosen tradition.
+- Added saved composition create/update and reload controls for constructor type, geometry, altar ratio, cover reference, object references, central photo, and tradition.
+- Kept file picker previews local and filtered `data:image` previews out of persisted composition references.
+
+Needs verification:
+
+- Apply `supabase/migrations/20260526_power_place_persistence.sql` in the live Supabase project.
+- Verify authenticated owner save/reload against production Supabase.
+- Verify real Supabase Storage buckets/policies before treating uploads as durable file storage.
+- Billing is not implemented; `account_plan` is a profile-level field only.
+
 ## 2026-05-26 — Power-place update #4: 12-position client mandala and altar mode
 
 Mode: additive `/profile` constructor enhancement on branch `codex/power-place-update-4-altar-12`.
