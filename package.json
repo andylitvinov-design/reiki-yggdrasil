@@ -2,6 +2,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "supabase:migrations:apply": "node scripts/apply-reiki-supabase-migrations.mjs",
     "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
@@ -17,6 +18,7 @@
   "devDependencies": {
     "autoprefixer": "latest",
     "postcss": "latest",
+    "supabase": "^2.101.0",
     "tailwindcss": "^3.4.17"
   }
 }
