@@ -58,8 +58,8 @@ function makeEntity(title) {
 export const mysteryTraditions = [
   {
     id: "greek",
-    stepId: "RY-L03-S03",
-    title: "Греческая магия. Зодиак",
+    menuItemId: "mysteries-greek",
+    title: "Греческие мистерии",
     subtitle: "Боги, архетипы, материалы и практические ключи традиции",
     intro: MYSTERY_PLACEHOLDER,
     contentStatus: "needs_review",
@@ -67,10 +67,12 @@ export const mysteryTraditions = [
   }
 ];
 
-export const mysteryTraditionsByStepId = Object.fromEntries(mysteryTraditions.map((tradition) => [tradition.stepId, tradition]));
+export const mysteryTraditionsByMenuItemId = Object.fromEntries(
+  mysteryTraditions.map((tradition) => [tradition.menuItemId, tradition])
+);
 
-export function getMysteryTraditionByStepId(stepId) {
-  return mysteryTraditionsByStepId[stepId] || null;
+export function getMysteryTraditionByMenuItemId(menuItemId) {
+  return mysteryTraditionsByMenuItemId[menuItemId] || null;
 }
 
 export function getMysteryEntity(tradition, entityId) {

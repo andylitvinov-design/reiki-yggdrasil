@@ -164,18 +164,21 @@ Verified by GitHub file inspection:
 
 ## Mystery traditions UI state
 
-PR #40 adds static mystery-tradition data in `src/data/mysteryTraditions.js` and wires the first UI mode into DAO RI.
+PR #40 added static mystery-tradition data in `src/data/mysteryTraditions.js`. The current implementation wires the first UI mode to the independent top-level `МИСТЕРИИ` section, parallel to `ДАО РИ`.
 
 Current implemented trigger:
 
-- `RY-L03-S03` — `Греческая магия. Зодиак`
+- `activeTopSection === "mysteries-school"`
+- `selectedLeftItemId === "mysteries-greek"`
 
-When this step is selected inside DAO RI:
+When `МИСТЕРИИ → Греческие мистерии` is selected:
 
-- the left panel switches from the normal level/step list to Greek deity tabs;
-- `← Все уровни` returns to the normal DAO RI list without changing the selected step;
+- the left panel switches from the broad mystery list to Greek deity tabs;
+- `← Все мистерии` returns to the broad mystery list;
 - the center panel shows the selected deity archetype, description, articles, notes, and video placeholder;
 - the right panel shows initiation, mandalas, and artefacts/shop placeholders for the selected deity.
+
+The mystery traditions UI must not depend on `RY-L03-S03`, `selectedStepId`, `reikiLevels`, or the DAO RI level accordion.
 
 All deity content remains `needs_review` / placeholder until author-approved materials are available.
 
