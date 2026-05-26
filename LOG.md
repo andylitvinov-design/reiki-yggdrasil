@@ -1,5 +1,27 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Greek mysteries moved to top-level Mysteries section
+
+Mode: correction of PR #40 wiring.
+
+Changed:
+
+- Moved the Greek deity/channel tab mode from DAO RI step state to the top-level `МИСТЕРИИ` section.
+- Set the trigger to `activeTopSection === "mysteries-school"` and `selectedLeftItemId === "mysteries-greek"`.
+- Removed the mystery tradition dependency on `RY-L03-S03` and `selectedStepId`.
+- Changed the deity-tab back button to `← Все мистерии`.
+- Added a section overview state so returning from Greek tabs restores the broad mystery list.
+- Kept DAO RI step navigation and right practice/settings panel on the existing Reiki data path.
+
+Verification:
+
+- `npm ci` passed.
+- `npm run check` passed; existing video placeholder warnings remain for `RY-L04-S04` and `RY-L04-S05`.
+- `npm run build` passed.
+- `npm run preview -- --port 4173` started; port 4173 was already occupied, so Vite served the preview on `http://localhost:4174/`.
+- Browser QA passed for `/`: `МИСТЕРИИ → Греческие мистерии`, Greek deity tabs, Дионис / Деметра / Афина switching, `← Все мистерии`, DAO RI return, mobile viewport at 390px, and console errors check.
+- Route smoke checks passed for `/`, `/profile`, `/masters`, and `/profile/admin`.
+
 ## 2026-05-26 — Greek mystery tradition UI integration
 
 Mode: continuation of PR #40 / `codex/mystery-tradition-detail-tabs`.

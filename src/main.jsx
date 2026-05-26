@@ -7,7 +7,7 @@ import {
   studentCollections
 } from "./data/reikiKnowledgeBase.js";
 import { getDegreeSettingByTabId, getDegreeTabsForStep } from "./data/degreeSettings.js";
-import { getMysteryEntity, getMysteryTraditionByStepId } from "./data/mysteryTraditions.js";
+import { getMysteryEntity, getMysteryTraditionByMenuItemId } from "./data/mysteryTraditions.js";
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
@@ -186,7 +186,6 @@ function App() {
   const [rightPanelTab, setRightPanelTab] = useState("overview");
   const [activeTopSection, setActiveTopSection] = useState("all-categories");
   const [selectedLeftItemId, setSelectedLeftItemId] = useState(null);
-  const [mysteryMode, setMysteryMode] = useState(false);
   const [selectedMysteryEntityId, setSelectedMysteryEntityId] = useState(null);
   const [seniorLevelsOpen, setSeniorLevelsOpen] = useState(false);
   const [openLeftGroups, setOpenLeftGroups] = useState({});
@@ -204,9 +203,11 @@ function App() {
   const current = selectedLevel.steps.find((item) => item.id === selectedStepId) ?? reikiLevels[0].steps[0];
   const currentSettings = sourcedStepSettings[current.id] || current.settings;
   const currentVideo = getStepVideo(current.id);
-  const mysteryTradition = getMysteryTraditionByStepId(current.id);
+  const mysteryTradition = activeTopSection === "mysteries-school"
+    ? getMysteryTraditionByMenuItemId(selectedLeftItemId)
+    : null;
   const selectedMysteryEntity = getMysteryEntity(mysteryTradition, selectedMysteryEntityId);
-  const isMysteryMode = activeTopSection === "dao-ri" && mysteryMode && mysteryTradition && selectedMysteryEntity;
+  const isMysteryMode = activeTopSection === "mysteries-school" && selectedLeftItemId === "mysteries-greek" && mysteryTradition && selectedMysteryEntity;
   const currentMeaning = buildStepMeaning(current, currentSettings);
   const rightTabs = getDegreeTabsForStep(current.id);
   const activeRightSetting = rightPanelTab === "overview" || rightPanelTab === "practice"
@@ -217,13 +218,17 @@ function App() {
     ...(activeLeftSection?.items || []),
     ...((activeLeftSection?.groups || []).flatMap((group) => group.items || []))
   ];
-  const activeLeftItem = flatLeftItems.find((item) => item.id === selectedLeftItemId) || activeLeftSection?.items?.[0] || null;
+  const activeLeftItem = flatLeftItems.find((item) => item.id === selectedLeftItemId)
+    || (activeTopSection === "mysteries-school" ? null : activeLeftSection?.items?.[0])
+    || null;
 
   const selectStep = (stepId) => {
-    const tradition = getMysteryTraditionByStepId(stepId);
-
     setSelectedStepId(stepId);
-    setMysteryMode(Boolean(tradition));
+  };
+
+  const selectLeftItem = (itemId) => {
+    setSelectedLeftItemId(itemId);
+    const tradition = activeTopSection === "mysteries-school" ? getMysteryTraditionByMenuItemId(itemId) : null;
     setSelectedMysteryEntityId(tradition?.entities?.[0]?.id || null);
   };
 
@@ -306,7 +311,10 @@ function App() {
               tradition={mysteryTradition}
               selectedEntityId={selectedMysteryEntity.id}
               onSelect={setSelectedMysteryEntityId}
-              onBack={() => setMysteryMode(false)}
+              onBack={() => {
+                setSelectedLeftItemId(null);
+                setSelectedMysteryEntityId(null);
+              }}
             />
           ) : activeTopSection === "dao-ri" ? (
             <>
@@ -336,7 +344,7 @@ function App() {
             <LeftMenuSection
               section={activeLeftSection}
               selectedItemId={activeLeftItem?.id}
-              onSelect={setSelectedLeftItemId}
+              onSelect={selectLeftItem}
               onOpenSection={setActiveTopSection}
               openGroups={openLeftGroups}
               onToggleGroup={(groupId) => setOpenLeftGroups((value) => ({ ...value, [groupId]: !value[groupId] }))}
@@ -344,16 +352,15 @@ function App() {
           )}
         </aside>
 
-        {activeTopSection === "dao-ri" ? (
+        {isMysteryMode ? (
           <section className="stageCard">
-            {isMysteryMode ? (
-              <MysteryStage
-                tradition={mysteryTradition}
-                entity={selectedMysteryEntity}
-                selectedLevel={selectedLevel}
-                current={current}
-              />
-            ) : (
+            <MysteryStage
+              tradition={mysteryTradition}
+              entity={selectedMysteryEntity}
+            />
+          </section>
+        ) : activeTopSection === "dao-ri" ? (
+          <section className="stageCard">
             <>
             <div className="stageHero">
               <div className="stageCopy">
@@ -385,7 +392,6 @@ function App() {
               <b>База знаний:</b> {reikiKnowledgeMeta.totalLevels} уровней · {reikiKnowledgeMeta.totalSteps} ступеней · {KNOWLEDGE_STATUS_TEXT}
             </div>
             </>
-            )}
           </section>
         ) : activeTopSection === "all-categories" ? (
           <HomeStage />
@@ -452,7 +458,7 @@ function App() {
 function MysteryLeftTabs({ tradition, selectedEntityId, onSelect, onBack }) {
   return (
     <>
-      <button className="backToLevels" onClick={onBack} type="button">← Все уровни</button>
+      <button className="backToLevels" onClick={onBack} type="button">← Все мистерии</button>
       <div className="panelTitle">{tradition.title}</div>
       <div className="mysteryTabs">
         {tradition.entities.map((entity, index) => (
@@ -471,12 +477,12 @@ function MysteryLeftTabs({ tradition, selectedEntityId, onSelect, onBack }) {
   );
 }
 
-function MysteryStage({ tradition, entity, selectedLevel, current }) {
+function MysteryStage({ tradition, entity }) {
   return (
     <div className="mysteryStage">
       <div className="stageHero mysteryHero">
         <div className="stageCopy">
-          <p className="crumb">{selectedLevel.name} · {tradition.title}</p>
+          <p className="crumb">Школа Мистерий · {tradition.title}</p>
           <h2>{entity.title}</h2>
           <h3>{publicText(entity.archetype)}</h3>
           <p className="introText">{publicText(entity.description)}</p>
@@ -494,7 +500,7 @@ function MysteryStage({ tradition, entity, selectedLevel, current }) {
       <MysteryVideos videos={entity.videos} />
 
       <div className="knowledgeMeta">
-        <b>Раздел мистерий:</b> {current.id} · материалы по архетипам добавлены как структура и ждут авторской сверки.
+        <b>Раздел мистерий:</b> материалы по архетипам добавлены как структура и ждут авторской сверки.
       </div>
     </div>
   );
@@ -633,11 +639,35 @@ function HomeStage() {
 }
 
 function SectionStage({ section, item }) {
-  if (!section || !item) {
+  if (!section) {
     return (
       <section className="stageCard sectionStage">
         <p className="crumb">Раздел готовится</p>
         <h2>Материалы скоро появятся</h2>
+      </section>
+    );
+  }
+
+  if (!item) {
+    return (
+      <section className="stageCard sectionStage">
+        <div className="sectionStageHero">
+          <p className="crumb">{section.title}</p>
+          <h2>{section.title}</h2>
+          <h3>Выберите направление слева</h3>
+          <p className="introText">Откройте один из разделов, чтобы увидеть материалы, практики и связанные карточки.</p>
+        </div>
+
+        {Array.isArray(section.items) && section.items.length > 0 && (
+          <div className="sectionStageGrid">
+            {section.items.map((sectionItem) => (
+              <div className="sectionStagePoint" key={sectionItem.id}>
+                <span>✦</span>
+                <p>{sectionItem.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     );
   }
