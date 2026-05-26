@@ -8,8 +8,9 @@ const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
 const VALID_PLANS = ["start", "pro"];
-const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao"];
+const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 12];
+const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
@@ -125,6 +126,7 @@ export function normalizePowerPlaceComposition(composition) {
   const geometry = Number(composition?.geometry);
   const ratio = cleanText(composition?.altar_center_ratio);
   const businessZoneCount = Number(composition?.business_vertex_zone_count);
+  const zodiacVisibleCount = Number(composition?.zodiac_visible_count);
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
 
   return {
@@ -132,6 +134,7 @@ export function normalizePowerPlaceComposition(composition) {
     title: cleanText(composition?.title) || "Место силы",
     constructor_type: constructorType,
     geometry: constructorType === "client" && VALID_GEOMETRIES.includes(geometry) ? geometry : null,
+    zodiac_visible_count: VALID_ZODIAC_VISIBLE_COUNTS.includes(zodiacVisibleCount) ? zodiacVisibleCount : 12,
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
     business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
     cover_ref: composition?.cover_ref || null,

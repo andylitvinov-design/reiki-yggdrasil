@@ -1,5 +1,27 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Power-place upgrade #6: Zodiac and master chat
+
+Mode: additive `/profile` constructor and authenticated chat enhancement on branch `codex/power-place-zodiac-master-chat`.
+
+Changed:
+
+- Added `Зодиак` Power Place constructor format with 2, 4, 6, 8, and 12 visible clock positions.
+- Kept Zodiac center restricted to saved `Фото клиентов / целей`.
+- Added Zodiac object selectors using the existing reusable image/reference controls and persisted refs as `zodiac-*` keys in `object_refs`.
+- Extended Power Place composition normalization and tests for `constructor_type: "zodiac"` and `zodiac_visible_count`.
+- Added `Чаты` tab in `/profile` with master search by name or cabinet ID, favorite chat pinning, selected messages, and message composer.
+- Added a compact visible cabinet ID derived from the existing profile UUID.
+- Added `src/lib/masterChatClient.js` for authenticated Supabase REST chat operations.
+- Added `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql` for Zodiac persistence, chat conversations, participants, messages, favorites, and strict participant/owner RLS.
+
+Needs verification:
+
+- Apply the new Supabase migration in the live project before treating Zodiac save/reload and chat persistence as production-verified.
+- Verify two authenticated approved masters can create a conversation, exchange messages, and use favorites.
+- Verify non-participant access is blocked by RLS in the live Supabase project.
+- Supabase Storage upload remains needs verification; local `data:image` previews are still filtered from saved payloads.
+
 ## 2026-05-26 — Power-place upgrade #5: Business mandala and DAO
 
 Mode: additive `/profile` constructor enhancement on branch `codex/power-place-upgrade-5-business-dao`.

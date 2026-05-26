@@ -4,6 +4,69 @@
   gap: 18px;
 }
 
+.mandalaWorkspace.chatMode {
+  grid-template-columns: minmax(440px, 1.12fr) minmax(360px, 0.88fr);
+  align-items: start;
+}
+
+.mandalaWorkspace.chatMode .mandalaHero,
+.mandalaWorkspace.chatMode .mandalaGuide,
+.mandalaWorkspace.chatMode .workspaceTabs {
+  grid-column: 1 / -1;
+}
+
+.mandalaWorkspace.chatMode .masterChatWorkspace {
+  grid-column: 1;
+}
+
+.mandalaWorkspace.chatMode .powerPlaceConstructor {
+  grid-column: 2;
+}
+
+.mandalaWorkspace.chatMode .powerPlaceHeader {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.mandalaWorkspace.chatMode .constructorControls,
+.mandalaWorkspace.chatMode .constructorTypeSelector,
+.mandalaWorkspace.chatMode .geometrySelector,
+.mandalaWorkspace.chatMode .altarRatioSelector,
+.mandalaWorkspace.chatMode .businessZoneSelector,
+.mandalaWorkspace.chatMode .zodiacCountSelector {
+  width: 100%;
+  justify-items: start;
+  justify-content: flex-start;
+}
+
+.mandalaWorkspace.chatMode .powerPlacePrintArea {
+  grid-template-columns: 1fr;
+}
+
+.mandalaWorkspace.chatMode .powerCommandRail {
+  grid-template-columns: 1fr;
+}
+
+.workspaceTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workspaceTabs button {
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 999px;
+  padding: 9px 15px;
+  background: rgba(255, 253, 248, 0.8);
+  color: #6e4b1b;
+  font-weight: 900;
+}
+
+.workspaceTabs button.active {
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+}
+
 .mandalaHero {
   position: relative;
   overflow: hidden;
@@ -499,6 +562,7 @@
 .geometrySelector,
 .altarRatioSelector,
 .businessZoneSelector,
+.zodiacCountSelector,
 .resourceModeToggle,
 .coverVariantList {
   display: flex;
@@ -511,6 +575,7 @@
 .geometrySelector button,
 .altarRatioSelector button,
 .businessZoneSelector button,
+.zodiacCountSelector button,
 .resourceModeToggle button,
 .coverVariantList button {
   border: 1px solid rgba(184, 121, 29, 0.28);
@@ -529,17 +594,20 @@
 .constructorTypeSelector button,
 .altarRatioSelector button,
 .businessZoneSelector button,
+.zodiacCountSelector button,
 .resourceModeToggle button {
   min-height: 34px;
   padding: 7px 12px;
   font-size: 12px;
 }
 
-.businessZoneSelector {
+.businessZoneSelector,
+.zodiacCountSelector {
   align-items: center;
 }
 
-.businessZoneSelector span {
+.businessZoneSelector span,
+.zodiacCountSelector span {
   color: #6d5436;
   font-size: 12px;
   font-weight: 800;
@@ -555,6 +623,7 @@
 .geometrySelector button.active,
 .altarRatioSelector button.active,
 .businessZoneSelector button.active,
+.zodiacCountSelector button.active,
 .resourceModeToggle button.active,
 .coverVariantList button.active {
   border-color: rgba(245, 198, 106, 0.72);
@@ -898,7 +967,8 @@
 }
 
 .businessMandalaSheet,
-.daoMandalaSheet {
+.daoMandalaSheet,
+.zodiacMandalaSheet {
   position: relative;
   width: min(500px, 100%);
   aspect-ratio: 1;
@@ -1077,6 +1147,132 @@
   aspect-ratio: 1;
   border-radius: 50%;
 }
+
+.zodiacMandalaSheet {
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from -90deg, rgba(126, 78, 20, 0.16) 0 1deg, transparent 1deg 30deg),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 34px),
+    radial-gradient(circle, #fffdf6 0 21%, #f4e2bd 22% 62%, rgba(90, 123, 88, 0.18) 63% 100%);
+}
+
+.zodiacClockFace {
+  position: absolute;
+  inset: 13%;
+  z-index: 2;
+  display: grid;
+  place-items: end center;
+  border-radius: 50%;
+  border: 1px solid rgba(137, 85, 18, 0.28);
+  color: rgba(89, 59, 19, 0.42);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  padding-bottom: 13%;
+}
+
+.zodiacCenterPhoto {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 5;
+  width: 31%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 239, 195, 0.9);
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(239, 208, 144, 0.5)),
+    #fff9eb;
+  background-size: cover;
+  background-position: center;
+  color: #9f6614;
+  font-size: 39px;
+  box-shadow: 0 14px 32px rgba(103, 66, 16, 0.16);
+}
+
+.zodiacCenterPhoto.hasImage span {
+  display: none;
+}
+
+.zodiacPosition {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 22%;
+  transform: translate(-50%, -50%);
+}
+
+.zodiacPositionImage {
+  width: min(68px, 100%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 117, 0.74);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #242b3c 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  font-weight: 900;
+  box-shadow: 0 0 20px rgba(128, 114, 54, 0.24);
+}
+
+.zodiacPosition.hasImage .zodiacPositionImage span {
+  display: none;
+}
+
+.zodiacPosition b {
+  max-width: 100%;
+  color: #513512;
+  font-size: 11px;
+  line-height: 1.12;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.zodiac-2 .aries { left: 50%; top: 10%; }
+.zodiac-2 .taurus { left: 50%; top: 90%; }
+
+.zodiac-4 .aries { left: 50%; top: 10%; }
+.zodiac-4 .taurus { left: 90%; top: 50%; }
+.zodiac-4 .gemini { left: 50%; top: 90%; }
+.zodiac-4 .cancer { left: 10%; top: 50%; }
+
+.zodiac-6 .aries { left: 50%; top: 9%; }
+.zodiac-6 .taurus { left: 84%; top: 30%; }
+.zodiac-6 .gemini { left: 84%; top: 70%; }
+.zodiac-6 .cancer { left: 50%; top: 91%; }
+.zodiac-6 .leo { left: 16%; top: 70%; }
+.zodiac-6 .virgo { left: 16%; top: 30%; }
+
+.zodiac-8 .aries { left: 50%; top: 8%; }
+.zodiac-8 .taurus { left: 79%; top: 21%; }
+.zodiac-8 .gemini { left: 92%; top: 50%; }
+.zodiac-8 .cancer { left: 79%; top: 79%; }
+.zodiac-8 .leo { left: 50%; top: 92%; }
+.zodiac-8 .virgo { left: 21%; top: 79%; }
+.zodiac-8 .libra { left: 8%; top: 50%; }
+.zodiac-8 .scorpio { left: 21%; top: 21%; }
+
+.zodiac-12 .aries { left: 50%; top: 7%; }
+.zodiac-12 .taurus { left: 72%; top: 13%; }
+.zodiac-12 .gemini { left: 87%; top: 29%; }
+.zodiac-12 .cancer { left: 93%; top: 50%; }
+.zodiac-12 .leo { left: 87%; top: 71%; }
+.zodiac-12 .virgo { left: 72%; top: 87%; }
+.zodiac-12 .libra { left: 50%; top: 93%; }
+.zodiac-12 .scorpio { left: 28%; top: 87%; }
+.zodiac-12 .sagittarius { left: 13%; top: 71%; }
+.zodiac-12 .capricorn { left: 7%; top: 50%; }
+.zodiac-12 .aquarius { left: 13%; top: 29%; }
+.zodiac-12 .pisces { left: 28%; top: 13%; }
 
 .resourcePrintNotes {
   width: min(500px, 100%);
@@ -1347,6 +1543,210 @@
   line-height: 1.4;
 }
 
+.masterChatWorkspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(210px, 0.82fr) minmax(0, 1.18fr);
+  gap: 12px;
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  border-radius: 24px;
+  padding: 14px;
+  background:
+    radial-gradient(circle at 0 0, rgba(244, 196, 100, 0.14), transparent 28%),
+    rgba(255, 252, 246, 0.86);
+  box-shadow: 0 18px 50px rgba(79, 54, 18, 0.1);
+}
+
+.chatMasterList,
+.chatConversationPanel {
+  min-width: 0;
+  border: 1px solid rgba(203, 152, 64, 0.28);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.72);
+  padding: 12px;
+}
+
+.chatPanelHeader,
+.chatConversationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.chatPanelHeader h2,
+.chatConversationHeader h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.chatPanelHeader span {
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #805116;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chatConversationHeader button {
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #704812;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.chatMasterList > input {
+  width: 100%;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #3c2a18;
+}
+
+.chatThreadList,
+.chatSearchResults,
+.chatMessages {
+  display: grid;
+  gap: 8px;
+}
+
+.chatThreadList {
+  margin: 12px 0;
+}
+
+.chatThreadList button,
+.chatSearchResults button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 4px 8px;
+  align-items: center;
+  border: 1px solid rgba(193, 137, 39, 0.25);
+  border-radius: 14px;
+  padding: 8px;
+  background: rgba(255, 252, 246, 0.86);
+  color: #4c3418;
+  text-align: left;
+}
+
+.chatThreadList button.active {
+  border-color: rgba(168, 109, 27, 0.82);
+  box-shadow: 0 10px 24px rgba(124, 79, 19, 0.14);
+}
+
+.chatThreadList span {
+  grid-row: span 2;
+  color: #b8791d;
+  font-weight: 900;
+}
+
+.chatThreadList b,
+.chatSearchResults b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chatThreadList small,
+.chatSearchResults small {
+  color: #806a4e;
+  font-size: 11px;
+}
+
+.chatSearchResults button {
+  grid-template-columns: 38px minmax(0, 1fr);
+}
+
+.chatSearchResults button span {
+  grid-row: span 2;
+  width: 38px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle, rgba(237, 184, 73, 0.22), transparent 52%),
+    #f5ead8;
+  background-size: cover;
+  background-position: center;
+  color: #b8791d;
+}
+
+.chatConversationPanel {
+  display: grid;
+  grid-template-rows: auto minmax(240px, 1fr) auto;
+  gap: 10px;
+}
+
+.chatMessages {
+  max-height: 430px;
+  overflow: auto;
+  align-content: start;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(247, 238, 219, 0.58);
+}
+
+.chatMessages > div {
+  width: min(82%, 420px);
+  border: 1px solid rgba(203, 152, 64, 0.22);
+  border-radius: 16px 16px 16px 4px;
+  padding: 9px 10px;
+  background: rgba(255, 253, 248, 0.9);
+}
+
+.chatMessages > div.own {
+  justify-self: end;
+  border-radius: 16px 16px 4px 16px;
+  background: rgba(255, 238, 190, 0.9);
+}
+
+.chatMessages p {
+  margin: 0 0 5px;
+  color: #3d2b17;
+  overflow-wrap: anywhere;
+}
+
+.chatMessages small,
+.chatEmpty,
+.chatEmptyState p,
+.chatThreadList p,
+.chatSearchResults p {
+  margin: 0;
+  color: #77644d;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.chatComposer {
+  display: grid;
+  gap: 8px;
+}
+
+.chatComposer textarea {
+  min-width: 0;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #3c2a18;
+  font: inherit;
+}
+
+.chatEmptyState {
+  display: grid;
+  place-content: center;
+  min-height: 320px;
+  text-align: center;
+}
+
 .resourceComparisonPanel {
   display: grid;
   grid-template-columns: minmax(180px, 0.7fr) repeat(2, minmax(0, 1fr));
@@ -1478,8 +1878,15 @@
   .mandalaAtelierGrid,
   .powerLibraryGrid,
   .powerPlacePrintArea,
+  .mandalaWorkspace.chatMode,
+  .masterChatWorkspace,
   .resourceComparisonPanel {
     grid-template-columns: 1fr;
+  }
+
+  .mandalaWorkspace.chatMode .masterChatWorkspace,
+  .mandalaWorkspace.chatMode .powerPlaceConstructor {
+    grid-column: 1;
   }
 
   .mandalaHero {
@@ -1536,7 +1943,8 @@
   .constructorTypeSelector,
   .geometrySelector,
   .altarRatioSelector,
-  .businessZoneSelector {
+  .businessZoneSelector,
+  .zodiacCountSelector {
     width: 100%;
     justify-items: start;
     justify-content: flex-start;
@@ -1578,7 +1986,8 @@
   }
 
   .businessMandalaSheet,
-  .daoMandalaSheet {
+  .daoMandalaSheet,
+  .zodiacMandalaSheet {
     width: min(330px, 84vw);
   }
 
@@ -1601,7 +2010,8 @@
   }
 
   .businessVertex b,
-  .daoElement b {
+  .daoElement b,
+  .zodiacPosition b {
     font-size: 10px;
   }
 
@@ -1614,7 +2024,8 @@
   }
 
   .businessCenterPhoto,
-  .daoCenterPhoto {
+  .daoCenterPhoto,
+  .zodiacCenterPhoto {
     width: 30%;
     font-size: 30px;
   }
@@ -1625,6 +2036,14 @@
 
   .daoElementImage {
     width: min(54px, 100%);
+  }
+
+  .zodiacPosition {
+    width: 24%;
+  }
+
+  .zodiacPositionImage {
+    width: min(50px, 100%);
   }
 
   .altarTopRow {
@@ -1648,6 +2067,10 @@
   }
 
   .objectSlotList {
+    max-height: none;
+  }
+
+  .chatMessages {
     max-height: none;
   }
 }

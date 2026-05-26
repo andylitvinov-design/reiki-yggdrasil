@@ -36,11 +36,12 @@ Supabase setup steps:
 4. Apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`.
 5. Apply `supabase/migrations/20260526_power_place_persistence.sql`.
 6. Apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`.
-7. Add these auth redirect URLs in Supabase:
+7. Apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`.
+8. Add these auth redirect URLs in Supabase:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
-8. Add the Vercel production env vars named above.
-9. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+9. Add the Vercel production env vars named above.
+10. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -66,8 +67,15 @@ Power Place persistence setup:
 
 - `20260526_power_place_persistence.sql` adds the profile `account_plan`, client/goal photo references, tradition image references, and saved Power Place compositions.
 - `20260526_power_place_upgrade_5_business_dao.sql` extends saved compositions for `Бизнес-мандала`, `ДАО`, business vertex zone count, and resource comparison comments.
+- `20260526_power_place_upgrade_6_zodiac_chat.sql` extends saved compositions for `Зодиак` with `zodiac_visible_count` and `zodiac-*` object refs in the existing `object_refs` JSON payload.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - File uploads to Supabase Storage are still needs verification. The current UI persists URL/metadata references and filters local `data:image` previews out of saved composition payloads.
+
+Master chat setup:
+
+- `20260526_power_place_upgrade_6_zodiac_chat.sql` also adds authenticated chat tables for conversations, participants, messages, and favorite chats.
+- Chat RLS has no anon access: only authenticated conversation participants can read messages/conversation rows, only participants can send messages, and favorite chats are owner-only.
+- The cabinet-visible master ID is derived from the existing profile UUID as `RY-<first 8 chars>`; no extra secret or service-role key is required.
 
 ## Deploy
 
