@@ -465,10 +465,366 @@
   color: #903c25;
 }
 
+.powerPlaceConstructor {
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  border-radius: 26px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(244, 196, 100, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(247, 236, 216, 0.86));
+  box-shadow: 0 18px 50px rgba(79, 54, 18, 0.1);
+}
+
+.powerPlaceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.powerPlaceHeader h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1;
+}
+
+.geometrySelector,
+.coverVariantList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.geometrySelector button,
+.coverVariantList button {
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #744c17;
+  font-weight: 800;
+}
+
+.geometrySelector button {
+  width: 38px;
+  height: 34px;
+  padding: 0;
+}
+
+.coverVariantList button {
+  min-height: 32px;
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+.geometrySelector button.active,
+.coverVariantList button.active {
+  border-color: rgba(245, 198, 106, 0.72);
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+  box-shadow: 0 8px 20px rgba(127, 78, 14, 0.18);
+}
+
+.powerPlacePrintArea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.powerMandalaPanel,
+.powerCommandRail {
+  border: 1px solid rgba(203, 152, 64, 0.28);
+  border-radius: 22px;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.powerMandalaPanel {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.powerMandala {
+  position: relative;
+  width: min(440px, 100%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(184, 121, 29, 0.08) 0 8deg, transparent 9deg 18deg),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.18) 0 1px, transparent 2px 26px),
+    radial-gradient(circle at 50% 50%, #fffdf6 0 18%, rgba(255, 244, 219, 0.9) 19% 40%, rgba(232, 178, 74, 0.18) 41% 100%);
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  box-shadow: inset 0 0 44px rgba(255, 255, 255, 0.72), 0 0 54px rgba(224, 173, 71, 0.16);
+}
+
+.powerCenterPhoto {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 3;
+  width: 34%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 239, 195, 0.88);
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(239, 208, 144, 0.48)),
+    #fff9eb;
+  background-size: cover;
+  background-position: center;
+  color: #9f6614;
+  font-size: 44px;
+  box-shadow: 0 14px 32px rgba(103, 66, 16, 0.16);
+}
+
+.powerCenterPhoto.hasImage span {
+  display: none;
+}
+
+.powerMandalaBase {
+  position: absolute;
+  left: 50%;
+  top: 63%;
+  z-index: 2;
+  width: 42%;
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  background: rgba(255, 250, 238, 0.86);
+  box-shadow: 0 10px 24px rgba(116, 70, 13, 0.1);
+}
+
+.powerMandalaBase span {
+  color: #795019;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.powerSource {
+  position: absolute;
+  z-index: 4;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 213, 117, 0.72);
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #c78820 62%, #2b1a08 100%);
+  box-shadow: 0 0 24px rgba(218, 157, 45, 0.3);
+  color: #211407;
+  font-weight: 900;
+  transform: translate(-50%, -50%);
+}
+
+.powerSource.small {
+  width: 42px;
+  height: 42px;
+  color: #ffe7a5;
+  background:
+    radial-gradient(circle at 45% 35%, #f8ca63, #785017 64%, #130d06 100%);
+}
+
+.geometry-2 .source-1 { left: 50%; top: 15%; }
+.geometry-2 .source-2 { left: 50%; top: 85%; }
+
+.geometry-4 .source-1 { left: 50%; top: 13%; }
+.geometry-4 .source-2 { left: 87%; top: 50%; }
+.geometry-4 .source-3 { left: 50%; top: 87%; }
+.geometry-4 .source-4 { left: 13%; top: 50%; }
+
+.geometry-5 .source-1 { left: 50%; top: 12%; }
+.geometry-5 .source-2 { left: 86%; top: 39%; }
+.geometry-5 .source-3 { left: 72%; top: 83%; }
+.geometry-5 .source-4 { left: 28%; top: 83%; }
+.geometry-5 .source-5 { left: 14%; top: 39%; }
+
+.geometry-6 .source-1 { left: 50%; top: 12%; }
+.geometry-6 .source-2 { left: 83%; top: 31%; }
+.geometry-6 .source-3 { left: 83%; top: 69%; }
+.geometry-6 .source-4 { left: 50%; top: 88%; }
+.geometry-6 .source-5 { left: 17%; top: 69%; }
+.geometry-6 .source-6 { left: 17%; top: 31%; }
+
+.geometry-8 .source-1 { left: 50%; top: 10%; }
+.geometry-8 .source-2 { left: 78%; top: 22%; }
+.geometry-8 .source-3 { left: 90%; top: 50%; }
+.geometry-8 .source-4 { left: 78%; top: 78%; }
+.geometry-8 .source-5 { left: 50%; top: 90%; }
+.geometry-8 .source-6 { left: 22%; top: 78%; }
+.geometry-8 .source-7 { left: 10%; top: 50%; }
+.geometry-8 .source-8 { left: 22%; top: 22%; }
+
+.powerPlaceHint,
+.powerPlaceActions span,
+.coverNotice {
+  margin: 0;
+  color: #77644d;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.powerCommandRail {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 14px;
+}
+
+.commandSlots {
+  display: grid;
+  gap: 8px;
+}
+
+.commandSlot {
+  position: relative;
+  min-height: 58px;
+  overflow: hidden;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(245, 198, 106, 0.28), transparent 30%),
+    linear-gradient(135deg, #1f170d, #7a4f13);
+  background-size: cover;
+  background-position: center;
+  color: #fff2cf;
+}
+
+.commandSlot.hasImage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(20, 12, 4, 0.58), rgba(20, 12, 4, 0.1));
+}
+
+.commandSlot span,
+.commandSlot small {
+  position: relative;
+  z-index: 1;
+}
+
+.commandSlot span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 240, 202, 0.16);
+  color: #ffd779;
+  font-weight: 900;
+}
+
+.commandSlot small {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.coverSelector {
+  display: grid;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(203, 152, 64, 0.24);
+}
+
+.coverPreviewWrap {
+  padding: 6px;
+  border: 1px solid rgba(203, 152, 64, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.coverPreview {
+  min-height: 110px;
+  display: grid;
+  place-items: end start;
+  padding: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  color: #fff3d5;
+  box-shadow: inset 0 -48px 44px rgba(28, 15, 4, 0.36);
+}
+
+.coverPreview span {
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.36);
+}
+
+.coverPreview.tone-gold {
+  background:
+    radial-gradient(circle at 72% 32%, rgba(255, 232, 166, 0.82), transparent 18%),
+    linear-gradient(135deg, #271808, #b77719 58%, #f3c765);
+}
+
+.coverPreview.tone-forest {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(230, 201, 103, 0.58), transparent 22%),
+    linear-gradient(135deg, #122018, #315c32 58%, #ad842a);
+}
+
+.coverPreview.tone-night {
+  background:
+    radial-gradient(circle at 60% 28%, rgba(245, 198, 106, 0.62), transparent 20%),
+    linear-gradient(135deg, #09070c, #241a3d 58%, #8a5a13);
+}
+
+.coverUploadButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border: 1px solid rgba(184, 121, 29, 0.38);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #704812;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.coverUploadButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.powerPlaceActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
 @media (max-width: 980px) {
   .mandalaHero,
   .flowTuningPanel,
-  .mandalaAtelierGrid {
+  .mandalaAtelierGrid,
+  .powerPlacePrintArea {
     grid-template-columns: 1fr;
   }
 
@@ -485,6 +841,10 @@
   .flowTuningGlow {
     padding-left: 92px;
   }
+
+  .powerCommandRail {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.75fr);
+  }
 }
 
 @media (max-width: 560px) {
@@ -492,6 +852,7 @@
   .flowTuningPanel,
   .mandalaAtelierGrid,
   .mandalaGallery,
+  .powerPlaceConstructor,
   .mandalaAltarCard,
   .mandalaCreationCard {
     border-radius: 20px;
@@ -509,5 +870,70 @@
 
   .flowTuningGlow {
     padding: 18px 18px 18px 82px;
+  }
+
+  .powerPlaceHeader,
+  .powerPlaceActions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .powerMandala {
+    width: min(320px, 84vw);
+  }
+
+  .powerSource {
+    width: 44px;
+    height: 44px;
+    font-size: 13px;
+  }
+
+  .powerSource.small {
+    width: 34px;
+    height: 34px;
+  }
+
+  .powerMandalaBase {
+    width: 50%;
+    min-height: 42px;
+  }
+
+  .powerCommandRail {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  body.printMandalaOnly * {
+    visibility: hidden !important;
+  }
+
+  body.printMandalaOnly .powerPlacePrintArea,
+  body.printMandalaOnly .powerPlacePrintArea * {
+    visibility: visible !important;
+  }
+
+  body.printMandalaOnly .powerPlacePrintArea {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 240px;
+    gap: 12px;
+    padding: 18px;
+    background: #fffaf0;
+  }
+
+  body.printMandalaOnly .powerMandalaPanel,
+  body.printMandalaOnly .powerCommandRail {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  body.printMandalaOnly .powerPlaceHint,
+  body.printMandalaOnly .coverVariantList,
+  body.printMandalaOnly .coverUploadButton,
+  body.printMandalaOnly .coverNotice {
+    display: none !important;
   }
 }
