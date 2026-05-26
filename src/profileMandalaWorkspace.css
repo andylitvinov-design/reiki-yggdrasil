@@ -1,0 +1,513 @@
+.mandalaWorkspace {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 18px;
+}
+
+.mandalaHero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 126px minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  min-height: 158px;
+  border: 1px solid rgba(219, 162, 58, 0.48);
+  border-radius: 30px;
+  padding: 22px 26px;
+  background:
+    radial-gradient(circle at 88% 40%, rgba(226, 167, 61, 0.32), transparent 26%),
+    radial-gradient(circle at 12% 30%, rgba(246, 207, 111, 0.2), transparent 28%),
+    linear-gradient(105deg, #1e1509, #3c260e 52%, #7e4d12);
+  box-shadow: 0 24px 60px rgba(91, 57, 15, 0.18);
+  color: #fff2cf;
+}
+
+.mandalaHero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 95% 10%, rgba(255, 226, 144, 0.14), transparent 24%),
+    repeating-radial-gradient(circle at 92% 58%, transparent 0 15px, rgba(248, 204, 112, 0.08) 16px 17px);
+  pointer-events: none;
+}
+
+.mandalaHero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mandalaHeroSeal {
+  width: 106px;
+  height: 106px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #ffd87d;
+  font-size: 54px;
+  background:
+    radial-gradient(circle, rgba(255, 219, 123, 0.28), transparent 42%),
+    repeating-radial-gradient(circle, rgba(255, 222, 137, 0.22) 0 1px, transparent 2px 10px),
+    #20160b;
+  border: 1px solid rgba(255, 214, 121, 0.5);
+  box-shadow: 0 0 36px rgba(226, 174, 77, 0.32), inset 0 0 22px rgba(0, 0, 0, 0.34);
+}
+
+.mandalaHero h2 {
+  margin: 0 0 9px;
+  font-size: clamp(31px, 4vw, 54px);
+  line-height: 0.95;
+  letter-spacing: 0.2px;
+}
+
+.mandalaHero p {
+  margin: 0;
+  max-width: 640px;
+  color: rgba(255, 239, 204, 0.86);
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.mandalaHero .cabinetEyebrow {
+  color: #f4c86f;
+}
+
+.mandalaHeroStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.mandalaHeroStats span {
+  min-width: 120px;
+  border: 1px solid rgba(255, 214, 121, 0.34);
+  border-radius: 20px;
+  padding: 14px 16px;
+  background: rgba(255, 245, 221, 0.08);
+  box-shadow: inset 0 0 20px rgba(255, 217, 125, 0.05);
+  color: rgba(255, 240, 211, 0.85);
+  text-align: center;
+}
+
+.mandalaHeroStats b {
+  display: block;
+  color: #ffd675;
+  font-size: 31px;
+  line-height: 1;
+}
+
+.mandalaGuide,
+.flowTuningPanel,
+.mandalaAtelierGrid,
+.mandalaGallery {
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(244, 196, 100, 0.16), transparent 28%),
+    rgba(255, 252, 246, 0.86);
+  box-shadow: 0 18px 50px rgba(79, 54, 18, 0.1);
+}
+
+.mandalaGuide {
+  padding: 18px 22px;
+  color: #5f4d38;
+  font-weight: 700;
+}
+
+.flowTuningPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
+  align-items: center;
+  padding: 20px 22px;
+}
+
+.flowTuningPanel h3 {
+  margin: 0 0 7px;
+  font-size: 25px;
+}
+
+.flowTuningPanel p {
+  margin: 0;
+  color: #6e5d47;
+}
+
+.flowTuningGlow {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 5px;
+  min-height: 104px;
+  border-radius: 22px;
+  padding: 19px 22px 18px 100px;
+  background: linear-gradient(125deg, rgba(255, 246, 224, 0.96), rgba(255, 221, 142, 0.22));
+  border: 1px solid rgba(211, 149, 38, 0.42);
+}
+
+.flowTuningGlow span {
+  position: absolute;
+  left: 22px;
+  top: 20px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #f0b948;
+  background:
+    radial-gradient(circle, rgba(236, 172, 55, 0.36), transparent 44%),
+    repeating-radial-gradient(circle, rgba(176, 113, 19, 0.18) 0 1px, transparent 2px 8px),
+    #fff8ea;
+  box-shadow: 0 0 26px rgba(221, 160, 45, 0.32);
+}
+
+.flowTuningGlow b {
+  font-size: 19px;
+}
+
+.flowTuningGlow small {
+  color: #7b664a;
+}
+
+.mandalaAtelierGrid {
+  display: grid;
+  grid-template-columns: minmax(310px, 0.92fr) minmax(0, 1.08fr);
+  gap: 18px;
+  padding: 18px;
+}
+
+.mandalaAltarCard,
+.mandalaCreationCard {
+  border: 1px solid rgba(203, 152, 64, 0.32);
+  border-radius: 24px;
+  background: rgba(255, 253, 248, 0.78);
+  padding: 22px;
+}
+
+.mandalaAltarCard {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 37%, rgba(239, 184, 66, 0.2), transparent 34%),
+    rgba(255, 253, 248, 0.78);
+}
+
+.mandalaPreview {
+  position: relative;
+  width: min(340px, 76vw);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  margin: 8px auto 18px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 253, 245, 0.96) 0 20%, transparent 21%),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.23) 0 2px, transparent 3px 25px),
+    conic-gradient(from 20deg, rgba(188, 118, 22, 0.12), rgba(245, 199, 95, 0.28), rgba(188, 118, 22, 0.12));
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  box-shadow: 0 0 60px rgba(224, 173, 71, 0.2), inset 0 0 36px rgba(255, 255, 255, 0.68);
+  overflow: hidden;
+}
+
+.mandalaPreview::before,
+.mandalaPreview::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.mandalaPreview::before {
+  inset: 10%;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(188, 118, 22, 0.14) 0 8deg, transparent 9deg 18deg),
+    radial-gradient(circle, transparent 0 52%, rgba(190, 121, 27, 0.12) 53% 55%, transparent 56%);
+}
+
+.mandalaPreview::after {
+  inset: 26%;
+  border: 1px solid rgba(204, 142, 35, 0.32);
+  background: radial-gradient(circle, rgba(255, 247, 225, 0.82), rgba(255, 247, 225, 0.18));
+}
+
+.mandalaPreview span {
+  position: relative;
+  z-index: 1;
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  color: #9f6614;
+  font-size: 43px;
+  box-shadow: 0 12px 28px rgba(116, 70, 13, 0.16);
+}
+
+.mandalaPreview.hasImage {
+  background-size: cover;
+  background-position: center;
+}
+
+.mandalaPreview.hasImage::before {
+  background: radial-gradient(circle, transparent 0 58%, rgba(255, 214, 118, 0.22) 59% 61%, transparent 62%);
+}
+
+.mandalaPreview.hasImage::after {
+  display: none;
+}
+
+.mandalaUploadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 250px;
+  border-radius: 999px;
+  padding: 13px 20px;
+  background: linear-gradient(180deg, #eec661, #ad6f12);
+  color: #231405;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(160, 101, 16, 0.22);
+}
+
+.mandalaUploadButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mandalaDropHint,
+.mandalaFileNotice {
+  width: min(420px, 100%);
+  margin-top: 12px;
+  border-radius: 18px;
+  padding: 13px 15px;
+  color: #755f40;
+  background: rgba(255, 244, 219, 0.62);
+  border: 1px dashed rgba(203, 152, 64, 0.42);
+}
+
+.mandalaFileNotice {
+  color: #7b520f;
+  font-weight: 700;
+  border-style: solid;
+}
+
+.mandalaFlowLink {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 16px;
+  padding: 13px 15px;
+  background: rgba(184, 121, 29, 0.1);
+  color: #5f5142;
+  text-align: left;
+}
+
+.mandalaCreationCard .cabinetEyebrow {
+  margin-bottom: 14px;
+}
+
+.materialTypeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.materialTypeChips button {
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #6e4b1b;
+  font-weight: 800;
+}
+
+.materialTypeChips button.active {
+  background: linear-gradient(180deg, #2c1b09, #8c570d);
+  color: #fff0cd;
+  box-shadow: 0 10px 24px rgba(127, 78, 14, 0.22);
+}
+
+.mandalaCreationCard label {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  color: #5f5142;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mandalaCreationCard input,
+.mandalaCreationCard textarea,
+.mandalaCreationCard select {
+  width: 100%;
+  border: 1px solid rgba(122, 99, 72, 0.24);
+  border-radius: 14px;
+  padding: 12px 13px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #24180e;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.mandalaGallery {
+  padding: 22px;
+}
+
+.mandalaEmptyState {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  min-height: 190px;
+  border: 1px dashed rgba(203, 152, 64, 0.42);
+  border-radius: 22px;
+  padding: 28px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(237, 186, 82, 0.16), transparent 26%),
+    rgba(255, 248, 232, 0.5);
+}
+
+.mandalaEmptySeal {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #b8791d;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 30px rgba(122, 78, 18, 0.12);
+  font-size: 34px;
+}
+
+.mandalaCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.mandalaMaterialCard {
+  overflow: hidden;
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 16px 34px rgba(80, 52, 14, 0.08);
+}
+
+.mandalaCardImage {
+  height: 150px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1b160f, #8e5a14);
+  background-size: cover;
+  background-position: center;
+  color: #f3c65d;
+  font-size: 34px;
+}
+
+.mandalaCardImage.placeholder {
+  background:
+    repeating-radial-gradient(circle, rgba(247, 207, 108, 0.24) 0 2px, transparent 3px 16px),
+    linear-gradient(135deg, #1b160f, #8e5a14);
+}
+
+.mandalaCardBody {
+  padding: 14px;
+}
+
+.mandalaCardBody h3 {
+  margin: 8px 0 8px;
+}
+
+.mandalaCardBody p {
+  margin: 0 0 10px;
+  color: #62513d;
+}
+
+.mandalaCardBody small {
+  color: #7a674f;
+}
+
+.mandalaCardChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.mandalaCardChips span {
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #795019;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mandalaCardChips .status-pending {
+  background: rgba(224, 151, 43, 0.18);
+  color: #9a5d10;
+}
+
+.mandalaCardChips .status-approved {
+  background: rgba(79, 143, 67, 0.16);
+  color: #426e31;
+}
+
+.mandalaCardChips .status-rejected {
+  background: rgba(170, 67, 39, 0.13);
+  color: #903c25;
+}
+
+@media (max-width: 980px) {
+  .mandalaHero,
+  .flowTuningPanel,
+  .mandalaAtelierGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mandalaHero {
+    text-align: center;
+    justify-items: center;
+  }
+
+  .mandalaHeroStats {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .flowTuningGlow {
+    padding-left: 92px;
+  }
+}
+
+@media (max-width: 560px) {
+  .mandalaHero,
+  .flowTuningPanel,
+  .mandalaAtelierGrid,
+  .mandalaGallery,
+  .mandalaAltarCard,
+  .mandalaCreationCard {
+    border-radius: 20px;
+    padding: 16px;
+  }
+
+  .mandalaPreview {
+    width: min(280px, 72vw);
+  }
+
+  .mandalaUploadButton {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .flowTuningGlow {
+    padding: 18px 18px 18px 82px;
+  }
+}
