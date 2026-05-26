@@ -1,5 +1,21 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-26 — Power-place intention field and internal notes
+
+Mode: additive follow-up on branch `codex/power-place-mandala-builder`.
+
+Changed:
+
+- Added the requested `Цель места силы` textarea inside the existing `Места силы / Магическая мандала` printable constructor.
+- Kept the intention local and printable only; no new Supabase schema or storage was added on this branch.
+- Preserved the newer persisted Power Place implementation already present on `origin/main`.
+- Added detailed implementation notes to internal GitHub issue #55.
+
+Needs verification:
+
+- Production authenticated save/reload still depends on the existing Power Place migrations being applied.
+- Persisting `Цель места силы` separately remains needs verification because no schema field was added.
+
 ## 2026-05-26 — Power-place upgrade #5: Business mandala and DAO
 
 Mode: additive `/profile` constructor enhancement on branch `codex/power-place-upgrade-5-business-dao`.

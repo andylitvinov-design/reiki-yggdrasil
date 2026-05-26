@@ -130,6 +130,7 @@ Issue #41 adds the first profile materials MVP:
 Power-place mandala constructor branches extend the authenticated `/profile` mandala workspace:
 
 - Adds a compact `Места силы / Магическая мандала` constructor inside `/profile`.
+- Branch `codex/power-place-mandala-builder` adds the requested `Цель места силы` textarea to the printable constructor; the field is local/printable only until persistence is designed.
 - Supports cover selection from reusable profile/material image URLs, local safe custom cover image, and placeholder covers.
 - Supports type selection between `Мандала клиенту` and `Алтарь`.
 - `Мандала клиенту` supports geometry selection for 2, 4, 5, 6, 8, and 12 power-source objects around the center.

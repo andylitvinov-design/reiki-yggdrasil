@@ -237,6 +237,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [selectedCentralPhotoId, setSelectedCentralPhotoId] = useState("");
   const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
   const [compositionTitle, setCompositionTitle] = useState("");
+  const [powerPlaceIntention, setPowerPlaceIntention] = useState("");
   const [selectedCompositionId, setSelectedCompositionId] = useState("");
   const [resourceComparisonMode, setResourceComparisonMode] = useState("client_photo");
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
@@ -544,6 +545,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setObjectImages(composition.object_refs || {});
     setSelectedCentralPhotoId(composition.central_photo_id || "");
     setSelectedTraditionId(composition.tradition_id || mysteryTraditions[0]?.id || "");
+    setPowerPlaceIntention("");
     setResourceComparisonMode(composition.resource_comparison_mode || "client_photo");
     setResourceWithoutMandalaComment(composition.resource_without_mandala_comment || "");
     setResourceWithMandalaComment(composition.resource_with_mandala_comment || "");
@@ -1192,6 +1194,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{constructorTypeLabel(constructorType)}</h3>
                   </div>
+                  <label className="powerIntentionField">
+                    Цель места силы
+                    <textarea
+                      value={powerPlaceIntention}
+                      onChange={(event) => setPowerPlaceIntention(event.target.value)}
+                      rows="3"
+                      placeholder="Сформулируйте намерение, которое должна удерживать эта мандала."
+                    />
+                  </label>
                   {constructorType === "client" ? (
                     <div className={`powerMandala geometry-${powerSourceCount}`}>
                       <div className={centerImage ? "powerCenterPhoto hasImage" : "powerCenterPhoto"} style={imageStyle(centerImage)}>

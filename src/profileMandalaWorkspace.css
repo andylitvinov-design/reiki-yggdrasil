@@ -597,6 +597,29 @@
   line-height: 1.1;
 }
 
+.powerIntentionField {
+  width: min(500px, 100%);
+  display: grid;
+  gap: 7px;
+  color: #5f5142;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.powerIntentionField textarea {
+  width: 100%;
+  min-height: 78px;
+  resize: vertical;
+  border: 1px solid rgba(122, 99, 72, 0.24);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #24180e;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.36;
+}
+
 .powerMandala {
   position: relative;
   width: min(440px, 100%);
