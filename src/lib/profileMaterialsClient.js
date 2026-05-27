@@ -1,4 +1,5 @@
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
+import { createSignedMediaUrl, isStorageRef, parseStorageRef } from "./profileMediaClient.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
@@ -105,12 +106,32 @@ async function request(path, options = {}) {
   return data;
 }
 
+async function hydrateMaterialRows(rows, session) {
+  return Promise.all((rows || []).map(async (row) => {
+    if (!isStorageRef(row?.image_url) || !session?.access_token) return row;
+
+    const parsed = parseStorageRef(row.image_url);
+    if (!parsed?.path) return row;
+
+    try {
+      return {
+        ...row,
+        display_url: await createSignedMediaUrl(parsed.path, session, parsed.bucket)
+      };
+    } catch {
+      return row;
+    }
+  }));
+}
+
 export async function listOwnMaterials(profileId, session = getStoredSession()) {
   if (!profileId || !session?.access_token) return [];
 
-  return request(`/rest/v1/${PUBLICATIONS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=updated_at.desc`, {
+  const rows = await request(`/rest/v1/${PUBLICATIONS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=updated_at.desc`, {
     session
   });
+
+  return hydrateMaterialRows(rows, session);
 }
 
 export async function createOwnMaterial(material, session = getStoredSession()) {
@@ -123,5 +144,6 @@ export async function createOwnMaterial(material, session = getStoredSession()) 
     body: material
   });
 
-  return rows?.[0] || null;
+  const hydrated = await hydrateMaterialRows(rows, session);
+  return hydrated?.[0] || null;
 }

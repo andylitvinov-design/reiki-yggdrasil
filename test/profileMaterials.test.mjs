@@ -11,6 +11,7 @@ const empty = createEmptyMaterialForm();
 
 assert.equal(empty.type, "mandala");
 assert.equal(empty.status, "draft");
+assert.equal(empty.image_url, "");
 
 assert.deepEqual(
   normalizeMaterialForm(

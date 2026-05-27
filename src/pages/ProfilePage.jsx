@@ -17,6 +17,8 @@ import {
   getCurrentUser,
   getOwnProfile,
   getStoredSession,
+  isExpiredOrInvalidAuthError,
+  isStoredSessionExpired,
   sendMagicLink,
   signInWithGoogle,
   storeSessionFromUrlHash,
@@ -148,6 +150,47 @@ const MATERIAL_FILTERS = [
   { value: "approved", label: "Опубликовано" }
 ];
 
+const artifactItems = [
+  ...(leftMenuSections["artifact-creation"]?.items || []),
+  ...(leftMenuSections["artifact-creation"]?.groups || []).flatMap((group) => group.items || [])
+].filter((item) => item.id !== "artifact-workshop-overview");
+
+const talismanItems = artifactItems.filter((item) => item.label?.includes("Талисман"));
+
+const MATERIAL_CATEGORY_TABS = [
+  {
+    value: "dao-ri",
+    label: "ДАО РИ",
+    subcategories: reikiLevels.map((level) => ({
+      value: `level-${level.id}`,
+      label: `${level.id}. ${level.name}`,
+      steps: level.steps
+    }))
+  },
+  {
+    value: "god-channels",
+    label: "Каналы Богов",
+    subcategories: mysteryTraditions.flatMap((tradition) =>
+      (tradition.entities || []).map((entity) => ({
+        value: `${tradition.id}-${entity.id}`,
+        label: entity.title,
+        traditionId: tradition.id
+      }))
+    )
+  },
+  {
+    value: "talismans",
+    label: "Талисманы",
+    // needs verification: no dedicated talisman taxonomy found; using existing artifact-creation labels containing "Талисман".
+    subcategories: talismanItems.map((item) => ({ value: item.id, label: item.label }))
+  },
+  {
+    value: "artifacts",
+    label: "Артефакты",
+    subcategories: artifactItems.map((item) => ({ value: item.id, label: item.label }))
+  }
+];
+
 function normalizeProfile(profile, user) {
   return {
     ...EMPTY_PROFILE,
@@ -256,9 +299,18 @@ function persistableObjectRefs(refs, allowedIds = null) {
   );
 }
 
+function getInitialStoredSession() {
+  const storedSession = getStoredSession();
+  if (isStoredSessionExpired(storedSession)) {
+    clearStoredSession();
+    return null;
+  }
+  return storedSession;
+}
+
 export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
-  const [session, setSession] = useState(() => getStoredSession());
+  const [session, setSession] = useState(() => getInitialStoredSession());
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [materials, setMaterials] = useState([]);
@@ -266,6 +318,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [traditionAssets, setTraditionAssets] = useState([]);
   const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
   const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
+  const [materialFile, setMaterialFile] = useState(null);
+  const [materialFilePreview, setMaterialFilePreview] = useState("");
   const [clientPhotoForm, setClientPhotoForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [materialsLoading, setMaterialsLoading] = useState(false);
@@ -293,6 +347,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
   const [activeTopTab, setActiveTopTab] = useState("mandalas");
+  const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
+  const [activeMaterialSubcategory, setActiveMaterialSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
   const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
   const [materialFilter, setMaterialFilter] = useState("all");
   const [mediaStatus, setMediaStatus] = useState("");
@@ -318,13 +374,36 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     approved: statusCount(materials, "approved")
   }), [materials]);
 
+  const activeMaterialCategoryData = useMemo(
+    () => MATERIAL_CATEGORY_TABS.find((item) => item.value === activeMaterialCategory) || MATERIAL_CATEGORY_TABS[0],
+    [activeMaterialCategory]
+  );
+
+  const activeMaterialSubcategoryData = useMemo(
+    () => activeMaterialCategoryData.subcategories.find((item) => item.value === activeMaterialSubcategory) || activeMaterialCategoryData.subcategories[0] || null,
+    [activeMaterialCategoryData, activeMaterialSubcategory]
+  );
+
   const filteredMaterials = useMemo(() => {
-    if (materialFilter === "all") return materials;
-    if (["mandala", "artifact", "practice"].includes(materialFilter)) {
-      return materials.filter((item) => item.type === materialFilter);
+    let nextMaterials = materials;
+
+    if (materialFilter !== "all") {
+      nextMaterials = ["mandala", "artifact", "practice"].includes(materialFilter)
+        ? nextMaterials.filter((item) => item.type === materialFilter)
+        : nextMaterials.filter((item) => item.status === materialFilter);
     }
-    return materials.filter((item) => item.status === materialFilter);
-  }, [materialFilter, materials]);
+
+    if (activeMaterialCategory === "dao-ri" && activeMaterialSubcategoryData?.steps?.length) {
+      const stepIds = new Set(activeMaterialSubcategoryData.steps.map((step) => step.id));
+      nextMaterials = nextMaterials.filter((item) => !item.step_id || stepIds.has(item.step_id));
+    }
+
+    if (activeMaterialCategory === "artifacts") {
+      nextMaterials = nextMaterials.filter((item) => item.type === "artifact");
+    }
+
+    return nextMaterials;
+  }, [activeMaterialCategory, activeMaterialSubcategoryData, materialFilter, materials]);
 
   const accountPlan = normalizeAccountPlan(profile.account_plan);
   const planLimits = getPlanLimits(accountPlan);
@@ -341,6 +420,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const imageStyleFor = (value) => imageStyle(displayImageUrl(value));
 
+  const displayMaterialImageUrl = (value) => {
+    const material = materials.find((item) => item.image_url === value);
+    return material?.display_url || value;
+  };
+
+  const materialPreviewUrl = materialFilePreview || displayMaterialImageUrl(materialForm.image_url);
+
+  const materialImageStyle = (value) => imageStyle(displayMaterialImageUrl(value));
+
   const reusableImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((item) => ({
       id: `client-${item.id}`,
@@ -351,7 +439,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     ...materials.map((item, index) => ({
       id: `material-${item.id || index}`,
       label: item.title || `Материал ${index + 1}`,
-      src: item.image_url
+      src: item.image_url,
+      displaySrc: item.display_url || displayMaterialImageUrl(item.image_url)
     }))
   ]), [clientGoalPhotos, materials]);
 
@@ -592,6 +681,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   }, []);
 
   useEffect(() => {
+    if (!materialFile) {
+      setMaterialFilePreview("");
+      return undefined;
+    }
+
+    const previewUrl = URL.createObjectURL(materialFile);
+    setMaterialFilePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [materialFile]);
+
+  useEffect(() => {
+    setActiveMaterialSubcategory(activeMaterialCategoryData.subcategories[0]?.value || "");
+  }, [activeMaterialCategory, activeMaterialCategoryData.subcategories]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function load() {
@@ -601,6 +705,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
 
       if (!session?.access_token) {
+        setLoading(false);
+        return;
+      }
+
+      if (isStoredSessionExpired(session)) {
+        clearStoredSession();
+        setSession(null);
+        setUser(null);
+        setProfile(EMPTY_PROFILE);
+        setMaterials([]);
+        setClientGoalPhotos([]);
+        setTraditionAssets([]);
+        setPowerPlaceCompositions([]);
+        setMaterialFile(null);
+        setMaterialFilePreview("");
         setLoading(false);
         return;
       }
@@ -617,6 +736,23 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           setProfile(normalizeProfile(currentProfile, currentUser));
         }
       } catch (err) {
+        if (isExpiredOrInvalidAuthError(err)) {
+          clearStoredSession();
+          if (!cancelled) {
+            setSession(null);
+            setUser(null);
+            setProfile(EMPTY_PROFILE);
+            setMaterials([]);
+            setClientGoalPhotos([]);
+            setTraditionAssets([]);
+            setPowerPlaceCompositions([]);
+            setMaterialFile(null);
+            setMaterialFilePreview("");
+            setError("");
+          }
+          return;
+        }
+
         if (!cancelled) setError(err.message || "Не удалось загрузить профиль.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -818,23 +954,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setFileNotice("Выберите файл изображения: JPG, PNG или WEBP.");
-      return;
+    try {
+      validateProfileMediaFile(file);
+      setMaterialFile(file);
+      setFileNotice(`Фото «${file.name}» выбрано. Оно будет загружено при сохранении.`);
+    } catch (err) {
+      setFileNotice(formatUploadError(err));
     }
-
-    if (file.size > 2 * 1024 * 1024) {
-      setFileNotice("Для первого релиза загрузите изображение до 2 MB или вставьте внешнюю ссылку.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      updateMaterialField("image_url", String(reader.result || ""));
-      setFileNotice(`Фото «${file.name}» добавлено в алтарь мандалы.`);
-    };
-    reader.onerror = () => setFileNotice("Не удалось прочитать изображение. Попробуйте другой файл.");
-    reader.readAsDataURL(file);
   };
 
   const formatUploadError = (err) => err?.message || "Не удалось загрузить изображение.";
@@ -954,6 +1080,34 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const handleMaterialCategorySelect = (categoryValue) => {
+    setActiveMaterialCategory(categoryValue);
+    const category = MATERIAL_CATEGORY_TABS.find((item) => item.value === categoryValue) || MATERIAL_CATEGORY_TABS[0];
+    const firstSubcategory = category.subcategories[0];
+    setActiveMaterialSubcategory(firstSubcategory?.value || "");
+
+    if (categoryValue === "artifacts" || categoryValue === "talismans") {
+      updateMaterialField("type", "artifact");
+    } else if (categoryValue === "dao-ri" || categoryValue === "god-channels") {
+      updateMaterialField("type", "mandala");
+    }
+
+    if (categoryValue === "dao-ri" && firstSubcategory?.steps?.[0]?.id) {
+      updateMaterialField("step_id", firstSubcategory.steps[0].id);
+    }
+  };
+
+  const handleMaterialSubcategorySelect = (subcategory) => {
+    setActiveMaterialSubcategory(subcategory.value);
+    if (activeMaterialCategory === "dao-ri" && subcategory.steps?.[0]?.id) {
+      updateMaterialField("step_id", subcategory.steps[0].id);
+    }
+  };
+
+  const handleDaoStepSelect = (stepId) => {
+    updateMaterialField("step_id", stepId);
+  };
+
   const handleSave = async (requestedStatus) => {
     setMessage("");
     setError("");
@@ -994,7 +1148,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
 
     try {
-      const saved = await createOwnMaterial(buildMaterialPayload(materialForm, profile.id, nextStatus), session);
+      let nextForm = materialForm;
+      if (materialFile) {
+        setMediaUploadTarget("material");
+        setFileNotice("Загружаю фото мандалы...");
+        const uploaded = await uploadProfileMedia(materialFile, { profileId: profile.id, kind: "material" }, session);
+        nextForm = { ...materialForm, image_url: uploaded.ref };
+      }
+
+      const saved = await createOwnMaterial(buildMaterialPayload(nextForm, profile.id, nextStatus), session);
       setMaterials((current) => [saved, ...current].filter(Boolean));
       setMaterialForm((current) => ({
         ...EMPTY_MATERIAL,
@@ -1004,10 +1166,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         setting_title: current.setting_title,
         setting_index: current.setting_index
       }));
+      setMaterialFile(null);
+      setMaterialFilePreview("");
       setFileNotice("");
-      setMessage(nextStatus === "pending" ? "Материал отправлен на модерацию." : "Материал сохранён как черновик.");
+      setMessage(nextStatus === "pending" ? "Материал отправлен на модерацию." : "Материал сохранён.");
     } catch (err) {
       setError(err.message || "Не удалось сохранить материал.");
+    } finally {
+      setMediaUploadTarget("");
     }
   };
 
@@ -1203,10 +1369,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
     setObjectImages({});
     setObjectImageUrls({});
+    setMaterialFile(null);
+    setMaterialFilePreview("");
     setSelectedCentralPhotoId("");
     setSelectedCompositionId("");
     setCompositionTitle("");
     setActiveTopTab("mandalas");
+    setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
+    setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
     setSelectedObjectSlotId("");
     setMaterialFilter("all");
     setFileNotice("");
@@ -1304,15 +1474,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
-      {loading && <div className="cabinetNotice">Загружаю кабинет...</div>}
-      {error && <div className="cabinetError">{error}</div>}
-      {message && <div className="cabinetSuccess">{message}</div>}
+      {loading && !user && <div className="cabinetNotice">Загружаю кабинет...</div>}
 
       {!loading && !user && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
           <p className="cabinetEyebrow">Вход мастера</p>
           <h2>Войдите, чтобы создать профиль мастера</h2>
           <p>Войдите через Google или используйте email-ссылку. После входа можно заполнить профиль и отправить его на модерацию.</p>
+          {error && <div className="cabinetError">{error}</div>}
+          {message && <div className="cabinetSuccess">{message}</div>}
           <button className="cabinetGoogle" type="button" onClick={handleGoogleLogin}>Войти через Google</button>
           <div className="authDivider">или войдите по email</div>
           <label>
@@ -1355,6 +1525,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             </div>
 
+            {loading && <div className="cabinetNotice">Загружаю кабинет...</div>}
+            {error && <div className="cabinetError">{error}</div>}
+            {message && <div className="cabinetSuccess">{message}</div>}
+
             <div className="workspaceMainColumns">
             <aside className="mandalaModeSidebar">
               {activeTopTab === "mandalas" ? (
@@ -1377,7 +1551,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   <div className="materialMiniList">
                     {filteredMaterials.slice(0, 6).map((item) => (
                       <button key={item.id} type="button">
-                        <span className={item.image_url ? "hasImage" : ""} style={item.image_url ? { backgroundImage: `url(${item.image_url})` } : undefined}>◎</span>
+                        <span className={item.image_url ? "hasImage" : ""} style={materialImageStyle(item.image_url)}>◎</span>
                         <b>{item.title || "Материал без названия"}</b>
                         <small>{[item.step_id, item.setting_title || materialStatusText(item.status)].filter(Boolean).join(" · ")}</small>
                       </button>
@@ -1467,31 +1641,65 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             <div className="workspaceCenterColumn">
             {activeTopTab === "mandalas" && (
               <>
-            <div className="flowTuningPanel">
-              <div>
-                <p className="cabinetEyebrow">Настройка потока</p>
-                <h3>{activeStep?.id} · {activeStep?.title}</h3>
-                <p>{materialForm.setting_title || "Выберите настройку этой ступени"}</p>
+            <section className="materialCategoryNav" aria-label="Категории материалов">
+              <div className="materialCategoryTabs" role="tablist" aria-label="Категории материалов">
+                {MATERIAL_CATEGORY_TABS.map((category) => (
+                  <button
+                    className={activeMaterialCategory === category.value ? "active" : ""}
+                    key={category.value}
+                    onClick={() => handleMaterialCategorySelect(category.value)}
+                    type="button"
+                  >
+                    {category.label}
+                  </button>
+                ))}
               </div>
-              <div className="flowTuningGlow">
-                <span>✦</span>
-                <b>{activeStep?.stepLabel} {activeStep?.number}</b>
-                <small>{activeStep?.levelName}</small>
+              {activeMaterialCategoryData.subcategories.length > 0 && (
+                <div className="materialSubcategoryTabs" role="tablist" aria-label="Подкатегории материалов">
+                  {activeMaterialCategoryData.subcategories.map((subcategory) => (
+                    <button
+                      className={activeMaterialSubcategory === subcategory.value ? "active" : ""}
+                      key={subcategory.value}
+                      onClick={() => handleMaterialSubcategorySelect(subcategory)}
+                      type="button"
+                    >
+                      {subcategory.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {activeMaterialCategory === "dao-ri" && activeMaterialSubcategoryData?.steps?.length > 0 && (
+                <div className="materialStepTabs" aria-label="Ступени Reiki Yggdrasil">
+                  {activeMaterialSubcategoryData.steps.map((step) => (
+                    <button
+                      className={materialForm.step_id === step.id ? "active" : ""}
+                      key={step.id}
+                      onClick={() => handleDaoStepSelect(step.id)}
+                      type="button"
+                    >
+                      {step.label} {step.number}: {step.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="materialCategoryContext">
+                <b>{activeMaterialCategoryData.label}</b>
+                <span>{activeMaterialSubcategoryData?.label || "Подкатегория требует уточнения"}</span>
               </div>
-            </div>
+            </section>
 
             <div className="mandalaAtelierGrid">
               <div className="mandalaAltarCard">
                 <p className="cabinetEyebrow">Алтарь мандалы</p>
-                <div className={isImagePreview(materialForm.image_url) ? "mandalaPreview hasImage" : "mandalaPreview"} style={isImagePreview(materialForm.image_url) ? { backgroundImage: `url(${materialForm.image_url})` } : undefined}>
-                  {!isImagePreview(materialForm.image_url) && <span>⇧</span>}
+                <div className={isImagePreview(materialPreviewUrl) ? "mandalaPreview hasImage" : "mandalaPreview"} style={imageStyle(materialPreviewUrl)}>
+                  {!isImagePreview(materialPreviewUrl) && <span>⇧</span>}
                 </div>
                 <label className="mandalaUploadButton">
                   <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleMandalaFile} />
-                  Загрузить фото мандалы
+                  {mediaUploadTarget === "material" ? "Загружаю..." : "Загрузить фото мандалы"}
                 </label>
                 <div className="mandalaDropHint">
-                  JPG, PNG, WEBP до 2 MB. Файл будет сохранён как изображение в материале; также можно вставить внешний URL.
+                  JPG, PNG, WEBP или GIF до 5 MB. Файл сохраняется в private Supabase Storage; также можно вставить внешний URL.
                 </div>
                 {fileNotice && <div className="mandalaFileNotice">{fileNotice}</div>}
                 <div className="mandalaFlowLink">
@@ -1529,24 +1737,33 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   </label>
                 </div>
 
-                <label>
-                  Название
-                  <input value={materialForm.title} onChange={(event) => updateMaterialField("title", event.target.value)} placeholder="Например: Мандала денежной активации" />
-                </label>
+                <div className="materialTitleDescriptionGrid">
+                  <label>
+                    Название
+                    <input value={materialForm.title} onChange={(event) => updateMaterialField("title", event.target.value)} placeholder="Например: Мандала денежной активации" />
+                  </label>
 
-                <label>
-                  Описание / инструкция
-                  <textarea value={materialForm.description} onChange={(event) => updateMaterialField("description", event.target.value)} rows={4} placeholder="Что делает материал, как использовать, для какой задачи создан." />
-                </label>
+                  <label>
+                    Описание / инструкция
+                    <textarea value={materialForm.description} onChange={(event) => updateMaterialField("description", event.target.value)} rows={2} placeholder="(по желанию)" />
+                  </label>
+                </div>
 
                 <label>
                   URL изображения / мандалы
-                  <input value={materialForm.image_url} onChange={(event) => updateMaterialField("image_url", event.target.value)} placeholder="https://... или загрузите фото слева" />
+                  <input
+                    value={materialForm.image_url}
+                    onChange={(event) => {
+                      setMaterialFile(null);
+                      setMaterialFilePreview("");
+                      updateMaterialField("image_url", event.target.value);
+                    }}
+                    placeholder="https://... или загрузите фото слева"
+                  />
                 </label>
 
                 <div className="cabinetActions">
-                  <button className="cabinetPrimary" type="submit" disabled={!profile?.id}>Сохранить черновик</button>
-                  <button className="cabinetSecondary" type="button" disabled={!profile?.id} onClick={() => handleMaterialSave("pending")}>Отправить на модерацию</button>
+                  <button className="cabinetPrimary" type="submit" disabled={!profile?.id}>Сохранить</button>
                 </div>
               </form>
             </div>
@@ -2198,7 +2415,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 <div className="mandalaCardsGrid">
                   {filteredMaterials.map((item) => (
                     <article className="mandalaMaterialCard" key={item.id}>
-                      {item.image_url ? <div className="mandalaCardImage" style={{ backgroundImage: `url(${item.image_url})` }} /> : <div className="mandalaCardImage placeholder">◎</div>}
+                      {item.image_url ? <div className="mandalaCardImage" style={materialImageStyle(item.image_url)} /> : <div className="mandalaCardImage placeholder">◎</div>}
                       <div className="mandalaCardBody">
                         <div className="mandalaCardChips">
                           <span>{publicationTypeLabel(item.type)}</span>

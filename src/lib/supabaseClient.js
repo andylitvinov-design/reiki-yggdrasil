@@ -17,6 +17,34 @@ function cabinetError(message, details = null) {
   return error;
 }
 
+export function isExpiredOrInvalidAuthError(error) {
+  const details = error?.details || {};
+  const status = Number(details.status || details.code || 0);
+  const text = [
+    error?.message,
+    details.message,
+    details.msg,
+    details.error,
+    details.error_description
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return (
+    status === 401 ||
+    text.includes("jwt") ||
+    text.includes("token") && text.includes("expired") ||
+    text.includes("invalid claim") ||
+    text.includes("invalid claims") ||
+    text.includes("unable to parse or verify signature")
+  );
+}
+
+export function isStoredSessionExpired(session) {
+  if (!session?.expires_at) return false;
+  const expiresAt = Number(session.expires_at);
+  if (!Number.isFinite(expiresAt)) return false;
+  return expiresAt * 1000 <= Date.now();
+}
+
 function requireConfig() {
   if (!supabaseEnv.isConfigured) {
     throw cabinetError("Кабинет профиля требует настройки подключения Supabase.");
@@ -50,7 +78,10 @@ async function request(path, options = {}) {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw cabinetError(data?.msg || data?.message || "Ошибка Supabase запроса.", data);
+    throw cabinetError(data?.msg || data?.message || "Ошибка Supabase запроса.", {
+      ...(data && typeof data === "object" ? data : {}),
+      status: response.status
+    });
   }
 
   return data;

@@ -14,7 +14,7 @@ Last updated: 2026-05-27
 
 ## 2026-05-27 Power Place Star format and left library
 
-- Branch: `codex/add-star-power-place-format-and-left-library`, based on fresh `origin/main` commit `1ee04779ac53e98b59bf38517ea885776527332d`.
+- Branch: `codex/add-star-power-place-format-and-left-library`, updated from current `origin/main` commit `81bbda92aed1bfbfaad259b6329419ab135a3367`.
 - `/profile` → `Место силы` keeps the top-tab workflow and now includes constructor format `Звезда`.
 - `Звезда` supports variants `Закрытая` (`star_variant: closed`) and `Открытая` (`star_variant: open`).
 - Both star variants use five clickable object positions (`star-1` through `star-5`) with the existing object image selector, upload flow, Storage refs, save/update, and print path.
@@ -29,6 +29,26 @@ Needs verification:
 - Apply `20260527143000_power_place_star_format.sql` in live Supabase before treating star save/reload as production verified.
 - Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
 - Browser QA should verify `/profile` at desktop widths 1280/1366/1440/1710 and mobile 390 for overlap/readability.
+
+## 2026-05-27 profile mandala cabinet UX refinement
+
+- Branch: `codex/refine-profile-mandala-cabinet-ux`, based on fresh `origin/main` commit `50e2373cfb0c1e87a58ad2b2cc5ed3967e13f194`.
+- `/profile` top tabs remain `Мои мандалы`, `Место силы`, `Чаты`, and `Профиль`.
+- Expired/invalid stored Supabase sessions are cleared before showing the login UI; real post-login/save errors still render.
+- System notices now render inside the authenticated cabinet workspace under the personal cabinet hero.
+- The separate `Настройка потока` panel was removed from `Мои мандалы`; step/settings selects remain inside the material form.
+- Material category sources:
+  - `ДАО РИ`: `src/data/reikiKnowledgeBase.js` via `reikiLevels` and steps.
+  - `Каналы Богов`: `src/data/mysteryTraditions.js` via traditions/entities.
+  - `Талисманы`: `src/data/topSectionMenus.js` via `artifact-creation` items/groups filtered by labels containing `Талисман`; dedicated talisman taxonomy is `needs verification`.
+  - `Артефакты`: `src/data/topSectionMenus.js` via `artifact-creation` items/groups.
+- Material images now use the existing private `profile-cabinet-media` Storage flow under `{profile_id}/materials/...` and persist `storage://...` refs in `profile_cabinet_publications.image_url`.
+- No new migration was added; this relies on the existing `image_url` field and `20260527_profile_cabinet_media_storage.sql` bucket/policies.
+
+Needs verification:
+
+- Apply/confirm `20260527_profile_cabinet_media_storage.sql` in the live Supabase project before treating authenticated material image upload/reload as production-verified.
+- Browser QA should verify `/profile`, `/masters`, and `/profile/admin` at desktop widths 1280/1366/1440/1710 and mobile 390 for overflow/readability.
 
 ## 2026-05-27 profile Power Place top tab
 
