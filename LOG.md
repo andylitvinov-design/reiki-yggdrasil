@@ -1,5 +1,22 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-27 — Profile mobile Power Place workspace fix
+
+Mode: UI-only `/profile` cabinet mobile and Power Place simplification branch.
+
+Changed:
+
+- Collapsed the master profile editor behind a compact `Мой профиль` card by default.
+- Replaced workspace tabs with `Мои мандалы`, `Чаты`, and `Профиль`.
+- Added mobile overflow containment and mobile ordering so `Место силы` appears first in authenticated cabinet content.
+- Removed the confusing `Команда 1–5` command-slot UI.
+- Replaced the old flow tuning label with `Режим: START/PRO` and wired the switch to existing `account_plan` limits.
+- Made visible Power Place diagram slots clickable so images can be assigned directly from the diagram.
+
+Needs verification:
+
+- Authenticated production save/reload still depends on live Supabase migrations/env and Storage verification.
+
 ## 2026-05-26 — Wallet-backed Supabase migration runner
 
 Mode: clean replacement branch for PR #57 with only runner/package/docs changes.
