@@ -44,11 +44,13 @@ Confirmed files:
 - `supabase/migrations/20260526_power_place_persistence.sql`
 - `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
+- `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
+- `src/lib/profileMediaClient.js`
 - `scripts/apply-reiki-supabase-migrations.mjs`
 
 Supabase migration runner state:
 
-- `npm run supabase:migrations:apply` applies only the three committed 20260526 Power Place migrations.
+- `npm run supabase:migrations:apply` applies the committed Power Place migrations plus `20260527_profile_cabinet_media_storage.sql`.
 - Credentials are read from the local wallet endpoint `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
 - Required secret names are `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`.
 - Wallet-unavailable and missing-secret states fail before any Supabase CLI command runs.
@@ -153,7 +155,9 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Pro allows 20 saved Power Place compositions and 30 client/goal photos.
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
 - Altar object selectors use images saved under the selected tradition in `Мистерии`.
-- File picker previews remain local; durable Supabase Storage upload remains needs verification.
+- Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload to private Supabase Storage bucket `profile-cabinet-media`.
+- Database rows store durable `image_bucket` / `image_path` metadata for client/goal and tradition images; saved Power Place object refs store `storage://profile-cabinet-media/...` refs.
+- Private Storage images are displayed through short-lived signed URLs. Legacy external URL refs still load.
 - Saved Power Place `cover_ref.src` now restores the selected cover/background across client, altar, business, zodiac, and DAO layouts.
 - The central Power Place photo zone opens a compact `Выбрать фото клиента` modal that lists saved client/goal photos and can create/select a new one through the existing client-photo flow.
 - The mobile `/profile` workspace now keeps authenticated cabinet content within viewport width, moves `Место силы` first on mobile, collapses `Мой профиль` by default, uses tabs `Мои мандалы` / `Чаты` / `Профиль`, removes `Команда 1–5`, and assigns Power Place slot images directly from visible diagram positions.
@@ -168,6 +172,7 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - apply `supabase/migrations/20260526_power_place_persistence.sql`
 - apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
+- apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live

@@ -9,7 +9,8 @@ const SECRET_NAMES = ["SUPABASE_ACCESS_TOKEN", "SUPABASE_PROJECT_REF"];
 const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260526_power_place_persistence.sql",
   "supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql",
-  "supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql"
+  "supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql",
+  "supabase/migrations/20260527_profile_cabinet_media_storage.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
@@ -20,7 +21,11 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_chat_conversations: false,
   profile_cabinet_chat_participants: false,
   profile_cabinet_chat_messages: false,
-  profile_cabinet_chat_favorites: false
+  profile_cabinet_chat_favorites: false,
+  profile_cabinet_media_bucket: false,
+  profile_cabinet_client_goal_photos_image_path: false,
+  profile_cabinet_tradition_assets_image_path: false,
+  profile_cabinet_media_storage_policy: false
 });
 
 function redact(text = "", secrets = {}) {
@@ -225,7 +230,25 @@ select
   exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_chat_favorites'
-  ) as profile_cabinet_chat_favorites
+  ) as profile_cabinet_chat_favorites,
+  exists (
+    select 1 from storage.buckets
+    where id = 'profile-cabinet-media' and public = false
+  ) as profile_cabinet_media_bucket,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_client_goal_photos' and column_name = 'image_path'
+  ) as profile_cabinet_client_goal_photos_image_path,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_tradition_assets' and column_name = 'image_path'
+  ) as profile_cabinet_tradition_assets_image_path,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'owners upload profile cabinet media'
+  ) as profile_cabinet_media_storage_policy
 `.trim();
 }
 

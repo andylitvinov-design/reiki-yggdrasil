@@ -29,7 +29,7 @@ assert.deepEqual(
     label: "Своё изображение",
     type: "image",
     tone: "",
-    src: "data:image/png;base64,cover"
+    src: ""
   }
 );
 
@@ -44,13 +44,43 @@ assert.deepEqual(
     profile_id: "profile-1",
     title: "Фото цели",
     image_url: "https://example.com/client.jpg",
+    image_bucket: "profile-cabinet-media",
+    image_path: "",
+    mime_type: "",
+    file_size_bytes: 0,
     notes: "Задача клиента"
+  }
+);
+
+assert.deepEqual(
+  normalizeClientGoalPhoto({
+    profile_id: "profile-1",
+    title: " Storage фото ",
+    image_path: "profile-1/client-goal/uuid-client.jpg",
+    mime_type: "image/jpeg",
+    file_size_bytes: 1234,
+    notes: " Durable "
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Storage фото",
+    image_url: "",
+    image_bucket: "profile-cabinet-media",
+    image_path: "profile-1/client-goal/uuid-client.jpg",
+    mime_type: "image/jpeg",
+    file_size_bytes: 1234,
+    notes: "Durable"
   }
 );
 
 assert.throws(
   () => normalizeClientGoalPhoto({ profile_id: "profile-1", title: "Без фото", image_url: "" }),
-  /Добавьте ссылку/
+  /Добавьте фото/
+);
+
+assert.throws(
+  () => normalizeClientGoalPhoto({ profile_id: "profile-1", title: "Local", image_url: "data:image/png;base64,local" }),
+  /Добавьте фото/
 );
 
 assert.deepEqual(
@@ -68,6 +98,35 @@ assert.deepEqual(
     tradition_title: "Греческие мистерии",
     title: "Символ",
     image_url: "https://example.com/tradition.png",
+    image_bucket: "profile-cabinet-media",
+    image_path: "",
+    mime_type: "",
+    file_size_bytes: 0,
+    notes: "Для алтаря"
+  }
+);
+
+assert.deepEqual(
+  normalizeTraditionAsset({
+    profile_id: "profile-1",
+    tradition_id: " greek ",
+    tradition_title: " Греческие мистерии ",
+    title: " Storage символ ",
+    image_path: "profile-1/traditions/greek/uuid-symbol.webp",
+    mime_type: "image/webp",
+    file_size_bytes: 2048,
+    notes: " Для алтаря "
+  }),
+  {
+    profile_id: "profile-1",
+    tradition_id: "greek",
+    tradition_title: "Греческие мистерии",
+    title: "Storage символ",
+    image_url: "",
+    image_bucket: "profile-cabinet-media",
+    image_path: "profile-1/traditions/greek/uuid-symbol.webp",
+    mime_type: "image/webp",
+    file_size_bytes: 2048,
     notes: "Для алтаря"
   }
 );
@@ -188,7 +247,9 @@ assert.deepEqual(
     business_vertex_zone_count: 2,
     object_refs: {
       "dao-water": "https://example.com/water.jpg",
-      "dao-fire": "https://example.com/fire.jpg"
+      "dao-fire": "https://example.com/fire.jpg",
+      "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
+      "dao-metal": "data:image/png;base64,local"
     },
     central_photo_id: "photo-4",
     resource_comparison_mode: "bad"
@@ -204,7 +265,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "dao-water": "https://example.com/water.jpg",
-      "dao-fire": "https://example.com/fire.jpg"
+      "dao-fire": "https://example.com/fire.jpg",
+      "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png"
     },
     central_photo_id: "photo-4",
     tradition_id: "",
