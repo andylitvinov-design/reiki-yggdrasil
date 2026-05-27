@@ -84,6 +84,10 @@ export function buildProfileMediaPath(file, context = {}, uuid = randomUuid()) {
     return `${profileId}/power-place/${compositionId}/${slotId}-${uuid}-${safeFilename}`;
   }
 
+  if (kind === "material") {
+    return `${profileId}/materials/${uuid}-${safeFilename}`;
+  }
+
   if (kind === "underlay") {
     return `${profileId}/underlays/${uuid}-${safeFilename}`;
   }
