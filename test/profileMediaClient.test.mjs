@@ -37,8 +37,13 @@ assert.equal(
 );
 
 assert.equal(
-  buildProfileMediaPath(imageFile, { profileId: "profile-1", kind: "underlay" }, "uuid-4"),
-  "profile-1/underlays/uuid-4-goal-01.png"
+  buildProfileMediaPath(imageFile, { profileId: "profile-1", kind: "material" }, "uuid-4"),
+  "profile-1/materials/uuid-4-goal-01.png"
+);
+
+assert.equal(
+  buildProfileMediaPath(imageFile, { profileId: "profile-1", kind: "underlay" }, "uuid-5"),
+  "profile-1/underlays/uuid-5-goal-01.png"
 );
 
 assert.doesNotThrow(() => validateProfileMediaFile(imageFile));

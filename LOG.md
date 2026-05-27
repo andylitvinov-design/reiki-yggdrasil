@@ -1,5 +1,26 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-27 — Refine profile mandala cabinet UX
+
+Mode: scoped `/profile` UX refinement on branch `codex/refine-profile-mandala-cabinet-ux`.
+
+Changed:
+
+- Cleared expired/invalid stored Supabase sessions before rendering login, suppressing the scary JWT error while preserving real save/load errors.
+- Moved system notices into the authenticated cabinet workspace under the personal cabinet hero.
+- Removed the large `Настройка потока` panel from `Мои мандалы`; kept step/settings selection in the material form.
+- Added material category tabs: `ДАО РИ`, `Каналы Богов`, `Талисманы`, `Артефакты`.
+- Used existing data sources only: `reikiLevels`, `mysteryTraditions`, and `leftMenuSections` from `topSectionMenus`.
+- Marked talisman taxonomy as `needs verification` in code and kept the safest existing source: `artifact-creation` items/groups filtered by labels containing `Талисман`.
+- Compact material form now places title and description side by side on desktop, stacks on mobile, and uses placeholder `(по желанию)`.
+- Removed material `Отправить на модерацию`; material save button is now `Сохранить` and still saves draft records.
+- Added material Storage upload path `{profile_id}/materials/...` using the existing private `profile-cabinet-media` bucket and saved `storage://...` refs through `image_url`.
+
+Needs verification:
+
+- Live authenticated upload/reload still depends on Supabase env and the `20260527_profile_cabinet_media_storage.sql` migration being applied.
+- Browser QA should check `/profile`, `/masters`, `/profile/admin`, desktop widths 1280/1366/1440/1710, and mobile 390.
+
 ## 2026-05-27 — Move Power Place to `/profile` top tab
 
 Mode: `/profile` navigation simplification on branch `codex/move-power-place-to-top-tab`.
