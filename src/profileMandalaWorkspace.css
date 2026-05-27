@@ -1,65 +1,16 @@
 .mandalaWorkspace {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(250px, 0.72fr) minmax(440px, 1.12fr) minmax(430px, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+  min-width: 0;
 }
 
 .mandalaHero,
 .mandalaGuide,
 .workspaceSwitches {
   grid-column: 1 / -1;
-}
-
-.mandalaModeSidebar {
-  grid-column: 1;
-  grid-row: span 20;
-}
-
-.flowTuningPanel,
-.mandalaAtelierGrid,
-.powerLibraryGrid,
-.chatPlaceholderWorkspace {
-  grid-column: 2;
-}
-
-.mandalaGallery,
-.powerPlaceConstructor {
-  grid-column: 3;
-  grid-row: span 20;
-}
-
-.mandalaWorkspace:not(:has(.mandalaGuide)) .mandalaModeSidebar,
-.mandalaWorkspace:not(:has(.mandalaGuide)) .flowTuningPanel,
-.mandalaWorkspace:not(:has(.mandalaGuide)) .chatPlaceholderWorkspace,
-.mandalaWorkspace:not(:has(.mandalaGuide)) .mandalaGallery,
-.mandalaWorkspace:not(:has(.mandalaGuide)) .powerPlaceConstructor {
-  grid-row-start: 3;
-}
-
-.mandalaWorkspace:not(:has(.mandalaGuide)) .mandalaAtelierGrid {
-  grid-row-start: 4;
-}
-
-.mandalaWorkspace:not(:has(.mandalaGuide)) .powerLibraryGrid {
-  grid-row-start: 5;
-}
-
-.mandalaWorkspace:has(.mandalaGuide) .mandalaModeSidebar,
-.mandalaWorkspace:has(.mandalaGuide) .flowTuningPanel,
-.mandalaWorkspace:has(.mandalaGuide) .chatPlaceholderWorkspace,
-.mandalaWorkspace:has(.mandalaGuide) .mandalaGallery,
-.mandalaWorkspace:has(.mandalaGuide) .powerPlaceConstructor {
-  grid-row-start: 4;
-}
-
-.mandalaWorkspace:has(.mandalaGuide) .mandalaAtelierGrid {
-  grid-row-start: 5;
-}
-
-.mandalaWorkspace:has(.mandalaGuide) .powerLibraryGrid {
-  grid-row-start: 6;
 }
 
 .workspaceSwitches {
@@ -73,9 +24,10 @@
 .workspaceMainColumns {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(250px, 0.72fr) minmax(440px, 1.12fr) minmax(430px, 1fr);
+  grid-template-columns: 280px minmax(520px, 1fr) minmax(520px, 0.9fr);
   gap: 18px;
   align-items: start;
+  min-width: 0;
 }
 
 .workspaceCenterColumn,
@@ -84,6 +36,10 @@
   display: grid;
   gap: 18px;
   align-content: start;
+}
+
+.workspaceCenterColumn {
+  container-type: inline-size;
 }
 
 .profileTabContent {
@@ -139,6 +95,7 @@
 
 .mandalaModeSidebar,
 .chatPlaceholderWorkspace {
+  min-width: 0;
   border: 1px solid rgba(203, 152, 64, 0.34);
   border-radius: 24px;
   background:
@@ -535,6 +492,7 @@
 }
 
 .mandalaAtelierGrid {
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(310px, 0.92fr) minmax(0, 1.08fr);
   gap: 18px;
@@ -543,6 +501,7 @@
 
 .mandalaAltarCard,
 .mandalaCreationCard {
+  min-width: 0;
   border: 1px solid rgba(203, 152, 64, 0.32);
   border-radius: 24px;
   background: rgba(255, 253, 248, 0.78);
@@ -628,7 +587,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 250px;
+  max-width: 100%;
+  min-width: min(250px, 100%);
   border-radius: 999px;
   padding: 13px 20px;
   background: linear-gradient(180deg, #eec661, #ad6f12);
@@ -830,6 +790,7 @@
 }
 
 .powerPlaceConstructor {
+  min-width: 0;
   border: 1px solid rgba(203, 152, 64, 0.34);
   border-radius: 26px;
   padding: 18px;
@@ -853,9 +814,16 @@
 }
 
 .constructorControls {
+  min-width: 0;
   display: grid;
   justify-items: stretch;
   gap: 8px;
+}
+
+.compositionTitleInput,
+.constructorControls select {
+  min-width: 0;
+  width: 100%;
 }
 
 .constructorTypeSelector,
@@ -1103,6 +1071,12 @@
 
 .powerSource.hasImage span {
   display: none;
+}
+
+@container (max-width: 760px) {
+  .mandalaAtelierGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .powerSource.selected,
@@ -2374,7 +2348,6 @@
 }
 
 @media (max-width: 1180px) {
-  .mandalaWorkspace,
   .workspaceMainColumns {
     grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
   }
@@ -2390,6 +2363,20 @@
 
   .powerPlacePrintArea {
     grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1499px) {
+  .workspaceMainColumns {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .workspaceRightColumn {
+    grid-column: 1 / -1;
+  }
+
+  .powerPlacePrintArea {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   }
 }
 
