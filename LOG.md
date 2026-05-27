@@ -1,5 +1,23 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-27 — Restore profile layout tabs onto PR #60 main
+
+Mode: manual port from previous dirty Task 1 worktree onto `origin/main` after PR #60.
+
+Changed:
+
+- Found previous source branch `codex/fix-profile-cabinet-layout-panels` at `/Users/andriilitvinov/.config/superpowers/worktrees/reiki-yggdrasil/profile-combined-cabinet-design`, HEAD `3e1dc36701c794131d02bd8ba58bcf3d6137d6f1`.
+- Restored independent `/profile` top tabs: `Мои мандалы`, `Чаты`, `Профиль`.
+- Moved profile form and preview into the `Профиль` tab so old `Профиль мастера / Мой профиль` and `Как это будет выглядеть` blocks no longer sit above `Мастерская мандал`.
+- Restored independent right-panel switch: `Мои мандалы и материалы` / `Место силы`.
+- Kept compact contextual diagram-position editing and did not restore the bulky `Слоты диаграммы` editor.
+- Preserved PR #60 cover persistence, cover restoration, clickable center zones, `Выбрать фото клиента` modal, and Power Place save/update/print flow.
+
+Needs verification:
+
+- Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
+- Browser QA should verify desktop widths 1280/1366/1440 and mobile 390 for overflow/readability.
+
 ## 2026-05-27 — Supabase Storage photo uploads for profile cabinet media
 
 Mode: private Storage upload implementation on branch `codex/supabase-photo-storage-upload`.

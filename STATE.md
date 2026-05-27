@@ -12,6 +12,13 @@ Last updated: 2026-05-27
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-27 profile layout restore
+
+- Restore branch: `codex/restore-profile-layout-fix-live`, based on PR #60 merge commit `e6877fdbfb9e80022bd1001c6d886dcecde57d7c`.
+- Previous Task 1 source found locally at branch `codex/fix-profile-cabinet-layout-panels`, worktree `/Users/andriilitvinov/.config/superpowers/worktrees/reiki-yggdrasil/profile-combined-cabinet-design`, HEAD `3e1dc36701c794131d02bd8ba58bcf3d6137d6f1`.
+- The layout source was dirty worktree state, so the restore ports the missing layout manually instead of cherry-picking the branch tip.
+- PR #60 Power Place cover persistence, cover restoration, center photo picker modal, and save/update/print behavior are preserved.
+
 ## Current app structure
 
 The current repo is a Vite/React public prototype with a GitHub-stored course knowledge base and a profile cabinet MVP merged in PR #26.

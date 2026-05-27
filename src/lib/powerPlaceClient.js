@@ -239,7 +239,7 @@ export function normalizeCoverRef(coverRef) {
     label: cleanText(cover.label) || "Заставка места силы",
     type,
     tone: cleanText(cover.tone),
-    src: isPersistableImageRef(cover.src) ? cleanText(cover.src) : ""
+    src: cleanText(cover.src)
   };
 }
 

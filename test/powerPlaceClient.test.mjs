@@ -29,7 +29,7 @@ assert.deepEqual(
     label: "Своё изображение",
     type: "image",
     tone: "",
-    src: ""
+    src: "data:image/png;base64,cover"
   }
 );
 
