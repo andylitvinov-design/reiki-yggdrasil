@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
+import { leftMenuSections } from "../data/topSectionMenus.js";
 import {
   MATERIAL_TYPES,
   createEmptyMaterialForm,
@@ -78,7 +79,19 @@ const CONSTRUCTOR_TYPES = [
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес" },
   { value: "dao", label: "ДАО" },
-  { value: "zodiac", label: "Зодиак" }
+  { value: "zodiac", label: "Зодиак" },
+  { value: "star", label: "Звезда" }
+];
+const STAR_VARIANTS = [
+  { value: "closed", label: "Закрытая" },
+  { value: "open", label: "Открытая" }
+];
+const STAR_POINTS = [
+  { id: "top", className: "top", label: "Верхний луч" },
+  { id: "right", className: "right", label: "Правый луч" },
+  { id: "lower-right", className: "lowerRight", label: "Нижний правый луч" },
+  { id: "lower-left", className: "lowerLeft", label: "Нижний левый луч" },
+  { id: "left", className: "left", label: "Левый луч" }
 ];
 const ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const ZODIAC_SIGNS = [
@@ -225,6 +238,13 @@ function constructorTypeLabel(value) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === value)?.label || CONSTRUCTOR_TYPES[0].label;
 }
 
+function menuSectionEntries(section) {
+  return [
+    ...(section?.items || []),
+    ...(section?.groups || []).flatMap((group) => group.items || [])
+  ];
+}
+
 function persistableObjectRefs(refs, allowedIds = null) {
   const allowed = allowedIds ? new Set(allowedIds) : null;
 
@@ -256,6 +276,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [powerSourceCount, setPowerSourceCount] = useState(4);
   const [constructorType, setConstructorType] = useState("client");
   const [zodiacVisibleCount, setZodiacVisibleCount] = useState(12);
+  const [starVariant, setStarVariant] = useState("closed");
   const [businessVertexZoneCount, setBusinessVertexZoneCount] = useState(1);
   const [altarCenterRatio, setAltarCenterRatio] = useState("1");
   const [objectImages, setObjectImages] = useState({});
@@ -362,6 +383,138 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     ? selectedCentralPhoto.display_url || selectedCentralPhoto.image_url
     : "";
 
+  const artifactMenuEntries = useMemo(() => [
+    ...menuSectionEntries(leftMenuSections["artifact-creation"]),
+    ...menuSectionEntries(leftMenuSections["artifact-shop"])
+  ], []);
+
+  const talismanMenuEntries = useMemo(
+    () => artifactMenuEntries.filter((item) => /талисман/i.test(`${item.label || ""} ${item.description || ""}`)),
+    [artifactMenuEntries]
+  );
+
+  const powerLibraryGroups = useMemo(() => [
+    {
+      id: "dao-ri",
+      label: "ДАО РИ",
+      count: stepOptions.length,
+      items: stepOptions.map((step) => ({
+        id: step.id,
+        title: step.fullLabel,
+        meta: step.contentStatus === "needs_review" ? "needs verification" : step.status || ""
+      }))
+    },
+    {
+      id: "divine-channels",
+      label: "Каналы Богов",
+      count: mysteryTraditions.reduce((sum, tradition) => sum + 1 + (tradition.entities?.length || 0), 0),
+      items: mysteryTraditions.flatMap((tradition) => [
+        {
+          id: tradition.id,
+          title: tradition.title,
+          meta: tradition.contentStatus === "needs_review" ? "needs verification" : tradition.subtitle || ""
+        },
+        ...(tradition.entities || []).map((entity) => ({
+          id: `${tradition.id}-${entity.id}`,
+          title: entity.title,
+          meta: entity.contentStatus === "needs_review" ? "needs verification" : tradition.title
+        }))
+      ])
+    },
+    {
+      id: "talismans",
+      label: "Талисманы",
+      count: talismanMenuEntries.length,
+      emptyText: "Категории талисманов требуют проверки в источниках.",
+      items: talismanMenuEntries.map((item) => ({
+        id: item.id,
+        title: item.label,
+        meta: item.status || "категория сайта"
+      }))
+    },
+    {
+      id: "artifacts",
+      label: "Артефакты",
+      count: artifactMenuEntries.length + materials.filter((item) => item.type === "artifact").length,
+      items: [
+        ...materials.filter((item) => item.type === "artifact").map((item) => ({
+          id: `material-${item.id}`,
+          title: item.title || "Артефакт без названия",
+          meta: materialStatusText(item.status)
+        })),
+        ...artifactMenuEntries.map((item) => ({
+          id: item.id,
+          title: item.label,
+          meta: item.status || "категория сайта"
+        }))
+      ]
+    },
+    {
+      id: "covers",
+      label: "Подложка места силы",
+      count: coverVariants.length,
+      items: coverVariants.map((cover) => ({
+        id: cover.id,
+        title: cover.label,
+        meta: cover.type === "image" ? "изображение" : "фон"
+      }))
+    },
+    {
+      id: "client-goals",
+      label: "Фото клиентов / целей",
+      count: clientGoalPhotos.length,
+      emptyText: "Фото появятся после сохранения в кабинете.",
+      items: clientGoalPhotos.map((photo) => ({
+        id: photo.id,
+        title: photo.title || "Фото клиента / цели",
+        meta: photo.notes || "центр композиции"
+      }))
+    }
+  ], [artifactMenuEntries, clientGoalPhotos, coverVariants, materials, talismanMenuEntries]);
+
+  const savedPowerImages = useMemo(() => uniqueImageSources([
+    ...clientGoalPhotos.map((photo) => ({
+      id: `client-photo-${photo.id}`,
+      title: photo.title || "Фото клиента / цели",
+      label: photo.title || "Фото клиента / цели",
+      source: "Фото клиентов / целей",
+      status: photo.notes || "",
+      src: photo.image_ref || photo.image_url,
+      displaySrc: photo.display_url || photo.image_url,
+      kind: "client-photo",
+      photoId: photo.id
+    })),
+    ...traditionAssets.map((asset) => ({
+      id: `tradition-asset-${asset.id}`,
+      title: asset.title || selectedTradition?.title || "Образ традиции",
+      label: asset.title || selectedTradition?.title || "Образ традиции",
+      source: "Каналы Богов",
+      status: asset.tradition_title || selectedTradition?.title || "",
+      src: asset.image_ref || asset.image_url,
+      displaySrc: asset.display_url || asset.image_url,
+      kind: "tradition-asset"
+    })),
+    ...materials.map((item, index) => ({
+      id: `material-image-${item.id || index}`,
+      title: item.title || `Материал ${index + 1}`,
+      label: item.title || `Материал ${index + 1}`,
+      source: publicationTypeLabel(item.type),
+      status: materialStatusText(item.status),
+      src: item.image_url,
+      kind: "material"
+    })),
+    ...coverVariants.filter((cover) => cover.type === "image").map((cover) => ({
+      id: `cover-${cover.id}`,
+      title: cover.label || "Подложка",
+      label: cover.label || "Подложка",
+      source: "Подложка места силы",
+      status: "фон",
+      src: cover.src,
+      displaySrc: cover.displaySrc || cover.src,
+      kind: "cover"
+    }))
+  ]), [clientGoalPhotos, coverVariants, materials, selectedTradition?.title, traditionAssets]);
+
   const objectImageOptions = useMemo(() => [
     { id: "", label: "Пусто", src: "" },
     ...(constructorType === "altar" ? traditionImageOptions : reusableImages)
@@ -399,6 +552,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       return ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => ({
         id: `zodiac-${index + 1}`,
         label: sign.label
+      }));
+    }
+
+    if (constructorType === "star") {
+      return STAR_POINTS.map((point, index) => ({
+        id: `star-${index + 1}`,
+        label: point.label
       }));
     }
 
@@ -603,6 +763,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     zodiac_visible_count: zodiacVisibleCount,
     altar_center_ratio: altarCenterRatio,
     business_vertex_zone_count: businessVertexZoneCount,
+    star_variant: starVariant,
     cover_ref: buildCoverRef(),
     object_refs: persistableObjectRefs(objectImages, activeObjectSlots.map((slot) => slot.id)),
     central_photo_id: selectedCentralPhotoId,
@@ -620,6 +781,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     if (composition.geometry) setPowerSourceCount(Number(composition.geometry));
     setZodiacVisibleCount(ZODIAC_VISIBLE_COUNTS.includes(Number(composition.zodiac_visible_count)) ? Number(composition.zodiac_visible_count) : 12);
     setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
+    setStarVariant(STAR_VARIANTS.some((item) => item.value === composition.star_variant) ? composition.star_variant : "closed");
     setAltarCenterRatio(composition.altar_center_ratio || "1");
     setObjectImages(composition.object_refs || {});
     setObjectImageUrls((current) => ({ ...current, ...(composition.object_ref_urls || {}) }));
@@ -709,6 +871,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       if (!displayUrl || displayUrl === value) return current;
       return { ...current, [value]: displayUrl };
     });
+  };
+
+  const handleLibraryImageSelect = (item) => {
+    if (item.kind === "client-photo" && item.photoId) {
+      setSelectedCentralPhotoId(item.photoId);
+    }
+
+    if (selectedObjectSlot && item.src) {
+      setObjectImage(selectedObjectSlot.id, item.src, item.displaySrc || item.src);
+    }
   };
 
   const handleObjectSelect = (slotId, value) => {
@@ -1216,11 +1388,42 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               ) : activeTopTab === "power-place" ? (
                 <>
                   <p className="cabinetEyebrow">Место силы</p>
-                  <h3>Рабочая область</h3>
-                  <div className="chatModeNav" aria-label="Разделы места силы">
-                    {["Конструктор", "Фото клиентов", "Мистерии", "Сохранённые"].map((item) => (
-                      <button key={item} type="button">{item}</button>
-                    ))}
+                  <h3>Библиотека образов</h3>
+                  <div className="powerLibrarySidebar" aria-label="Навигация и сохранённые образы места силы">
+                    <div className="powerLibraryGroups">
+                      {powerLibraryGroups.map((group, index) => (
+                        <details key={group.id} open={index < 2}>
+                          <summary>
+                            <span>{group.label}</span>
+                            <b>{group.count}</b>
+                          </summary>
+                          <div className="powerLibraryGroupList">
+                            {group.items.slice(0, 14).map((item) => (
+                              <button key={item.id} type="button">
+                                <span>{item.title}</span>
+                                {item.meta && <small>{item.meta}</small>}
+                              </button>
+                            ))}
+                            {group.items.length > 14 && <small>Ещё {group.items.length - 14} элементов внутри раздела.</small>}
+                            {group.items.length === 0 && <p>{group.emptyText || "Список пока пуст."}</p>}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                    <div className="powerSavedImageList" aria-label="Сохранённые изображения">
+                      <div className="powerSavedImageHeader">
+                        <b>Сохранённые изображения</b>
+                        <small>{selectedObjectSlot ? `Позиция: ${selectedObjectSlot.label}` : "Выберите позицию на схеме"}</small>
+                      </div>
+                      {savedPowerImages.map((item) => (
+                        <button key={item.id} type="button" onClick={() => handleLibraryImageSelect(item)}>
+                          <span className="powerSavedImageThumb" style={imageStyle(displayImageUrl(item.displaySrc || item.src))} />
+                          <b>{item.title}</b>
+                          <small>{[item.source, item.status].filter(Boolean).join(" · ")}</small>
+                        </button>
+                      ))}
+                      {savedPowerImages.length === 0 && <p>Сохранённые фото, подложки и материалы появятся здесь после загрузки.</p>}
+                    </div>
                   </div>
                   <div className="quickPhotoGrid">
                     {[
@@ -1559,6 +1762,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       ))}
                     </div>
                   )}
+                  {constructorType === "star" && (
+                    <div className="starVariantSelector" aria-label="Формат звезды">
+                      <span>Вариант звезды</span>
+                      {STAR_VARIANTS.map((variant) => (
+                        <button
+                          className={starVariant === variant.value ? "active" : ""}
+                          key={variant.value}
+                          onClick={() => setStarVariant(variant.value)}
+                          type="button"
+                        >
+                          {variant.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {powerPlaceCompositions.length > 0 && (
                     <select value={selectedCompositionId} onChange={(event) => {
                       const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
@@ -1709,6 +1927,39 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         );
                       })}
                     </div>
+                  ) : constructorType === "star" ? (
+                    <div className={`starMandalaSheet star-${starVariant} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      {renderCenterPhotoButton("starCenterPhoto")}
+                      <div className="starGuide" aria-hidden="true">
+                        <span className="starRay rayTop" />
+                        <span className="starRay rayRight" />
+                        <span className="starRay rayLowerRight" />
+                        <span className="starRay rayLowerLeft" />
+                        <span className="starRay rayLeft" />
+                        <span className="starOpenLine starOpenRight" />
+                        <span className="starOpenLine starOpenLowerLeft" />
+                      </div>
+                      {STAR_POINTS.map((point, index) => {
+                        const slotId = `star-${index + 1}`;
+                        const slotImage = objectImages[slotId];
+
+                        return (
+                          <div className={`starPosition ${point.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
+                            <button
+                              className={`starPositionImage${selectedObjectSlotId === slotId ? " selected" : ""}`}
+                              onClick={() => openObjectSlot(slotId)}
+                              style={imageStyleFor(slotImage)}
+                              type="button"
+                              title={point.label}
+                              aria-label={`Выбрать ${point.label.toLowerCase()}`}
+                            >
+                              {!slotImage && <span>{index + 1}</span>}
+                            </button>
+                            <b>{point.label}</b>
+                          </div>
+                        );
+                      })}
+                    </div>
                   ) : (
                     <div className={`daoMandalaSheet ${selectedCoverClass}`} style={selectedCoverStyle}>
                       {renderCenterPhotoButton("daoCenterPhoto")}
@@ -1746,7 +1997,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           ? "Бизнес-мандала собирает цель, функцию и структуру в треугольник с единым числом зон на каждой вершине."
                           : constructorType === "zodiac"
                             ? "Зодиак ставит фото клиента или цели в центр и раскладывает до 12 образов по часовому кругу."
-                            : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
+                            : constructorType === "star"
+                              ? "Звезда собирает пять ключевых образов вокруг центра; открытый вариант продолжает правый и нижний левый лучи как линии движения."
+                              : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
                   </p>
                   <div className="resourcePrintNotes">
                     <p><b>Сравнение ресурса:</b> {RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото клиента"}</p>

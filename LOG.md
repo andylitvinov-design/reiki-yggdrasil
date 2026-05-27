@@ -1,5 +1,26 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-27 — Power Place Star format and left library
+
+Mode: additive `/profile` Power Place constructor and left-library upgrade on branch `codex/add-star-power-place-format-and-left-library`.
+
+Changed:
+
+- Added `Звезда` to Power Place constructor formats.
+- Added star variants `Закрытая` and `Открытая`, persisted as `star_variant: closed | open`.
+- Added five clickable star object positions using existing object image selection, upload, Storage refs, save/update, and print behavior.
+- Added visual star CSS for closed and open variants; open extends the right ray and lower-left leg.
+- Replaced the static left `Место силы` block with collapsible groups and a scrollable saved image list.
+- Reused existing category/data sources: `reikiLevels`, `mysteryTraditions`, `topSectionMenus.leftMenuSections`, saved `materials`, `coverVariants`, `clientGoalPhotos`, and `traditionAssets`.
+- Added `supabase/migrations/20260527143000_power_place_star_format.sql`.
+- Updated the Supabase migration runner allowlist/schema check for the new star migration.
+
+Needs verification:
+
+- Apply `20260527143000_power_place_star_format.sql` in live Supabase.
+- Verify authenticated save/reload of `constructor_type: star` and `star_variant` against production Supabase.
+- Browser QA should verify desktop widths 1280/1366/1440/1710 and mobile 390 for overflow/readability.
+
 ## 2026-05-27 — Move Power Place to `/profile` top tab
 
 Mode: `/profile` navigation simplification on branch `codex/move-power-place-to-top-tab`.
