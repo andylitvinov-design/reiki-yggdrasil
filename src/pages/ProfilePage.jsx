@@ -131,14 +131,6 @@ const FALLBACK_COVER_VARIANTS = [
   { id: "cover-night", label: "Ночная мандала", tone: "night" }
 ];
 
-const COMMAND_SLOT_LABELS = [
-  "Команда 1",
-  "Команда 2",
-  "Команда 3",
-  "Команда 4",
-  "Команда 5"
-];
-
 function normalizeProfile(profile, user) {
   return {
     ...EMPTY_PROFILE,
@@ -267,7 +259,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceComparisonMode, setResourceComparisonMode] = useState("client_photo");
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
-  const [workspaceTab, setWorkspaceTab] = useState("workspace");
+  const [workspaceTab, setWorkspaceTab] = useState("mandalas");
+  const [profileExpanded, setProfileExpanded] = useState(false);
+  const [activeSlotId, setActiveSlotId] = useState("");
   const [approvedMasters, setApprovedMasters] = useState([]);
   const [chatThreads, setChatThreads] = useState([]);
   const [selectedConversationId, setSelectedConversationId] = useState("");
@@ -340,8 +334,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const centerImage = isImagePreview(selectedCentralPhoto?.image_url) ? selectedCentralPhoto.image_url : "";
 
-  const commandSlots = Array.from({ length: 5 }, (_, index) => reusableImages[index] || null);
-
   const objectImageOptions = useMemo(() => [
     { id: "", label: "Пусто", src: "" },
     ...(constructorType === "altar" ? traditionImageOptions : reusableImages)
@@ -387,6 +379,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       label: sourceLabel(powerSourceCount, index)
     }));
   }, [businessVertexZoneCount, constructorType, powerSourceCount, zodiacVisibleCount]);
+
+  const activeSlot = useMemo(
+    () => activeObjectSlots.find((slot) => slot.id === activeSlotId) || null,
+    [activeObjectSlots, activeSlotId]
+  );
 
   const filteredMasters = useMemo(() => approvedMasters
     .filter((master) => master.id !== profile?.id)
@@ -471,6 +468,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       cancelled = true;
     };
   }, [profile?.id, session]);
+
+  useEffect(() => {
+    if (activeSlotId && !activeObjectSlots.some((slot) => slot.id === activeSlotId)) {
+      setActiveSlotId("");
+    }
+  }, [activeObjectSlots, activeSlotId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -721,6 +724,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const setObjectImage = (slotId, value) => {
     setObjectImages((current) => ({ ...current, [slotId]: value }));
+  };
+
+  const openObjectSlot = (slotId) => {
+    setActiveSlotId(slotId);
   };
 
   const handleObjectFile = (slotId, event) => {
@@ -983,7 +990,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedConversationId("");
     setMasterSearch("");
     setChatDraft("");
-    setWorkspaceTab("workspace");
+    setWorkspaceTab("mandalas");
+    setProfileExpanded(false);
+    setActiveSlotId("");
     setFileNotice("");
     setMessage("Вы вышли из кабинета.");
   };
@@ -1022,7 +1031,37 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
       {!loading && user && (
         <div className="cabinetGrid">
-          <form className="cabinetCard profileForm" onSubmit={(event) => { event.preventDefault(); handleSave(); }}>
+          <section className="cabinetCard profileSummary">
+            <div>
+              <p className="cabinetEyebrow">Профиль мастера</p>
+              <h2>Мой профиль</h2>
+              <p>{profile.display_name || "Заполните профиль мастера, когда понадобится изменить публичную карточку."}</p>
+              {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
+            </div>
+            <div className="profileSummaryActions">
+              <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
+              <button
+                className="cabinetPrimary"
+                type="button"
+                aria-expanded={profileExpanded || workspaceTab === "profile"}
+                onClick={() => {
+                  if (profileExpanded || workspaceTab === "profile") {
+                    setProfileExpanded(false);
+                    setWorkspaceTab("mandalas");
+                    return;
+                  }
+
+                  setProfileExpanded(true);
+                  setWorkspaceTab("profile");
+                }}
+              >
+                {profileExpanded || workspaceTab === "profile" ? "Свернуть" : "Мой профиль"}
+              </button>
+            </div>
+          </section>
+
+          {(profileExpanded || workspaceTab === "profile") && (
+          <form className="cabinetCard profileForm profileEditor" onSubmit={(event) => { event.preventDefault(); handleSave(); }}>
             <div className="cabinetFormHeader">
               <div>
                 <p className="cabinetEyebrow">Профиль мастера</p>
@@ -1069,22 +1108,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               <input value={profile.avatar_url || ""} onChange={(event) => updateField("avatar_url", event.target.value)} placeholder="https://..." />
             </label>
 
-            <label>
-              План кабинета
-              <select value={accountPlan} onChange={(event) => updateField("account_plan", event.target.value)}>
-                {ACCOUNT_PLANS.map((plan) => (
-                  <option key={plan.value} value={plan.value}>{plan.label}</option>
-                ))}
-              </select>
-            </label>
-            <p className="powerPlanNote">Start: 7 мест силы и 10 фото клиентов. Pro: 20 мест силы и 30 фото. Биллинг: needs verification.</p>
-
             <div className="cabinetActions">
               <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
               <button className="cabinetSecondary" type="button" onClick={() => handleSave("pending")}>Отправить на модерацию</button>
               <button className="cabinetGhost" type="button" onClick={handleLogout}>Выйти</button>
             </div>
           </form>
+          )}
 
           <aside className="cabinetCard cabinetPreview">
             <p className="cabinetEyebrow">Как это будет выглядеть</p>
@@ -1116,22 +1146,43 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             )}
 
             <div className="workspaceTabs" role="tablist" aria-label="Разделы кабинета">
-              <button className={workspaceTab === "workspace" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("workspace")}>Мастерская</button>
+              <button className={workspaceTab === "mandalas" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("mandalas")}>Мои мандалы</button>
               <button className={workspaceTab === "chats" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("chats")}>Чаты</button>
+              <button
+                className={workspaceTab === "profile" ? "active" : ""}
+                type="button"
+                onClick={() => {
+                  setWorkspaceTab("profile");
+                  setProfileExpanded(true);
+                }}
+              >
+                Профиль
+              </button>
             </div>
 
-            {workspaceTab !== "chats" && (
+            {workspaceTab === "mandalas" && (
               <>
             <div className="flowTuningPanel">
               <div>
-                <p className="cabinetEyebrow">Настройка потока</p>
-                <h3>{activeStep?.id} · {activeStep?.title}</h3>
-                <p>{materialForm.setting_title || "Выберите настройку этой ступени"}</p>
+                <p className="cabinetEyebrow">Режим</p>
+                <h3>Режим: {accountPlan.toUpperCase()}</h3>
+                <p>Start: 7 мест силы и 10 фото клиентов. Pro: 20 мест силы и 30 фото.</p>
               </div>
-              <div className="flowTuningGlow">
+              <div className="flowTuningGlow planSwitchPanel">
                 <span>✦</span>
-                <b>{activeStep?.stepLabel} {activeStep?.number}</b>
-                <small>{activeStep?.levelName}</small>
+                <b>{accountPlan === "pro" ? "PRO" : "START"}</b>
+                <div className="planSwitch" role="group" aria-label="План кабинета">
+                  {ACCOUNT_PLANS.map((plan) => (
+                    <button
+                      className={accountPlan === plan.value ? "active" : ""}
+                      key={plan.value}
+                      type="button"
+                      onClick={() => updateField("account_plan", plan.value)}
+                    >
+                      {plan.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1486,14 +1537,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         const sourceImage = objectImages[slotId];
 
                         return (
-                          <div
+                          <button
                             className={`${sourceClassName(powerSourceCount, index)}${sourceImage ? " hasImage" : ""}`}
                             key={`source-${powerSourceCount}-${index}`}
+                            onClick={() => openObjectSlot(slotId)}
                             style={imageStyle(sourceImage)}
                             title={sourceLabel(powerSourceCount, index)}
+                            type="button"
+                            aria-label={`Выбрать изображение: ${sourceLabel(powerSourceCount, index)}`}
                           >
                             {!sourceImage && <span>{index + 1}</span>}
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -1506,14 +1560,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           const isMain = index === 2;
 
                           return (
-                            <div
+                            <button
                               className={`${isMain ? "altarTopSource main" : "altarTopSource"}${slotImage ? " hasImage" : ""}`}
                               key={slotId}
+                              onClick={() => openObjectSlot(slotId)}
                               style={imageStyle(slotImage)}
                               title={isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}
+                              type="button"
+                              aria-label={`Выбрать изображение: ${isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}`}
                             >
                               {!slotImage && <span>{index + 1}</span>}
-                            </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -1529,14 +1586,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           const slotImage = objectImages[slotId];
 
                           return (
-                            <div
+                            <button
                               className={`altarSupportSource${slotImage ? " hasImage" : ""}`}
                               key={slotId}
+                              onClick={() => openObjectSlot(slotId)}
                               style={imageStyle(slotImage)}
                               title={`Нижняя опора ${number}`}
+                              type="button"
+                              aria-label={`Выбрать изображение: Нижняя опора ${number}`}
                             >
                               {!slotImage && <span>{number}</span>}
-                            </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -1556,14 +1616,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                               const slotImage = objectImages[slotId];
 
                               return (
-                                <div
+                                <button
                                   className={`businessVertexZone${slotImage ? " hasImage" : ""}`}
                                   key={slotId}
+                                  onClick={() => openObjectSlot(slotId)}
                                   style={imageStyle(slotImage)}
                                   title={businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}
+                                  type="button"
+                                  aria-label={`Выбрать изображение: ${businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}`}
                                 >
                                   {!slotImage && <span>{index + 1}</span>}
-                                </div>
+                                </button>
                               );
                             })}
                           </div>
@@ -1584,13 +1647,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                         return (
                           <div className={`zodiacPosition ${sign.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
-                            <div
+                            <button
                               className="zodiacPositionImage"
+                              onClick={() => openObjectSlot(slotId)}
                               style={imageStyle(slotImage)}
                               title={sign.label}
+                              type="button"
+                              aria-label={`Выбрать изображение: ${sign.label}`}
                             >
                               {!slotImage && <span>{index + 1}</span>}
-                            </div>
+                            </button>
                             <b>{sign.label}</b>
                           </div>
                         );
@@ -1610,17 +1676,41 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                         return (
                           <div className={`daoElement ${element.className}`} key={element.id}>
-                            <div
+                            <button
                               className={`daoElementImage${slotImage ? " hasImage" : ""}`}
+                              onClick={() => openObjectSlot(slotId)}
                               style={imageStyle(slotImage)}
                               title={element.label}
+                              type="button"
+                              aria-label={`Выбрать изображение: ${element.label}`}
                             >
                               {!slotImage && <span>◎</span>}
-                            </div>
+                            </button>
                             <b>{element.label}</b>
                           </div>
                         );
                       })}
+                    </div>
+                  )}
+                  {activeSlot && (
+                    <div className="slotChooserPanel" aria-live="polite">
+                      <div>
+                        <p className="cabinetEyebrow">Слот мандалы</p>
+                        <b>{activeSlot.label}</b>
+                      </div>
+                      <select value={objectImages[activeSlot.id] || ""} onChange={(event) => setObjectImage(activeSlot.id, event.target.value)}>
+                        {objectImageOptions.map((option) => (
+                          <option key={`${activeSlot.id}-${option.id || "empty"}`} value={option.src}>{option.label}</option>
+                        ))}
+                      </select>
+                      <div className="objectSlotActions">
+                        <label>
+                          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleObjectFile(activeSlot.id, event)} />
+                          Загрузить
+                        </label>
+                        <button type="button" onClick={() => setObjectImage(activeSlot.id, "")}>Очистить</button>
+                        <button type="button" onClick={() => setActiveSlotId("")}>Закрыть</button>
+                      </div>
                     </div>
                   )}
                   <p className="powerPlaceHint">
@@ -1643,7 +1733,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                 <aside className="powerCommandRail">
                   <div className="objectImageEditor">
-                    <p className="cabinetEyebrow">Объекты композиции</p>
+                    <p className="cabinetEyebrow">Слоты диаграммы</p>
                     <div className="objectSlotList">
                       {activeObjectSlots.map((slot) => {
                         const slotImage = objectImages[slot.id] || "";
@@ -1672,19 +1762,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         );
                       })}
                     </div>
-                  </div>
-
-                  <div className="commandSlots" aria-label="Командные изображения">
-                    {COMMAND_SLOT_LABELS.map((label, index) => {
-                      const commandImage = commandSlots[index];
-
-                      return (
-                        <div className={commandImage ? "commandSlot hasImage" : "commandSlot"} key={label} style={commandImage ? { backgroundImage: `url(${commandImage.src})` } : undefined}>
-                          {!commandImage && <span>{index + 1}</span>}
-                          <small>{label}</small>
-                        </div>
-                      );
-                    })}
                   </div>
 
                   <div className="coverSelector">
@@ -1758,7 +1835,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             </section>
 
-            {workspaceTab !== "chats" && (
+            {workspaceTab === "mandalas" && (
             <div className="mandalaGallery">
               <div className="cabinetFormHeader">
                 <div>

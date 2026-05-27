@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-26
+Last updated: 2026-05-27
 
 ## Current verified repo state
 
@@ -154,6 +154,8 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
 - Altar object selectors use images saved under the selected tradition in `Мистерии`.
 - File picker previews remain local; durable Supabase Storage upload remains needs verification.
+- The mobile `/profile` workspace now keeps authenticated cabinet content within viewport width, moves `Место силы` first on mobile, collapses `Мой профиль` by default, uses tabs `Мои мандалы` / `Чаты` / `Профиль`, removes `Команда 1–5`, and assigns Power Place slot images directly from visible diagram positions.
+- The Power Place mode switch shows `Режим: START/PRO` and still uses the existing `account_plan` limits: Start 7/10 and Pro 20/30.
 
 Live data flow still depends on manual Supabase/Vercel setup:
 
