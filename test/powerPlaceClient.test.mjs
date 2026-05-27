@@ -4,6 +4,7 @@ import {
   getPlanLimits,
   normalizeAccountPlan,
   normalizeClientGoalPhoto,
+  normalizeCoverRef,
   normalizePowerPlaceComposition,
   normalizeTraditionAsset
 } from "../src/lib/powerPlaceClient.js";
@@ -14,6 +15,23 @@ assert.equal(normalizeAccountPlan("unknown"), "start");
 assert.deepEqual(getPlanLimits("start"), { compositions: 7, clientPhotos: 10 });
 assert.deepEqual(getPlanLimits("pro"), { compositions: 20, clientPhotos: 30 });
 assert.deepEqual(getPlanLimits("enterprise"), { compositions: 7, clientPhotos: 10 });
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "custom-cover",
+    label: " Своё изображение ",
+    type: "image",
+    tone: "",
+    src: "data:image/png;base64,cover"
+  }),
+  {
+    id: "custom-cover",
+    label: "Своё изображение",
+    type: "image",
+    tone: "",
+    src: "data:image/png;base64,cover"
+  }
+);
 
 assert.deepEqual(
   normalizeClientGoalPhoto({
@@ -62,7 +80,7 @@ assert.deepEqual(
     geometry: 99,
     altar_center_ratio: "3",
     business_vertex_zone_count: 3,
-    cover_ref: { id: "cover-gold", type: "placeholder" },
+    cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: { "altar-top-3": "https://example.com/object.jpg" },
     central_photo_id: "photo-1",
     tradition_id: "greek",
@@ -79,7 +97,7 @@ assert.deepEqual(
     zodiac_visible_count: 12,
     altar_center_ratio: "3",
     business_vertex_zone_count: 3,
-    cover_ref: { id: "cover-gold", type: "placeholder" },
+    cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: { "altar-top-3": "https://example.com/object.jpg" },
     central_photo_id: "photo-1",
     tradition_id: "greek",

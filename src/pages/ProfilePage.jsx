@@ -33,6 +33,7 @@ import {
   listPowerPlaceCompositions,
   listTraditionAssets,
   normalizeAccountPlan,
+  normalizeCoverRef,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
 import {
@@ -253,6 +254,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [customCoverImage, setCustomCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
   const [selectedCentralPhotoId, setSelectedCentralPhotoId] = useState("");
+  const [isClientPhotoPickerOpen, setClientPhotoPickerOpen] = useState(false);
   const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
   const [compositionTitle, setCompositionTitle] = useState("");
   const [selectedCompositionId, setSelectedCompositionId] = useState("");
@@ -331,6 +333,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     () => coverVariants.find((item) => item.id === selectedCoverId) || coverVariants[0],
     [coverVariants, selectedCoverId]
   );
+  const selectedCoverClass = selectedCover?.type === "image" ? "cover-image" : `cover-${selectedCover?.tone || "gold"}`;
+  const selectedCoverStyle = selectedCover?.type === "image" && selectedCover.src
+    ? { "--power-cover-image": `url(${selectedCover.src})` }
+    : undefined;
 
   const centerImage = isImagePreview(selectedCentralPhoto?.image_url) ? selectedCentralPhoto.image_url : "";
 
@@ -625,13 +631,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const buildCoverRef = () => {
     if (!selectedCover) return null;
 
-    return {
+    return normalizeCoverRef({
       id: selectedCover.id,
       label: selectedCover.label,
       type: selectedCover.type,
       tone: selectedCover.tone || "",
-      src: persistableImageRef(selectedCover.src || "")
-    };
+      src: selectedCover.src || ""
+    });
   };
 
   const buildPowerPlacePayload = () => ({
@@ -668,10 +674,22 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setResourceWithMandalaComment(composition.resource_with_mandala_comment || "");
 
     if (composition.cover_ref?.id) {
-      if (composition.cover_ref.id === "custom-cover" && composition.cover_ref.src) {
-        setCustomCoverImage(composition.cover_ref.src);
+      const savedCover = normalizeCoverRef(composition.cover_ref);
+      const savedCoverExists = coverVariants.some((cover) => cover.id === savedCover?.id);
+
+      if (savedCover?.id === "custom-cover" && savedCover.src) {
+        setCustomCoverImage(savedCover.src);
+        setSelectedCoverId("custom-cover");
+      } else if (savedCoverExists) {
+        setSelectedCoverId(savedCover.id);
+      } else if (savedCover?.type === "image" && isImagePreview(savedCover.src)) {
+        setCustomCoverImage(savedCover.src);
+        setSelectedCoverId("custom-cover");
+      } else {
+        setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
       }
-      setSelectedCoverId(composition.cover_ref.id);
+    } else {
+      setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
     }
   };
 
@@ -843,23 +861,26 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
-  const handleClientPhotoSave = async () => {
+  const handleClientPhotoSave = async ({ selectSaved = false, closePicker = false } = {}) => {
     setMessage("");
     setError("");
 
     if (!profile?.id) {
       setError("Сначала сохраните профиль мастера.");
-      return;
+      return null;
     }
 
     try {
       const saved = await createClientGoalPhoto({ ...clientPhotoForm, profile_id: profile.id }, accountPlan, session);
       setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
-      setSelectedCentralPhotoId((current) => current || saved?.id || "");
+      setSelectedCentralPhotoId((current) => (selectSaved ? saved?.id || "" : current || saved?.id || ""));
       setClientPhotoForm({ title: "", image_url: "", notes: "" });
-      setMessage("Фото клиента / цели сохранено.");
+      if (closePicker) setClientPhotoPickerOpen(false);
+      setMessage(selectSaved ? "Фото клиента / цели сохранено и выбрано в центр." : "Фото клиента / цели сохранено.");
+      return saved;
     } catch (err) {
       setError(err.message || "Не удалось сохранить фото клиента / цели.");
+      return null;
     }
   };
 
@@ -886,6 +907,29 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       setError(err.message || "Не удалось сохранить образ традиции.");
     }
   };
+
+  const openClientPhotoPicker = () => {
+    setActiveSlotId("");
+    setClientPhotoPickerOpen(true);
+  };
+
+  const chooseCentralPhoto = (photoId) => {
+    setSelectedCentralPhotoId(photoId);
+    setClientPhotoPickerOpen(false);
+  };
+
+  const renderCenterPhotoButton = (className) => (
+    <button
+      className={className + (centerImage ? " hasImage" : "")}
+      style={imageStyle(centerImage)}
+      onClick={openClientPhotoPicker}
+      title="Выбрать фото клиента"
+      type="button"
+      aria-label="Выбрать фото клиента в центр мандалы"
+    >
+      {!centerImage && <span>◎</span>}
+    </button>
+  );
 
   const handleCompositionSave = async () => {
     setMessage("");
@@ -1525,10 +1569,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     <h3>{constructorTypeLabel(constructorType)}</h3>
                   </div>
                   {constructorType === "client" ? (
-                    <div className={`powerMandala geometry-${powerSourceCount}`}>
-                      <div className={centerImage ? "powerCenterPhoto hasImage" : "powerCenterPhoto"} style={imageStyle(centerImage)}>
-                        {!centerImage && <span>◎</span>}
-                      </div>
+                    <div className={`powerMandala geometry-${powerSourceCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      {renderCenterPhotoButton("powerCenterPhoto")}
                       <div className="powerMandalaBase">
                         <span>мандала места силы</span>
                       </div>
@@ -1552,7 +1594,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       })}
                     </div>
                   ) : constructorType === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${altarCenterRatio}`}>
+                    <div className={`altarMandalaSheet ratio-${altarCenterRatio} ${selectedCoverClass}`} style={selectedCoverStyle}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {Array.from({ length: 5 }, (_, index) => {
                           const slotId = `altar-top-${index + 1}`;
@@ -1574,9 +1616,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           );
                         })}
                       </div>
-                      <div className={centerImage ? "altarCenterPhoto hasImage" : "altarCenterPhoto"} style={imageStyle(centerImage)}>
-                        {!centerImage && <span>◎</span>}
-                      </div>
+                      {renderCenterPhotoButton("altarCenterPhoto")}
                       <div className="altarMandalaBase">
                         <span>мандала места силы</span>
                       </div>
@@ -1602,10 +1642,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       </div>
                     </div>
                   ) : constructorType === "business" ? (
-                    <div className={`businessMandalaSheet zones-${businessVertexZoneCount}`}>
-                      <div className={centerImage ? "businessCenterPhoto hasImage" : "businessCenterPhoto"} style={imageStyle(centerImage)}>
-                        {!centerImage && <span>◎</span>}
-                      </div>
+                    <div className={`businessMandalaSheet zones-${businessVertexZoneCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      {renderCenterPhotoButton("businessCenterPhoto")}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
                         <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
@@ -1634,10 +1672,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       ))}
                     </div>
                   ) : constructorType === "zodiac" ? (
-                    <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount}`}>
-                      <div className={centerImage ? "zodiacCenterPhoto hasImage" : "zodiacCenterPhoto"} style={imageStyle(centerImage)}>
-                        {!centerImage && <span>◎</span>}
-                      </div>
+                    <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      {renderCenterPhotoButton("zodiacCenterPhoto")}
                       <div className="zodiacClockFace" aria-hidden="true">
                         <span>ЗОДИАК</span>
                       </div>
@@ -1663,10 +1699,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       })}
                     </div>
                   ) : (
-                    <div className="daoMandalaSheet">
-                      <div className={centerImage ? "daoCenterPhoto hasImage" : "daoCenterPhoto"} style={imageStyle(centerImage)}>
-                        {!centerImage && <span>◎</span>}
-                      </div>
+                    <div className={`daoMandalaSheet ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      {renderCenterPhotoButton("daoCenterPhoto")}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>
                       </div>
@@ -1732,38 +1766,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </div>
 
                 <aside className="powerCommandRail">
-                  <div className="objectImageEditor">
-                    <p className="cabinetEyebrow">Слоты диаграммы</p>
-                    <div className="objectSlotList">
-                      {activeObjectSlots.map((slot) => {
-                        const slotImage = objectImages[slot.id] || "";
-
-                        return (
-                          <div className="objectSlotEditor" key={slot.id}>
-                            <div className={slotImage ? "objectSlotPreview hasImage" : "objectSlotPreview"} style={imageStyle(slotImage)}>
-                              {!slotImage && <span>◎</span>}
-                            </div>
-                            <div>
-                              <b>{slot.label}</b>
-                              <select value={slotImage} onChange={(event) => setObjectImage(slot.id, event.target.value)}>
-                                {objectImageOptions.map((option) => (
-                                  <option key={`${slot.id}-${option.id || "empty"}`} value={option.src}>{option.label}</option>
-                                ))}
-                              </select>
-                              <div className="objectSlotActions">
-                                <label>
-                                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleObjectFile(slot.id, event)} />
-                                  Загрузить
-                                </label>
-                                <button type="button" onClick={() => setObjectImage(slot.id, "")}>Очистить</button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
                   <div className="coverSelector">
                     <p className="cabinetEyebrow">Заставка места силы</p>
                     <div className="coverPreviewWrap">
@@ -1834,6 +1836,57 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage upload: needs verification.</span>
               </div>
             </section>
+
+            {isClientPhotoPickerOpen && (
+              <div className="clientPhotoPickerBackdrop" onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setClientPhotoPickerOpen(false);
+              }}>
+                <section className="clientPhotoPickerModal" role="dialog" aria-modal="true" aria-labelledby="clientPhotoPickerTitle">
+                  <div className="clientPhotoPickerHeader">
+                    <div>
+                      <p className="cabinetEyebrow">Центр мандалы</p>
+                      <h2 id="clientPhotoPickerTitle">Выбрать фото клиента</h2>
+                    </div>
+                    <button type="button" onClick={() => setClientPhotoPickerOpen(false)} aria-label="Закрыть выбор фото">×</button>
+                  </div>
+                  <div className="clientPhotoPickerGrid">
+                    {clientGoalPhotos.map((photo) => (
+                      <button
+                        className={selectedCentralPhotoId === photo.id ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
+                        key={photo.id}
+                        onClick={() => chooseCentralPhoto(photo.id)}
+                        type="button"
+                      >
+                        <span style={imageStyle(photo.image_url)} />
+                        <b>{photo.title || "Фото цели"}</b>
+                        {photo.notes && <small>{photo.notes}</small>}
+                      </button>
+                    ))}
+                    {clientGoalPhotos.length === 0 && (
+                      <div className="clientPhotoPickerEmpty">
+                        <b>Фото клиентов пока нет</b>
+                        <p>Добавьте ссылку на фото ниже, и оно сразу станет центром мандалы.</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="clientPhotoPickerUpload">
+                    <div className="cabinetFormHeader">
+                      <div>
+                        <p className="cabinetEyebrow">Загрузить новое фото</p>
+                        <h3>{clientGoalPhotos.length}/{planLimits.clientPhotos}</h3>
+                      </div>
+                    </div>
+                    <div className="powerInlineForm">
+                      <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
+                      <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели" />
+                      <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
+                      <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>Сохранить и выбрать</button>
+                    </div>
+                    <p className="powerPlanNote">Файловое хранилище: needs verification. Сейчас сохраняется URL/ссылка на изображение.</p>
+                  </div>
+                </section>
+              </div>
+            )}
 
             {workspaceTab === "mandalas" && (
             <div className="mandalaGallery">

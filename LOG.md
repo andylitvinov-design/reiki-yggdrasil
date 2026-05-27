@@ -1,5 +1,22 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-27 — Power Place cover persistence and center photo picker
+
+Mode: scoped /profile Power Place persistence and UX fix on branch `codex/fix-power-place-image-persistence`.
+
+Changed:
+
+- Preserved selected Power Place cover sources in `cover_ref.src`, including custom image data URLs, so saved compositions can restore the mandala background.
+- Applied the selected cover to all Power Place visual formats: client mandala, altar, business, zodiac, and DAO.
+- Made central mandala photo zones clickable and opened a compact `Выбрать фото клиента` modal.
+- Reused existing `clientGoalPhotos`, `createClientGoalPhoto`, `selectedCentralPhotoId`, and Start/Pro client-photo limits inside the modal.
+- Kept non-center object positions on the compact contextual slot chooser and removed the large side slot editor from the rail.
+
+Needs verification:
+
+- Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
+- Supabase Storage upload remains needs verification; the modal persists URL/metadata through the existing client photo table.
+
 ## 2026-05-27 — Profile mobile Power Place workspace fix
 
 Mode: UI-only `/profile` cabinet mobile and Power Place simplification branch.
