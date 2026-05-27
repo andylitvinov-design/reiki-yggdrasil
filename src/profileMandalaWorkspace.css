@@ -2114,6 +2114,7 @@
 }
 
 .powerInlineForm input,
+.powerInlineForm .mediaUploadButton,
 .powerLibraryCard select,
 .compositionTitleInput,
 .constructorControls > select {
@@ -2128,6 +2129,31 @@
 
 .powerInlineForm button {
   min-width: 0;
+}
+
+.mediaUploadButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 41px;
+  overflow: hidden;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mediaUploadButton input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mediaUploadNotice {
+  margin: 6px 0 10px;
+  color: #6e4b1b;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .clientPhotoStrip,

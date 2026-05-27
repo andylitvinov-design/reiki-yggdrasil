@@ -36,6 +36,7 @@ import {
   normalizeCoverRef,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
+import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
 import { formatCabinetId } from "../lib/masterChatClient.js";
 import "../profileMandalaWorkspace.css";
 
@@ -176,12 +177,18 @@ function isImagePreview(value) {
   return Boolean(value && (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:image/")));
 }
 
+function isStorageImageRef(value) {
+  return Boolean(value && value.startsWith("storage://"));
+}
+
 function uniqueImageSources(items) {
   const seen = new Set();
 
   return items.filter((item) => {
-    if (!isImagePreview(item?.src) || seen.has(item.src)) return false;
-    seen.add(item.src);
+    const identity = item?.src || item?.displaySrc;
+    const displaySrc = item?.displaySrc || item?.src;
+    if ((!isImagePreview(displaySrc) && !isStorageImageRef(identity)) || seen.has(identity)) return false;
+    seen.add(identity);
     return true;
   });
 }
@@ -239,8 +246,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [traditionAssets, setTraditionAssets] = useState([]);
   const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
   const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
-  const [clientPhotoForm, setClientPhotoForm] = useState({ title: "", image_url: "", notes: "" });
-  const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "" });
+  const [clientPhotoForm, setClientPhotoForm] = useState({ title: "", image_url: "", notes: "", file: null });
+  const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [materialsLoading, setMaterialsLoading] = useState(false);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
   const [message, setMessage] = useState("");
@@ -252,6 +259,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [businessVertexZoneCount, setBusinessVertexZoneCount] = useState(1);
   const [altarCenterRatio, setAltarCenterRatio] = useState("1");
   const [objectImages, setObjectImages] = useState({});
+  const [objectImageUrls, setObjectImageUrls] = useState({});
   const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
   const [customCoverImage, setCustomCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
@@ -267,6 +275,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [activeRightPanel, setActiveRightPanel] = useState("materials");
   const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
   const [materialFilter, setMaterialFilter] = useState("all");
+  const [mediaStatus, setMediaStatus] = useState("");
+  const [mediaUploadTarget, setMediaUploadTarget] = useState("");
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -307,11 +317,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     [clientGoalPhotos, selectedCentralPhotoId]
   );
 
+  const displayImageUrl = (value) => objectImageUrls[value] || value;
+
+  const imageStyleFor = (value) => imageStyle(displayImageUrl(value));
+
   const reusableImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((item) => ({
       id: `client-${item.id}`,
       label: item.title || "Фото клиента / цели",
-      src: item.image_url
+      src: item.image_ref || item.image_url,
+      displaySrc: item.display_url || item.image_url
     })),
     ...materials.map((item, index) => ({
       id: `material-${item.id || index}`,
@@ -324,15 +339,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     traditionAssets.map((item) => ({
       id: `tradition-${item.id}`,
       label: item.title || selectedTradition?.title || "Образ традиции",
-      src: item.image_url
+      src: item.image_ref || item.image_url,
+      displaySrc: item.display_url || item.image_url
     }))
   ), [selectedTradition?.title, traditionAssets]);
 
   const coverVariants = useMemo(() => [
     ...reusableImages.map((item) => ({ ...item, type: "image" })),
-    ...(customCoverImage ? [{ id: "custom-cover", label: "Своё изображение", src: customCoverImage, type: "image" }] : []),
+    ...(customCoverImage ? [{ id: "custom-cover", label: "Своё изображение", src: customCoverImage, displaySrc: displayImageUrl(customCoverImage), type: "image" }] : []),
     ...FALLBACK_COVER_VARIANTS.map((item) => ({ ...item, type: "placeholder" }))
-  ], [customCoverImage, reusableImages]);
+  ], [customCoverImage, objectImageUrls, reusableImages]);
 
   const selectedCover = useMemo(
     () => coverVariants.find((item) => item.id === selectedCoverId) || coverVariants[0],
@@ -340,10 +356,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   );
   const selectedCoverClass = selectedCover?.type === "image" ? "cover-image" : `cover-${selectedCover?.tone || "gold"}`;
   const selectedCoverStyle = selectedCover?.type === "image" && selectedCover.src
-    ? { "--power-cover-image": `url(${selectedCover.src})` }
+    ? { "--power-cover-image": `url(${displayImageUrl(selectedCover.src)})` }
     : undefined;
 
-  const centerImage = isImagePreview(selectedCentralPhoto?.image_url) ? selectedCentralPhoto.image_url : "";
+  const centerImage = isImagePreview(selectedCentralPhoto?.display_url || selectedCentralPhoto?.image_url)
+    ? selectedCentralPhoto.display_url || selectedCentralPhoto.image_url
+    : "";
 
   const objectImageOptions = useMemo(() => [
     { id: "", label: "Пусто", src: "" },
@@ -605,6 +623,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
     setAltarCenterRatio(composition.altar_center_ratio || "1");
     setObjectImages(composition.object_refs || {});
+    setObjectImageUrls((current) => ({ ...current, ...(composition.object_ref_urls || {}) }));
     setSelectedCentralPhotoId(composition.central_photo_id || "");
     setSelectedTraditionId(composition.tradition_id || mysteryTraditions[0]?.id || "");
     setResourceComparisonMode(composition.resource_comparison_mode || "client_photo");
@@ -614,6 +633,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     if (composition.cover_ref?.id) {
       const savedCover = normalizeCoverRef(composition.cover_ref);
       const savedCoverExists = coverVariants.some((cover) => cover.id === savedCover?.id);
+      if (savedCover?.src && composition.cover_ref?.display_src) {
+        setObjectImageUrls((current) => ({ ...current, [savedCover.src]: composition.cover_ref.display_src }));
+      }
 
       if (savedCover?.id === "custom-cover" && savedCover.src) {
         setCustomCoverImage(savedCover.src);
@@ -654,55 +676,78 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     reader.readAsDataURL(file);
   };
 
-  const handleCoverFile = (event) => {
+  const formatUploadError = (err) => err?.message || "Не удалось загрузить изображение.";
+
+  const handleCoverFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setCoverNotice("Выберите изображение для заставки: JPG, PNG или WEBP.");
+    if (!profile?.id || !session?.access_token) {
+      setCoverNotice("Сначала войдите и сохраните профиль мастера.");
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setCoverNotice("Для локального MVP выберите изображение до 2 MB.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setCustomCoverImage(String(reader.result || ""));
+    try {
+      validateProfileMediaFile(file);
+      setMediaUploadTarget("cover");
+      setCoverNotice("Загружаю заставку...");
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "underlay" }, session);
+      setObjectImageUrls((current) => ({ ...current, [uploaded.ref]: uploaded.signedUrl }));
+      setCustomCoverImage(uploaded.ref);
       setSelectedCoverId("custom-cover");
-      setCoverNotice(`Заставка «${file.name}» выбрана локально. Постоянное хранение требует отдельной проверки.`);
-    };
-    reader.onerror = () => setCoverNotice("Не удалось прочитать заставку. Попробуйте другой файл.");
-    reader.readAsDataURL(file);
+      setCoverNotice(`Заставка «${uploaded.metadata.filename}» загружена.`);
+    } catch (err) {
+      setCoverNotice(formatUploadError(err));
+    } finally {
+      setMediaUploadTarget("");
+      event.target.value = "";
+    }
   };
 
-  const setObjectImage = (slotId, value) => {
+  const setObjectImage = (slotId, value, displayUrl = "") => {
     setObjectImages((current) => ({ ...current, [slotId]: value }));
+    setObjectImageUrls((current) => {
+      if (!displayUrl || displayUrl === value) return current;
+      return { ...current, [value]: displayUrl };
+    });
   };
 
-  const handleObjectFile = (slotId, event) => {
+  const handleObjectSelect = (slotId, value) => {
+    const option = objectImageOptions.find((item) => item.src === value);
+    setObjectImage(slotId, value, option?.displaySrc || value);
+  };
+
+  const openObjectSlot = (slotId) => {
+    setSelectedObjectSlotId(slotId);
+  };
+
+  const handleObjectFile = async (slotId, event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setCoverNotice("Выберите изображение для объекта: JPG, PNG или WEBP.");
+    if (!profile?.id || !session?.access_token) {
+      setCoverNotice("Сначала войдите и сохраните профиль мастера.");
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setCoverNotice("Для локального MVP выберите изображение объекта до 2 MB.");
-      return;
+    try {
+      validateProfileMediaFile(file);
+      setMediaUploadTarget(`slot-${slotId}`);
+      setCoverNotice("Загружаю изображение объекта...");
+      const uploaded = await uploadProfileMedia(file, {
+        profileId: profile.id,
+        kind: "power-place",
+        compositionId: selectedCompositionId || "draft",
+        slotId
+      }, session);
+      setObjectImage(slotId, uploaded.ref, uploaded.signedUrl);
+      setCoverNotice(`Изображение «${uploaded.metadata.filename}» загружено в Storage.`);
+    } catch (err) {
+      setCoverNotice(formatUploadError(err));
+    } finally {
+      setMediaUploadTarget("");
+      event.target.value = "";
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setObjectImage(slotId, String(reader.result || ""));
-      setCoverNotice(`Изображение «${file.name}» добавлено в объект локально.`);
-    };
-    reader.onerror = () => setCoverNotice("Не удалось прочитать изображение объекта. Попробуйте другой файл.");
-    reader.readAsDataURL(file);
   };
 
   const handlePrintMandala = () => {
@@ -798,6 +843,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const handleClientPhotoSave = async ({ selectSaved = false, closePicker = false } = {}) => {
     setMessage("");
     setError("");
+    setMediaStatus("");
 
     if (!profile?.id) {
       setError("Сначала сохраните профиль мастера.");
@@ -805,22 +851,60 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
 
     try {
-      const saved = await createClientGoalPhoto({ ...clientPhotoForm, profile_id: profile.id }, accountPlan, session);
-      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
-      if (selectSaved || !selectedCentralPhotoId) {
-        setSelectedCentralPhotoId(saved?.id || "");
+      let mediaPayload = {};
+      if (clientPhotoForm.file) {
+        setMediaUploadTarget("client-goal");
+        setMediaStatus("Загружаю фото клиента / цели...");
+        const uploaded = await uploadProfileMedia(clientPhotoForm.file, { profileId: profile.id, kind: "client-goal" }, session);
+        mediaPayload = {
+          image_bucket: uploaded.bucket,
+          image_path: uploaded.path,
+          mime_type: uploaded.metadata.mimeType,
+          file_size_bytes: uploaded.metadata.size
+        };
       }
+
+      const saved = await createClientGoalPhoto({
+        ...clientPhotoForm,
+        ...mediaPayload,
+        profile_id: profile.id,
+        file: undefined
+      }, accountPlan, session);
+      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
+      setSelectedCentralPhotoId((current) => (selectSaved ? saved?.id || "" : current || saved?.id || ""));
+      setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
       if (closePicker) setClientPhotoPickerOpen(false);
-      setClientPhotoForm({ title: "", image_url: "", notes: "" });
-      setMessage("Фото клиента / цели сохранено.");
+      setMediaStatus("Фото загружено и сохранено.");
+      setMessage(selectSaved ? "Фото клиента / цели сохранено и выбрано в центр." : "Фото клиента / цели сохранено.");
+      return saved;
     } catch (err) {
+      setMediaStatus(formatUploadError(err));
       setError(err.message || "Не удалось сохранить фото клиента / цели.");
+      return null;
+    } finally {
+      setMediaUploadTarget("");
+    }
+  };
+
+  const handleClientPhotoFile = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+
+    try {
+      validateProfileMediaFile(file);
+      setClientPhotoForm((current) => ({ ...current, file }));
+      setMediaStatus(`Фото «${file.name}» готово к загрузке.`);
+    } catch (err) {
+      setClientPhotoForm((current) => ({ ...current, file: null }));
+      setMediaStatus(formatUploadError(err));
+      event.target.value = "";
     }
   };
 
   const handleTraditionAssetSave = async () => {
     setMessage("");
     setError("");
+    setMediaStatus("");
 
     if (!profile?.id || !selectedTradition) {
       setError("Сначала сохраните профиль и выберите традицию.");
@@ -828,17 +912,55 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
 
     try {
+      let mediaPayload = {};
+      if (traditionAssetForm.file) {
+        setMediaUploadTarget("tradition");
+        setMediaStatus("Загружаю образ традиции...");
+        const uploaded = await uploadProfileMedia(traditionAssetForm.file, {
+          profileId: profile.id,
+          kind: "tradition",
+          traditionId: selectedTradition.id
+        }, session);
+        mediaPayload = {
+          image_bucket: uploaded.bucket,
+          image_path: uploaded.path,
+          mime_type: uploaded.metadata.mimeType,
+          file_size_bytes: uploaded.metadata.size
+        };
+      }
+
       const saved = await createTraditionAsset({
         ...traditionAssetForm,
+        ...mediaPayload,
         profile_id: profile.id,
         tradition_id: selectedTradition.id,
-        tradition_title: selectedTradition.title
+        tradition_title: selectedTradition.title,
+        file: undefined
       }, session);
       setTraditionAssets((current) => [saved, ...current].filter(Boolean));
-      setTraditionAssetForm({ title: "", image_url: "", notes: "" });
+      setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
+      setMediaStatus("Образ загружен и сохранён.");
       setMessage("Образ традиции сохранён.");
     } catch (err) {
+      setMediaStatus(formatUploadError(err));
       setError(err.message || "Не удалось сохранить образ традиции.");
+    } finally {
+      setMediaUploadTarget("");
+    }
+  };
+
+  const handleTraditionAssetFile = (event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+
+    try {
+      validateProfileMediaFile(file);
+      setTraditionAssetForm((current) => ({ ...current, file }));
+      setMediaStatus(`Образ «${file.name}» готов к загрузке.`);
+    } catch (err) {
+      setTraditionAssetForm((current) => ({ ...current, file: null }));
+      setMediaStatus(formatUploadError(err));
+      event.target.value = "";
     }
   };
 
@@ -906,7 +1028,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setTraditionAssets([]);
     setPowerPlaceCompositions([]);
     setMaterialForm(EMPTY_MATERIAL);
+    setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
+    setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
     setObjectImages({});
+    setObjectImageUrls({});
     setSelectedCentralPhotoId("");
     setSelectedCompositionId("");
     setCompositionTitle("");
@@ -915,6 +1040,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedObjectSlotId("");
     setMaterialFilter("all");
     setFileNotice("");
+    setMediaStatus("");
+    setMediaUploadTarget("");
     setMessage("Вы вышли из кабинета.");
   };
 
@@ -1221,11 +1348,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </div>
                 <div className="powerInlineForm">
                   <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
-                  <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели" />
+                  <label className="mediaUploadButton">
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
+                    {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
+                  </label>
+                  <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
                   <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos} onClick={handleClientPhotoSave}>Сохранить фото</button>
+                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={handleClientPhotoSave}>
+                    {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить фото"}
+                  </button>
                 </div>
-                <p className="powerPlanNote">Файловое хранилище: needs verification. Сейчас сохраняется URL/ссылка на изображение.</p>
+                {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
+                <p className="powerPlanNote">Файлы сохраняются в private Supabase Storage; URL поле оставлено для старых внешних ссылок.</p>
                 <div className="clientPhotoStrip">
                   {clientGoalPhotos.map((photo) => (
                     <button
@@ -1234,7 +1368,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       onClick={() => setSelectedCentralPhotoId(photo.id)}
                       type="button"
                     >
-                      <span style={imageStyle(photo.image_url)} />
+                      <span style={imageStyle(photo.display_url || photo.image_url)} />
                       <b>{photo.title || "Фото цели"}</b>
                     </button>
                   ))}
@@ -1260,15 +1394,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </label>
                 <div className="powerInlineForm">
                   <input value={traditionAssetForm.title} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название образа" />
-                  <input value={traditionAssetForm.image_url} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL изображения традиции" />
+                  <label className="mediaUploadButton">
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleTraditionAssetFile} />
+                    {traditionAssetForm.file ? traditionAssetForm.file.name : "Файл традиции"}
+                  </label>
+                  <input value={traditionAssetForm.image_url} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL изображения традиции (опционально)" />
                   <input value={traditionAssetForm.notes} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || !selectedTradition} onClick={handleTraditionAssetSave}>Сохранить образ</button>
+                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || !selectedTradition || mediaUploadTarget === "tradition"} onClick={handleTraditionAssetSave}>
+                    {mediaUploadTarget === "tradition" ? "Загружаю..." : "Сохранить образ"}
+                  </button>
                 </div>
-                <p className="powerPlanNote">IA: Личный кабинет → Мистерии → {selectedTradition?.title || "традиция"}. Загрузка файлов в Storage: needs verification.</p>
+                <p className="powerPlanNote">IA: Личный кабинет → Мистерии → {selectedTradition?.title || "традиция"}. Образы доступны только владельцу профиля.</p>
                 <div className="traditionAssetStrip">
                   {traditionAssets.map((asset) => (
                     <span key={asset.id}>
-                      <i style={imageStyle(asset.image_url)} />
+                      <i style={imageStyle(asset.display_url || asset.image_url)} />
                       <b>{asset.title || selectedTradition?.title}</b>
                     </span>
                   ))}
@@ -1442,8 +1582,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           <button
                             className={`${sourceClassName(powerSourceCount, index)}${sourceImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                             key={`source-${powerSourceCount}-${index}`}
-                            onClick={() => setSelectedObjectSlotId(slotId)}
-                            style={imageStyle(sourceImage)}
+                            onClick={() => openObjectSlot(slotId)}
+                            style={imageStyleFor(sourceImage)}
                             type="button"
                             title={sourceLabel(powerSourceCount, index)}
                             aria-label={`Выбрать позицию ${sourceLabel(powerSourceCount, index)}`}
@@ -1465,8 +1605,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                             <button
                               className={`${isMain ? "altarTopSource main" : "altarTopSource"}${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                               key={slotId}
-                              onClick={() => setSelectedObjectSlotId(slotId)}
-                              style={imageStyle(slotImage)}
+                              onClick={() => openObjectSlot(slotId)}
+                              style={imageStyleFor(slotImage)}
                               type="button"
                               title={isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}
                               aria-label={isMain ? "Выбрать центральный верхний объект" : `Выбрать верхний объект ${index + 1}`}
@@ -1489,8 +1629,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                             <button
                               className={`altarSupportSource${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                               key={slotId}
-                              onClick={() => setSelectedObjectSlotId(slotId)}
-                              style={imageStyle(slotImage)}
+                              onClick={() => openObjectSlot(slotId)}
+                              style={imageStyleFor(slotImage)}
                               type="button"
                               title={`Нижняя опора ${number}`}
                               aria-label={`Выбрать нижнюю опору ${number}`}
@@ -1517,8 +1657,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                                 <button
                                   className={`businessVertexZone${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                                   key={slotId}
-                                  onClick={() => setSelectedObjectSlotId(slotId)}
-                                  style={imageStyle(slotImage)}
+                                  onClick={() => openObjectSlot(slotId)}
+                                  style={imageStyleFor(slotImage)}
                                   type="button"
                                   title={businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}
                                   aria-label={`Выбрать ${businessVertexZoneCount === 1 ? vertex.label : `${vertex.label}, зона ${index + 1}`}`}
@@ -1545,8 +1685,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           <div className={`zodiacPosition ${sign.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
                             <button
                               className={`zodiacPositionImage${selectedObjectSlotId === slotId ? " selected" : ""}`}
-                              onClick={() => setSelectedObjectSlotId(slotId)}
-                              style={imageStyle(slotImage)}
+                              onClick={() => openObjectSlot(slotId)}
+                              style={imageStyleFor(slotImage)}
                               type="button"
                               title={sign.label}
                               aria-label={`Выбрать знак ${sign.label}`}
@@ -1572,8 +1712,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           <div className={`daoElement ${element.className}`} key={element.id}>
                             <button
                               className={`daoElementImage${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
-                              onClick={() => setSelectedObjectSlotId(slotId)}
-                              style={imageStyle(slotImage)}
+                              onClick={() => openObjectSlot(slotId)}
+                              style={imageStyleFor(slotImage)}
                               type="button"
                               title={element.label}
                               aria-label={`Выбрать элемент ${element.label}`}
@@ -1608,7 +1748,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   <div className="objectImageEditor">
                     <p className="cabinetEyebrow">Объекты композиции</p>
                     <div className="selectedObjectControl">
-                      <div className={selectedObjectImage ? "selectedObjectPreview hasImage" : "selectedObjectPreview"} style={imageStyle(selectedObjectImage)}>
+                      <div className={selectedObjectImage ? "selectedObjectPreview hasImage" : "selectedObjectPreview"} style={imageStyleFor(selectedObjectImage)}>
                         {!selectedObjectImage && <span>◎</span>}
                       </div>
                       <div className="selectedObjectBody">
@@ -1617,7 +1757,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         <select
                           disabled={!selectedObjectSlot}
                           value={selectedObjectImage}
-                          onChange={(event) => selectedObjectSlot && setObjectImage(selectedObjectSlot.id, event.target.value)}
+                          onChange={(event) => selectedObjectSlot && handleObjectSelect(selectedObjectSlot.id, event.target.value)}
                         >
                           {objectImageOptions.map((option) => (
                             <option key={`${selectedObjectSlot?.id || "slot"}-${option.id || "empty"}`} value={option.src}>{option.label}</option>
@@ -1644,7 +1784,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     <div className="coverPreviewWrap">
                       <div
                         className={`coverPreview ${selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "gold"}`}`}
-                        style={selectedCover?.type === "image" ? { backgroundImage: `url(${selectedCover.src})` } : undefined}
+                        style={selectedCover?.type === "image" ? { backgroundImage: `url(${displayImageUrl(selectedCover.src)})` } : undefined}
                       >
                         <span>{selectedCover?.label || "Заставка"}</span>
                       </div>
@@ -1663,7 +1803,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                     <label className="coverUploadButton">
                       <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleCoverFile} />
-                      Своё изображение
+	                      {mediaUploadTarget === "cover" ? "Загружаю..." : "Своё изображение"}
                     </label>
                     {coverNotice && <p className="coverNotice">{coverNotice}</p>}
                   </div>
@@ -1707,7 +1847,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}
                 </button>
                 <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
-                <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage upload: needs verification.</span>
+                <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
               </div>
             </section>
             )}
@@ -1732,7 +1872,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         onClick={() => chooseCentralPhoto(photo.id)}
                         type="button"
                       >
-                        <span style={imageStyle(photo.image_url)} />
+                        <span style={imageStyle(photo.display_url || photo.image_url)} />
                         <b>{photo.title || "Фото цели"}</b>
                         {photo.notes && <small>{photo.notes}</small>}
                       </button>
@@ -1740,7 +1880,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     {clientGoalPhotos.length === 0 && (
                       <div className="clientPhotoPickerEmpty">
                         <b>Фото клиентов пока нет</b>
-                        <p>Добавьте ссылку на фото ниже, и оно сразу станет центром мандалы.</p>
+                        <p>Загрузите фото ниже, и оно сразу станет центром мандалы.</p>
                       </div>
                     )}
                   </div>
@@ -1753,11 +1893,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                     <div className="powerInlineForm">
                       <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
-                      <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели" />
+                      <label className="mediaUploadButton">
+                        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
+                        {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
+                      </label>
+                      <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
                       <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                      <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>Сохранить и выбрать</button>
+                      <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
+                        {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
+                      </button>
                     </div>
-                    <p className="powerPlanNote">Файловое хранилище: needs verification. Сейчас сохраняется URL/ссылка на изображение.</p>
+                    {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
+                    <p className="powerPlanNote">Файл сохраняется в private Supabase Storage; внешний URL можно оставить для старых ссылок.</p>
                   </div>
                 </section>
               </div>

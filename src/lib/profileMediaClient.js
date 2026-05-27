@@ -1,0 +1,175 @@
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
+
+export const PROFILE_MEDIA_BUCKET = "profile-cabinet-media";
+export const PROFILE_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
+export const PROFILE_MEDIA_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+function mediaError(message, details = null) {
+  const error = new Error(message);
+  error.details = details;
+  return error;
+}
+
+function cleanText(value) {
+  return String(value || "").trim();
+}
+
+function cleanSegment(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function randomUuid() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const value = Math.floor(Math.random() * 16);
+    const next = char === "x" ? value : (value & 0x3) | 0x8;
+    return next.toString(16);
+  });
+}
+
+export function sanitizeMediaFilename(filename) {
+  const fallback = "image";
+  const raw = cleanText(filename).split(/[\\/]/).pop() || fallback;
+  const dotIndex = raw.lastIndexOf(".");
+  const base = dotIndex > 0 ? raw.slice(0, dotIndex) : raw;
+  const extension = dotIndex > 0 ? raw.slice(dotIndex + 1) : "";
+  const safeBase = base
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72) || fallback;
+  const safeExtension = extension.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 8);
+
+  return safeExtension ? `${safeBase}.${safeExtension}` : safeBase;
+}
+
+export function validateProfileMediaFile(file) {
+  if (!file) throw mediaError("Выберите файл изображения.");
+  if (!PROFILE_MEDIA_ALLOWED_TYPES.includes(file.type)) {
+    throw mediaError("Недопустимый тип файла. Загрузите JPG, PNG, WEBP или GIF.");
+  }
+  if (file.size > PROFILE_MEDIA_MAX_BYTES) {
+    throw mediaError("Файл слишком большой. Максимальный размер изображения — 5 MB.");
+  }
+}
+
+export function buildProfileMediaPath(file, context = {}, uuid = randomUuid()) {
+  const profileId = cleanText(context.profileId);
+  const kind = cleanText(context.kind);
+  const safeFilename = sanitizeMediaFilename(file?.name || "image");
+
+  if (!profileId) throw mediaError("Сначала сохраните профиль мастера.");
+
+  if (kind === "client-goal") {
+    return `${profileId}/client-goal/${uuid}-${safeFilename}`;
+  }
+
+  if (kind === "tradition") {
+    const traditionId = cleanSegment(context.traditionId);
+    if (!traditionId) throw mediaError("Выберите традицию для загрузки.");
+    return `${profileId}/traditions/${traditionId}/${uuid}-${safeFilename}`;
+  }
+
+  if (kind === "power-place") {
+    const compositionId = cleanSegment(context.compositionId) || "draft";
+    const slotId = cleanSegment(context.slotId);
+    if (!slotId) throw mediaError("Выберите слот мандалы для загрузки.");
+    return `${profileId}/power-place/${compositionId}/${slotId}-${uuid}-${safeFilename}`;
+  }
+
+  if (kind === "underlay") {
+    return `${profileId}/underlays/${uuid}-${safeFilename}`;
+  }
+
+  throw mediaError("Неизвестный тип загрузки изображения.");
+}
+
+export function toStorageRef(bucket, path) {
+  return `storage://${bucket}/${path}`;
+}
+
+export function isStorageRef(value) {
+  return cleanText(value).startsWith(`storage://${PROFILE_MEDIA_BUCKET}/`);
+}
+
+export function parseStorageRef(value) {
+  const ref = cleanText(value);
+  const prefix = "storage://";
+  if (!ref.startsWith(prefix)) return null;
+  const withoutProtocol = ref.slice(prefix.length);
+  const slashIndex = withoutProtocol.indexOf("/");
+  if (slashIndex <= 0) return null;
+
+  return {
+    bucket: withoutProtocol.slice(0, slashIndex),
+    path: withoutProtocol.slice(slashIndex + 1)
+  };
+}
+
+function requireStorageConfig(session) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw mediaError("Загрузка файлов требует настройки подключения Supabase.");
+  }
+  if (!session?.access_token) throw mediaError("Нужно войти в кабинет.");
+}
+
+export async function createSignedMediaUrl(path, session, bucket = PROFILE_MEDIA_BUCKET, expiresIn = 3600) {
+  requireStorageConfig(session);
+
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ expiresIn })
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw mediaError(data?.message || data?.msg || "Не удалось создать ссылку на изображение.", data);
+
+  const signedURL = data?.signedURL || data?.signedUrl;
+  if (!signedURL) throw mediaError("Supabase не вернул ссылку на изображение.");
+  return signedURL.startsWith("http") ? signedURL : `${SUPABASE_URL}${signedURL}`;
+}
+
+export async function uploadProfileMedia(file, context = {}, session) {
+  requireStorageConfig(session);
+  validateProfileMediaFile(file);
+
+  const path = buildProfileMediaPath(file, context);
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${PROFILE_MEDIA_BUCKET}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": file.type,
+      "x-upsert": "false"
+    },
+    body: file
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw mediaError(data?.message || data?.msg || "Не удалось загрузить изображение.", data);
+
+  const signedUrl = await createSignedMediaUrl(path, session);
+
+  return {
+    bucket: PROFILE_MEDIA_BUCKET,
+    path,
+    ref: toStorageRef(PROFILE_MEDIA_BUCKET, path),
+    signedUrl,
+    metadata: {
+      filename: sanitizeMediaFilename(file.name),
+      originalFilename: file.name,
+      mimeType: file.type,
+      size: file.size
+    }
+  };
+}

@@ -1,3 +1,10 @@
+import {
+  PROFILE_MEDIA_BUCKET,
+  createSignedMediaUrl,
+  isStorageRef,
+  parseStorageRef,
+  toStorageRef
+} from "./profileMediaClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
@@ -34,11 +41,20 @@ function cleanJsonObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+function isDataImage(value) {
+  return cleanText(value).startsWith("data:image/");
+}
+
+function isPersistableImageRef(value) {
+  const ref = cleanText(value);
+  return Boolean(ref && !isDataImage(ref));
+}
+
 function cleanObjectRefs(value) {
   return Object.fromEntries(
     Object.entries(cleanJsonObject(value))
       .map(([key, item]) => [cleanText(key), cleanText(item)])
-      .filter(([key, item]) => key && item && !item.startsWith("data:image/"))
+      .filter(([key, item]) => key && isPersistableImageRef(item))
   );
 }
 
@@ -82,6 +98,86 @@ async function countRows(table, profileId, session) {
   return Array.isArray(rows) ? rows.length : 0;
 }
 
+function storageRefFromRow(row) {
+  const path = cleanText(row?.image_path);
+  const bucket = cleanText(row?.image_bucket) || PROFILE_MEDIA_BUCKET;
+  return path ? toStorageRef(bucket, path) : "";
+}
+
+function displayUrlFromRow(row) {
+  return cleanText(row?.display_url) || cleanText(row?.signed_url) || cleanText(row?.image_url);
+}
+
+async function resolveStorageRef(ref, session) {
+  const parsed = parseStorageRef(ref);
+  if (!parsed?.path || parsed.bucket !== PROFILE_MEDIA_BUCKET || !session?.access_token) return "";
+  return createSignedMediaUrl(parsed.path, session, parsed.bucket);
+}
+
+async function resolveStorageRefs(refs, session) {
+  const entries = await Promise.all(
+    [...new Set(refs.filter((ref) => isStorageRef(ref)))].map(async (ref) => {
+      try {
+        return [ref, await resolveStorageRef(ref, session)];
+      } catch {
+        return [ref, ""];
+      }
+    })
+  );
+
+  return Object.fromEntries(entries.filter(([, url]) => Boolean(url)));
+}
+
+async function hydrateMediaRows(rows, session) {
+  return Promise.all((rows || []).map(async (row) => {
+    const storageRef = storageRefFromRow(row);
+    if (!storageRef) {
+      return {
+        ...row,
+        image_ref: cleanText(row?.image_url),
+        display_url: cleanText(row?.image_url)
+      };
+    }
+
+    const signedUrl = await resolveStorageRef(storageRef, session).catch(() => "");
+    return {
+      ...row,
+      image_ref: storageRef,
+      signed_url: signedUrl,
+      display_url: signedUrl || cleanText(row?.image_url),
+      image_url: signedUrl || cleanText(row?.image_url)
+    };
+  }));
+}
+
+async function hydrateCompositionRows(rows, session) {
+  const refs = [];
+  for (const row of rows || []) {
+    for (const value of Object.values(cleanJsonObject(row.object_refs))) {
+      if (isStorageRef(value)) refs.push(value);
+    }
+    const coverSrc = cleanText(row.cover_ref?.src);
+    if (isStorageRef(coverSrc)) refs.push(coverSrc);
+  }
+
+  const signedUrls = await resolveStorageRefs(refs, session);
+  return (rows || []).map((row) => {
+    const objectRefs = cleanJsonObject(row.object_refs);
+    const displayObjectRefs = Object.fromEntries(
+      Object.entries(objectRefs).map(([key, value]) => [key, signedUrls[value] || value])
+    );
+    const coverRef = row.cover_ref?.src && signedUrls[row.cover_ref.src]
+      ? { ...row.cover_ref, display_src: signedUrls[row.cover_ref.src] }
+      : row.cover_ref;
+
+    return {
+      ...row,
+      object_ref_urls: displayObjectRefs,
+      cover_ref: coverRef
+    };
+  });
+}
+
 export function normalizeAccountPlan(plan) {
   const normalized = cleanText(plan).toLowerCase();
   return VALID_PLANS.includes(normalized) ? normalized : "start";
@@ -95,26 +191,38 @@ export function getPlanLimits(plan) {
 
 export function normalizeClientGoalPhoto(photo) {
   const imageUrl = cleanText(photo?.image_url);
-  if (!imageUrl) throw powerPlaceError("Добавьте ссылку на фото клиента или цели.");
+  const imagePath = cleanText(photo?.image_path);
+  const imageBucket = cleanText(photo?.image_bucket) || PROFILE_MEDIA_BUCKET;
+  if (!isPersistableImageRef(imageUrl) && !imagePath) throw powerPlaceError("Добавьте фото клиента или цели.");
 
   return {
     profile_id: cleanText(photo?.profile_id),
     title: cleanText(photo?.title) || "Фото клиента / цели",
-    image_url: imageUrl,
+    image_url: imagePath ? "" : imageUrl,
+    image_bucket: imagePath ? imageBucket : PROFILE_MEDIA_BUCKET,
+    image_path: imagePath,
+    mime_type: cleanText(photo?.mime_type),
+    file_size_bytes: Number(photo?.file_size_bytes) || 0,
     notes: cleanText(photo?.notes)
   };
 }
 
 export function normalizeTraditionAsset(asset) {
   const imageUrl = cleanText(asset?.image_url);
-  if (!imageUrl) throw powerPlaceError("Добавьте ссылку на изображение традиции.");
+  const imagePath = cleanText(asset?.image_path);
+  const imageBucket = cleanText(asset?.image_bucket) || PROFILE_MEDIA_BUCKET;
+  if (!isPersistableImageRef(imageUrl) && !imagePath) throw powerPlaceError("Добавьте изображение традиции.");
 
   return {
     profile_id: cleanText(asset?.profile_id),
     tradition_id: cleanText(asset?.tradition_id),
     tradition_title: cleanText(asset?.tradition_title),
     title: cleanText(asset?.title) || "Образ традиции",
-    image_url: imageUrl,
+    image_url: imagePath ? "" : imageUrl,
+    image_bucket: imagePath ? imageBucket : PROFILE_MEDIA_BUCKET,
+    image_path: imagePath,
+    mime_type: cleanText(asset?.mime_type),
+    file_size_bytes: Number(asset?.file_size_bytes) || 0,
     notes: cleanText(asset?.notes)
   };
 }
@@ -167,9 +275,10 @@ export function normalizePowerPlaceComposition(composition) {
 export async function listClientGoalPhotos(profileId, session = getStoredSession()) {
   if (!profileId || !session?.access_token) return [];
 
-  return request(`/rest/v1/${CLIENT_PHOTOS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=created_at.desc`, {
+  const rows = await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=created_at.desc`, {
     session
   });
+  return hydrateMediaRows(rows, session);
 }
 
 export async function createClientGoalPhoto(photo, plan, session = getStoredSession()) {
@@ -188,15 +297,17 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
     body: payload
   });
 
-  return rows?.[0] || null;
+  const hydrated = await hydrateMediaRows(rows, session);
+  return hydrated?.[0] || null;
 }
 
 export async function listTraditionAssets(profileId, traditionId, session = getStoredSession()) {
   if (!profileId || !traditionId || !session?.access_token) return [];
 
-  return request(`/rest/v1/${TRADITION_ASSETS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&tradition_id=eq.${encodeURIComponent(traditionId)}&select=*&order=created_at.desc`, {
+  const rows = await request(`/rest/v1/${TRADITION_ASSETS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&tradition_id=eq.${encodeURIComponent(traditionId)}&select=*&order=created_at.desc`, {
     session
   });
+  return hydrateMediaRows(rows, session);
 }
 
 export async function createTraditionAsset(asset, session = getStoredSession()) {
@@ -209,15 +320,17 @@ export async function createTraditionAsset(asset, session = getStoredSession()) 
     body: payload
   });
 
-  return rows?.[0] || null;
+  const hydrated = await hydrateMediaRows(rows, session);
+  return hydrated?.[0] || null;
 }
 
 export async function listPowerPlaceCompositions(profileId, session = getStoredSession()) {
   if (!profileId || !session?.access_token) return [];
 
-  return request(`/rest/v1/${COMPOSITIONS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=updated_at.desc`, {
+  const rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=updated_at.desc`, {
     session
   });
+  return hydrateCompositionRows(rows, session);
 }
 
 export async function createPowerPlaceComposition(composition, plan, session = getStoredSession()) {
@@ -236,7 +349,8 @@ export async function createPowerPlaceComposition(composition, plan, session = g
     body: payload
   });
 
-  return rows?.[0] || null;
+  const hydrated = await hydrateCompositionRows(rows, session);
+  return hydrated?.[0] || null;
 }
 
 export async function updatePowerPlaceComposition(compositionId, composition, session = getStoredSession()) {
@@ -248,5 +362,6 @@ export async function updatePowerPlaceComposition(compositionId, composition, se
     body: normalizePowerPlaceComposition(composition)
   });
 
-  return rows?.[0] || null;
+  const hydrated = await hydrateCompositionRows(rows, session);
+  return hydrated?.[0] || null;
 }

@@ -18,6 +18,25 @@ Needs verification:
 - Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
 - Browser QA should verify desktop widths 1280/1366/1440 and mobile 390 for overflow/readability.
 
+## 2026-05-27 — Supabase Storage photo uploads for profile cabinet media
+
+Mode: private Storage upload implementation on branch `codex/supabase-photo-storage-upload`.
+
+Changed:
+
+- Added private Supabase Storage bucket migration for `profile-cabinet-media`.
+- Added owner-only Storage policies keyed by the first path segment `{profile_id}`.
+- Added durable media columns for client/goal photos and tradition assets.
+- Added `profileMediaClient.js` for image validation, safe filename/path generation, authenticated upload, and signed URL creation.
+- Wired `/profile` client/goal, tradition, cover, and Power Place object-slot uploads to Storage.
+- Kept central Power Place photos restricted to saved `Фото клиентов / целей`.
+- Kept legacy external URL refs loading while filtering `data:image` out of persisted payloads.
+
+Needs verification:
+
+- Apply `20260527_profile_cabinet_media_storage.sql` in the live Supabase project.
+- Verify authenticated upload/reload and cross-user Storage RLS denial against production Supabase.
+
 ## 2026-05-27 — Power Place cover persistence and center photo picker
 
 Mode: scoped /profile Power Place persistence and UX fix on branch `codex/fix-power-place-image-persistence`.
