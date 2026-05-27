@@ -15,7 +15,7 @@
 
 .workspaceSwitches {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
@@ -40,6 +40,18 @@
 
 .workspaceCenterColumn {
   container-type: inline-size;
+}
+
+.powerPlaceMode .workspaceCenterColumn {
+  display: none;
+}
+
+.powerPlaceMode .workspaceRightColumn {
+  grid-column: 2 / -1;
+}
+
+.powerPlaceMode .powerPlaceConstructor {
+  width: 100%;
 }
 
 .profileTabContent {
@@ -67,10 +79,6 @@
 .workspaceMainColumns .powerPlaceConstructor {
   grid-column: auto !important;
   grid-row: auto !important;
-}
-
-.rightPanelTabs {
-  justify-content: flex-end;
 }
 
 .workspaceTabs {
@@ -2356,6 +2364,10 @@
     grid-column: 1 / -1;
   }
 
+  .powerPlaceMode .workspaceRightColumn {
+    grid-column: 2;
+  }
+
   .mandalaGallery,
   .powerPlaceConstructor {
     grid-row: auto;
@@ -2373,6 +2385,10 @@
 
   .workspaceRightColumn {
     grid-column: 1 / -1;
+  }
+
+  .powerPlaceMode .workspaceRightColumn {
+    grid-column: 2;
   }
 
   .powerPlacePrintArea {
@@ -2401,6 +2417,7 @@
   .chatPlaceholderWorkspace,
   .mandalaGallery,
   .powerPlaceConstructor,
+  .powerPlaceMode .workspaceRightColumn,
   .mandalaWorkspace.chatMode .masterChatWorkspace,
   .mandalaWorkspace.chatMode .powerPlaceConstructor {
     grid-column: 1;
