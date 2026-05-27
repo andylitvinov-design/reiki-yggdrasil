@@ -37,11 +37,12 @@ Supabase setup steps:
 5. Apply `supabase/migrations/20260526_power_place_persistence.sql`.
 6. Apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`.
 7. Apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`.
-8. Add these auth redirect URLs in Supabase:
+8. Apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`.
+9. Add these auth redirect URLs in Supabase:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
-9. Add the Vercel production env vars named above.
-10. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+10. Add the Vercel production env vars named above.
+11. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -68,8 +69,10 @@ Power Place persistence setup:
 - `20260526_power_place_persistence.sql` adds the profile `account_plan`, client/goal photo references, tradition image references, and saved Power Place compositions.
 - `20260526_power_place_upgrade_5_business_dao.sql` extends saved compositions for `Бизнес-мандала`, `ДАО`, business vertex zone count, and resource comparison comments.
 - `20260526_power_place_upgrade_6_zodiac_chat.sql` extends saved compositions for `Зодиак` with `zodiac_visible_count` and `zodiac-*` object refs in the existing `object_refs` JSON payload.
+- `20260527_profile_cabinet_media_storage.sql` creates private bucket `profile-cabinet-media`, owner-only Storage policies, and durable media path columns for client/goal and tradition images.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
-- File uploads to Supabase Storage are still needs verification. The current UI persists URL/metadata references and filters local `data:image` previews out of saved composition payloads.
+- Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
+- Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.
 
 Master chat setup:
 
@@ -81,7 +84,7 @@ Supabase migration runner:
 
 - `npm run supabase:migrations:apply` runs `scripts/apply-reiki-supabase-migrations.mjs`.
 - The runner reads only `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` from the local wallet at `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
-- The runner allowlists only the three committed Power Place migrations listed above and stops if the wallet is unavailable, secrets are missing, migration files are dirty, or `supabase db push --dry-run` reports unrelated pending migrations.
+- The runner allowlists only the committed Power Place and media Storage migrations listed above and stops if the wallet is unavailable, secrets are missing, migration files are dirty, or `supabase db push --dry-run` reports unrelated pending migrations.
 - The runner redacts token-shaped values and prints only secret presence, never secret values.
 
 ## Deploy
