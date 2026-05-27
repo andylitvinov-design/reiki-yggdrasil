@@ -1,5 +1,24 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-27 — Move Power Place to `/profile` top tab
+
+Mode: `/profile` navigation simplification on branch `codex/move-power-place-to-top-tab`.
+
+Changed:
+
+- Added `Место силы` as a top-level workspace tab between `Мои мандалы` and `Чаты`.
+- Removed the independent right-panel switch `Мои мандалы и материалы` / `Место силы` and removed the now-unused `activeRightPanel` state path.
+- Kept the left management/browser column visible for `Мои мандалы`, `Место силы`, `Чаты`, and `Профиль`.
+- Scoped `Мои мандалы и материалы` gallery to the `Мои мандалы` tab only, so it is hidden when `Место силы` is active.
+- Kept Power Place inside the main/right working area, not full-screen.
+- Preserved PR #60 cover/background persistence, center photo picker modal, clickable center zones, compact object editor, Power Place save/update/print logic, material save/list logic, and Supabase auth/data flow.
+- Preserved PR #61/#63 combined workspace behavior: profile and chat content remain inside their tabs, and old top profile blocks stay removed.
+
+Needs verification:
+
+- Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
+- Browser QA should verify `/profile` at desktop widths 1280/1366/1440/1710 and mobile 390 for overlap/readability.
+
 ## 2026-05-27 — Restore profile layout tabs onto PR #60 main
 
 Mode: manual port from previous dirty Task 1 worktree onto `origin/main` after PR #60.

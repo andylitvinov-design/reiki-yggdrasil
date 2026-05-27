@@ -12,6 +12,15 @@ Last updated: 2026-05-27
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-27 profile Power Place top tab
+
+- Branch: `codex/move-power-place-to-top-tab`, based on fresh `origin/main` commit `499d8f58259f0b4e4e141ce8526f7011513de4d7`.
+- `/profile` top tabs are now `Мои мандалы`, `Место силы`, `Чаты`, and `Профиль`.
+- The old independent right-panel switch `Мои мандалы и материалы` / `Место силы` and its `activeRightPanel` state were removed.
+- `Место силы` keeps the left management/browser column visible and opens the existing Power Place constructor in the main/right workspace; the `Мои мандалы и материалы` gallery only renders on `Мои мандалы`.
+- Preserved PR #60 cover/background persistence, center photo picker modal, clickable center zones, compact object editor, Power Place save/update/print behavior, material save/list flow, and Supabase auth/data flow.
+- Preserved the combined profile workspace direction from PR #61/#63: profile and chat content stay inside their top tabs, and the old top profile blocks do not return.
+
 ## 2026-05-27 profile layout restore
 
 - Restore branch: `codex/restore-profile-layout-fix-live`, based on PR #60 merge commit `e6877fdbfb9e80022bd1001c6d886dcecde57d7c`.

@@ -272,7 +272,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
   const [activeTopTab, setActiveTopTab] = useState("mandalas");
-  const [activeRightPanel, setActiveRightPanel] = useState("materials");
   const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
   const [materialFilter, setMaterialFilter] = useState("all");
   const [mediaStatus, setMediaStatus] = useState("");
@@ -1036,7 +1035,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedCompositionId("");
     setCompositionTitle("");
     setActiveTopTab("mandalas");
-    setActiveRightPanel("materials");
     setSelectedObjectSlotId("");
     setMaterialFilter("all");
     setFileNotice("");
@@ -1155,7 +1153,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
       {!loading && user && (
         <div className="cabinetGrid">
-          <section className="mandalaWorkspace">
+          <section className={`mandalaWorkspace ${activeTopTab === "power-place" ? "powerPlaceMode" : ""}`}>
             <div className="mandalaHero">
               <div className="mandalaHeroSeal">♣</div>
               <div>
@@ -1179,12 +1177,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             <div className="workspaceSwitches">
               <div className="workspaceTabs" role="tablist" aria-label="Основной раздел кабинета">
                 <button className={activeTopTab === "mandalas" ? "active" : ""} type="button" onClick={() => setActiveTopTab("mandalas")}>Мои мандалы</button>
+                <button className={activeTopTab === "power-place" ? "active" : ""} type="button" onClick={() => setActiveTopTab("power-place")}>Место силы</button>
                 <button className={activeTopTab === "chats" ? "active" : ""} type="button" onClick={() => setActiveTopTab("chats")}>Чаты</button>
                 <button className={activeTopTab === "profile" ? "active" : ""} type="button" onClick={() => setActiveTopTab("profile")}>Профиль</button>
-              </div>
-              <div className="workspaceTabs rightPanelTabs" role="tablist" aria-label="Правая панель">
-                <button className={activeRightPanel === "materials" ? "active" : ""} type="button" onClick={() => setActiveRightPanel("materials")}>Мои мандалы и материалы</button>
-                <button className={activeRightPanel === "power-place" ? "active" : ""} type="button" onClick={() => setActiveRightPanel("power-place")}>Место силы</button>
               </div>
             </div>
 
@@ -1209,13 +1204,33 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   </div>
                   <div className="materialMiniList">
                     {filteredMaterials.slice(0, 6).map((item) => (
-                      <button key={item.id} type="button" onClick={() => setActiveRightPanel("materials")}>
+                      <button key={item.id} type="button">
                         <span className={item.image_url ? "hasImage" : ""} style={item.image_url ? { backgroundImage: `url(${item.image_url})` } : undefined}>◎</span>
                         <b>{item.title || "Материал без названия"}</b>
                         <small>{[item.step_id, item.setting_title || materialStatusText(item.status)].filter(Boolean).join(" · ")}</small>
                       </button>
                     ))}
                     {filteredMaterials.length === 0 && <p>Материалы этого типа появятся здесь после сохранения.</p>}
+                  </div>
+                </>
+              ) : activeTopTab === "power-place" ? (
+                <>
+                  <p className="cabinetEyebrow">Место силы</p>
+                  <h3>Рабочая область</h3>
+                  <div className="chatModeNav" aria-label="Разделы места силы">
+                    {["Конструктор", "Фото клиентов", "Мистерии", "Сохранённые"].map((item) => (
+                      <button key={item} type="button">{item}</button>
+                    ))}
+                  </div>
+                  <div className="quickPhotoGrid">
+                    {[
+                      ["Места", powerPlaceCompositions.length],
+                      ["Фото", clientGoalPhotos.length],
+                      ["Образы", traditionAssets.length],
+                      ["План", normalizeAccountPlan(profile.account_plan).toUpperCase()]
+                    ].map(([label, value]) => (
+                      <span key={label}><i />{label}<small>{value}</small></span>
+                    ))}
                   </div>
                 </>
               ) : activeTopTab === "chats" ? (
@@ -1241,10 +1256,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
                     {profile?.id && <small>ID: {formatCabinetId(profile.id)}</small>}
                     <small>{user?.email || "Email не загружен"}</small>
-                  </div>
-                  <div className="chatModeNav" aria-label="Действия профиля">
-                    <button type="button" onClick={() => setActiveRightPanel("materials")}>Материалы</button>
-                    <button type="button" onClick={() => setActiveRightPanel("power-place")}>Место силы</button>
                   </div>
                 </>
               )}
@@ -1434,7 +1445,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   </div>
                   <div className="own">
                     <b>Вы</b>
-                    <p>Справа оставляем модуль «Место силы».</p>
+                    <p>Место силы открываем отдельной вкладкой рабочей области.</p>
                   </div>
                   <div>
                     <b>Мария Север</b>
@@ -1451,7 +1462,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             </div>
 
             <div className="workspaceRightColumn">
-            {activeRightPanel === "power-place" && (
+            {activeTopTab === "power-place" && (
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
               <div className="powerPlaceHeader">
                 <div>
@@ -1910,7 +1921,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             )}
 
-            {activeRightPanel === "materials" && (
+            {activeTopTab === "mandalas" && (
             <div className="mandalaGallery">
               <div className="cabinetFormHeader">
                 <div>
