@@ -9,17 +9,33 @@ Changed:
 - Added `Звезда` to Power Place constructor formats.
 - Added star variants `Закрытая` and `Открытая`, persisted as `star_variant: closed | open`.
 - Added five clickable star object positions using existing object image selection, upload, Storage refs, save/update, and print behavior.
-- Added visual star CSS for closed and open variants; open extends the right ray and lower-left leg.
-- Replaced the static left `Место силы` block with collapsible groups and a scrollable saved image list.
-- Reused existing category/data sources: `reikiLevels`, `mysteryTraditions`, `topSectionMenus.leftMenuSections`, saved `materials`, `coverVariants`, `clientGoalPhotos`, and `traditionAssets`.
-- Added `supabase/migrations/20260527143000_power_place_star_format.sql`.
-- Updated the Supabase migration runner allowlist/schema check for the new star migration.
+- Kept star variants in a compact existing library/navigation panel with collapsible groups and a scrollable saved image list.
+- New migration: `supabase/migrations/20260527143000_power_place_star_format.sql` adds `star_variant`, includes `star` in the constructor type check, and constrains star variants to `closed` / `open`.
 
 Needs verification:
 
 - Apply `20260527143000_power_place_star_format.sql` in live Supabase.
 - Verify authenticated save/reload of `constructor_type: star` and `star_variant` against production Supabase.
 - Browser QA should verify desktop widths 1280/1366/1440/1710 and mobile 390 for overflow/readability.
+
+## 2026-05-27 — Refine Power Place image picker and download UX
+
+Mode: scoped `/profile` Power Place UX refinement on branch `codex/refine-power-place-image-picker-download`.
+
+Changed:
+
+- Replaced the center-only picker path with a generic popup context for the center photo and non-center Power Place object slots.
+- Kept the center restricted to saved `Фото клиента / цели` records and kept the existing upload/save flow.
+- Added categorized object image selection using existing sources only: `reikiLevels`, `mysteryTraditions`, and `artifact-creation` data from `topSectionMenus`.
+- Marked talisman taxonomy as `needs verification`; no fake categories or fake image data were added.
+- Moved resource comparison to the desktop right rail and added `Фото цели` / `Цель + мандала` behavior so photo-only mode hides the surrounding mandala visual.
+- Moved `Название мандалы` above the final actions while preserving the saved title field.
+- Added `Скачать` between save/update and print; it downloads a lightweight HTML representation of the current composition metadata and refs without adding dependencies.
+
+Needs verification:
+
+- Live authenticated upload/save/reload still depends on Supabase env, applied Storage migration, and a real profile session.
+- Full PNG/JPEG export is not implemented in this pass; HTML download is the safe fallback.
 
 ## 2026-05-27 — Refine profile mandala cabinet UX
 

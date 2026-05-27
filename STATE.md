@@ -12,23 +12,38 @@ Last updated: 2026-05-27
 - output directory: `dist`
 - framework: `vite`
 
-## 2026-05-27 Power Place Star format and left library
+## 2026-05-27 Power Place image picker and download UX
 
-- Branch: `codex/add-star-power-place-format-and-left-library`, updated from current `origin/main` commit `81bbda92aed1bfbfaad259b6329419ab135a3367`.
-- `/profile` → `Место силы` keeps the top-tab workflow and now includes constructor format `Звезда`.
-- `Звезда` supports variants `Закрытая` (`star_variant: closed`) and `Открытая` (`star_variant: open`).
-- Both star variants use five clickable object positions (`star-1` through `star-5`) with the existing object image selector, upload flow, Storage refs, save/update, and print path.
-- The open star variant keeps five positions but visually extends the right ray and lower-left leg as continuation lines.
-- The left `Место силы` block now works as a compact library/navigation panel with collapsible groups for `ДАО РИ`, `Каналы Богов`, `Талисманы`, `Артефакты`, `Подложка места силы`, and `Фото клиентов / целей`.
-- Category sources are existing data only: `reikiLevels` / `stepOptions`, `mysteryTraditions`, `leftMenuSections["artifact-creation"]`, `leftMenuSections["artifact-shop"]`, saved `materials`, `coverVariants`, and `clientGoalPhotos`.
-- The saved image list reuses `clientGoalPhotos`, `traditionAssets`, `materials`, and image-based `coverVariants`; clicking an item assigns it to the selected object slot, and client/goal photos also set the central photo.
-- New migration: `supabase/migrations/20260527143000_power_place_star_format.sql` adds `star_variant`, includes `star` in the constructor type check, and constrains star variants to `closed` / `open`.
+- Branch: `codex/refine-power-place-image-picker-download`, based on fresh `origin/main` commit `81bbda92aed1bfbfaad259b6329419ab135a3367`.
+- `/profile` Power Place center zones now show the readable placeholder `Фото клиента / цели` and open the client/goal photo picker.
+- Non-center Power Place object slots now open the same popup pattern for selecting saved images; the compact object editor remains available as a secondary control.
+- Object picker category sources:
+  - `ДАО РИ`: `src/data/reikiKnowledgeBase.js` via `reikiLevels`; saved material images are filtered by level steps when `step_id` is available.
+  - `Каналы Богов`: `src/data/mysteryTraditions.js` via traditions/entities; saved tradition images are filtered by parent `tradition_id` because entity-level image mapping is not persisted.
+  - `Талисманы`: `src/data/topSectionMenus.js` via `artifact-creation` labels containing `Талисман`; dedicated talisman taxonomy is `needs verification`, and only safely matched saved artifact images are shown.
+  - `Артефакты`: `src/data/topSectionMenus.js` via `artifact-creation` items/groups; saved artifact/material images are shown.
+- The resource comparison controls now sit in the right rail next to the visual area on desktop and stack on mobile.
+- `Фото цели` mode hides surrounding mandala/object visuals without clearing state; `Цель + мандала` restores the full constructor visual.
+- `Название места силы` was relabeled to `Название мандалы` and moved above the final action buttons while keeping the same `compositionTitle` / saved composition title field.
+- Added `Скачать` between save/update and print. It downloads a dependency-free HTML representation of the visible Power Place metadata and image refs; full PNG/JPEG composition export remains `not verified` / out of scope for this pass.
+- No database schema, Supabase env, Vercel routing, auth flow, or save/update/print persistence paths were changed.
 
 Needs verification:
 
-- Apply `20260527143000_power_place_star_format.sql` in live Supabase before treating star save/reload as production verified.
-- Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
-- Browser QA should verify `/profile` at desktop widths 1280/1366/1440/1710 and mobile 390 for overlap/readability.
+- Authenticated upload/save/reload still depends on live Supabase env, applied Storage migration, and a real profile session.
+- Browser QA should verify `/profile`, `/masters`, `/profile/admin`, desktop widths 1280/1366/1440/1710, and mobile 390 for overflow/readability.
+
+## 2026-05-27 Power Place Star format and left library
+
+- Branch: `codex/add-star-power-place-format-and-left-library`, updated from main `origin/main`.
+- `Место силы` includes constructor format `Звезда` and keeps both variants: `Закрытая` and `Открытая`.
+- `Звезда` uses five object positions (`star-1` through `star-5`) with existing selector/upload/save/print flows and storage-backed object refs.
+- Added/kept `supabase/migrations/20260527143000_power_place_star_format.sql` support for `constructor_type: star` and `star_variant` normalization.
+
+Needs verification:
+
+- Apply `20260527143000_power_place_star_format.sql` in live Supabase.
+- Verify authenticated save/reload of `star_variant` and `constructor_type: star` against production data.
 
 ## 2026-05-27 profile mandala cabinet UX refinement
 
@@ -206,7 +221,6 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Branch `codex/power-place-persistence-plans` adds metadata persistence for saved compositions, profile-level Start/Pro limits, client/goal photo references, and selected mystery-tradition asset references.
 - Power-place upgrade #5 adds `Бизнес-мандала` and `ДАО` constructor formats, resource comparison mode/comments, and additive persistence fields for those settings.
 - Power-place upgrade #6 adds `Зодиак` with 2/4/6/8/12 visible clock positions, `zodiac_visible_count`, and `zodiac-*` image refs in the existing composition `object_refs`.
-- Power-place star upgrade adds `Звезда` with `Закрытая` / `Открытая` variants, `star_variant`, and `star-*` image refs in the existing composition `object_refs`.
 - Start allows 7 saved Power Place compositions and 10 client/goal photos.
 - Pro allows 20 saved Power Place compositions and 30 client/goal photos.
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
@@ -229,7 +243,6 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
 - apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
-- apply `supabase/migrations/20260527143000_power_place_star_format.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live
