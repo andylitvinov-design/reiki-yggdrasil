@@ -119,6 +119,22 @@ export function normalizeTraditionAsset(asset) {
   };
 }
 
+export function normalizeCoverRef(coverRef) {
+  const cover = cleanJsonObject(coverRef);
+  const id = cleanText(cover.id);
+  if (!id) return null;
+
+  const type = cleanText(cover.type) === "image" ? "image" : "placeholder";
+
+  return {
+    id,
+    label: cleanText(cover.label) || "Заставка места силы",
+    type,
+    tone: cleanText(cover.tone),
+    src: cleanText(cover.src)
+  };
+}
+
 export function normalizePowerPlaceComposition(composition) {
   const constructorType = VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
     ? composition.constructor_type
@@ -137,7 +153,7 @@ export function normalizePowerPlaceComposition(composition) {
     zodiac_visible_count: VALID_ZODIAC_VISIBLE_COUNTS.includes(zodiacVisibleCount) ? zodiacVisibleCount : 12,
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
     business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
-    cover_ref: composition?.cover_ref || null,
+    cover_ref: normalizeCoverRef(composition?.cover_ref),
     object_refs: cleanObjectRefs(composition?.object_refs),
     central_photo_id: cleanText(composition?.central_photo_id) || null,
     tradition_id: constructorType === "altar" ? cleanText(composition?.tradition_id) : "",

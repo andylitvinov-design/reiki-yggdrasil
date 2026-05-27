@@ -154,6 +154,8 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
 - Altar object selectors use images saved under the selected tradition in `Мистерии`.
 - File picker previews remain local; durable Supabase Storage upload remains needs verification.
+- Saved Power Place `cover_ref.src` now restores the selected cover/background across client, altar, business, zodiac, and DAO layouts.
+- The central Power Place photo zone opens a compact `Выбрать фото клиента` modal that lists saved client/goal photos and can create/select a new one through the existing client-photo flow.
 - The mobile `/profile` workspace now keeps authenticated cabinet content within viewport width, moves `Место силы` first on mobile, collapses `Мой профиль` by default, uses tabs `Мои мандалы` / `Чаты` / `Профиль`, removes `Команда 1–5`, and assigns Power Place slot images directly from visible diagram positions.
 - The Power Place mode switch shows `Режим: START/PRO` and still uses the existing `account_plan` limits: Start 7/10 and Pro 20/30.
 
