@@ -574,7 +574,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       label: selectedCover.label,
       type: selectedCover.type,
       tone: selectedCover.tone || "",
-      src: persistableImageRef(selectedCover.src || "")
+      src: selectedCover.src || ""
     });
   };
 
