@@ -14,7 +14,8 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260527070251_20260526_power_place_persistence.sql",
   "supabase/migrations/20260527070310_20260526_power_place_upgrade_5_business_dao.sql",
   "supabase/migrations/20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql",
-  "supabase/migrations/20260527120000_profile_cabinet_media_storage.sql"
+  "supabase/migrations/20260527120000_profile_cabinet_media_storage.sql",
+  "supabase/migrations/20260527143000_power_place_star_format.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
@@ -22,6 +23,7 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_tradition_assets: false,
   profile_cabinet_power_place_compositions: false,
   zodiac_visible_count: false,
+  star_variant: false,
   profile_cabinet_chat_conversations: false,
   profile_cabinet_chat_participants: false,
   profile_cabinet_chat_messages: false,
@@ -219,6 +221,10 @@ select
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'zodiac_visible_count'
   ) as zodiac_visible_count,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'star_variant'
+  ) as star_variant,
   exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_chat_conversations'

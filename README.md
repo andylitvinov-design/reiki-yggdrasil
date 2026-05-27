@@ -38,11 +38,12 @@ Supabase setup steps:
 6. Apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`.
 7. Apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`.
 8. Apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`.
-9. Add these auth redirect URLs in Supabase:
+9. Apply `supabase/migrations/20260527143000_power_place_star_format.sql`.
+10. Add these auth redirect URLs in Supabase:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
-10. Add the Vercel production env vars named above.
-11. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+11. Add the Vercel production env vars named above.
+12. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -70,6 +71,7 @@ Power Place persistence setup:
 - `20260526_power_place_upgrade_5_business_dao.sql` extends saved compositions for `Бизнес-мандала`, `ДАО`, business vertex zone count, and resource comparison comments.
 - `20260526_power_place_upgrade_6_zodiac_chat.sql` extends saved compositions for `Зодиак` with `zodiac_visible_count` and `zodiac-*` object refs in the existing `object_refs` JSON payload.
 - `20260527_profile_cabinet_media_storage.sql` creates private bucket `profile-cabinet-media`, owner-only Storage policies, and durable media path columns for client/goal and tradition images.
+- `20260527143000_power_place_star_format.sql` extends saved compositions for `Звезда` with `star_variant` values `closed` / `open` and `star-*` object refs in the existing `object_refs` JSON payload.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.

@@ -12,6 +12,24 @@ Last updated: 2026-05-27
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-27 Power Place Star format and left library
+
+- Branch: `codex/add-star-power-place-format-and-left-library`, updated from current `origin/main` commit `81bbda92aed1bfbfaad259b6329419ab135a3367`.
+- `/profile` → `Место силы` keeps the top-tab workflow and now includes constructor format `Звезда`.
+- `Звезда` supports variants `Закрытая` (`star_variant: closed`) and `Открытая` (`star_variant: open`).
+- Both star variants use five clickable object positions (`star-1` through `star-5`) with the existing object image selector, upload flow, Storage refs, save/update, and print path.
+- The open star variant keeps five positions but visually extends the right ray and lower-left leg as continuation lines.
+- The left `Место силы` block now works as a compact library/navigation panel with collapsible groups for `ДАО РИ`, `Каналы Богов`, `Талисманы`, `Артефакты`, `Подложка места силы`, and `Фото клиентов / целей`.
+- Category sources are existing data only: `reikiLevels` / `stepOptions`, `mysteryTraditions`, `leftMenuSections["artifact-creation"]`, `leftMenuSections["artifact-shop"]`, saved `materials`, `coverVariants`, and `clientGoalPhotos`.
+- The saved image list reuses `clientGoalPhotos`, `traditionAssets`, `materials`, and image-based `coverVariants`; clicking an item assigns it to the selected object slot, and client/goal photos also set the central photo.
+- New migration: `supabase/migrations/20260527143000_power_place_star_format.sql` adds `star_variant`, includes `star` in the constructor type check, and constrains star variants to `closed` / `open`.
+
+Needs verification:
+
+- Apply `20260527143000_power_place_star_format.sql` in live Supabase before treating star save/reload as production verified.
+- Authenticated production save/reload still requires live Supabase env, applied migrations, and a real profile session.
+- Browser QA should verify `/profile` at desktop widths 1280/1366/1440/1710 and mobile 390 for overlap/readability.
+
 ## 2026-05-27 profile mandala cabinet UX refinement
 
 - Branch: `codex/refine-profile-mandala-cabinet-ux`, based on fresh `origin/main` commit `50e2373cfb0c1e87a58ad2b2cc5ed3967e13f194`.
@@ -81,12 +99,13 @@ Confirmed files:
 - `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
 - `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
+- `supabase/migrations/20260527143000_power_place_star_format.sql`
 - `src/lib/profileMediaClient.js`
 - `scripts/apply-reiki-supabase-migrations.mjs`
 
 Supabase migration runner state:
 
-- `npm run supabase:migrations:apply` applies the committed Power Place migrations plus `20260527_profile_cabinet_media_storage.sql`.
+- `npm run supabase:migrations:apply` applies the committed Power Place migrations plus `20260527_profile_cabinet_media_storage.sql` and `20260527143000_power_place_star_format.sql`.
 - Credentials are read from the local wallet endpoint `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
 - Required secret names are `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`.
 - Wallet-unavailable and missing-secret states fail before any Supabase CLI command runs.
@@ -187,6 +206,7 @@ Power-place mandala constructor branches extend the authenticated `/profile` man
 - Branch `codex/power-place-persistence-plans` adds metadata persistence for saved compositions, profile-level Start/Pro limits, client/goal photo references, and selected mystery-tradition asset references.
 - Power-place upgrade #5 adds `Бизнес-мандала` and `ДАО` constructor formats, resource comparison mode/comments, and additive persistence fields for those settings.
 - Power-place upgrade #6 adds `Зодиак` with 2/4/6/8/12 visible clock positions, `zodiac_visible_count`, and `zodiac-*` image refs in the existing composition `object_refs`.
+- Power-place star upgrade adds `Звезда` with `Закрытая` / `Открытая` variants, `star_variant`, and `star-*` image refs in the existing composition `object_refs`.
 - Start allows 7 saved Power Place compositions and 10 client/goal photos.
 - Pro allows 20 saved Power Place compositions and 30 client/goal photos.
 - Central Power Place photos must come from the `Фото клиентов / целей` section.
@@ -209,6 +229,7 @@ Live data flow still depends on manual Supabase/Vercel setup:
 - apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
 - apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
 - apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
+- apply `supabase/migrations/20260527143000_power_place_star_format.sql`
 - set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
 - add Supabase auth redirect URLs for `/profile` and `/profile/admin`
 - enable and configure the Google provider in Supabase Auth before treating Google login as live
