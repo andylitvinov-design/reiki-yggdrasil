@@ -7,10 +7,14 @@ const ACTION_NAME = "Apply Reiki Supabase migrations";
 const PROJECT_NAME = "Reiki Yggdrasil / Supabase";
 const SECRET_NAMES = ["SUPABASE_ACCESS_TOKEN", "SUPABASE_PROJECT_REF"];
 const ALLOWED_MIGRATIONS = Object.freeze([
-  "supabase/migrations/20260526_power_place_persistence.sql",
-  "supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql",
-  "supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql",
-  "supabase/migrations/20260527_profile_cabinet_media_storage.sql"
+  "supabase/migrations/20260526063307_profile_cabinet_mvp.sql",
+  "supabase/migrations/20260526063321_profile_cabinet_rls_followup.sql",
+  "supabase/migrations/20260526064404_profile_cabinet_security_lints.sql",
+  "supabase/migrations/20260526121859_profile_cabinet_publication_step_fields.sql",
+  "supabase/migrations/20260527070251_20260526_power_place_persistence.sql",
+  "supabase/migrations/20260527070310_20260526_power_place_upgrade_5_business_dao.sql",
+  "supabase/migrations/20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql",
+  "supabase/migrations/20260527120000_profile_cabinet_media_storage.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
