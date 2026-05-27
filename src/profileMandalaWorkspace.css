@@ -1,71 +1,135 @@
 .mandalaWorkspace {
-  min-width: 0;
-  max-width: 100%;
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.72fr) minmax(440px, 1.12fr) minmax(430px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.mandalaHero,
+.mandalaGuide,
+.workspaceSwitches {
+  grid-column: 1 / -1;
+}
+
+.mandalaModeSidebar {
+  grid-column: 1;
+  grid-row: span 20;
+}
+
+.flowTuningPanel,
+.mandalaAtelierGrid,
+.powerLibraryGrid,
+.chatPlaceholderWorkspace {
+  grid-column: 2;
+}
+
+.mandalaGallery,
+.powerPlaceConstructor {
+  grid-column: 3;
+  grid-row: span 20;
+}
+
+.mandalaWorkspace:not(:has(.mandalaGuide)) .mandalaModeSidebar,
+.mandalaWorkspace:not(:has(.mandalaGuide)) .flowTuningPanel,
+.mandalaWorkspace:not(:has(.mandalaGuide)) .chatPlaceholderWorkspace,
+.mandalaWorkspace:not(:has(.mandalaGuide)) .mandalaGallery,
+.mandalaWorkspace:not(:has(.mandalaGuide)) .powerPlaceConstructor {
+  grid-row-start: 3;
+}
+
+.mandalaWorkspace:not(:has(.mandalaGuide)) .mandalaAtelierGrid {
+  grid-row-start: 4;
+}
+
+.mandalaWorkspace:not(:has(.mandalaGuide)) .powerLibraryGrid {
+  grid-row-start: 5;
+}
+
+.mandalaWorkspace:has(.mandalaGuide) .mandalaModeSidebar,
+.mandalaWorkspace:has(.mandalaGuide) .flowTuningPanel,
+.mandalaWorkspace:has(.mandalaGuide) .chatPlaceholderWorkspace,
+.mandalaWorkspace:has(.mandalaGuide) .mandalaGallery,
+.mandalaWorkspace:has(.mandalaGuide) .powerPlaceConstructor {
+  grid-row-start: 4;
+}
+
+.mandalaWorkspace:has(.mandalaGuide) .mandalaAtelierGrid {
+  grid-row-start: 5;
+}
+
+.mandalaWorkspace:has(.mandalaGuide) .powerLibraryGrid {
+  grid-row-start: 6;
+}
+
+.workspaceSwitches {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.workspaceMainColumns {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.72fr) minmax(440px, 1.12fr) minmax(430px, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.workspaceCenterColumn,
+.workspaceRightColumn {
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.profileTabContent {
   display: grid;
   gap: 18px;
 }
 
-.mandalaWorkspace.chatMode {
-  grid-template-columns: minmax(440px, 1.12fr) minmax(360px, 0.88fr);
-  align-items: start;
+.profileStatusStack {
+  display: grid;
+  gap: 8px;
 }
 
-.mandalaWorkspace.chatMode .mandalaHero,
-.mandalaWorkspace.chatMode .mandalaGuide,
-.mandalaWorkspace.chatMode .workspaceTabs {
-  grid-column: 1 / -1;
+.profileStatusStack small {
+  color: #77644d;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
-.mandalaWorkspace.chatMode .masterChatWorkspace {
-  grid-column: 1;
+.workspaceMainColumns .mandalaModeSidebar,
+.workspaceMainColumns .flowTuningPanel,
+.workspaceMainColumns .mandalaAtelierGrid,
+.workspaceMainColumns .powerLibraryGrid,
+.workspaceMainColumns .chatPlaceholderWorkspace,
+.workspaceMainColumns .mandalaGallery,
+.workspaceMainColumns .powerPlaceConstructor {
+  grid-column: auto !important;
+  grid-row: auto !important;
 }
 
-.mandalaWorkspace.chatMode .powerPlaceConstructor {
-  grid-column: 2;
-}
-
-.mandalaWorkspace.chatMode .powerPlaceHeader {
-  align-items: flex-start;
-  flex-direction: column;
-}
-
-.mandalaWorkspace.chatMode .constructorControls,
-.mandalaWorkspace.chatMode .constructorTypeSelector,
-.mandalaWorkspace.chatMode .geometrySelector,
-.mandalaWorkspace.chatMode .altarRatioSelector,
-.mandalaWorkspace.chatMode .businessZoneSelector,
-.mandalaWorkspace.chatMode .zodiacCountSelector {
-  width: 100%;
-  justify-items: start;
-  justify-content: flex-start;
-}
-
-.mandalaWorkspace.chatMode .powerPlacePrintArea {
-  grid-template-columns: 1fr;
-}
-
-.mandalaWorkspace.chatMode .powerCommandRail {
-  grid-template-columns: 1fr;
+.rightPanelTabs {
+  justify-content: flex-end;
 }
 
 .workspaceTabs {
-  min-width: 0;
-  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
 .workspaceTabs button {
-  min-width: 0;
   border: 1px solid rgba(184, 121, 29, 0.34);
   border-radius: 999px;
   padding: 9px 15px;
   background: rgba(255, 253, 248, 0.8);
   color: #6e4b1b;
   font-weight: 900;
-  overflow-wrap: anywhere;
 }
 
 .workspaceTabs button.active {
@@ -73,9 +137,238 @@
   color: #fff0cd;
 }
 
-.mandalaHero {
+.mandalaModeSidebar,
+.chatPlaceholderWorkspace {
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 80% 0, rgba(244, 196, 100, 0.12), transparent 30%),
+    rgba(255, 252, 246, 0.88);
+  box-shadow: 0 18px 50px rgba(79, 54, 18, 0.1);
+  padding: 18px;
+}
+
+.mandalaModeSidebar {
+  position: sticky;
+  top: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.mandalaModeSidebar h3 {
+  margin: 0;
+  color: #2b1b0c;
+  font-size: 20px;
+}
+
+.materialFilterList,
+.chatModeNav {
+  display: grid;
+  gap: 8px;
+}
+
+.materialFilterList button,
+.chatModeNav button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 253, 248, 0.72);
+  color: #5d3c12;
+  font-weight: 800;
+  text-align: left;
+}
+
+.materialFilterList button.active,
+.chatModeNav button:first-child {
+  background: linear-gradient(180deg, #f2d492, #d39a32);
+  color: #24180e;
+  box-shadow: 0 10px 22px rgba(141, 83, 10, 0.14);
+}
+
+.materialFilterList b {
+  min-width: 30px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(45, 26, 7, 0.08);
+  text-align: center;
+}
+
+.materialMiniList {
+  display: grid;
+  gap: 9px;
+}
+
+.materialMiniList button {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 14px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.58);
+  text-align: left;
+}
+
+.materialMiniList span {
+  width: 44px;
+  height: 44px;
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background:
+    repeating-radial-gradient(circle, rgba(247, 207, 108, 0.24) 0 2px, transparent 3px 12px),
+    linear-gradient(135deg, #1b160f, #8e5a14);
+  background-size: cover;
+  background-position: center;
+  color: #f3c65d;
+}
+
+.materialMiniList span.hasImage {
+  color: transparent;
+}
+
+.materialMiniList b,
+.materialMiniList small {
   min-width: 0;
-  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.materialMiniList b {
+  color: #2b1b0c;
+  font-size: 13px;
+}
+
+.materialMiniList small,
+.materialMiniList p {
+  color: #7a674f;
+  font-size: 12px;
+}
+
+.quickPhotoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.quickPhotoGrid span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 14px;
+  padding: 9px;
+  color: #2b1b0c;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.quickPhotoGrid i {
+  width: 26px;
+  height: 26px;
+  grid-row: span 2;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d49a35, #6b3907);
+}
+
+.quickPhotoGrid small {
+  grid-column: 2;
+  color: #7a674f;
+  font-size: 10px;
+}
+
+.chatPlaceholderWorkspace {
+  min-height: 520px;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.chatPlaceholderHeader {
+  display: grid;
+  gap: 6px;
+}
+
+.chatPlaceholderHeader h2 {
+  margin: 0;
+  color: #2b1b0c;
+  font-size: 28px;
+}
+
+.chatPlaceholderHeader span {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #7a4c10;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.chatMockMessages {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(203, 152, 64, 0.26);
+  border-radius: 18px;
+  padding: 22px;
+  background: rgba(255, 246, 230, 0.66);
+}
+
+.chatMockMessages div {
+  max-width: 82%;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.chatMockMessages div.own {
+  justify-self: end;
+  background: rgba(232, 191, 99, 0.46);
+}
+
+.chatMockMessages b,
+.chatMockMessages p {
+  margin: 0;
+}
+
+.chatMockMessages p {
+  margin-top: 5px;
+  color: #5f5142;
+}
+
+.chatComposerMock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.24);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #8a7964;
+}
+
+.chatComposerMock button {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 15px;
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+  font-weight: 800;
+}
+
+.mandalaHero {
   position: relative;
   overflow: hidden;
   display: grid;
@@ -172,8 +465,6 @@
 .flowTuningPanel,
 .mandalaAtelierGrid,
 .mandalaGallery {
-  min-width: 0;
-  max-width: 100%;
   border: 1px solid rgba(203, 152, 64, 0.34);
   border-radius: 26px;
   background:
@@ -190,36 +481,10 @@
 
 .flowTuningPanel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
   gap: 18px;
   align-items: center;
   padding: 20px 22px;
-}
-
-.planSwitchPanel {
-  align-content: center;
-}
-
-.planSwitch {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.planSwitch button {
-  min-height: 34px;
-  border: 1px solid rgba(184, 121, 29, 0.3);
-  border-radius: 999px;
-  padding: 7px 12px;
-  background: rgba(255, 255, 255, 0.74);
-  color: #704812;
-  font-weight: 900;
-}
-
-.planSwitch button.active {
-  border-color: rgba(245, 198, 106, 0.72);
-  background: linear-gradient(180deg, #2a1a09, #8c570d);
-  color: #fff0cd;
 }
 
 .flowTuningPanel h3 {
@@ -270,7 +535,6 @@
 }
 
 .mandalaAtelierGrid {
-  min-width: 0;
   display: grid;
   grid-template-columns: minmax(310px, 0.92fr) minmax(0, 1.08fr);
   gap: 18px;
@@ -279,8 +543,6 @@
 
 .mandalaAltarCard,
 .mandalaCreationCard {
-  min-width: 0;
-  max-width: 100%;
   border: 1px solid rgba(203, 152, 64, 0.32);
   border-radius: 24px;
   background: rgba(255, 253, 248, 0.78);
@@ -568,22 +830,18 @@
 }
 
 .powerPlaceConstructor {
-  min-width: 0;
-  max-width: 100%;
   border: 1px solid rgba(203, 152, 64, 0.34);
   border-radius: 26px;
   padding: 18px;
   background:
-    radial-gradient(circle at 12% 8%, rgba(244, 196, 100, 0.14), transparent 28%),
-    linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(247, 236, 216, 0.86));
+    radial-gradient(circle at 20% 4%, rgba(244, 196, 100, 0.18), transparent 28%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.95), rgba(247, 236, 216, 0.9));
   box-shadow: 0 18px 50px rgba(79, 54, 18, 0.1);
 }
 
 .powerPlaceHeader {
-  min-width: 0;
-  display: flex;
+  display: grid;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   margin-bottom: 14px;
 }
@@ -595,10 +853,8 @@
 }
 
 .constructorControls {
-  min-width: 0;
-  max-width: 100%;
   display: grid;
-  justify-items: end;
+  justify-items: stretch;
   gap: 8px;
 }
 
@@ -609,11 +865,9 @@
 .zodiacCountSelector,
 .resourceModeToggle,
 .coverVariantList {
-  min-width: 0;
-  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 7px;
 }
 
@@ -624,13 +878,24 @@
 .zodiacCountSelector button,
 .resourceModeToggle button,
 .coverVariantList button {
-  min-width: 0;
   border: 1px solid rgba(184, 121, 29, 0.28);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.68);
   color: #744c17;
   font-weight: 800;
-  overflow-wrap: anywhere;
+}
+
+.resourceModeToggle span {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #744c17;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .geometrySelector button {
@@ -681,18 +946,14 @@
 }
 
 .powerPlacePrintArea {
-  min-width: 0;
-  max-width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   align-items: stretch;
 }
 
 .powerMandalaPanel,
 .powerCommandRail {
-  min-width: 0;
-  max-width: 100%;
   border: 1px solid rgba(203, 152, 64, 0.28);
   border-radius: 22px;
   background: rgba(255, 253, 248, 0.72);
@@ -704,28 +965,9 @@
   gap: 10px;
   padding: 16px;
   overflow: hidden;
-}
-
-.powerSource,
-.altarTopSource,
-.altarSupportSource,
-.businessVertexZone,
-.daoElementImage,
-.zodiacPositionImage {
-  appearance: none;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
-}
-
-.powerSource:focus-visible,
-.altarTopSource:focus-visible,
-.altarSupportSource:focus-visible,
-.businessVertexZone:focus-visible,
-.daoElementImage:focus-visible,
-.zodiacPositionImage:focus-visible {
-  outline: 3px solid rgba(78, 112, 65, 0.78);
-  outline-offset: 3px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(218, 156, 45, 0.2), transparent 32%),
+    linear-gradient(180deg, #211004, #351a05);
 }
 
 .powerPrintMeta {
@@ -735,7 +977,7 @@
 
 .powerPrintMeta h3 {
   margin: 2px 0 4px;
-  color: #4a3012;
+  color: #fff0cd;
   font-size: 20px;
   line-height: 1.1;
 }
@@ -746,11 +988,11 @@
   aspect-ratio: 1;
   border-radius: 50%;
   background:
-    repeating-conic-gradient(from 0deg, rgba(184, 121, 29, 0.08) 0 8deg, transparent 9deg 18deg),
-    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.18) 0 1px, transparent 2px 26px),
-    radial-gradient(circle at 50% 50%, #fffdf6 0 18%, rgba(255, 244, 219, 0.9) 19% 40%, rgba(232, 178, 74, 0.18) 41% 100%);
-  border: 1px solid rgba(203, 152, 64, 0.42);
-  box-shadow: inset 0 0 44px rgba(255, 255, 255, 0.72), 0 0 54px rgba(224, 173, 71, 0.16);
+    repeating-conic-gradient(from 0deg, rgba(255, 214, 118, 0.09) 0 8deg, transparent 9deg 18deg),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.22) 0 1px, transparent 2px 26px),
+    radial-gradient(circle at 50% 50%, #f8d072 0 7%, #412407 8% 35%, #180d04 36% 100%);
+  border: 1px solid rgba(226, 176, 71, 0.68);
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.56), 0 0 54px rgba(224, 173, 71, 0.22);
 }
 
 .powerCenterPhoto {
@@ -817,7 +1059,10 @@
     radial-gradient(circle at 45% 35%, #fff0bd, #c78820 62%, #2b1a08 100%);
   box-shadow: 0 0 24px rgba(218, 157, 45, 0.3);
   color: #211407;
+  cursor: pointer;
+  font: inherit;
   font-weight: 900;
+  padding: 0;
   transform: translate(-50%, -50%);
 }
 
@@ -858,6 +1103,16 @@
 
 .powerSource.hasImage span {
   display: none;
+}
+
+.powerSource.selected,
+.altarTopSource.selected,
+.altarSupportSource.selected,
+.businessVertexZone.selected,
+.zodiacPositionImage.selected,
+.daoElementImage.selected {
+  border-color: #fff6d7;
+  box-shadow: 0 0 0 3px rgba(255, 246, 215, 0.48), 0 0 26px rgba(245, 198, 86, 0.52);
 }
 
 .geometry-2 .source-1 { left: 50%; top: 15%; }
@@ -940,7 +1195,10 @@
   background-size: cover;
   background-position: center;
   color: #211407;
+  cursor: pointer;
+  font: inherit;
   font-weight: 900;
+  padding: 0;
   box-shadow: 0 0 20px rgba(218, 157, 45, 0.24);
 }
 
@@ -1156,7 +1414,10 @@
   background-size: cover;
   background-position: center;
   color: #211407;
+  cursor: pointer;
+  font: inherit;
   font-weight: 900;
+  padding: 0;
   box-shadow: 0 0 20px rgba(128, 114, 54, 0.24);
 }
 
@@ -1294,7 +1555,10 @@
   background-size: cover;
   background-position: center;
   color: #211407;
+  cursor: pointer;
+  font: inherit;
   font-weight: 900;
+  padding: 0;
   box-shadow: 0 0 20px rgba(128, 114, 54, 0.24);
 }
 
@@ -1366,44 +1630,6 @@
   overflow-wrap: anywhere;
 }
 
-.slotChooserPanel {
-  width: min(500px, 100%);
-  display: grid;
-  grid-template-columns: minmax(120px, 0.7fr) minmax(0, 1fr);
-  gap: 10px;
-  align-items: end;
-  border: 1px solid rgba(184, 121, 29, 0.28);
-  border-radius: 16px;
-  padding: 12px;
-  background: rgba(255, 252, 246, 0.82);
-}
-
-.slotChooserPanel > div,
-.slotChooserPanel select {
-  min-width: 0;
-}
-
-.slotChooserPanel b {
-  display: block;
-  color: #4a3012;
-  overflow-wrap: anywhere;
-}
-
-.slotChooserPanel select {
-  width: 100%;
-  border: 1px solid rgba(122, 99, 72, 0.24);
-  border-radius: 12px;
-  padding: 9px 10px;
-  background: rgba(255, 255, 255, 0.88);
-  color: #392512;
-  font: inherit;
-  font-size: 13px;
-}
-
-.slotChooserPanel .objectSlotActions {
-  grid-column: 1 / -1;
-}
-
 .powerPlaceHint,
 .powerPlaceActions span,
 .coverNotice {
@@ -1418,6 +1644,13 @@
   gap: 12px;
   align-content: start;
   padding: 14px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(244, 196, 100, 0.14), transparent 34%),
+    rgba(255, 250, 238, 0.82);
+}
+
+.powerCommandRail .cabinetEyebrow {
+  color: #8a5308;
 }
 
 .objectImageEditor {
@@ -1425,32 +1658,24 @@
   gap: 10px;
 }
 
-.objectSlotList {
+.selectedObjectControl {
   display: grid;
-  gap: 8px;
-  max-height: 308px;
-  overflow: auto;
-  padding-right: 2px;
-}
-
-.objectSlotEditor {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: 66px minmax(0, 1fr);
+  gap: 10px;
   align-items: start;
-  border: 1px solid rgba(184, 121, 29, 0.2);
-  border-radius: 14px;
-  padding: 8px;
-  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(184, 121, 29, 0.26);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.55);
 }
 
-.objectSlotPreview {
-  width: 44px;
+.selectedObjectPreview {
+  width: 66px;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  border-radius: 12px;
-  border: 1px solid rgba(184, 121, 29, 0.28);
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 16px;
   background:
     radial-gradient(circle at 45% 35%, rgba(245, 198, 106, 0.4), rgba(122, 80, 23, 0.24)),
     #fff8ea;
@@ -1459,20 +1684,36 @@
   color: #9f6614;
 }
 
-.objectSlotPreview.hasImage span {
+.selectedObjectPreview.hasImage span {
   display: none;
 }
 
-.objectSlotEditor b {
-  display: block;
-  margin-bottom: 5px;
-  color: #5f3e12;
-  font-size: 12px;
+.selectedObjectBody {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
 }
 
-.objectSlotEditor select {
+.selectedObjectBody b,
+.selectedObjectBody small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.selectedObjectBody b {
+  color: #5f3e12;
+  font-size: 13px;
+}
+
+.selectedObjectBody small {
+  color: #77644d;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.selectedObjectBody select {
   width: 100%;
-  min-height: 30px;
+  min-height: 32px;
   border: 1px solid rgba(122, 99, 72, 0.24);
   border-radius: 10px;
   padding: 5px 8px;
@@ -1482,19 +1723,18 @@
   font-size: 12px;
 }
 
-.objectSlotActions {
+.selectedObjectActions {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 6px;
 }
 
-.objectSlotActions label,
-.objectSlotActions button {
+.selectedObjectActions label,
+.selectedObjectActions button {
   position: relative;
   border: 1px solid rgba(184, 121, 29, 0.3);
   border-radius: 999px;
-  padding: 5px 8px;
+  padding: 6px 9px;
   background: rgba(255, 255, 255, 0.72);
   color: #704812;
   font-size: 11px;
@@ -1502,7 +1742,13 @@
   cursor: pointer;
 }
 
-.objectSlotActions input {
+.selectedObjectActions label.disabled,
+.selectedObjectActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selectedObjectActions input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -1930,7 +2176,6 @@
   font-size: 13px;
 }
 
-
 .powerMandala.cover-image,
 .altarMandalaSheet.cover-image,
 .businessMandalaSheet.cover-image,
@@ -2102,7 +2347,29 @@
   padding-top: 12px;
 }
 
+@media (max-width: 1180px) {
+  .mandalaWorkspace,
+  .workspaceMainColumns {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .workspaceRightColumn {
+    grid-column: 1 / -1;
+  }
+
+  .mandalaGallery,
+  .powerPlaceConstructor {
+    grid-row: auto;
+  }
+
+  .powerPlacePrintArea {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  }
+}
+
 @media (max-width: 980px) {
+  .mandalaWorkspace,
+  .workspaceMainColumns,
   .mandalaHero,
   .flowTuningPanel,
   .mandalaAtelierGrid,
@@ -2114,9 +2381,21 @@
     grid-template-columns: 1fr;
   }
 
+  .mandalaModeSidebar,
+  .flowTuningPanel,
+  .mandalaAtelierGrid,
+  .powerLibraryGrid,
+  .chatPlaceholderWorkspace,
+  .mandalaGallery,
+  .powerPlaceConstructor,
   .mandalaWorkspace.chatMode .masterChatWorkspace,
   .mandalaWorkspace.chatMode .powerPlaceConstructor {
     grid-column: 1;
+    grid-row: auto;
+  }
+
+  .mandalaModeSidebar {
+    position: static;
   }
 
   .mandalaHero {
@@ -2134,30 +2413,14 @@
   }
 
   .powerCommandRail {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.75fr);
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 560px) {
-  .mandalaWorkspace {
-    order: -1;
-    gap: 12px;
-  }
-
-  .mandalaWorkspace > * {
-    min-width: 0;
-    max-width: 100%;
-  }
-
-  .powerPlaceConstructor {
-    order: -1;
-  }
-
-  .workspaceTabs {
-    order: 0;
-  }
-
   .mandalaHero,
+  .mandalaModeSidebar,
+  .chatPlaceholderWorkspace,
   .flowTuningPanel,
   .mandalaAtelierGrid,
   .mandalaGallery,
@@ -2166,24 +2429,6 @@
   .mandalaCreationCard {
     border-radius: 20px;
     padding: 16px;
-  }
-
-  .mandalaHero {
-    min-height: 0;
-  }
-
-  .mandalaHeroSeal {
-    width: 78px;
-    height: 78px;
-    font-size: 40px;
-  }
-
-  .mandalaHero h2 {
-    font-size: 30px;
-  }
-
-  .mandalaHero p {
-    font-size: 14px;
   }
 
   .mandalaPreview {
@@ -2199,10 +2444,6 @@
     padding: 18px 18px 18px 82px;
   }
 
-  .slotChooserPanel {
-    grid-template-columns: 1fr;
-  }
-
   .powerPlaceHeader,
   .powerPlaceActions {
     align-items: flex-start;
@@ -2214,19 +2455,10 @@
   .geometrySelector,
   .altarRatioSelector,
   .businessZoneSelector,
-  .zodiacCountSelector,
-  .resourceModeToggle,
-  .coverVariantList,
-  .planSwitch {
+  .zodiacCountSelector {
     width: 100%;
     justify-items: start;
     justify-content: flex-start;
-  }
-
-  .constructorTypeSelector button,
-  .resourceModeToggle button,
-  .coverVariantList button {
-    flex: 1 1 130px;
   }
 
   .powerInlineForm {
@@ -2234,7 +2466,7 @@
   }
 
   .powerMandala {
-    width: min(310px, 82vw);
+    width: min(320px, 84vw);
   }
 
   .powerSource {
@@ -2260,14 +2492,14 @@
   }
 
   .altarMandalaSheet {
-    width: min(310px, 82vw);
+    width: min(330px, 84vw);
     border-radius: 22px;
   }
 
   .businessMandalaSheet,
   .daoMandalaSheet,
   .zodiacMandalaSheet {
-    width: min(310px, 82vw);
+    width: min(330px, 84vw);
   }
 
   .businessVertex {
@@ -2345,16 +2577,8 @@
     grid-template-columns: 1fr;
   }
 
-  .objectSlotList {
-    max-height: none;
-  }
-
   .chatMessages {
     max-height: none;
-  }
-
-  .coverPreview {
-    min-height: 86px;
   }
 }
 
@@ -2387,7 +2611,6 @@
 
   body.printMandalaOnly .powerPlaceHint,
   body.printMandalaOnly .objectImageEditor,
-  body.printMandalaOnly .slotChooserPanel,
   body.printMandalaOnly .clientPhotoPickerBackdrop,
   body.printMandalaOnly .coverVariantList,
   body.printMandalaOnly .coverUploadButton,

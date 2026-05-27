@@ -36,15 +36,7 @@ import {
   normalizeCoverRef,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
-import {
-  createConversationWithMaster,
-  formatCabinetId,
-  listApprovedMasterProfiles,
-  listOwnChatThreads,
-  profileMatchesQuery,
-  sendChatMessage,
-  setChatFavorite
-} from "../lib/masterChatClient.js";
+import { formatCabinetId } from "../lib/masterChatClient.js";
 import "../profileMandalaWorkspace.css";
 
 const EMPTY_PROFILE = {
@@ -79,11 +71,11 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_index: firstSettings.length > 0 ? 1 : null
 });
 
-const POWER_SOURCE_COUNTS = [2, 4, 5, 6, 8, 12];
+const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
-  { value: "client", label: "Мандала клиенту" },
+  { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
-  { value: "business", label: "Бизнес-мандала" },
+  { value: "business", label: "Бизнес" },
   { value: "dao", label: "ДАО" },
   { value: "zodiac", label: "Зодиак" }
 ];
@@ -130,6 +122,16 @@ const FALLBACK_COVER_VARIANTS = [
   { id: "cover-gold", label: "Золотой поток", tone: "gold" },
   { id: "cover-forest", label: "Древо силы", tone: "forest" },
   { id: "cover-night", label: "Ночная мандала", tone: "night" }
+];
+
+const MATERIAL_FILTERS = [
+  { value: "all", label: "Все" },
+  { value: "mandala", label: "Мандалы" },
+  { value: "artifact", label: "Артефакты" },
+  { value: "practice", label: "Практики" },
+  { value: "draft", label: "Черновики" },
+  { value: "pending", label: "На модерации" },
+  { value: "approved", label: "Опубликовано" }
 ];
 
 function normalizeProfile(profile, user) {
@@ -261,15 +263,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceComparisonMode, setResourceComparisonMode] = useState("client_photo");
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
-  const [workspaceTab, setWorkspaceTab] = useState("mandalas");
-  const [profileExpanded, setProfileExpanded] = useState(false);
-  const [activeSlotId, setActiveSlotId] = useState("");
-  const [approvedMasters, setApprovedMasters] = useState([]);
-  const [chatThreads, setChatThreads] = useState([]);
-  const [selectedConversationId, setSelectedConversationId] = useState("");
-  const [masterSearch, setMasterSearch] = useState("");
-  const [chatDraft, setChatDraft] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
+  const [activeTopTab, setActiveTopTab] = useState("mandalas");
+  const [activeRightPanel, setActiveRightPanel] = useState("materials");
+  const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
+  const [materialFilter, setMaterialFilter] = useState("all");
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -290,6 +287,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     pending: statusCount(materials, "pending"),
     approved: statusCount(materials, "approved")
   }), [materials]);
+
+  const filteredMaterials = useMemo(() => {
+    if (materialFilter === "all") return materials;
+    if (["mandala", "artifact", "practice"].includes(materialFilter)) {
+      return materials.filter((item) => item.type === materialFilter);
+    }
+    return materials.filter((item) => item.status === materialFilter);
+  }, [materialFilter, materials]);
 
   const accountPlan = normalizeAccountPlan(profile.account_plan);
   const planLimits = getPlanLimits(accountPlan);
@@ -386,22 +391,23 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }));
   }, [businessVertexZoneCount, constructorType, powerSourceCount, zodiacVisibleCount]);
 
-  const activeSlot = useMemo(
-    () => activeObjectSlots.find((slot) => slot.id === activeSlotId) || null,
-    [activeObjectSlots, activeSlotId]
+  const selectedObjectSlot = useMemo(
+    () => activeObjectSlots.find((slot) => slot.id === selectedObjectSlotId) || activeObjectSlots[0] || null,
+    [activeObjectSlots, selectedObjectSlotId]
   );
 
-  const filteredMasters = useMemo(() => approvedMasters
-    .filter((master) => master.id !== profile?.id)
-    .filter((master) => profileMatchesQuery(master, masterSearch))
-    .slice(0, 12), [approvedMasters, masterSearch, profile?.id]);
+  const selectedObjectImage = selectedObjectSlot ? objectImages[selectedObjectSlot.id] || "" : "";
 
-  const selectedChatThread = useMemo(
-    () => chatThreads.find((thread) => thread.conversation_id === selectedConversationId) || null,
-    [chatThreads, selectedConversationId]
-  );
+  useEffect(() => {
+    if (!activeObjectSlots.length) {
+      setSelectedObjectSlotId("");
+      return;
+    }
 
-  const selectedChatMessages = selectedChatThread?.messages || [];
+    setSelectedObjectSlotId((current) =>
+      activeObjectSlots.some((slot) => slot.id === current) ? current : activeObjectSlots[0].id
+    );
+  }, [activeObjectSlots]);
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -476,12 +482,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   }, [profile?.id, session]);
 
   useEffect(() => {
-    if (activeSlotId && !activeObjectSlots.some((slot) => slot.id === activeSlotId)) {
-      setActiveSlotId("");
-    }
-  }, [activeObjectSlots, activeSlotId]);
-
-  useEffect(() => {
     let cancelled = false;
 
     async function loadPowerPlaceData() {
@@ -538,68 +538,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     };
   }, [profile?.id, selectedTraditionId, session]);
 
-  const refreshChats = async () => {
-    if (!profile?.id || !session?.access_token) {
-      setApprovedMasters([]);
-      setChatThreads([]);
-      return;
-    }
-
-    setChatLoading(true);
-
-    try {
-      const [masters, threads] = await Promise.all([
-        listApprovedMasterProfiles(session),
-        listOwnChatThreads(profile.id, session)
-      ]);
-
-      setApprovedMasters(masters || []);
-      setChatThreads(threads || []);
-      setSelectedConversationId((current) => current || threads?.[0]?.conversation_id || "");
-    } catch (err) {
-      setError(err.message || "Не удалось загрузить чаты мастеров.");
-    } finally {
-      setChatLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadChats() {
-      if (!profile?.id || !session?.access_token) {
-        setApprovedMasters([]);
-        setChatThreads([]);
-        return;
-      }
-
-      setChatLoading(true);
-
-      try {
-        const [masters, threads] = await Promise.all([
-          listApprovedMasterProfiles(session),
-          listOwnChatThreads(profile.id, session)
-        ]);
-
-        if (!cancelled) {
-          setApprovedMasters(masters || []);
-          setChatThreads(threads || []);
-          setSelectedConversationId((current) => current || threads?.[0]?.conversation_id || "");
-        }
-      } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить чаты мастеров.");
-      } finally {
-        if (!cancelled) setChatLoading(false);
-      }
-    }
-
-    loadChats();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [profile?.id, session]);
-
   const updateField = (field, value) => {
     setProfile((current) => ({ ...current, [field]: value }));
   };
@@ -636,7 +574,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       label: selectedCover.label,
       type: selectedCover.type,
       tone: selectedCover.tone || "",
-      src: selectedCover.src || ""
+      src: persistableImageRef(selectedCover.src || "")
     });
   };
 
@@ -742,10 +680,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const setObjectImage = (slotId, value) => {
     setObjectImages((current) => ({ ...current, [slotId]: value }));
-  };
-
-  const openObjectSlot = (slotId) => {
-    setActiveSlotId(slotId);
   };
 
   const handleObjectFile = (slotId, event) => {
@@ -867,20 +801,20 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     if (!profile?.id) {
       setError("Сначала сохраните профиль мастера.");
-      return null;
+      return;
     }
 
     try {
       const saved = await createClientGoalPhoto({ ...clientPhotoForm, profile_id: profile.id }, accountPlan, session);
       setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
-      setSelectedCentralPhotoId((current) => (selectSaved ? saved?.id || "" : current || saved?.id || ""));
-      setClientPhotoForm({ title: "", image_url: "", notes: "" });
+      if (selectSaved || !selectedCentralPhotoId) {
+        setSelectedCentralPhotoId(saved?.id || "");
+      }
       if (closePicker) setClientPhotoPickerOpen(false);
-      setMessage(selectSaved ? "Фото клиента / цели сохранено и выбрано в центр." : "Фото клиента / цели сохранено.");
-      return saved;
+      setClientPhotoForm({ title: "", image_url: "", notes: "" });
+      setMessage("Фото клиента / цели сохранено.");
     } catch (err) {
       setError(err.message || "Не удалось сохранить фото клиента / цели.");
-      return null;
     }
   };
 
@@ -909,7 +843,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const openClientPhotoPicker = () => {
-    setActiveSlotId("");
     setClientPhotoPickerOpen(true);
   };
 
@@ -963,58 +896,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
-  const handleStartChat = async (masterId) => {
-    setMessage("");
-    setError("");
-
-    if (!profile?.id) {
-      setError("Сначала сохраните профиль мастера.");
-      return;
-    }
-
-    try {
-      const conversationId = await createConversationWithMaster(profile.id, masterId, session);
-      await refreshChats();
-      setSelectedConversationId(conversationId);
-      setWorkspaceTab("chats");
-    } catch (err) {
-      setError(err.message || "Не удалось открыть чат.");
-    }
-  };
-
-  const handleToggleFavorite = async (thread) => {
-    setMessage("");
-    setError("");
-
-    try {
-      await setChatFavorite(profile.id, thread.conversation_id, !thread.is_favorite, session);
-      await refreshChats();
-      setSelectedConversationId(thread.conversation_id);
-    } catch (err) {
-      setError(err.message || "Не удалось обновить избранное.");
-    }
-  };
-
-  const handleSendChatMessage = async (event) => {
-    event.preventDefault();
-    setMessage("");
-    setError("");
-
-    if (!selectedConversationId) {
-      setError("Выберите чат.");
-      return;
-    }
-
-    try {
-      await sendChatMessage(selectedConversationId, profile.id, chatDraft, session);
-      setChatDraft("");
-      await refreshChats();
-      setSelectedConversationId(selectedConversationId);
-    } catch (err) {
-      setError(err.message || "Не удалось отправить сообщение.");
-    }
-  };
-
   const handleLogout = () => {
     clearStoredSession();
     setSession(null);
@@ -1029,14 +910,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedCentralPhotoId("");
     setSelectedCompositionId("");
     setCompositionTitle("");
-    setApprovedMasters([]);
-    setChatThreads([]);
-    setSelectedConversationId("");
-    setMasterSearch("");
-    setChatDraft("");
-    setWorkspaceTab("mandalas");
-    setProfileExpanded(false);
-    setActiveSlotId("");
+    setActiveTopTab("mandalas");
+    setActiveRightPanel("materials");
+    setSelectedObjectSlotId("");
+    setMaterialFilter("all");
     setFileNotice("");
     setMessage("Вы вышли из кабинета.");
   };
@@ -1051,6 +928,82 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       </CabinetShell>
     );
   }
+
+  const profileEditor = (
+    <div className="profileTabContent">
+      <form className="cabinetCard profileForm" onSubmit={(event) => { event.preventDefault(); handleSave(); }}>
+        <div className="cabinetFormHeader">
+          <div>
+            <p className="cabinetEyebrow">Профиль мастера</p>
+            <h2>{profile.display_name || "Новый профиль"}</h2>
+            {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
+          </div>
+          <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
+        </div>
+
+        <label>
+          Имя мастера
+          <input value={profile.display_name} onChange={(event) => updateField("display_name", event.target.value)} placeholder="Например: Андрей Ли" required />
+        </label>
+
+        <label>
+          Описание
+          <textarea value={profile.bio} onChange={(event) => updateField("bio", event.target.value)} placeholder="Кратко опишите практики, подход и чем вы можете быть полезны ученикам." rows={6} />
+        </label>
+
+        <div className="cabinetTwoColumns">
+          <label>
+            Город
+            <input value={profile.city || ""} onChange={(event) => updateField("city", event.target.value)} placeholder="Город" />
+          </label>
+          <label>
+            Страна
+            <input value={profile.country || ""} onChange={(event) => updateField("country", event.target.value)} placeholder="Страна" />
+          </label>
+        </div>
+
+        <div className="cabinetTwoColumns">
+          <label>
+            Telegram
+            <input value={profile.telegram || ""} onChange={(event) => updateField("telegram", event.target.value)} placeholder="@username или ссылка" />
+          </label>
+          <label>
+            Сайт
+            <input value={profile.website || ""} onChange={(event) => updateField("website", event.target.value)} placeholder="https://..." />
+          </label>
+        </div>
+
+        <label>
+          Аватар / фото URL
+          <input value={profile.avatar_url || ""} onChange={(event) => updateField("avatar_url", event.target.value)} placeholder="https://..." />
+        </label>
+
+        <label>
+          План кабинета
+          <select value={accountPlan} onChange={(event) => updateField("account_plan", event.target.value)}>
+            {ACCOUNT_PLANS.map((plan) => (
+              <option key={plan.value} value={plan.value}>{plan.label}</option>
+            ))}
+          </select>
+        </label>
+        <p className="powerPlanNote">Start: 7 мест силы и 10 фото клиентов. Pro: 20 мест силы и 30 фото. Биллинг: needs verification.</p>
+
+        <div className="cabinetActions">
+          <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
+          <button className="cabinetSecondary" type="button" onClick={() => handleSave("pending")}>Отправить на модерацию</button>
+          <button className="cabinetGhost" type="button" onClick={handleLogout}>Выйти</button>
+        </div>
+      </form>
+
+      <aside className="cabinetCard cabinetPreview">
+        <p className="cabinetEyebrow">Как это будет выглядеть</p>
+        <div className="masterPreviewImage" style={profile.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : undefined}>◎</div>
+        <h3>{profile.display_name || "Имя мастера"}</h3>
+        <p>{profile.bio || "Здесь появится описание мастера, практик, мандал и артефактов."}</p>
+        <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
+      </aside>
+    </div>
+  );
 
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
@@ -1075,100 +1028,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
       {!loading && user && (
         <div className="cabinetGrid">
-          <section className="cabinetCard profileSummary">
-            <div>
-              <p className="cabinetEyebrow">Профиль мастера</p>
-              <h2>Мой профиль</h2>
-              <p>{profile.display_name || "Заполните профиль мастера, когда понадобится изменить публичную карточку."}</p>
-              {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
-            </div>
-            <div className="profileSummaryActions">
-              <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
-              <button
-                className="cabinetPrimary"
-                type="button"
-                aria-expanded={profileExpanded || workspaceTab === "profile"}
-                onClick={() => {
-                  if (profileExpanded || workspaceTab === "profile") {
-                    setProfileExpanded(false);
-                    setWorkspaceTab("mandalas");
-                    return;
-                  }
-
-                  setProfileExpanded(true);
-                  setWorkspaceTab("profile");
-                }}
-              >
-                {profileExpanded || workspaceTab === "profile" ? "Свернуть" : "Мой профиль"}
-              </button>
-            </div>
-          </section>
-
-          {(profileExpanded || workspaceTab === "profile") && (
-          <form className="cabinetCard profileForm profileEditor" onSubmit={(event) => { event.preventDefault(); handleSave(); }}>
-            <div className="cabinetFormHeader">
-              <div>
-                <p className="cabinetEyebrow">Профиль мастера</p>
-                <h2>{profile.display_name || "Новый профиль"}</h2>
-                {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
-              </div>
-              <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
-            </div>
-
-            <label>
-              Имя мастера
-              <input value={profile.display_name} onChange={(event) => updateField("display_name", event.target.value)} placeholder="Например: Андрей Ли" required />
-            </label>
-
-            <label>
-              Описание
-              <textarea value={profile.bio} onChange={(event) => updateField("bio", event.target.value)} placeholder="Кратко опишите практики, подход и чем вы можете быть полезны ученикам." rows={6} />
-            </label>
-
-            <div className="cabinetTwoColumns">
-              <label>
-                Город
-                <input value={profile.city || ""} onChange={(event) => updateField("city", event.target.value)} placeholder="Город" />
-              </label>
-              <label>
-                Страна
-                <input value={profile.country || ""} onChange={(event) => updateField("country", event.target.value)} placeholder="Страна" />
-              </label>
-            </div>
-
-            <div className="cabinetTwoColumns">
-              <label>
-                Telegram
-                <input value={profile.telegram || ""} onChange={(event) => updateField("telegram", event.target.value)} placeholder="@username или ссылка" />
-              </label>
-              <label>
-                Сайт
-                <input value={profile.website || ""} onChange={(event) => updateField("website", event.target.value)} placeholder="https://..." />
-              </label>
-            </div>
-
-            <label>
-              Аватар / фото URL
-              <input value={profile.avatar_url || ""} onChange={(event) => updateField("avatar_url", event.target.value)} placeholder="https://..." />
-            </label>
-
-            <div className="cabinetActions">
-              <button className="cabinetPrimary" type="submit">{profile.status === "approved" ? "Сохранить и отправить на модерацию" : "Сохранить черновик"}</button>
-              <button className="cabinetSecondary" type="button" onClick={() => handleSave("pending")}>Отправить на модерацию</button>
-              <button className="cabinetGhost" type="button" onClick={handleLogout}>Выйти</button>
-            </div>
-          </form>
-          )}
-
-          <aside className="cabinetCard cabinetPreview">
-            <p className="cabinetEyebrow">Как это будет выглядеть</p>
-            <div className="masterPreviewImage" style={profile.avatar_url ? { backgroundImage: `url(${profile.avatar_url})` } : undefined}>◎</div>
-            <h3>{profile.display_name || "Имя мастера"}</h3>
-            <p>{profile.bio || "Здесь появится описание мастера, практик, мандал и артефактов."}</p>
-            <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
-          </aside>
-
-          <section className={`mandalaWorkspace${workspaceTab === "chats" ? " chatMode" : ""}`}>
+          <section className="mandalaWorkspace">
             <div className="mandalaHero">
               <div className="mandalaHeroSeal">♣</div>
               <div>
@@ -1189,44 +1049,93 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             )}
 
-            <div className="workspaceTabs" role="tablist" aria-label="Разделы кабинета">
-              <button className={workspaceTab === "mandalas" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("mandalas")}>Мои мандалы</button>
-              <button className={workspaceTab === "chats" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("chats")}>Чаты</button>
-              <button
-                className={workspaceTab === "profile" ? "active" : ""}
-                type="button"
-                onClick={() => {
-                  setWorkspaceTab("profile");
-                  setProfileExpanded(true);
-                }}
-              >
-                Профиль
-              </button>
+            <div className="workspaceSwitches">
+              <div className="workspaceTabs" role="tablist" aria-label="Основной раздел кабинета">
+                <button className={activeTopTab === "mandalas" ? "active" : ""} type="button" onClick={() => setActiveTopTab("mandalas")}>Мои мандалы</button>
+                <button className={activeTopTab === "chats" ? "active" : ""} type="button" onClick={() => setActiveTopTab("chats")}>Чаты</button>
+                <button className={activeTopTab === "profile" ? "active" : ""} type="button" onClick={() => setActiveTopTab("profile")}>Профиль</button>
+              </div>
+              <div className="workspaceTabs rightPanelTabs" role="tablist" aria-label="Правая панель">
+                <button className={activeRightPanel === "materials" ? "active" : ""} type="button" onClick={() => setActiveRightPanel("materials")}>Мои мандалы и материалы</button>
+                <button className={activeRightPanel === "power-place" ? "active" : ""} type="button" onClick={() => setActiveRightPanel("power-place")}>Место силы</button>
+              </div>
             </div>
 
-            {workspaceTab === "mandalas" && (
+            <div className="workspaceMainColumns">
+            <aside className="mandalaModeSidebar">
+              {activeTopTab === "mandalas" ? (
+                <>
+                  <p className="cabinetEyebrow">Браузер материалов</p>
+                  <h3>Фильтр мастерской</h3>
+                  <div className="materialFilterList" aria-label="Фильтр материалов">
+                    {MATERIAL_FILTERS.map((filter) => (
+                      <button
+                        className={materialFilter === filter.value ? "active" : ""}
+                        key={filter.value}
+                        onClick={() => setMaterialFilter(filter.value)}
+                        type="button"
+                      >
+                        <span>{filter.label}</span>
+                        <b>{filter.value === "all" ? materials.length : materials.filter((item) => item.type === filter.value || item.status === filter.value).length}</b>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="materialMiniList">
+                    {filteredMaterials.slice(0, 6).map((item) => (
+                      <button key={item.id} type="button" onClick={() => setActiveRightPanel("materials")}>
+                        <span className={item.image_url ? "hasImage" : ""} style={item.image_url ? { backgroundImage: `url(${item.image_url})` } : undefined}>◎</span>
+                        <b>{item.title || "Материал без названия"}</b>
+                        <small>{[item.step_id, item.setting_title || materialStatusText(item.status)].filter(Boolean).join(" · ")}</small>
+                      </button>
+                    ))}
+                    {filteredMaterials.length === 0 && <p>Материалы этого типа появятся здесь после сохранения.</p>}
+                  </div>
+                </>
+              ) : activeTopTab === "chats" ? (
+                <>
+                  <p className="cabinetEyebrow">Рабочий режим</p>
+                  <h3>Чаты</h3>
+                  <div className="chatModeNav" aria-label="Статические разделы чатов">
+                    {["Места силы", "Фото клиентов", "Мистерии", "Галерея"].map((item) => (
+                      <button key={item} type="button">{item}</button>
+                    ))}
+                  </div>
+                  <div className="quickPhotoGrid">
+                    {["Клиент", "Цель", "Вода", "Огонь"].map((item) => (
+                      <span key={item}><i />{item}<small>из базы</small></span>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="cabinetEyebrow">Профиль</p>
+                  <h3>{profile.display_name || "Мой профиль"}</h3>
+                  <div className="profileStatusStack">
+                    <span className={`cabinetStatus status-${profile.status || "draft"}`}>{statusText}</span>
+                    {profile?.id && <small>ID: {formatCabinetId(profile.id)}</small>}
+                    <small>{user?.email || "Email не загружен"}</small>
+                  </div>
+                  <div className="chatModeNav" aria-label="Действия профиля">
+                    <button type="button" onClick={() => setActiveRightPanel("materials")}>Материалы</button>
+                    <button type="button" onClick={() => setActiveRightPanel("power-place")}>Место силы</button>
+                  </div>
+                </>
+              )}
+            </aside>
+
+            <div className="workspaceCenterColumn">
+            {activeTopTab === "mandalas" && (
               <>
             <div className="flowTuningPanel">
               <div>
-                <p className="cabinetEyebrow">Режим</p>
-                <h3>Режим: {accountPlan.toUpperCase()}</h3>
-                <p>Start: 7 мест силы и 10 фото клиентов. Pro: 20 мест силы и 30 фото.</p>
+                <p className="cabinetEyebrow">Настройка потока</p>
+                <h3>{activeStep?.id} · {activeStep?.title}</h3>
+                <p>{materialForm.setting_title || "Выберите настройку этой ступени"}</p>
               </div>
-              <div className="flowTuningGlow planSwitchPanel">
+              <div className="flowTuningGlow">
                 <span>✦</span>
-                <b>{accountPlan === "pro" ? "PRO" : "START"}</b>
-                <div className="planSwitch" role="group" aria-label="План кабинета">
-                  {ACCOUNT_PLANS.map((plan) => (
-                    <button
-                      className={accountPlan === plan.value ? "active" : ""}
-                      key={plan.value}
-                      type="button"
-                      onClick={() => updateField("account_plan", plan.value)}
-                    >
-                      {plan.label}
-                    </button>
-                  ))}
-                </div>
+                <b>{activeStep?.stepLabel} {activeStep?.number}</b>
+                <small>{activeStep?.levelName}</small>
               </div>
             </div>
 
@@ -1371,87 +1280,38 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </>
             )}
 
-            {workspaceTab === "chats" && (
-              <section className="masterChatWorkspace" aria-label="Чаты мастеров">
-                <aside className="chatMasterList">
-                  <div className="chatPanelHeader">
-                    <div>
-                      <p className="cabinetEyebrow">Чаты</p>
-                      <h2>Мастера</h2>
-                    </div>
-                    <span>{chatLoading ? "..." : chatThreads.length}</span>
+            {activeTopTab === "chats" && (
+              <section className="chatPlaceholderWorkspace" aria-label="Статический режим чатов">
+                <div className="chatPlaceholderHeader">
+                  <p className="cabinetEyebrow">Центр действия</p>
+                  <h2>Чаты и рабочие заметки</h2>
+                  <span>UI placeholder · backend не подключён в этом режиме</span>
+                </div>
+                <div className="chatMockMessages" aria-hidden="true">
+                  <div>
+                    <b>Мария Север</b>
+                    <p>Добавила фото цели. Проверь зодиакальную мандалу.</p>
                   </div>
-                  <input
-                    value={masterSearch}
-                    onChange={(event) => setMasterSearch(event.target.value)}
-                    placeholder="Поиск по имени или ID"
-                  />
-
-                  <div className="chatThreadList">
-                    {chatThreads.map((thread) => (
-                      <button
-                        className={selectedConversationId === thread.conversation_id ? "active" : ""}
-                        key={thread.conversation_id}
-                        onClick={() => setSelectedConversationId(thread.conversation_id)}
-                        type="button"
-                      >
-                        <span>{thread.is_favorite ? "★" : "☆"}</span>
-                        <b>{thread.master?.display_name || "Мастер"}</b>
-                        <small>{formatCabinetId(thread.master?.id)}</small>
-                      </button>
-                    ))}
-                    {chatThreads.length === 0 && <p>Пока нет начатых чатов.</p>}
+                  <div className="own">
+                    <b>Вы</b>
+                    <p>Справа оставляем модуль «Место силы».</p>
                   </div>
-
-                  <div className="chatSearchResults">
-                    <p className="cabinetEyebrow">Найти мастера</p>
-                    {filteredMasters.map((master) => (
-                      <button key={master.id} type="button" onClick={() => handleStartChat(master.id)}>
-                        <span style={imageStyle(master.avatar_url)}>{!isImagePreview(master.avatar_url) && "◎"}</span>
-                        <b>{master.display_name || "Мастер"}</b>
-                        <small>{formatCabinetId(master.id)}</small>
-                      </button>
-                    ))}
-                    {filteredMasters.length === 0 && <p>Мастера по этому запросу не найдены.</p>}
+                  <div>
+                    <b>Мария Север</b>
+                    <p>Сохрани потом в Мистерии → Традиция.</p>
                   </div>
-                </aside>
-
-                <section className="chatConversationPanel">
-                  {selectedChatThread ? (
-                    <>
-                      <div className="chatConversationHeader">
-                        <div>
-                          <p className="cabinetEyebrow">{formatCabinetId(selectedChatThread.master?.id)}</p>
-                          <h2>{selectedChatThread.master?.display_name || "Чат мастера"}</h2>
-                        </div>
-                        <button type="button" onClick={() => handleToggleFavorite(selectedChatThread)}>
-                          {selectedChatThread.is_favorite ? "Убрать из избранного" : "В избранное"}
-                        </button>
-                      </div>
-                      <div className="chatMessages" aria-live="polite">
-                        {selectedChatMessages.map((item) => (
-                          <div className={item.sender_profile_id === profile.id ? "own" : ""} key={item.id}>
-                            <p>{item.body}</p>
-                            <small>{new Date(item.created_at).toLocaleString("ru-RU")}</small>
-                          </div>
-                        ))}
-                        {selectedChatMessages.length === 0 && <p className="chatEmpty">Напишите первое сообщение. Чат виден только участникам.</p>}
-                      </div>
-                      <form className="chatComposer" onSubmit={handleSendChatMessage}>
-                        <textarea value={chatDraft} onChange={(event) => setChatDraft(event.target.value)} rows="3" placeholder="Сообщение мастеру" />
-                        <button className="cabinetPrimary" type="submit">Отправить</button>
-                      </form>
-                    </>
-                  ) : (
-                    <div className="chatEmptyState">
-                      <b>Выберите мастера слева</b>
-                      <p>Поиск работает по имени и ID кабинета. Избранные чаты закрепляются сверху.</p>
-                    </div>
-                  )}
-                </section>
+                </div>
+                <div className="chatComposerMock">
+                  <span>Написать сообщение мастеру...</span>
+                  <button type="button">Отправить</button>
+                </div>
               </section>
             )}
+            {activeTopTab === "profile" && profileEditor}
+            </div>
 
+            <div className="workspaceRightColumn">
+            {activeRightPanel === "power-place" && (
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
               <div className="powerPlaceHeader">
                 <div>
@@ -1580,13 +1440,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                         return (
                           <button
-                            className={`${sourceClassName(powerSourceCount, index)}${sourceImage ? " hasImage" : ""}`}
+                            className={`${sourceClassName(powerSourceCount, index)}${sourceImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                             key={`source-${powerSourceCount}-${index}`}
-                            onClick={() => openObjectSlot(slotId)}
+                            onClick={() => setSelectedObjectSlotId(slotId)}
                             style={imageStyle(sourceImage)}
-                            title={sourceLabel(powerSourceCount, index)}
                             type="button"
-                            aria-label={`Выбрать изображение: ${sourceLabel(powerSourceCount, index)}`}
+                            title={sourceLabel(powerSourceCount, index)}
+                            aria-label={`Выбрать позицию ${sourceLabel(powerSourceCount, index)}`}
                           >
                             {!sourceImage && <span>{index + 1}</span>}
                           </button>
@@ -1603,13 +1463,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                           return (
                             <button
-                              className={`${isMain ? "altarTopSource main" : "altarTopSource"}${slotImage ? " hasImage" : ""}`}
+                              className={`${isMain ? "altarTopSource main" : "altarTopSource"}${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                               key={slotId}
-                              onClick={() => openObjectSlot(slotId)}
+                              onClick={() => setSelectedObjectSlotId(slotId)}
                               style={imageStyle(slotImage)}
-                              title={isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}
                               type="button"
-                              aria-label={`Выбрать изображение: ${isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}`}
+                              title={isMain ? "Центральный верхний объект" : `Верхний объект ${index + 1}`}
+                              aria-label={isMain ? "Выбрать центральный верхний объект" : `Выбрать верхний объект ${index + 1}`}
                             >
                               {!slotImage && <span>{index + 1}</span>}
                             </button>
@@ -1627,13 +1487,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                           return (
                             <button
-                              className={`altarSupportSource${slotImage ? " hasImage" : ""}`}
+                              className={`altarSupportSource${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                               key={slotId}
-                              onClick={() => openObjectSlot(slotId)}
+                              onClick={() => setSelectedObjectSlotId(slotId)}
                               style={imageStyle(slotImage)}
-                              title={`Нижняя опора ${number}`}
                               type="button"
-                              aria-label={`Выбрать изображение: Нижняя опора ${number}`}
+                              title={`Нижняя опора ${number}`}
+                              aria-label={`Выбрать нижнюю опору ${number}`}
                             >
                               {!slotImage && <span>{number}</span>}
                             </button>
@@ -1655,13 +1515,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
                               return (
                                 <button
-                                  className={`businessVertexZone${slotImage ? " hasImage" : ""}`}
+                                  className={`businessVertexZone${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                                   key={slotId}
-                                  onClick={() => openObjectSlot(slotId)}
+                                  onClick={() => setSelectedObjectSlotId(slotId)}
                                   style={imageStyle(slotImage)}
-                                  title={businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}
                                   type="button"
-                                  aria-label={`Выбрать изображение: ${businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}`}
+                                  title={businessVertexZoneCount === 1 ? vertex.label : `${vertex.label} · зона ${index + 1}`}
+                                  aria-label={`Выбрать ${businessVertexZoneCount === 1 ? vertex.label : `${vertex.label}, зона ${index + 1}`}`}
                                 >
                                   {!slotImage && <span>{index + 1}</span>}
                                 </button>
@@ -1684,12 +1544,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         return (
                           <div className={`zodiacPosition ${sign.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
                             <button
-                              className="zodiacPositionImage"
-                              onClick={() => openObjectSlot(slotId)}
+                              className={`zodiacPositionImage${selectedObjectSlotId === slotId ? " selected" : ""}`}
+                              onClick={() => setSelectedObjectSlotId(slotId)}
                               style={imageStyle(slotImage)}
-                              title={sign.label}
                               type="button"
-                              aria-label={`Выбрать изображение: ${sign.label}`}
+                              title={sign.label}
+                              aria-label={`Выбрать знак ${sign.label}`}
                             >
                               {!slotImage && <span>{index + 1}</span>}
                             </button>
@@ -1711,12 +1571,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         return (
                           <div className={`daoElement ${element.className}`} key={element.id}>
                             <button
-                              className={`daoElementImage${slotImage ? " hasImage" : ""}`}
-                              onClick={() => openObjectSlot(slotId)}
+                              className={`daoElementImage${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
+                              onClick={() => setSelectedObjectSlotId(slotId)}
                               style={imageStyle(slotImage)}
-                              title={element.label}
                               type="button"
-                              aria-label={`Выбрать изображение: ${element.label}`}
+                              title={element.label}
+                              aria-label={`Выбрать элемент ${element.label}`}
                             >
                               {!slotImage && <span>◎</span>}
                             </button>
@@ -1724,27 +1584,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           </div>
                         );
                       })}
-                    </div>
-                  )}
-                  {activeSlot && (
-                    <div className="slotChooserPanel" aria-live="polite">
-                      <div>
-                        <p className="cabinetEyebrow">Слот мандалы</p>
-                        <b>{activeSlot.label}</b>
-                      </div>
-                      <select value={objectImages[activeSlot.id] || ""} onChange={(event) => setObjectImage(activeSlot.id, event.target.value)}>
-                        {objectImageOptions.map((option) => (
-                          <option key={`${activeSlot.id}-${option.id || "empty"}`} value={option.src}>{option.label}</option>
-                        ))}
-                      </select>
-                      <div className="objectSlotActions">
-                        <label>
-                          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleObjectFile(activeSlot.id, event)} />
-                          Загрузить
-                        </label>
-                        <button type="button" onClick={() => setObjectImage(activeSlot.id, "")}>Очистить</button>
-                        <button type="button" onClick={() => setActiveSlotId("")}>Закрыть</button>
-                      </div>
                     </div>
                   )}
                   <p className="powerPlaceHint">
@@ -1766,8 +1605,42 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </div>
 
                 <aside className="powerCommandRail">
+                  <div className="objectImageEditor">
+                    <p className="cabinetEyebrow">Объекты композиции</p>
+                    <div className="selectedObjectControl">
+                      <div className={selectedObjectImage ? "selectedObjectPreview hasImage" : "selectedObjectPreview"} style={imageStyle(selectedObjectImage)}>
+                        {!selectedObjectImage && <span>◎</span>}
+                      </div>
+                      <div className="selectedObjectBody">
+                        <b>{selectedObjectSlot?.label || "Выберите позицию на мандале"}</b>
+                        <small>Нажмите точку на диаграмме, затем выберите образ или загрузите файл.</small>
+                        <select
+                          disabled={!selectedObjectSlot}
+                          value={selectedObjectImage}
+                          onChange={(event) => selectedObjectSlot && setObjectImage(selectedObjectSlot.id, event.target.value)}
+                        >
+                          {objectImageOptions.map((option) => (
+                            <option key={`${selectedObjectSlot?.id || "slot"}-${option.id || "empty"}`} value={option.src}>{option.label}</option>
+                          ))}
+                        </select>
+                        <div className="selectedObjectActions">
+                          <label className={!selectedObjectSlot ? "disabled" : ""}>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp,image/gif"
+                              disabled={!selectedObjectSlot}
+                              onChange={(event) => selectedObjectSlot && handleObjectFile(selectedObjectSlot.id, event)}
+                            />
+                            Загрузить
+                          </label>
+                          <button type="button" disabled={!selectedObjectSlot || !selectedObjectImage} onClick={() => selectedObjectSlot && setObjectImage(selectedObjectSlot.id, "")}>Очистить</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="coverSelector">
-                    <p className="cabinetEyebrow">Заставка места силы</p>
+                    <p className="cabinetEyebrow">Подложка места силы</p>
                     <div className="coverPreviewWrap">
                       <div
                         className={`coverPreview ${selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "gold"}`}`}
@@ -1809,6 +1682,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       {mode.label}
                     </button>
                   ))}
+                  <span>Ресурс без / с мандалой</span>
                 </div>
                 <label>
                   Ресурс без мандалы
@@ -1836,6 +1710,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage upload: needs verification.</span>
               </div>
             </section>
+            )}
 
             {isClientPhotoPickerOpen && (
               <div className="clientPhotoPickerBackdrop" onMouseDown={(event) => {
@@ -1888,14 +1763,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </div>
             )}
 
-            {workspaceTab === "mandalas" && (
+            {activeRightPanel === "materials" && (
             <div className="mandalaGallery">
               <div className="cabinetFormHeader">
                 <div>
                   <p className="cabinetEyebrow">Мои мандалы и материалы</p>
                   <h2>Галерея мастера</h2>
                 </div>
-                <span className="cabinetStatus">{materialsLoading ? "..." : materials.length}</span>
+                <span className="cabinetStatus">{materialsLoading ? "..." : filteredMaterials.length}</span>
               </div>
 
               {materialsLoading && <p>Загружаю материалы...</p>}
@@ -1908,9 +1783,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               )}
               {!profile?.id && <p>Список появится после первого сохранения профиля.</p>}
 
-              {materials.length > 0 && (
+              {filteredMaterials.length > 0 && (
                 <div className="mandalaCardsGrid">
-                  {materials.map((item) => (
+                  {filteredMaterials.map((item) => (
                     <article className="mandalaMaterialCard" key={item.id}>
                       {item.image_url ? <div className="mandalaCardImage" style={{ backgroundImage: `url(${item.image_url})` }} /> : <div className="mandalaCardImage placeholder">◎</div>}
                       <div className="mandalaCardBody">
@@ -1928,6 +1803,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               )}
             </div>
             )}
+            </div>
+            </div>
           </section>
         </div>
       )}
