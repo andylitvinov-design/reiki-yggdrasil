@@ -124,8 +124,8 @@ const DAO_ELEMENTS = [
   { id: "metal", className: "metal", label: "Металл" }
 ];
 const RESOURCE_COMPARISON_MODES = [
-  { value: "client_photo", label: "Фото клиента" },
-  { value: "photo_mandala", label: "Фото + мандала" }
+  { value: "client_photo", label: "Фото цели" },
+  { value: "photo_mandala", label: "Цель + мандала" }
 ];
 const ALTAR_CENTER_RATIOS = [
   { value: "1", label: "1:1" },
@@ -272,6 +272,24 @@ function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeFilename(value) {
+  const safe = String(value || "power-place")
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return safe || "power-place";
+}
+
 function persistableImageRef(src) {
   if (!src || src.startsWith("data:image/")) return "";
   return src;
@@ -339,7 +357,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [customCoverImage, setCustomCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
   const [selectedCentralPhotoId, setSelectedCentralPhotoId] = useState("");
-  const [isClientPhotoPickerOpen, setClientPhotoPickerOpen] = useState(false);
+  const [imagePickerContext, setImagePickerContext] = useState({ mode: "", slotId: "" });
   const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
   const [compositionTitle, setCompositionTitle] = useState("");
   const [selectedCompositionId, setSelectedCompositionId] = useState("");
@@ -349,6 +367,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [activeTopTab, setActiveTopTab] = useState("mandalas");
   const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
   const [activeMaterialSubcategory, setActiveMaterialSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+  const [activePickerCategory, setActivePickerCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
+  const [activePickerSubcategory, setActivePickerSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
   const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
   const [materialFilter, setMaterialFilter] = useState("all");
   const [mediaStatus, setMediaStatus] = useState("");
@@ -382,6 +402,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const activeMaterialSubcategoryData = useMemo(
     () => activeMaterialCategoryData.subcategories.find((item) => item.value === activeMaterialSubcategory) || activeMaterialCategoryData.subcategories[0] || null,
     [activeMaterialCategoryData, activeMaterialSubcategory]
+  );
+
+  const activePickerCategoryData = useMemo(
+    () => MATERIAL_CATEGORY_TABS.find((item) => item.value === activePickerCategory) || MATERIAL_CATEGORY_TABS[0],
+    [activePickerCategory]
+  );
+
+  const activePickerSubcategoryData = useMemo(
+    () => activePickerCategoryData.subcategories.find((item) => item.value === activePickerSubcategory) || activePickerCategoryData.subcategories[0] || null,
+    [activePickerCategoryData, activePickerSubcategory]
   );
 
   const filteredMaterials = useMemo(() => {
@@ -428,6 +458,63 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const materialPreviewUrl = materialFilePreview || displayMaterialImageUrl(materialForm.image_url);
 
   const materialImageStyle = (value) => imageStyle(displayMaterialImageUrl(value));
+
+  const pickerImageOptions = useMemo(() => {
+    const materialToOption = (item, index) => ({
+      id: `picker-material-${item.id || index}`,
+      label: item.title || `Материал ${index + 1}`,
+      meta: [publicationTypeLabel(item.type), item.step_title, materialStatusText(item.status)].filter(Boolean).join(" · "),
+      src: item.image_url,
+      displaySrc: item.display_url || displayMaterialImageUrl(item.image_url)
+    });
+    const traditionToOption = (item, index) => ({
+      id: `picker-tradition-${item.id || index}`,
+      label: item.title || item.tradition_title || "Образ традиции",
+      meta: [item.tradition_title, "Каналы Богов"].filter(Boolean).join(" · "),
+      src: item.image_ref || item.image_url,
+      displaySrc: item.display_url || item.image_url
+    });
+    const hasImage = (item) => Boolean(item?.src || item?.displaySrc);
+    const textIncludes = (item, text) => {
+      const needle = String(text || "").toLowerCase();
+      if (!needle) return false;
+      return [item.title, item.description, item.setting_title, item.step_title]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(needle);
+    };
+
+    if (activePickerCategory === "dao-ri") {
+      const stepIds = new Set(activePickerSubcategoryData?.steps?.map((step) => step.id) || []);
+      return uniqueImageSources(materials
+        .filter((item) => item.image_url && (!stepIds.size || !item.step_id || stepIds.has(item.step_id)))
+        .map(materialToOption)
+        .filter(hasImage));
+    }
+
+    if (activePickerCategory === "god-channels") {
+      const traditionId = activePickerSubcategoryData?.traditionId || "";
+      return uniqueImageSources(traditionAssets
+        .filter((item) => item.image_ref || item.image_url)
+        .filter((item) => !traditionId || item.tradition_id === traditionId)
+        .map(traditionToOption)
+        .filter(hasImage));
+    }
+
+    if (activePickerCategory === "talismans") {
+      return uniqueImageSources(materials
+        .filter((item) => item.image_url && item.type === "artifact")
+        .filter((item) => textIncludes(item, activePickerSubcategoryData?.label || "Талисман"))
+        .map(materialToOption)
+        .filter(hasImage));
+    }
+
+    return uniqueImageSources(materials
+      .filter((item) => item.image_url && item.type === "artifact")
+      .map(materialToOption)
+      .filter(hasImage));
+  }, [activePickerCategory, activePickerSubcategoryData, materials, traditionAssets]);
 
   const reusableImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((item) => ({
@@ -694,6 +781,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   useEffect(() => {
     setActiveMaterialSubcategory(activeMaterialCategoryData.subcategories[0]?.value || "");
   }, [activeMaterialCategory, activeMaterialCategoryData.subcategories]);
+
+  useEffect(() => {
+    setActivePickerSubcategory(activePickerCategoryData.subcategories[0]?.value || "");
+  }, [activePickerCategory, activePickerCategoryData.subcategories]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1016,6 +1107,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const openObjectSlot = (slotId) => {
     setSelectedObjectSlotId(slotId);
+    setImagePickerContext({ mode: "object", slotId });
   };
 
   const handleObjectFile = async (slotId, event) => {
@@ -1210,7 +1302,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
       setSelectedCentralPhotoId((current) => (selectSaved ? saved?.id || "" : current || saved?.id || ""));
       setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
-      if (closePicker) setClientPhotoPickerOpen(false);
+      if (closePicker) closeImagePicker();
       setMediaStatus("Фото загружено и сохранено.");
       setMessage(selectSaved ? "Фото клиента / цели сохранено и выбрано в центр." : "Фото клиента / цели сохранено.");
       return saved;
@@ -1301,13 +1393,23 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const closeImagePicker = () => {
+    setImagePickerContext({ mode: "", slotId: "" });
+  };
+
   const openClientPhotoPicker = () => {
-    setClientPhotoPickerOpen(true);
+    setImagePickerContext({ mode: "center", slotId: "" });
   };
 
   const chooseCentralPhoto = (photoId) => {
     setSelectedCentralPhotoId(photoId);
-    setClientPhotoPickerOpen(false);
+    closeImagePicker();
+  };
+
+  const chooseObjectPickerImage = (option) => {
+    if (!imagePickerContext.slotId || !option?.src) return;
+    setObjectImage(imagePickerContext.slotId, option.src, option.displaySrc || option.src);
+    closeImagePicker();
   };
 
   const renderCenterPhotoButton = (className) => (
@@ -1315,13 +1417,73 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       className={className + (centerImage ? " hasImage" : "")}
       style={imageStyle(centerImage)}
       onClick={openClientPhotoPicker}
-      title="Выбрать фото клиента"
+      title="Фото клиента / цели"
       type="button"
-      aria-label="Выбрать фото клиента в центр мандалы"
+      aria-label="Фото клиента / цели"
     >
-      {!centerImage && <span>◎</span>}
+      {!centerImage && <span>Фото клиента / цели</span>}
     </button>
   );
+
+  const handleDownloadMandala = () => {
+    const objectRefs = persistableObjectRefs(objectImages, activeObjectSlots.map((slot) => slot.id));
+    const objectRows = activeObjectSlots.map((slot) => {
+      const ref = objectRefs[slot.id] || objectImages[slot.id] || "";
+      const display = displayImageUrl(ref);
+      return `<li><b>${escapeHtml(slot.label)}</b>: ${ref ? escapeHtml(ref) : "пусто"}${display && display !== ref ? `<br><small>${escapeHtml(display)}</small>` : ""}</li>`;
+    }).join("");
+    const centerRef = selectedCentralPhoto?.image_ref || selectedCentralPhoto?.image_url || "";
+    const centerDisplay = selectedCentralPhoto?.display_url || selectedCentralPhoto?.image_url || "";
+    const coverRef = selectedCover ? {
+      id: selectedCover.id,
+      label: selectedCover.label,
+      type: selectedCover.type || "placeholder",
+      src: selectedCover.src || ""
+    } : {};
+    const html = `<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(compositionTitle || "Место силы")}</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:880px;margin:32px auto;padding:0 18px;color:#2f2418;background:#fffaf0}
+    h1{margin:0 0 8px} section{border:1px solid #d2aa63;border-radius:14px;padding:16px;margin:14px 0;background:#fffdf8}
+    img{max-width:260px;border-radius:16px;border:1px solid #d2aa63} li{margin:8px 0;overflow-wrap:anywhere} small{color:#6f604d}
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(compositionTitle || "Место силы")}</h1>
+  <section>
+    <p><b>Формат:</b> ${escapeHtml(constructorTypeLabel(constructorType))}</p>
+    <p><b>Режим:</b> ${escapeHtml(RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото цели")}</p>
+    <p><b>Фото клиента / цели:</b> ${centerRef ? escapeHtml(centerRef) : "не выбрано"}</p>
+    ${centerDisplay && isImagePreview(centerDisplay) ? `<img src="${escapeHtml(centerDisplay)}" alt="Фото клиента / цели">` : ""}
+  </section>
+  <section>
+    <h2>Объекты</h2>
+    <ul>${objectRows || "<li>Нет объектов</li>"}</ul>
+  </section>
+  <section>
+    <h2>Подложка</h2>
+    <pre>${escapeHtml(JSON.stringify(coverRef, null, 2))}</pre>
+  </section>
+  <section>
+    <h2>Сравнение ресурса</h2>
+    <p><b>Ресурс без мандалы:</b> ${escapeHtml(resourceWithoutMandalaComment || "—")}</p>
+    <p><b>Ресурс с мандалой:</b> ${escapeHtml(resourceWithMandalaComment || "—")}</p>
+  </section>
+</body>
+</html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = `${safeFilename(compositionTitle || "power-place")}.html`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(href), 1000);
+  };
 
   const handleCompositionSave = async () => {
     setMessage("");
@@ -1374,9 +1536,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedCentralPhotoId("");
     setSelectedCompositionId("");
     setCompositionTitle("");
+    setImagePickerContext({ mode: "", slotId: "" });
     setActiveTopTab("mandalas");
     setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
     setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+    setActivePickerCategory(MATERIAL_CATEGORY_TABS[0].value);
+    setActivePickerSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
     setSelectedObjectSlotId("");
     setMaterialFilter("all");
     setFileNotice("");
@@ -1469,6 +1634,40 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         <p>{profile.bio || "Здесь появится описание мастера, практик, мандал и артефактов."}</p>
         <small>{[profile.city, profile.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
       </aside>
+    </div>
+  );
+
+  const resourceComparisonPanel = (
+    <div className="resourceComparisonPanel">
+      <div className="resourceModeToggle" aria-label="Сравнение ресурса">
+        {RESOURCE_COMPARISON_MODES.map((mode) => (
+          <button
+            className={resourceComparisonMode === mode.value ? "active" : ""}
+            key={mode.value}
+            onClick={() => setResourceComparisonMode(mode.value)}
+            type="button"
+          >
+            {mode.label}
+          </button>
+        ))}
+        <span>Ресурс без / с мандалой</span>
+      </div>
+      <label>
+        Ресурс без мандалы
+        <textarea
+          value={resourceWithoutMandalaComment}
+          onChange={(event) => setResourceWithoutMandalaComment(event.target.value)}
+          rows="2"
+        />
+      </label>
+      <label>
+        Ресурс с мандалой
+        <textarea
+          value={resourceWithMandalaComment}
+          onChange={(event) => setResourceWithMandalaComment(event.target.value)}
+          rows="2"
+        />
+      </label>
     </div>
   );
 
@@ -1800,7 +1999,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                       type="button"
                     >
                       <span style={imageStyle(photo.display_url || photo.image_url)} />
-                      <b>{photo.title || "Фото цели"}</b>
+                      <b>{photo.title || "Фото клиента / цели"}</b>
                     </button>
                   ))}
                   {clientGoalPhotos.length === 0 && <p>Добавьте фото клиента или цели, чтобы выбрать центр мандалы или алтаря.</p>}
@@ -1890,14 +2089,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   <h2>Магическая мандала</h2>
                 </div>
                 <div className="constructorControls">
-                  <input
-                    className="compositionTitleInput"
-                    value={compositionTitle}
-                    onChange={(event) => setCompositionTitle(event.target.value)}
-                    placeholder="Название места силы"
-                  />
                   <select value={selectedCentralPhotoId} onChange={(event) => setSelectedCentralPhotoId(event.target.value)}>
-                    <option value="">Центральное фото из раздела клиентов</option>
+                    <option value="">Фото клиента / цели</option>
                     {clientGoalPhotos.map((photo) => (
                       <option key={photo.id} value={photo.id}>{photo.title || "Фото клиента / цели"}</option>
                     ))}
@@ -2014,7 +2207,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{constructorTypeLabel(constructorType)}</h3>
                   </div>
-                  {constructorType === "client" ? (
+                  {resourceComparisonMode === "client_photo" ? (
+                    <div className="powerPhotoOnlyFrame">
+                      {renderCenterPhotoButton("powerCenterPhoto photoOnly")}
+                      <p>Фото клиента / цели</p>
+                    </div>
+                  ) : constructorType === "client" ? (
                     <div className={`powerMandala geometry-${powerSourceCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
                       {renderCenterPhotoButton("powerCenterPhoto")}
                       <div className="powerMandalaBase">
@@ -2219,13 +2417,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                               : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
                   </p>
                   <div className="resourcePrintNotes">
-                    <p><b>Сравнение ресурса:</b> {RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото клиента"}</p>
+                    <p><b>Сравнение ресурса:</b> {RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото цели"}</p>
                     <p><b>Ресурс без мандалы:</b> {resourceWithoutMandalaComment || "—"}</p>
                     <p><b>Ресурс с мандалой:</b> {resourceWithMandalaComment || "—"}</p>
                   </div>
                 </div>
 
                 <aside className="powerCommandRail">
+                  {resourceComparisonPanel}
+
                   <div className="objectImageEditor">
                     <p className="cabinetEyebrow">Объекты композиции</p>
                     <div className="selectedObjectControl">
@@ -2291,102 +2491,148 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 </aside>
               </div>
 
-              <div className="resourceComparisonPanel">
-                <div className="resourceModeToggle" aria-label="Сравнение ресурса">
-                  {RESOURCE_COMPARISON_MODES.map((mode) => (
-                    <button
-                      className={resourceComparisonMode === mode.value ? "active" : ""}
-                      key={mode.value}
-                      onClick={() => setResourceComparisonMode(mode.value)}
-                      type="button"
-                    >
-                      {mode.label}
-                    </button>
-                  ))}
-                  <span>Ресурс без / с мандалой</span>
-                </div>
-                <label>
-                  Ресурс без мандалы
-                  <textarea
-                    value={resourceWithoutMandalaComment}
-                    onChange={(event) => setResourceWithoutMandalaComment(event.target.value)}
-                    rows="2"
-                  />
-                </label>
-                <label>
-                  Ресурс с мандалой
-                  <textarea
-                    value={resourceWithMandalaComment}
-                    onChange={(event) => setResourceWithMandalaComment(event.target.value)}
-                    rows="2"
-                  />
-                </label>
-              </div>
-
+              <label className="compositionTitleField">
+                Название мандалы
+                <input
+                  className="compositionTitleInput"
+                  value={compositionTitle}
+                  onChange={(event) => setCompositionTitle(event.target.value)}
+                  placeholder="Название мандалы"
+                />
+              </label>
               <div className="powerPlaceActions">
                 <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>
                   {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}
                 </button>
+                <button className="cabinetSecondary" type="button" onClick={handleDownloadMandala}>Скачать</button>
                 <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
                 <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
               </div>
             </section>
             )}
 
-            {isClientPhotoPickerOpen && (
+            {imagePickerContext.mode && (
               <div className="clientPhotoPickerBackdrop" onMouseDown={(event) => {
-                if (event.target === event.currentTarget) setClientPhotoPickerOpen(false);
+                if (event.target === event.currentTarget) closeImagePicker();
               }}>
                 <section className="clientPhotoPickerModal" role="dialog" aria-modal="true" aria-labelledby="clientPhotoPickerTitle">
                   <div className="clientPhotoPickerHeader">
                     <div>
-                      <p className="cabinetEyebrow">Центр мандалы</p>
-                      <h2 id="clientPhotoPickerTitle">Выбрать фото клиента</h2>
+                      <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Центр мандалы" : selectedObjectSlot?.label || "Объект мандалы"}</p>
+                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Фото клиента / цели" : "Выбрать изображение объекта"}</h2>
                     </div>
-                    <button type="button" onClick={() => setClientPhotoPickerOpen(false)} aria-label="Закрыть выбор фото">×</button>
+                    <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
                   </div>
-                  <div className="clientPhotoPickerGrid">
-                    {clientGoalPhotos.map((photo) => (
-                      <button
-                        className={selectedCentralPhotoId === photo.id ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
-                        key={photo.id}
-                        onClick={() => chooseCentralPhoto(photo.id)}
-                        type="button"
-                      >
-                        <span style={imageStyle(photo.display_url || photo.image_url)} />
-                        <b>{photo.title || "Фото цели"}</b>
-                        {photo.notes && <small>{photo.notes}</small>}
-                      </button>
-                    ))}
-                    {clientGoalPhotos.length === 0 && (
-                      <div className="clientPhotoPickerEmpty">
-                        <b>Фото клиентов пока нет</b>
-                        <p>Загрузите фото ниже, и оно сразу станет центром мандалы.</p>
+                  {imagePickerContext.mode === "center" ? (
+                    <>
+                      <div className="clientPhotoPickerGrid">
+                        {clientGoalPhotos.map((photo) => (
+                          <button
+                            className={selectedCentralPhotoId === photo.id ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
+                            key={photo.id}
+                            onClick={() => chooseCentralPhoto(photo.id)}
+                            type="button"
+                          >
+                            <span style={imageStyle(photo.display_url || photo.image_url)} />
+                            <b>{photo.title || "Фото клиента / цели"}</b>
+                            {photo.notes && <small>{photo.notes}</small>}
+                          </button>
+                        ))}
+                        {clientGoalPhotos.length === 0 && (
+                          <div className="clientPhotoPickerEmpty">
+                            <b>Фото клиентов пока нет</b>
+                            <p>Загрузите фото ниже, и оно сразу станет центром мандалы.</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="clientPhotoPickerUpload">
-                    <div className="cabinetFormHeader">
-                      <div>
-                        <p className="cabinetEyebrow">Загрузить новое фото</p>
-                        <h3>{clientGoalPhotos.length}/{planLimits.clientPhotos}</h3>
+                      <div className="clientPhotoPickerUpload">
+                        <div className="cabinetFormHeader">
+                          <div>
+                            <p className="cabinetEyebrow">Загрузить новое фото</p>
+                            <h3>{clientGoalPhotos.length}/{planLimits.clientPhotos}</h3>
+                          </div>
+                        </div>
+                        <div className="powerInlineForm">
+                          <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
+                          <label className="mediaUploadButton">
+                            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
+                            {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
+                          </label>
+                          <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
+                          <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
+                          <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
+                            {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
+                          </button>
+                        </div>
+                        {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
+                        <p className="powerPlanNote">Файл сохраняется в private Supabase Storage; внешний URL можно оставить для старых ссылок.</p>
                       </div>
-                    </div>
-                    <div className="powerInlineForm">
-                      <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
-                      <label className="mediaUploadButton">
-                        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
-                        {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
-                      </label>
-                      <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
-                      <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                      <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
-                        {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
-                      </button>
-                    </div>
-                    {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
-                    <p className="powerPlanNote">Файл сохраняется в private Supabase Storage; внешний URL можно оставить для старых ссылок.</p>
-                  </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="imagePickerCategoryTabs" aria-label="Категории изображений">
+                        {MATERIAL_CATEGORY_TABS.map((category) => (
+                          <button
+                            className={activePickerCategory === category.value ? "active" : ""}
+                            key={category.value}
+                            onClick={() => setActivePickerCategory(category.value)}
+                            type="button"
+                          >
+                            {category.label}
+                          </button>
+                        ))}
+                      </div>
+                      {activePickerCategoryData.subcategories.length > 0 && (
+                        <select className="imagePickerSubcategorySelect" value={activePickerSubcategory} onChange={(event) => setActivePickerSubcategory(event.target.value)}>
+                          {activePickerCategoryData.subcategories.map((subcategory) => (
+                            <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
+                          ))}
+                        </select>
+                      )}
+                      <div className="clientPhotoPickerGrid">
+                        {pickerImageOptions.map((option) => (
+                          <button
+                            className={selectedObjectImage === option.src ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
+                            key={option.id}
+                            onClick={() => chooseObjectPickerImage(option)}
+                            type="button"
+                          >
+                            <span style={imageStyle(option.displaySrc || option.src)} />
+                            <b>{option.label}</b>
+                            {option.meta && <small>{option.meta}</small>}
+                          </button>
+                        ))}
+                        {pickerImageOptions.length === 0 && (
+                          <div className="clientPhotoPickerEmpty">
+                            <b>В этой категории пока нет сохранённых изображений.</b>
+                            <p>Используются только реальные изображения из сохранённых мандал, материалов и доступных образов кабинета.</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="clientPhotoPickerUpload">
+                        <div className="cabinetFormHeader">
+                          <div>
+                            <p className="cabinetEyebrow">Загрузить объект</p>
+                            <h3>{selectedObjectSlot?.label || "Позиция мандалы"}</h3>
+                          </div>
+                        </div>
+                        <div className="selectedObjectActions">
+                          <label className={!selectedObjectSlot ? "disabled" : ""}>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp,image/gif"
+                              disabled={!selectedObjectSlot}
+                              onChange={(event) => selectedObjectSlot && handleObjectFile(selectedObjectSlot.id, event)}
+                            />
+                            {mediaUploadTarget === `slot-${selectedObjectSlot?.id}` ? "Загружаю..." : "Загрузить файл"}
+                          </label>
+                          <button type="button" disabled={!selectedObjectSlot || !selectedObjectImage} onClick={() => selectedObjectSlot && setObjectImage(selectedObjectSlot.id, "")}>Очистить слот</button>
+                        </div>
+                        {coverNotice && <p className="coverNotice">{coverNotice}</p>}
+                        <p className="powerPlanNote">Новые файлы сохраняются через существующий private Storage flow, если профиль и сессия доступны.</p>
+                      </div>
+                    </>
+                  )}
                 </section>
               </div>
             )}

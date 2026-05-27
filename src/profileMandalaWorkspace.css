@@ -1170,8 +1170,52 @@
   box-shadow: 0 14px 32px rgba(103, 66, 16, 0.16);
 }
 
+.powerCenterPhoto span,
+.altarCenterPhoto span,
+.businessCenterPhoto span,
+.zodiacCenterPhoto span,
+.daoCenterPhoto span {
+  max-width: 82%;
+  color: #8b5a14;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.12;
+  text-align: center;
+}
+
 .powerCenterPhoto.hasImage span {
   display: none;
+}
+
+.powerPhotoOnlyFrame {
+  width: min(440px, 100%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  position: relative;
+  border: 1px solid rgba(226, 176, 71, 0.5);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 244, 219, 0.95), rgba(232, 178, 74, 0.22) 44%, rgba(33, 16, 4, 0.82) 100%);
+  box-shadow: inset 0 0 46px rgba(53, 31, 8, 0.22);
+}
+
+.powerPhotoOnlyFrame .photoOnly {
+  position: static;
+  width: min(260px, 58%);
+  transform: none;
+}
+
+.powerPhotoOnlyFrame p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  margin: 0;
+  color: #fff0cd;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
 }
 
 .powerMandalaBase {
@@ -2372,6 +2416,11 @@
   background: rgba(255, 253, 248, 0.66);
 }
 
+.powerCommandRail .resourceComparisonPanel {
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 0;
+}
+
 .resourceModeToggle {
   justify-content: flex-start;
 }
@@ -2396,6 +2445,15 @@
   color: #3c2a18;
   font: inherit;
   font-size: 13px;
+}
+
+.compositionTitleField {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  color: #5f3e12;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .powerLibraryGrid {
@@ -2590,7 +2648,7 @@
 }
 
 .clientPhotoPickerModal {
-  width: min(620px, 100%);
+  width: min(760px, 100%);
   max-height: min(760px, calc(100vh - 36px));
   display: grid;
   gap: 14px;
@@ -2600,6 +2658,40 @@
   padding: 16px;
   background: #fffaf0;
   box-shadow: 0 24px 70px rgba(42, 25, 7, 0.28);
+}
+
+.imagePickerCategoryTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.imagePickerCategoryTabs button {
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #744c17;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.imagePickerCategoryTabs button.active {
+  border-color: rgba(245, 198, 106, 0.72);
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+}
+
+.imagePickerSubcategorySelect {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #3c2a18;
+  font: inherit;
 }
 
 .clientPhotoPickerHeader {
