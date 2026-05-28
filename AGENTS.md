@@ -52,7 +52,6 @@ Known env names from project memory only, values must never be committed:
 - `VITE_ADMIN_EMAIL`
 
 If Supabase/profile/master/admin flows are added or restored, verify exact code and migrations first.
-If a task is not complete until it is merged into main, deployed to production/live, and visually/functionally verified on the live URL.
 
 ## Verification
 
