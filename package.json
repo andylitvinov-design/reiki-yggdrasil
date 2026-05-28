@@ -1,9 +1,8 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "npm run patch:issue72 && vite --host 0.0.0.0",
-    "build": "npm run patch:issue72 && vite build",
-    "patch:issue72": "node scripts/apply-issue72-profile-ux.mjs",
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
     "supabase:migrations:apply": "node scripts/apply-reiki-supabase-migrations.mjs",
     "test:profile-media": "node test/profileMediaClient.test.mjs",
     "test:profile-materials": "node test/profileMaterials.test.mjs",
@@ -12,7 +11,7 @@
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
     "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
     "validate:free-courses": "node scripts/validate-free-course-links.mjs",
-    "check": "npm run patch:issue72 && npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && vite build"
+    "check": "npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
