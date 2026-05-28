@@ -178,10 +178,20 @@ function scheduleRender() {
   timer = setTimeout(renderPanel, 180);
 }
 
-scheduleRender();
-window.addEventListener("load", scheduleRender);
-window.addEventListener("popstate", scheduleRender);
-window.addEventListener("reiki-route-change", scheduleRender);
-document.addEventListener("click", (event) => {
-  if (event.target?.closest?.(".mainNav button, .leftMenuCard, .mysteryTab, .pianoKey")) scheduleRender();
-});
+function startPublicRightMaterialsPanel() {
+  scheduleRender();
+  window.addEventListener("load", scheduleRender);
+  window.addEventListener("popstate", scheduleRender);
+  window.addEventListener("reiki-route-change", scheduleRender);
+  document.addEventListener("click", (event) => {
+    if (event.target?.closest?.(".mainNav button, .leftMenuCard, .mysteryTab, .pianoKey")) scheduleRender();
+  });
+}
+
+if (typeof window !== "undefined" && typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startPublicRightMaterialsPanel, { once: true });
+  } else {
+    startPublicRightMaterialsPanel();
+  }
+}
