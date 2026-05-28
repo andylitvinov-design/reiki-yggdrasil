@@ -613,3 +613,13 @@ Risks:
 - New all-level accordion behavior needs visual QA on desktop/mobile.
 - CI workflow must be observed after GitHub Actions starts; current environment cannot prove the run result.
 - Stale project memory may mislead future Codex tasks unless updated.
+## 2026-05-28 — ProfilePanel: добавлена категория `Каналы` в materials/power-place picker
+
+- Цель: внедрить независимую категорию `Каналы` в профиле материалов без миграций и без потери существующего UX PR #68/#69/#70.
+- Результат:
+  - Расширен `MATERIAL_CATEGORY_TABS` в `src/pages/ProfilePage.jsx` новым первичным пунктом `Каналы` и нужным порядком.
+  - Добавлены иерархические подкатегории/уровни для `Каналы`.
+  - Реализованы состояния третьего уровня для материалов и picker.
+  - Добавлена фильтрация по подкатегории/третьему уровню для `channels` в списке материалов и объектном picker.
+  - Для picker материалов `Каналы` внедрён пустой текст: `Материалы для этого канала пока не добавлены.`
+  - Сохраняются существующие потоки сохранения, picker/download/Star flow и поведение `god-channels`.

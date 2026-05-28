@@ -157,6 +157,106 @@ const artifactItems = [
 
 const talismanItems = artifactItems.filter((item) => item.label?.includes("Талисман"));
 
+const CHANNELS_SUBCATEGORIES = [
+  {
+    value: "sefirot",
+    label: "Сефирот",
+    thirdLevels: [
+      { value: "major-arcana", label: "Большие арканы" },
+      { value: "minor-arcana", label: "Малые арканы" },
+      { value: "sephirot-siphers", label: "Сиферы" }
+    ]
+  },
+  {
+    value: "runes",
+    label: "Руны",
+    thirdLevels: [
+      { value: "first-at", label: "Первый атт" },
+      { value: "second-at", label: "Второй атт" },
+      { value: "third-at", label: "Третий атт" }
+    ]
+  },
+  {
+    value: "planets",
+    label: "Планеты",
+    thirdLevels: [
+      { value: "sun", label: "Солнце" },
+      { value: "moon", label: "Луна" },
+      { value: "mercury", label: "Меркурий" },
+      { value: "venus", label: "Венера" },
+      { value: "mars", label: "Марс" },
+      { value: "jupiter", label: "Юпитер" },
+      { value: "saturn", label: "Сатурн" }
+    ]
+  },
+  {
+    value: "money",
+    label: "Деньги"
+  },
+  {
+    value: "life",
+    label: "Жизнь"
+  }
+];
+
+function textPart(item, key, fallback = "") {
+  const raw = item?.[key];
+  if (Array.isArray(raw)) return raw.map((value) => String(value || "")).filter(Boolean).join(" ");
+  return String(raw || fallback);
+}
+
+function materialTextIndex(item) {
+  return [
+    textPart(item, "title"),
+    textPart(item, "description"),
+    textPart(item, "step_title"),
+    textPart(item, "setting_title"),
+    textPart(item, "type"),
+    textPart(item, "category"),
+    textPart(item, "subcategory"),
+    textPart(item, "channels"),
+    textPart(item, "channelCategory"),
+    textPart(item, "channelCategoryLabel"),
+    textPart(item, "channelSubcategory"),
+    textPart(item, "channelSubcategoryLabel"),
+    textPart(item, "channelThirdLevel"),
+    textPart(item, "channelThirdLevelLabel"),
+    textPart(item, "material_category"),
+    textPart(item, "material_subcategory")
+  ].join(" ").toLowerCase();
+}
+
+function textMatches(item, text) {
+  const needle = String(text || "").trim().toLowerCase();
+  if (!needle) return false;
+  return materialTextIndex(item).includes(needle);
+}
+
+function metadataMatches(item, values) {
+  return values.some((value) => {
+    const itemValues = [
+      item?.channelCategory,
+      item?.channelCategoryLabel,
+      item?.channelSubcategory,
+      item?.channelSubcategoryLabel,
+      item?.channelThirdLevel,
+      item?.channelThirdLevelLabel,
+      item?.material_category,
+      item?.material_subcategory,
+      item?.category,
+      item?.subcategory,
+      item?.channels
+    ];
+
+    return itemValues.some((fieldValue) => String(fieldValue || "").toLowerCase() === String(value || "").trim().toLowerCase());
+  });
+}
+
+function channelTextMatch(item, values) {
+  if (!values.length) return true;
+  return values.some((entry) => metadataMatches(item, [entry]) || textMatches(item, entry));
+}
+
 const MATERIAL_CATEGORY_TABS = [
   {
     value: "dao-ri",
@@ -177,6 +277,11 @@ const MATERIAL_CATEGORY_TABS = [
         traditionId: tradition.id
       }))
     )
+  },
+  {
+    value: "channels",
+    label: "Каналы",
+    subcategories: CHANNELS_SUBCATEGORIES
   },
   {
     value: "talismans",
@@ -367,8 +472,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [activeTopTab, setActiveTopTab] = useState("mandalas");
   const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
   const [activeMaterialSubcategory, setActiveMaterialSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+  const [activeMaterialThirdLevel, setActiveMaterialThirdLevel] = useState("");
+  const [isMaterialThirdLevelPanelOpen, setIsMaterialThirdLevelPanelOpen] = useState(false);
   const [activePickerCategory, setActivePickerCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
   const [activePickerSubcategory, setActivePickerSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+  const [activePickerThirdLevel, setActivePickerThirdLevel] = useState("");
   const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
   const [materialFilter, setMaterialFilter] = useState("all");
   const [mediaStatus, setMediaStatus] = useState("");
@@ -403,6 +511,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     () => activeMaterialCategoryData.subcategories.find((item) => item.value === activeMaterialSubcategory) || activeMaterialCategoryData.subcategories[0] || null,
     [activeMaterialCategoryData, activeMaterialSubcategory]
   );
+  const activeMaterialThirdLevelData = useMemo(
+    () => activeMaterialSubcategoryData?.thirdLevels?.find((item) => item.value === activeMaterialThirdLevel) || activeMaterialSubcategoryData?.thirdLevels?.[0] || null,
+    [activeMaterialSubcategoryData, activeMaterialThirdLevel]
+  );
 
   const activeMaterialStepLabel = useMemo(
     () => materialForm.step_title || stepOptions.find((step) => step.id === materialForm.step_id)?.fullLabel || materialForm.step_id || "не выбрано",
@@ -418,6 +530,36 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     () => activePickerCategoryData.subcategories.find((item) => item.value === activePickerSubcategory) || activePickerCategoryData.subcategories[0] || null,
     [activePickerCategoryData, activePickerSubcategory]
   );
+  const activePickerThirdLevelData = useMemo(
+    () => activePickerSubcategoryData?.thirdLevels?.find((item) => item.value === activePickerThirdLevel) || activePickerSubcategoryData?.thirdLevels?.[0] || null,
+    [activePickerSubcategoryData, activePickerThirdLevel]
+  );
+  const materialChannelValues = useMemo(() => {
+    if (activeMaterialCategory !== "channels") return [];
+    const subcategoryValues = [
+      activeMaterialSubcategoryData?.value,
+      activeMaterialSubcategoryData?.label
+    ].filter(Boolean);
+    const thirdLevelValues = [
+      activeMaterialThirdLevelData?.value,
+      activeMaterialThirdLevelData?.label
+    ].filter(Boolean);
+    const next = [subcategoryValues, thirdLevelValues].filter((entry) => entry.length > 0);
+    return next;
+  }, [activeMaterialCategory, activeMaterialSubcategoryData, activeMaterialThirdLevelData]);
+  const pickerChannelValues = useMemo(() => {
+    if (activePickerCategory !== "channels") return [];
+    const subcategoryValues = [
+      activePickerSubcategoryData?.value,
+      activePickerSubcategoryData?.label
+    ].filter(Boolean);
+    const thirdLevelValues = [
+      activePickerThirdLevelData?.value,
+      activePickerThirdLevelData?.label
+    ].filter(Boolean);
+    const next = [subcategoryValues, thirdLevelValues].filter((entry) => entry.length > 0);
+    return next;
+  }, [activePickerCategory, activePickerSubcategoryData, activePickerThirdLevelData]);
 
   const filteredMaterials = useMemo(() => {
     let nextMaterials = materials;
@@ -437,8 +579,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       nextMaterials = nextMaterials.filter((item) => item.type === "artifact");
     }
 
+    if (activeMaterialCategory === "channels") {
+      nextMaterials = nextMaterials.filter((item) => {
+        if (!materialChannelValues.length) return true;
+        return materialChannelValues.every((entry) => channelTextMatch(item, entry));
+      });
+    }
+
     return nextMaterials;
-  }, [activeMaterialCategory, activeMaterialSubcategoryData, materialFilter, materials]);
+  }, [activeMaterialCategory, activeMaterialSubcategoryData, activeMaterialThirdLevelData, materialFilter, materialChannelValues, materials]);
 
   const accountPlan = normalizeAccountPlan(profile.account_plan);
   const planLimits = getPlanLimits(accountPlan);
@@ -515,11 +664,20 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         .filter(hasImage));
     }
 
+    if (activePickerCategory === "channels") {
+      return uniqueImageSources(materials
+        .filter((item) => item.image_url && (
+          !pickerChannelValues.length || pickerChannelValues.every((entry) => channelTextMatch(item, entry))
+        ))
+        .map(materialToOption)
+        .filter(hasImage));
+    }
+
     return uniqueImageSources(materials
       .filter((item) => item.image_url && item.type === "artifact")
       .map(materialToOption)
       .filter(hasImage));
-  }, [activePickerCategory, activePickerSubcategoryData, materials, traditionAssets]);
+  }, [activePickerCategory, activePickerSubcategoryData, activePickerThirdLevelData, activePickerThirdLevel, materials, pickerChannelValues, traditionAssets]);
 
   const reusableImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((item) => ({
@@ -788,8 +946,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   }, [activeMaterialCategory, activeMaterialCategoryData.subcategories]);
 
   useEffect(() => {
+    setActiveMaterialThirdLevel(activeMaterialSubcategoryData?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(activeMaterialSubcategoryData?.thirdLevels?.length));
+  }, [activeMaterialSubcategoryData]);
+
+  useEffect(() => {
     setActivePickerSubcategory(activePickerCategoryData.subcategories[0]?.value || "");
   }, [activePickerCategory, activePickerCategoryData.subcategories]);
+
+  useEffect(() => {
+    setActivePickerThirdLevel(activePickerSubcategoryData?.thirdLevels?.[0]?.value || "");
+  }, [activePickerSubcategoryData]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1182,10 +1349,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     const category = MATERIAL_CATEGORY_TABS.find((item) => item.value === categoryValue) || MATERIAL_CATEGORY_TABS[0];
     const firstSubcategory = category.subcategories[0];
     setActiveMaterialSubcategory(firstSubcategory?.value || "");
+    setActiveMaterialThirdLevel(firstSubcategory?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(firstSubcategory?.thirdLevels?.length));
 
     if (categoryValue === "artifacts" || categoryValue === "talismans") {
       updateMaterialField("type", "artifact");
-    } else if (categoryValue === "dao-ri" || categoryValue === "god-channels") {
+    } else if (categoryValue === "dao-ri" || categoryValue === "god-channels" || categoryValue === "channels") {
       updateMaterialField("type", "mandala");
     }
 
@@ -1196,13 +1365,36 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const handleMaterialSubcategorySelect = (subcategory) => {
     setActiveMaterialSubcategory(subcategory.value);
+    setActiveMaterialThirdLevel(subcategory?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(subcategory?.thirdLevels?.length));
     if (activeMaterialCategory === "dao-ri" && subcategory.steps?.[0]?.id) {
       updateMaterialField("step_id", subcategory.steps[0].id);
     }
   };
 
+  const handleMaterialThirdLevelSelect = (thirdLevel) => {
+    setActiveMaterialThirdLevel(thirdLevel.value);
+  };
+
   const handleDaoStepSelect = (stepId) => {
     updateMaterialField("step_id", stepId);
+  };
+
+  const handlePickerCategorySelect = (categoryValue) => {
+    setActivePickerCategory(categoryValue);
+    const category = MATERIAL_CATEGORY_TABS.find((item) => item.value === categoryValue) || MATERIAL_CATEGORY_TABS[0];
+    const firstSubcategory = category.subcategories[0];
+    setActivePickerSubcategory(firstSubcategory?.value || "");
+    setActivePickerThirdLevel(firstSubcategory?.thirdLevels?.[0]?.value || "");
+  };
+
+  const handlePickerSubcategorySelect = (subcategory) => {
+    setActivePickerSubcategory(subcategory.value);
+    setActivePickerThirdLevel(subcategory?.thirdLevels?.[0]?.value || "");
+  };
+
+  const handlePickerThirdLevelSelect = (thirdLevel) => {
+    setActivePickerThirdLevel(thirdLevel.value);
   };
 
   const handleSave = async (requestedStatus) => {
@@ -1545,8 +1737,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setActiveTopTab("mandalas");
     setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
     setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+    setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
     setActivePickerCategory(MATERIAL_CATEGORY_TABS[0].value);
     setActivePickerSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+    setActivePickerThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
     setSelectedObjectSlotId("");
     setMaterialFilter("all");
     setFileNotice("");
@@ -1857,6 +2052,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                 <span className="materialSelectionChip">
                   <b>Подкатегория:</b> {activeMaterialSubcategoryData?.label || "не выбрана"}
                 </span>
+                {activeMaterialCategory === "channels" && activeMaterialThirdLevelData && (
+                  <span className="materialSelectionChip">
+                    <b>Третий уровень:</b> {activeMaterialThirdLevelData.label}
+                  </span>
+                )}
                 <span className="materialSelectionChip">
                   <b>DAO ступень:</b> {activeMaterialStepLabel}
                 </span>
@@ -1893,6 +2093,26 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           type="button"
                         >
                           {subcategory.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+              )}
+
+              {activeMaterialSubcategoryData?.thirdLevels?.length > 0 && (
+                <details className="materialCategoryDetails" open={isMaterialThirdLevelPanelOpen} onToggle={(event) => setIsMaterialThirdLevelPanelOpen(event.currentTarget.open)}>
+                  <summary>Третий уровень</summary>
+                  <div className="materialCategoryDetailsPanel">
+                    <div className="materialSubcategoryTabs" role="tablist" aria-label="Третий уровень материалов">
+                      {activeMaterialSubcategoryData.thirdLevels.map((thirdLevel) => (
+                        <button
+                          className={activeMaterialThirdLevel === thirdLevel.value ? "active" : ""}
+                          key={thirdLevel.value}
+                          onClick={() => handleMaterialThirdLevelSelect(thirdLevel)}
+                          type="button"
+                        >
+                          {thirdLevel.label}
                         </button>
                       ))}
                     </div>
@@ -2609,21 +2829,42 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   ) : (
                     <>
                       <div className="imagePickerCategoryTabs" aria-label="Категории изображений">
-                        {MATERIAL_CATEGORY_TABS.map((category) => (
-                          <button
-                            className={activePickerCategory === category.value ? "active" : ""}
-                            key={category.value}
-                            onClick={() => setActivePickerCategory(category.value)}
-                            type="button"
-                          >
-                            {category.label}
-                          </button>
-                        ))}
-                      </div>
-                      {activePickerCategoryData.subcategories.length > 0 && (
-                        <select className="imagePickerSubcategorySelect" value={activePickerSubcategory} onChange={(event) => setActivePickerSubcategory(event.target.value)}>
+                      {MATERIAL_CATEGORY_TABS.map((category) => (
+                        <button
+                          className={activePickerCategory === category.value ? "active" : ""}
+                          key={category.value}
+                          onClick={() => handlePickerCategorySelect(category.value)}
+                          type="button"
+                        >
+                          {category.label}
+                        </button>
+                      ))}
+                    </div>
+                    {activePickerCategoryData.subcategories.length > 0 && (
+                        <select
+                          className="imagePickerSubcategorySelect"
+                          value={activePickerSubcategory}
+                          onChange={(event) => {
+                            const nextSubcategory = activePickerCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
+                            if (nextSubcategory) handlePickerSubcategorySelect(nextSubcategory);
+                          }}
+                        >
                           {activePickerCategoryData.subcategories.map((subcategory) => (
                             <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
+                          ))}
+                        </select>
+                      )}
+                      {activePickerSubcategoryData?.thirdLevels?.length > 0 && (
+                        <select
+                          className="imagePickerSubcategorySelect"
+                          value={activePickerThirdLevel}
+                          onChange={(event) => {
+                            const nextThird = activePickerSubcategoryData?.thirdLevels?.find((thirdLevel) => thirdLevel.value === event.target.value);
+                            if (nextThird) handlePickerThirdLevelSelect(nextThird);
+                          }}
+                        >
+                          {activePickerSubcategoryData.thirdLevels.map((thirdLevel) => (
+                            <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
                           ))}
                         </select>
                       )}
@@ -2642,7 +2883,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         ))}
                         {pickerImageOptions.length === 0 && (
                           <div className="clientPhotoPickerEmpty">
-                            <b>В этой категории пока нет сохранённых изображений.</b>
+                            <b>{activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
                             <p>Используются только реальные изображения из сохранённых мандал, материалов и доступных образов кабинета.</p>
                           </div>
                         )}
