@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-28
+Last updated: 2026-05-29
 
 ## Current verified repo state
 
@@ -11,6 +11,44 @@ Last updated: 2026-05-28
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-05-29 — Public right-panel materials feed upgrade
+
+## 2026-05-29 — Profile power sources UX (issue #72)
+
+- Branch: `codex/issue-72-profile-power-sources-ux` (in progress)
+- `/profile` defaults updated for Power Place focus first:
+  - `activeTopTab` default `power-place`
+  - `resourceComparisonMode` default `photo_mandala`
+  - Reset/logout path keeps `activeTopTab = "power-place"` and `resourceComparisonMode = "photo_mandala"`
+- Unified source panel and popup taxonomy for Power Place and Mandalas:
+  - visible source block title unified to `Источники силы`
+  - category set now includes `Клиенты` in shared source taxonomy
+  - client/goal center selection flows through shared source/popup stack
+- `POWER_SOURCE_COUNTS` increased to `[2, 4, 6, 8, 12, 18]` for ~1.5x capacity
+  - geometry/visual sizing adjusted in `src/profileMandalaWorkspace.css` and related source layout sizing.
+- Mystery label normalization:
+  - all user-visible category label wording aligned to `Мистерии` (removed `Каналы Богов` from UI labels)
+- Mobile behavior:
+  - source column order adjusted to render workspace main area before source list under `980px`.
+
+- Branch: `codex/public-right-materials-panel-upgrade` (in progress)
+- Public home and left-navigation label updated:
+  - `src/data/topSectionMenus.js`: home item `home-dao-ri` label changed to `Школа ДАО РИ`.
+- Added a public materials helper:
+  - `src/lib/profileMaterialsClient.js`: `listPublicMaterials({ limit })`
+  - reads only `status=approved`
+  - selects safe fields from `profile_cabinet_publications`
+  - returns `[]` safely when Supabase is not configured
+  - avoids signed URL creation for anonymous reads
+  - joins profile display when supported by Supabase relation; otherwise degrades safely.
+- Extended right rail in `src/main.jsx` to render approved materials for public sections:
+  - DAO RI and all public top sections (including Mysteries, Mastery, Shop, home) show a contextual right panel.
+  - Context priority is by current step (`step_id`/title/context), then token-based text matching across material metadata.
+  - If no match exists for the active section, panel falls back to newest approved materials list with note `Новые материалы сайта`.
+- Added minimal styles in `src/index.css` for public feed wrapper, panel states, cards, chips, and safe thumbnails/placeholders.
+- `publicText` safety guard remains: audio/video playback was not introduced because schema has no explicit audio URL field in known fields.
+- Private storage refs (e.g. `storage://...`) are not exposed in the public card DOM.
 
 ## 2026-05-28 — Mandala category popover UX reapply
 

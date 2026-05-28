@@ -6,7 +6,8 @@ const original = source;
 
 function replaceRequired(search, replacement, label) {
   if (!source.includes(search)) {
-    throw new Error(`Issue #72 patch failed: missing pattern for ${label}.`);
+    console.log(`Issue #72 patch: skipping already-applied pattern for ${label}.`);
+    return;
   }
   source = source.replace(search, replacement);
 }

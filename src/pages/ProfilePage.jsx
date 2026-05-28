@@ -75,7 +75,7 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_index: firstSettings.length > 0 ? 1 : null
 });
 
-const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
+const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12, 18];
 const CONSTRUCTOR_TYPES = [
   { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
@@ -95,7 +95,6 @@ const STAR_POINTS = [
   { id: "lower-left", className: "lowerLeft", label: "Нижний левый луч" },
   { id: "left", className: "left", label: "Левый луч" }
 ];
-const ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const ZODIAC_SIGNS = [
   { id: "aries", className: "aries", label: "Овен" },
   { id: "taurus", className: "taurus", label: "Телец" },
@@ -110,6 +109,47 @@ const ZODIAC_SIGNS = [
   { id: "aquarius", className: "aquarius", label: "Водолей" },
   { id: "pisces", className: "pisces", label: "Рыбы" }
 ];
+const ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
+const ZODIAC_VARIANTS = [
+  { value: "classic-2", label: "2", visibleCount: 2 },
+  { value: "classic-4", label: "4", visibleCount: 4 },
+  { value: "classic-6", label: "6", visibleCount: 6 },
+  { value: "classic-8", label: "8", visibleCount: 8 },
+  { value: "plus-8", label: "8+", visibleCount: 8 },
+  { value: "classic-12", label: "12", visibleCount: 12 },
+  { value: "plus-12", label: "12+", visibleCount: 12 }
+];
+const ZODIAC_PLUS_SLOT_IDS = {
+  "8": ["zodiac-plus-top", "zodiac-plus-right", "zodiac-plus-bottom", "zodiac-plus-left"],
+  "12": [
+    "zodiac-plus-top",
+    "zodiac-plus-right",
+    "zodiac-plus-bottom",
+    "zodiac-plus-left",
+    "zodiac-plus-corner-tl",
+    "zodiac-plus-corner-tr",
+    "zodiac-plus-corner-bl",
+    "zodiac-plus-corner-br"
+  ]
+};
+const ZODIAC_PLUS_SLOT_LAYOUT = {
+  8: [
+    { id: "zodiac-plus-top", className: "zodiac-plus-top", label: "Топ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-right", className: "zodiac-plus-right", label: "Правая точка", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-bottom", className: "zodiac-plus-bottom", label: "Низ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-left", className: "zodiac-plus-left", label: "Лево", classPrefix: "zodiac-plus" }
+  ],
+  12: [
+    { id: "zodiac-plus-top", className: "zodiac-plus-top", label: "Топ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-right", className: "zodiac-plus-right", label: "Правая точка", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-bottom", className: "zodiac-plus-bottom", label: "Низ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-left", className: "zodiac-plus-left", label: "Лево", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-tl", className: "zodiac-plus-corner-tl", label: "Угол верх-лев", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-tr", className: "zodiac-plus-corner-tr", label: "Угол верх-прав", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-bl", className: "zodiac-plus-corner-bl", label: "Угол низ-лев", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-br", className: "zodiac-plus-corner-br", label: "Угол низ-прав", classPrefix: "zodiac-plus" }
+  ]
+};
 const BUSINESS_VERTEX_ZONE_COUNTS = [1, 3];
 const BUSINESS_VERTICES = [
   { id: "goal", className: "top", label: "Цель" },
@@ -199,12 +239,93 @@ const CHANNELS_SUBCATEGORIES = [
   }
 ];
 
+const SOURCE_LIBRARY_CATEGORIES = [
+  {
+    value: "dao-ri",
+    label: "ДАО РИ",
+    subcategories: reikiLevels.map((level) => ({
+      value: `level-${level.id}`,
+      label: `${level.id}. ${level.name}`,
+      steps: level.steps
+    }))
+  },
+  {
+    value: "god-channels",
+    label: "Мистерии",
+    subcategories: mysteryTraditions.map((tradition) => ({
+      value: tradition.id,
+      label: tradition.title,
+      traditionId: tradition.id,
+      entities: tradition.entities || []
+    }))
+  },
+  {
+    value: "channels",
+    label: "Каналы",
+    subcategories: CHANNELS_SUBCATEGORIES
+  },
+  {
+    value: "covers",
+    label: "Фон",
+    subcategories: [{ value: "cover", label: "Фон" }]
+  },
+  {
+    value: "form",
+    label: "Форма",
+    subcategories: [
+      { value: "zashchitnye", label: "Защитные" },
+      { value: "tselyebnye", label: "Целебные" },
+      { value: "business", label: "Бизнес" },
+      { value: "other", label: "Другие" }
+    ]
+  },
+  {
+    value: "talismans",
+    label: "Талисманы",
+    subcategories: talismanItems.map((item) => ({ value: item.id, label: item.label }))
+  },
+  {
+    value: "artifacts",
+    label: "Артефакты",
+    subcategories: artifactItems.map((item) => ({ value: item.id, label: item.label }))
+  },
+  {
+    value: "covers-legacy",
+    label: "Подложка места силы",
+    subcategories: []
+  },
+  {
+    value: "client-goals",
+    label: "Клиенты",
+    subcategories: []
+  }
+];
+
 function textPart(item, key, fallback = "") {
   const raw = item?.[key];
   if (Array.isArray(raw)) return raw.map((value) => String(value || "")).filter(Boolean).join(" ");
   return String(raw || fallback);
 }
 
+const PRACTICE_AUDIO_TYPES = ["audio/mpeg", "audio/mp4", "audio/wav", "audio/webm", "audio/ogg"];
+const PRACTICE_AUDIO_ACCEPT = PRACTICE_AUDIO_TYPES.join(",");
+const MATERIAL_FILE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
+const PRACTICE_FILE_ACCEPT = `${MATERIAL_FILE_ACCEPT},${PRACTICE_AUDIO_TYPES.join(",")}`;
+
+const FORM_SUBCATEGORY_MAP = {
+  zashchitnye: ["protective", "защитные", "zaщитные", "zashchitnye", "защитный"],
+  tselyebnye: ["healing", "целебные", "tselyebnye", "целебное", "целебное", "целебный"],
+  business: ["бизнес", "business", "businesses"],
+  other: ["другие", "other", "any", "прочее"]
+};
+
+function getMaterialUploadAccept(fileType) {
+  return fileType === "practice" ? PRACTICE_AUDIO_ACCEPT : MATERIAL_FILE_ACCEPT;
+}
+
+function isZodiacPlusVariant(variant, visibleCount = 0) {
+  return variant === "plus-8" || variant === "plus-12" || (Number(visibleCount) === 8 && variant?.startsWith("plus")) || (Number(visibleCount) === 12 && variant?.startsWith("plus"));
+}
 function materialTextIndex(item) {
   return [
     textPart(item, "title"),
@@ -252,6 +373,39 @@ function metadataMatches(item, values) {
   });
 }
 
+function normalizeCategoryValue(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function materialMatchesCategory(item, categoryValue, subcategoryValue = "") {
+  const targetCategory = normalizeCategoryValue(categoryValue);
+  const targetSubcategory = normalizeCategoryValue(subcategoryValue);
+  const normalizedCategory = normalizeCategoryValue(item.material_category);
+  const normalizedSubcategory = normalizeCategoryValue(item.material_subcategory);
+  const normalizedCategoryLegacy = normalizeCategoryValue(item.category);
+  const normalizedSubcategoryLegacy = normalizeCategoryValue(item.subcategory);
+
+  const hasAnyMatch = (lhs, rhs) => lhs === rhs;
+
+  if (targetCategory === "covers") {
+    return hasAnyMatch(normalizedCategory, "cover") || hasAnyMatch(normalizedCategory, "фон") || hasAnyMatch(normalizedSubcategory, "cover") || hasAnyMatch(normalizedSubcategory, "фон");
+  }
+
+  if (targetCategory === "form") {
+    if (!targetSubcategory) return normalizedCategory === "form" || normalizedSubcategory === "form" || normalizedCategory === "форма" || normalizedSubcategory === "форма";
+
+    const expectedValues = new Set(
+      FORM_SUBCATEGORY_MAP[targetSubcategory] || [targetSubcategory]
+    );
+    return (
+      (hasAnyMatch(normalizedCategory, "form") || hasAnyMatch(normalizedSubcategory, "form") || hasAnyMatch(normalizedCategory, "форма") || hasAnyMatch(normalizedSubcategory, "форма"))
+      && ([normalizedCategory, normalizedSubcategory, normalizedCategoryLegacy, normalizedSubcategoryLegacy].some((entry) => expectedValues.has(entry)))
+    );
+  }
+
+  return false;
+}
+
 function channelTextMatch(item, values) {
   if (!values.length) return true;
   return values.some((entry) => metadataMatches(item, [entry]) || textMatches(item, entry));
@@ -269,7 +423,7 @@ const MATERIAL_CATEGORY_TABS = [
   },
   {
     value: "god-channels",
-    label: "Мистерия / Каналы Богов",
+    label: "Мистерии",
     subcategories: mysteryTraditions.flatMap((tradition) =>
       (tradition.entities || []).map((entity) => ({
         value: `${tradition.id}-${entity.id}`,
@@ -284,6 +438,21 @@ const MATERIAL_CATEGORY_TABS = [
     subcategories: CHANNELS_SUBCATEGORIES
   },
   {
+    value: "covers",
+    label: "Фон",
+    subcategories: [{ value: "cover", label: "Фон" }]
+  },
+  {
+    value: "form",
+    label: "Форма",
+    subcategories: [
+      { value: "zashchitnye", label: "Защитные", displayLabel: "Защитные" },
+      { value: "tselyebnye", label: "Целебные", displayLabel: "Целебные" },
+      { value: "business", label: "Бизнес", displayLabel: "Бизнес" },
+      { value: "other", label: "Другие", displayLabel: "Другие" }
+    ]
+  },
+  {
     value: "talismans",
     label: "Талисманы",
     // needs verification: no dedicated talisman taxonomy found; using existing artifact-creation labels containing "Талисман".
@@ -293,6 +462,11 @@ const MATERIAL_CATEGORY_TABS = [
     value: "artifacts",
     label: "Артефакты",
     subcategories: artifactItems.map((item) => ({ value: item.id, label: item.label }))
+  },
+  {
+    value: "client-goals",
+    label: "Клиенты",
+    subcategories: [{ value: "client-goals", label: "Фото клиентов" }]
   }
 ];
 
@@ -338,6 +512,13 @@ function isImagePreview(value) {
   return Boolean(value && (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("data:image/")));
 }
 
+function looksLikeAudio(value) {
+  const source = String(value || "").trim().toLowerCase();
+  if (!source) return false;
+  if (source.startsWith("data:audio/")) return true;
+  return /\.(mp3|m4a|mp4|wav|ogg|oga|webm)(\?|#|$)/.test(source);
+}
+
 function isStorageImageRef(value) {
   return Boolean(value && value.startsWith("storage://"));
 }
@@ -363,7 +544,8 @@ function sourceClassName(count, index) {
     "powerSource",
     `source-${sourceNumber}`,
     isIntermediate ? "small" : "",
-    isGuardian ? "guardian" : ""
+    isGuardian ? "guardian" : "",
+    count === 18 ? "compact" : ""
   ].filter(Boolean).join(" ");
 }
 
@@ -375,6 +557,18 @@ function sourceLabel(count, index) {
 
 function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
+}
+
+function sourcePositionStyle(count, index) {
+  if (count !== 18) return null;
+
+  const radius = 35;
+  const angle = (360 / count) * index - 90;
+  const radians = angle * (Math.PI / 180);
+  return {
+    left: `${50 + radius * Math.cos(radians)}%`,
+    top: `${50 + radius * Math.sin(radians)}%`
+  };
 }
 
 function escapeHtml(value) {
@@ -422,6 +616,32 @@ function persistableObjectRefs(refs, allowedIds = null) {
   );
 }
 
+function inferZodiacVariant(visibleCount, refs = {}) {
+  const keys = new Set(Object.keys(refs || {}).map((key) => String(key || "").trim()));
+  if (visibleCount === 8) {
+    const isPlus = ZODIAC_PLUS_SLOT_IDS["8"].some((slotId) => keys.has(slotId));
+    return isPlus ? "plus-8" : "classic-8";
+  }
+
+  if (visibleCount === 12) {
+    const isPlus = ZODIAC_PLUS_SLOT_IDS["12"].some((slotId) => keys.has(slotId));
+    return isPlus ? "plus-12" : "classic-12";
+  }
+
+  const fallback = ZODIAC_VARIANTS.find((item) => item.visibleCount === visibleCount && item.value.startsWith("classic"));
+  return fallback?.value || `classic-${visibleCount}`;
+}
+
+function zodiacPlusSlotLayout(visibleCount) {
+  return ZODIAC_PLUS_SLOT_LAYOUT[Number(visibleCount)] || [];
+}
+
+function zodiacVariantOption(optionValue, visibleCount) {
+  const fallbackValue = `classic-${visibleCount}`;
+  const option = ZODIAC_VARIANTS.find((item) => item.value === optionValue && item.visibleCount === visibleCount);
+  return option ? option.value : fallbackValue;
+}
+
 function getInitialStoredSession() {
   const storedSession = getStoredSession();
   if (isStoredSessionExpired(storedSession)) {
@@ -453,6 +673,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [powerSourceCount, setPowerSourceCount] = useState(4);
   const [constructorType, setConstructorType] = useState("client");
   const [zodiacVisibleCount, setZodiacVisibleCount] = useState(12);
+  const [zodiacVariant, setZodiacVariant] = useState("classic-12");
   const [starVariant, setStarVariant] = useState("closed");
   const [businessVertexZoneCount, setBusinessVertexZoneCount] = useState(1);
   const [altarCenterRatio, setAltarCenterRatio] = useState("1");
@@ -466,16 +687,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
   const [compositionTitle, setCompositionTitle] = useState("");
   const [selectedCompositionId, setSelectedCompositionId] = useState("");
-  const [resourceComparisonMode, setResourceComparisonMode] = useState("client_photo");
+  const [resourceComparisonMode, setResourceComparisonMode] = useState("photo_mandala");
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
-  const [activeTopTab, setActiveTopTab] = useState("mandalas");
+  const [activeTopTab, setActiveTopTab] = useState("power-place");
   const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
   const [activeMaterialSubcategory, setActiveMaterialSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
   const [activeMaterialThirdLevel, setActiveMaterialThirdLevel] = useState("");
   const [isMaterialThirdLevelPanelOpen, setIsMaterialThirdLevelPanelOpen] = useState(false);
-  const [activePickerCategory, setActivePickerCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
-  const [activePickerSubcategory, setActivePickerSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+  const [activePickerCategory, setActivePickerCategory] = useState(SOURCE_LIBRARY_CATEGORIES[0].value);
+  const [activePickerSubcategory, setActivePickerSubcategory] = useState(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
   const [activePickerThirdLevel, setActivePickerThirdLevel] = useState("");
   const [selectedObjectSlotId, setSelectedObjectSlotId] = useState("");
   const [materialFilter, setMaterialFilter] = useState("all");
@@ -522,7 +743,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   );
 
   const activePickerCategoryData = useMemo(
-    () => MATERIAL_CATEGORY_TABS.find((item) => item.value === activePickerCategory) || MATERIAL_CATEGORY_TABS[0],
+    () => SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activePickerCategory) || SOURCE_LIBRARY_CATEGORIES[0],
     [activePickerCategory]
   );
 
@@ -586,6 +807,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       });
     }
 
+  if (activeMaterialCategory === "covers") {
+    nextMaterials = nextMaterials.filter((item) => materialMatchesCategory(item, "covers"));
+  }
+
+  if (activeMaterialCategory === "client-goals") {
+    return [];
+  }
+
+  if (activeMaterialCategory === "form") {
+    nextMaterials = nextMaterials.filter((item) => materialMatchesCategory(item, "form", activeMaterialSubcategoryData?.value || activeMaterialSubcategoryData?.label));
+  }
+
     return nextMaterials;
   }, [activeMaterialCategory, activeMaterialSubcategoryData, activeMaterialThirdLevelData, materialFilter, materialChannelValues, materials]);
 
@@ -613,42 +846,35 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const materialImageStyle = (value) => imageStyle(displayMaterialImageUrl(value));
 
-  const pickerImageOptions = useMemo(() => {
+  const buildSourceLibraryItems = (categoryValue, category, subcategory, thirdLevel) => {
     const materialToOption = (item, index) => ({
       id: `picker-material-${item.id || index}`,
       label: item.title || `Материал ${index + 1}`,
       meta: [publicationTypeLabel(item.type), item.step_title, materialStatusText(item.status)].filter(Boolean).join(" · "),
       src: item.image_url,
-      displaySrc: item.display_url || displayMaterialImageUrl(item.image_url)
+      displaySrc: item.display_url || displayMaterialImageUrl(item.image_url),
+      kind: "material"
     });
     const traditionToOption = (item, index) => ({
       id: `picker-tradition-${item.id || index}`,
       label: item.title || item.tradition_title || "Образ традиции",
-      meta: [item.tradition_title, "Каналы Богов"].filter(Boolean).join(" · "),
+      meta: [item.tradition_title, "Мистерии"].filter(Boolean).join(" · "),
       src: item.image_ref || item.image_url,
-      displaySrc: item.display_url || item.image_url
+      displaySrc: item.display_url || item.image_url,
+      kind: "tradition-asset"
     });
     const hasImage = (item) => Boolean(item?.src || item?.displaySrc);
-    const textIncludes = (item, text) => {
-      const needle = String(text || "").toLowerCase();
-      if (!needle) return false;
-      return [item.title, item.description, item.setting_title, item.step_title]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(needle);
-    };
 
-    if (activePickerCategory === "dao-ri") {
-      const stepIds = new Set(activePickerSubcategoryData?.steps?.map((step) => step.id) || []);
+    if (categoryValue === "dao-ri") {
+      const stepIds = new Set(subcategory?.steps?.map((step) => step.id) || []);
       return uniqueImageSources(materials
         .filter((item) => item.image_url && (!stepIds.size || !item.step_id || stepIds.has(item.step_id)))
         .map(materialToOption)
         .filter(hasImage));
     }
 
-    if (activePickerCategory === "god-channels") {
-      const traditionId = activePickerSubcategoryData?.traditionId || "";
+    if (categoryValue === "god-channels") {
+      const traditionId = subcategory?.traditionId || "";
       return uniqueImageSources(traditionAssets
         .filter((item) => item.image_ref || item.image_url)
         .filter((item) => !traditionId || item.tradition_id === traditionId)
@@ -656,18 +882,61 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         .filter(hasImage));
     }
 
-    if (activePickerCategory === "talismans") {
+    if (categoryValue === "client-goals") {
+      return uniqueImageSources(clientGoalPhotos
+        .filter((photo) => photo.image_ref || photo.image_url)
+        .map((photo, index) => ({
+          id: `picker-client-${photo.id || index}`,
+          label: photo.title || "Фото клиента / цели",
+          meta: photo.notes || "Клиенты / цель",
+          src: photo.image_ref || photo.image_url,
+          displaySrc: photo.display_url || photo.image_url,
+          kind: "client-photo",
+          photoId: photo.id
+        })));
+    }
+
+    if (categoryValue === "covers") {
+      return uniqueImageSources([
+        ...coverVariants
+          .filter((cover) => cover.type === "image")
+          .map((cover) => ({
+            id: `picker-cover-${cover.id}`,
+            label: cover.label || "Подложка",
+            meta: "подложка / фон",
+            src: cover.src,
+            displaySrc: cover.displaySrc || cover.src,
+            kind: "cover"
+          })),
+        ...materials
+          .filter((item) => item.image_url && materialMatchesCategory(item, "covers"))
+          .map(materialToOption)
+      ].filter((item) => item?.kind === "cover" || item?.src || item?.displaySrc));
+    }
+
+    if (categoryValue === "form") {
       return uniqueImageSources(materials
-        .filter((item) => item.image_url && item.type === "artifact")
-        .filter((item) => textIncludes(item, activePickerSubcategoryData?.label || "Талисман"))
+        .filter((item) => item.image_url && materialMatchesCategory(item, "form", subcategory?.value || subcategory?.label))
         .map(materialToOption)
         .filter(hasImage));
     }
 
-    if (activePickerCategory === "channels") {
+    if (categoryValue === "talismans") {
+      return uniqueImageSources(materials
+        .filter((item) => item.image_url && item.type === "artifact")
+        .filter((item) => textMatches(item, subcategory?.label || "Талисман"))
+        .map(materialToOption)
+        .filter(hasImage));
+    }
+
+    if (categoryValue === "channels") {
+      const subcategoryValues = [subcategory?.value, subcategory?.label].filter(Boolean);
+      const thirdLevelValues = [thirdLevel?.value, thirdLevel?.label].filter(Boolean);
+      const pickerValues = [subcategoryValues, thirdLevelValues].filter((entry) => entry.length > 0);
+
       return uniqueImageSources(materials
         .filter((item) => item.image_url && (
-          !pickerChannelValues.length || pickerChannelValues.every((entry) => channelTextMatch(item, entry))
+          !pickerValues.length || pickerValues.every((entry) => textMatches(item, entry) || channelTextMatch(item, entry))
         ))
         .map(materialToOption)
         .filter(hasImage));
@@ -677,7 +946,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       .filter((item) => item.image_url && item.type === "artifact")
       .map(materialToOption)
       .filter(hasImage));
-  }, [activePickerCategory, activePickerSubcategoryData, activePickerThirdLevelData, activePickerThirdLevel, materials, pickerChannelValues, traditionAssets]);
+  };
+
+  const pickerImageOptions = useMemo(() => {
+    return buildSourceLibraryItems(activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData);
+  }, [activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData, coverVariants, materials, clientGoalPhotos, traditionAssets]);
 
   const reusableImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((item) => ({
@@ -745,7 +1018,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     },
     {
       id: "divine-channels",
-      label: "Каналы Богов",
+      label: "Мистерии",
       count: mysteryTraditions.reduce((sum, tradition) => sum + 1 + (tradition.entities?.length || 0), 0),
       items: mysteryTraditions.flatMap((tradition) => [
         {
@@ -789,6 +1062,30 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       ]
     },
     {
+      id: "material-covers",
+      label: "Фон",
+      count: materials.filter((item) => item.image_url && materialMatchesCategory(item, "covers")).length,
+      items: materials
+        .filter((item) => item.image_url && materialMatchesCategory(item, "covers"))
+        .map((item) => ({
+          id: `material-cover-${item.id}`,
+          title: item.title || "Материал",
+          meta: "фон"
+        }))
+    },
+    {
+      id: "material-form",
+      label: "Форма",
+      count: materials.filter((item) => materialMatchesCategory(item, "form")).length,
+      items: materials
+        .filter((item) => item.image_url && materialMatchesCategory(item, "form"))
+        .map((item) => ({
+          id: `material-form-${item.id}`,
+          title: item.title || "Форма",
+          meta: item.material_subcategory || item.material_category || item.category || item.subcategory || "форма"
+        }))
+    },
+    {
       id: "covers",
       label: "Подложка места силы",
       count: coverVariants.length,
@@ -800,7 +1097,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     },
     {
       id: "client-goals",
-      label: "Фото клиентов / целей",
+      label: "Клиенты",
       count: clientGoalPhotos.length,
       emptyText: "Фото появятся после сохранения в кабинете.",
       items: clientGoalPhotos.map((photo) => ({
@@ -816,7 +1113,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       id: `client-photo-${photo.id}`,
       title: photo.title || "Фото клиента / цели",
       label: photo.title || "Фото клиента / цели",
-      source: "Фото клиентов / целей",
+      source: "Клиенты",
       status: photo.notes || "",
       src: photo.image_ref || photo.image_url,
       displaySrc: photo.display_url || photo.image_url,
@@ -827,7 +1124,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       id: `tradition-asset-${asset.id}`,
       title: asset.title || selectedTradition?.title || "Образ традиции",
       label: asset.title || selectedTradition?.title || "Образ традиции",
-      source: "Каналы Богов",
+      source: "Мистерии",
       status: asset.tradition_title || selectedTradition?.title || "",
       src: asset.image_ref || asset.image_url,
       displaySrc: asset.display_url || asset.image_url,
@@ -888,10 +1185,38 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
 
     if (constructorType === "zodiac") {
-      return ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => ({
+      const isPlusVariant = zodiacVariant.startsWith("plus");
+      const signSlots = ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => ({
         id: `zodiac-${index + 1}`,
-        label: sign.label
+        label: sign.label,
+        className: `${sign.className}`,
+        classPrefix: "classic"
       }));
+
+      if (!isPlusVariant) {
+        return signSlots;
+      }
+
+      const hasPlus12 = zodiacVisibleCount >= 12;
+      const plusSlotDefinitions = hasPlus12
+        ? [
+          { id: "zodiac-plus-top", label: "Топ", className: "plus-top", classPrefix: "plus" },
+          { id: "zodiac-plus-right", label: "Право", className: "plus-right", classPrefix: "plus" },
+          { id: "zodiac-plus-bottom", label: "Низ", className: "plus-bottom", classPrefix: "plus" },
+          { id: "zodiac-plus-left", label: "Лево", className: "plus-left", classPrefix: "plus" },
+          { id: "zodiac-plus-corner-tl", label: "Угол верх-лев", className: "plus-corner-tl", classPrefix: "plus" },
+          { id: "zodiac-plus-corner-tr", label: "Угол верх-прав", className: "plus-corner-tr", classPrefix: "plus" },
+          { id: "zodiac-plus-corner-bl", label: "Угол низ-лев", className: "plus-corner-bl", classPrefix: "plus" },
+          { id: "zodiac-plus-corner-br", label: "Угол низ-прав", className: "plus-corner-br", classPrefix: "plus" }
+        ]
+        : [
+          { id: "zodiac-plus-top", label: "Топ", className: "plus-top", classPrefix: "plus" },
+          { id: "zodiac-plus-right", label: "Право", className: "plus-right", classPrefix: "plus" },
+          { id: "zodiac-plus-bottom", label: "Низ", className: "plus-bottom", classPrefix: "plus" },
+          { id: "zodiac-plus-left", label: "Лево", className: "plus-left", classPrefix: "plus" }
+        ];
+
+      return [...signSlots, ...plusSlotDefinitions];
     }
 
     if (constructorType === "star") {
@@ -905,7 +1230,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       id: `source-${index + 1}`,
       label: sourceLabel(powerSourceCount, index)
     }));
-  }, [businessVertexZoneCount, constructorType, powerSourceCount, zodiacVisibleCount]);
+  }, [businessVertexZoneCount, constructorType, powerSourceCount, zodiacVisibleCount, zodiacVariant]);
 
   const selectedObjectSlot = useMemo(
     () => activeObjectSlots.find((slot) => slot.id === selectedObjectSlotId) || activeObjectSlots[0] || null,
@@ -924,6 +1249,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       activeObjectSlots.some((slot) => slot.id === current) ? current : activeObjectSlots[0].id
     );
   }, [activeObjectSlots]);
+
+  useEffect(() => {
+    if (constructorType !== "zodiac") return;
+    setZodiacVariant((current) => zodiacVariantOption(current, zodiacVisibleCount));
+  }, [constructorType, zodiacVisibleCount]);
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
@@ -1178,7 +1508,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setCompositionTitle(composition.title || "");
     setConstructorType(composition.constructor_type || "client");
     if (composition.geometry) setPowerSourceCount(Number(composition.geometry));
-    setZodiacVisibleCount(ZODIAC_VISIBLE_COUNTS.includes(Number(composition.zodiac_visible_count)) ? Number(composition.zodiac_visible_count) : 12);
+    const nextZodiacVisibleCount = ZODIAC_VISIBLE_COUNTS.includes(Number(composition.zodiac_visible_count))
+      ? Number(composition.zodiac_visible_count)
+      : 12;
+
+    setZodiacVisibleCount(nextZodiacVisibleCount);
+    setZodiacVariant(inferZodiacVariant(nextZodiacVisibleCount, composition.object_refs || {}));
     setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
     setStarVariant(STAR_VARIANTS.some((item) => item.value === composition.star_variant) ? composition.star_variant : "closed");
     setAltarCenterRatio(composition.altar_center_ratio || "1");
@@ -1186,7 +1521,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setObjectImageUrls((current) => ({ ...current, ...(composition.object_ref_urls || {}) }));
     setSelectedCentralPhotoId(composition.central_photo_id || "");
     setSelectedTraditionId(composition.tradition_id || mysteryTraditions[0]?.id || "");
-    setResourceComparisonMode(composition.resource_comparison_mode || "client_photo");
+    setResourceComparisonMode(composition.resource_comparison_mode || "photo_mandala");
     setResourceWithoutMandalaComment(composition.resource_without_mandala_comment || "");
     setResourceWithMandalaComment(composition.resource_with_mandala_comment || "");
 
@@ -1382,7 +1717,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const handlePickerCategorySelect = (categoryValue) => {
     setActivePickerCategory(categoryValue);
-    const category = MATERIAL_CATEGORY_TABS.find((item) => item.value === categoryValue) || MATERIAL_CATEGORY_TABS[0];
+    const category = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === categoryValue) || SOURCE_LIBRARY_CATEGORIES[0];
     const firstSubcategory = category.subcategories[0];
     setActivePickerSubcategory(firstSubcategory?.value || "");
     setActivePickerThirdLevel(firstSubcategory?.thirdLevels?.[0]?.value || "");
@@ -1595,12 +1930,26 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const openClientPhotoPicker = () => {
+    handlePickerCategorySelect("client-goals");
+    setActivePickerSubcategory("");
+    setActivePickerThirdLevel("");
     setImagePickerContext({ mode: "center", slotId: "" });
   };
 
   const chooseCentralPhoto = (photoId) => {
     setSelectedCentralPhotoId(photoId);
     closeImagePicker();
+  };
+
+  const choosePickerOption = (option) => {
+    if (imagePickerContext.mode === "center") {
+      if (option?.kind === "client-photo" && option.photoId) {
+        chooseCentralPhoto(option.photoId);
+      }
+      return;
+    }
+
+    chooseObjectPickerImage(option);
   };
 
   const chooseObjectPickerImage = (option) => {
@@ -1619,7 +1968,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       aria-label="Фото клиента / цели"
     >
       {!centerImage && <span>Фото клиента / цели</span>}
-    </button>
+      </button>
+  );
+
+  const renderCenterPhotoWithMode = (className) => (
+    <div className="centerPhotoModeControlWrap">
+      <div className="centerPhotoModeControl">
+        {resourceModeToggle}
+      </div>
+      {renderCenterPhotoButton(className)}
+    </div>
   );
 
   const handleDownloadMandala = () => {
@@ -1734,13 +2092,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setSelectedCompositionId("");
     setCompositionTitle("");
     setImagePickerContext({ mode: "", slotId: "" });
-    setActiveTopTab("mandalas");
+    setActiveTopTab("power-place");
     setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
     setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
     setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
-    setActivePickerCategory(MATERIAL_CATEGORY_TABS[0].value);
-    setActivePickerSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
-    setActivePickerThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setActivePickerCategory(SOURCE_LIBRARY_CATEGORIES[0].value);
+    setActivePickerSubcategory(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
+    setActivePickerThirdLevel(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
     setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
     setSelectedObjectSlotId("");
     setMaterialFilter("all");
@@ -1837,37 +2195,50 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     </div>
   );
 
-  const resourceComparisonPanel = (
-    <div className="resourceComparisonPanel">
-      <div className="resourceModeToggle" aria-label="Сравнение ресурса">
-        {RESOURCE_COMPARISON_MODES.map((mode) => (
-          <button
-            className={resourceComparisonMode === mode.value ? "active" : ""}
-            key={mode.value}
-            onClick={() => setResourceComparisonMode(mode.value)}
-            type="button"
-          >
-            {mode.label}
-          </button>
-        ))}
-        <span>Ресурс без / с мандалой</span>
-      </div>
-      <label>
-        Ресурс без мандалы
-        <textarea
-          value={resourceWithoutMandalaComment}
-          onChange={(event) => setResourceWithoutMandalaComment(event.target.value)}
-          rows="2"
-        />
-      </label>
-      <label>
-        Ресурс с мандалой
-        <textarea
-          value={resourceWithMandalaComment}
-          onChange={(event) => setResourceWithMandalaComment(event.target.value)}
-          rows="2"
-        />
-      </label>
+const resourceComparisonPanel = (
+  <div className="resourceComparisonPanel">
+    <label className="resourceField">
+      <textarea
+        className="resourceFieldInput"
+        rows="1"
+        value={resourceWithoutMandalaComment}
+        onChange={(event) => setResourceWithoutMandalaComment(event.target.value)}
+        placeholder="Кратко опишите ресурс без мандалы"
+      />
+    </label>
+    <label className="resourceField">
+      <textarea
+        className="resourceFieldInput"
+        rows="1"
+        value={resourceWithMandalaComment}
+        onChange={(event) => setResourceWithMandalaComment(event.target.value)}
+        placeholder="Кратко опишите ресурс с мандалой"
+      />
+    </label>
+  </div>
+);
+
+  const resourceModeToggle = (
+    <div className="resourceModeToggle" aria-label="Сравнение ресурса">
+      {RESOURCE_COMPARISON_MODES.map((mode) => (
+        <button
+          className={resourceComparisonMode === mode.value ? "active" : ""}
+          key={mode.value}
+          onClick={() => setResourceComparisonMode(mode.value)}
+          type="button"
+        >
+          {mode.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderCenterPhotoFrame = (className) => (
+    <div
+      className={className + (centerImage ? " hasImage" : "")}
+      style={imageStyleFor(centerImage)}
+    >
+      {!centerImage && <span>Фото клиента / цели</span>}
     </div>
   );
 
@@ -1917,8 +2288,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
             <div className="workspaceSwitches">
               <div className="workspaceTabs" role="tablist" aria-label="Основной раздел кабинета">
-                <button className={activeTopTab === "mandalas" ? "active" : ""} type="button" onClick={() => setActiveTopTab("mandalas")}>Мои мандалы</button>
                 <button className={activeTopTab === "power-place" ? "active" : ""} type="button" onClick={() => setActiveTopTab("power-place")}>Место силы</button>
+                <button className={activeTopTab === "mandalas" ? "active" : ""} type="button" onClick={() => setActiveTopTab("mandalas")}>Мои мандалы</button>
                 <button className={activeTopTab === "chats" ? "active" : ""} type="button" onClick={() => setActiveTopTab("chats")}>Чаты</button>
                 <button className={activeTopTab === "profile" ? "active" : ""} type="button" onClick={() => setActiveTopTab("profile")}>Профиль</button>
               </div>
@@ -1930,39 +2301,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
             <div className="workspaceMainColumns">
             <aside className="mandalaModeSidebar">
-              {activeTopTab === "mandalas" ? (
+              {(activeTopTab === "power-place" || activeTopTab === "mandalas") ? (
                 <>
-                  <p className="cabinetEyebrow">Браузер материалов</p>
-                  <h3>Фильтр мастерской</h3>
-                  <div className="materialFilterList" aria-label="Фильтр материалов">
-                    {MATERIAL_FILTERS.map((filter) => (
-                      <button
-                        className={materialFilter === filter.value ? "active" : ""}
-                        key={filter.value}
-                        onClick={() => setMaterialFilter(filter.value)}
-                        type="button"
-                      >
-                        <span>{filter.label}</span>
-                        <b>{filter.value === "all" ? materials.length : materials.filter((item) => item.type === filter.value || item.status === filter.value).length}</b>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="materialMiniList">
-                    {filteredMaterials.slice(0, 6).map((item) => (
-                      <button key={item.id} type="button">
-                        <span className={item.image_url ? "hasImage" : ""} style={materialImageStyle(item.image_url)}>◎</span>
-                        <b>{item.title || "Материал без названия"}</b>
-                        <small>{[item.step_id, item.setting_title || materialStatusText(item.status)].filter(Boolean).join(" · ")}</small>
-                      </button>
-                    ))}
-                    {filteredMaterials.length === 0 && <p>Материалы этого типа появятся здесь после сохранения.</p>}
-                  </div>
-                </>
-              ) : activeTopTab === "power-place" ? (
-                <>
-                  <p className="cabinetEyebrow">Место силы</p>
-                  <h3>Библиотека образов</h3>
-                  <div className="powerLibrarySidebar" aria-label="Навигация и сохранённые образы места силы">
+                  <p className="cabinetEyebrow">Источники силы</p>
+                  <h3>Источники силы</h3>
+                  <div className="powerLibrarySidebar" aria-label="Единый источник материалов для мест силы">
                     <div className="powerLibraryGroups">
                       {powerLibraryGroups.map((group, index) => (
                         <details key={group.id} open={index < 2}>
@@ -1995,7 +2338,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           <small>{[item.source, item.status].filter(Boolean).join(" · ")}</small>
                         </button>
                       ))}
-                      {savedPowerImages.length === 0 && <p>Сохранённые фото, подложки и материалы появятся здесь после загрузки.</p>}
+                      {savedPowerImages.length === 0 && <p>Сохранённые фото, подложки и изображения появятся здесь после загрузки.</p>}
                     </div>
                   </div>
                   <div className="quickPhotoGrid">
@@ -2225,86 +2568,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
               </form>
             </div>
 
-            <section className="powerLibraryGrid">
-              <div className="powerLibraryCard">
-                <div className="cabinetFormHeader">
-                  <div>
-                    <p className="cabinetEyebrow">Фото клиентов / целей</p>
-                    <h2>Центр места силы</h2>
-                  </div>
-                  <span className="cabinetStatus">{clientGoalPhotos.length}/{planLimits.clientPhotos}</span>
-                </div>
-                <div className="powerInlineForm">
-                  <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
-                  <label className="mediaUploadButton">
-                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
-                    {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
-                  </label>
-                  <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
-                  <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={handleClientPhotoSave}>
-                    {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить фото"}
-                  </button>
-                </div>
-                {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
-                <p className="powerPlanNote">Файлы сохраняются в private Supabase Storage; URL поле оставлено для старых внешних ссылок.</p>
-                <div className="clientPhotoStrip">
-                  {clientGoalPhotos.map((photo) => (
-                    <button
-                      className={selectedCentralPhotoId === photo.id ? "active" : ""}
-                      key={photo.id}
-                      onClick={() => setSelectedCentralPhotoId(photo.id)}
-                      type="button"
-                    >
-                      <span style={imageStyle(photo.display_url || photo.image_url)} />
-                      <b>{photo.title || "Фото клиента / цели"}</b>
-                    </button>
-                  ))}
-                  {clientGoalPhotos.length === 0 && <p>Добавьте фото клиента или цели, чтобы выбрать центр мандалы или алтаря.</p>}
-                </div>
-              </div>
-
-              <div className="powerLibraryCard">
-                <div className="cabinetFormHeader">
-                  <div>
-                    <p className="cabinetEyebrow">Мистерии</p>
-                    <h2>Традиция алтаря</h2>
-                  </div>
-                  <span className="cabinetStatus">{traditionAssets.length}</span>
-                </div>
-                <label>
-                  Традиция
-                  <select value={selectedTraditionId} onChange={(event) => setSelectedTraditionId(event.target.value)}>
-                    {mysteryTraditions.map((tradition) => (
-                      <option key={tradition.id} value={tradition.id}>{tradition.title}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="powerInlineForm">
-                  <input value={traditionAssetForm.title} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название образа" />
-                  <label className="mediaUploadButton">
-                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleTraditionAssetFile} />
-                    {traditionAssetForm.file ? traditionAssetForm.file.name : "Файл традиции"}
-                  </label>
-                  <input value={traditionAssetForm.image_url} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL изображения традиции (опционально)" />
-                  <input value={traditionAssetForm.notes} onChange={(event) => setTraditionAssetForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                  <button className="cabinetSecondary" type="button" disabled={!profile?.id || !selectedTradition || mediaUploadTarget === "tradition"} onClick={handleTraditionAssetSave}>
-                    {mediaUploadTarget === "tradition" ? "Загружаю..." : "Сохранить образ"}
-                  </button>
-                </div>
-                <p className="powerPlanNote">IA: Личный кабинет → Мистерии → {selectedTradition?.title || "традиция"}. Образы доступны только владельцу профиля.</p>
-                <div className="traditionAssetStrip">
-                  {traditionAssets.map((asset) => (
-                    <span key={asset.id}>
-                      <i style={imageStyle(asset.display_url || asset.image_url)} />
-                      <b>{asset.title || selectedTradition?.title}</b>
-                    </span>
-                  ))}
-                  {traditionAssets.length === 0 && <p>Сохранённые образы выбранной традиции появятся в селекторах объектов алтаря.</p>}
-                </div>
-              </div>
-            </section>
-
               </>
             )}
 
@@ -2341,20 +2604,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             <div className="workspaceRightColumn">
             {activeTopTab === "power-place" && (
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
-              <div className="powerPlaceHeader">
-                <div>
-                  <p className="cabinetEyebrow">Места силы</p>
-                  <h2>Магическая мандала</h2>
-                </div>
-                <div className="constructorControls">
-                  <select value={selectedCentralPhotoId} onChange={(event) => setSelectedCentralPhotoId(event.target.value)}>
-                    <option value="">Фото клиента / цели</option>
-                    {clientGoalPhotos.map((photo) => (
-                      <option key={photo.id} value={photo.id}>{photo.title || "Фото клиента / цели"}</option>
-                    ))}
-                  </select>
+                <div className="powerPlaceHeader">
+                  <div>
+                    <p className="cabinetEyebrow">Места силы</p>
+                    <h2>Магическая мандала</h2>
+                  </div>
+                  <div className="constructorControls">
                   <div className="constructorTypeSelector" aria-label="Тип конструктора">
-                    {CONSTRUCTOR_TYPES.map((type) => (
+                        {CONSTRUCTOR_TYPES.map((type) => (
                       <button
                         className={constructorType === type.value ? "active" : ""}
                         key={type.value}
@@ -2418,14 +2675,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   {constructorType === "zodiac" && (
                     <div className="zodiacCountSelector" aria-label="Количество видимых позиций зодиака">
                       <span>Позиции зодиака</span>
-                      {ZODIAC_VISIBLE_COUNTS.map((count) => (
+                      {ZODIAC_VARIANTS.map((variant) => (
                         <button
-                          className={zodiacVisibleCount === count ? "active" : ""}
-                          key={count}
-                          onClick={() => setZodiacVisibleCount(count)}
+                          className={variant.visibleCount === zodiacVisibleCount && zodiacVariant === variant.value ? "active" : ""}
+                          key={variant.value}
+                          onClick={() => {
+                            setZodiacVariant(variant.value);
+                            setZodiacVisibleCount(variant.visibleCount);
+                          }}
                           type="button"
                         >
-                          {count}
+                          {variant.label}
                         </button>
                       ))}
                     </div>
@@ -2467,12 +2727,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   </div>
                   {resourceComparisonMode === "client_photo" ? (
                     <div className="powerPhotoOnlyFrame">
-                      {renderCenterPhotoButton("powerCenterPhoto photoOnly")}
+                      {renderCenterPhotoWithMode("powerCenterPhoto photoOnly")}
                       <p>Фото клиента / цели</p>
                     </div>
                   ) : constructorType === "client" ? (
                     <div className={`powerMandala geometry-${powerSourceCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
-                      {renderCenterPhotoButton("powerCenterPhoto")}
+                      {renderCenterPhotoWithMode("powerCenterPhoto")}
                       <div className="powerMandalaBase">
                         <span>мандала места силы</span>
                       </div>
@@ -2485,7 +2745,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                             className={`${sourceClassName(powerSourceCount, index)}${sourceImage ? " hasImage" : ""}${selectedObjectSlotId === slotId ? " selected" : ""}`}
                             key={`source-${powerSourceCount}-${index}`}
                             onClick={() => openObjectSlot(slotId)}
-                            style={imageStyleFor(sourceImage)}
+                            style={{ ...imageStyleFor(sourceImage), ...(sourcePositionStyle(powerSourceCount, index) || {}) }}
                             type="button"
                             title={sourceLabel(powerSourceCount, index)}
                             aria-label={`Выбрать позицию ${sourceLabel(powerSourceCount, index)}`}
@@ -2518,7 +2778,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                           );
                         })}
                       </div>
-                      {renderCenterPhotoButton("altarCenterPhoto")}
+                      {renderCenterPhotoWithMode("altarCenterPhoto")}
                       <div className="altarMandalaBase">
                         <span>мандала места силы</span>
                       </div>
@@ -2545,7 +2805,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                   ) : constructorType === "business" ? (
                     <div className={`businessMandalaSheet zones-${businessVertexZoneCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
-                      {renderCenterPhotoButton("businessCenterPhoto")}
+                      {renderCenterPhotoWithMode("businessCenterPhoto")}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
                         <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
@@ -2575,7 +2835,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                   ) : constructorType === "zodiac" ? (
                     <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
-                      {renderCenterPhotoButton("zodiacCenterPhoto")}
+                      {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                       <div className="zodiacClockFace" aria-hidden="true">
                         <span>ЗОДИАК</span>
                       </div>
@@ -2602,7 +2862,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                   ) : constructorType === "star" ? (
                     <div className={`starMandalaSheet star-${starVariant} ${selectedCoverClass}`} style={selectedCoverStyle}>
-                      {renderCenterPhotoButton("starCenterPhoto")}
+                      {renderCenterPhotoWithMode("starCenterPhoto")}
                       <div className="starGuide" aria-hidden="true">
                         <span className="starRay rayTop" />
                         <span className="starRay rayRight" />
@@ -2635,7 +2895,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                   ) : (
                     <div className={`daoMandalaSheet ${selectedCoverClass}`} style={selectedCoverStyle}>
-                      {renderCenterPhotoButton("daoCenterPhoto")}
+                      {renderCenterPhotoWithMode("daoCenterPhoto")}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>
                       </div>
@@ -2663,7 +2923,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                   )}
                   <p className="powerPlaceHint">
                     {constructorType === "client"
-                      ? "Центр использует только фото из раздела «Фото клиентов / целей». В раскладе 12 добавлены четыре внешних хранителя пространства."
+                      ? "Центр использует только фото из раздела «Фото клиентов / целей». При 12/18 точках добавлены внешние позиции вокруг центра."
                       : constructorType === "altar"
                         ? "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."
                         : constructorType === "business"
@@ -2781,120 +3041,90 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                     </div>
                     <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
                   </div>
-                  {imagePickerContext.mode === "center" ? (
-                    <>
-                      <div className="clientPhotoPickerGrid">
-                        {clientGoalPhotos.map((photo) => (
-                          <button
-                            className={selectedCentralPhotoId === photo.id ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
-                            key={photo.id}
-                            onClick={() => chooseCentralPhoto(photo.id)}
-                            type="button"
-                          >
-                            <span style={imageStyle(photo.display_url || photo.image_url)} />
-                            <b>{photo.title || "Фото клиента / цели"}</b>
-                            {photo.notes && <small>{photo.notes}</small>}
-                          </button>
-                        ))}
-                        {clientGoalPhotos.length === 0 && (
-                          <div className="clientPhotoPickerEmpty">
-                            <b>Фото клиентов пока нет</b>
-                            <p>Загрузите фото ниже, и оно сразу станет центром мандалы.</p>
-                          </div>
-                        )}
+                  <div className="imagePickerCategoryTabs" aria-label="Категории изображений">
+                    {SOURCE_LIBRARY_CATEGORIES.map((category) => (
+                      <button
+                        className={activePickerCategory === category.value ? "active" : ""}
+                        key={category.value}
+                        onClick={() => handlePickerCategorySelect(category.value)}
+                        type="button"
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                  {activePickerCategoryData.subcategories.length > 0 && (
+                    <select
+                      className="imagePickerSubcategorySelect"
+                      value={activePickerSubcategory}
+                      onChange={(event) => {
+                        const nextSubcategory = activePickerCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
+                        if (nextSubcategory) handlePickerSubcategorySelect(nextSubcategory);
+                      }}
+                    >
+                      {activePickerCategoryData.subcategories.map((subcategory) => (
+                        <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
+                      ))}
+                    </select>
+                  )}
+                  {activePickerSubcategoryData?.thirdLevels?.length > 0 && (
+                    <select
+                      className="imagePickerSubcategorySelect"
+                      value={activePickerThirdLevel}
+                      onChange={(event) => {
+                        const nextThird = activePickerSubcategoryData?.thirdLevels?.find((thirdLevel) => thirdLevel.value === event.target.value);
+                        if (nextThird) handlePickerThirdLevelSelect(nextThird);
+                      }}
+                    >
+                      {activePickerSubcategoryData.thirdLevels.map((thirdLevel) => (
+                        <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
+                      ))}
+                    </select>
+                  )}
+                  <div className="clientPhotoPickerGrid">
+                    {modalPickerImageOptions.map((option) => (
+                      <button
+                        className={selectedObjectImage === option.src ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
+                        key={option.id}
+                        onClick={() => imagePickerContext.mode === "center" ? choosePickerOption(option) : chooseObjectPickerImage(option)}
+                        type="button"
+                      >
+                        <span style={imageStyle(option.displaySrc || option.src)} />
+                        <b>{option.label}</b>
+                        {option.meta && <small>{option.meta}</small>}
+                      </button>
+                    ))}
+                    {modalPickerImageOptions.length === 0 && (
+                      <div className="clientPhotoPickerEmpty">
+                        <b>{imagePickerContext.mode === "center" ? "Фото клиента / цели не добавлены." : activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
+                        <p>Используются только реальные изображения из сохранённых мандал, материалов и доступных образов кабинета.</p>
                       </div>
-                      <div className="clientPhotoPickerUpload">
-                        <div className="cabinetFormHeader">
-                          <div>
-                            <p className="cabinetEyebrow">Загрузить новое фото</p>
-                            <h3>{clientGoalPhotos.length}/{planLimits.clientPhotos}</h3>
-                          </div>
-                        </div>
-                        <div className="powerInlineForm">
-                          <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
-                          <label className="mediaUploadButton">
-                            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
-                            {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
-                          </label>
-                          <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
-                          <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
-                          <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
-                            {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
-                          </button>
-                        </div>
+                    )}
+                  </div>
+                  <div className="clientPhotoPickerUpload">
+                    <div className="cabinetFormHeader">
+                      <div>
+                        <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Загрузить новое фото" : "Загрузить объект"}</p>
+                        <h3>{imagePickerContext.mode === "center" ? `${clientGoalPhotos.length}/${planLimits.clientPhotos}` : (selectedObjectSlot?.label || "Позиция мандалы")}</h3>
+                      </div>
+                    </div>
+                    {imagePickerContext.mode === "center" ? (
+                      <div className="powerInlineForm">
+                        <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
+                        <label className="mediaUploadButton">
+                          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
+                          {clientPhotoForm.file ? clientPhotoForm.file.name : "Файл JPG/PNG/WEBP/GIF"}
+                        </label>
+                        <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="URL фото клиента / цели (опционально)" />
+                        <input value={clientPhotoForm.notes} onChange={(event) => setClientPhotoForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Заметка" />
+                        <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
+                          {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
+                        </button>
                         {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
                         <p className="powerPlanNote">Файл сохраняется в private Supabase Storage; внешний URL можно оставить для старых ссылок.</p>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="imagePickerCategoryTabs" aria-label="Категории изображений">
-                      {MATERIAL_CATEGORY_TABS.map((category) => (
-                        <button
-                          className={activePickerCategory === category.value ? "active" : ""}
-                          key={category.value}
-                          onClick={() => handlePickerCategorySelect(category.value)}
-                          type="button"
-                        >
-                          {category.label}
-                        </button>
-                      ))}
-                    </div>
-                    {activePickerCategoryData.subcategories.length > 0 && (
-                        <select
-                          className="imagePickerSubcategorySelect"
-                          value={activePickerSubcategory}
-                          onChange={(event) => {
-                            const nextSubcategory = activePickerCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
-                            if (nextSubcategory) handlePickerSubcategorySelect(nextSubcategory);
-                          }}
-                        >
-                          {activePickerCategoryData.subcategories.map((subcategory) => (
-                            <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
-                          ))}
-                        </select>
-                      )}
-                      {activePickerSubcategoryData?.thirdLevels?.length > 0 && (
-                        <select
-                          className="imagePickerSubcategorySelect"
-                          value={activePickerThirdLevel}
-                          onChange={(event) => {
-                            const nextThird = activePickerSubcategoryData?.thirdLevels?.find((thirdLevel) => thirdLevel.value === event.target.value);
-                            if (nextThird) handlePickerThirdLevelSelect(nextThird);
-                          }}
-                        >
-                          {activePickerSubcategoryData.thirdLevels.map((thirdLevel) => (
-                            <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
-                          ))}
-                        </select>
-                      )}
-                      <div className="clientPhotoPickerGrid">
-                        {pickerImageOptions.map((option) => (
-                          <button
-                            className={selectedObjectImage === option.src ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
-                            key={option.id}
-                            onClick={() => chooseObjectPickerImage(option)}
-                            type="button"
-                          >
-                            <span style={imageStyle(option.displaySrc || option.src)} />
-                            <b>{option.label}</b>
-                            {option.meta && <small>{option.meta}</small>}
-                          </button>
-                        ))}
-                        {pickerImageOptions.length === 0 && (
-                          <div className="clientPhotoPickerEmpty">
-                            <b>{activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
-                            <p>Используются только реальные изображения из сохранённых мандал, материалов и доступных образов кабинета.</p>
-                          </div>
-                        )}
-                      </div>
-                      <div className="clientPhotoPickerUpload">
-                        <div className="cabinetFormHeader">
-                          <div>
-                            <p className="cabinetEyebrow">Загрузить объект</p>
-                            <h3>{selectedObjectSlot?.label || "Позиция мандалы"}</h3>
-                          </div>
-                        </div>
+                    ) : (
+                      <>
                         <div className="selectedObjectActions">
                           <label className={!selectedObjectSlot ? "disabled" : ""}>
                             <input
@@ -2909,9 +3139,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
                         </div>
                         {coverNotice && <p className="coverNotice">{coverNotice}</p>}
                         <p className="powerPlanNote">Новые файлы сохраняются через существующий private Storage flow, если профиль и сессия доступны.</p>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </section>
               </div>
             )}
