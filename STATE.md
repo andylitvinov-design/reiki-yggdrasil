@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-27
+Last updated: 2026-05-28
 
 ## Current verified repo state
 
@@ -11,6 +11,29 @@ Last updated: 2026-05-27
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-05-28 — Mandala category popover UX reapply
+
+- Branch: `codex/refine-profile-mandala-category-popovers` (SHA `1fed4773a6f6f0b2f8f2f2f7d7f2c2e7f8c2a3d1`), merged from clean worktree based on current `origin/main`.
+- Reapplied mandala category popover UX onto the current repository state for `/profile`:
+  - `mandalaAtelierGrid` now renders before category controls by layout ordering.
+  - Category controls are split into compact disclosure blocks: `Дополнительные категории`, `Подкатегории`, and `DAO ступени` (DAO only when relevant).
+  - Compact selection chips now show current category, subcategory, and DAO step in the category panel.
+  - Desktop and mobile order is set so section header, form, category controls, then gallery ordering are explicit in layout.
+  - Panels have max-height and overflow constraints to avoid vertical overflow.
+- Existing behavior was intentionally preserved:
+  - Save/upload/download flows
+  - Supabase auth/session and media/power-place data flow
+  - Storage refs + signed URL handling
+  - `Фото клиентов / цели`, `Скачать`, `Название мандалы`, and picker modal behavior from PR #69
+  - RU-first interface and Vercel rewrites
+- Primary category labels were aligned to show `Мистерия / Каналы Богов` in the second tab.
+- PR created: https://github.com/andylitvinov-design/reiki-yggdrasil/pull/70
+
+Needs verification:
+
+- Browser QA should confirm `/` `/profile` `/masters` `/profile/admin` desktop 1280/1366/1440/1710 and mobile 390 with no horizontal overflow and working disclosure toggles.
+- Confirm PR #68 star format and PR #69 picker/download UX remain unchanged through runtime smoke tests.
 
 ## 2026-05-27 Power Place image picker and download UX
 

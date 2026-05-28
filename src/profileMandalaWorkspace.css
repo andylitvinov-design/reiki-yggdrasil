@@ -80,6 +80,26 @@
   grid-row: auto !important;
 }
 
+.workspaceCenterColumn .mandalaWorkspaceSectionHeader {
+  order: 1;
+}
+
+.workspaceCenterColumn .materialCategoryNav {
+  order: 3;
+}
+
+.workspaceCenterColumn .mandalaAtelierGrid {
+  order: 2;
+}
+
+.workspaceCenterColumn .powerLibraryGrid {
+  order: 4;
+}
+
+.workspaceCenterColumn .mandalaGallery {
+  order: 5;
+}
+
 .workspaceTabs {
   display: flex;
   flex-wrap: wrap;
@@ -592,8 +612,78 @@
   display: grid;
   gap: 12px;
   padding: 16px;
+  max-height: min(430px, calc(100vh - 230px));
+  overflow: hidden;
 }
 
+.materialSelectionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.materialSelectionChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(184, 121, 29, 0.26);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 253, 248, 0.84);
+  color: #5d4120;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.materialSelectionChip b {
+  color: #4a2d0f;
+  white-space: nowrap;
+}
+
+.materialCategoryDetails {
+  min-width: 0;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.78);
+  overflow: hidden;
+}
+
+.materialCategoryDetails summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  color: #5d3c12;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.materialCategoryDetails summary::marker,
+.materialCategoryDetails::-webkit-details-marker {
+  display: none;
+}
+
+.materialCategoryDetails summary::after {
+  content: "▾";
+  color: #7d4d16;
+  font-size: 12px;
+}
+
+.materialCategoryDetails[open] summary::after {
+  content: "▴";
+}
+
+.materialCategoryDetailsPanel {
+  padding: 0 10px 10px;
+  max-height: 150px;
+  overflow: auto;
+}
+
+.materialCategoryDetailsPanel .materialCategoryTabs,
+.materialCategoryDetailsPanel .materialSubcategoryTabs,
+.materialCategoryDetailsPanel .materialStepTabs,
 .materialCategoryTabs,
 .materialSubcategoryTabs,
 .materialStepTabs {
@@ -601,6 +691,7 @@
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
+  width: 100%;
 }
 
 .materialCategoryTabs button,
@@ -656,6 +747,22 @@
 
 .materialCategoryContext b {
   color: #2f1c08;
+}
+
+.mandalaWorkspaceSectionHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.mandalaWorkspaceSectionHeader .cabinetEyebrow {
+  margin: 0;
+}
+
+.mandalaWorkspaceSectionHeader h2 {
+  margin: 0;
+  font-size: 25px;
+  letter-spacing: 0.2px;
+  color: #4d3112;
 }
 
 .mandalaAtelierGrid {
@@ -2847,6 +2954,26 @@
   .mandalaWorkspace.chatMode .powerPlaceConstructor {
     grid-column: 1;
     grid-row: auto;
+  }
+
+  .workspaceCenterColumn .mandalaWorkspaceSectionHeader {
+    order: 1;
+  }
+
+  .workspaceCenterColumn .mandalaAtelierGrid {
+    order: 2;
+  }
+
+  .workspaceCenterColumn .materialCategoryNav {
+    order: 3;
+  }
+
+  .workspaceCenterColumn .mandalaGallery {
+    order: 4;
+  }
+
+  .workspaceCenterColumn .powerLibraryGrid {
+    order: 5;
   }
 
   .mandalaModeSidebar {
