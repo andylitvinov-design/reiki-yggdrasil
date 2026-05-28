@@ -70,6 +70,8 @@ If UI changes are made, also run local preview and check:
 - no console errors
 - no broken imports
 
+A task is not complete until it is merged into main, deployed to production/live, and visually/functionally verified on the live URL.
+
 ## Report format
 
 After work, report:
