@@ -1,0 +1,48 @@
+@media (max-width: 980px) {
+  .materialCategoryNav {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .materialCategoryDetails {
+    overflow: visible !important;
+  }
+
+  .materialCategoryDetailsPanel {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .materialCategoryTabs,
+  .materialSubcategoryTabs,
+  .materialStepTabs {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .materialCategoryTabs button,
+  .materialSubcategoryTabs button,
+  .materialStepTabs button {
+    width: 100% !important;
+    white-space: normal !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    border-radius: 18px !important;
+    padding: 12px 14px !important;
+    line-height: 1.2 !important;
+  }
+
+  .materialSelectionChips {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .materialSelectionChip {
+    width: 100% !important;
+    border-radius: 16px !important;
+    align-items: flex-start !important;
+    white-space: normal !important;
+  }
+}
