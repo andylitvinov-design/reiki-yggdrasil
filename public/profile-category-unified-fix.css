@@ -45,4 +45,47 @@
     align-items: flex-start !important;
     white-space: normal !important;
   }
+
+  .workspaceMainColumns {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .workspaceCenterColumn {
+    order: 1 !important;
+  }
+
+  .mandalaModeSidebar {
+    order: 2 !important;
+  }
+}
+
+.resourceComparisonPanel textarea {
+  min-height: 44px !important;
+  height: 44px !important;
+  resize: vertical;
+}
+
+.issue72CompactResourceField textarea,
+.resourceComparisonPanel label textarea {
+  min-height: 44px !important;
+}
+
+.powerSource,
+.altarTopSource,
+.altarSupportSource,
+.businessVertexZone,
+.zodiacPositionImage,
+.starPositionImage,
+.daoElementImage {
+  transform: scale(1.08);
+}
+
+.powerMandala,
+.altarMandalaSheet,
+.businessMandalaSheet,
+.zodiacMandalaSheet,
+.starMandalaSheet,
+.daoMandalaSheet {
+  max-width: 100%;
 }
