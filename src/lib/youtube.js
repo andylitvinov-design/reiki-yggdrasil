@@ -1,3 +1,6 @@
+import "../publicRightMaterialsPanel.css";
+import "../publicRightMaterialsPanelMini.js";
+
 export function isPublicUrl(value) {
   return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"));
 }

@@ -4,6 +4,21 @@ import { createSignedMediaUrl, isStorageRef, parseStorageRef } from "./profileMe
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const PUBLICATIONS_TABLE = "profile_cabinet_publications";
+const PUBLIC_MATERIAL_FIELDS = [
+  "id",
+  "type",
+  "title",
+  "description",
+  "image_url",
+  "step_id",
+  "step_title",
+  "setting_title",
+  "setting_index",
+  "status",
+  "created_at",
+  "updated_at",
+  "profile_id"
+].join(",");
 
 export const MATERIAL_TYPES = [
   { value: "mandala", label: "Мандала" },
@@ -104,6 +119,14 @@ async function request(path, options = {}) {
   }
 
   return data;
+}
+
+export async function listPublicMaterials({ limit = 24 } = {}) {
+  const normalizedLimit = Number.isFinite(Number(limit)) ? Number(limit) : 24;
+  const safeLimit = Math.min(Math.max(Math.trunc(normalizedLimit), 1), 48);
+  const rows = await request(`/rest/v1/${PUBLICATIONS_TABLE}?status=eq.approved&select=${PUBLIC_MATERIAL_FIELDS}&order=created_at.desc&limit=${safeLimit}`);
+
+  return Array.isArray(rows) ? rows : [];
 }
 
 async function hydrateMaterialRows(rows, session) {
