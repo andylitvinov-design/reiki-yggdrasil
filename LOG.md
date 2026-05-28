@@ -1,5 +1,33 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-28 — Mandala category popover UX reapply
+
+Mode: reapply missing local mandala category popover UX from clean `origin/main` state.
+
+Changed:
+
+- Reordered `/profile` (`Мои мандалы`) workspace so mandala upload/create form appears before category controls.
+- Switched category assignment controls to compact popovers:
+  - `Дополнительные категории`
+  - `Подкатегории`
+  - `DAO ступени` (DAO only)
+- Added compact selected chips for category, subcategory, and step.
+- Added bounded panel/container sizing to reduce vertical overflow and keep layout stable across widths.
+- Preserved PR #68 and PR #69 behavior (Star format, picker/download, `Фото клиентов / целей`, `Скачать`, `Название мандалы`).
+- Updated visible category label to `Мистерия / Каналы Богов` and preserved RU-first routes/UI.
+- Kept all auth/data/Storage/picker/migration-related flows unchanged.
+
+Commit: `1fed477` — branch `codex/refine-profile-mandala-category-popovers`
+
+## 2026-05-28 — Mandala category popover validation and PR prep
+
+- Ran required checks: `npm ci`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-materials`, `npm run check`, `npm run build`, `git diff --check`.
+- Created PR #70 from branch `codex/refine-profile-mandala-category-popovers` into `main`.
+
+Notes:
+
+- Browser QA still required on `/`, `/profile`, `/masters`, `/profile/admin` at desktop 1280/1366/1440/1710 and mobile 390 for popover behavior and overflow.
+
 ## 2026-05-27 — Power Place Star format and left library
 
 Mode: additive `/profile` Power Place constructor and left-library upgrade on branch `codex/add-star-power-place-format-and-left-library`, updated from current `origin/main`.
