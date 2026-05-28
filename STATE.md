@@ -365,3 +365,29 @@ Not verified:
 4. Verify `/profile/admin` moderation with a row in `profile_cabinet_admins`.
 5. Replace draft descriptions with exact methodichki text where available.
 6. After author review, mark approved course records `verified`.
+
+## 2026-05-28 — Реализация категории `Каналы` в материалах и Power Place
+
+Внедрена категория материалов `Каналы` в `src/pages/ProfilePage.jsx` без изменений backend/миграций:
+
+- Порядок первичных категорий в `MATERIAL_CATEGORY_TABS` подтверждён:
+  - `ДАО РИ`
+  - `Мистерия / Каналы Богов`
+  - `Каналы`
+  - `Талисманы`
+  - `Артефакты`
+- Для `Каналы` добавлены подкатегории:
+  - `Сефирот` (`Большие арканы`, `Малые арканы`, `Сиферы`)
+  - `Руны` (`Первый атт`, `Второй атт`, `Третий атт`)
+  - `Планеты` (`Солнце`, `Луна`, `Меркурий`, `Венера`, `Марс`, `Юпитер`, `Сатурн`)
+  - `Деньги`
+  - `Жизнь`
+- Добавлено третье состояние для материалов и picker:
+  - `activeMaterialThirdLevel`
+  - `isMaterialThirdLevelPanelOpen`
+  - `activePickerThirdLevel`
+  - инициализация/сброс при смене категорий и подкатегорий.
+- `filteredMaterials` и `pickerImageOptions` расширены для `channels`:
+  - фильтрация по подкатегории и третьему уровню с UI-only fallback сопоставлением по тексту/метаданным.
+- В Power Place picker для `Каналы` добавлен отдельный пустой текст:
+  - `Материалы для этого канала пока не добавлены.`
