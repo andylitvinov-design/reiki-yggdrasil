@@ -169,7 +169,7 @@ const MATERIAL_CATEGORY_TABS = [
   },
   {
     value: "god-channels",
-    label: "Каналы Богов",
+    label: "Мистерия / Каналы Богов",
     subcategories: mysteryTraditions.flatMap((tradition) =>
       (tradition.entities || []).map((entity) => ({
         value: `${tradition.id}-${entity.id}`,
@@ -402,6 +402,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const activeMaterialSubcategoryData = useMemo(
     () => activeMaterialCategoryData.subcategories.find((item) => item.value === activeMaterialSubcategory) || activeMaterialCategoryData.subcategories[0] || null,
     [activeMaterialCategoryData, activeMaterialSubcategory]
+  );
+
+  const activeMaterialStepLabel = useMemo(
+    () => materialForm.step_title || stepOptions.find((step) => step.id === materialForm.step_id)?.fullLabel || materialForm.step_id || "не выбрано",
+    [materialForm.step_id, materialForm.step_title]
   );
 
   const activePickerCategoryData = useMemo(
@@ -1840,46 +1845,79 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
             <div className="workspaceCenterColumn">
             {activeTopTab === "mandalas" && (
               <>
+            <div className="mandalaWorkspaceSectionHeader">
+              <p className="cabinetEyebrow">Мои мандалы и материалы</p>
+              <h2>Мастерская мандал</h2>
+            </div>
             <section className="materialCategoryNav" aria-label="Категории материалов">
-              <div className="materialCategoryTabs" role="tablist" aria-label="Категории материалов">
-                {MATERIAL_CATEGORY_TABS.map((category) => (
-                  <button
-                    className={activeMaterialCategory === category.value ? "active" : ""}
-                    key={category.value}
-                    onClick={() => handleMaterialCategorySelect(category.value)}
-                    type="button"
-                  >
-                    {category.label}
-                  </button>
-                ))}
+              <div className="materialSelectionChips" aria-label="Выбранные параметры материалов">
+                <span className="materialSelectionChip">
+                  <b>Категория:</b> {activeMaterialCategoryData.label}
+                </span>
+                <span className="materialSelectionChip">
+                  <b>Подкатегория:</b> {activeMaterialSubcategoryData?.label || "не выбрана"}
+                </span>
+                <span className="materialSelectionChip">
+                  <b>DAO ступень:</b> {activeMaterialStepLabel}
+                </span>
               </div>
+
+              <details className="materialCategoryDetails" open>
+                <summary>Дополнительные категории</summary>
+                <div className="materialCategoryDetailsPanel">
+                  <div className="materialCategoryTabs" role="tablist" aria-label="Категории материалов">
+                    {MATERIAL_CATEGORY_TABS.map((category) => (
+                      <button
+                        className={activeMaterialCategory === category.value ? "active" : ""}
+                        key={category.value}
+                        onClick={() => handleMaterialCategorySelect(category.value)}
+                        type="button"
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </details>
+
               {activeMaterialCategoryData.subcategories.length > 0 && (
-                <div className="materialSubcategoryTabs" role="tablist" aria-label="Подкатегории материалов">
-                  {activeMaterialCategoryData.subcategories.map((subcategory) => (
-                    <button
-                      className={activeMaterialSubcategory === subcategory.value ? "active" : ""}
-                      key={subcategory.value}
-                      onClick={() => handleMaterialSubcategorySelect(subcategory)}
-                      type="button"
-                    >
-                      {subcategory.label}
-                    </button>
-                  ))}
-                </div>
+                <details className="materialCategoryDetails" open>
+                  <summary>Подкатегории</summary>
+                  <div className="materialCategoryDetailsPanel">
+                    <div className="materialSubcategoryTabs" role="tablist" aria-label="Подкатегории материалов">
+                      {activeMaterialCategoryData.subcategories.map((subcategory) => (
+                        <button
+                          className={activeMaterialSubcategory === subcategory.value ? "active" : ""}
+                          key={subcategory.value}
+                          onClick={() => handleMaterialSubcategorySelect(subcategory)}
+                          type="button"
+                        >
+                          {subcategory.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </details>
               )}
+
               {activeMaterialCategory === "dao-ri" && activeMaterialSubcategoryData?.steps?.length > 0 && (
-                <div className="materialStepTabs" aria-label="Ступени Reiki Yggdrasil">
-                  {activeMaterialSubcategoryData.steps.map((step) => (
-                    <button
-                      className={materialForm.step_id === step.id ? "active" : ""}
-                      key={step.id}
-                      onClick={() => handleDaoStepSelect(step.id)}
-                      type="button"
-                    >
-                      {step.label} {step.number}: {step.title}
-                    </button>
-                  ))}
-                </div>
+                <details className="materialCategoryDetails" open>
+                  <summary>DAO ступени</summary>
+                  <div className="materialCategoryDetailsPanel">
+                    <div className="materialStepTabs" aria-label="Ступени Reiki Yggdrasil">
+                      {activeMaterialSubcategoryData.steps.map((step) => (
+                        <button
+                          className={materialForm.step_id === step.id ? "active" : ""}
+                          key={step.id}
+                          onClick={() => handleDaoStepSelect(step.id)}
+                          type="button"
+                        >
+                          {step.label} {step.number}: {step.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </details>
               )}
               <div className="materialCategoryContext">
                 <b>{activeMaterialCategoryData.label}</b>
