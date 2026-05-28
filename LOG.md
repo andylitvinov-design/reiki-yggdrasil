@@ -1,5 +1,87 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-29 — Issue #72 profile power sources UX implementation
+
+Mode: profile cabinet UX rework for `/profile` power and mandala sources.
+
+Changed:
+
+- Implemented defaults:
+  - `activeTopTab` now defaults to `power-place` and resets there on sign-out.
+  - `resourceComparisonMode` now defaults to `photo_mandala`.
+- Unified source blocks:
+  - replaced separate source labels with single `Источники силы` in Power Place and Mandalas.
+  - added shared `Клиенты` category entry in source/popup taxonomy.
+  - client/goal photo selection now flows through shared source popup taxonomy.
+- Updated resource input UX:
+  - `Цель + мандала` control is default active and positioned left of the central photo button.
+  - removed duplicate resource mode control for “with/without mandala”; hint text now lives in placeholders.
+- Power Place layout:
+  - expanded source slot options to `[2, 4, 6, 8, 12, 18]`.
+  - tuned source geometry for safer 18-slot rendering on smaller screens.
+- Mystery/category copy:
+  - changed visible wording from `Каналы Богов` to `Мистерии`.
+  - `mysteryTraditions` now drives mystery subcategory content.
+- Mobile:
+  - under `980px`, workspace main area renders before source list while desktop 3-column layout is preserved.
+
+Checks:
+
+- `npm run test:power-place`
+- `npm run test:profile-media`
+- `npm run test:profile-materials`
+- `npm run build`
+- `npm run check`
+
+Needs verification:
+
+- Re-run all checks after parser fix and perform `/profile` desktop/mobile validation.
+- Live verification on `https://reiki-yggdrasil.vercel.app/profile` still required before task completion.
+
+## 2026-05-29 — Public right-panel upgrade for all sections
+
+Mode: scoped public-site feed upgrade for the right rail, preserving existing routes and desktop layout.
+
+Changed:
+
+- Updated home label in `src/data/topSectionMenus.js`:
+  - `Школа Магии ДАО РИ` → `Школа ДАО РИ`.
+- Added public-safe material helper in `src/lib/profileMaterialsClient.js`:
+  - new `listPublicMaterials({ limit = 24 })`
+  - reads from `profile_cabinet_publications` with `status=eq.approved`
+  - selects approved-safe fields only
+  - uses anonymous reads (`publicRequest`) and returns `[]` if Supabase env is absent
+  - tries profile display join with safe fallback to raw rows.
+- Added public right rail components and context-based matching in `src/main.jsx`:
+  - `PublicMaterialsRightPanel` and `PublicMaterialCard`
+  - context derivation for DAO RI / Mysteries / Mастерская / Магазин / home / fallback sections
+  - exact `step_id` match and token-based text matching across title/description/step/setting/type.
+- Replaced null/limited right rail for non-DAO public sections with the new feed and preserved
+  - existing `MysteryRightPanel` contents (plus appended safe public-material block)
+  - existing DAO RI tabs and invitation context.
+- Added minimal feed styles in `src/index.css` (wrapper, headers, cards, chips, placeholders, loading/error states).
+- Added entries to `STATE.md`/`LOG.md` per request.
+
+Checks:
+
+- `npm install`
+- `npm run build`
+- `npm run test:profile-media`
+- `npm run test:profile-materials`
+- `npm run check`
+
+Notes:
+
+- `npm run check` completed with existing warnings from knowledge/video validation and no regressions.
+- `Мистерии/Каналы Богов`, `Мастерская`, `Магазин` behavior was implemented by best-effort category matching because no explicit global category/subcategory fields exist in current publication schema.
+- Private storage refs are not rendered as public thumbnails or DOM text.
+
+Needs verification:
+
+- Manual browser QA for `/`, `/profile`, `/masters`, `/profile/admin` and desktop/mobile layouts was not run in this pass.
+- No raw `storage://` path text should appear in public panel card output; no evidence of render-time leaks observed in build checks, but browser runtime validation is pending.
+- Exact “category-first then global fallback” behavior should be validated live when seeded with real approved public materials in each section.
+
 ## 2026-05-28 — Mandala category popover UX reapply
 
 Mode: reapply missing local mandala category popover UX from clean `origin/main` state.

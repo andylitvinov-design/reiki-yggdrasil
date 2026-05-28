@@ -1325,6 +1325,21 @@
   text-align: center;
 }
 
+.centerPhotoModeControlWrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.centerPhotoModeControl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .powerMandalaBase {
   position: absolute;
   left: 50%;
@@ -1390,6 +1405,12 @@
 
 .powerSource.guardian span {
   transform: rotate(-45deg);
+}
+
+.powerSource.compact {
+  width: 28px;
+  height: 28px;
+  font-size: 9px;
 }
 
 .powerSource.hasImage {
@@ -2541,17 +2562,27 @@
   font-weight: 900;
 }
 
+.resourceField {
+  margin: 0;
+}
+
 .resourceComparisonPanel textarea {
   min-width: 0;
   width: 100%;
-  resize: vertical;
+  resize: none;
+  min-height: 56px;
+  max-height: 56px;
   border: 1px solid rgba(179, 126, 36, 0.32);
   border-radius: 12px;
-  padding: 9px 10px;
+  padding: 8px 10px;
   background: rgba(255, 251, 243, 0.92);
   color: #3c2a18;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
+}
+
+.resourceFieldInput {
+  width: 100%;
 }
 
 .compositionTitleField {
@@ -2943,6 +2974,8 @@
   }
 
   .mandalaModeSidebar,
+  .workspaceCenterColumn,
+  .workspaceRightColumn,
   .materialCategoryNav,
   .mandalaAtelierGrid,
   .powerLibraryGrid,
@@ -2954,6 +2987,19 @@
   .mandalaWorkspace.chatMode .powerPlaceConstructor {
     grid-column: 1;
     grid-row: auto;
+  }
+
+  .workspaceCenterColumn {
+    order: 1;
+  }
+
+  .workspaceRightColumn {
+    order: 2;
+  }
+
+  .mandalaModeSidebar {
+    order: 3;
+    position: static;
   }
 
   .workspaceCenterColumn .mandalaWorkspaceSectionHeader {
