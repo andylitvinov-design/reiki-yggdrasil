@@ -948,10 +948,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       .filter(hasImage));
   };
 
-  const pickerImageOptions = useMemo(() => {
-    return buildSourceLibraryItems(activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData);
-  }, [activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData, coverVariants, materials, clientGoalPhotos, traditionAssets]);
-
   const reusableImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((item) => ({
       id: `client-${item.id}`,
@@ -981,6 +977,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     ...(customCoverImage ? [{ id: "custom-cover", label: "Своё изображение", src: customCoverImage, displaySrc: displayImageUrl(customCoverImage), type: "image" }] : []),
     ...FALLBACK_COVER_VARIANTS.map((item) => ({ ...item, type: "placeholder" }))
   ], [customCoverImage, objectImageUrls, reusableImages]);
+
+  const pickerImageOptions = useMemo(() => {
+    return buildSourceLibraryItems(activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData);
+  }, [activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData, coverVariants, materials, clientGoalPhotos, traditionAssets]);
+
+  const modalPickerImageOptions = pickerImageOptions;
 
   const selectedCover = useMemo(
     () => coverVariants.find((item) => item.id === selectedCoverId) || coverVariants[0],
