@@ -77,12 +77,12 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
 
 const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
+  { value: "zodiac", label: "Зодиак" },
   { value: "star", label: "Звезда" },
   { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес" },
-  { value: "dao", label: "ДАО" },
-  { value: "zodiac", label: "Зодиак" }
+  { value: "dao", label: "ДАО" }
 ];
 const STAR_VARIANTS = [
   { value: "closed", label: "Закрытая" },
@@ -671,7 +671,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [error, setError] = useState("");
   const [fileNotice, setFileNotice] = useState("");
   const [powerSourceCount, setPowerSourceCount] = useState(4);
-  const [constructorType, setConstructorType] = useState("client");
+  const [constructorType, setConstructorType] = useState("zodiac");
   const [zodiacVisibleCount, setZodiacVisibleCount] = useState(12);
   const [zodiacVariant, setZodiacVariant] = useState("classic-12");
   const [starVariant, setStarVariant] = useState("closed");
@@ -680,7 +680,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [objectImages, setObjectImages] = useState({});
   const [objectImageUrls, setObjectImageUrls] = useState({});
   const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
+  const [selectedOuterCoverId, setSelectedOuterCoverId] = useState("no-cover");
+  const [activeCoverLayer, setActiveCoverLayer] = useState("inner");
   const [customCoverImage, setCustomCoverImage] = useState("");
+  const [customOuterCoverImage, setCustomOuterCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
   const [selectedCentralPhotoId, setSelectedCentralPhotoId] = useState("");
   const [imagePickerContext, setImagePickerContext] = useState({ mode: "", slotId: "" });
@@ -897,21 +900,24 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
 
     if (categoryValue === "covers") {
-      return uniqueImageSources([
-        ...coverVariants
-          .filter((cover) => cover.type === "image")
-          .map((cover) => ({
-            id: `picker-cover-${cover.id}`,
-            label: cover.label || "Подложка",
-            meta: "подложка / фон",
-            src: cover.src,
-            displaySrc: cover.displaySrc || cover.src,
-            kind: "cover"
-          })),
-        ...materials
-          .filter((item) => item.image_url && materialMatchesCategory(item, "covers"))
-          .map(materialToOption)
-      ].filter((item) => item?.kind === "cover" || item?.src || item?.displaySrc));
+      return [
+        { id: "picker-cover-no-cover", label: "Без фона", meta: "фон отключён", src: "", displaySrc: "", kind: "none" },
+        ...uniqueImageSources([
+          ...coverVariants
+            .filter((cover) => cover.type === "image")
+            .map((cover) => ({
+              id: `picker-cover-${cover.id}`,
+              label: cover.label || "Фон",
+              meta: "фон места силы",
+              src: cover.src,
+              displaySrc: cover.displaySrc || cover.src,
+              kind: "cover"
+            })),
+          ...materials
+            .filter((item) => item.image_url && materialMatchesCategory(item, "covers"))
+            .map(materialToOption)
+        ].filter((item) => item?.kind === "cover" || item?.src || item?.displaySrc))
+      ];
     }
 
     if (categoryValue === "form") {
@@ -973,10 +979,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   ), [selectedTradition?.title, traditionAssets]);
 
   const coverVariants = useMemo(() => [
+    { id: "no-cover", label: "Без фона", type: "none" },
     ...reusableImages.map((item) => ({ ...item, type: "image" })),
     ...(customCoverImage ? [{ id: "custom-cover", label: "Своё изображение", src: customCoverImage, displaySrc: displayImageUrl(customCoverImage), type: "image" }] : []),
+    ...(customOuterCoverImage ? [{ id: "custom-outer-cover", label: "Своё изображение снаружи", src: customOuterCoverImage, displaySrc: displayImageUrl(customOuterCoverImage), type: "image" }] : []),
     ...FALLBACK_COVER_VARIANTS.map((item) => ({ ...item, type: "placeholder" }))
-  ], [customCoverImage, objectImageUrls, reusableImages]);
+  ], [customCoverImage, customOuterCoverImage, objectImageUrls, reusableImages]);
 
   const pickerImageOptions = useMemo(() => {
     return buildSourceLibraryItems(activePickerCategory, activePickerCategoryData, activePickerSubcategoryData, activePickerThirdLevelData);
@@ -988,9 +996,25 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     () => coverVariants.find((item) => item.id === selectedCoverId) || coverVariants[0],
     [coverVariants, selectedCoverId]
   );
-  const selectedCoverClass = selectedCover?.type === "image" ? "cover-image" : `cover-${selectedCover?.tone || "gold"}`;
+  const selectedOuterCover = useMemo(
+    () => coverVariants.find((item) => item.id === selectedOuterCoverId) || coverVariants[0],
+    [coverVariants, selectedOuterCoverId]
+  );
+  const selectedCoverClass = selectedCover?.type === "none"
+    ? "cover-none"
+    : selectedCover?.type === "image"
+      ? "cover-image"
+      : `cover-${selectedCover?.tone || "gold"}`;
   const selectedCoverStyle = selectedCover?.type === "image" && selectedCover.src
     ? { "--power-cover-image": `url(${displayImageUrl(selectedCover.src)})` }
+    : undefined;
+  const selectedOuterCoverClass = selectedOuterCover?.type === "none"
+    ? "outer-cover-none"
+    : selectedOuterCover?.type === "image"
+      ? "outer-cover-image"
+      : `outer-cover-${selectedOuterCover?.tone || "gold"}`;
+  const selectedOuterCoverStyle = selectedOuterCover?.type === "image" && selectedOuterCover.src
+    ? { "--power-outer-cover-image": `url(${displayImageUrl(selectedOuterCover.src)})` }
     : undefined;
 
   const centerImage = isImagePreview(selectedCentralPhoto?.display_url || selectedCentralPhoto?.image_url)
@@ -1475,14 +1499,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const buildCoverRef = () => {
-    if (!selectedCover) return null;
+    const buildLayer = (cover) => ({
+      id: cover?.id || "no-cover",
+      label: cover?.label || "Без фона",
+      type: cover?.type || "none",
+      tone: cover?.tone || "",
+      src: cover?.src || ""
+    });
 
     return normalizeCoverRef({
-      id: selectedCover.id,
-      label: selectedCover.label,
-      type: selectedCover.type,
-      tone: selectedCover.tone || "",
-      src: selectedCover.src || ""
+      ...buildLayer(selectedCover),
+      inner: buildLayer(selectedCover),
+      outer: buildLayer(selectedOuterCover)
     });
   };
 
@@ -1529,24 +1557,37 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     if (composition.cover_ref?.id) {
       const savedCover = normalizeCoverRef(composition.cover_ref);
-      const savedCoverExists = coverVariants.some((cover) => cover.id === savedCover?.id);
-      if (savedCover?.src && composition.cover_ref?.display_src) {
-        setObjectImageUrls((current) => ({ ...current, [savedCover.src]: composition.cover_ref.display_src }));
+      const savedInnerCover = savedCover?.inner || savedCover;
+      const savedOuterCover = savedCover?.outer || { id: "no-cover", type: "none", label: "Без фона" };
+      const savedCoverExists = coverVariants.some((cover) => cover.id === savedInnerCover?.id);
+      const savedOuterCoverExists = coverVariants.some((cover) => cover.id === savedOuterCover?.id);
+
+      if (savedInnerCover?.src && (composition.cover_ref?.display_src || composition.cover_ref?.inner?.display_src)) {
+        setObjectImageUrls((current) => ({ ...current, [savedInnerCover.src]: composition.cover_ref.display_src || composition.cover_ref.inner.display_src }));
       }
 
-      if (savedCover?.id === "custom-cover" && savedCover.src) {
-        setCustomCoverImage(savedCover.src);
+      if (savedOuterCover?.src && composition.cover_ref?.outer?.display_src) {
+        setObjectImageUrls((current) => ({ ...current, [savedOuterCover.src]: composition.cover_ref.outer.display_src }));
+      }
+
+      if (savedInnerCover?.id === "custom-cover" && savedInnerCover.src) {
+        setCustomCoverImage(savedInnerCover.src);
         setSelectedCoverId("custom-cover");
       } else if (savedCoverExists) {
-        setSelectedCoverId(savedCover.id);
-      } else if (savedCover?.type === "image" && isImagePreview(savedCover.src)) {
-        setCustomCoverImage(savedCover.src);
-        setSelectedCoverId("custom-cover");
+        setSelectedCoverId(savedInnerCover.id);
       } else {
-        setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
+        setSelectedCoverId("no-cover");
       }
-    } else {
-      setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
+
+      if (savedOuterCover?.id === "custom-outer-cover" && savedOuterCover.src) {
+        setCustomOuterCoverImage(savedOuterCover.src);
+        setSelectedOuterCoverId("custom-outer-cover");
+      } else if (savedOuterCoverExists) {
+        setSelectedOuterCoverId(savedOuterCover.id);
+      } else {
+        setSelectedOuterCoverId("no-cover");
+      }
+
     }
   };
 
@@ -1580,8 +1621,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       setCoverNotice("Загружаю заставку...");
       const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "underlay" }, session);
       setObjectImageUrls((current) => ({ ...current, [uploaded.ref]: uploaded.signedUrl }));
-      setCustomCoverImage(uploaded.ref);
-      setSelectedCoverId("custom-cover");
+
+      if (activeCoverLayer === "outer") {
+        setCustomOuterCoverImage(uploaded.ref);
+        setSelectedOuterCoverId("custom-outer-cover");
+      } else {
+        setCustomCoverImage(uploaded.ref);
+        setSelectedCoverId("custom-cover");
+      }
+
       setCoverNotice(`Заставка «${uploaded.metadata.filename}» загружена.`);
     } catch (err) {
       setCoverNotice(formatUploadError(err));
@@ -1938,11 +1986,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setImagePickerContext({ mode: "center", slotId: "" });
   };
 
-  const openCoverPicker = () => {
+  const openCoverPicker = (layer = activeCoverLayer) => {
     handlePickerCategorySelect("covers");
     setActivePickerSubcategory("cover");
     setActivePickerThirdLevel("");
-    setImagePickerContext({ mode: "cover", slotId: "" });
+    setImagePickerContext({ mode: "cover", slotId: layer });
   };
 
   const chooseCentralPhoto = (photoId) => {
@@ -2000,6 +2048,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const chooseCoverPickerImage = (option) => {
+    const layer = imagePickerContext.slotId === "outer" ? "outer" : "inner";
+
+    if (option?.id === "picker-cover-no-cover" || option?.id === "no-cover" || option?.kind === "none") {
+      if (layer === "outer") setSelectedOuterCoverId("no-cover");
+      else setSelectedCoverId("no-cover");
+      closeImagePicker();
+      return;
+    }
+
     if (!option?.src) return;
 
     const existingCover = coverVariants.find((cover) =>
@@ -2007,7 +2064,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     );
 
     if (existingCover) {
-      setSelectedCoverId(existingCover.id);
+      if (layer === "outer") setSelectedOuterCoverId(existingCover.id);
+      else setSelectedCoverId(existingCover.id);
+    } else if (layer === "outer") {
+      setCustomOuterCoverImage(option.src);
+      setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc || option.src }));
+      setSelectedOuterCoverId("custom-outer-cover");
     } else {
       setCustomCoverImage(option.src);
       setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc || option.src }));
@@ -2793,7 +2855,7 @@ const resourceComparisonPanel = (
               </div>
 
               <div className="powerPlacePrintArea">
-                <div className="powerMandalaPanel">
+                <div className={`powerMandalaPanel ${selectedOuterCoverClass}`} style={selectedOuterCoverStyle}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{constructorTypeLabel(constructorType)}</h3>
@@ -3018,34 +3080,44 @@ const resourceComparisonPanel = (
 
                   <div className="coverSelector">
                     <p className="cabinetEyebrow">Фон Места Силы</p>
+                    <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
+                      <button className={activeCoverLayer === "inner" ? "active" : ""} type="button" onClick={() => setActiveCoverLayer("inner")}>Фон внутри</button>
+                      <button className={activeCoverLayer === "outer" ? "active" : ""} type="button" onClick={() => setActiveCoverLayer("outer")}>Фон снаружи</button>
+                    </div>
                     <div className="coverPreviewWrap">
                       <div
-                        className={`coverPreview ${selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "gold"}`}`}
-                        style={selectedCover?.type === "image" ? { backgroundImage: `url(${displayImageUrl(selectedCover.src)})` } : undefined}
+                        className={`coverPreview ${activeCoverLayer === "outer"
+                          ? selectedOuterCover?.type === "image" ? "hasImage" : `tone-${selectedOuterCover?.tone || "none"}`
+                          : selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "none"}`}`}
+                        style={activeCoverLayer === "outer"
+                          ? selectedOuterCover?.type === "image" ? { backgroundImage: `url(${displayImageUrl(selectedOuterCover.src)})` } : undefined
+                          : selectedCover?.type === "image" ? { backgroundImage: `url(${displayImageUrl(selectedCover.src)})` } : undefined}
                       >
-                        <span>{selectedCover?.label || "Заставка"}</span>
+                        <span>{activeCoverLayer === "outer" ? selectedOuterCover?.label || "Без фона" : selectedCover?.label || "Без фона"}</span>
                       </div>
                     </div>
-                    <div className="coverVariantList" aria-label="Варианты заставки">
-                      {coverVariants.map((cover) => (
-                        <button
-                          className={selectedCover?.id === cover.id ? "active" : ""}
-                          key={cover.id}
-                          onClick={() => setSelectedCoverId(cover.id)}
-                          type="button"
-                        >
-                          {cover.label}
-                        </button>
-                      ))}
+                    <div className="coverVariantList" aria-label="Варианты фона">
+                      {coverVariants.map((cover) => {
+                        const isActive = activeCoverLayer === "outer" ? selectedOuterCover?.id === cover.id : selectedCover?.id === cover.id;
+                        return (
+                          <button
+                            className={isActive ? "active" : ""}
+                            key={`${activeCoverLayer}-${cover.id}`}
+                            onClick={() => activeCoverLayer === "outer" ? setSelectedOuterCoverId(cover.id) : setSelectedCoverId(cover.id)}
+                            type="button"
+                          >
+                            {cover.label}
+                          </button>
+                        );
+                      })}
                     </div>
                     <label className="coverUploadButton">
                       <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleCoverFile} />
-	                      {mediaUploadTarget === "cover" ? "Загружаю..." : "Своё изображение"}
+                      {mediaUploadTarget === "cover" ? "Загружаю..." : "Своё изображение"}
                     </label>
-                    <button className="coverPickerButton" type="button" onClick={openCoverPicker}>Выбрать фото</button>
+                    <button className="coverPickerButton" type="button" onClick={() => openCoverPicker(activeCoverLayer)}>Выбрать фото</button>
                     {coverNotice && <p className="coverNotice">{coverNotice}</p>}
                   </div>
-
 
                   {resourceComparisonPanel}
 
