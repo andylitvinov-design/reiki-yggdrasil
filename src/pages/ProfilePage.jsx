@@ -1933,7 +1933,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const openClientPhotoPicker = () => {
     handlePickerCategorySelect("client-goals");
-    setActivePickerSubcategory("");
+    setActivePickerSubcategory("client-goals");
     setActivePickerThirdLevel("");
     setImagePickerContext({ mode: "center", slotId: "" });
   };
@@ -1952,9 +1952,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const choosePickerOption = (option) => {
     if (imagePickerContext.mode === "center") {
-      if (option?.kind === "client-photo" && option.photoId) {
-        chooseCentralPhoto(option.photoId);
-      }
+      chooseCenterPickerImage(option);
       return;
     }
 
@@ -1964,6 +1962,41 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
 
     chooseObjectPickerImage(option);
+  };
+
+  const chooseCenterPickerImage = async (option) => {
+    if (option?.kind === "client-photo" && option.photoId) {
+      chooseCentralPhoto(option.photoId);
+      return;
+    }
+
+    if (!option?.src) return;
+
+    if (!profile?.id) {
+      setError("Сначала сохраните профиль мастера.");
+      return;
+    }
+
+    try {
+      setMediaUploadTarget("client-goal");
+      setMediaStatus("Сохраняю выбранное изображение как фото клиента / цели...");
+      const saved = await createClientGoalPhoto({
+        title: option.label || "Фото клиента / цели",
+        image_url: option.src,
+        notes: option.meta || "",
+        profile_id: profile.id
+      }, accountPlan, session);
+
+      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
+      setSelectedCentralPhotoId(saved?.id || "");
+      setMessage("Фото клиента / цели выбрано.");
+      closeImagePicker();
+    } catch (err) {
+      setMediaStatus(formatUploadError(err));
+      setError(err.message || "Не удалось выбрать фото клиента / цели.");
+    } finally {
+      setMediaUploadTarget("");
+    }
   };
 
   const chooseCoverPickerImage = (option) => {
@@ -2982,7 +3015,6 @@ const resourceComparisonPanel = (
                 </div>
 
                 <aside className="powerCommandRail">
-                  {resourceComparisonPanel}
 
                   <div className="coverSelector">
                     <p className="cabinetEyebrow">Фон Места Силы</p>
@@ -3013,6 +3045,9 @@ const resourceComparisonPanel = (
                     <button className="coverPickerButton" type="button" onClick={openCoverPicker}>Выбрать фото</button>
                     {coverNotice && <p className="coverNotice">{coverNotice}</p>}
                   </div>
+
+
+                  {resourceComparisonPanel}
 
 
                   <div className="objectImageEditor">
@@ -3080,7 +3115,7 @@ const resourceComparisonPanel = (
                   <div className="clientPhotoPickerHeader">
                     <div>
                       <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Центр мандалы" : imagePickerContext.mode === "cover" ? "Фон Места Силы" : selectedObjectSlot?.label || "Объект мандалы"}</p>
-                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Фото клиента / цели" : imagePickerContext.mode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
+                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Выбрать фото клиента / цели" : imagePickerContext.mode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
                     </div>
                     <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
                   </div>
@@ -3139,7 +3174,7 @@ const resourceComparisonPanel = (
                     ))}
                     {modalPickerImageOptions.length === 0 && (
                       <div className="clientPhotoPickerEmpty">
-                        <b>{imagePickerContext.mode === "center" ? "Фото клиента / цели не добавлены." : activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
+                        <b>{imagePickerContext.mode === "center" ? "Фото клиента / цели пока не добавлены. Можно выбрать изображение из других категорий или загрузить новое фото ниже." : activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
                         <p>Используются только реальные изображения из сохранённых мандал, материалов и доступных образов кабинета.</p>
                       </div>
                     )}
