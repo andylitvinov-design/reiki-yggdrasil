@@ -233,14 +233,34 @@ export function normalizeCoverRef(coverRef) {
   const id = cleanText(cover.id);
   if (!id) return null;
 
-  const type = cleanText(cover.type) === "image" ? "image" : "placeholder";
+  const normalizeLayer = (layer, fallback = {}) => {
+    const source = cleanJsonObject(layer);
+    const layerId = cleanText(source.id) || cleanText(fallback.id) || "no-cover";
+    const rawType = cleanText(source.type) || cleanText(fallback.type);
+    const type = rawType === "image" ? "image" : rawType === "none" ? "none" : "placeholder";
 
-  return {
+    return {
+      id: layerId,
+      label: cleanText(source.label) || cleanText(fallback.label) || (type === "none" ? "Без фона" : "Заставка места силы"),
+      type,
+      tone: cleanText(source.tone) || cleanText(fallback.tone),
+      src: cleanText(source.src) || cleanText(fallback.src)
+    };
+  };
+
+  const type = cleanText(cover.type) === "image" ? "image" : cleanText(cover.type) === "none" ? "none" : "placeholder";
+  const legacy = {
     id,
     label: cleanText(cover.label) || "Заставка места силы",
     type,
     tone: cleanText(cover.tone),
     src: cleanText(cover.src)
+  };
+
+  return {
+    ...legacy,
+    inner: normalizeLayer(cover.inner, legacy),
+    outer: normalizeLayer(cover.outer, { id: "no-cover", label: "Без фона", type: "none" })
   };
 }
 

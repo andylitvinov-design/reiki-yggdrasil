@@ -75,3 +75,81 @@ body.printMandalaOnly .resourcePrintNotes,
 body.printMandalaOnly .powerPlaceHint {
   display: none !important;
 }
+
+/* 12-source mandala: central 8-point circle plus 4 square-corner guardians. */
+.powerMandala.geometry-12 {
+  border-radius: 28px !important;
+  overflow: visible;
+}
+
+.powerMandala.geometry-12::before {
+  border-radius: 50%;
+}
+
+.powerMandala.geometry-12 .powerSource.source-1 { left: 50% !important; top: 8% !important; }
+.powerMandala.geometry-12 .powerSource.source-2 { left: 80% !important; top: 20% !important; }
+.powerMandala.geometry-12 .powerSource.source-3 { left: 92% !important; top: 50% !important; }
+.powerMandala.geometry-12 .powerSource.source-4 { left: 80% !important; top: 80% !important; }
+.powerMandala.geometry-12 .powerSource.source-5 { left: 50% !important; top: 92% !important; }
+.powerMandala.geometry-12 .powerSource.source-6 { left: 20% !important; top: 80% !important; }
+.powerMandala.geometry-12 .powerSource.source-7 { left: 8% !important; top: 50% !important; }
+.powerMandala.geometry-12 .powerSource.source-8 { left: 20% !important; top: 20% !important; }
+
+.powerMandala.geometry-12 .powerSource.source-9,
+.powerMandala.geometry-12 .powerSource.source-10,
+.powerMandala.geometry-12 .powerSource.source-11,
+.powerMandala.geometry-12 .powerSource.source-12 {
+  width: clamp(64px, 11vw, 92px) !important;
+  height: clamp(64px, 11vw, 92px) !important;
+  border-radius: 18px !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.powerMandala.geometry-12 .powerSource.source-9 { left: 6% !important; top: 6% !important; }
+.powerMandala.geometry-12 .powerSource.source-10 { left: 94% !important; top: 6% !important; }
+.powerMandala.geometry-12 .powerSource.source-11 { left: 94% !important; top: 94% !important; }
+.powerMandala.geometry-12 .powerSource.source-12 { left: 6% !important; top: 94% !important; }
+
+.powerMandalaPanel.outer-cover-image {
+  background:
+    linear-gradient(rgba(33, 16, 4, 0.58), rgba(33, 16, 4, 0.66)),
+    var(--power-outer-cover-image) center / cover no-repeat,
+    linear-gradient(180deg, #211004, #351a05);
+}
+
+.powerMandalaPanel.outer-cover-none {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(218, 156, 45, 0.2), transparent 32%),
+    linear-gradient(180deg, #211004, #351a05);
+}
+
+.coverLayerTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 10px;
+}
+
+.coverLayerTabs button {
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #744c17;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 8px 13px;
+}
+
+.coverLayerTabs button.active {
+  border-color: rgba(245, 198, 106, 0.72);
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+}
+
+.coverPreview.tone-none {
+  background:
+    repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.08) 0 8px, transparent 8px 16px),
+    rgba(255, 255, 255, 0.62);
+  color: #7a674f;
+}
