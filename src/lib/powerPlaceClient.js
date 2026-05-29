@@ -257,6 +257,8 @@ export function normalizeCoverRef(coverRef) {
     src: cleanText(cover.src)
   };
 
+  if (!cover.inner && !cover.outer) return legacy;
+
   return {
     ...legacy,
     inner: normalizeLayer(cover.inner, legacy),
