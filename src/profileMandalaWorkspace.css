@@ -3472,7 +3472,9 @@
 .sourceQuickStats,
 .mandalaSourceStats {
   display: none !important;
-}\n\n/* Inner/outer background visibility fixes. */
+}
+
+/* Inner/outer background visibility fixes. */
 
 /* Outer "Без фона": make outside space light/transparent instead of dark. */
 .powerMandalaPanel.outer-cover-none {
@@ -3565,4 +3567,4 @@
     repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.05) 0 8px, transparent 8px 16px),
     rgba(255, 255, 255, 0.88) !important;
   color: #7a674f;
-}\n
+}
