@@ -109,3 +109,54 @@
     margin: 0 auto !important;
   }
 }
+
+/* === STABLE FIX: restore mandala panel grid layout === */
+.powerMandalaPanel {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto !important;
+  justify-items: center !important;
+  align-items: start !important;
+  gap: 10px !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.zodiacMandalaSheet,
+.starMandalaSheet,
+.altarMandalaSheet,
+.businessMandalaSheet,
+.daoMandalaSheet {
+  width: min(500px, 100%) !important;
+  aspect-ratio: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 980px) {
+  .powerMandalaPanel {
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: unset !important;
+    min-height: 0 !important;
+    padding: 22px 14px !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+    gap: 14px !important;
+  }
+
+  .zodiacMandalaSheet,
+  .starMandalaSheet,
+  .altarMandalaSheet,
+  .businessMandalaSheet,
+  .daoMandalaSheet {
+    width: min(360px, 100%) !important;
+    aspect-ratio: 1 !important;
+  }
+}
+
+.powerMandalaPanel > .powerPlaceHint,
+.powerMandalaPanel > .resourcePrintNotes {
+  display: none !important;
+}
