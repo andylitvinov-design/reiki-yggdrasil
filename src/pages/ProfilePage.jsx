@@ -2670,7 +2670,7 @@ const resourceComparisonPanel = (
                   <div className="powerLibrarySidebar" aria-label="Единый источник материалов для мест силы">
                     <div className="powerLibraryFilter">
                       <label className="powerLibrarySelectLabel">
-                        Категория
+                        Группа
                         <select value={activeMaterialCategory} onChange={(event) => handleMaterialCategorySelect(event.target.value)}>
                           {MATERIAL_CATEGORY_TABS.map((category) => (
                             <option key={category.value} value={category.value}>{category.label}</option>
@@ -2679,15 +2679,47 @@ const resourceComparisonPanel = (
                       </label>
 
                       {activeMaterialCategoryData.subcategories.length > 0 && (
+                        <label className="powerLibrarySelectLabel">
+                          Категория
+                          <select
+                            value={activeMaterialSubcategory}
+                            onChange={(event) => {
+                              const nextSubcategory = activeMaterialCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
+                              if (nextSubcategory) handleMaterialSubcategorySelect(nextSubcategory);
+                            }}
+                          >
+                            {activeMaterialCategoryData.subcategories.map((subcategory) => (
+                              <option key={subcategory.value} value={subcategory.value}>{subcategory.displayLabel || subcategory.label}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+
+                      {activeMaterialSubcategoryData?.thirdLevels?.length > 0 && (
                         <div className="powerLibrarySubcategoryButtons">
-                          {activeMaterialCategoryData.subcategories.map((subcategory) => (
+                          {activeMaterialSubcategoryData.thirdLevels.map((thirdLevel) => (
                             <button
-                              className={activeMaterialSubcategory === subcategory.value ? "active" : ""}
-                              key={subcategory.value}
-                              onClick={() => handleMaterialSubcategorySelect(subcategory)}
+                              className={activeMaterialThirdLevel === thirdLevel.value ? "active" : ""}
+                              key={thirdLevel.value}
+                              onClick={() => handleMaterialThirdLevelSelect(thirdLevel)}
                               type="button"
                             >
-                              {subcategory.displayLabel || subcategory.label}
+                              {thirdLevel.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {activeMaterialCategory === "dao-ri" && activeMaterialSubcategoryData?.steps?.length > 0 && (
+                        <div className="powerLibrarySubcategoryButtons">
+                          {activeMaterialSubcategoryData.steps.map((step) => (
+                            <button
+                              className={materialForm.step_id === step.id ? "active" : ""}
+                              key={step.id}
+                              onClick={() => handleDaoStepSelect(step.id)}
+                              type="button"
+                            >
+                              {step.label} {step.number}: {step.title}
                             </button>
                           ))}
                         </div>
