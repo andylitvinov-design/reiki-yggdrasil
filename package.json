@@ -1,17 +1,22 @@
 {
   "type": "module",
   "scripts": {
+    "apply:services-orders-mvp": "node scripts/apply-master-services-orders-mvp.mjs",
+    "predev": "npm run apply:services-orders-mvp",
     "dev": "vite --host 0.0.0.0",
+    "prebuild": "npm run apply:services-orders-mvp",
     "build": "vite build",
+    "presupabase:migrations:apply": "npm run apply:services-orders-mvp",
     "supabase:migrations:apply": "node scripts/apply-reiki-supabase-migrations.mjs",
     "test:profile-media": "node test/profileMediaClient.test.mjs",
     "test:profile-materials": "node test/profileMaterials.test.mjs",
+    "test:profile-services": "node test/profileServicesClient.test.mjs",
     "test:power-place": "node test/powerPlaceClient.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
     "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
     "validate:free-courses": "node scripts/validate-free-course-links.mjs",
-    "check": "npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
+    "check": "npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run test:profile-services && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
