@@ -39,9 +39,3 @@
   min-height: 62px !important;
   color: #2b1b0c !important;
 }
-
-@media (min-width: 981px) {
-  .powerPlaceMode .workspaceMainColumns {
-    grid-template-columns: minmax(300px, 0.28fr) minmax(560px, 1fr) minmax(420px, 0.72fr) !important;
-  }
-}
