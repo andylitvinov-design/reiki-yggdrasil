@@ -1221,24 +1221,20 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     if (constructorType === "zodiac") {
       const isPlusVariant = zodiacVariant.startsWith("plus");
-      const signSlots = ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => ({
+      const visibleSignCount = isPlusVariant && zodiacVisibleCount === 12 ? 8 : zodiacVisibleCount;
+      const signSlots = ZODIAC_SIGNS.slice(0, visibleSignCount).map((sign, index) => ({
         id: `zodiac-${index + 1}`,
         label: sign.label,
         className: `${sign.className}`,
         classPrefix: "classic"
       }));
 
-      if (!isPlusVariant || zodiacVisibleCount === 8) {
+      if (!isPlusVariant) {
         return signSlots;
       }
 
-      const hasPlus12 = zodiacVisibleCount >= 12;
-      const plusSlotDefinitions = hasPlus12
+      const plusSlotDefinitions = zodiacVisibleCount >= 12
         ? [
-          { id: "zodiac-plus-top", label: "Топ", className: "plus-top", classPrefix: "plus" },
-          { id: "zodiac-plus-right", label: "Право", className: "plus-right", classPrefix: "plus" },
-          { id: "zodiac-plus-bottom", label: "Низ", className: "plus-bottom", classPrefix: "plus" },
-          { id: "zodiac-plus-left", label: "Лево", className: "plus-left", classPrefix: "plus" },
           { id: "zodiac-plus-corner-tl", label: "Угол верх-лев", className: "plus-corner-tl", classPrefix: "plus" },
           { id: "zodiac-plus-corner-tr", label: "Угол верх-прав", className: "plus-corner-tr", classPrefix: "plus" },
           { id: "zodiac-plus-corner-bl", label: "Угол низ-лев", className: "plus-corner-bl", classPrefix: "plus" },
@@ -3008,7 +3004,7 @@ const resourceComparisonPanel = (
                       <div className="zodiacClockFace" aria-hidden="true">
                         <span>ЗОДИАК</span>
                       </div>
-                      {ZODIAC_SIGNS.slice(0, zodiacVisibleCount).map((sign, index) => {
+                      {ZODIAC_SIGNS.slice(0, isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) && zodiacVisibleCount === 12 ? 8 : zodiacVisibleCount).map((sign, index) => {
                         const slotId = `zodiac-${index + 1}`;
                         const slotImage = objectImages[slotId];
 
@@ -3025,6 +3021,24 @@ const resourceComparisonPanel = (
                               {!slotImage && <span>{index + 1}</span>}
                             </button>
                             <b>{sign.label}</b>
+                          </div>
+                        );
+                      })}
+                      {activeObjectSlots.filter((slot) => slot.id.startsWith("zodiac-plus")).map((slot, index) => {
+                        const slotImage = objectImages[slot.id];
+                        return (
+                          <div className={`zodiacPlusPosition ${slot.className || ""}${slotImage ? " hasImage" : ""}`} key={slot.id}>
+                            <button
+                              className={`zodiacPlusPositionImage${selectedObjectSlotId === slot.id ? " selected" : ""}`}
+                              onClick={() => openObjectSlot(slot.id)}
+                              style={imageStyleFor(slotImage)}
+                              type="button"
+                              title={slot.label}
+                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                            >
+                              {!slotImage && <span>{index + 1}</span>}
+                            </button>
+                            <b>{slot.label}</b>
                           </div>
                         );
                       })}
