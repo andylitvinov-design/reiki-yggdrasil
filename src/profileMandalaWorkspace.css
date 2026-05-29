@@ -3568,3 +3568,50 @@
     rgba(255, 255, 255, 0.88) !important;
   color: #7a674f;
 }
+
+/* 2026-05-29 — final structured upload form inside image picker. */
+.pickerUploadStructuredForm {
+  gap: 10px;
+}
+
+.pickerUploadDropdowns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.pickerUploadDropdowns label {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  min-width: 0;
+  color: #6f4b1b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pickerUploadDropdowns select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 10px;
+  padding: 8px 9px;
+  background: rgba(255, 251, 243, 0.96);
+  color: #3c2a18;
+  font: inherit;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.pickerUploadDropdowns select:disabled {
+  opacity: 0.58;
+}
+
+@media (max-width: 720px) {
+  .pickerUploadDropdowns {
+    grid-template-columns: 1fr;
+  }
+}

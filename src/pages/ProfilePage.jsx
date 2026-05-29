@@ -3299,7 +3299,55 @@ const resourceComparisonPanel = (
                       </div>
                     </div>
                     {imagePickerContext.mode === "center" ? (
-                      <div className="powerInlineForm">
+                      <div className="powerInlineForm pickerUploadStructuredForm">
+                        <div className="pickerUploadDropdowns" aria-label="Структура загрузки фото">
+                          <label>
+                            Группа
+                            <select
+                              value={activePickerCategory}
+                              onChange={(event) => handlePickerCategorySelect(event.target.value)}
+                            >
+                              {SOURCE_LIBRARY_CATEGORIES.map((category) => (
+                                <option key={category.value} value={category.value}>{category.label}</option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label>
+                            Категория
+                            <select
+                              value={activePickerSubcategory}
+                              disabled={activePickerCategoryData.subcategories.length === 0}
+                              onChange={(event) => {
+                                const nextSubcategory = activePickerCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
+                                if (nextSubcategory) handlePickerSubcategorySelect(nextSubcategory);
+                              }}
+                            >
+                              {activePickerCategoryData.subcategories.length === 0 && <option value="">Без категории</option>}
+                              {activePickerCategoryData.subcategories.map((subcategory) => (
+                                <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
+                              ))}
+                            </select>
+                          </label>
+
+                          <label>
+                            Подкатегория
+                            <select
+                              value={activePickerThirdLevel}
+                              disabled={!activePickerSubcategoryData?.thirdLevels?.length}
+                              onChange={(event) => {
+                                const nextThird = activePickerSubcategoryData?.thirdLevels?.find((thirdLevel) => thirdLevel.value === event.target.value);
+                                if (nextThird) handlePickerThirdLevelSelect(nextThird);
+                              }}
+                            >
+                              {!activePickerSubcategoryData?.thirdLevels?.length && <option value="">Без подкатегории</option>}
+                              {activePickerSubcategoryData?.thirdLevels?.map((thirdLevel) => (
+                                <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+
                         <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
                         <label className="mediaUploadButton">
                           <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
