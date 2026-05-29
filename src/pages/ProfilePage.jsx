@@ -75,14 +75,14 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_index: firstSettings.length > 0 ? 1 : null
 });
 
-const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12, 18];
+const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
+  { value: "star", label: "Звезда" },
   { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес" },
   { value: "dao", label: "ДАО" },
-  { value: "zodiac", label: "Зодиак" },
-  { value: "star", label: "Звезда" }
+  { value: "zodiac", label: "Зодиак" }
 ];
 const STAR_VARIANTS = [
   { value: "closed", label: "Закрытая" },
@@ -2613,7 +2613,7 @@ const resourceComparisonPanel = (
                   </div>
                   <div className="constructorControls">
                   <div className="constructorTypeSelector" aria-label="Тип конструктора">
-                        {CONSTRUCTOR_TYPES.map((type) => (
+                        {CONSTRUCTOR_TYPES.filter((type) => type.value !== "client").map((type) => (
                       <button
                         className={constructorType === type.value ? "active" : ""}
                         key={type.value}
@@ -2925,7 +2925,7 @@ const resourceComparisonPanel = (
                   )}
                   <p className="powerPlaceHint">
                     {constructorType === "client"
-                      ? "Центр использует только фото из раздела «Фото клиентов / целей». При 12/18 точках добавлены внешние позиции вокруг центра."
+                      ? "Центр использует только фото из раздела «Фото клиентов / целей». При 12 точках добавлены внешние позиции вокруг центра."
                       : constructorType === "altar"
                         ? "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."
                         : constructorType === "business"
