@@ -29,6 +29,7 @@ import {
 import {
   ACCOUNT_PLANS,
   createClientGoalPhoto,
+  deleteClientGoalPhoto,
   createPowerPlaceComposition,
   createTraditionAsset,
   getPlanLimits,
@@ -2085,6 +2086,28 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     closeImagePicker();
   };
 
+
+  const handleDeleteSavedClientPhoto = async (photo, event) => {
+    event?.stopPropagation?.();
+    event?.preventDefault?.();
+
+    if (!photo?.photoId || !profile?.id) return;
+    const confirmed = window.confirm("Удалить фото из базы?");
+    if (!confirmed) return;
+
+    setMessage("");
+    setError("");
+
+    try {
+      await deleteClientGoalPhoto(photo.photoId, profile.id, session);
+      setClientGoalPhotos((current) => current.filter((item) => item.id !== photo.photoId));
+      if (selectedCentralPhotoId === photo.photoId) setSelectedCentralPhotoId("");
+      setMessage("Фото удалено из базы.");
+    } catch (err) {
+      setError(err.message || "Не удалось удалить фото.");
+    }
+  };
+
   const renderCenterPhotoButton = (className) => (
     <button
       className={className + (centerImage ? " hasImage" : "")}
@@ -3188,6 +3211,7 @@ const resourceComparisonPanel = (
                     <div>
                       <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Центр мандалы" : imagePickerContext.mode === "cover" ? "Фон Места Силы" : selectedObjectSlot?.label || "Объект мандалы"}</p>
                       <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Выбрать фото клиента / цели" : imagePickerContext.mode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
+                      <small>Выберите группу, категорию и подкатегорию — как в левом поле источников.</small>
                     </div>
                     <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
                   </div>
@@ -3242,6 +3266,21 @@ const resourceComparisonPanel = (
                         <span style={imageStyle(option.displaySrc || option.src)} />
                         <b>{option.label}</b>
                         {option.meta && <small>{option.meta}</small>}
+                        {option.kind === "client-photo" && (
+                          <span
+                            className="savedImageDeleteButton"
+                            role="button"
+                            tabIndex={0}
+                            title="Удалить фото"
+                            aria-label="Удалить фото из базы"
+                            onClick={(event) => handleDeleteSavedClientPhoto(option, event)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") handleDeleteSavedClientPhoto(option, event);
+                            }}
+                          >
+                            ×
+                          </span>
+                        )}
                       </button>
                     ))}
                     {modalPickerImageOptions.length === 0 && (

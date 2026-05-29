@@ -326,6 +326,21 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
   return hydrated?.[0] || null;
 }
 
+
+export async function deleteClientGoalPhoto(photoId, profileId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanPhotoId = cleanText(photoId);
+  const cleanProfileId = cleanText(profileId);
+  if (!cleanPhotoId || !cleanProfileId) throw powerPlaceError("Не удалось определить фото для удаления.");
+
+  await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}?id=eq.${encodeURIComponent(cleanPhotoId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`, {
+    method: "DELETE",
+    session
+  });
+
+  return true;
+}
+
 export async function listTraditionAssets(profileId, traditionId, session = getStoredSession()) {
   if (!profileId || !traditionId || !session?.access_token) return [];
 
