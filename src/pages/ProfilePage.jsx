@@ -848,6 +848,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const displayImageUrl = (value) => objectImageUrls[value] || value;
 
+  const previewImageUrl = (...values) => {
+    for (const value of values) {
+      const displayValue = displayImageUrl(value);
+      if (isImagePreview(displayValue)) return displayValue;
+    }
+    return "";
+  };
+
   const imageStyleFor = (value) => imageStyle(displayImageUrl(value));
 
   const displayMaterialImageUrl = (value) => {
@@ -903,7 +911,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           label: photo.title || "Фото клиента / цели",
           meta: photo.notes || "Клиенты / цель",
           src: photo.image_ref || photo.image_url,
-          displaySrc: photo.display_url || photo.image_url,
+          displaySrc: previewImageUrl(photo.display_url, photo.signed_url, photo.image_url, photo.image_ref),
           kind: "client-photo",
           photoId: photo.id
         })));
@@ -1027,9 +1035,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     ? { "--power-outer-cover-image": `url(${displayImageUrl(selectedOuterCover.src)})` }
     : undefined;
 
-  const centerImage = isImagePreview(selectedCentralPhoto?.display_url || selectedCentralPhoto?.image_url)
-    ? selectedCentralPhoto.display_url || selectedCentralPhoto.image_url
-    : "";
+  const centerImage = previewImageUrl(
+    selectedCentralPhoto?.display_url,
+    selectedCentralPhoto?.signed_url,
+    selectedCentralPhoto?.image_url,
+    selectedCentralPhoto?.image_ref
+  );
 
   const artifactMenuEntries = useMemo(() => [
     ...menuSectionEntries(leftMenuSections["artifact-creation"]),
@@ -1891,7 +1902,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         profile_id: profile.id,
         file: undefined
       }, accountPlan, session);
-      const savedForUi = uploadedPreviewUrl && !(saved?.display_url || saved?.image_url)
+      const savedForUi = uploadedPreviewUrl && !previewImageUrl(saved?.display_url, saved?.signed_url, saved?.image_url, saved?.image_ref)
         ? {
           ...saved,
           image_ref: saved?.image_ref || uploadedStorageRef,
@@ -2045,6 +2056,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const chooseCenterPickerImage = async (option) => {
     if (option?.kind === "client-photo" && option.photoId) {
+      if (option.src && option.displaySrc) {
+        setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc }));
+      }
       chooseCentralPhoto(option.photoId);
       return;
     }
@@ -3420,6 +3434,7 @@ const resourceComparisonPanel = (
                           <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
                           {clientPhotoForm.file ? clientPhotoForm.file.name : "Выбрать файл"}
                         </label>
+                        <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="Внешний URL фото" />
                         <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
                           {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
                         </button>
