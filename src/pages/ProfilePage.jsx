@@ -1869,10 +1869,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     try {
       let mediaPayload = {};
+      let uploadedPreviewUrl = "";
+      let uploadedStorageRef = "";
       if (clientPhotoForm.file) {
         setMediaUploadTarget("client-goal");
         setMediaStatus("Загружаю фото клиента / цели...");
         const uploaded = await uploadProfileMedia(clientPhotoForm.file, { profileId: profile.id, kind: "client-goal" }, session);
+        uploadedPreviewUrl = uploaded.signedUrl || "";
+        uploadedStorageRef = uploaded.ref || "";
         mediaPayload = {
           image_bucket: uploaded.bucket,
           image_path: uploaded.path,
@@ -1887,13 +1891,24 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         profile_id: profile.id,
         file: undefined
       }, accountPlan, session);
-      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
-      setSelectedCentralPhotoId((current) => (selectSaved ? saved?.id || "" : current || saved?.id || ""));
+      const savedForUi = uploadedPreviewUrl && !(saved?.display_url || saved?.image_url)
+        ? {
+          ...saved,
+          image_ref: saved?.image_ref || uploadedStorageRef,
+          display_url: uploadedPreviewUrl,
+          image_url: uploadedPreviewUrl
+        }
+        : saved;
+      if (uploadedStorageRef && uploadedPreviewUrl) {
+        setObjectImageUrls((current) => ({ ...current, [uploadedStorageRef]: uploadedPreviewUrl }));
+      }
+      setClientGoalPhotos((current) => [savedForUi, ...current].filter(Boolean));
+      setSelectedCentralPhotoId((current) => (selectSaved ? savedForUi?.id || "" : current || savedForUi?.id || ""));
       setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
       if (closePicker) closeImagePicker();
       setMediaStatus("Фото загружено и сохранено.");
       setMessage(selectSaved ? "Фото клиента / цели сохранено и выбрано в центр." : "Фото клиента / цели сохранено.");
-      return saved;
+      return savedForUi;
     } catch (err) {
       setMediaStatus(formatUploadError(err));
       setError(err.message || "Не удалось сохранить фото клиента / цели.");

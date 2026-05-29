@@ -102,7 +102,9 @@ async function countRows(table, profileId, session) {
 function storageRefFromRow(row) {
   const path = cleanText(row?.image_path);
   const bucket = cleanText(row?.image_bucket) || PROFILE_MEDIA_BUCKET;
-  return path ? toStorageRef(bucket, path) : "";
+  if (path) return toStorageRef(bucket, path);
+  const imageUrl = cleanText(row?.image_url);
+  return isStorageRef(imageUrl) ? imageUrl : "";
 }
 
 function displayUrlFromRow(row) {
