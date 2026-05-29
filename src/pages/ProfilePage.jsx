@@ -291,7 +291,7 @@ const SOURCE_LIBRARY_CATEGORIES = [
   },
   {
     value: "covers-legacy",
-    label: "Подложка места силы",
+    label: "Фон Места Силы",
     subcategories: []
   },
   {
@@ -1089,7 +1089,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     },
     {
       id: "covers",
-      label: "Подложка места силы",
+      label: "Фон Места Силы",
       count: coverVariants.length,
       items: coverVariants.map((cover) => ({
         id: cover.id,
@@ -1145,7 +1145,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       id: `cover-${cover.id}`,
       title: cover.label || "Подложка",
       label: cover.label || "Подложка",
-      source: "Подложка места силы",
+      source: "Фон Места Силы",
       status: "фон",
       src: cover.src,
       displaySrc: cover.displaySrc || cover.src,
@@ -1938,6 +1938,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setImagePickerContext({ mode: "center", slotId: "" });
   };
 
+  const openCoverPicker = () => {
+    handlePickerCategorySelect("covers");
+    setActivePickerSubcategory("cover");
+    setActivePickerThirdLevel("");
+    setImagePickerContext({ mode: "cover", slotId: "" });
+  };
+
   const chooseCentralPhoto = (photoId) => {
     setSelectedCentralPhotoId(photoId);
     closeImagePicker();
@@ -1951,7 +1958,30 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       return;
     }
 
+    if (imagePickerContext.mode === "cover") {
+      chooseCoverPickerImage(option);
+      return;
+    }
+
     chooseObjectPickerImage(option);
+  };
+
+  const chooseCoverPickerImage = (option) => {
+    if (!option?.src) return;
+
+    const existingCover = coverVariants.find((cover) =>
+      option.id === `picker-cover-${cover.id}` || cover.id === option.id || cover.src === option.src
+    );
+
+    if (existingCover) {
+      setSelectedCoverId(existingCover.id);
+    } else {
+      setCustomCoverImage(option.src);
+      setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc || option.src }));
+      setSelectedCoverId("custom-cover");
+    }
+
+    closeImagePicker();
   };
 
   const chooseObjectPickerImage = (option) => {
@@ -1973,14 +2003,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       </button>
   );
 
-  const renderCenterPhotoWithMode = (className) => (
-    <div className="centerPhotoModeControlWrap">
-      <div className="centerPhotoModeControl">
-        {resourceModeToggle}
-      </div>
-      {renderCenterPhotoButton(className)}
-    </div>
-  );
+  const renderCenterPhotoWithMode = (className) => renderCenterPhotoButton(className);
 
   const handleDownloadMandala = () => {
     const objectRefs = persistableObjectRefs(objectImages, activeObjectSlots.map((slot) => slot.id));
@@ -2199,6 +2222,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
 const resourceComparisonPanel = (
   <div className="resourceComparisonPanel">
+    <div className="resourceComparisonModeRail">
+      <span>Режим сравнения</span>
+      <div className="resourceModeToggle resourceModeToggleRail" aria-label="Сравнение ресурса">
+        {RESOURCE_COMPARISON_MODES.map((mode) => (
+          <button
+            className={resourceComparisonMode === mode.value ? "active" : ""}
+            key={mode.value}
+            onClick={() => setResourceComparisonMode(mode.value)}
+            type="button"
+          >
+            {mode.label}
+          </button>
+        ))}
+      </div>
+    </div>
     <label className="resourceField">
       <textarea
         className="resourceFieldInput"
@@ -2946,6 +2984,37 @@ const resourceComparisonPanel = (
                 <aside className="powerCommandRail">
                   {resourceComparisonPanel}
 
+                  <div className="coverSelector">
+                    <p className="cabinetEyebrow">Фон Места Силы</p>
+                    <div className="coverPreviewWrap">
+                      <div
+                        className={`coverPreview ${selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "gold"}`}`}
+                        style={selectedCover?.type === "image" ? { backgroundImage: `url(${displayImageUrl(selectedCover.src)})` } : undefined}
+                      >
+                        <span>{selectedCover?.label || "Заставка"}</span>
+                      </div>
+                    </div>
+                    <div className="coverVariantList" aria-label="Варианты заставки">
+                      {coverVariants.map((cover) => (
+                        <button
+                          className={selectedCover?.id === cover.id ? "active" : ""}
+                          key={cover.id}
+                          onClick={() => setSelectedCoverId(cover.id)}
+                          type="button"
+                        >
+                          {cover.label}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="coverUploadButton">
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleCoverFile} />
+	                      {mediaUploadTarget === "cover" ? "Загружаю..." : "Своё изображение"}
+                    </label>
+                    <button className="coverPickerButton" type="button" onClick={openCoverPicker}>Выбрать фото</button>
+                    {coverNotice && <p className="coverNotice">{coverNotice}</p>}
+                  </div>
+
+
                   <div className="objectImageEditor">
                     <p className="cabinetEyebrow">Объекты композиции</p>
                     <div className="selectedObjectControl">
@@ -2980,34 +3049,6 @@ const resourceComparisonPanel = (
                     </div>
                   </div>
 
-                  <div className="coverSelector">
-                    <p className="cabinetEyebrow">Подложка места силы</p>
-                    <div className="coverPreviewWrap">
-                      <div
-                        className={`coverPreview ${selectedCover?.type === "image" ? "hasImage" : `tone-${selectedCover?.tone || "gold"}`}`}
-                        style={selectedCover?.type === "image" ? { backgroundImage: `url(${displayImageUrl(selectedCover.src)})` } : undefined}
-                      >
-                        <span>{selectedCover?.label || "Заставка"}</span>
-                      </div>
-                    </div>
-                    <div className="coverVariantList" aria-label="Варианты заставки">
-                      {coverVariants.map((cover) => (
-                        <button
-                          className={selectedCover?.id === cover.id ? "active" : ""}
-                          key={cover.id}
-                          onClick={() => setSelectedCoverId(cover.id)}
-                          type="button"
-                        >
-                          {cover.label}
-                        </button>
-                      ))}
-                    </div>
-                    <label className="coverUploadButton">
-                      <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleCoverFile} />
-	                      {mediaUploadTarget === "cover" ? "Загружаю..." : "Своё изображение"}
-                    </label>
-                    {coverNotice && <p className="coverNotice">{coverNotice}</p>}
-                  </div>
                 </aside>
               </div>
 
@@ -3038,8 +3079,8 @@ const resourceComparisonPanel = (
                 <section className="clientPhotoPickerModal" role="dialog" aria-modal="true" aria-labelledby="clientPhotoPickerTitle">
                   <div className="clientPhotoPickerHeader">
                     <div>
-                      <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Центр мандалы" : selectedObjectSlot?.label || "Объект мандалы"}</p>
-                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Фото клиента / цели" : "Выбрать изображение объекта"}</h2>
+                      <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Центр мандалы" : imagePickerContext.mode === "cover" ? "Фон Места Силы" : selectedObjectSlot?.label || "Объект мандалы"}</p>
+                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Фото клиента / цели" : imagePickerContext.mode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
                     </div>
                     <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
                   </div>
@@ -3088,7 +3129,7 @@ const resourceComparisonPanel = (
                       <button
                         className={selectedObjectImage === option.src ? "clientPhotoPickerCard active" : "clientPhotoPickerCard"}
                         key={option.id}
-                        onClick={() => imagePickerContext.mode === "center" ? choosePickerOption(option) : chooseObjectPickerImage(option)}
+                        onClick={() => choosePickerOption(option)}
                         type="button"
                       >
                         <span style={imageStyle(option.displaySrc || option.src)} />
@@ -3125,6 +3166,8 @@ const resourceComparisonPanel = (
                         {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
                         <p className="powerPlanNote">Файл сохраняется в private Supabase Storage; внешний URL можно оставить для старых ссылок.</p>
                       </div>
+                    ) : imagePickerContext.mode === "cover" ? (
+                      <p className="powerPlanNote">Выберите сохранённый фон выше. Новая загрузка фона остаётся в блоке «Фон Места Силы».</p>
                     ) : (
                       <>
                         <div className="selectedObjectActions">
