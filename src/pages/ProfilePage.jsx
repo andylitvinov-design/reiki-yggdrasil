@@ -3028,37 +3028,39 @@ const resourceComparisonPanel = (
                       ))}
                     </div>
                   ) : constructorType === "zodiac" ? (
-                    <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${selectedCoverClass}`} style={selectedCoverStyle}>
-                      {renderCenterPhotoWithMode("zodiacCenterPhoto")}
-                      <div className="zodiacClockFace" aria-hidden="true">
-                        <span>ЗОДИАК</span>
-                      </div>
-                      {ZODIAC_SIGNS.slice(0, isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) ? 8 : zodiacVisibleCount).map((sign, index) => {
-                        const slotId = `zodiac-${index + 1}`;
-                        const slotImage = objectImages[slotId];
+                    <>
+                      <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                        {renderCenterPhotoWithMode("zodiacCenterPhoto")}
+                        <div className="zodiacClockFace" aria-hidden="true">
+                          <span>ЗОДИАК</span>
+                        </div>
+                        {ZODIAC_SIGNS.slice(0, isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) ? 8 : zodiacVisibleCount).map((sign, index) => {
+                          const slotId = `zodiac-${index + 1}`;
+                          const slotImage = objectImages[slotId];
 
-                        return (
-                          <div className={`zodiacPosition ${sign.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
-                            <button
-                              className={`zodiacPositionImage${selectedObjectSlotId === slotId ? " selected" : ""}`}
-                              onClick={() => openObjectSlot(slotId)}
-                              style={imageStyleFor(slotImage)}
-                              type="button"
-                              title={sign.label}
-                              aria-label={`Выбрать знак ${sign.label}`}
-                            >
-                              {!slotImage && <span>{index + 1}</span>}
-                            </button>
-                            <b>{sign.label}</b>
-                          </div>
-                        );
-                      })}
+                          return (
+                            <div className={`zodiacPosition ${sign.className}${slotImage ? " hasImage" : ""}`} key={slotId}>
+                              <button
+                                className={`zodiacPositionImage${selectedObjectSlotId === slotId ? " selected" : ""}`}
+                                onClick={() => openObjectSlot(slotId)}
+                                style={imageStyleFor(slotImage)}
+                                type="button"
+                                title={sign.label}
+                                aria-label={`Выбрать знак ${sign.label}`}
+                              >
+                                {!slotImage && <span>{index + 1}</span>}
+                              </button>
+                              <b>{sign.label}</b>
+                            </div>
+                          );
+                        })}
+                      </div>
                       {activeObjectSlots.filter((slot) => slot.id.startsWith("zodiac-plus")).map((slot, index) => {
                         const slotImage = objectImages[slot.id];
                         return (
-                          <div className={`zodiacPlusPosition ${slot.className || ""}${slotImage ? " hasImage" : ""}`} key={slot.id}>
+                          <div className={`zodiacFieldPlusPosition ${slot.className || ""}${slotImage ? " hasImage" : ""}`} key={slot.id}>
                             <button
-                              className={`zodiacPlusPositionImage${selectedObjectSlotId === slot.id ? " selected" : ""}`}
+                              className={`zodiacFieldPlusPositionImage${selectedObjectSlotId === slot.id ? " selected" : ""}`}
                               onClick={() => openObjectSlot(slot.id)}
                               style={imageStyleFor(slotImage)}
                               type="button"
@@ -3071,7 +3073,7 @@ const resourceComparisonPanel = (
                           </div>
                         );
                       })}
-                    </div>
+                    </>
                   ) : constructorType === "star" ? (
                     <div className={`starMandalaSheet star-${starVariant} ${selectedCoverClass}`} style={selectedCoverStyle}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
