@@ -3,6 +3,26 @@
 
   const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
   const lower = (value) => normalize(value).toLowerCase();
+  const slug = (value) => lower(value).replace(/[^a-z0-9а-яё]+/giu, "-").replace(/^-+|-+$/g, "") || "all";
+
+  const DAO_LEVELS = [
+    { value: "dao-basic", label: "Базовый", patterns: [/^1\./, /базов/i] },
+    { value: "dao-instructor", label: "Инструкторский", patterns: [/^2\./, /инструкт/i] },
+    { value: "dao-master", label: "Мастерский", patterns: [/^3\./, /мастер/i] },
+    { value: "dao-senior", label: "Старшие уровни", patterns: [/^4\./, /^5\./, /старш/i] },
+    { value: "dao-priest", label: "Жреческий", patterns: [/^6\./, /жрец/i] },
+    { value: "dao-advanced", label: "Высшие уровни", patterns: [/^7\./, /^8\./, /^9\./, /высш/i] }
+  ];
+
+  const MYSTERY_TRADITIONS = [
+    { value: "mystery-greek", label: "Греческие", patterns: [/гречес/i, /олимп/i, /зевс/i, /афин/i, /апол/i, /артем/i, /дионис/i, /афрод/i] },
+    { value: "mystery-roman", label: "Римские", patterns: [/римск/i, /юпитер/i, /юнон/i, /марс/i, /венер/i, /меркур/i, /сатурн/i] },
+    { value: "mystery-egyptian", label: "Египетские", patterns: [/егип/i, /ра\b/i, /исид/i, /осир/i, /гор\b/i, /ануб/i, /тот\b/i] },
+    { value: "mystery-norse", label: "Скандинавские", patterns: [/скандинав/i, /север/i, /один/i, /тор\b/i, /локи/i, /фрей/i, /фригг/i] },
+    { value: "mystery-celtic", label: "Кельтские", patterns: [/кельт/i, /бригит/i, /лу/?i] },
+    { value: "mystery-tao", label: "Даосские", patterns: [/даос/i, /дао/i, /усин/i] },
+    { value: "mystery-other", label: "Другие", patterns: [] }
+  ];
 
   const CHANNEL_CATEGORY_MAP = {
     "сефирот": ["Большие арканы", "Малые арканы", "Сиферы"],
@@ -14,6 +34,20 @@
 
   function option(value, label) {
     return { value, label };
+  }
+
+  function matchesAny(text, patterns) {
+    return patterns.some((pattern) => pattern.test(text));
+  }
+
+  function daoLevelForItem(item) {
+    const text = `${item.title} ${item.meta}`;
+    return DAO_LEVELS.find((level) => matchesAny(text, level.patterns)) || DAO_LEVELS[0];
+  }
+
+  function mysteryTraditionForItem(item) {
+    const text = `${item.title} ${item.meta}`;
+    return MYSTERY_TRADITIONS.find((tradition) => matchesAny(text, tradition.patterns)) || MYSTERY_TRADITIONS[MYSTERY_TRADITIONS.length - 1];
   }
 
   function readGroups(container) {
@@ -39,14 +73,8 @@
     if (!group) return [option("", "Категории пока нет")];
 
     if (label.includes("дао")) {
-      const levels = [];
-      group.items.forEach((item) => {
-        const match = item.title.match(/^(\d+)\./);
-        const value = match ? `level-${match[1]}` : "level-other";
-        const labelText = match ? `${match[1]}. Уровень` : "Другие ступени";
-        if (!levels.some((entry) => entry.value === value)) levels.push(option(value, labelText));
-      });
-      return levels.length ? levels : [option("all", "Все ступени")];
+      return DAO_LEVELS.filter((level) => group.items.some((item) => daoLevelForItem(item).value === level.value))
+        .map((level) => option(level.value, level.label));
     }
 
     if (label.includes("канал")) {
@@ -54,13 +82,8 @@
     }
 
     if (label.includes("мистер")) {
-      const categories = [];
-      group.items.forEach((item) => {
-        const meta = item.meta || item.title;
-        const value = meta || item.title;
-        if (value && !categories.some((entry) => lower(entry.value) === lower(value))) categories.push(option(value, value));
-      });
-      return categories.length ? categories : [option("all", "Все мистерии")];
+      return MYSTERY_TRADITIONS.filter((tradition) => group.items.some((item) => mysteryTraditionForItem(item).value === tradition.value))
+        .map((tradition) => option(tradition.value, tradition.label));
     }
 
     if (label.includes("форм")) {
@@ -78,7 +101,7 @@
     const categories = [];
     group.items.forEach((item) => {
       const value = item.meta || item.title;
-      if (value && !categories.some((entry) => lower(entry.value) === lower(value))) categories.push(option(value, value));
+      if (value && !categories.some((entry) => lower(entry.value) === lower(value))) categories.push(option(slug(value), value));
     });
     return categories.length ? categories : [option("all", "Все")];
   }
@@ -89,8 +112,7 @@
 
     if (groupLabel.includes("дао")) {
       return group.items
-        .filter((item) => category === "all" || item.title.startsWith(category.replace("level-", "") + "."))
-        .slice(0, 37)
+        .filter((item) => daoLevelForItem(item).value === category)
         .map((item) => option(item.title, item.title));
     }
 
@@ -101,8 +123,7 @@
 
     if (groupLabel.includes("мистер")) {
       return group.items
-        .filter((item) => !category || category === "all" || lower(item.meta).includes(lower(category)) || lower(item.title).includes(lower(category)))
-        .slice(0, 24)
+        .filter((item) => mysteryTraditionForItem(item).value === category)
         .map((item) => option(item.title, item.title));
     }
 
@@ -111,14 +132,15 @@
 
   function itemMatches(group, categoryValue, subcategoryValue, item) {
     const groupLabel = lower(group?.label);
-    const category = lower(categoryValue);
+    const category = normalize(categoryValue);
     const subcategory = lower(subcategoryValue);
     const haystack = lower(`${item.title} ${item.meta}`);
 
     if (subcategory) return haystack.includes(subcategory);
     if (!category || category === "all" || category === "client-goals" || category === "covers") return true;
-    if (groupLabel.includes("дао")) return item.title.startsWith(category.replace("level-", "") + ".");
-    return haystack.includes(category);
+    if (groupLabel.includes("дао")) return daoLevelForItem(item).value === category;
+    if (groupLabel.includes("мистер")) return mysteryTraditionForItem(item).value === category;
+    return haystack.includes(lower(category)) || slug(item.meta || item.title) === category;
   }
 
   function setOptions(select, options, emptyLabel) {
