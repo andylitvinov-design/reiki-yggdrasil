@@ -542,8 +542,8 @@ function uniqueImageSources(items) {
 
   return items.filter((item) => {
     const identity = item?.src || item?.displaySrc;
-    const displaySrc = item?.displaySrc || item?.src;
-    if ((!isImagePreview(displaySrc) && !isStorageImageRef(identity)) || seen.has(identity)) return false;
+    const displaySrc = item?.displaySrc || (isImagePreview(item?.src) ? item?.src : "");
+    if (!identity || !isImagePreview(displaySrc) || seen.has(identity)) return false;
     seen.add(identity);
     return true;
   });
@@ -893,7 +893,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     const hasImage = (item) => Boolean(item?.src || item?.displaySrc);
 
     if (categoryValue === "dao-ri") {
-      const stepIds = new Set(subcategory?.steps?.map((step) => step.id) || []);
+      const selectedStepId = thirdLevel?.stepId || thirdLevel?.value || "";
+      const stepIds = new Set(selectedStepId ? [selectedStepId] : (subcategory?.steps?.map((step) => step.id) || []));
       return uniqueImageSources(materials
         .filter((item) => item.image_url && (!stepIds.size || !item.step_id || stepIds.has(item.step_id)))
         .map(materialToOption)
@@ -1994,6 +1995,100 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       event.target.value = "";
     }
   };
+
+  const handlePickerDirectFileUpload = async (event) => {
+    const file = event.target.files?.[0] || null;
+    event.target.value = "";
+    if (!file) return;
+
+    if (activePickerCategory === "client-goals") {
+      await handleClientPhotoSave({ selectSaved: true, closePicker: false, fileOverride: file });
+      return;
+    }
+
+    setMessage("");
+    setError("");
+    setMediaStatus("");
+
+    if (!profile?.id) {
+      setError("Сначала сохраните профиль мастера.");
+      return;
+    }
+
+    try {
+      validateProfileMediaFile(file);
+      const title = file.name?.replace(/\.[^.]+$/, "") || "Фото";
+      const categoryLabel = activePickerCategoryData?.label || "Материал";
+      const subcategoryLabel = activePickerSubcategoryData?.label || "";
+      const thirdLabel = activePickerThirdLevelData?.label || "";
+      setMediaUploadTarget(`picker-${activePickerCategory}`);
+
+      if (activePickerCategory === "god-channels") {
+        const traditionId = activePickerSubcategoryData?.traditionId || activePickerSubcategoryData?.value || selectedTradition?.id || "";
+        const tradition = mysteryTraditions.find((item) => item.id === traditionId) || selectedTradition;
+        if (!tradition?.id) throw new Error("Выберите традицию для загрузки.");
+
+        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "tradition", traditionId: tradition.id }, session);
+        const saved = await createTraditionAsset({
+          profile_id: profile.id,
+          tradition_id: tradition.id,
+          tradition_title: tradition.title,
+          title,
+          image_url: uploaded.ref,
+          image_bucket: uploaded.bucket,
+          image_path: uploaded.path,
+          mime_type: uploaded.metadata.mimeType,
+          file_size_bytes: uploaded.metadata.size,
+          notes: [subcategoryLabel, thirdLabel].filter(Boolean).join(" · "),
+          file: undefined
+        }, session);
+        const savedForUi = {
+          ...saved,
+          image_ref: saved?.image_ref || uploaded.ref,
+          display_url: saved?.display_url || uploaded.signedUrl,
+          image_url: saved?.image_url || uploaded.ref
+        };
+        setTraditionAssets((current) => [savedForUi, ...current].filter(Boolean));
+        setObjectImageUrls((current) => ({ ...current, [uploaded.ref]: uploaded.signedUrl }));
+        setMediaStatus("Фото загружено в Мистерии.");
+        setMessage("Фото загружено в выбранную традицию.");
+        return;
+      }
+
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+      const selectedStepId = activePickerCategory === "dao-ri" ? (activePickerThirdLevelData?.stepId || activePickerThirdLevelData?.value || activePickerSubcategoryData?.steps?.[0]?.id || "") : materialForm.step_id;
+      const selectedStep = stepOptions.find((step) => step.id === selectedStepId) || firstStep;
+      const firstSetting = settingsForStep(selectedStep?.id)?.[0] || null;
+      const materialType = ["talismans", "artifacts"].includes(activePickerCategory) ? "artifact" : "mandala";
+      const nextForm = {
+        ...EMPTY_MATERIAL,
+        type: materialType,
+        title,
+        description: [categoryLabel, subcategoryLabel, thirdLabel].filter(Boolean).join(" · "),
+        image_url: uploaded.ref,
+        step_id: selectedStep?.id || materialForm.step_id || "",
+        step_title: selectedStep?.title || materialForm.step_title || "",
+        setting_title: materialForm.setting_title || firstSetting?.title || "",
+        setting_index: firstSetting ? 1 : null
+      };
+      const saved = await createOwnMaterial(buildMaterialPayload(nextForm, profile.id, "draft"), session);
+      const savedForUi = {
+        ...saved,
+        display_url: saved?.display_url || uploaded.signedUrl,
+        image_url: saved?.image_url || uploaded.ref
+      };
+      setMaterials((current) => [savedForUi, ...current].filter(Boolean));
+      setObjectImageUrls((current) => ({ ...current, [uploaded.ref]: uploaded.signedUrl }));
+      setMediaStatus(`Фото загружено в ${categoryLabel}.`);
+      setMessage(`Фото загружено в ${categoryLabel}.`);
+    } catch (err) {
+      setMediaStatus(formatUploadError(err));
+      setError(err.message || "Не удалось загрузить фото в выбранный раздел.");
+    } finally {
+      setMediaUploadTarget("");
+    }
+  };
+
 
   const handleTraditionAssetSave = async () => {
     setMessage("");
@@ -3490,7 +3585,7 @@ const resourceComparisonPanel = (
                     )}
                   </div>
 
-                  {imagePickerContext.mode === "center" && activePickerCategory === "client-goals" && (
+                  {imagePickerContext.mode === "center" && (
                     <div className="clientPhotoPickerModeTabs" role="tablist" aria-label="Режим выбора фото">
                       <button
                         className="active"
@@ -3503,7 +3598,7 @@ const resourceComparisonPanel = (
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/webp,image/gif"
-                          onChange={(event) => handleClientPhotoSave({ selectSaved: true, closePicker: false, fileOverride: event.target.files?.[0] || null })}
+                          onChange={handlePickerDirectFileUpload}
                         />
                         Загрузить новое фото
                       </label>
