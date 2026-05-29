@@ -4934,3 +4934,221 @@
     height: 58px !important;
   }
 }
+
+/* 2026-05-29 final polish: real horizontal field, notes outside, corners inside. */
+
+/* Hide old notes inside the mandala field. They are duplicated below as .powerFieldNotes. */
+.powerMandalaPanel > .powerPlaceHint,
+.powerMandalaPanel > .resourcePrintNotes {
+  display: none !important;
+}
+
+/* Desktop grid: field + notes left, controls right. */
+@media (min-width: 981px) {
+  .powerPlacePrintArea {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px) !important;
+    gap: 18px !important;
+    align-items: start !important;
+  }
+
+  .powerMandalaPanel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  .powerFieldNotes {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+
+  .powerCommandRail {
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+  }
+}
+
+.powerFieldNotes {
+  width: min(760px, 100%);
+  margin: 12px auto 0;
+  display: grid;
+  gap: 10px;
+}
+
+.powerFieldNotes .powerPlaceHint {
+  margin: 0;
+  padding: 0 4px;
+  color: #7a674f;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.powerFieldNotes .resourcePrintNotes {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 18px;
+  padding: 14px 18px;
+  background: rgba(255, 253, 248, 0.72);
+  color: #5b4327;
+}
+
+.powerFieldNotes .resourcePrintNotes p {
+  margin: 0;
+}
+
+/* Remove the right-side object composition module. Selection still happens by clicking points on the diagram. */
+.objectImageEditor {
+  display: none !important;
+}
+
+/* Real outer field layouts. Only outer panel changes. */
+.powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel {
+  width: min(900px, 100%) !important;
+  aspect-ratio: 16 / 9 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 52px 126px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.powerPlacePrintArea.field-layout-vertical .powerMandalaPanel {
+  width: min(560px, 100%) !important;
+  aspect-ratio: 3 / 4 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 72px 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+  width: min(640px, 100%) !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 58px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+/* Inner mandala stable. */
+.powerPlacePrintArea .zodiacMandalaSheet,
+.powerPlacePrintArea .powerMandala,
+.powerPlacePrintArea .daoMandalaSheet {
+  width: min(450px, 100%) !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 auto !important;
+  transform: none !important;
+}
+
+/* Title does not push layout down. */
+.powerPlacePrintArea.field-layout-horizontal .powerPrintMeta,
+.powerPlacePrintArea.field-layout-vertical .powerPrintMeta,
+.powerPlacePrintArea.field-layout-square .powerPrintMeta {
+  position: absolute !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+}
+
+/* Old inner plus positions hidden; final field-level zones shown. */
+.zodiacPlusPosition {
+  display: none !important;
+}
+
+/* Field-level plus zones: inside the green outer field. */
+.zodiacFieldPlusPosition {
+  position: absolute !important;
+  z-index: 30 !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 4px !important;
+  width: 94px !important;
+  transform: translate(-50%, -50%) !important;
+  pointer-events: auto !important;
+}
+
+.zodiacFieldPlusPositionImage {
+  width: 82px !important;
+  height: 82px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 213, 117, 0.82) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #2b1806 100%) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  color: #211407 !important;
+  font: inherit !important;
+  font-weight: 900 !important;
+  padding: 0 !important;
+  box-shadow: 0 0 22px rgba(128, 84, 18, 0.3) !important;
+}
+
+.zodiacFieldPlusPosition b {
+  color: #513512 !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* 8+ side zones stay inside field, not outside. */
+.zodiacFieldPlusPosition.plus-top { left: 50% !important; top: 14% !important; }
+.zodiacFieldPlusPosition.plus-right { left: 86% !important; top: 50% !important; }
+.zodiacFieldPlusPosition.plus-bottom { left: 50% !important; top: 86% !important; }
+.zodiacFieldPlusPosition.plus-left { left: 14% !important; top: 50% !important; }
+
+/* 12+ corner zones stay inside green field. */
+.zodiacFieldPlusPosition.plus-corner-tl { left: 12% !important; top: 12% !important; }
+.zodiacFieldPlusPosition.plus-corner-tr { left: 88% !important; top: 12% !important; }
+.zodiacFieldPlusPosition.plus-corner-bl { left: 12% !important; top: 88% !important; }
+.zodiacFieldPlusPosition.plus-corner-br { left: 88% !important; top: 88% !important; }
+
+/* 12+ inner base = 8 signs. */
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition {
+  width: 19% !important;
+}
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.aries { left: 50% !important; top: 8% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.taurus { left: 80% !important; top: 20% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.gemini { left: 92% !important; top: 50% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.cancer { left: 80% !important; top: 80% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.leo { left: 50% !important; top: 92% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.virgo { left: 20% !important; top: 80% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.libra { left: 8% !important; top: 50% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.scorpio { left: 20% !important; top: 20% !important; }
+
+@media (max-width: 640px) {
+  .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
+  .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
+  .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+    width: 100% !important;
+    aspect-ratio: auto !important;
+    padding: 28px !important;
+  }
+
+  .zodiacFieldPlusPosition {
+    width: 70px !important;
+  }
+
+  .zodiacFieldPlusPositionImage {
+    width: 56px !important;
+    height: 56px !important;
+  }
+}
