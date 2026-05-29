@@ -15,7 +15,8 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260527070310_20260526_power_place_upgrade_5_business_dao.sql",
   "supabase/migrations/20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql",
   "supabase/migrations/20260527120000_profile_cabinet_media_storage.sql",
-  "supabase/migrations/20260527143000_power_place_star_format.sql"
+  "supabase/migrations/20260527143000_power_place_star_format.sql",
+  "supabase/migrations/20260529090000_master_services_orders_mvp.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
@@ -31,7 +32,9 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_media_bucket: false,
   profile_cabinet_client_goal_photos_image_path: false,
   profile_cabinet_tradition_assets_image_path: false,
-  profile_cabinet_media_storage_policy: false
+  profile_cabinet_media_storage_policy: false,
+  profile_cabinet_services: false,
+  profile_cabinet_service_orders: false
 });
 
 function redact(text = "", secrets = {}) {
@@ -258,7 +261,15 @@ select
     where schemaname = 'storage'
       and tablename = 'objects'
       and policyname = 'owners upload profile cabinet media'
-  ) as profile_cabinet_media_storage_policy
+  ) as profile_cabinet_media_storage_policy,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_services'
+  ) as profile_cabinet_services,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_service_orders'
+  ) as profile_cabinet_service_orders
 `.trim();
 }
 
