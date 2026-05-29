@@ -33,11 +33,14 @@
     const style = document.createElement("style");
     style.dataset.profilePdfPrint = "true";
     style.textContent = `
-      .profilePdfPrintImage {
+      .profilePdfPrintImage,
+      .profilePdfPrintCoverImage,
+      .profilePdfPrintInnerCoverImage {
         display: none !important;
       }
 
-      .profilePdfPrintImageHost {
+      .profilePdfPrintImageHost,
+      .profilePdfPrintCoverHost {
         position: relative !important;
         overflow: hidden !important;
         -webkit-print-color-adjust: exact !important;
@@ -52,17 +55,19 @@
           gap: 8px !important;
           margin: 10px 0 12px !important;
           padding: 0 !important;
+          align-items: stretch !important;
         }
 
         ${ACTIONS_SELECTOR}.profileMobileMandalaActions button {
           width: 100% !important;
           min-width: 0 !important;
           min-height: 42px !important;
-          padding: 10px 8px !important;
-          font-size: 12px !important;
-          line-height: 1.15 !important;
+          padding: 9px 6px !important;
+          font-size: 11px !important;
+          line-height: 1.1 !important;
           justify-content: center !important;
           text-align: center !important;
+          white-space: nowrap !important;
         }
 
         ${ACTIONS_SELECTOR}.profileMobileMandalaActions span {
@@ -72,28 +77,24 @@
         }
       }
 
-      @media (max-width: 430px) {
-        ${ACTIONS_SELECTOR}.profileMobileMandalaActions {
-          grid-template-columns: 1fr !important;
-        }
-      }
-
       @media print {
         html, body {
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
 
-        .profilePdfPrintImageHost {
+        .profilePdfPrintImageHost,
+        .profilePdfPrintCoverHost {
           color-adjust: exact !important;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
 
+        .profilePdfPrintCoverImage,
+        .profilePdfPrintInnerCoverImage,
         .profilePdfPrintImage {
           position: absolute !important;
           inset: 0 !important;
-          z-index: 1 !important;
           display: block !important;
           width: 100% !important;
           height: 100% !important;
@@ -101,6 +102,15 @@
           border: 0 !important;
           border-radius: inherit !important;
           pointer-events: none !important;
+        }
+
+        .profilePdfPrintCoverImage {
+          z-index: 0 !important;
+        }
+
+        .profilePdfPrintInnerCoverImage,
+        .profilePdfPrintImage {
+          z-index: 1 !important;
         }
 
         .profilePdfPrintImageHost > span {
@@ -168,36 +178,81 @@
     }
   }
 
-  function extractBackgroundImageUrl(node) {
-    const background = window.getComputedStyle(node).backgroundImage || "";
-    const matches = [...background.matchAll(/url\((['"]?)(.*?)\1\)/g)];
-    const url = matches.map((match) => match[2]).filter(Boolean).pop();
-    if (!url || url === "none" || url.startsWith("storage://")) return "";
-    return url;
+  function normalizeUrl(raw) {
+    const value = String(raw || "").trim();
+    if (!value || value === "none" || value.startsWith("storage://")) return "";
+    return value.replace(/^['"]|['"]$/g, "");
   }
 
-  function ensurePrintImage(node) {
-    const src = extractBackgroundImageUrl(node);
-    const existing = node.querySelector(":scope > img.profilePdfPrintImage");
+  function extractUrlsFromCssValue(value) {
+    return [...String(value || "").matchAll(/url\((['"]?)(.*?)\1\)/g)]
+      .map((match) => normalizeUrl(match[2]))
+      .filter(Boolean);
+  }
 
+  function getCssImageVarUrls(styles, names) {
+    return names.flatMap((name) => extractUrlsFromCssValue(styles.getPropertyValue(name)));
+  }
+
+  function uniqueUrls(urls) {
+    return [...new Set(urls.map(normalizeUrl).filter(Boolean))];
+  }
+
+  function extractBackgroundImageUrls(node) {
+    const styles = window.getComputedStyle(node);
+    return uniqueUrls([
+      ...extractUrlsFromCssValue(styles.backgroundImage),
+      ...getCssImageVarUrls(styles, ["--power-cover-image", "--power-outer-cover-image"])
+    ]);
+  }
+
+  function upsertImage(node, className, src) {
+    const existing = node.querySelector(`:scope > img.${className}`);
     if (!src) {
       existing?.remove();
-      node.classList.remove("profilePdfPrintImageHost");
       return;
     }
 
-    node.classList.add("profilePdfPrintImageHost");
     if (existing) {
       if (existing.getAttribute("src") !== src) existing.setAttribute("src", src);
       return;
     }
 
     const img = document.createElement("img");
-    img.className = "profilePdfPrintImage";
+    img.className = className;
     img.alt = "";
     img.decoding = "async";
     img.setAttribute("src", src);
-    node.append(img);
+    node.prepend(img);
+  }
+
+  function ensurePrintImages(node) {
+    const urls = extractBackgroundImageUrls(node);
+    const isPanel = node.matches?.(PANEL_SELECTOR);
+    const isMandalaSheet = node.matches?.(".powerMandala,.altarMandalaSheet,.businessMandalaSheet,.zodiacMandalaSheet,.starMandalaSheet,.daoMandalaSheet");
+
+    if (!urls.length) {
+      upsertImage(node, "profilePdfPrintImage", "");
+      upsertImage(node, "profilePdfPrintCoverImage", "");
+      upsertImage(node, "profilePdfPrintInnerCoverImage", "");
+      node.classList.remove("profilePdfPrintImageHost", "profilePdfPrintCoverHost");
+      return;
+    }
+
+    if (isPanel) {
+      node.classList.add("profilePdfPrintCoverHost");
+      upsertImage(node, "profilePdfPrintCoverImage", urls[0]);
+      return;
+    }
+
+    if (isMandalaSheet) {
+      node.classList.add("profilePdfPrintCoverHost");
+      upsertImage(node, "profilePdfPrintInnerCoverImage", urls[urls.length - 1]);
+      return;
+    }
+
+    node.classList.add("profilePdfPrintImageHost");
+    upsertImage(node, "profilePdfPrintImage", urls[urls.length - 1]);
   }
 
   function preparePrintImages() {
@@ -205,9 +260,9 @@
     const area = document.querySelector(PRINT_AREA_SELECTOR);
     if (!area) return false;
 
-    area.querySelectorAll("*").forEach((node) => {
+    [area, ...area.querySelectorAll("*")].forEach((node) => {
       if (!(node instanceof HTMLElement)) return;
-      ensurePrintImage(node);
+      ensurePrintImages(node);
     });
 
     return true;
