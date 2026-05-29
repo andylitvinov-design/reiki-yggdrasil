@@ -3911,3 +3911,376 @@
   }
 }
 
+/* Star Power Place: open / closed sacred geometry layouts. */
+.starMandalaSheet {
+  min-height: 520px;
+  overflow: visible;
+  border-radius: 24px;
+}
+
+.starMandalaSheet .starGuide {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.starSacredLabel {
+  position: absolute;
+  left: 50%;
+  z-index: 8;
+  transform: translateX(-50%);
+  color: #1c1309;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+
+.starElhai {
+  top: -34px;
+  font-size: clamp(24px, 4vw, 42px);
+}
+
+.starAdonay {
+  bottom: -42px;
+  font-size: clamp(22px, 3.8vw, 38px);
+}
+
+.starAxis {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  background: rgba(29, 21, 12, 0.86);
+}
+
+.starAxis.vertical {
+  left: 50%;
+  top: 3%;
+  width: 2px;
+  height: 94%;
+  transform: translateX(-50%);
+}
+
+.starAxis.horizontal {
+  left: 5%;
+  top: 43%;
+  width: 90%;
+  height: 4px;
+}
+
+.starTriangle {
+  position: absolute;
+  left: 50%;
+  z-index: 3;
+  width: 82px;
+  height: 82px;
+  transform: translateX(-50%);
+  background: transparent;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  border: 0;
+}
+
+.starTriangle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #1d150c;
+  clip-path: inherit;
+}
+
+.starTriangle::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  background: rgba(255, 253, 248, 0.92);
+  clip-path: inherit;
+}
+
+.starTriangle.upper {
+  top: -7%;
+}
+
+.starTriangle.lower {
+  bottom: -7%;
+  transform: translateX(-50%) rotate(180deg);
+}
+
+.starCoreTriangle {
+  position: absolute;
+  left: 50%;
+  top: 23%;
+  z-index: 3;
+  width: 230px;
+  height: 300px;
+  transform: translateX(-50%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: rgba(29, 21, 12, 0.95);
+}
+
+.starCoreTriangle::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  clip-path: inherit;
+  background: rgba(255, 253, 248, 0.06);
+}
+
+.starRay {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  height: 5px;
+  background: #1d150c;
+  transform-origin: center;
+}
+
+.starRay.rayTop {
+  left: 50%;
+  top: 23%;
+  width: 2px;
+  height: 52%;
+  transform: translateX(-50%);
+}
+
+.starRay.rayRight {
+  left: 41%;
+  top: 43%;
+  width: 52%;
+  transform: rotate(0deg);
+}
+
+.starRay.rayLowerRight {
+  left: 36%;
+  top: 58%;
+  width: 46%;
+  transform: rotate(32deg);
+}
+
+.starRay.rayLowerLeft {
+  left: 16%;
+  top: 58%;
+  width: 47%;
+  transform: rotate(-55deg);
+}
+
+.starRay.rayLeft {
+  left: 6%;
+  top: 43%;
+  width: 54%;
+}
+
+.starOpenLine {
+  position: absolute;
+  z-index: 5;
+  display: block;
+  height: 5px;
+  background: #1d150c;
+}
+
+.starOpenLine.starOpenRight {
+  right: -4%;
+  top: 43%;
+  width: 18%;
+}
+
+.starOpenLine.starOpenRight::after {
+  content: "";
+  position: absolute;
+  right: -8px;
+  top: -6px;
+  border-left: 14px solid #1d150c;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+
+.starOpenLine.starOpenLowerLeft {
+  left: 2%;
+  bottom: 10%;
+  width: 18%;
+  transform: rotate(120deg);
+}
+
+.starOpenLine.starOpenLowerLeft::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: -6px;
+  border-right: 14px solid #1d150c;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+}
+
+/* Closed star: rectangular charging/healing field from the second reference. */
+.starMandalaSheet.star-closed {
+  width: min(640px, 100%);
+  aspect-ratio: 4 / 3;
+}
+
+.starMandalaSheet.star-closed .starClosedFrame {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 18%;
+  bottom: 20%;
+  z-index: 2;
+  border: 5px solid #1d150c;
+}
+
+.starMandalaSheet.star-closed .starClosedDivider {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  height: 4px;
+  z-index: 2;
+  background: #1d150c;
+}
+
+.starMandalaSheet.star-closed .starClosedDivider.horizontalTop {
+  top: 38%;
+}
+
+.starMandalaSheet.star-closed .starClosedDivider.horizontalBottom {
+  top: 58%;
+}
+
+.starMandalaSheet.star-closed .starCoreTriangle {
+  top: 24%;
+  width: 210px;
+  height: 210px;
+}
+
+.starMandalaSheet.star-closed .starTriangle.upper {
+  top: 4%;
+  width: 70px;
+  height: 70px;
+}
+
+.starMandalaSheet.star-closed .starTriangle.lower {
+  bottom: 3%;
+  width: 70px;
+  height: 70px;
+}
+
+.starMandalaSheet.star-closed .starRay.rayTop,
+.starMandalaSheet.star-closed .starOpenLine {
+  display: none;
+}
+
+.starMandalaSheet.star-closed .starRay.rayLeft {
+  left: 20%;
+  top: 40%;
+  width: 58%;
+  transform: rotate(0deg);
+}
+
+.starMandalaSheet.star-closed .starRay.rayRight {
+  left: 28%;
+  top: 39%;
+  width: 43%;
+}
+
+.starMandalaSheet.star-closed .starRay.rayLowerRight {
+  left: 31%;
+  top: 52%;
+  width: 38%;
+  transform: rotate(35deg);
+}
+
+.starMandalaSheet.star-closed .starRay.rayLowerLeft {
+  left: 28%;
+  top: 52%;
+  width: 40%;
+  transform: rotate(-35deg);
+}
+
+.starMandalaSheet.star-closed .starCornerSigil {
+  position: absolute;
+  z-index: 6;
+  color: #1d150c;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.starMandalaSheet.star-closed .cornerTopLeft { left: 3%; top: 5%; }
+.starMandalaSheet.star-closed .cornerTopRight { right: 3%; top: 5%; }
+.starMandalaSheet.star-closed .cornerBottomLeft { left: 3%; bottom: 5%; }
+.starMandalaSheet.star-closed .cornerBottomRight { right: 3%; bottom: 5%; }
+
+/* Open star: vertical ELHAI/ADONAY axis and opened rays from the first reference. */
+.starMandalaSheet.star-open {
+  width: min(500px, 100%);
+  aspect-ratio: 3 / 4;
+}
+
+.starMandalaSheet.star-open .starClosedFrame,
+.starMandalaSheet.star-open .starClosedDivider,
+.starMandalaSheet.star-open .starCornerSigil {
+  display: none;
+}
+
+.starMandalaSheet.star-open .starCoreTriangle {
+  top: 25%;
+  width: 260px;
+  height: 330px;
+}
+
+.starMandalaSheet.star-open .starRay.rayLeft {
+  left: 1%;
+  top: 43%;
+  width: 82%;
+}
+
+.starMandalaSheet.star-open .starRay.rayRight {
+  left: 47%;
+  top: 43%;
+  width: 45%;
+}
+
+.starMandalaSheet.star-open .starRay.rayLowerRight {
+  left: 38%;
+  top: 59%;
+  width: 50%;
+  transform: rotate(34deg);
+}
+
+.starMandalaSheet.star-open .starRay.rayLowerLeft {
+  left: 4%;
+  top: 62%;
+  width: 58%;
+  transform: rotate(-58deg);
+}
+
+.starMandalaSheet.star-open .starTriangle.upper {
+  top: -3%;
+}
+
+.starMandalaSheet.star-open .starTriangle.lower {
+  bottom: -3%;
+}
+
+/* Keep editable image slots above guide geometry. */
+.starPosition {
+  z-index: 10;
+}
+
+.starCenterPhoto {
+  z-index: 11;
+}
+
+@media (max-width: 640px) {
+  .starMandalaSheet.star-open,
+  .starMandalaSheet.star-closed {
+    width: min(360px, 100%);
+  }
+
+  .starElhai {
+    top: -26px;
+  }
+
+  .starAdonay {
+    bottom: -32px;
+  }
+}

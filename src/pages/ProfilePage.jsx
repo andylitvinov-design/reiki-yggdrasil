@@ -3031,8 +3031,18 @@ const resourceComparisonPanel = (
                     </div>
                   ) : constructorType === "star" ? (
                     <div className={`starMandalaSheet star-${starVariant} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      <div className="starSacredLabel starElhai">ELHAI</div>
+                      <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
                       <div className="starGuide" aria-hidden="true">
+                        <span className="starAxis vertical" />
+                        <span className="starAxis horizontal" />
+                        <span className="starTriangle upper" />
+                        <span className="starTriangle lower" />
+                        <span className="starCoreTriangle" />
+                        <span className="starClosedFrame" />
+                        <span className="starClosedDivider horizontalTop" />
+                        <span className="starClosedDivider horizontalBottom" />
                         <span className="starRay rayTop" />
                         <span className="starRay rayRight" />
                         <span className="starRay rayLowerRight" />
@@ -3040,6 +3050,10 @@ const resourceComparisonPanel = (
                         <span className="starRay rayLeft" />
                         <span className="starOpenLine starOpenRight" />
                         <span className="starOpenLine starOpenLowerLeft" />
+                        <span className="starCornerSigil cornerTopLeft">↯</span>
+                        <span className="starCornerSigil cornerTopRight">✶</span>
+                        <span className="starCornerSigil cornerBottomLeft">↯</span>
+                        <span className="starCornerSigil cornerBottomRight">↯</span>
                       </div>
                       {STAR_POINTS.map((point, index) => {
                         const slotId = `star-${index + 1}`;
