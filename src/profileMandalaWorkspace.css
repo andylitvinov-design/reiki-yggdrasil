@@ -3247,3 +3247,38 @@
     display: none !important;
   }
 }
+
+.resourceComparisonModeRail {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.resourceComparisonModeRail > span {
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.resourceModeToggleRail {
+  width: 100%;
+}
+
+.coverPickerButton {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 10px;
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #744c17;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.coverPickerButton:hover {
+  background: rgba(255, 244, 218, 0.92);
+}
+
