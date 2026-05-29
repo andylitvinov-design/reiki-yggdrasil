@@ -36,7 +36,7 @@
   }
 
   function removeNonVisualControls(clone) {
-    clone.querySelectorAll("button,input,select,textarea,.powerCommandRail,.powerPanelActions,.powerMandalaActions,.mandalaActions").forEach((node) => node.remove());
+    clone.querySelectorAll("button,input,select,textarea,.powerCommandRail,.powerPanelActions,.powerMandalaActions,.mandalaActions,.powerPrintMeta,.resourcePrintNotes,.powerPlaceHint").forEach((node) => node.remove());
   }
 
   function buildExportHtml(panel) {
