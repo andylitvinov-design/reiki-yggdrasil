@@ -3711,3 +3711,124 @@
   width: min(440px, 100%);
   aspect-ratio: 1;
 }
+
+/* Field layout fixes: change only the outer field, never stretch inner mandala geometry. */
+.powerMandalaPanel.field-layout-vertical,
+.powerMandalaPanel.field-layout-horizontal,
+.powerMandalaPanel.field-layout-square {
+  place-items: center;
+}
+
+.powerMandalaPanel.field-layout-vertical {
+  min-height: min(760px, 82vh);
+  aspect-ratio: 3 / 4;
+  width: min(560px, 100%);
+  margin-inline: auto;
+}
+
+.powerMandalaPanel.field-layout-horizontal {
+  min-height: 430px;
+  aspect-ratio: 4 / 3;
+  width: min(760px, 100%);
+  margin-inline: auto;
+}
+
+.powerMandalaPanel.field-layout-square {
+  aspect-ratio: 1;
+  width: min(620px, 100%);
+  margin-inline: auto;
+}
+
+/* Override the previous PR rule that stretched inner sheets. Inner mandala stays square. */
+.powerMandalaPanel.field-layout-vertical .powerMandala,
+.powerMandalaPanel.field-layout-horizontal .powerMandala,
+.powerMandalaPanel.field-layout-square .powerMandala,
+.powerMandalaPanel.field-layout-vertical .zodiacMandalaSheet,
+.powerMandalaPanel.field-layout-horizontal .zodiacMandalaSheet,
+.powerMandalaPanel.field-layout-square .zodiacMandalaSheet,
+.powerMandalaPanel.field-layout-vertical .starMandalaSheet,
+.powerMandalaPanel.field-layout-horizontal .starMandalaSheet,
+.powerMandalaPanel.field-layout-square .starMandalaSheet,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet,
+.powerMandalaPanel.field-layout-vertical .altarMandalaSheet,
+.powerMandalaPanel.field-layout-horizontal .altarMandalaSheet,
+.powerMandalaPanel.field-layout-square .altarMandalaSheet,
+.powerMandalaPanel.field-layout-vertical .businessMandalaSheet,
+.powerMandalaPanel.field-layout-horizontal .businessMandalaSheet,
+.powerMandalaPanel.field-layout-square .businessMandalaSheet {
+  width: min(440px, 100%) !important;
+  aspect-ratio: 1 !important;
+  flex: 0 0 auto;
+}
+
+/* 12+ zodiac: based on 8+ with four far square guardians at the outer field corners. */
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition {
+  width: 18%;
+}
+
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPositionImage {
+  border-radius: 50%;
+}
+
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(1) { left: 50%; top: 8%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(2) { left: 80%; top: 20%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(3) { left: 92%; top: 50%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(4) { left: 80%; top: 80%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(5) { left: 50%; top: 92%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(6) { left: 20%; top: 80%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(7) { left: 8%; top: 50%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(8) { left: 20%; top: 20%; }
+
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(9),
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(10),
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(11),
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(12) {
+  width: 24%;
+}
+
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(9) { left: 2%; top: 2%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(10) { left: 98%; top: 2%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(11) { left: 98%; top: 98%; }
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(12) { left: 2%; top: 98%; }
+
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(9) .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(10) .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(11) .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-variant-plus-12 .zodiacPosition:nth-of-type(12) .zodiacPositionImage {
+  border-radius: 16px;
+  width: min(92px, 100%);
+}
+
+/* Mobile guard: keep field usable. */
+@media (max-width: 640px) {
+  .powerMandalaPanel.field-layout-vertical,
+  .powerMandalaPanel.field-layout-horizontal,
+  .powerMandalaPanel.field-layout-square {
+    width: 100%;
+    min-height: auto;
+    aspect-ratio: auto;
+  }
+
+  .powerMandalaPanel.field-layout-vertical .powerMandala,
+  .powerMandalaPanel.field-layout-horizontal .powerMandala,
+  .powerMandalaPanel.field-layout-square .powerMandala,
+  .powerMandalaPanel.field-layout-vertical .zodiacMandalaSheet,
+  .powerMandalaPanel.field-layout-horizontal .zodiacMandalaSheet,
+  .powerMandalaPanel.field-layout-square .zodiacMandalaSheet,
+  .powerMandalaPanel.field-layout-vertical .starMandalaSheet,
+  .powerMandalaPanel.field-layout-horizontal .starMandalaSheet,
+  .powerMandalaPanel.field-layout-square .starMandalaSheet,
+  .powerMandalaPanel.field-layout-vertical .daoMandalaSheet,
+  .powerMandalaPanel.field-layout-horizontal .daoMandalaSheet,
+  .powerMandalaPanel.field-layout-square .daoMandalaSheet,
+  .powerMandalaPanel.field-layout-vertical .altarMandalaSheet,
+  .powerMandalaPanel.field-layout-horizontal .altarMandalaSheet,
+  .powerMandalaPanel.field-layout-square .altarMandalaSheet,
+  .powerMandalaPanel.field-layout-vertical .businessMandalaSheet,
+  .powerMandalaPanel.field-layout-horizontal .businessMandalaSheet,
+  .powerMandalaPanel.field-layout-square .businessMandalaSheet {
+    width: min(360px, 100%) !important;
+  }
+}
