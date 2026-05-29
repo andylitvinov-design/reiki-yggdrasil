@@ -1,19 +1,22 @@
 (() => {
   const PROFILE_PATH = "/profile";
   const PANEL_SELECTOR = ".powerMandalaPanel";
+  const SOURCE_DROPDOWN_VERSION = "site-structure-20260529";
 
   function ensureSourceDropdownAssets() {
-    if (!document.querySelector('link[href="/profile-source-dropdowns.css"]')) {
+    if (!document.querySelector('link[data-profile-source-dropdowns="true"]')) {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/profile-source-dropdowns.css";
+      link.href = `/profile-source-dropdowns.css?v=${SOURCE_DROPDOWN_VERSION}`;
+      link.dataset.profileSourceDropdowns = "true";
       document.head.append(link);
     }
 
-    if (!document.querySelector('script[src="/profile-source-dropdowns-runtime.js"]')) {
+    if (!document.querySelector('script[data-profile-source-dropdowns="true"]')) {
       const script = document.createElement("script");
-      script.src = "/profile-source-dropdowns-runtime.js";
+      script.src = `/profile-source-dropdowns-runtime.js?v=${SOURCE_DROPDOWN_VERSION}`;
       script.defer = true;
+      script.dataset.profileSourceDropdowns = "true";
       document.body.append(script);
     }
   }
