@@ -161,8 +161,7 @@
     if (!group) return [option("", "Категории пока нет")];
 
     if (label.includes("дао")) {
-      return SITE_DAO_LEVELS.filter((level) => group.items.some((item) => daoLevelForItem(item)?.value === level.value))
-        .map((level) => option(level.value, level.label));
+      return SITE_DAO_LEVELS.map((level, index) => option(level.value, `${index + 1}. ${level.label}`));
     }
 
     if (label.includes("канал")) {
