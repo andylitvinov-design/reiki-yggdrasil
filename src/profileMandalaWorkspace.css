@@ -4285,151 +4285,106 @@
   }
 }
 
-/* Final layout fix: layout changes only outer field, never inner mandala. */
-.powerMandalaPanel.field-layout-vertical,
-.powerMandalaPanel.field-layout-horizontal,
-.powerMandalaPanel.field-layout-square {
-  display: grid;
-  place-items: center;
-  align-content: center;
-  justify-content: center;
-}
-
-.powerMandalaPanel.field-layout-vertical {
-  padding: clamp(72px, 9vw, 128px) clamp(22px, 4vw, 44px) !important;
-}
-
-.powerMandalaPanel.field-layout-horizontal {
-  padding: clamp(24px, 4vw, 42px) clamp(80px, 13vw, 150px) !important;
-}
-
-.powerMandalaPanel.field-layout-square {
-  padding: clamp(30px, 5vw, 58px) !important;
-}
-
-/* Hard reset: the inner symbolic construction remains square/circular. */
-.powerMandalaPanel.field-layout-vertical .powerMandala,
-.powerMandalaPanel.field-layout-horizontal .powerMandala,
-.powerMandalaPanel.field-layout-square .powerMandala,
-.powerMandalaPanel.field-layout-vertical .zodiacMandalaSheet,
-.powerMandalaPanel.field-layout-horizontal .zodiacMandalaSheet,
-.powerMandalaPanel.field-layout-square .zodiacMandalaSheet,
-.powerMandalaPanel.field-layout-vertical .starMandalaSheet,
-.powerMandalaPanel.field-layout-horizontal .starMandalaSheet,
-.powerMandalaPanel.field-layout-square .starMandalaSheet,
-.powerMandalaPanel.field-layout-vertical .daoMandalaSheet,
-.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet,
-.powerMandalaPanel.field-layout-square .daoMandalaSheet,
-.powerMandalaPanel.field-layout-vertical .altarMandalaSheet,
-.powerMandalaPanel.field-layout-horizontal .altarMandalaSheet,
-.powerMandalaPanel.field-layout-square .altarMandalaSheet,
-.powerMandalaPanel.field-layout-vertical .businessMandalaSheet,
-.powerMandalaPanel.field-layout-horizontal .businessMandalaSheet,
-.powerMandalaPanel.field-layout-square .businessMandalaSheet {
-  width: min(440px, 100%) !important;
-  aspect-ratio: 1 / 1 !important;
-  transform: none;
-}
-
-/* Zodiac plus visible zones. */
-.zodiacPlusPosition {
-  position: absolute;
-  z-index: 8;
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  width: 22%;
-  transform: translate(-50%, -50%);
-}
-
-.zodiacPlusPositionImage {
-  width: min(82px, 100%);
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid rgba(255, 213, 117, 0.8);
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #2b1806 100%);
-  background-size: cover;
-  background-position: center;
-  color: #211407;
+/* 2026-05-29: compact photo picker and upload tab */
+.powerAddImageButton {
+  width: 100%;
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 999px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+  font-weight: 950;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  font: inherit;
-  font-weight: 900;
-  padding: 0;
-  box-shadow: 0 0 22px rgba(128, 84, 18, 0.28);
+  box-shadow: 0 12px 26px rgba(84, 48, 9, 0.18);
 }
 
-.zodiacPlusPosition b {
-  color: #513512;
-  font-size: 11px;
-  line-height: 1.1;
+.powerAddImageButton:hover,
+.powerAddImageButton:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(84, 48, 9, 0.22);
+  outline: none;
+}
+
+.clientPhotoPickerGrid {
+  grid-template-columns: repeat(auto-fill, minmax(92px, 118px));
+  justify-content: start;
+  align-items: start;
+}
+
+.clientPhotoPickerCard {
+  position: relative;
+  gap: 5px;
+  padding: 7px;
+  font-size: 12px;
+}
+
+.clientPhotoPickerCard span:first-child {
+  width: 58px;
+  height: 58px;
+  aspect-ratio: auto;
+  justify-self: center;
+  border-radius: 12px;
+}
+
+.clientPhotoPickerCard b,
+.clientPhotoPickerCard small {
   text-align: center;
-  overflow-wrap: anywhere;
+  line-height: 1.15;
 }
 
-.zodiacPlusPosition.hasImage .zodiacPlusPositionImage span {
-  display: none;
+.clientPhotoPickerCard b {
+  font-size: 12px;
 }
 
-/* 8+ side zones. */
-.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-top { left: 50%; top: -7%; }
-.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-right { left: 107%; top: 50%; }
-.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-bottom { left: 50%; top: 107%; }
-.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-left { left: -7%; top: 50%; }
-
-/* 12+ = 8+ base plus 4 far square corner zones. */
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition {
-  width: 19%;
+.clientPhotoPickerCard small {
+  font-size: 10px;
 }
 
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPositionImage {
-  border-radius: 50%;
+.clientPhotoPickerModeTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(184, 121, 29, 0.16);
+  padding-top: 10px;
 }
 
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.aries { left: 50%; top: 8%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.taurus { left: 80%; top: 20%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.gemini { left: 92%; top: 50%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.cancer { left: 80%; top: 80%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.leo { left: 50%; top: 92%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.virgo { left: 20%; top: 80%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.libra { left: 8%; top: 50%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.scorpio { left: 20%; top: 20%; }
-
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition {
-  width: 24%;
+.clientPhotoPickerModeTabs button {
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: rgba(255, 253, 248, 0.86);
+  color: #6e4b1b;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-tl { left: -9%; top: -9%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-tr { left: 109%; top: -9%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-bl { left: -9%; top: 109%; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-br { left: 109%; top: 109%; }
-
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPositionImage {
-  border-radius: 18px;
-  width: min(96px, 100%);
+.clientPhotoPickerModeTabs button.active {
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
 }
 
-/* Keep plus zones visible inside layout field. */
-.powerMandalaPanel:has(.zodiac-plus-8),
-.powerMandalaPanel:has(.zodiac-plus-12) {
-  overflow: visible;
+.compactPhotoUploadForm {
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 0.8fr) minmax(160px, 0.8fr);
+  align-items: center;
 }
 
-@media (max-width: 640px) {
-  .powerMandalaPanel.field-layout-horizontal,
-  .powerMandalaPanel.field-layout-vertical,
-  .powerMandalaPanel.field-layout-square {
-    padding: 24px !important;
+.compactPhotoUploadForm .mediaUploadNotice {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 680px) {
+  .clientPhotoPickerGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .zodiacPlusPosition {
-    width: 20%;
+  .clientPhotoPickerCard span:first-child {
+    width: 52px;
+    height: 52px;
   }
 
-  .zodiacPlusPositionImage {
-    width: min(58px, 100%);
+  .compactPhotoUploadForm {
+    grid-template-columns: 1fr;
   }
 }
+
