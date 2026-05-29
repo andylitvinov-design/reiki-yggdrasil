@@ -175,6 +175,12 @@ const ALTAR_CENTER_RATIOS = [
   { value: "3", label: "3:1" }
 ];
 
+const MANDALA_FIELD_LAYOUTS = [
+  { value: "vertical", label: "Вертикальное" },
+  { value: "horizontal", label: "Горизонтальное" },
+  { value: "square", label: "Квадрат" }
+];
+
 const FALLBACK_COVER_VARIANTS = [
   { id: "cover-zodiac-map", label: "Карта мандалы", tone: "zodiac-map" },
   { id: "cover-gold", label: "Золотой поток", tone: "gold" },
@@ -684,6 +690,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [selectedCoverId, setSelectedCoverId] = useState(FALLBACK_COVER_VARIANTS[0].id);
   const [selectedOuterCoverId, setSelectedOuterCoverId] = useState("no-cover");
   const [activeCoverLayer, setActiveCoverLayer] = useState("inner");
+  const [mandalaFieldLayout, setMandalaFieldLayout] = useState("square");
   const [customCoverImage, setCustomCoverImage] = useState("");
   const [customOuterCoverImage, setCustomOuterCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
@@ -2879,7 +2886,7 @@ const resourceComparisonPanel = (
               </div>
 
               <div className="powerPlacePrintArea">
-                <div className={`powerMandalaPanel ${selectedOuterCoverClass}`} style={selectedOuterCoverStyle}>
+                <div className={`powerMandalaPanel field-layout-${mandalaFieldLayout} ${selectedOuterCoverClass}`} style={selectedOuterCoverStyle}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{constructorTypeLabel(constructorType)}</h3>
@@ -3101,6 +3108,24 @@ const resourceComparisonPanel = (
                 </div>
 
                 <aside className="powerCommandRail">
+
+                  <div className="mandalaFieldLayoutSwitch" aria-label="Расположение поля мандалы">
+                    <span>Расположение поля мандалы</span>
+                    <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
+                      {MANDALA_FIELD_LAYOUTS.map((layout) => (
+                        <button
+                          className={mandalaFieldLayout === layout.value ? "active" : ""}
+                          key={layout.value}
+                          onClick={() => setMandalaFieldLayout(layout.value)}
+                          type="button"
+                          title={layout.label}
+                          aria-label={layout.label}
+                        >
+                          <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                   <div className="coverSelector">
                     <p className="cabinetEyebrow">Фон Места Силы</p>
