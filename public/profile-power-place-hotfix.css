@@ -152,4 +152,97 @@ body.printMandalaOnly .powerPlaceHint {
     repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.08) 0 8px, transparent 8px 16px),
     rgba(255, 255, 255, 0.62);
   color: #7a674f;
+}\n\n/* Inner/outer background visibility fixes. */
+
+/* Outer "Без фона": make outside space light/transparent instead of dark. */
+.powerMandalaPanel.outer-cover-none {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.72), transparent 38%),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(250, 240, 222, 0.94)) !important;
 }
+
+/* Visible outer fallback backgrounds. */
+.powerMandalaPanel.outer-cover-gold {
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 228, 150, 0.62), transparent 36%),
+    linear-gradient(135deg, #fff9e8, #d9a74c 48%, #7d4c0d) !important;
+}
+
+.powerMandalaPanel.outer-cover-forest {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(236, 246, 218, 0.65), transparent 35%),
+    linear-gradient(135deg, #f8f4df, #b8c28a 46%, #536f3d) !important;
+}
+
+.powerMandalaPanel.outer-cover-night {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(244, 222, 155, 0.32), transparent 34%),
+    linear-gradient(135deg, #f5ead2, #7f6547 46%, #26160b) !important;
+}
+
+.powerMandalaPanel.outer-cover-zodiac-map {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(218, 156, 45, 0.2), transparent 32%),
+    linear-gradient(180deg, #211004, #351a05) !important;
+}
+
+/* Image outside should be clearly visible, not swallowed by dark base. */
+.powerMandalaPanel.outer-cover-image {
+  background:
+    linear-gradient(rgba(255, 250, 238, 0.24), rgba(255, 250, 238, 0.28)),
+    var(--power-outer-cover-image) center / cover no-repeat,
+    linear-gradient(180deg, #fffaf0, #f2dfbd) !important;
+}
+
+/* Inner "Без фона": remove the decorative mandala map and make the inside light/transparent. */
+.powerMandala.cover-none,
+.altarMandalaSheet.cover-none,
+.businessMandalaSheet.cover-none,
+.zodiacMandalaSheet.cover-none,
+.daoMandalaSheet.cover-none,
+.starMandalaSheet.cover-none {
+  background: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
+}
+
+/* Keep central empty/photo circles readable when the inside has no background. */
+.zodiacMandalaSheet.cover-none .zodiacClockFace,
+.daoMandalaSheet.cover-none .daoUsinCore {
+  border-color: rgba(137, 85, 18, 0.16);
+  color: rgba(89, 59, 19, 0.22);
+}
+
+/* Explicit "Карта мандалы" option: restore the beautiful zodiac/map-like inner layout. */
+.zodiacMandalaSheet.cover-zodiac-map {
+  background:
+    repeating-conic-gradient(from -90deg, rgba(126, 78, 20, 0.16) 0 1deg, transparent 1deg 30deg),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 34px),
+    radial-gradient(circle, #fffdf6 0 21%, #f4e2bd 22% 62%, rgba(90, 123, 88, 0.18) 63% 100%) !important;
+}
+
+.powerMandala.cover-zodiac-map,
+.starMandalaSheet.cover-zodiac-map,
+.daoMandalaSheet.cover-zodiac-map,
+.businessMandalaSheet.cover-zodiac-map,
+.altarMandalaSheet.cover-zodiac-map {
+  background:
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 34px),
+    radial-gradient(circle, #fffdf6 0 22%, #f4e2bd 23% 68%, rgba(90, 123, 88, 0.14) 69% 100%) !important;
+}
+
+/* Preview for new map option. */
+.coverPreview.tone-zodiac-map {
+  background:
+    repeating-conic-gradient(from -90deg, rgba(126, 78, 20, 0.16) 0 1deg, transparent 1deg 30deg),
+    repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 18px),
+    radial-gradient(circle, #fffdf6 0 22%, #f4e2bd 23% 70%, rgba(90, 123, 88, 0.18) 71% 100%) !important;
+  color: #795019;
+}
+
+/* Preview for outer no-background should look white/light, not grey-dark. */
+.coverPreview.tone-none {
+  background:
+    repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.05) 0 8px, transparent 8px 16px),
+    rgba(255, 255, 255, 0.88) !important;
+  color: #7a674f;
+}\n
