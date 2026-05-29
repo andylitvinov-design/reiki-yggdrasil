@@ -1,26 +1,26 @@
-.powerPlaceMode .mandalaModeSidebar {
+.mandalaModeSidebar {
   overflow: visible !important;
 }
 
-.powerPlaceMode .powerLibrarySidebar {
+.mandalaModeSidebar .powerLibrarySidebar {
   max-height: none !important;
   grid-template-rows: auto auto !important;
   overflow: visible !important;
   align-content: start !important;
 }
 
-.powerPlaceMode .powerLibraryGroups,
-.powerPlaceMode .powerSavedImageList {
+.mandalaModeSidebar .powerLibraryGroups,
+.mandalaModeSidebar .powerSavedImageList {
   max-height: none !important;
   overflow: visible !important;
   align-content: start !important;
 }
 
-.powerPlaceMode .powerLibraryGroups details {
+.mandalaModeSidebar .powerLibraryGroups details {
   overflow: visible !important;
 }
 
-.powerPlaceMode .powerLibraryGroups summary {
+.mandalaModeSidebar .powerLibraryGroups summary {
   min-height: 44px !important;
   display: flex !important;
   align-items: center !important;
@@ -28,14 +28,14 @@
   background: rgba(255, 253, 248, 0.88) !important;
 }
 
-.powerPlaceMode .powerLibraryGroupList button {
+.mandalaModeSidebar .powerLibraryGroupList button {
   min-height: 42px !important;
   padding: 9px 10px !important;
   color: #3f2a12 !important;
   background: rgba(247, 237, 216, 0.76) !important;
 }
 
-.powerPlaceMode .powerSavedImageList button {
+.mandalaModeSidebar .powerSavedImageList button {
   min-height: 62px !important;
   color: #2b1b0c !important;
 }
