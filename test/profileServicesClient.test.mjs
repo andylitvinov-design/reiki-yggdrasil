@@ -1,0 +1,100 @@
+import assert from "node:assert/strict";
+
+import {
+  createEmptyServiceForm,
+  normalizeServiceForm,
+  normalizeServiceOrder,
+  normalizeServiceRow,
+  orderStatusText,
+  serviceStatusText
+} from "../src/lib/profileServicesClient.js";
+
+const empty = createEmptyServiceForm();
+
+assert.equal(empty.status, "draft");
+assert.equal(empty.price_currency, "EUR");
+assert.equal(empty.image_url, "");
+
+assert.deepEqual(
+  normalizeServiceForm(
+    {
+      profile_id: " profile-1 ",
+      composition_id: " composition-1 ",
+      title: " Место силы для цели ",
+      description: " Описание услуги ",
+      image_url: " https://example.com/power.jpg ",
+      image_bucket: " profile-cabinet-media ",
+      image_path: " services/image.jpg ",
+      price_amount: "120.5",
+      price_currency: " EUR "
+    },
+    "published"
+  ),
+  {
+    profile_id: "profile-1",
+    composition_id: "composition-1",
+    title: "Место силы для цели",
+    description: "Описание услуги",
+    image_url: "https://example.com/power.jpg",
+    image_bucket: "profile-cabinet-media",
+    image_path: "services/image.jpg",
+    price_amount: 120.5,
+    price_currency: "EUR",
+    status: "published"
+  }
+);
+
+assert.deepEqual(
+  normalizeServiceForm({ price_amount: "bad", price_currency: "" }, "bad-status"),
+  {
+    profile_id: "",
+    composition_id: null,
+    title: "",
+    description: "",
+    image_url: "",
+    image_bucket: null,
+    image_path: null,
+    price_amount: null,
+    price_currency: "EUR",
+    status: "draft"
+  }
+);
+
+const normalizedRow = normalizeServiceRow({
+  id: " service-1 ",
+  profile_id: "profile-1",
+  price_amount: "200",
+  status: "published",
+  image_url: "https://example.com/service.jpg"
+});
+
+assert.equal(normalizedRow.id, "service-1");
+assert.equal(normalizedRow.price_amount, 200);
+assert.equal(normalizedRow.display_url, "https://example.com/service.jpg");
+
+const order = normalizeServiceOrder({
+  id: " order-1 ",
+  service_id: " service-1 ",
+  master_profile_id: " master-1 ",
+  client_name: " Анна ",
+  client_photo_url: " https://example.com/client.jpg ",
+  request_text: " Запрос клиента ",
+  master_comment: " Готово ",
+  result_image_url: " https://example.com/result.jpg ",
+  status: "sent",
+  profile_cabinet_services: {
+    id: "service-1",
+    profile_id: "master-1",
+    title: "Услуга",
+    price_amount: "90",
+    price_currency: "EUR",
+    status: "published"
+  }
+});
+
+assert.equal(order.id, "order-1");
+assert.equal(order.status, "sent");
+assert.equal(order.service.title, "Услуга");
+assert.equal(order.service.price_amount, 90);
+assert.equal(serviceStatusText("published"), "Размещено");
+assert.equal(orderStatusText("in_progress"), "В работе");
