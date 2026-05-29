@@ -99,6 +99,26 @@
       value: "mystery-greek",
       label: "Греческие мистерии",
       entities: ["Зевс", "Гера", "Афина", "Аполлон", "Артемида", "Афродита", "Гермес", "Арес", "Дионис", "Деметра", "Персефона", "Геката", "Гефест", "Посейдон", "Аид"]
+    },
+    {
+      value: "mystery-roman",
+      label: "Римские мистерии",
+      entities: ["Юпитер", "Юнона", "Минерва", "Марс", "Венера", "Меркурий", "Диана", "Аполлон", "Церера", "Нептун", "Вулкан", "Сатурн", "Веста", "Янус", "Плутон"]
+    },
+    {
+      value: "mystery-egyptian",
+      label: "Мистерии Египта",
+      entities: ["Ра", "Исида", "Осирис", "Гор", "Анубис", "Тот", "Сет", "Нефтида", "Хатхор", "Сехмет", "Бастет", "Птах", "Маат", "Собек", "Амон"]
+    },
+    {
+      value: "mystery-maya",
+      label: "Мистерии Майя",
+      entities: ["Ицамна", "Иш-Чель", "Чаак", "Кукулькан", "Хунахпу", "Шбаланке", "Ах-Пуч", "Болон Цакаб", "Юм Кааш", "Кинич Ахау", "Эк Чуах", "Кавиль"]
+    },
+    {
+      value: "mystery-runes",
+      label: "Магия Рун",
+      entities: ["Первый атт", "Второй атт", "Третий атт", "Феху", "Уруз", "Турисаз", "Ансуз", "Райдо", "Кеназ", "Гебо", "Вуньо", "Хагалаз", "Наутиз", "Иса", "Йера", "Эйваз", "Перт", "Альгиз", "Соулу", "Тейваз", "Беркана", "Эваз", "Манназ", "Лагуз", "Ингуз", "Дагаз", "Отал"]
     }
   ];
 
@@ -150,8 +170,7 @@
     }
 
     if (label.includes("мистер")) {
-      return SITE_MYSTERY_TRADITIONS.filter((tradition) => group.items.some((item) => mysteryTraditionForItem(item)?.value === tradition.value))
-        .map((tradition) => option(tradition.value, tradition.label));
+      return SITE_MYSTERY_TRADITIONS.map((tradition) => option(tradition.value, tradition.label));
     }
 
     if (label.includes("форм")) {
@@ -198,7 +217,7 @@
     if (subcategory) return haystack.includes(subcategory);
     if (!category || category === "all" || category === "client-goals" || category === "covers") return true;
     if (groupLabel.includes("дао")) return daoLevelForItem(item)?.value === category;
-    if (groupLabel.includes("мистер")) return mysteryTraditionForItem(item)?.value === category;
+    if (groupLabel.includes("мистер")) return mysteryTraditionForItem(item)?.value === category || SITE_MYSTERY_TRADITIONS.some((tradition) => tradition.value === category);
     return haystack.includes(lower(category)) || slug(item.meta || item.title) === category;
   }
 
