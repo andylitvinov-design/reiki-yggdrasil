@@ -19,7 +19,7 @@
     { value: "mystery-roman", label: "Римские", patterns: [/римск/i, /юпитер/i, /юнон/i, /марс/i, /венер/i, /меркур/i, /сатурн/i] },
     { value: "mystery-egyptian", label: "Египетские", patterns: [/егип/i, /ра\b/i, /исид/i, /осир/i, /гор\b/i, /ануб/i, /тот\b/i] },
     { value: "mystery-norse", label: "Скандинавские", patterns: [/скандинав/i, /север/i, /один/i, /тор\b/i, /локи/i, /фрей/i, /фригг/i] },
-    { value: "mystery-celtic", label: "Кельтские", patterns: [/кельт/i, /бригит/i, /лу/?i] },
+    { value: "mystery-celtic", label: "Кельтские", patterns: [/кельт/i, /бригит/i, /луг\b/i] },
     { value: "mystery-tao", label: "Даосские", patterns: [/даос/i, /дао/i, /усин/i] },
     { value: "mystery-other", label: "Другие", patterns: [] }
   ];
