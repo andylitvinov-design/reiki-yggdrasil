@@ -1171,6 +1171,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       src: photo.image_ref || photo.image_url,
       displaySrc: previewImageUrl(photo.display_url, photo.signed_url, photo.image_url, photo.image_ref),
       kind: "client-photo",
+      categoryValue: "client-goals",
       photoId: photo.id
     })),
     ...traditionAssets.map((asset) => ({
@@ -1181,7 +1182,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       status: asset.tradition_title || selectedTradition?.title || "",
       src: asset.image_ref || asset.image_url,
       displaySrc: asset.display_url || asset.image_url,
-      kind: "tradition-asset"
+      kind: "tradition-asset",
+      categoryValue: "god-channels",
+      traditionId: asset.tradition_id || selectedTradition?.id || ""
     })),
     ...materials.map((item, index) => ({
       id: `material-image-${item.id || index}`,
@@ -1190,7 +1193,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       source: publicationTypeLabel(item.type),
       status: materialStatusText(item.status),
       src: item.image_url,
-      kind: "material"
+      displaySrc: item.display_url || displayMaterialImageUrl(item.image_url),
+      kind: "material",
+      rawMaterial: item
     })),
     ...coverVariants.filter((cover) => cover.type === "image").map((cover) => ({
       id: `cover-${cover.id}`,
@@ -1200,9 +1205,36 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       status: "фон",
       src: cover.src,
       displaySrc: cover.displaySrc || cover.src,
-      kind: "cover"
+      kind: "cover",
+      categoryValue: "covers"
     }))
   ]), [clientGoalPhotos, coverVariants, materials, selectedTradition?.title, traditionAssets]);
+
+
+  const filteredSavedPowerImages = useMemo(() => {
+    const sorted = [...savedPowerImages].sort((a, b) => {
+      const ad = Date.parse(a.rawMaterial?.updated_at || a.rawMaterial?.created_at || "");
+      const bd = Date.parse(b.rawMaterial?.updated_at || b.rawMaterial?.created_at || "");
+      return (Number.isFinite(bd) ? bd : 0) - (Number.isFinite(ad) ? ad : 0);
+    });
+
+    return sorted.filter((item) => {
+      const raw = item.rawMaterial;
+      if (activeMaterialCategory === "client-goals") return item.kind === "client-photo";
+      if (activeMaterialCategory === "covers") return item.kind === "cover" || (raw && materialMatchesCategory(raw, "covers"));
+      if (activeMaterialCategory === "god-channels") return item.kind === "tradition-asset" || (raw && textMatches(raw, activeMaterialSubcategoryData?.label || ""));
+      if (activeMaterialCategory === "artifacts") return raw?.type === "artifact";
+      if (activeMaterialCategory === "talismans") return raw?.type === "artifact" && textMatches(raw, activeMaterialSubcategoryData?.label || "Талисман");
+      if (activeMaterialCategory === "form") return raw && materialMatchesCategory(raw, "form", activeMaterialSubcategoryData?.value || activeMaterialSubcategoryData?.label);
+      if (activeMaterialCategory === "channels") return raw && (!materialChannelValues.length || materialChannelValues.every((entry) => channelTextMatch(raw, entry)));
+      if (activeMaterialCategory === "dao-ri") {
+        if (!raw) return false;
+        const stepIds = new Set(activeMaterialSubcategoryData?.steps?.map((step) => step.id) || []);
+        return !stepIds.size || !raw.step_id || stepIds.has(raw.step_id);
+      }
+      return true;
+    });
+  }, [activeMaterialCategory, activeMaterialSubcategoryData, materialChannelValues, savedPowerImages]);
 
   const objectImageOptions = useMemo(() => [
     { id: "", label: "Пусто", src: "" },
@@ -1671,17 +1703,23 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const handleLibraryImageSelect = (item) => {
+    const imageRef = item?.src || item?.displaySrc || "";
+    if (!imageRef) return;
+
     if (item.src && item.displaySrc) {
       setObjectImageUrls((current) => ({ ...current, [item.src]: item.displaySrc }));
     }
 
-    if (item.kind === "client-photo" && item.photoId) {
-      setSelectedCentralPhotoId(item.photoId);
-    }
-
-    if (selectedObjectSlot && item.src) {
-      setObjectImage(selectedObjectSlot.id, item.src, item.displaySrc || item.src);
-    }
+    setMaterialFile(null);
+    setMaterialFilePreview("");
+    setActiveTopTab("mandalas");
+    setMaterialForm((current) => ({
+      ...current,
+      type: item?.rawMaterial?.type || current.type || "mandala",
+      title: current.title?.trim() ? current.title : item.title || item.label || "Мандала",
+      image_url: imageRef
+    }));
+    setMessage("Изображение открыто во вкладке «Мои мандалы». Добавьте описание и сохраните.");
   };
 
   const handleObjectSelect = (slotId, value) => {
@@ -2532,35 +2570,41 @@ const resourceComparisonPanel = (
                   <p className="cabinetEyebrow">Источники силы</p>
                   <h3>Источники силы</h3>
                   <button className="powerAddImageButton" type="button" onClick={openClientPhotoUpload}>
-                    Добавить фото / мандалу
+                    Добавить мандалу
                   </button>
                   <div className="powerLibrarySidebar" aria-label="Единый источник материалов для мест силы">
-                    <div className="powerLibraryGroups">
-                      {powerLibraryGroups.map((group, index) => (
-                        <details key={group.id} open={index < 2}>
-                          <summary>
-                            <span>{group.label}</span>
-                            <b>{group.count}</b>
-                          </summary>
-                          <div className="powerLibraryGroupList">
-                            {group.items.slice(0, 14).map((item) => (
-                              <button key={item.id} type="button">
-                                <span>{item.title}</span>
-                                {item.meta && <small>{item.meta}</small>}
-                              </button>
-                            ))}
-                            {group.items.length > 14 && <small>Ещё {group.items.length - 14} элементов внутри раздела.</small>}
-                            {group.items.length === 0 && <p>{group.emptyText || "Список пока пуст."}</p>}
-                          </div>
-                        </details>
-                      ))}
+                    <div className="powerLibraryFilter">
+                      <label className="powerLibrarySelectLabel">
+                        Категория
+                        <select value={activeMaterialCategory} onChange={(event) => handleMaterialCategorySelect(event.target.value)}>
+                          {MATERIAL_CATEGORY_TABS.map((category) => (
+                            <option key={category.value} value={category.value}>{category.label}</option>
+                          ))}
+                        </select>
+                      </label>
+
+                      {activeMaterialCategoryData.subcategories.length > 0 && (
+                        <div className="powerLibrarySubcategoryButtons">
+                          {activeMaterialCategoryData.subcategories.map((subcategory) => (
+                            <button
+                              className={activeMaterialSubcategory === subcategory.value ? "active" : ""}
+                              key={subcategory.value}
+                              onClick={() => handleMaterialSubcategorySelect(subcategory)}
+                              type="button"
+                            >
+                              {subcategory.displayLabel || subcategory.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
+
                     <div className="powerSavedImageList" aria-label="Сохранённые изображения">
                       <div className="powerSavedImageHeader">
                         <b>Сохранённые изображения</b>
                         <small>{selectedObjectSlot ? `Позиция: ${selectedObjectSlot.label}` : "Выберите позицию на схеме"}</small>
                       </div>
-                      {savedPowerImages.map((item) => (
+                      {filteredSavedPowerImages.map((item) => (
                         <div className="powerSavedImageItem" key={item.id}>
                           <button className="powerSavedImageCard" type="button" onClick={() => handleLibraryImageSelect(item)}>
                             <span className="powerSavedImageThumb" style={imageStyle(displayImageUrl(item.displaySrc || item.src))} />
@@ -2581,6 +2625,7 @@ const resourceComparisonPanel = (
                         </div>
                       ))}
                       {savedPowerImages.length === 0 && <p>Сохранённые фото, подложки и изображения появятся здесь после загрузки.</p>}
+                      {savedPowerImages.length > 0 && filteredSavedPowerImages.length === 0 && <p>В этой категории пока нет изображений.</p>}
                     </div>
                   </div>
                 </>
