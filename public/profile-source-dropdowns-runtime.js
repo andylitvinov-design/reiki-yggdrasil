@@ -5,23 +5,101 @@
   const lower = (value) => normalize(value).toLowerCase();
   const slug = (value) => lower(value).replace(/[^a-z0-9а-яё]+/giu, "-").replace(/^-+|-+$/g, "") || "all";
 
-  const DAO_LEVELS = [
-    { value: "dao-basic", label: "Базовый", patterns: [/^1\./, /базов/i] },
-    { value: "dao-instructor", label: "Инструкторский", patterns: [/^2\./, /инструкт/i] },
-    { value: "dao-master", label: "Мастерский", patterns: [/^3\./, /мастер/i] },
-    { value: "dao-senior", label: "Старшие уровни", patterns: [/^4\./, /^5\./, /старш/i] },
-    { value: "dao-priest", label: "Жреческий", patterns: [/^6\./, /жрец/i] },
-    { value: "dao-advanced", label: "Высшие уровни", patterns: [/^7\./, /^8\./, /^9\./, /высш/i] }
+  const SITE_DAO_LEVELS = [
+    {
+      value: "dao-level-1",
+      label: "Базовая программа Рейки Иггдрасиль",
+      prefix: "1.",
+      steps: [
+        "Уровень 1: Здоровье · Интуиция · Защита",
+        "Уровень 2: Очищение · Денежная активация",
+        "Уровень 3: Предопределение · Сила",
+        "Уровень 4: Сверхчувственное видение",
+        "Уровень 5: Уровень мастера"
+      ]
+    },
+    {
+      value: "dao-level-2",
+      label: "Инструкторский курс",
+      prefix: "2.",
+      steps: [
+        "Ступень 1: Целительство",
+        "Ступень 2: Золотой телец",
+        "Ступень 3: Мужчина и женщина",
+        "Ступень 4: Жизненная сила",
+        "Ступень 5: Сексуальная энергетика",
+        "Ступень 6: Файербол. Управление энергией"
+      ]
+    },
+    {
+      value: "dao-level-3",
+      label: "Храмовая магия",
+      prefix: "3.",
+      steps: [
+        "Ступень 1: Работа с эгрегорами",
+        "Ступень 2: Египетская магия",
+        "Ступень 3: Греческая магия. Зодиак",
+        "Ступень 4: Толтекская магия",
+        "Ступень 5: Суфизм"
+      ]
+    },
+    {
+      value: "dao-level-4",
+      label: "Восточная магия",
+      prefix: "4.",
+      steps: [
+        "Ступень 1: Китайская медицина 1. Элементы",
+        "Ступень 2: Китайская медицина 2. Сила",
+        "Ступень 3: Китайское прогнозирование. И Цзин",
+        "Ступень 4: Кундалини",
+        "Ступень 5: Денежная магия"
+      ]
+    },
+    {
+      value: "dao-level-5",
+      label: "Западноевропейская магия. Каббала и Таро",
+      prefix: "5.",
+      steps: [
+        "Ступень 1: Великие арканы Таро",
+        "Ступень 2: Силы стихий",
+        "Ступень 3: Дерево Сефирот",
+        "Ступень 4: Высшие арканы Таро",
+        "Ступень 5: Предсказания в Таро"
+      ]
+    },
+    {
+      value: "dao-level-6",
+      label: "Продвинутая магия рун",
+      prefix: "6.",
+      steps: [
+        "Ступень 1: Руны и руническая традиция",
+        "Ступень 2: Миры Древа Иггдрасиль",
+        "Ступень 3: Круг силы",
+        "Ступень 4: Руническое предсказание",
+        "Ступень 5: Руническое исцеление"
+      ]
+    },
+    {
+      value: "dao-level-7",
+      label: "Высшая магия",
+      prefix: "7.",
+      steps: [
+        "Ступень 1: Телепорт. Астральный полет. Ясновидение",
+        "Ступень 2: Машинный зал. Укрепление видения",
+        "Ступень 3: Ифриты. Создание помощников",
+        "Ступень 4: Славянская магия 1",
+        "Ступень 5: Славянская магия 2",
+        "Ступень 6: Цивилизации"
+      ]
+    }
   ];
 
-  const MYSTERY_TRADITIONS = [
-    { value: "mystery-greek", label: "Греческие", patterns: [/гречес/i, /олимп/i, /зевс/i, /афин/i, /апол/i, /артем/i, /дионис/i, /афрод/i] },
-    { value: "mystery-roman", label: "Римские", patterns: [/римск/i, /юпитер/i, /юнон/i, /марс/i, /венер/i, /меркур/i, /сатурн/i] },
-    { value: "mystery-egyptian", label: "Египетские", patterns: [/егип/i, /ра\b/i, /исид/i, /осир/i, /гор\b/i, /ануб/i, /тот\b/i] },
-    { value: "mystery-norse", label: "Скандинавские", patterns: [/скандинав/i, /север/i, /один/i, /тор\b/i, /локи/i, /фрей/i, /фригг/i] },
-    { value: "mystery-celtic", label: "Кельтские", patterns: [/кельт/i, /бригит/i, /луг\b/i] },
-    { value: "mystery-tao", label: "Даосские", patterns: [/даос/i, /дао/i, /усин/i] },
-    { value: "mystery-other", label: "Другие", patterns: [] }
+  const SITE_MYSTERY_TRADITIONS = [
+    {
+      value: "mystery-greek",
+      label: "Греческие мистерии",
+      entities: ["Зевс", "Гера", "Афина", "Аполлон", "Артемида", "Афродита", "Гермес", "Арес", "Дионис", "Деметра", "Персефона", "Геката", "Гефест", "Посейдон", "Аид"]
+    }
   ];
 
   const CHANNEL_CATEGORY_MAP = {
@@ -36,18 +114,13 @@
     return { value, label };
   }
 
-  function matchesAny(text, patterns) {
-    return patterns.some((pattern) => pattern.test(text));
-  }
-
   function daoLevelForItem(item) {
-    const text = `${item.title} ${item.meta}`;
-    return DAO_LEVELS.find((level) => matchesAny(text, level.patterns)) || DAO_LEVELS[0];
+    return SITE_DAO_LEVELS.find((level) => normalize(item.title).startsWith(level.prefix)) || null;
   }
 
   function mysteryTraditionForItem(item) {
-    const text = `${item.title} ${item.meta}`;
-    return MYSTERY_TRADITIONS.find((tradition) => matchesAny(text, tradition.patterns)) || MYSTERY_TRADITIONS[MYSTERY_TRADITIONS.length - 1];
+    const text = lower(`${item.title} ${item.meta}`);
+    return SITE_MYSTERY_TRADITIONS.find((tradition) => text.includes(lower(tradition.label)) || tradition.entities.some((entity) => text.includes(lower(entity)))) || null;
   }
 
   function readGroups(container) {
@@ -59,12 +132,7 @@
         const meta = normalize(button.querySelector("small")?.textContent || "");
         return { title, meta, button };
       });
-      return {
-        id: `group-${groupIndex}`,
-        label,
-        items,
-        details
-      };
+      return { id: `group-${groupIndex}`, label, items, details };
     });
   }
 
@@ -73,7 +141,7 @@
     if (!group) return [option("", "Категории пока нет")];
 
     if (label.includes("дао")) {
-      return DAO_LEVELS.filter((level) => group.items.some((item) => daoLevelForItem(item).value === level.value))
+      return SITE_DAO_LEVELS.filter((level) => group.items.some((item) => daoLevelForItem(item)?.value === level.value))
         .map((level) => option(level.value, level.label));
     }
 
@@ -82,7 +150,7 @@
     }
 
     if (label.includes("мистер")) {
-      return MYSTERY_TRADITIONS.filter((tradition) => group.items.some((item) => mysteryTraditionForItem(item).value === tradition.value))
+      return SITE_MYSTERY_TRADITIONS.filter((tradition) => group.items.some((item) => mysteryTraditionForItem(item)?.value === tradition.value))
         .map((tradition) => option(tradition.value, tradition.label));
     }
 
@@ -90,41 +158,32 @@
       return ["Защитные", "Целебные", "Бизнес", "Другие"].map((item) => option(item, item));
     }
 
-    if (label.includes("клиент")) {
-      return [option("client-goals", "Фото клиентов / цели")];
-    }
-
-    if (label.includes("фон") || label.includes("подлож")) {
-      return [option("covers", "Фоны и подложки")];
-    }
+    if (label.includes("клиент")) return [option("client-goals", "Фото клиентов / цели")];
+    if (label.includes("фон") || label.includes("подлож")) return [option("covers", "Фоны и подложки")];
 
     const categories = [];
     group.items.forEach((item) => {
       const value = item.meta || item.title;
-      if (value && !categories.some((entry) => lower(entry.value) === lower(value))) categories.push(option(slug(value), value));
+      if (value && !categories.some((entry) => lower(entry.label) === lower(value))) categories.push(option(slug(value), value));
     });
     return categories.length ? categories : [option("all", "Все")];
   }
 
   function buildSubcategories(group, categoryValue) {
     const groupLabel = lower(group?.label);
-    const category = normalize(categoryValue);
-
     if (groupLabel.includes("дао")) {
-      return group.items
-        .filter((item) => daoLevelForItem(item).value === category)
-        .map((item) => option(item.title, item.title));
+      const level = SITE_DAO_LEVELS.find((item) => item.value === categoryValue);
+      return (level?.steps || []).map((step) => option(step, step));
     }
 
     if (groupLabel.includes("канал")) {
-      const subs = CHANNEL_CATEGORY_MAP[lower(category)] || [];
+      const subs = CHANNEL_CATEGORY_MAP[lower(categoryValue)] || [];
       return subs.map((item) => option(item, item));
     }
 
     if (groupLabel.includes("мистер")) {
-      return group.items
-        .filter((item) => mysteryTraditionForItem(item).value === category)
-        .map((item) => option(item.title, item.title));
+      const tradition = SITE_MYSTERY_TRADITIONS.find((item) => item.value === categoryValue);
+      return (tradition?.entities || []).map((entity) => option(entity, entity));
     }
 
     return [];
@@ -138,8 +197,8 @@
 
     if (subcategory) return haystack.includes(subcategory);
     if (!category || category === "all" || category === "client-goals" || category === "covers") return true;
-    if (groupLabel.includes("дао")) return daoLevelForItem(item).value === category;
-    if (groupLabel.includes("мистер")) return mysteryTraditionForItem(item).value === category;
+    if (groupLabel.includes("дао")) return daoLevelForItem(item)?.value === category;
+    if (groupLabel.includes("мистер")) return mysteryTraditionForItem(item)?.value === category;
     return haystack.includes(lower(category)) || slug(item.meta || item.title) === category;
   }
 
@@ -167,7 +226,6 @@
   function renderFilteredList(list, group, categoryValue, subcategoryValue) {
     list.innerHTML = "";
     const items = group.items.filter((item) => itemMatches(group, categoryValue, subcategoryValue, item)).slice(0, 14);
-
     if (!items.length) {
       const empty = document.createElement("div");
       empty.className = "sourceDropdownEmpty";
@@ -175,7 +233,6 @@
       list.append(empty);
       return;
     }
-
     items.forEach((item) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -201,7 +258,6 @@
     const subcategorySelect = createLabeledSelect("Подкатегория");
     const list = document.createElement("div");
     list.className = "sourceDropdownFilteredList";
-
     panel.append(groupSelect.label, categorySelect.label, subcategorySelect.label, list);
     container.prepend(panel);
     container.classList.add("sourceDropdownReady");
@@ -215,22 +271,19 @@
 
     function refreshCategories() {
       const group = currentGroup();
-      const categories = buildCategories(group);
-      setOptions(categorySelect.select, categories, "Категории пока нет");
+      setOptions(categorySelect.select, buildCategories(group), "Категории пока нет");
       refreshSubcategories();
     }
 
     function refreshSubcategories() {
       const group = currentGroup();
-      const subcategories = buildSubcategories(group, categorySelect.select.value);
-      setOptions(subcategorySelect.select, subcategories, "Подкатегории пока нет");
+      setOptions(subcategorySelect.select, buildSubcategories(group, categorySelect.select.value), "Подкатегории пока нет");
       renderFilteredList(list, group, categorySelect.select.value, subcategorySelect.select.value);
     }
 
     groupSelect.select.addEventListener("change", refreshCategories);
     categorySelect.select.addEventListener("change", refreshSubcategories);
     subcategorySelect.select.addEventListener("change", () => renderFilteredList(list, currentGroup(), categorySelect.select.value, subcategorySelect.select.value));
-
     refreshCategories();
   }
 
@@ -239,7 +292,6 @@
   }
 
   const observer = new MutationObserver(scan);
-
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       scan();
