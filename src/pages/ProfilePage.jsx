@@ -254,7 +254,13 @@ const SOURCE_LIBRARY_CATEGORIES = [
     subcategories: reikiLevels.map((level) => ({
       value: `level-${level.id}`,
       label: `${level.id}. ${level.name}`,
-      steps: level.steps
+      steps: level.steps,
+      thirdLevels: level.steps.map((step) => ({
+        value: step.id,
+        label: `${level.stepLabel} ${step.number}: ${step.title}`,
+        stepId: step.id,
+        stepTitle: step.title
+      }))
     }))
   },
   {
@@ -1872,7 +1878,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
-  const handleClientPhotoSave = async ({ selectSaved = false, closePicker = false } = {}) => {
+  const handleClientPhotoSave = async ({ selectSaved = false, closePicker = false, fileOverride = null } = {}) => {
     setMessage("");
     setError("");
     setMediaStatus("");
@@ -1886,10 +1892,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       let mediaPayload = {};
       let uploadedPreviewUrl = "";
       let uploadedStorageRef = "";
-      if (clientPhotoForm.file) {
+      const uploadFile = fileOverride || clientPhotoForm.file;
+      if (uploadFile) {
         setMediaUploadTarget("client-goal");
         setMediaStatus("Загружаю фото клиента / цели...");
-        const uploaded = await uploadProfileMedia(clientPhotoForm.file, { profileId: profile.id, kind: "client-goal" }, session);
+        const uploaded = await uploadProfileMedia(uploadFile, { profileId: profile.id, kind: "client-goal" }, session);
         uploadedPreviewUrl = uploaded.signedUrl || "";
         uploadedStorageRef = uploaded.ref || "";
         mediaPayload = {
@@ -1902,6 +1909,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
       const saved = await createClientGoalPhoto({
         ...clientPhotoForm,
+        title: clientPhotoForm.title || fileOverride?.name?.replace(/\.[^.]+$/, "") || "Фото клиента / цели",
+        image_url: fileOverride ? "" : clientPhotoForm.image_url,
         ...mediaPayload,
         profile_id: profile.id,
         file: undefined
@@ -3436,26 +3445,27 @@ const resourceComparisonPanel = (
                     )}
                   </div>
 
-                  {imagePickerContext.mode === "center" && (
+                  {imagePickerContext.mode === "center" && activePickerCategory === "client-goals" && (
                     <div className="clientPhotoPickerModeTabs" role="tablist" aria-label="Режим выбора фото">
                       <button
-                        className={!isClientPhotoUploadOpen ? "active" : ""}
+                        className="active"
                         type="button"
                         onClick={() => setIsClientPhotoUploadOpen(false)}
                       >
                         Выбрать из базы
                       </button>
-                      <button
-                        className={isClientPhotoUploadOpen ? "active" : ""}
-                        type="button"
-                        onClick={() => setIsClientPhotoUploadOpen(true)}
-                      >
+                      <label className="clientPhotoPickerUploadDirectButton">
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif"
+                          onChange={(event) => handleClientPhotoSave({ selectSaved: true, closePicker: false, fileOverride: event.target.files?.[0] || null })}
+                        />
                         Загрузить новое фото
-                      </button>
+                      </label>
                     </div>
                   )}
 
-                  {((imagePickerContext.mode === "center" && isClientPhotoUploadOpen) || imagePickerContext.mode === "object") && (
+                  {imagePickerContext.mode === "object" && (
                   <div className="clientPhotoPickerUpload">
                     <div className="cabinetFormHeader">
                       <div>
@@ -3463,20 +3473,7 @@ const resourceComparisonPanel = (
                         <h3>{imagePickerContext.mode === "center" ? `${clientGoalPhotos.length}/${planLimits.clientPhotos}` : (selectedObjectSlot?.label || "Позиция мандалы")}</h3>
                       </div>
                     </div>
-                    {imagePickerContext.mode === "center" ? (
-                      <div className="powerInlineForm pickerUploadStructuredForm compactPhotoUploadForm">
-                        <input value={clientPhotoForm.title} onChange={(event) => setClientPhotoForm((current) => ({ ...current, title: event.target.value }))} placeholder="Название фото" />
-                        <label className="mediaUploadButton">
-                          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleClientPhotoFile} />
-                          {clientPhotoForm.file ? clientPhotoForm.file.name : "Выбрать файл"}
-                        </label>
-                        <input value={clientPhotoForm.image_url} onChange={(event) => setClientPhotoForm((current) => ({ ...current, image_url: event.target.value }))} placeholder="Внешний URL фото" />
-                        <button className="cabinetSecondary" type="button" disabled={!profile?.id || clientGoalPhotos.length >= planLimits.clientPhotos || mediaUploadTarget === "client-goal"} onClick={() => handleClientPhotoSave({ selectSaved: true, closePicker: true })}>
-                          {mediaUploadTarget === "client-goal" ? "Загружаю..." : "Сохранить и выбрать"}
-                        </button>
-                        {mediaStatus && <p className="mediaUploadNotice">{mediaStatus}</p>}
-                      </div>
-                    ) : imagePickerContext.mode === "cover" ? (
+                    {imagePickerContext.mode === "cover" ? (
                       <p className="powerPlanNote">Выберите сохранённый фон выше. Новая загрузка фона остаётся в блоке «Фон Места Силы».</p>
                     ) : (
                       <>
