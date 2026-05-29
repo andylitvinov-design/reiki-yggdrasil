@@ -24,6 +24,27 @@ Before changing this repo, read:
 
 If a file is missing, report `not found`.
 
+## Terminal prompt safety rules
+
+When giving the user a terminal prompt for this repo:
+
+- Treat the terminal as a fresh/zero-context window.
+- Include `cd` into the expected repo path.
+- Check the current git state before making changes:
+  - `git status --short`
+  - `git branch --show-current`
+  - `git worktree list`
+  - `git fetch origin`
+- Do not assume `main` can be checked out; it may be locked by another worktree.
+- Prefer resetting/branching from `origin/main` when a clean base is needed.
+- Abort or stop if `MERGE_HEAD`, rebase, cherry-pick, unresolved conflicts, or unexpected dirty files are present.
+- Before commit, print and verify:
+  - `git status --short`
+  - `git diff --name-only`
+  - only the intended files are changed.
+- If unintended files are changed, stop and ask before committing or pushing.
+- Every terminal prompt must be complete and copy-pasteable, including branch creation/reset, checks, build/test commands, commit, and push.
+
 ## Knowledge-base rules
 
 - Store reusable learning/course content in GitHub, not only inline inside React components.
