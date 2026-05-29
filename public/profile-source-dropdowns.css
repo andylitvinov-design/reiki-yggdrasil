@@ -1,0 +1,68 @@
+.sourceDropdownPanel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 253, 248, 0.82);
+}
+
+.sourceDropdownPanel label {
+  display: grid;
+  gap: 5px;
+  color: #6e4b1b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sourceDropdownPanel select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #2b1b0c;
+  font: inherit;
+  font-weight: 800;
+}
+
+.sourceDropdownFilteredList {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.sourceDropdownFilteredList button,
+.sourceDropdownEmpty {
+  width: 100%;
+  display: grid;
+  gap: 3px;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(247, 237, 216, 0.76);
+  color: #3f2a12;
+  text-align: left;
+  font: inherit;
+}
+
+.sourceDropdownFilteredList button b {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.sourceDropdownFilteredList button small,
+.sourceDropdownEmpty {
+  color: #7a674f;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.powerLibraryGroups.sourceDropdownReady > details {
+  display: none !important;
+}
