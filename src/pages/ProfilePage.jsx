@@ -3183,6 +3183,27 @@ const resourceComparisonPanel = (
                   </div>
                 </div>
 
+                <div className="powerFieldNotes">
+                  <p className="powerPlaceHint">
+                    {constructorType === "client"
+                      ? "Центр использует только фото из раздела «Фото клиентов / целей». При 12 точках добавлены внешние позиции вокруг центра."
+                      : constructorType === "altar"
+                        ? "Алтарь ставит выбранное фото цели ниже центра, а объекты берёт из образов выбранной традиции."
+                        : constructorType === "business"
+                          ? "Бизнес-мандала собирает цель, функцию и структуру в треугольник с единым числом зон на каждой вершине."
+                          : constructorType === "zodiac"
+                            ? "Зодиак ставит фото клиента или цели в центр и раскладывает до 12 образов по часовому кругу."
+                            : constructorType === "star"
+                              ? "Звезда собирает пять ключевых образов вокруг центра; открытый вариант продолжает правый и нижний левый лучи как линии движения."
+                              : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
+                  </p>
+                  <div className="resourcePrintNotes">
+                    <p><b>Сравнение ресурса:</b> {RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото цели"}</p>
+                    <p><b>Ресурс без мандалы:</b> {resourceWithoutMandalaComment || "—"}</p>
+                    <p><b>Ресурс с мандалой:</b> {resourceWithMandalaComment || "—"}</p>
+                  </div>
+                </div>
+
                 <aside className="powerCommandRail">
 
                   <div className="mandalaFieldLayoutSwitch" aria-label="Расположение поля мандалы">
