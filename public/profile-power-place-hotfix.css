@@ -1,8 +1,69 @@
-/* Power Place repair hotfix.
-   Keeps legacy constructor_type="client" in data, but removes the old visible
-   "Мандала" constructor choice from the /profile UI. */
-.constructorTypeSelector > button:first-child {
+/* Power Place visual corrections for /profile. */
+
+/* 18 is not a supported visible format now. Keep legacy saved data safe in React,
+   but remove the selector from desktop and mobile UI if it still exists. */
+.geometrySelector > button:nth-child(6) {
   display: none !important;
+}
+
+/* 8 / 12 mandala layouts: radial placement instead of square/corner blocks.
+   Larger source buttons sit farther from the center; small/intermediate buttons sit closer. */
+.powerMandala.geometry-8 .powerSource,
+.powerMandala.geometry-12 .powerSource {
+  position: absolute !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+/* Small positions closer to center. */
+.powerMandala.geometry-8 .powerSource.small,
+.powerMandala.geometry-12 .powerSource.small {
+  width: clamp(38px, 7.5vw, 54px) !important;
+  height: clamp(38px, 7.5vw, 54px) !important;
+}
+
+/* Big positions farther from center. */
+.powerMandala.geometry-8 .powerSource:not(.small),
+.powerMandala.geometry-12 .powerSource:not(.small) {
+  width: clamp(58px, 10.5vw, 86px) !important;
+  height: clamp(58px, 10.5vw, 86px) !important;
+}
+
+/* 8 radial points. */
+.powerMandala.geometry-8 .powerSource.source-1 { left: 50% !important; top: 8% !important; }
+.powerMandala.geometry-8 .powerSource.source-2 { left: 72% !important; top: 28% !important; }
+.powerMandala.geometry-8 .powerSource.source-3 { left: 92% !important; top: 50% !important; }
+.powerMandala.geometry-8 .powerSource.source-4 { left: 72% !important; top: 72% !important; }
+.powerMandala.geometry-8 .powerSource.source-5 { left: 50% !important; top: 92% !important; }
+.powerMandala.geometry-8 .powerSource.source-6 { left: 28% !important; top: 72% !important; }
+.powerMandala.geometry-8 .powerSource.source-7 { left: 8% !important; top: 50% !important; }
+.powerMandala.geometry-8 .powerSource.source-8 { left: 28% !important; top: 28% !important; }
+
+/* 12 radial points. Big guardian points are farther out; small points are closer. */
+.powerMandala.geometry-12 .powerSource.source-1 { left: 50% !important; top: 8% !important; }
+.powerMandala.geometry-12 .powerSource.source-2 { left: 66% !important; top: 23% !important; }
+.powerMandala.geometry-12 .powerSource.source-3 { left: 86% !important; top: 29% !important; }
+.powerMandala.geometry-12 .powerSource.source-4 { left: 81% !important; top: 50% !important; }
+.powerMandala.geometry-12 .powerSource.source-5 { left: 86% !important; top: 71% !important; }
+.powerMandala.geometry-12 .powerSource.source-6 { left: 66% !important; top: 77% !important; }
+.powerMandala.geometry-12 .powerSource.source-7 { left: 50% !important; top: 92% !important; }
+.powerMandala.geometry-12 .powerSource.source-8 { left: 34% !important; top: 77% !important; }
+.powerMandala.geometry-12 .powerSource.source-9 { left: 14% !important; top: 71% !important; }
+.powerMandala.geometry-12 .powerSource.source-10 { left: 19% !important; top: 50% !important; }
+.powerMandala.geometry-12 .powerSource.source-11 { left: 14% !important; top: 29% !important; }
+.powerMandala.geometry-12 .powerSource.source-12 { left: 34% !important; top: 23% !important; }
+
+@media (max-width: 640px) {
+  .powerMandala.geometry-8 .powerSource.small,
+  .powerMandala.geometry-12 .powerSource.small {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  .powerMandala.geometry-8 .powerSource:not(.small),
+  .powerMandala.geometry-12 .powerSource:not(.small) {
+    width: 48px !important;
+    height: 48px !important;
+  }
 }
 
 /* Visual export/print must not include metadata/report text blocks. */
