@@ -176,6 +176,7 @@ const ALTAR_CENTER_RATIOS = [
 ];
 
 const FALLBACK_COVER_VARIANTS = [
+  { id: "cover-zodiac-map", label: "Карта мандалы", tone: "zodiac-map" },
   { id: "cover-gold", label: "Золотой поток", tone: "gold" },
   { id: "cover-forest", label: "Древо силы", tone: "forest" },
   { id: "cover-night", label: "Ночная мандала", tone: "night" }
