@@ -1,18 +1,14 @@
-/* 2026-05-29 final Power Place stabilization layer.
-   Loaded last from index.html. It intentionally overrides previous emergency CSS
-   without deleting existing files, so all constructor formats render again. */
+/* 2026-05-29 recovery override after removing broken hotfix layers. */
 
-/* Keep the main constructor grid predictable. */
 .powerPlacePrintArea {
   overflow: visible !important;
 }
 
 .powerMandalaPanel {
   position: relative !important;
-  isolation: isolate;
+  overflow: visible !important;
 }
 
-/* Notes are allowed below the field, never as layout-breaking content inside the field. */
 .powerMandalaPanel > .powerPlaceHint,
 .powerMandalaPanel > .resourcePrintNotes {
   display: none !important;
@@ -22,26 +18,35 @@
   display: none !important;
 }
 
-/* Desktop: field layout changes the OUTER panel only. */
+.powerPlacePrintArea .powerMandala,
+.powerPlacePrintArea .zodiacMandalaSheet,
+.powerPlacePrintArea .daoMandalaSheet,
+.powerPlacePrintArea .altarMandalaSheet,
+.powerPlacePrintArea .businessMandalaSheet,
+.powerPlacePrintArea .starMandalaSheet {
+  position: relative !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none;
+}
+
 @media (min-width: 981px) {
   .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel {
     width: min(900px, 100%) !important;
     aspect-ratio: 16 / 9 !important;
-    min-height: 0 !important;
-    padding: 46px 128px !important;
+    padding: 46px 126px !important;
   }
 
   .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel {
     width: min(560px, 100%) !important;
     aspect-ratio: 3 / 4 !important;
-    min-height: 0 !important;
     padding: 72px 42px !important;
   }
 
   .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
     width: min(640px, 100%) !important;
     aspect-ratio: 1 / 1 !important;
-    min-height: 0 !important;
     padding: 58px !important;
   }
 
@@ -52,126 +57,23 @@
     place-items: center !important;
     align-content: center !important;
     justify-content: center !important;
-    overflow: hidden !important;
+  }
+
+  .powerPlacePrintArea .powerMandala,
+  .powerPlacePrintArea .zodiacMandalaSheet,
+  .powerPlacePrintArea .daoMandalaSheet {
+    width: min(460px, 100%) !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .powerPlacePrintArea .altarMandalaSheet,
+  .powerPlacePrintArea .businessMandalaSheet,
+  .powerPlacePrintArea .starMandalaSheet {
+    width: min(500px, 100%) !important;
+    aspect-ratio: 1 / 1 !important;
   }
 }
 
-/* Inner mandala geometry must not stretch with the outer field. */
-.powerPlacePrintArea .powerMandala,
-.powerPlacePrintArea .zodiacMandalaSheet,
-.powerPlacePrintArea .daoMandalaSheet {
-  width: min(460px, 100%) !important;
-  aspect-ratio: 1 / 1 !important;
-  margin: 0 auto !important;
-  transform: none !important;
-}
-
-.powerPlacePrintArea .altarMandalaSheet,
-.powerPlacePrintArea .businessMandalaSheet {
-  width: min(500px, 100%) !important;
-  aspect-ratio: 1 / 1 !important;
-  margin: 0 auto !important;
-  transform: none !important;
-}
-
-/* Preserve Star's intended aspect ratios on desktop while avoiding global layout stretching. */
-.powerPlacePrintArea .starMandalaSheet.star-open {
-  width: min(500px, 100%) !important;
-  aspect-ratio: 3 / 4 !important;
-  margin: 0 auto !important;
-}
-
-.powerPlacePrintArea .starMandalaSheet.star-closed {
-  width: min(640px, 100%) !important;
-  aspect-ratio: 4 / 3 !important;
-  margin: 0 auto !important;
-}
-
-/* The format title should not push the mandala down inside the field on desktop. */
-@media (min-width: 981px) {
-  .powerPlacePrintArea.field-layout-horizontal .powerPrintMeta,
-  .powerPlacePrintArea.field-layout-vertical .powerPrintMeta,
-  .powerPlacePrintArea.field-layout-square .powerPrintMeta {
-    position: absolute !important;
-    top: 18px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    z-index: 20 !important;
-    pointer-events: none !important;
-  }
-}
-
-/* Field-level zodiac plus positions. Old inner-circle plus positions remain hidden. */
-.zodiacPlusPosition {
-  display: none !important;
-}
-
-.zodiacFieldPlusPosition {
-  position: absolute !important;
-  z-index: 30 !important;
-  display: grid !important;
-  justify-items: center !important;
-  gap: 4px !important;
-  width: 94px !important;
-  transform: translate(-50%, -50%) !important;
-  pointer-events: auto !important;
-}
-
-.zodiacFieldPlusPositionImage {
-  width: 82px !important;
-  height: 82px !important;
-  display: grid !important;
-  place-items: center !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(255, 213, 117, 0.82) !important;
-  border-radius: 18px !important;
-  background:
-    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #2b1806 100%) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  color: #211407 !important;
-  font: inherit !important;
-  font-weight: 900 !important;
-  padding: 0 !important;
-  box-shadow: 0 0 22px rgba(128, 84, 18, 0.3) !important;
-}
-
-.zodiacFieldPlusPosition.hasImage .zodiacFieldPlusPositionImage span {
-  display: none !important;
-}
-
-.zodiacFieldPlusPosition b {
-  color: #513512 !important;
-  font-size: 11px !important;
-  line-height: 1.1 !important;
-  text-align: center !important;
-  overflow-wrap: anywhere !important;
-}
-
-.zodiacFieldPlusPosition.plus-top { left: 50% !important; top: 14% !important; }
-.zodiacFieldPlusPosition.plus-right { left: 86% !important; top: 50% !important; }
-.zodiacFieldPlusPosition.plus-bottom { left: 50% !important; top: 86% !important; }
-.zodiacFieldPlusPosition.plus-left { left: 14% !important; top: 50% !important; }
-
-.zodiacFieldPlusPosition.plus-corner-tl { left: 12% !important; top: 12% !important; }
-.zodiacFieldPlusPosition.plus-corner-tr { left: 88% !important; top: 12% !important; }
-.zodiacFieldPlusPosition.plus-corner-bl { left: 12% !important; top: 88% !important; }
-.zodiacFieldPlusPosition.plus-corner-br { left: 88% !important; top: 88% !important; }
-
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition {
-  width: 19% !important;
-}
-
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.aries { left: 50% !important; top: 8% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.taurus { left: 80% !important; top: 20% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.gemini { left: 92% !important; top: 50% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.cancer { left: 80% !important; top: 80% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.leo { left: 50% !important; top: 92% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.virgo { left: 20% !important; top: 80% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.libra { left: 8% !important; top: 50% !important; }
-.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.scorpio { left: 20% !important; top: 20% !important; }
-
-/* Mobile recovery: stop clipping/collapsing constructor previews. */
 @media (max-width: 980px) {
   .powerPlacePrintArea {
     display: block !important;
@@ -180,13 +82,11 @@
   .powerMandalaPanel {
     width: 100% !important;
     max-width: 100% !important;
-    min-height: auto !important;
     aspect-ratio: auto !important;
-    padding: 26px 16px !important;
-    overflow: hidden !important;
+    min-height: 0 !important;
+    padding: 22px 14px !important;
     display: grid !important;
     justify-items: center !important;
-    align-items: start !important;
     gap: 14px !important;
   }
 
@@ -194,92 +94,18 @@
     position: static !important;
     transform: none !important;
     width: 100% !important;
-    margin: 0 0 4px !important;
+    margin: 0 0 8px !important;
     text-align: center !important;
-    pointer-events: auto !important;
-  }
-
-  .powerPrintMeta h3 {
-    font-size: 24px !important;
-    line-height: 1.05 !important;
-    color: #fff3cf !important;
   }
 
   .powerPlacePrintArea .powerMandala,
   .powerPlacePrintArea .zodiacMandalaSheet,
   .powerPlacePrintArea .daoMandalaSheet,
   .powerPlacePrintArea .altarMandalaSheet,
-  .powerPlacePrintArea .businessMandalaSheet {
+  .powerPlacePrintArea .businessMandalaSheet,
+  .powerPlacePrintArea .starMandalaSheet {
     width: min(330px, 100%) !important;
     aspect-ratio: 1 / 1 !important;
-  }
-
-  .powerPlacePrintArea .starMandalaSheet.star-open,
-  .powerPlacePrintArea .starMandalaSheet.star-closed {
-    width: min(330px, 100%) !important;
-    min-height: 390px !important;
-    aspect-ratio: 1 / 1.18 !important;
-    overflow: hidden !important;
-  }
-
-  .starSacredLabel {
-    font-size: 26px !important;
-  }
-
-  .starElhai {
-    top: 6px !important;
-  }
-
-  .starAdonay {
-    bottom: 8px !important;
-  }
-
-  .starCenterPhoto {
-    width: 32% !important;
-    z-index: 16 !important;
-  }
-
-  .starMandalaSheet .starCoreTriangle {
-    width: 170px !important;
-    height: 230px !important;
-    top: 24% !important;
-  }
-
-  .starTriangle.upper,
-  .starTriangle.lower {
-    width: 54px !important;
-    height: 54px !important;
-  }
-
-  .starMandalaSheet.star-open .starTriangle.upper,
-  .starMandalaSheet.star-closed .starTriangle.upper {
-    top: 9% !important;
-  }
-
-  .starMandalaSheet.star-open .starTriangle.lower,
-  .starMandalaSheet.star-closed .starTriangle.lower {
-    bottom: 9% !important;
-  }
-
-  .zodiacFieldPlusPosition {
-    width: 70px !important;
-  }
-
-  .zodiacFieldPlusPositionImage {
-    width: 56px !important;
-    height: 56px !important;
-  }
-
-  .zodiacFieldPlusPosition b {
-    font-size: 9px !important;
-  }
-
-  .zodiacFieldPlusPosition.plus-corner-tl { left: 14% !important; top: 14% !important; }
-  .zodiacFieldPlusPosition.plus-corner-tr { left: 86% !important; top: 14% !important; }
-  .zodiacFieldPlusPosition.plus-corner-bl { left: 14% !important; top: 86% !important; }
-  .zodiacFieldPlusPosition.plus-corner-br { left: 86% !important; top: 86% !important; }
-
-  .powerFieldNotes {
-    margin-top: 12px !important;
+    margin: 0 auto !important;
   }
 }
