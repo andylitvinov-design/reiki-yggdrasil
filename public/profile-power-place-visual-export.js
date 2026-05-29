@@ -2,6 +2,22 @@
   const PROFILE_PATH = "/profile";
   const PANEL_SELECTOR = ".powerMandalaPanel";
 
+  function ensureSourceDropdownAssets() {
+    if (!document.querySelector('link[href="/profile-source-dropdowns.css"]')) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "/profile-source-dropdowns.css";
+      document.head.append(link);
+    }
+
+    if (!document.querySelector('script[src="/profile-source-dropdowns-runtime.js"]')) {
+      const script = document.createElement("script");
+      script.src = "/profile-source-dropdowns-runtime.js";
+      script.defer = true;
+      document.body.append(script);
+    }
+  }
+
   function isProfileRoute() {
     return window.location.pathname === PROFILE_PATH;
   }
@@ -50,7 +66,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Место силы</title>
+  <title>Power Place</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -98,4 +114,10 @@
     event.stopPropagation();
     downloadVisualPanel();
   }, true);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureSourceDropdownAssets, { once: true });
+  } else {
+    ensureSourceDropdownAssets();
+  }
 })();
