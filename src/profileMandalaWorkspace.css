@@ -3282,3 +3282,76 @@
   background: rgba(255, 244, 218, 0.92);
 }
 
+
+/* 2026-05-29 — Zodiac 8+ layout.
+   8 = normal circular zodiac.
+   8+ = two square orbits: large outer square + smaller inner square. */
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPosition {
+  width: 20%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPositionImage {
+  width: min(76px, 100%);
+}
+
+/* Outer big square: 1 / 3 / 5 / 7 farther from center. */
+.zodiacMandalaSheet.zodiac-plus-8 .aries {
+  left: 50%;
+  top: 7%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .gemini {
+  left: 93%;
+  top: 50%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .leo {
+  left: 50%;
+  top: 93%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .libra {
+  left: 7%;
+  top: 50%;
+}
+
+/* Inner small square: 2 / 4 / 6 / 8 closer to center. */
+.zodiacMandalaSheet.zodiac-plus-8 .taurus {
+  left: 66%;
+  top: 34%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .cancer {
+  left: 66%;
+  top: 66%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .virgo {
+  left: 34%;
+  top: 66%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .scorpio {
+  left: 34%;
+  top: 34%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-8 .taurus .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-plus-8 .cancer .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-plus-8 .virgo .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-plus-8 .scorpio .zodiacPositionImage {
+  width: min(52px, 82%);
+}
+
+@media (max-width: 640px) {
+  .zodiacMandalaSheet.zodiac-plus-8 .zodiacPositionImage {
+    width: min(56px, 100%);
+  }
+
+  .zodiacMandalaSheet.zodiac-plus-8 .taurus .zodiacPositionImage,
+  .zodiacMandalaSheet.zodiac-plus-8 .cancer .zodiacPositionImage,
+  .zodiacMandalaSheet.zodiac-plus-8 .virgo .zodiacPositionImage,
+  .zodiacMandalaSheet.zodiac-plus-8 .scorpio .zodiacPositionImage {
+    width: min(40px, 82%);
+  }
+}

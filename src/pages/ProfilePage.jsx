@@ -1195,7 +1195,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         classPrefix: "classic"
       }));
 
-      if (!isPlusVariant) {
+      if (!isPlusVariant || zodiacVisibleCount === 8) {
         return signSlots;
       }
 
@@ -2907,7 +2907,7 @@ const resourceComparisonPanel = (
                       ))}
                     </div>
                   ) : constructorType === "zodiac" ? (
-                    <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                    <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${selectedCoverClass}`} style={selectedCoverStyle}>
                       {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                       <div className="zodiacClockFace" aria-hidden="true">
                         <span>ЗОДИАК</span>
