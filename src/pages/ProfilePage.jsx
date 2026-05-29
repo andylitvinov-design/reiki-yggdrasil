@@ -1222,7 +1222,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     if (constructorType === "zodiac") {
       const isPlusVariant = zodiacVariant.startsWith("plus");
-      const visibleSignCount = isPlusVariant && zodiacVisibleCount === 12 ? 8 : zodiacVisibleCount;
+      const visibleSignCount = isPlusVariant ? 8 : zodiacVisibleCount;
       const signSlots = ZODIAC_SIGNS.slice(0, visibleSignCount).map((sign, index) => ({
         id: `zodiac-${index + 1}`,
         label: sign.label,
@@ -2898,7 +2898,7 @@ const resourceComparisonPanel = (
                 </div>
               </div>
 
-              <div className="powerPlacePrintArea">
+              <div className={`powerPlacePrintArea field-layout-${mandalaFieldLayout}`}>
                 <div className={`powerMandalaPanel field-layout-${mandalaFieldLayout} ${selectedOuterCoverClass}`} style={selectedOuterCoverStyle}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
