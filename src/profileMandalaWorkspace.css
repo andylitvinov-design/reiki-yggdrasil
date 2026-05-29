@@ -4861,3 +4861,10 @@
 
 .clientPhotoPickerUploadDirectButton { position: relative; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(184, 121, 29, 0.3); border-radius: 999px; padding: 9px 14px; background: linear-gradient(180deg, #2a1a09, #8c570d); color: #fff0cd; font-weight: 900; cursor: pointer; }
 .clientPhotoPickerUploadDirectButton input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.powerLibraryFilter{display:grid;gap:10px;padding:10px;border:1px solid rgba(150,97,31,.16);border-radius:18px;background:rgba(255,248,232,.72)}
+.powerLibrarySelectLabel{display:grid;gap:6px;color:#6a4a1d;font-size:12px;font-weight:900}
+.powerLibrarySelectLabel select{width:100%;border:1px solid rgba(150,97,31,.24);border-radius:14px;padding:10px 12px;background:#fffdf7;color:#2c1d0c;font-weight:850}
+.powerLibrarySubcategoryButtons{display:flex;flex-wrap:wrap;gap:7px;max-height:172px;overflow:auto}
+.powerLibrarySubcategoryButtons button{border:1px solid rgba(150,97,31,.2);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.78);color:#5b3a12;font-size:12px;font-weight:850;cursor:pointer}
+.powerLibrarySubcategoryButtons button.active{background:linear-gradient(180deg,#3a250e,#98600e);border-color:rgba(255,216,128,.58);color:#fff2ce}
