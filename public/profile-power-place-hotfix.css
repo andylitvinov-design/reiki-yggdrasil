@@ -1,0 +1,16 @@
+/* Power Place repair hotfix.
+   Keeps legacy constructor_type="client" in data, but removes the old visible
+   "Мандала" constructor choice from the /profile UI. */
+.constructorTypeSelector > button:first-child {
+  display: none !important;
+}
+
+/* Visual export/print must not include metadata/report text blocks. */
+[data-export="power-place-visual-only"] .powerPrintMeta,
+[data-export="power-place-visual-only"] .resourcePrintNotes,
+[data-export="power-place-visual-only"] .powerPlaceHint,
+body.printMandalaOnly .powerPrintMeta,
+body.printMandalaOnly .resourcePrintNotes,
+body.printMandalaOnly .powerPlaceHint {
+  display: none !important;
+}
