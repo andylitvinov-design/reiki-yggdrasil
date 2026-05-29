@@ -6,6 +6,7 @@
   const SOURCE_DROPDOWN_VERSION = "site-structure-20260529";
   const PDF_PRINT_CLASS = "printMandalaOnly";
   const MOBILE_QUERY = "(max-width: 980px)";
+  const SELECTED_COMPOSITION_HOOK_INDEX = 39;
   let actionsPlaceholder = null;
   let printCleanupTimer = null;
 
@@ -97,6 +98,10 @@
           margin: 10px 0 12px !important;
           padding: 0 !important;
           align-items: stretch !important;
+        }
+
+        ${ACTIONS_SELECTOR}.profileMobileMandalaActions.profileHasSaveCopy {
+          grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         }
 
         ${ACTIONS_SELECTOR}.profileMobileMandalaActions button {
@@ -233,6 +238,101 @@
       if (label === "Сохранить место силы") button.textContent = "Сохранить";
       if (label === "Обновить место силы") button.textContent = "Обновить";
     });
+  }
+
+  function reactFiberFromNode(node) {
+    if (!node) return null;
+    const key = Object.keys(node).find((item) => item.startsWith("__reactFiber$") || item.startsWith("__reactInternalInstance$"));
+    return key ? node[key] : null;
+  }
+
+  function findProfileFiber() {
+    const root = document.querySelector(".cabinetShell") || document.getElementById("root");
+    let fiber = reactFiberFromNode(root);
+    while (fiber) {
+      if (fiber.type?.name === "ProfilePage" || fiber.elementType?.name === "ProfilePage") return fiber;
+      fiber = fiber.return;
+    }
+    fiber = reactFiberFromNode(document.getElementById("root")?.firstElementChild || document.body);
+    const stack = fiber ? [fiber] : [];
+    const seen = new Set();
+    while (stack.length) {
+      const current = stack.pop();
+      if (!current || seen.has(current)) continue;
+      seen.add(current);
+      if (current.type?.name === "ProfilePage" || current.elementType?.name === "ProfilePage") return current;
+      if (current.child) stack.push(current.child);
+      if (current.sibling) stack.push(current.sibling);
+    }
+    return null;
+  }
+
+  function dispatchProfileState(index, value) {
+    let hook = findProfileFiber()?.memoizedState;
+    for (let currentIndex = 0; hook && currentIndex < index; currentIndex += 1) hook = hook.next;
+    const dispatch = hook?.queue?.dispatch;
+    if (typeof dispatch !== "function") return false;
+    dispatch(value);
+    return true;
+  }
+
+  function currentCompositionIdFromSelect() {
+    const select = [...document.querySelectorAll("select")].find((item) =>
+      [...item.options].some((option) => String(option.textContent || "").includes("Загрузить сохранённое место силы"))
+    );
+    return select?.value || "";
+  }
+
+  function primaryCompositionButton(actions) {
+    return [...(actions?.querySelectorAll("button") || [])].find((button) => {
+      if (button.dataset.profileSaveNew === "true") return false;
+      const label = String(button.textContent || "").trim();
+      return label === "Сохранить" || label === "Обновить" || label === "Сохранить место силы" || label === "Обновить место силы";
+    }) || null;
+  }
+
+  function createSaveNewButton(actions, primaryButton) {
+    let button = actions.querySelector('[data-profile-save-new="true"]');
+    if (button) return button;
+    button = document.createElement("button");
+    button.type = "button";
+    button.dataset.profileSaveNew = "true";
+    button.className = primaryButton?.className || "cabinetSecondary";
+    button.textContent = "Сохранить";
+    actions.insertBefore(button, primaryButton || actions.firstChild);
+    return button;
+  }
+
+  function ensureSeparateSaveUpdateButtons() {
+    const actions = document.querySelector(ACTIONS_SELECTOR);
+    const primaryButton = primaryCompositionButton(actions);
+    if (!actions || !primaryButton) return;
+
+    const isEditingSaved = Boolean(currentCompositionIdFromSelect()) || String(primaryButton.textContent || "").includes("Обновить");
+    const saveNewButton = actions.querySelector('[data-profile-save-new="true"]');
+
+    if (!isEditingSaved) {
+      saveNewButton?.remove();
+      actions.classList.remove("profileHasSaveCopy");
+      primaryButton.textContent = "Сохранить";
+      return;
+    }
+
+    createSaveNewButton(actions, primaryButton);
+    actions.classList.add("profileHasSaveCopy");
+    primaryButton.textContent = "Обновить";
+  }
+
+  function saveCurrentAsNew() {
+    const actions = document.querySelector(ACTIONS_SELECTOR);
+    const primaryButton = primaryCompositionButton(actions);
+    if (!primaryButton) return;
+    const cleared = dispatchProfileState(SELECTED_COMPOSITION_HOOK_INDEX, "");
+    if (!cleared) {
+      window.alert("Не удалось переключить режим сохранения. Обновите страницу и попробуйте снова.");
+      return;
+    }
+    window.setTimeout(() => primaryButton.click(), 80);
   }
 
   function syncMobileActionsPlacement() {
@@ -401,6 +501,7 @@
     if (!isProfileRoute()) return;
     ensurePdfPrintStyles();
     normalizeActionLabels();
+    ensureSeparateSaveUpdateButtons();
     syncMobileActionsPlacement();
     syncCoverVariantList();
     preparePrintImages();
@@ -410,6 +511,14 @@
     if (!isProfileRoute()) return;
     const { trigger, label } = getButtonLabel(event.target);
     if (!trigger || !trigger.closest(ACTIONS_SELECTOR)) return;
+
+    if (trigger.dataset.profileSaveNew === "true") {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+      saveCurrentAsNew();
+      return;
+    }
 
     if (label.includes("Скачать")) {
       event.preventDefault();
