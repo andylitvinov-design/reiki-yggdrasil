@@ -3018,7 +3018,7 @@ const resourceComparisonPanel = (
                       <div className="zodiacClockFace" aria-hidden="true">
                         <span>ЗОДИАК</span>
                       </div>
-                      {ZODIAC_SIGNS.slice(0, isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) && zodiacVisibleCount === 12 ? 8 : zodiacVisibleCount).map((sign, index) => {
+                      {ZODIAC_SIGNS.slice(0, isZodiacPlusVariant(zodiacVariant, zodiacVisibleCount) ? 8 : zodiacVisibleCount).map((sign, index) => {
                         const slotId = `zodiac-${index + 1}`;
                         const slotImage = objectImages[slotId];
 
