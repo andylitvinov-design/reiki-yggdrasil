@@ -701,6 +701,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [customOuterCoverImage, setCustomOuterCoverImage] = useState("");
   const [coverNotice, setCoverNotice] = useState("");
   const [selectedCentralPhotoId, setSelectedCentralPhotoId] = useState("");
+  const [selectedCentralImageRef, setSelectedCentralImageRef] = useState("");
   const [imagePickerContext, setImagePickerContext] = useState({ mode: "", slotId: "" });
   const [selectedTraditionId, setSelectedTraditionId] = useState(mysteryTraditions[0]?.id || "");
   const [compositionTitle, setCompositionTitle] = useState("");
@@ -1043,6 +1044,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     : undefined;
 
   const centerImage = previewImageUrl(
+    selectedCentralImageRef,
     selectedCentralPhoto?.display_url,
     selectedCentralPhoto?.signed_url,
     selectedCentralPhoto?.image_url,
@@ -1580,7 +1582,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     business_vertex_zone_count: businessVertexZoneCount,
     star_variant: starVariant,
     cover_ref: buildCoverRef(),
-    object_refs: persistableObjectRefs(objectImages, activeObjectSlots.map((slot) => slot.id)),
+    object_refs: persistableObjectRefs(
+      { ...objectImages, __center_image: selectedCentralImageRef },
+      [...activeObjectSlots.map((slot) => slot.id), "__center_image"]
+    ),
     central_photo_id: selectedCentralPhotoId,
     tradition_id: constructorType === "altar" ? selectedTradition?.id || "" : "",
     tradition_title: constructorType === "altar" ? selectedTradition?.title || "" : "",
@@ -1603,8 +1608,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
     setStarVariant(STAR_VARIANTS.some((item) => item.value === composition.star_variant) ? composition.star_variant : "closed");
     setAltarCenterRatio(composition.altar_center_ratio || "1");
-    setObjectImages(composition.object_refs || {});
+    const { __center_image: savedCenterImageRef = "", ...compositionObjectRefs } = composition.object_refs || {};
+    setObjectImages(compositionObjectRefs);
     setObjectImageUrls((current) => ({ ...current, ...(composition.object_ref_urls || {}) }));
+    setSelectedCentralImageRef(savedCenterImageRef || "");
     setSelectedCentralPhotoId(composition.central_photo_id || "");
     setSelectedTraditionId(composition.tradition_id || mysteryTraditions[0]?.id || "");
     setResourceComparisonMode(composition.resource_comparison_mode || "photo_mandala");
@@ -1967,6 +1974,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
       setClientGoalPhotos((current) => [savedForUi, ...current].filter(Boolean));
       setSelectedCentralPhotoId((current) => (selectSaved ? savedForUi?.id || "" : current || savedForUi?.id || ""));
+      if (selectSaved && (savedForUi?.image_ref || uploadedStorageRef)) {
+        setSelectedCentralImageRef(savedForUi.image_ref || uploadedStorageRef);
+      }
       setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
       if (closePicker) closeImagePicker();
       setMediaStatus("Фото загружено и сохранено.");
@@ -2050,6 +2060,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         };
         setTraditionAssets((current) => [savedForUi, ...current].filter(Boolean));
         setObjectImageUrls((current) => ({ ...current, [uploaded.ref]: uploaded.signedUrl }));
+        setSelectedCentralPhotoId("");
+        setSelectedCentralImageRef(uploaded.ref);
         setMediaStatus("Фото загружено в Мистерии.");
         setMessage("Фото загружено в выбранную традицию.");
         return;
@@ -2079,6 +2091,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       };
       setMaterials((current) => [savedForUi, ...current].filter(Boolean));
       setObjectImageUrls((current) => ({ ...current, [uploaded.ref]: uploaded.signedUrl }));
+      setSelectedCentralPhotoId("");
+      setSelectedCentralImageRef(uploaded.ref);
       setMediaStatus(`Фото загружено в ${categoryLabel}.`);
       setMessage(`Фото загружено в ${categoryLabel}.`);
     } catch (err) {
@@ -2183,6 +2197,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const chooseCentralPhoto = (photoId) => {
     setSelectedCentralPhotoId(photoId);
+    setSelectedCentralImageRef("");
     closeImagePicker();
   };
 
@@ -2201,52 +2216,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const chooseCenterPickerImage = async (option) => {
+    if (option?.src && option.displaySrc) {
+      setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc }));
+    }
+
     if (option?.kind === "client-photo" && option.photoId) {
-      if (option.src && option.displaySrc) {
-        setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc }));
-      }
       chooseCentralPhoto(option.photoId);
       return;
     }
 
     if (!option?.src) return;
 
-    if (!profile?.id) {
-      setError("Сначала сохраните профиль мастера.");
-      return;
-    }
-
-    try {
-      setMediaUploadTarget("client-goal");
-      setMediaStatus("Сохраняю выбранное изображение как фото клиента / цели...");
-      const saved = await createClientGoalPhoto({
-        title: option.label || "Фото клиента / цели",
-        image_url: option.src,
-        notes: option.meta || "",
-        profile_id: profile.id
-      }, accountPlan, session);
-
-      const savedForUi = option.displaySrc && !previewImageUrl(saved?.display_url, saved?.signed_url, saved?.image_url, saved?.image_ref)
-        ? {
-          ...saved,
-          image_ref: saved?.image_ref || option.src,
-          display_url: option.displaySrc,
-          image_url: option.displaySrc
-        }
-        : saved;
-      if (option.src && option.displaySrc) {
-        setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc }));
-      }
-      setClientGoalPhotos((current) => [savedForUi, ...current].filter(Boolean));
-      setSelectedCentralPhotoId(savedForUi?.id || "");
-      setMessage("Фото клиента / цели выбрано.");
-      closeImagePicker();
-    } catch (err) {
-      setMediaStatus(formatUploadError(err));
-      setError(err.message || "Не удалось выбрать фото клиента / цели.");
-    } finally {
-      setMediaUploadTarget("");
-    }
+    setSelectedCentralPhotoId("");
+    setSelectedCentralImageRef(option.src);
+    setMessage("Изображение выбрано в центр мандалы.");
+    closeImagePicker();
   };
 
   const chooseCoverPickerImage = (option) => {
