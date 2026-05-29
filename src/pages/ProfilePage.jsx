@@ -977,7 +977,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       id: `client-${item.id}`,
       label: item.title || "Фото клиента / цели",
       src: item.image_ref || item.image_url,
-      displaySrc: item.display_url || item.image_url
+      displaySrc: previewImageUrl(item.display_url, item.signed_url, item.image_url, item.image_ref)
     })),
     ...materials.map((item, index) => ({
       id: `material-${item.id || index}`,
@@ -1163,7 +1163,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       source: "Клиенты",
       status: photo.notes || "",
       src: photo.image_ref || photo.image_url,
-      displaySrc: photo.display_url || photo.image_url,
+      displaySrc: previewImageUrl(photo.display_url, photo.signed_url, photo.image_url, photo.image_ref),
       kind: "client-photo",
       photoId: photo.id
     })),
@@ -1665,6 +1665,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const handleLibraryImageSelect = (item) => {
+    if (item.src && item.displaySrc) {
+      setObjectImageUrls((current) => ({ ...current, [item.src]: item.displaySrc }));
+    }
+
     if (item.kind === "client-photo" && item.photoId) {
       setSelectedCentralPhotoId(item.photoId);
     }
@@ -2080,8 +2084,19 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         profile_id: profile.id
       }, accountPlan, session);
 
-      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
-      setSelectedCentralPhotoId(saved?.id || "");
+      const savedForUi = option.displaySrc && !previewImageUrl(saved?.display_url, saved?.signed_url, saved?.image_url, saved?.image_ref)
+        ? {
+          ...saved,
+          image_ref: saved?.image_ref || option.src,
+          display_url: option.displaySrc,
+          image_url: option.displaySrc
+        }
+        : saved;
+      if (option.src && option.displaySrc) {
+        setObjectImageUrls((current) => ({ ...current, [option.src]: option.displaySrc }));
+      }
+      setClientGoalPhotos((current) => [savedForUi, ...current].filter(Boolean));
+      setSelectedCentralPhotoId(savedForUi?.id || "");
       setMessage("Фото клиента / цели выбрано.");
       closeImagePicker();
     } catch (err) {
