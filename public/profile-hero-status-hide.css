@@ -1,0 +1,14 @@
+/* 2026-05-29: hide redundant material status cards from the profile hero. */
+.mandalaHero {
+  grid-template-columns: 126px minmax(0, 1fr) !important;
+}
+
+.mandalaHeroStats {
+  display: none !important;
+}
+
+@media (max-width: 980px) {
+  .mandalaHero {
+    grid-template-columns: 1fr !important;
+  }
+}
