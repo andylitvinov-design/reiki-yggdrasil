@@ -1175,3 +1175,191 @@ body.printMandalaOnly .powerPlaceHint {
     width: min(58px, 100%);
   }
 }
+
+/* 2026-05-29 final safe override: outer field layout + zodiac plus visuals.
+   Do not delete previous CSS blocks; these rules win by order and !important. */
+
+/* OUTER FIELD ONLY */
+.powerPlacePrintArea.field-layout-vertical,
+.powerPlacePrintArea.field-layout-horizontal,
+.powerPlacePrintArea.field-layout-square {
+  display: grid !important;
+  justify-items: center !important;
+  align-items: start !important;
+}
+
+.powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
+.powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
+.powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+  margin-inline: auto !important;
+  min-height: auto !important;
+}
+
+.powerPlacePrintArea.field-layout-vertical .powerMandalaPanel {
+  width: min(560px, 100%) !important;
+  aspect-ratio: 3 / 4 !important;
+  padding: 72px 42px !important;
+}
+
+.powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel {
+  width: min(860px, 100%) !important;
+  aspect-ratio: 16 / 9 !important;
+  padding: 46px 132px !important;
+}
+
+.powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+  width: min(640px, 100%) !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 58px !important;
+}
+
+/* INNER MANDALA NEVER STRETCHES */
+.powerPlacePrintArea .powerMandala,
+.powerPlacePrintArea .zodiacMandalaSheet,
+.powerPlacePrintArea .daoMandalaSheet {
+  width: min(460px, 100%) !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 auto !important;
+}
+
+.powerPlacePrintArea .altarMandalaSheet,
+.powerPlacePrintArea .businessMandalaSheet {
+  width: min(500px, 100%) !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 auto !important;
+}
+
+.powerPlacePrintArea .starMandalaSheet.star-open {
+  width: min(500px, 100%) !important;
+  aspect-ratio: 3 / 4 !important;
+  margin: 0 auto !important;
+}
+
+.powerPlacePrintArea .starMandalaSheet.star-closed {
+  width: min(640px, 100%) !important;
+  aspect-ratio: 4 / 3 !important;
+  margin: 0 auto !important;
+}
+
+/* Title must not push mandala downward */
+.powerPlacePrintArea.field-layout-vertical .powerPrintMeta,
+.powerPlacePrintArea.field-layout-horizontal .powerPrintMeta,
+.powerPlacePrintArea.field-layout-square .powerPrintMeta {
+  position: absolute !important;
+  left: 50% !important;
+  top: 22px !important;
+  transform: translateX(-50%) !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+}
+
+/* ZODIAC PLUS ZONES */
+.zodiacMandalaSheet {
+  overflow: visible !important;
+}
+
+.zodiacPlusPosition {
+  position: absolute !important;
+  z-index: 12 !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 4px !important;
+  width: 22% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.zodiacPlusPositionImage {
+  width: min(88px, 100%) !important;
+  aspect-ratio: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 213, 117, 0.82) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #2b1806 100%) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  color: #211407 !important;
+  cursor: pointer !important;
+  font: inherit !important;
+  font-weight: 900 !important;
+  padding: 0 !important;
+  box-shadow: 0 0 22px rgba(128, 84, 18, 0.3) !important;
+}
+
+.zodiacPlusPosition.hasImage .zodiacPlusPositionImage span {
+  display: none !important;
+}
+
+.zodiacPlusPosition b {
+  color: #513512 !important;
+  font-size: 11px !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+  overflow-wrap: anywhere !important;
+}
+
+/* 8+ = 8 знаков + 4 боковые квадратные мандалы */
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-top { left: 50% !important; top: -12% !important; }
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-right { left: 112% !important; top: 50% !important; }
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-bottom { left: 50% !important; top: 112% !important; }
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-left { left: -12% !important; top: 50% !important; }
+
+/* 12+ = 8 базовых знаков + 4 дальние квадратные мандалы по углам */
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition {
+  width: 19% !important;
+}
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.aries { left: 50% !important; top: 8% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.taurus { left: 80% !important; top: 20% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.gemini { left: 92% !important; top: 50% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.cancer { left: 80% !important; top: 80% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.leo { left: 50% !important; top: 92% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.virgo { left: 20% !important; top: 80% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.libra { left: 8% !important; top: 50% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.scorpio { left: 20% !important; top: 20% !important; }
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-tl { left: -14% !important; top: -14% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-tr { left: 114% !important; top: -14% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-bl { left: -14% !important; top: 114% !important; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-br { left: 114% !important; top: 114% !important; }
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition {
+  width: 24% !important;
+}
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPositionImage {
+  width: min(96px, 100%) !important;
+}
+
+/* Plus zones must not be clipped */
+.powerMandalaPanel:has(.zodiacPlusPosition) {
+  overflow: visible !important;
+}
+
+@media (max-width: 640px) {
+  .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
+  .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
+  .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+    width: 100% !important;
+    aspect-ratio: auto !important;
+    padding: 28px !important;
+  }
+
+  .powerPlacePrintArea .zodiacMandalaSheet,
+  .powerPlacePrintArea .powerMandala,
+  .powerPlacePrintArea .daoMandalaSheet {
+    width: min(340px, 100%) !important;
+  }
+
+  .zodiacPlusPositionImage {
+    width: min(58px, 100%) !important;
+  }
+}
