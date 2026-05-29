@@ -1,0 +1,40 @@
+/* Power Place background module tabs refinement */
+.powerBackgroundPanel[hidden] {
+  display: none !important;
+}
+
+.powerBackgroundPickerPanel,
+.powerBackgroundLayoutPanel,
+.powerBackgroundAnalysisPanel {
+  display: grid;
+  gap: 10px;
+}
+
+.coverSelector[data-power-background-tab="layout"] .coverLayerTabs button[data-power-background-tab="layout"],
+.coverSelector[data-power-background-tab="analysis"] .coverLayerTabs button[data-power-background-tab="analysis"] {
+  border-color: rgba(245, 198, 106, 0.72);
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+  box-shadow: 0 8px 20px rgba(127, 78, 14, 0.18);
+}
+
+.powerBackgroundLayoutPanel .mandalaFieldLayoutSwitch,
+.powerBackgroundAnalysisPanel .resourceComparisonPanel {
+  margin: 0;
+}
+
+.powerBackgroundLayoutPanel .mandalaFieldLayoutSwitch {
+  padding: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.24);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.powerBackgroundAnalysisPanel .resourceComparisonPanel {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.powerBackgroundLayoutPanel .powerBackgroundZoneControls {
+  margin-top: 0;
+}
