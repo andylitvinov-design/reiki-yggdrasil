@@ -3832,3 +3832,82 @@
     width: min(360px, 100%) !important;
   }
 }
+
+/* 2026-05-29: saved image deletion and structured picker controls */
+.powerSavedImageItem {
+  position: relative;
+  min-width: 0;
+}
+
+.powerSavedImageList .powerSavedImageCard {
+  width: 100%;
+  cursor: pointer;
+}
+
+.powerSavedImageList .powerSavedImageDeleteButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  border: 1px solid rgba(123, 47, 20, 0.36);
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(255, 244, 229, 0.96);
+  color: #7b2f14;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 900;
+  box-shadow: 0 8px 20px rgba(77, 38, 8, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.powerSavedImageItem:hover .powerSavedImageDeleteButton,
+.powerSavedImageItem:focus-within .powerSavedImageDeleteButton {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.powerSavedImageList .powerSavedImageDeleteButton:hover,
+.powerSavedImageList .powerSavedImageDeleteButton:focus-visible {
+  background: #7b2f14;
+  color: #fff7e8;
+  outline: none;
+}
+
+.imagePickerStructuredControls {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.74);
+}
+
+.imagePickerStructuredControls label {
+  min-width: 0;
+}
+
+.imagePickerStructuredControls select {
+  width: 100%;
+}
+
+@media (max-width: 680px) {
+  .powerSavedImageList .powerSavedImageDeleteButton {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .imagePickerStructuredControls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+

@@ -2498,24 +2498,27 @@ const resourceComparisonPanel = (
                         <small>{selectedObjectSlot ? `Позиция: ${selectedObjectSlot.label}` : "Выберите позицию на схеме"}</small>
                       </div>
                       {savedPowerImages.map((item) => (
-                        <button key={item.id} type="button" onClick={() => handleLibraryImageSelect(item)}>
-                          <span className="powerSavedImageThumb" style={imageStyle(displayImageUrl(item.displaySrc || item.src))} />
-                          <b>{item.title}</b>
-                          <small>{[item.source, item.status].filter(Boolean).join(" · ")}</small>
-                        </button>
+                        <div className="powerSavedImageItem" key={item.id}>
+                          <button className="powerSavedImageCard" type="button" onClick={() => handleLibraryImageSelect(item)}>
+                            <span className="powerSavedImageThumb" style={imageStyle(displayImageUrl(item.displaySrc || item.src))} />
+                            <b>{item.title}</b>
+                            <small>{[item.source, item.status].filter(Boolean).join(" · ")}</small>
+                          </button>
+                          {item.kind === "client-photo" && item.photoId && (
+                            <button
+                              className="savedImageDeleteButton powerSavedImageDeleteButton"
+                              type="button"
+                              title="Удалить фото"
+                              aria-label="Удалить фото из базы"
+                              onClick={(event) => handleDeleteSavedClientPhoto(item, event)}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
                       ))}
                       {savedPowerImages.length === 0 && <p>Сохранённые фото, подложки и изображения появятся здесь после загрузки.</p>}
                     </div>
-                  </div>
-                  <div className="quickPhotoGrid">
-                    {[
-                      ["Места", powerPlaceCompositions.length],
-                      ["Фото", clientGoalPhotos.length],
-                      ["Образы", traditionAssets.length],
-                      ["План", normalizeAccountPlan(profile.account_plan).toUpperCase()]
-                    ].map(([label, value]) => (
-                      <span key={label}><i />{label}<small>{value}</small></span>
-                    ))}
                   </div>
                 </>
               ) : activeTopTab === "chats" ? (
@@ -3241,46 +3244,53 @@ const resourceComparisonPanel = (
                     </div>
                     <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
                   </div>
-                  <div className="imagePickerCategoryTabs" aria-label="Категории изображений">
-                    {SOURCE_LIBRARY_CATEGORIES.map((category) => (
-                      <button
-                        className={activePickerCategory === category.value ? "active" : ""}
-                        key={category.value}
-                        onClick={() => handlePickerCategorySelect(category.value)}
-                        type="button"
+                  <div className="imagePickerStructuredControls pickerUploadDropdowns" aria-label="Структура выбора изображения">
+                    <label>
+                      Группа
+                      <select
+                        value={activePickerCategory}
+                        onChange={(event) => handlePickerCategorySelect(event.target.value)}
                       >
-                        {category.label}
-                      </button>
-                    ))}
+                        {SOURCE_LIBRARY_CATEGORIES.map((category) => (
+                          <option key={category.value} value={category.value}>{category.label}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Категория
+                      <select
+                        value={activePickerSubcategory}
+                        disabled={activePickerCategoryData.subcategories.length === 0}
+                        onChange={(event) => {
+                          const nextSubcategory = activePickerCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
+                          if (nextSubcategory) handlePickerSubcategorySelect(nextSubcategory);
+                        }}
+                      >
+                        {activePickerCategoryData.subcategories.length === 0 && <option value="">Без категории</option>}
+                        {activePickerCategoryData.subcategories.map((subcategory) => (
+                          <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label>
+                      Подкатегория
+                      <select
+                        value={activePickerThirdLevel}
+                        disabled={!activePickerSubcategoryData?.thirdLevels?.length}
+                        onChange={(event) => {
+                          const nextThird = activePickerSubcategoryData?.thirdLevels?.find((thirdLevel) => thirdLevel.value === event.target.value);
+                          if (nextThird) handlePickerThirdLevelSelect(nextThird);
+                        }}
+                      >
+                        {!activePickerSubcategoryData?.thirdLevels?.length && <option value="">Без подкатегории</option>}
+                        {activePickerSubcategoryData?.thirdLevels?.map((thirdLevel) => (
+                          <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
-                  {activePickerCategoryData.subcategories.length > 0 && (
-                    <select
-                      className="imagePickerSubcategorySelect"
-                      value={activePickerSubcategory}
-                      onChange={(event) => {
-                        const nextSubcategory = activePickerCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
-                        if (nextSubcategory) handlePickerSubcategorySelect(nextSubcategory);
-                      }}
-                    >
-                      {activePickerCategoryData.subcategories.map((subcategory) => (
-                        <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
-                      ))}
-                    </select>
-                  )}
-                  {activePickerSubcategoryData?.thirdLevels?.length > 0 && (
-                    <select
-                      className="imagePickerSubcategorySelect"
-                      value={activePickerThirdLevel}
-                      onChange={(event) => {
-                        const nextThird = activePickerSubcategoryData?.thirdLevels?.find((thirdLevel) => thirdLevel.value === event.target.value);
-                        if (nextThird) handlePickerThirdLevelSelect(nextThird);
-                      }}
-                    >
-                      {activePickerSubcategoryData.thirdLevels.map((thirdLevel) => (
-                        <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
-                      ))}
-                    </select>
-                  )}
                   <div className="clientPhotoPickerGrid">
                     {modalPickerImageOptions.map((option) => (
                       <button
