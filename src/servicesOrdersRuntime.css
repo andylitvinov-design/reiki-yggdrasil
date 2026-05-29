@@ -1,0 +1,208 @@
+#services-orders-runtime {
+  position: relative;
+  z-index: 12;
+}
+
+.servicesRuntimePanel {
+  max-width: 1180px;
+  margin: 24px auto;
+  padding: 22px;
+  border: 1px solid rgba(97, 70, 35, 0.16);
+  border-radius: 28px;
+  background: rgba(255, 250, 239, 0.94);
+  box-shadow: 0 24px 70px rgba(83, 53, 22, 0.14);
+  color: #2d2418;
+}
+
+.servicesRuntimeHeader,
+.servicesRuntimeGrid,
+.servicesRuntimePrice,
+.servicesRuntimeActions {
+  display: grid;
+  gap: 14px;
+}
+
+.servicesRuntimeHeader {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.servicesRuntimeHeader p,
+.servicesRuntimeSmall {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(65, 47, 24, 0.62);
+}
+
+.servicesRuntimeHeader h2 {
+  margin: 4px 0 0;
+}
+
+.servicesRuntimeTabs,
+.servicesRuntimeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.servicesRuntimeTabs button,
+.servicesRuntimeActions button,
+.servicesRuntimeList button,
+.servicesRuntimeOrderForm button,
+.servicesRuntimePublicCards button {
+  border: 1px solid rgba(128, 86, 34, 0.22);
+  border-radius: 16px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #3b2a14;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.servicesRuntimeTabs button.active,
+.servicesRuntimeList button.active,
+.servicesRuntimePublicCards button.active {
+  border-color: rgba(181, 122, 39, 0.7);
+  box-shadow: 0 12px 26px rgba(181, 122, 39, 0.16);
+}
+
+.servicesRuntimeGrid {
+  grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.4fr);
+  align-items: start;
+}
+
+.servicesRuntimeList,
+.servicesRuntimeEditor,
+.servicesRuntimeOrderForm,
+.servicesRuntimePublic,
+.servicesRuntimePublicCards {
+  display: grid;
+  gap: 12px;
+}
+
+.servicesRuntimeList button {
+  display: grid;
+  gap: 4px;
+}
+
+.servicesRuntimeList small,
+.servicesRuntimeList span,
+.servicesRuntimePublicCards small,
+.servicesRuntimePublicCards em {
+  font-size: 0.82rem;
+  color: rgba(65, 47, 24, 0.7);
+}
+
+.servicesRuntimeEditor {
+  border: 1px solid rgba(97, 70, 35, 0.14);
+  border-radius: 22px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.servicesRuntimeEditor label,
+.servicesRuntimeOrderForm label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.servicesRuntimeEditor input,
+.servicesRuntimeEditor textarea,
+.servicesRuntimeOrderForm input,
+.servicesRuntimeOrderForm textarea {
+  width: 100%;
+  border: 1px solid rgba(97, 70, 35, 0.18);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #2d2418;
+  font: inherit;
+}
+
+.servicesRuntimePreview {
+  min-height: 180px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(232, 196, 128, 0.46), rgba(255, 255, 255, 0.86));
+  background-position: center;
+  background-size: cover;
+  color: rgba(75, 54, 27, 0.55);
+  font-size: 2.6rem;
+}
+
+.servicesRuntimeNotice,
+.servicesRuntimeToast {
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: rgba(250, 232, 183, 0.72);
+  color: #4b3415;
+}
+
+.servicesRuntimePublic {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: min(360px, calc(100vw - 36px));
+  max-height: min(78vh, 720px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid rgba(97, 70, 35, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 250, 239, 0.96);
+  box-shadow: 0 24px 70px rgba(83, 53, 22, 0.2);
+  color: #2d2418;
+}
+
+.servicesRuntimePublic h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.servicesRuntimePublicCards button {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+}
+
+.servicesRuntimePublicCards span {
+  min-height: 96px;
+  border-radius: 14px;
+  background-position: center;
+  background-size: cover;
+}
+
+.servicesRuntimePublicCards em {
+  font-style: normal;
+  font-weight: 800;
+}
+
+.servicesRuntimeOrderForm {
+  border-top: 1px solid rgba(97, 70, 35, 0.14);
+  padding-top: 12px;
+}
+
+@media (max-width: 920px) {
+  .servicesRuntimePanel {
+    margin: 16px 10px;
+    padding: 16px;
+  }
+
+  .servicesRuntimeHeader,
+  .servicesRuntimeGrid,
+  .servicesRuntimePrice {
+    grid-template-columns: 1fr;
+  }
+
+  .servicesRuntimePublic {
+    position: static;
+    width: auto;
+    max-height: none;
+    margin: 16px 10px;
+  }
+}
