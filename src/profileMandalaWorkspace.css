@@ -4388,3 +4388,189 @@
   }
 }
 
+/* FINAL: Field layout changes only the outer field shape. Inner mandala never stretches. */
+.powerPlacePrintArea.field-layout-vertical,
+.powerPlacePrintArea.field-layout-horizontal,
+.powerPlacePrintArea.field-layout-square {
+  display: grid;
+  justify-items: center;
+}
+
+.powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel {
+  width: min(100%, 760px) !important;
+  min-height: 430px !important;
+  aspect-ratio: 16 / 9 !important;
+  padding: 42px 112px !important;
+  align-content: center !important;
+  justify-content: center !important;
+}
+
+.powerPlacePrintArea.field-layout-vertical .powerMandalaPanel {
+  width: min(100%, 520px) !important;
+  min-height: 680px !important;
+  aspect-ratio: 3 / 4 !important;
+  padding: 90px 42px !important;
+  align-content: center !important;
+  justify-content: center !important;
+}
+
+.powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+  width: min(100%, 620px) !important;
+  min-height: 620px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 60px !important;
+  align-content: center !important;
+  justify-content: center !important;
+}
+
+.powerPlacePrintArea.field-layout-vertical .powerPrintMeta,
+.powerPlacePrintArea.field-layout-horizontal .powerPrintMeta,
+.powerPlacePrintArea.field-layout-square .powerPrintMeta {
+  position: absolute !important;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.powerPlacePrintArea.field-layout-vertical .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-square .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-vertical .powerMandala,
+.powerPlacePrintArea.field-layout-horizontal .powerMandala,
+.powerPlacePrintArea.field-layout-square .powerMandala,
+.powerPlacePrintArea.field-layout-vertical .starMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .starMandalaSheet,
+.powerPlacePrintArea.field-layout-square .starMandalaSheet,
+.powerPlacePrintArea.field-layout-vertical .daoMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .daoMandalaSheet,
+.powerPlacePrintArea.field-layout-square .daoMandalaSheet,
+.powerPlacePrintArea.field-layout-vertical .altarMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .altarMandalaSheet,
+.powerPlacePrintArea.field-layout-square .altarMandalaSheet,
+.powerPlacePrintArea.field-layout-vertical .businessMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .businessMandalaSheet,
+.powerPlacePrintArea.field-layout-square .businessMandalaSheet {
+  width: min(440px, 100%) !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 auto !important;
+  transform: none !important;
+}
+
+/* Do not let previous layout rules shrink the mandala in horizontal mode. */
+.powerPlacePrintArea.field-layout-horizontal .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .powerMandala,
+.powerPlacePrintArea.field-layout-horizontal .starMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .daoMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .altarMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .businessMandalaSheet {
+  width: min(460px, 100%) !important;
+}
+
+/* Zodiac plus zones are real separate editable square mandalas. */
+.zodiacMandalaSheet {
+  overflow: visible !important;
+}
+
+.zodiacPlusPosition {
+  position: absolute;
+  z-index: 12;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 22%;
+  transform: translate(-50%, -50%);
+}
+
+.zodiacPlusPositionImage {
+  width: min(90px, 100%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 117, 0.82);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #2b1806 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  padding: 0;
+  box-shadow: 0 0 22px rgba(128, 84, 18, 0.3);
+}
+
+.zodiacPlusPosition.hasImage .zodiacPlusPositionImage span {
+  display: none;
+}
+
+.zodiacPlusPosition b {
+  color: #513512;
+  font-size: 11px;
+  line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* 8+ = eight signs + four side mandalas. */
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-top { left: 50%; top: -10%; }
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-right { left: 110%; top: 50%; }
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-bottom { left: 50%; top: 110%; }
+.zodiacMandalaSheet.zodiac-plus-8 .zodiacPlusPosition.plus-left { left: -10%; top: 50%; }
+
+/* 12+ = like 8+ base plus four far square corner mandalas. */
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition {
+  width: 19%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.aries { left: 50%; top: 8%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.taurus { left: 80%; top: 20%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.gemini { left: 92%; top: 50%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.cancer { left: 80%; top: 80%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.leo { left: 50%; top: 92%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.virgo { left: 20%; top: 80%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.libra { left: 8%; top: 50%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPosition.scorpio { left: 20%; top: 20%; }
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-tl { left: -12%; top: -12%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-tr { left: 112%; top: -12%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-bl { left: -12%; top: 112%; }
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition.plus-corner-br { left: 112%; top: 112%; }
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPosition {
+  width: 24%;
+}
+
+.zodiacMandalaSheet.zodiac-plus-12 .zodiacPlusPositionImage {
+  width: min(96px, 100%);
+  border-radius: 18px;
+}
+
+/* Ensure the field can contain visible plus zones without clipping. */
+.powerMandalaPanel:has(.zodiacPlusPosition) {
+  overflow: visible !important;
+}
+
+@media (max-width: 640px) {
+  .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
+  .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
+  .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+    width: 100% !important;
+    min-height: auto !important;
+    aspect-ratio: auto !important;
+    padding: 28px !important;
+  }
+
+  .powerPlacePrintArea.field-layout-horizontal .zodiacMandalaSheet,
+  .powerPlacePrintArea.field-layout-vertical .zodiacMandalaSheet,
+  .powerPlacePrintArea.field-layout-square .zodiacMandalaSheet {
+    width: min(340px, 100%) !important;
+  }
+
+  .zodiacPlusPositionImage {
+    width: min(58px, 100%);
+  }
+}
