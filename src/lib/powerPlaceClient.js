@@ -15,13 +15,14 @@ const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
 const VALID_PLANS = ["start", "pro"];
-const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac", "star"];
+const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac", "star", "chess"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 12];
 const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
+const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8"];
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -278,6 +279,7 @@ export function normalizePowerPlaceComposition(composition) {
   const zodiacVisibleCount = Number(composition?.zodiac_visible_count);
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
+  const chessVariant = cleanText(composition?.chess_variant);
 
   return {
     profile_id: cleanText(composition?.profile_id),
@@ -288,6 +290,7 @@ export function normalizePowerPlaceComposition(composition) {
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
     business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
     star_variant: VALID_STAR_VARIANTS.includes(starVariant) ? starVariant : "closed",
+    chess_variant: VALID_CHESS_VARIANTS.includes(chessVariant) ? chessVariant : "classic-14",
     cover_ref: normalizeCoverRef(composition?.cover_ref),
     object_refs: cleanObjectRefs(composition?.object_refs),
     central_photo_id: cleanText(composition?.central_photo_id) || null,

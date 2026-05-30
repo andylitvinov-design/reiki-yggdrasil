@@ -1,5 +1,49 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — Chess Power Place layout
+
+Mode: additive `/profile` Power Place constructor format for “Шахматы”.
+
+Changed:
+
+- Added `Шахматы` constructor type in `src/pages/ProfilePage.jsx`.
+- Added chess variants:
+  - `classic-14`: 5x3 board with center client photo and `chess-1`...`chess-14`.
+  - `classic-8`: 3x3 board with center client photo and `chess-1`...`chess-8`.
+  - `plus-8`: large cross slots `chess-1`...`chess-4` plus smaller corner slots `chess-5`...`chess-8`.
+- Added five top-row slots `chess-top-1`...`chess-top-5` using the existing object picker/upload path.
+- Added scoped CSS in `src/profileMandalaWorkspace.css` for the chess board and mobile-safe sizing.
+- Added `chess_variant` normalization and Supabase migration support.
+
+Files changed:
+
+- `src/pages/ProfilePage.jsx`
+- `src/profileMandalaWorkspace.css`
+- `src/lib/powerPlaceClient.js`
+- `test/powerPlaceClient.test.mjs`
+- `supabase/migrations/20260531090000_power_place_chess_format.sql`
+- `scripts/apply-reiki-supabase-migrations.mjs`
+- `README.md`
+- `STATE.md`
+- `LOG.md`
+
+Checks:
+
+- `npm install`
+- `npm run test:power-place`
+- `npm run test:profile-media`
+- `npm run build`
+- `npm run test --if-present`
+- `npm run check`
+- Local route availability check with Node `fetch` for `/`, `/profile`, `/masters`, `/profile/admin` on preview.
+
+Needs visual verification:
+
+- `/profile` authenticated constructor UI desktop 1366px and mobile 390px; local preview without real Supabase env only reached the Supabase-not-configured gate.
+- Switch all chess variants on a configured preview.
+- Assign images to top-row and board slots.
+- Authenticated save/reload after the chess migration is applied.
+
 ## 2026-05-29 — Issue #72 profile power sources UX implementation
 
 Mode: profile cabinet UX rework for `/profile` power and mandala sources.

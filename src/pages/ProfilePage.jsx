@@ -80,6 +80,7 @@ const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
   { value: "zodiac", label: "Зодиак" },
   { value: "star", label: "Звезда" },
+  { value: "chess", label: "Шахматы" },
   { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес" },
@@ -96,6 +97,55 @@ const STAR_POINTS = [
   { id: "lower-left", className: "lowerLeft", label: "Нижний левый луч" },
   { id: "left", className: "left", label: "Левый луч" }
 ];
+const CHESS_VARIANTS = [
+  { value: "classic-14", label: "14 фоток", slotCount: 14, layout: "grid-5x3" },
+  { value: "classic-8", label: "8 фоток", slotCount: 8, layout: "grid-3x3" },
+  { value: "plus-8", label: "8 фото+", slotCount: 8, layout: "cross-plus-corners" }
+];
+const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
+  id: `chess-top-${index + 1}`,
+  className: `chess-top-${index + 1}`,
+  label: `Верхняя мандала ${index + 1}`,
+  classPrefix: "chess-top"
+}));
+const CHESS_SLOT_LAYOUTS = {
+  "classic-14": [
+    { id: "chess-1", row: 1, col: 1, label: "Шахматная ячейка 1" },
+    { id: "chess-2", row: 1, col: 2, label: "Шахматная ячейка 2" },
+    { id: "chess-3", row: 1, col: 3, label: "Шахматная ячейка 3" },
+    { id: "chess-4", row: 2, col: 1, label: "Шахматная ячейка 4" },
+    { id: "chess-5", row: 2, col: 2, label: "Шахматная ячейка 5" },
+    { id: "chess-6", row: 2, col: 3, label: "Шахматная ячейка 6" },
+    { id: "chess-7", row: 3, col: 1, label: "Шахматная ячейка 7" },
+    { id: "chess-8", row: 3, col: 3, label: "Шахматная ячейка 8" },
+    { id: "chess-9", row: 4, col: 1, label: "Шахматная ячейка 9" },
+    { id: "chess-10", row: 4, col: 2, label: "Шахматная ячейка 10" },
+    { id: "chess-11", row: 4, col: 3, label: "Шахматная ячейка 11" },
+    { id: "chess-12", row: 5, col: 1, label: "Шахматная ячейка 12" },
+    { id: "chess-13", row: 5, col: 2, label: "Шахматная ячейка 13" },
+    { id: "chess-14", row: 5, col: 3, label: "Шахматная ячейка 14" }
+  ],
+  "classic-8": [
+    { id: "chess-1", row: 1, col: 1, label: "Шахматная ячейка 1" },
+    { id: "chess-2", row: 1, col: 2, label: "Шахматная ячейка 2" },
+    { id: "chess-3", row: 1, col: 3, label: "Шахматная ячейка 3" },
+    { id: "chess-4", row: 2, col: 1, label: "Шахматная ячейка 4" },
+    { id: "chess-5", row: 2, col: 3, label: "Шахматная ячейка 5" },
+    { id: "chess-6", row: 3, col: 1, label: "Шахматная ячейка 6" },
+    { id: "chess-7", row: 3, col: 2, label: "Шахматная ячейка 7" },
+    { id: "chess-8", row: 3, col: 3, label: "Шахматная ячейка 8" }
+  ],
+  "plus-8": [
+    { id: "chess-1", className: "cross-top", label: "Верхняя большая мандала" },
+    { id: "chess-2", className: "cross-right", label: "Правая большая мандала" },
+    { id: "chess-3", className: "cross-bottom", label: "Нижняя большая мандала" },
+    { id: "chess-4", className: "cross-left", label: "Левая большая мандала" },
+    { id: "chess-5", className: "corner-top-left", label: "Верхний левый угол" },
+    { id: "chess-6", className: "corner-top-right", label: "Верхний правый угол" },
+    { id: "chess-7", className: "corner-bottom-left", label: "Нижний левый угол" },
+    { id: "chess-8", className: "corner-bottom-right", label: "Нижний правый угол" }
+  ]
+};
 const ZODIAC_SIGNS = [
   { id: "aries", className: "aries", label: "Овен" },
   { id: "taurus", className: "taurus", label: "Телец" },
@@ -656,6 +706,10 @@ function zodiacVariantOption(optionValue, visibleCount) {
   return option ? option.value : fallbackValue;
 }
 
+function chessVariantOption(optionValue) {
+  return CHESS_VARIANTS.some((item) => item.value === optionValue) ? optionValue : "classic-14";
+}
+
 function getInitialStoredSession() {
   const storedSession = getStoredSession();
   if (isStoredSessionExpired(storedSession)) {
@@ -689,6 +743,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [zodiacVisibleCount, setZodiacVisibleCount] = useState(12);
   const [zodiacVariant, setZodiacVariant] = useState("classic-12");
   const [starVariant, setStarVariant] = useState("closed");
+  const [chessVariant, setChessVariant] = useState("classic-14");
   const [businessVertexZoneCount, setBusinessVertexZoneCount] = useState(1);
   const [altarCenterRatio, setAltarCenterRatio] = useState("1");
   const [objectImages, setObjectImages] = useState({});
@@ -1310,11 +1365,18 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }));
     }
 
+    if (constructorType === "chess") {
+      return [
+        ...CHESS_TOP_SLOTS,
+        ...(CHESS_SLOT_LAYOUTS[chessVariant] || CHESS_SLOT_LAYOUTS["classic-14"])
+      ];
+    }
+
     return Array.from({ length: powerSourceCount }, (_, index) => ({
       id: `source-${index + 1}`,
       label: sourceLabel(powerSourceCount, index)
     }));
-  }, [businessVertexZoneCount, constructorType, powerSourceCount, zodiacVisibleCount, zodiacVariant]);
+  }, [businessVertexZoneCount, chessVariant, constructorType, powerSourceCount, zodiacVisibleCount, zodiacVariant]);
 
   const selectedObjectSlot = useMemo(
     () => activeObjectSlots.find((slot) => slot.id === selectedObjectSlotId) || activeObjectSlots[0] || null,
@@ -1581,6 +1643,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     altar_center_ratio: altarCenterRatio,
     business_vertex_zone_count: businessVertexZoneCount,
     star_variant: starVariant,
+    chess_variant: chessVariant,
     cover_ref: buildCoverRef(),
     object_refs: persistableObjectRefs(
       { ...objectImages, __center_image: selectedCentralImageRef },
@@ -1607,6 +1670,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setZodiacVariant(inferZodiacVariant(nextZodiacVisibleCount, composition.object_refs || {}));
     setBusinessVertexZoneCount(Number(composition.business_vertex_zone_count) === 3 ? 3 : 1);
     setStarVariant(STAR_VARIANTS.some((item) => item.value === composition.star_variant) ? composition.star_variant : "closed");
+    setChessVariant(chessVariantOption(composition.chess_variant));
     setAltarCenterRatio(composition.altar_center_ratio || "1");
     const { __center_image: savedCenterImageRef = "", ...compositionObjectRefs } = composition.object_refs || {};
     setObjectImages(compositionObjectRefs);
@@ -2307,6 +2371,25 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   );
 
   const renderCenterPhotoWithMode = (className) => renderCenterPhotoButton(className);
+
+  const renderChessSlot = (slot, index, extraClassName = "", extraStyle = {}) => {
+    const slotImage = objectImages[slot.id];
+    const toneClass = (Number(slot.row || 0) + Number(slot.col || 0)) % 2 === 0 ? "is-dark" : "is-light";
+
+    return (
+      <button
+        className={`power-place-chess__slot ${toneClass} ${extraClassName}${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slot.id ? " selected" : ""}`}
+        key={slot.id}
+        onClick={() => openObjectSlot(slot.id)}
+        style={{ ...imageStyleFor(slotImage), ...extraStyle }}
+        type="button"
+        title={slot.label}
+        aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+      >
+        {!slotImage && <span>{index + 1}</span>}
+      </button>
+    );
+  };
 
   const handleDownloadMandala = () => {
     const objectRefs = persistableObjectRefs(objectImages, activeObjectSlots.map((slot) => slot.id));
@@ -3093,6 +3176,21 @@ const resourceComparisonPanel = (
                       ))}
                     </div>
                   )}
+                  {constructorType === "chess" && (
+                    <div className="starVariantSelector" aria-label="Формат шахмат">
+                      <span>Формат шахмат</span>
+                      {CHESS_VARIANTS.map((variant) => (
+                        <button
+                          className={chessVariant === variant.value ? "active" : ""}
+                          key={variant.value}
+                          onClick={() => setChessVariant(variant.value)}
+                          type="button"
+                        >
+                          {variant.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {powerPlaceCompositions.length > 0 && (
                     <select value={selectedCompositionId} onChange={(event) => {
                       const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
@@ -3315,6 +3413,60 @@ const resourceComparisonPanel = (
                         );
                       })}
                     </div>
+                  ) : constructorType === "chess" ? (
+                    <div className={`power-place-chess power-place-chess--${chessVariant} ${selectedCoverClass}`} style={selectedCoverStyle}>
+                      <div className="power-place-chess__top-row" aria-label="Верхний ряд мандал">
+                        {CHESS_TOP_SLOTS.map((slot, index) => {
+                          const slotImage = objectImages[slot.id];
+
+                          return (
+                            <button
+                              className={`power-place-chess__top-slot ${slot.className}${slotImage ? " hasImage" : ""}${selectedObjectSlotId === slot.id ? " selected" : ""}`}
+                              key={slot.id}
+                              onClick={() => openObjectSlot(slot.id)}
+                              style={imageStyleFor(slotImage)}
+                              type="button"
+                              title={slot.label}
+                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                            >
+                              {!slotImage && <span>{index + 1}</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="power-place-chess__board" aria-label="Шахматная раскладка">
+                        {chessVariant === "plus-8" ? (
+                          <>
+                            {renderCenterPhotoWithMode("power-place-chess__center")}
+                            {(CHESS_SLOT_LAYOUTS["plus-8"] || []).map((slot, index) =>
+                              renderChessSlot(slot, index, `power-place-chess__slot--${slot.className}`)
+                            )}
+                          </>
+                        ) : (
+                          Array.from({ length: chessVariant === "classic-14" ? 15 : 9 }, (_, index) => {
+                            const row = Math.floor(index / 3) + 1;
+                            const col = index % 3 + 1;
+                            const centerIndex = chessVariant === "classic-14" ? 7 : 4;
+                            const toneClass = (row + col) % 2 === 0 ? "is-dark" : "is-light";
+
+                            if (index === centerIndex) {
+                              return (
+                                <div className={`power-place-chess__cell power-place-chess__cell--center ${toneClass}`} key="chess-center">
+                                  {renderCenterPhotoWithMode("power-place-chess__center")}
+                                </div>
+                              );
+                            }
+
+                            const slot = (CHESS_SLOT_LAYOUTS[chessVariant] || []).find((item) => item.row === row && item.col === col);
+                            return slot ? (
+                              <div className={`power-place-chess__cell ${toneClass}`} key={slot.id}>
+                                {renderChessSlot(slot, Number(slot.id.replace("chess-", "")) - 1)}
+                              </div>
+                            ) : null;
+                          })
+                        )}
+                      </div>
+                    </div>
                   ) : (
                     <div className={`daoMandalaSheet ${selectedCoverClass}`} style={selectedCoverStyle}>
                       {renderCenterPhotoWithMode("daoCenterPhoto")}
@@ -3354,6 +3506,8 @@ const resourceComparisonPanel = (
                             ? "Зодиак ставит фото клиента или цели в центр и раскладывает до 12 образов по часовому кругу."
                             : constructorType === "star"
                               ? "Звезда собирает пять ключевых образов вокруг центра; открытый вариант продолжает правый и нижний левый лучи как линии движения."
+                              : constructorType === "chess"
+                                ? "Шахматы добавляют верхний ряд из пяти мандал и основную доску с центральным фото клиента / цели."
                               : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
                   </p>
                   <div className="resourcePrintNotes">
@@ -3375,6 +3529,8 @@ const resourceComparisonPanel = (
                             ? "Зодиак ставит фото клиента или цели в центр и раскладывает до 12 образов по часовому кругу."
                             : constructorType === "star"
                               ? "Звезда собирает пять ключевых образов вокруг центра; открытый вариант продолжает правый и нижний левый лучи как линии движения."
+                              : constructorType === "chess"
+                                ? "Шахматы добавляют верхний ряд из пяти мандал и основную доску с центральным фото клиента / цели."
                               : "ДАО-формат держит центр цели внутри круга У-син и пять образов элементов вокруг него."}
                   </p>
                   <div className="resourcePrintNotes">

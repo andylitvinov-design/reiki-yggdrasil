@@ -157,6 +157,7 @@ assert.deepEqual(
     altar_center_ratio: "3",
     business_vertex_zone_count: 3,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: { "altar-top-3": "https://example.com/object.jpg" },
     central_photo_id: "photo-1",
@@ -188,6 +189,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {},
     central_photo_id: "photo-2",
@@ -228,6 +230,7 @@ assert.deepEqual(
     altar_center_ratio: "2",
     business_vertex_zone_count: 3,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "business-goal-1": "https://example.com/goal.jpg",
@@ -266,6 +269,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "dao-water": "https://example.com/water.jpg",
@@ -306,6 +310,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "zodiac-1": "https://example.com/aries.jpg",
@@ -340,6 +345,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "zodiac-12": "https://example.com/fish.jpg"
@@ -379,6 +385,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "open",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "star-1": "https://example.com/star-top.jpg",
@@ -413,6 +420,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "star-3": "https://example.com/star-left.jpg"
@@ -424,4 +432,48 @@ assert.deepEqual(
     resource_without_mandala_comment: "",
     resource_with_mandala_comment: ""
   }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Шахматы силы ",
+    constructor_type: "chess",
+    chess_variant: "plus-8",
+    object_refs: {
+      "chess-top-1": " https://example.com/top-1.jpg ",
+      "chess-1": "https://example.com/cross-top.jpg",
+      "chess-8": "storage://profile-cabinet-media/profile-1/power-place/draft/chess-8.png",
+      "chess-9": "data:image/png;base64,local"
+    },
+    central_photo_id: "photo-9"
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Шахматы силы",
+    constructor_type: "chess",
+    geometry: null,
+    zodiac_visible_count: 12,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    star_variant: "closed",
+    chess_variant: "plus-8",
+    cover_ref: null,
+    object_refs: {
+      "chess-top-1": "https://example.com/top-1.jpg",
+      "chess-1": "https://example.com/cross-top.jpg",
+      "chess-8": "storage://profile-cabinet-media/profile-1/power-place/draft/chess-8.png"
+    },
+    central_photo_id: "photo-9",
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
+  }
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
+  "classic-14"
 );

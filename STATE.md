@@ -12,6 +12,19 @@ Last updated: 2026-05-29
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-31 — Power Place Chess format
+
+- Branch: `codex/add-power-place-chess-layout` (in progress)
+- Added Power Place “Шахматы” format.
+- Variants:
+  - `classic-14`: 5x3 vertical chessboard, center client photo + 14 slots.
+  - `classic-8`: 3x3, center client photo + 8 larger slots.
+  - `plus-8`: 4 large cross slots + 4 small corner slots.
+- Top row: 5 mandala slots above board.
+- Persistence: `chess-top-*` and `chess-*` via `object_refs`; `chess_variant` via `profile_cabinet_power_place_compositions.chess_variant`.
+- Added migration: `supabase/migrations/20260531090000_power_place_chess_format.sql`.
+- Needs verification: live mobile visual QA after Vercel preview.
+
 ## 2026-05-29 — Public right-panel materials feed upgrade
 
 ## 2026-05-29 — Profile power sources UX (issue #72)
