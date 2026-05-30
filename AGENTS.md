@@ -22,6 +22,7 @@ Before changing this repo, read:
 8. `src/index.css`
 9. `package.json`
 10. `vercel.json`
+11. `docs/deploy-fallback.md`
 
 If a file is missing, report `not found`.
 
@@ -76,6 +77,59 @@ When giving the user a terminal prompt for this repo:
   - `https://reiki-yggdrasil.vercel.app/profile/admin`
 - The frontend currently builds OAuth redirect URLs from `window.location.origin`; do not replace this with a hardcoded domain.
 
+## GitHub Actions Deploy Fallback
+
+This repo has a production fallback workflow:
+
+```text
+.github/workflows/deploy-production.yml
+```
+
+Use it when Vercel auto-deploy does not trigger, production remains stale after push/merge, or the user reports that live does not show completed changes.
+
+Do not ask Andrey to run a local terminal deploy until this fallback path has been attempted and diagnosed.
+
+Before fallback deploy, always prove:
+
+```text
+Repo: andylitvinov-design/reiki-yggdrasil
+Target ref: normally main
+Expected SHA: known commit SHA
+Changes: committed and pushed/merged
+Production URL: https://mentalica.vercel.app/
+Legacy URL: https://reiki-yggdrasil.vercel.app/
+```
+
+Default command:
+
+```bash
+gh workflow run deploy-production.yml \
+  --ref main \
+  -f ref=main \
+  -f expected_sha=<expected_commit_sha> \
+  -f reason="fallback deploy after stale production"
+```
+
+Hard order:
+
+```text
+commit / push / merge first
+fallback deploy second
+production verification third
+```
+
+Never deploy uncommitted or unpushed changes. Never deploy an unknown ref. Never claim production is updated without checking production after deploy.
+
+During the domain migration window, verify both:
+
+```text
+https://mentalica.vercel.app/
+https://reiki-yggdrasil.vercel.app/
+```
+
+Full local protocol: `docs/deploy-fallback.md`.
+Cross-project standard: `andylitvinov-design/active-projects-ops` docs.
+
 ## Data and env safety
 
 Current repo state has no confirmed Supabase implementation in `main`.
@@ -93,7 +147,7 @@ Run:
 
 ```bash
 npm install
-npm run build
+npm run check
 ```
 
 If UI changes are made, also run local preview and check:
@@ -124,3 +178,5 @@ After work, report:
 - what was not verified
 - risks
 - whether `STATE.md` / `LOG.md` need updates
+- fallback workflow result if deploy fallback was used
+- production/legacy live verification result
