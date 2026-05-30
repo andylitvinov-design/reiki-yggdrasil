@@ -14,6 +14,7 @@ import {
   updateServiceOrder
 } from "../lib/profileServicesClient.js";
 import { uploadProfileMedia } from "../lib/profileMediaClient.js";
+import "../templateServices.css";
 
 const CURRENCY_OPTIONS = ["EUR", "USD", "CAD", "UAH"];
 
