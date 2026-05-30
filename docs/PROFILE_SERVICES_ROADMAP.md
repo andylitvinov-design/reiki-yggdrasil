@@ -3,155 +3,193 @@
 Last updated: 2026-05-30
 Status: working roadmap / source of truth for the next implementation passes.
 
-## Purpose
+## 0. Executive order
 
-This document fixes the execution order for the Reiki Yggdrasil profile cabinet, master service shop, and order flow so we do not lose the plan across PRs, Codex sessions, or hotfixes.
+This document is the execution scenario for the next Reiki Yggdrasil work. It exists so every Codex/Claude/agent session follows the same sequence instead of randomly merging old PRs or adding more hotfix layers.
 
-Current priority:
+### Non-negotiable order
 
-1. Stabilize `/profile` first.
-2. Then integrate the master services/shop foundation from PR #127.
-3. Then verify Supabase migrations, RLS, routes, browser UX, and live deployment.
-4. Only after that merge the service shop implementation.
+1. **Stabilize `/profile` first.**
+2. **Then cleanly decide which old PRs are safe to merge, close, or cherry-pick.**
+3. **Then turn PR #127 from draft foundation into a working services/shop flow.**
+4. **Then verify Supabase migrations/RLS and live production.**
+5. **Then polish UX and update project memory.**
 
-Do not skip the stabilization phase. The services flow depends on `src/pages/ProfilePage.jsx`, so integrating it while `/profile` is unstable can break the master cabinet again.
+Do not integrate the services shop while `/profile` can still hang on `Загружаю кабинет...`.
 
-## Current known state
+## 1. Project invariants
 
-### Repo and live
+### Repo and deployment
 
 - Repo: `andylitvinov-design/reiki-yggdrasil`
 - Current/legacy live URL: `https://reiki-yggdrasil.vercel.app`
 - Target domain in docs: `https://mentalica.vercel.app`
 - Framework: Vite + React
-- Hosting: Vercel, `npm run build`, output `dist`
+- Hosting: Vercel
+- Build command: `npm run build`
+- Output: `dist`
 
-### Required stable routes
+### Stable routes to protect
 
-Always verify these after every profile/services change:
+Always verify after every profile/services/UI change:
 
 - `/`
 - `/profile`
 - `/masters`
 - `/profile/admin`
 
-### Required env names only
+### Env names only
 
-Never commit values. Only reference these names:
+Never commit values. Only reference names:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_ADMIN_EMAIL`
 
-### Safety constraints
+### Safety rules
 
-- Preserve RU-default interface.
-- Preserve existing public home page unless a task explicitly targets it.
-- Preserve Supabase auth/data flow.
-- Preserve Vercel SPA rewrites.
-- Preserve desktop three-column layout and mobile fallback.
-- Do not expose secrets, env values, access tokens, or private user data.
+- Keep RU-default interface.
+- Do not change public home page unless a task explicitly targets it.
+- Do not break Supabase auth/data flow.
+- Do not break Vercel SPA rewrites.
+- Keep desktop three-column layout and mobile fallback.
+- Do not expose secrets, env values, access tokens, service-role keys, or private user data.
 - Do not rewrite `ProfilePage.jsx` wholesale when a small patch is enough.
+- Do not add a second React/runtime app for services/orders.
 - Do not apply draft services/order runtime directly to production without local tests and browser QA.
 
-## Stage 0 — PR inventory cleanup
+## 2. Product target scenario
 
-Before merging old work, classify open PRs.
+The target product is not just a gallery. It is a full path:
 
-### Safe candidates to review first
+**saved mandala / template → master service → public service profile → authenticated order → master request queue → result delivery**
 
-- PR #128 — docs-only service shop implementation concept.
-  - Status: open, mergeable.
-  - Runtime risk: low.
-  - Usefulness: high as supporting documentation for the services/shop roadmap.
+### Master scenario
 
-- PR #13 — verified Reiki step video mappings.
-  - Status: open, mergeable.
-  - Runtime risk: low if `npm run validate:videos`, `npm run validate:knowledge`, and `npm run build` still pass.
-  - Content rule: do not invent unresolved video mappings.
+1. Master logs into `/profile`.
+2. Master creates or selects a saved mandala / Power Place composition.
+3. Master clicks `В услуги`.
+4. Cabinet opens service editor.
+5. Master edits:
+   - service title;
+   - description;
+   - public image/template preview;
+   - delivery formats;
+   - price fields if enabled;
+   - publication status.
+6. Master publishes service.
+7. Master can copy a public service link.
+8. Master sees incoming orders in `Заявки`.
+9. Master can open order details, view client request/photo/reference, and upload/attach final result if required.
 
-- PR #7 — docs-only link to global autonomous project rules.
-  - Status: open, mergeable.
-  - Runtime risk: low.
-  - Needs review because current `AGENTS.md` already has project-specific rules; avoid duplicating or weakening them.
+### Client scenario
 
-- PR #81 — source panel visibility in all profile tabs.
-  - Status: open, mergeable.
-  - Risk: medium because it touches profile UI styles/visibility.
-  - It says production was manually deployed; verify whether its changes are already in current `main` or should be merged/closed.
+1. Client opens public services feed or a direct service link.
+2. Client opens a service profile.
+3. Client chooses one format:
+   - `signature` / master signed or hand-finished version;
+   - `no_signature` / automatic template version;
+   - `both` / both versions.
+4. If authenticated, CTA says `Оформить заказ`.
+5. If not authenticated, CTA says `Войти через Google и оформить заказ`.
+6. Selected `service_id` and format survive OAuth redirect.
+7. After login, client lands in `/profile` order draft with selected service and format prefilled.
+8. Client fills:
+   - request / goal;
+   - comment;
+   - photo URL or uploaded refs if implemented;
+   - optional references.
+9. Client submits order.
+10. Master sees order in `Заявки`.
+11. Client can see own order status in `Мои заказы` when that tab is implemented.
 
-### Do not merge yet
+### Delivery modes
 
-- PR #127 — template services/orders foundation.
-  - Status: draft.
-  - It intentionally does not apply the UI patch to `ProfilePage.jsx` / `src/main.jsx` yet.
-  - Keep as draft until Stage 2 is complete.
+Use clear product names in UI, but stable machine values in code.
 
-- PR #118 — mobile mandala actions and cover print export.
-  - Status: open, mergeable false.
-  - Likely overlaps with later merged runtime PDF/export fixes.
-  - Do not merge until compared against current `public/profile-power-place-visual-export.js`.
+Recommended mapping:
 
-### Likely stale/conflicting PRs
+- `no_signature` — `Без подписи мастера` / automatic template result.
+- `signature` — `С подписью мастера` / master-finished result.
+- `both` — `Две версии`.
 
-Review for closure or cherry-pick only:
+Do not add payment processing in this stage unless explicitly requested later.
 
-- PR #46 — desktop left menu card readability.
-- PR #36 / #34 / #31 — profile cabinet readiness docs.
-- PR #32 — right panel audio cards.
-- PR #30 — old step-linked mandalas profile MVP.
-- PR #11 — psimaster free courses block.
-- PR #8 — old course UI hierarchy/video block.
-- PR #5 — Reiki step materials coverage audit.
+## 3. Current known issues
 
-For each stale PR, Codex should answer:
+### `/profile` loading issue
 
-1. Is the functionality already present in `main`?
-2. Is it still relevant?
-3. Can it be safely cherry-picked as docs/data only?
-4. Does it conflict with the current profile cabinet or public UI?
-5. Should it be closed with a short explanation?
+Confirmed bug/risk pattern:
 
-## Stage 1 — stabilize `/profile`
+- `src/lib/supabaseClient.js` uses fetch without timeout.
+- `src/lib/powerPlaceClient.js` uses fetch without timeout.
+- `ProfilePage.jsx` starts loading when Supabase env is configured, so a hanging auth/profile request can leave the user stuck on `Загружаю кабинет...`.
+- `index.html` loads public runtime hotfix scripts after React.
+- `public/profile-power-place-visual-export.js` uses React Fiber internals / hardcoded hook index in the existing save-as-new helper. This is unsafe and must be removed or guarded even if it is not the proven root cause.
+
+### PR #127 status
+
+PR #127 is **foundation only / draft**, not a working shop. It adds service/order files and a patch script, but it intentionally does not apply the UI patch to:
+
+- `src/pages/ProfilePage.jsx`
+- `src/main.jsx`
+
+Therefore PR #127 does **not** unlock the working master service shop by itself.
+
+## 4. Stage 1 — emergency `/profile` stabilization
 
 ### Goal
 
-`/profile` must never hang forever on `Загружаю кабинет...`.
+`/profile` must never hang forever. It must render one of:
 
-### Confirmed problems / risks
+- authenticated cabinet;
+- login screen;
+- visible recoverable error with `Войти заново`.
 
-- `src/lib/supabaseClient.js` currently uses `fetch` without `AbortController` timeout.
-- `src/lib/powerPlaceClient.js` also uses `fetch` without timeout.
-- `src/pages/ProfilePage.jsx` starts loading with `Boolean(supabaseEnv.isConfigured)`, so a hanging auth/profile request can leave the cabinet stuck.
-- `index.html` loads several public runtime hotfix scripts after React.
-- `public/profile-power-place-visual-export.js` uses React Fiber internals / hardcoded hook index in the existing save-as-new helper. This is unsafe and should be removed or guarded.
+### Files to read first
 
-### Required fixes
+- `AGENTS.md`
+- `README.md`
+- `STATE.md`
+- `LOG.md`
+- `package.json`
+- `vercel.json`
+- `index.html`
+- `src/pages/ProfilePage.jsx`
+- `src/lib/supabaseClient.js`
+- `src/lib/powerPlaceClient.js`
+- `src/lib/profileMaterialsClient.js`
+- `public/profile-power-place-visual-export.js`
+- `public/profile-background-zone-controls.js`
+- `public/profile-category-unified-runtime.js`
+- `public/profile-source-dropdowns-runtime.js`
+- `public/profile-source-category-quicklist.js`
 
-1. Add timeout to `request()` in `src/lib/supabaseClient.js`.
-   - Use `AbortController`.
-   - Use about 12 seconds.
-   - On timeout throw a safe Russian error.
-   - Do not expose env values, URLs with secrets, or tokens.
+### Required changes
 
-2. Add timeout to `request()` in `src/lib/powerPlaceClient.js`.
-   - Same rules.
+1. Add `AbortController` timeout to `request()` in `src/lib/supabaseClient.js`.
+   - About 12 seconds.
+   - Throw safe RU error on timeout.
+   - No secrets, no env values, no raw token output.
 
-3. Add safe fallback in `src/pages/ProfilePage.jsx`.
+2. Add `AbortController` timeout to `request()` in `src/lib/powerPlaceClient.js`.
+   - Same behavior.
+
+3. Add loading recovery in `src/pages/ProfilePage.jsx`.
    - Loading cannot remain true forever.
    - Expired/invalid auth clears stored session and renders login.
    - Timeout/network errors show a visible RU error.
-   - Add action: `Войти заново`.
+   - Add `Войти заново` action.
    - `Войти заново` clears `reiki-yggdrasil-session` and returns to login state.
 
 4. Audit `public/profile-power-place-visual-export.js`.
    - Remove React Fiber hook-index dispatch if possible.
    - Do not mutate React state through hardcoded hook index.
-   - If save-as-new cannot be preserved safely, disable only that helper rather than risking `/profile`.
-   - Ensure runtime enhancement does not run heavy logic during the initial loading screen.
+   - If save-as-new cannot be safely preserved, disable only that helper rather than risking `/profile`.
+   - Do not let runtime enhancement do heavy DOM work during the initial loading screen.
 
 5. Runtime isolation test.
-   - Temporarily disable these in `index.html` locally:
+   - Temporarily disable in local `index.html`:
      - `/profile-category-unified-runtime.js`
      - `/profile-power-place-visual-export.js`
      - `/profile-source-category-quicklist.js`
@@ -185,36 +223,87 @@ npm run build
 ### Done definition
 
 - `/profile` no longer hangs indefinitely.
-- There is a visible recovery path.
+- User has a visible recovery path.
 - Tests/build pass.
-- Live Vercel deployment is verified against the intended production commit.
+- Production deployment commit is known.
+- Live `/profile` is verified on the intended Vercel project.
 
-## Stage 2 — update and integrate PR #127 safely
+## 5. Stage 2 — PR inventory and merge gates
+
+Do not merge all open PRs blindly. Classify each PR with one of these outcomes:
+
+- `merge now` — safe, current, low risk.
+- `rebase and test` — useful but needs current `main` and checks.
+- `cherry-pick only` — useful small pieces, but PR branch is stale.
+- `close as superseded` — current `main` already contains or replaces it.
+- `keep draft` — not ready.
+
+### Safe candidates to review first
+
+#### PR #128 — service shop implementation concept
+
+- Status: open, mergeable.
+- Runtime risk: low; docs only.
+- Value: high. Supports this roadmap and PR #127.
+- Suggested action: merge after quick read, unless it conflicts with this roadmap.
+
+#### PR #13 — verified Reiki step video mappings
+
+- Status: open, mergeable.
+- Runtime risk: low; data only.
+- Suggested action: re-run `npm run validate:videos`, `npm run validate:knowledge`, `npm run build`; merge if still valid.
+- Do not invent unresolved video mappings.
+
+#### PR #7 — global autonomous project rules
+
+- Status: open, mergeable.
+- Runtime risk: low; docs only.
+- Suggested action: compare current `AGENTS.md`; merge only if it complements current repo-local rules and does not weaken them.
+
+#### PR #81 — source panel visibility in all profile tabs
+
+- Status: open, mergeable.
+- Runtime risk: medium; profile UI.
+- Suggested action: check whether changes are already in current `main` or live. Merge only after `/profile` is stable and visual QA passes.
+
+### Keep draft / do not merge yet
+
+#### PR #127 — template services/orders foundation
+
+- Status: draft.
+- Do not merge until Stage 3.
+- First rebase on stable `main`, apply patch script, test, inspect diff, QA.
+
+### Likely stale/conflicting
+
+Handle by compare/cherry-pick/close:
+
+- PR #118 — mobile mandala actions and cover print export. Likely overlaps with later export/runtime work.
+- PR #46 — desktop left menu card readability.
+- PR #36 / #34 / #31 — profile cabinet readiness docs likely superseded.
+- PR #32 — right panel audio cards.
+- PR #30 — old step-linked mandalas profile MVP likely superseded by current profile cabinet.
+- PR #11 — psimaster free courses block.
+- PR #8 — old course UI hierarchy/video block.
+- PR #5 — Reiki step materials coverage audit.
+
+### Review checklist for every stale PR
+
+1. Is it already in `main`?
+2. Is it still useful after current profile/power-place changes?
+3. Does it touch `ProfilePage.jsx`, `main.jsx`, `index.html`, or public runtime scripts?
+4. Does it add more hotfix scripts to `index.html`?
+5. Does it change Supabase flow or migrations?
+6. Can the useful part be cherry-picked as docs/data only?
+7. Should the PR be closed with a clear note?
+
+## 6. Stage 3 — integrate PR #127 services/shop flow
 
 ### Goal
 
-Turn PR #127 from foundation/draft into a working master services/shop flow.
+Turn PR #127 from foundation/draft into working functionality.
 
-### Current PR #127 status
-
-PR #127 prepares:
-
-- `src/lib/profileServicesClient.js`
-- Supabase migration `20260530120000_template_services_delivery_modes.sql`
-- `src/lib/mandalaTemplateRenderer.js`
-- `src/components/MasterTemplateServicesPanel.jsx`
-- `src/components/PublicTemplateServicesPanel.jsx`
-- `src/templateServices.css`
-- `scripts/apply-template-services-ui.mjs`
-
-But it does not apply the UI patch to:
-
-- `src/pages/ProfilePage.jsx`
-- `src/main.jsx`
-
-So it is not yet a working shop in production.
-
-### Required execution
+### Required execution order
 
 After Stage 1 is merged and live-verified:
 
@@ -232,124 +321,113 @@ npm run build
 
 Then inspect the diff before pushing.
 
+### Expected changed/integrated files
+
+- `src/pages/ProfilePage.jsx`
+- `src/main.jsx`
+- `src/lib/profileServicesClient.js`
+- `src/lib/mandalaTemplateRenderer.js`
+- `src/components/MasterTemplateServicesPanel.jsx`
+- `src/components/PublicTemplateServicesPanel.jsx`
+- `src/templateServices.css`
+- `scripts/apply-template-services-ui.mjs`
+- `supabase/migrations/20260530120000_template_services_delivery_modes.sql`
+
 ### Expected cabinet result
 
-In `/profile`, authenticated master should see:
+In authenticated `/profile` master cabinet:
 
 - existing tabs remain stable;
-- new section/tab `Услуги`;
-- new section/tab `Заявки`;
-- action under saved mandala / Power Place: `В услуги`;
-- ability to create a service from a saved mandala/template;
-- ability to edit description and delivery options;
-- ability to publish/unpublish service.
+- `Мои мандалы` remains usable;
+- `Место силы` remains usable;
+- new `Услуги` section/tab appears;
+- new `Заявки` section/tab appears;
+- saved mandala / Power Place has `В услуги` action;
+- master can create a service from saved mandala/template;
+- master can edit description and delivery options;
+- master can publish/unpublish service;
+- master can copy public service link if route/link is available.
 
 ### Expected public result
 
-Public service flow:
+- Public service cards render in the intended shop/services location.
+- Service profile has format selector.
+- CTA changes by auth state.
+- Selected service/format survives Google auth redirect.
+- Authenticated user lands in order draft.
 
-1. User opens service feed/card.
-2. User opens service profile.
-3. User chooses format:
-   - `signature` / master signed or finished version;
-   - `no_signature` / automatic template version;
-   - `both` / both versions.
-4. If authenticated, CTA is `Оформить заказ`.
-5. If not authenticated, CTA is `Войти через Google и оформить заказ`.
-6. Selected `service_id` and `format` survive auth redirect.
-7. After login, user lands in `/profile` order creation with selected service/format prefilled.
-8. User fills request, goal, comment, and attaches photos/refs if supported.
-9. Master sees the order in `Заявки`.
+### Service order fields to verify
 
-### Data and RLS requirements
+- `service_id`
+- `order_format`
+- `client_profile_id`
+- `goal_text`
+- `request_text` or equivalent request field
+- `comment_text`
+- `attachment_refs`
+- `status` with `draft` / `submitted`
+- result fields for automatic/master/final result where implemented.
 
-Verify migration and RLS before treating this as production-ready:
+### RLS and security requirements
 
-- service delivery modes;
-- template image fields;
-- separate prices for delivery options;
-- order format;
-- client profile id;
-- goal/request/comment fields;
-- attachment refs;
-- draft/submitted order status;
-- master can read orders for own services;
-- client can read own orders;
-- anonymous users cannot create unsafe orders;
-- no service-role key in frontend.
+- Public can read only published services.
+- Anonymous users cannot create unsafe orders.
+- Authenticated client can create/read own order.
+- Master can read orders for own services.
+- Frontend uses anon token only.
+- No service-role key in frontend.
 
-### Commands
+### Stage 3 done definition
 
-```bash
-npm run test:profile-services
-npm run test:mandala-template
-npm run test:profile-media
-npm run test:profile-materials
-npm run test:power-place
-npm run check
-npm run build
-```
-
-### Manual QA
-
-- Master creates service from saved mandala.
-- Master edits service description.
-- Master publishes service.
-- Public user sees service.
-- Public user chooses each format.
-- Google login preserves selected service/format.
-- Client creates order.
-- Master sees order.
-- Master uploads final result if required.
-- `/profile` mobile 390 remains usable.
-- `/profile` desktop 1280/1366 preserves layout.
-- `/`, `/masters`, `/profile/admin` smoke.
-
-### Done definition
-
-- PR #127 is rebased on stable `main`.
 - Patch script applied cleanly.
-- Browser QA passed.
-- Supabase migration and RLS verified.
-- PR is marked ready for review only after checks and QA.
+- Full tests/build pass.
+- Browser QA passes.
+- Supabase migration and RLS are verified in live/staging Supabase.
+- PR #127 is marked ready for review only after the above.
 
-## Stage 3 — service UX refinement
+## 7. Stage 4 — UX refinement after services work
 
-After the basic service flow works, improve UX.
+Do this only after the basic services/order flow works.
 
-### Master cabinet
+### Master cabinet polish
 
-- Clear separation:
-  - `Мои мандалы`
-  - `Место силы`
-  - `Услуги`
-  - `Заявки`
-  - `Чаты`
-  - `Профиль`
-- Saved mandala card should have:
-  - `Редактировать описание`
-  - `В услуги`
-  - `Скопировать ссылку`
-- Service card should show:
-  - title;
-  - image/template preview;
-  - delivery formats;
-  - price if available;
-  - status draft/published;
-  - copy public link.
+Target tabs/sections:
 
-### Client flow
+- `Мои мандалы`
+- `Место силы`
+- `Услуги`
+- `Заявки`
+- `Чаты`
+- `Профиль`
 
-- Service profile page should clearly show:
-  - what the client receives;
-  - three format choices;
-  - CTA depending on auth state;
-  - upload/photo/reference instructions;
-  - order status after submission.
+Saved mandala card actions:
 
-### Order statuses
+- `Редактировать описание`
+- `В услуги`
+- `Скопировать ссылку`
 
-Use a clear order lifecycle:
+Service card should show:
+
+- title;
+- image/template preview;
+- delivery formats;
+- price if available;
+- status draft/published;
+- copy public link.
+
+### Client service profile polish
+
+Show clearly:
+
+- what client receives;
+- three format choices;
+- CTA depending on auth state;
+- upload/photo/reference instructions;
+- order status after submission.
+
+### Order lifecycle
+
+Use these statuses unless implementation already has a better equivalent:
 
 - `draft`
 - `submitted`
@@ -358,51 +436,34 @@ Use a clear order lifecycle:
 - `delivered`
 - `cancelled`
 
-Do not invent payment integration until explicitly scoped.
+## 8. Stage 5 — live verification and memory update
 
-## Stage 4 — old PR cleanup
-
-After Stage 1 and Stage 2:
-
-1. Re-check open PR list.
-2. Merge only PRs that are safe and still relevant.
-3. Close stale/conflicting PRs with explanation.
-4. Prefer cherry-picking small docs/data changes over merging old UI branches.
-
-Suggested order:
-
-1. Merge or close docs-only PRs (#128, #7, #34/#36 if still needed).
-2. Review data-only PR #13.
-3. Decide whether PR #81 is already included or still needed.
-4. Close obsolete profile MVP PR #30 if current main already supersedes it.
-5. Close or rewrite PR #118 if later export/runtime code supersedes it.
-6. Review old UI PRs #8, #11, #32, #46 only after current live UI is stable.
-
-## Stage 5 — project memory update
-
-After each completed stage, update:
+After every completed stage update:
 
 - `STATE.md`
 - `LOG.md`
-- optionally `docs/PROFILE_SERVICES_ROADMAP.md`
+- this roadmap if the sequence changes.
 
-Each update should include:
+Each update must include:
 
 - branch / PR;
 - changed files;
 - checks run;
+- browser QA;
 - live verification status;
 - risks;
 - what was not verified.
 
-## Codex prompt for Stage 1
+## 9. Ready-to-copy Codex prompts
+
+### Prompt A — Stage 1 `/profile` stabilization
 
 ```text
 Repo: https://github.com/andylitvinov-design/reiki-yggdrasil
 Live: https://reiki-yggdrasil.vercel.app
 Target branch: codex/fix-profile-loading-regression
 
-Fix /profile infinite loading. Read AGENTS.md, README.md, STATE.md, LOG.md, package.json, vercel.json, index.html, src/pages/ProfilePage.jsx, src/lib/supabaseClient.js, src/lib/powerPlaceClient.js, public/profile-power-place-visual-export.js, public/profile-background-zone-controls.js.
+Fix /profile infinite loading. Read AGENTS.md, README.md, STATE.md, LOG.md, package.json, vercel.json, index.html, docs/PROFILE_SERVICES_ROADMAP.md, src/pages/ProfilePage.jsx, src/lib/supabaseClient.js, src/lib/powerPlaceClient.js, public/profile-power-place-visual-export.js, public/profile-background-zone-controls.js.
 
 Implement minimal safe fix:
 - AbortController timeout in supabaseClient request.
@@ -415,7 +476,16 @@ Implement minimal safe fix:
 Run tests/build and browser QA on /, /profile, /masters, /profile/admin. Report root cause confirmed vs suspected, changed files, checks, risks, live status.
 ```
 
-## Codex prompt for Stage 2
+### Prompt B — Stage 2 PR cleanup
+
+```text
+Repo: https://github.com/andylitvinov-design/reiki-yggdrasil
+Base: stable main after /profile loading fix
+
+Audit all open PRs using docs/PROFILE_SERVICES_ROADMAP.md Stage 2. For each PR, classify: merge now, rebase and test, cherry-pick only, close as superseded, or keep draft. Do not merge UI/profile PRs without browser QA. Prefer docs/data PRs first. Report exact recommendation per PR and what changed in main already.
+```
+
+### Prompt C — Stage 3 service shop integration
 
 ```text
 Repo: https://github.com/andylitvinov-design/reiki-yggdrasil
