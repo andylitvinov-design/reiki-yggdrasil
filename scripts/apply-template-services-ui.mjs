@@ -1,30 +1,39 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 
+const dryRun = process.argv.includes("--dry-run");
+
 function read(path) {
   return fs.readFileSync(path, "utf8");
 }
 
 function write(path, content) {
+  if (dryRun) return;
   fs.writeFileSync(path, content);
 }
 
 function insertAfter(content, needle, addition, label) {
-  if (content.includes(addition.trim())) return content;
+  if (content.includes(addition.trim())) {
+    console.log(`skip: ${label}`);
+    return content;
+  }
   if (!content.includes(needle)) throw new Error(`Patch point not found: ${label}`);
+  console.log(`patch: ${label}`);
   return content.replace(needle, `${needle}${addition}`);
 }
 
 function insertBefore(content, needle, addition, label) {
-  if (content.includes(addition.trim())) return content;
+  if (content.includes(addition.trim())) {
+    console.log(`skip: ${label}`);
+    return content;
+  }
   if (!content.includes(needle)) throw new Error(`Patch point not found: ${label}`);
+  console.log(`patch: ${label}`);
   return content.replace(needle, `${addition}${needle}`);
 }
 
-function replaceOnce(content, needle, replacement, label) {
-  if (content.includes(replacement.trim())) return content;
-  if (!content.includes(needle)) throw new Error(`Patch point not found: ${label}`);
-  return content.replace(needle, replacement);
+function assertContains(content, needle, label) {
+  if (!content.includes(needle)) throw new Error(`Post-patch check failed: ${label}`);
 }
 
 function patchProfilePage() {
@@ -68,7 +77,7 @@ function patchProfilePage() {
 
   content = insertAfter(
     content,
-    `                 <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>\n                   {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}\n                 </button>`,
+    `                <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>\n                  {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}\n                </button>`,
     `\n                <button\n                  className="cabinetSecondary"\n                  type="button"\n                  disabled={!profile?.id}\n                  onClick={() => {\n                    setPowerPlaceServiceDraft({\n                      composition_id: selectedCompositionId || "",\n                      title: compositionTitle || "Мандала Места Силы",\n                      image_url: selectedCover?.src || customCoverImage || centerImage || "",\n                      template_image_url: selectedCover?.src || customCoverImage || centerImage || ""\n                    });\n                    setTemplateServicesTab("services");\n                    setActiveTopTab("services");\n                    setMessage("Черновик услуги создан из текущего шаблона мандалы. Добавьте описание и цены.");\n                  }}\n                >\n                  В услуги\n                </button>`,
     "ProfilePage power place to services action"
   );
@@ -79,6 +88,11 @@ function patchProfilePage() {
     `            {(activeTopTab === "services" || activeTopTab === "orders") && (\n              <MasterTemplateServicesPanel\n                activeTab={templateServicesTab}\n                onActiveTabChange={(nextTab) => {\n                  setTemplateServicesTab(nextTab);\n                  setActiveTopTab(nextTab === "orders" ? "orders" : "services");\n                }}\n                profile={profile}\n                session={session}\n                powerPlaceDraft={powerPlaceServiceDraft}\n              />\n            )}\n\n`,
     "ProfilePage services panel render"
   );
+
+  assertContains(content, "MasterTemplateServicesPanel", "ProfilePage imports/services panel");
+  assertContains(content, ">Услуги</button>", "ProfilePage services tab");
+  assertContains(content, ">Заявки</button>", "ProfilePage orders tab");
+  assertContains(content, ">\n                  В услуги\n                </button>", "ProfilePage power place action");
 
   write(path, content);
 }
@@ -97,13 +111,15 @@ function patchMain() {
   content = insertBefore(
     content,
     `      {page.cta && <div className="knowledgeMeta"><b>Статус:</b> {page.cta}</div>}`,
-    `      {/магазин|услуг|предлож/i.test(`${section.title} ${item.label} ${page.title} ${page.subtitle}`) && (\n        <PublicTemplateServicesPanel enabled />\n      )}\n\n`,
+    `      {/(магазин|услуг|предлож)/i.test([section.title, item.label, page.title, page.subtitle].filter(Boolean).join(" ")) && (\n        <PublicTemplateServicesPanel enabled />\n      )}\n\n`,
     "main public services render"
   );
+
+  assertContains(content, "PublicTemplateServicesPanel", "main public services panel");
 
   write(path, content);
 }
 
 patchProfilePage();
 patchMain();
-console.log("Template services UI patch applied.");
+console.log(dryRun ? "Template services UI patch dry-run passed." : "Template services UI patch applied.");
