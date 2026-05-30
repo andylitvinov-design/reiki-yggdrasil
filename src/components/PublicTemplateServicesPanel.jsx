@@ -7,6 +7,7 @@ import {
   serviceDeliveryOptions
 } from "../lib/profileServicesClient.js";
 import { renderTemplateMandalaToDataUrl } from "../lib/mandalaTemplateRenderer.js";
+import "../templateServices.css";
 
 function imageStyle(url) {
   return url ? { backgroundImage: `url(${url})` } : undefined;
