@@ -1,0 +1,80 @@
+{
+  "project": "reiki-yggdrasil",
+  "version": "debugger-agent-v1",
+  "last_updated": "2026-05-30",
+  "repo": "andylitvinov-design/reiki-yggdrasil",
+  "live_urls": {
+    "current_legacy": "https://reiki-yggdrasil.vercel.app",
+    "target_production": "https://mentalica.vercel.app"
+  },
+  "required_routes": ["/", "/profile", "/masters", "/profile/admin"],
+  "required_commands": [
+    "npm run verify:debug-contract",
+    "npm run check",
+    "npm run build"
+  ],
+  "debug_docs": [
+    "docs/debug/README.md",
+    "docs/debug/REIKI_DEBUGGER_PLAYBOOK.md",
+    "docs/debug/REIKI_BUG_INTAKE_TEMPLATE.md",
+    "docs/debug/REIKI_BUG_TAXONOMY.md",
+    "docs/debug/REIKI_EVIDENCE_COLLECTION_PROTOCOL.md",
+    "docs/debug/REIKI_ROOT_CAUSE_MATRIX.md",
+    "docs/debug/REIKI_DEBUG_SCENARIO_COOKBOOK.md",
+    "docs/debug/REIKI_CODEX_REPAIR_LOOP.md",
+    "docs/debug/REIKI_LIVE_AUDIT_CHECKLIST.md",
+    "docs/debug/REIKI_DEBUGGER_VERIFICATION_RUNBOOK.md",
+    "docs/debug/REIKI_DEBUGGER_QUALITY_RUBRIC.md",
+    "docs/debug/REIKI_REGRESSION_MATRIX.md",
+    "docs/debug/REIKI_DEBUGGER_STATE_LOG_UPDATE_2026-05-30.md"
+  ],
+  "contract_docs": [
+    "docs/ui-contracts/REIKI_PROFILE_UI_CONTRACT.md",
+    "docs/supabase/REIKI_SUPABASE_CONTRACT.md",
+    "docs/media/REIKI_MEDIA_STORAGE_CONTRACT.md",
+    "docs/prompts/CODEX_REIKI_DEBUG_PROMPT_TEMPLATE.md"
+  ],
+  "code_contracts": [
+    "src/lib/reikiDebugSnapshot.js",
+    "scripts/verify-reiki-debug-contract.mjs",
+    "package.json"
+  ],
+  "bug_classes": [
+    "DEPLOY_MISMATCH",
+    "ROUTING",
+    "AUTH",
+    "SUPABASE_RLS",
+    "STORAGE_MEDIA",
+    "UI_LAYOUT_DESKTOP",
+    "UI_LAYOUT_MOBILE",
+    "STATE_MANAGEMENT",
+    "DATA_CONTRACT",
+    "COURSE_CONTENT",
+    "ADMIN_MODERATION",
+    "SERVICE_ORDER_FLOW",
+    "PRINT_DOWNLOAD_EXPORT"
+  ],
+  "evidence_levels": [
+    "E0_user_report",
+    "E1_visual",
+    "E2_repo",
+    "E3_runtime",
+    "E4_verified_fix"
+  ],
+  "quality_gates": {
+    "max_clarifying_questions_before_self_checks": 1,
+    "minimum_codex_prompt_score": 16,
+    "minimum_analysis_answer_score": 14,
+    "revise_below_score": 12
+  },
+  "safety_invariants": [
+    "preserve RU-default interface",
+    "preserve public home page unless explicitly targeted",
+    "preserve core routes",
+    "preserve desktop three-column structure where applicable",
+    "preserve mobile fallback below 980px",
+    "do not expose env values or secrets",
+    "do not expose private storage refs on public routes",
+    "do not claim live Supabase/Auth/Storage verification without a real configured session"
+  ]
+}
