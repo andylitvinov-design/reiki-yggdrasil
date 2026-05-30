@@ -24,6 +24,24 @@ Workflow:
 .github/workflows/deploy-production.yml
 ```
 
+## Live version self-check
+
+Before and after fallback deploy, agents must check the current live version themselves.
+
+Local protocol:
+
+```text
+docs/deploy-version-check.md
+```
+
+This project currently has no confirmed `/api/status`, `/version.json`, or `/build-info.json` endpoint exposing commit SHA. Agents must therefore distinguish:
+
+```text
+URL availability proof != commit-level live proof
+```
+
+Agents must check available production URLs and workflow deploy output themselves. Do not ask Andrey to check the current live version manually.
+
 ## When to use
 
 Use fallback deploy when:
@@ -87,7 +105,8 @@ Before fallback deploy:
 3. Identify expected commit SHA.
 4. Confirm changes are committed and pushed.
 5. Check production URL and legacy URL if relevant.
-6. If production is stale, trigger deploy-production.yml.
+6. Check workflow/deploy evidence and available live endpoints.
+7. If production is stale, trigger deploy-production.yml.
 ```
 
 After fallback deploy:
@@ -97,6 +116,7 @@ After fallback deploy:
 2. Re-check https://reiki-yggdrasil.vercel.app/ during the migration window.
 3. Verify required pages visually/functionally if the task touched UI/auth/profile/admin routes.
 4. Report workflow result and live verification.
+5. If exact live commit cannot be proven, state that commit-level proof requires build-info/status metadata.
 ```
 
 ## Hard rules
@@ -109,9 +129,13 @@ production verification third
 
 Never ask the user to run `vercel --prod` locally until this fallback workflow has been attempted and diagnosed.
 
+Never ask the user to check the current live version manually.
+
 Never run fallback deploy until the target commit is committed, pushed and identified.
 
 Never claim production is updated without checking production after deploy.
+
+Never claim commit-level live verification for this project until a status/build-info endpoint exists.
 
 ## Minimal final report
 
@@ -125,6 +149,20 @@ Production URL:
 Legacy URL:
 Live status:
 Remaining issue:
+```
+
+Every deploy-related report must also include:
+
+```text
+Live version check:
+- Production URL:
+- Legacy URL:
+- Status/version URL:
+- Expected SHA:
+- Live SHA/build marker:
+- Match: yes/no/unknown
+- Evidence source:
+- If unknown, why:
 ```
 
 ## Source standard
@@ -141,4 +179,5 @@ Relevant docs:
 docs/github-actions-vercel-deploy-fallback-plan.md
 docs/deploy-fallback-agent-autodeploy-protocol.md
 docs/deploy-fallback-branch-propagation-policy.md
+docs/deploy-version-check-protocol.md
 ```
