@@ -3,7 +3,8 @@
 ## Project boundary
 
 Canonical repo: `andylitvinov-design/reiki-yggdrasil`.
-Live URL: `https://reiki-yggdrasil.vercel.app`.
+Target production URL: `https://mentalica.vercel.app`.
+Current/legacy live URL until migration is verified: `https://reiki-yggdrasil.vercel.app`.
 Framework: Vite + React.
 Hosting: Vercel, `npm run build`, output `dist`.
 
@@ -63,6 +64,18 @@ When giving the user a terminal prompt for this repo:
 - Keep RU default interface.
 - Do not rewrite the whole project when a small additive change is enough.
 
+## Domain migration rules
+
+- The desired production domain is `https://mentalica.vercel.app`.
+- Keep `https://reiki-yggdrasil.vercel.app` as legacy/current until the Vercel production alias and Supabase auth flow are verified.
+- Do not remove old Supabase redirect URLs during the migration window.
+- For Supabase Auth and Google OAuth, allow both target and legacy redirects until live QA passes:
+  - `https://mentalica.vercel.app/profile`
+  - `https://mentalica.vercel.app/profile/admin`
+  - `https://reiki-yggdrasil.vercel.app/profile`
+  - `https://reiki-yggdrasil.vercel.app/profile/admin`
+- The frontend currently builds OAuth redirect URLs from `window.location.origin`; do not replace this with a hardcoded domain.
+
 ## Data and env safety
 
 Current repo state has no confirmed Supabase implementation in `main`.
@@ -90,6 +103,14 @@ If UI changes are made, also run local preview and check:
 - mobile layout below 980px
 - no console errors
 - no broken imports
+
+For the domain migration, also verify on the target production URL after Vercel aliasing:
+
+- `https://mentalica.vercel.app/`
+- `https://mentalica.vercel.app/profile`
+- `https://mentalica.vercel.app/masters`
+- `https://mentalica.vercel.app/profile/admin`
+- Google OAuth from `/profile` and `/profile/admin`
 
 A task is not complete until it is merged into main, deployed to production/live, and visually/functionally verified on the live URL.
 
