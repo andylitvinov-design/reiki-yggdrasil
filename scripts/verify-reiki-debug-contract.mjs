@@ -52,8 +52,10 @@ requireObject("env_policy", snapshot.env_policy);
 requireObject("ui_contract", snapshot.ui_contract);
 requireObject("supabase_contract", snapshot.supabase_contract);
 requireObject("media_contract", snapshot.media_contract);
+requireObject("intake_contract", snapshot.intake_contract);
 requireObject("evidence_contract", snapshot.evidence_contract);
 requireObject("repair_loop_contract", snapshot.repair_loop_contract);
+requireObject("quality_rubric", snapshot.quality_rubric);
 requireArray("bug_taxonomy", snapshot.bug_taxonomy, 10);
 requireArray("audit_checks", snapshot.audit_checks, 1);
 requireArray("warnings", snapshot.warnings, 0);
@@ -81,6 +83,27 @@ if (snapshot.ui_contract?.desktop_layout !== "three-column") {
 
 if (snapshot.media_contract?.private_bucket !== "profile-cabinet-media") {
   failures.push("media_contract.private_bucket must be profile-cabinet-media");
+}
+
+for (const taskType of ["bug", "design_mismatch", "live_mismatch", "auth_data_flow", "media_storage", "service_order"]) {
+  requireIncludes("intake_contract.task_types", snapshot.intake_contract?.task_types, taskType);
+}
+
+for (const field of [
+  "project",
+  "task_type",
+  "user_symptom",
+  "affected_route",
+  "environment",
+  "expected_behavior",
+  "actual_behavior",
+  "evidence_provided",
+]) {
+  requireIncludes("intake_contract.required_fields", snapshot.intake_contract?.required_fields, field);
+}
+
+if (snapshot.intake_contract?.max_clarifying_questions_before_self_checks !== 1) {
+  failures.push("intake_contract.max_clarifying_questions_before_self_checks must be 1");
 }
 
 for (const evidenceLevel of [
@@ -134,7 +157,48 @@ if (snapshot.repair_loop_contract?.default_not_visible_classification !== "DEPLO
   failures.push("repair_loop_contract.default_not_visible_classification must preserve deploy-first live debugging rule");
 }
 
-for (const auditCheck of ["env_values_hidden", "routes_contract", "evidence_protocol", "repair_loop_protocol"]) {
+for (const area of [
+  "project_context",
+  "bug_classification",
+  "evidence",
+  "files",
+  "root_cause",
+  "safety",
+  "codex_prompt",
+  "verification",
+  "honesty",
+]) {
+  requireIncludes("quality_rubric.score_areas", snapshot.quality_rubric?.score_areas, area);
+}
+
+for (const selfCheck of [
+  "affected_route_environment_identified",
+  "live_preview_local_distinguished",
+  "primary_bug_layer_classified",
+  "confirmed_vs_needs_verification_split",
+  "likely_files_named",
+  "checks_specified",
+  "not_verified_items_listed",
+]) {
+  requireIncludes("quality_rubric.mandatory_self_checks", snapshot.quality_rubric?.mandatory_self_checks, selfCheck);
+}
+
+if ((snapshot.quality_rubric?.target_scores?.codex_implementation_prompt || 0) < 16) {
+  failures.push("quality_rubric.target_scores.codex_implementation_prompt must be at least 16");
+}
+
+if ((snapshot.quality_rubric?.target_scores?.analysis_answer || 0) < 14) {
+  failures.push("quality_rubric.target_scores.analysis_answer must be at least 14");
+}
+
+for (const auditCheck of [
+  "env_values_hidden",
+  "routes_contract",
+  "intake_protocol",
+  "evidence_protocol",
+  "repair_loop_protocol",
+  "quality_rubric",
+]) {
   if (!snapshot.audit_checks.some((check) => check.name === auditCheck)) {
     failures.push(`audit_checks missing ${auditCheck}`);
   }
@@ -153,8 +217,10 @@ console.log(
       project: snapshot.project,
       routes: snapshot.expected_routes,
       bug_taxonomy_count: snapshot.bug_taxonomy.length,
+      intake_task_types: snapshot.intake_contract.task_types.length,
       evidence_levels: snapshot.evidence_contract.levels.length,
       repair_loop_states: snapshot.repair_loop_contract.states.length,
+      quality_score_areas: snapshot.quality_rubric.score_areas.length,
       audit_checks: snapshot.audit_checks.length,
       env_values_exposed: snapshot.env_policy.exposes_values,
     },
