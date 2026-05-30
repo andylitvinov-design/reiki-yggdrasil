@@ -69,10 +69,26 @@
     host.append(notice);
   }
 
+  function guardUnsafeSaveAsNew(event) {
+    if (!isProfileRoute()) return;
+    const trigger = event.target?.closest?.('[data-profile-save-new="true"]');
+    if (!trigger) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+
+    window.alert("Сохранение выбранной мандалы как новой временно отключено для защиты кабинета. Используйте обычное сохранение/обновление, пока мы переносим эту функцию в React без runtime-патча.");
+  }
+
   function scheduleRecoveryCheck() {
     if (!isProfileRoute()) return;
     window.setTimeout(showRecoveryNotice, TIMEOUT_MS);
   }
+
+  // This listener must be registered before profile-power-place-visual-export.js.
+  // It prevents the older runtime helper from mutating React state through a hardcoded hook index.
+  document.addEventListener("click", guardUnsafeSaveAsNew, true);
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", scheduleRecoveryCheck, { once: true });
