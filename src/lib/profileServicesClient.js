@@ -7,7 +7,28 @@ const ORDERS_TABLE = "profile_cabinet_service_orders";
 const PUBLIC_SERVICE_FIELDS = "id,profile_id,composition_id,title,description,image_url,image_bucket,image_path,price_amount,price_currency,status,created_at,updated_at";
 
 export const SERVICE_STATUSES = ["draft", "published", "archived"];
-export const ORDER_STATUSES = ["new", "in_progress", "sent", "closed"];
+export const ORDER_STATUSES = ["draft", "new", "in_progress", "sent", "closed"];
+export const SERVICE_FORMATS = ["signature", "no_signature", "both"];
+export const SERVICE_FORMAT_OPTIONS = [
+  {
+    value: "signature",
+    label: "С подписью мастера",
+    shortLabel: "Подпись мастера",
+    description: "Авторская версия с подписью мастера на готовом артефакте."
+  },
+  {
+    value: "no_signature",
+    label: "Без подписи мастера",
+    shortLabel: "Без подписи",
+    description: "Чистая версия изображения без подписи, удобная для личного использования или печати."
+  },
+  {
+    value: "both",
+    label: "Две версии",
+    shortLabel: "Две версии",
+    description: "Вы получите оба варианта: с подписью мастера и без подписи."
+  }
+];
 
 function makeError(message, details = null) {
   const error = new Error(message);
@@ -25,6 +46,10 @@ function serviceStatus(value) {
 
 function orderStatus(value) {
   return ORDER_STATUSES.includes(value) ? value : "new";
+}
+
+function serviceFormat(value) {
+  return SERVICE_FORMATS.includes(value) ? value : "signature";
 }
 
 function price(value) {
@@ -55,7 +80,11 @@ export function serviceStatusText(status) {
 }
 
 export function orderStatusText(status) {
-  return ({ new: "Новая", in_progress: "В работе", sent: "Отправлено", closed: "Закрыта" })[status] || "Новая";
+  return ({ draft: "Черновик", new: "Новая", in_progress: "В работе", sent: "Отправлено", closed: "Закрыта" })[status] || "Новая";
+}
+
+export function serviceFormatText(format) {
+  return SERVICE_FORMAT_OPTIONS.find((item) => item.value === serviceFormat(format))?.label || "С подписью мастера";
 }
 
 export function normalizeServiceForm(form = {}, requestedStatus = form?.status) {
@@ -95,7 +124,10 @@ export function normalizeServiceOrder(row = {}) {
     client_photo_url: text(row.client_photo_url),
     client_photo_bucket: text(row.client_photo_bucket) || null,
     client_photo_path: text(row.client_photo_path) || null,
+    service_format: serviceFormat(row.service_format),
     request_text: text(row.request_text),
+    goal_text: text(row.goal_text),
+    client_comment: text(row.client_comment),
     master_comment: text(row.master_comment),
     result_image_url: text(row.result_image_url),
     result_image_bucket: text(row.result_image_bucket) || null,
@@ -176,8 +208,11 @@ export async function createServiceOrder(order, session = getStoredSession()) {
     client_photo_url: text(order?.client_photo_url),
     client_photo_bucket: text(order?.client_photo_bucket) || null,
     client_photo_path: text(order?.client_photo_path) || null,
+    service_format: serviceFormat(order?.service_format),
     request_text: text(order?.request_text),
-    status: "new"
+    goal_text: text(order?.goal_text),
+    client_comment: text(order?.client_comment),
+    status: orderStatus(order?.status || "new")
   };
   if (!body.service_id) throw makeError("Missing service id.");
   const rows = await request(`/rest/v1/${ORDERS_TABLE}`, {
