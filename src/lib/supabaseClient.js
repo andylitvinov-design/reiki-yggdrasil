@@ -4,6 +4,7 @@ const ADMIN_EMAIL = import.meta.env?.VITE_ADMIN_EMAIL || "";
 
 const SESSION_KEY = "reiki-yggdrasil-session";
 const PROFILES_TABLE = "profile_cabinet_profiles";
+const REQUEST_TIMEOUT_MS = 12000;
 
 export const supabaseEnv = {
   url: SUPABASE_URL,
@@ -59,20 +60,39 @@ async function request(path, options = {}) {
     body,
     accessToken,
     prefer,
-    headers = {}
+    headers = {},
+    timeoutMs = REQUEST_TIMEOUT_MS
   } = options;
 
-  const response = await fetch(`${SUPABASE_URL}${path}`, {
-    method,
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json",
-      ...(prefer ? { Prefer: prefer } : {}),
-      ...headers
-    },
-    body: body === undefined ? undefined : JSON.stringify(body)
-  });
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(`${SUPABASE_URL}${path}`, {
+      method,
+      signal: controller.signal,
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        ...(prefer ? { Prefer: prefer } : {}),
+        ...headers
+      },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw cabinetError("Кабинет загружается слишком долго. Проверьте подключение и попробуйте войти заново.", {
+        status: 408,
+        timeout: true
+      });
+    }
+
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
