@@ -2,6 +2,7 @@
   "type": "module",
   "scripts": {
     "apply:services-orders-mvp": "node scripts/apply-master-services-orders-mvp.mjs",
+    "apply:template-services-ui": "node scripts/apply-template-services-ui.mjs",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "supabase:migrations:apply": "node scripts/apply-reiki-supabase-migrations.mjs",
