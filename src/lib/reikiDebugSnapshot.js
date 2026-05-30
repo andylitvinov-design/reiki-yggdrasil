@@ -6,6 +6,39 @@ const REQUIRED_ENV_NAMES = [
 
 const EXPECTED_ROUTES = ["/", "/profile", "/masters", "/profile/admin"];
 
+const BUG_TAXONOMY = [
+  "DEPLOY_MISMATCH",
+  "ROUTING",
+  "AUTH",
+  "SUPABASE_RLS",
+  "STORAGE_MEDIA",
+  "UI_LAYOUT_DESKTOP",
+  "UI_LAYOUT_MOBILE",
+  "STATE_MANAGEMENT",
+  "DATA_CONTRACT",
+  "COURSE_CONTENT",
+  "ADMIN_MODERATION",
+  "SERVICE_ORDER_FLOW",
+  "PRINT_DOWNLOAD_EXPORT",
+];
+
+const EVIDENCE_LEVELS = [
+  "E0_user_report",
+  "E1_visual",
+  "E2_repo",
+  "E3_runtime",
+  "E4_verified_fix",
+];
+
+const REPAIR_LOOP_STATES = [
+  "task_prepared",
+  "codex_reported_done",
+  "not_visible_on_live",
+  "checks_failed",
+  "ui_regression",
+  "data_auth_regression",
+];
+
 function readEnvPresence(env = {}) {
   return Object.fromEntries(
     REQUIRED_ENV_NAMES.map((name) => [name, Boolean(env[name])])
@@ -81,21 +114,43 @@ export function buildReikiDebugSnapshot(options = {}) {
       temporary_preview_prefix: "data:image",
       public_leak_forbidden: true,
     },
-    bug_taxonomy: [
-      "DEPLOY_MISMATCH",
-      "ROUTING",
-      "AUTH",
-      "SUPABASE_RLS",
-      "STORAGE_MEDIA",
-      "UI_LAYOUT_DESKTOP",
-      "UI_LAYOUT_MOBILE",
-      "STATE_MANAGEMENT",
-      "DATA_CONTRACT",
-      "COURSE_CONTENT",
-      "ADMIN_MODERATION",
-      "SERVICE_ORDER_FLOW",
-      "PRINT_DOWNLOAD_EXPORT",
-    ],
+    evidence_contract: {
+      levels: EVIDENCE_LEVELS,
+      confidence_labels: ["confirmed", "likely", "possible", "needs verification"],
+      required_report_fields: [
+        "evidence_level",
+        "bug_class",
+        "affected_route",
+        "affected_viewport",
+        "auth_state",
+        "environment",
+        "expected",
+        "actual",
+        "confirmed_facts",
+        "unverified_assumptions",
+        "files_checked",
+        "minimal_safe_fix",
+        "checks_required",
+        "risks",
+      ],
+    },
+    repair_loop_contract: {
+      states: REPAIR_LOOP_STATES,
+      acceptance_fields: [
+        "branch",
+        "commit_or_pr",
+        "changed_files",
+        "checks_run",
+        "preview_url",
+        "live_status",
+        "routes_checked",
+        "desktop_mobile_checked",
+        "supabase_auth_storage_status",
+        "risks",
+      ],
+      default_not_visible_classification: "DEPLOY_MISMATCH until disproven",
+    },
+    bug_taxonomy: BUG_TAXONOMY,
     audit_checks: [
       {
         name: "env_values_hidden",
@@ -106,6 +161,16 @@ export function buildReikiDebugSnapshot(options = {}) {
         name: "routes_contract",
         status: EXPECTED_ROUTES.length === 4 ? "ok" : "needs verification",
         message: "Core Reiki routes are listed for debugger checks.",
+      },
+      {
+        name: "evidence_protocol",
+        status: "ok",
+        message: "Snapshot includes evidence levels and required report fields.",
+      },
+      {
+        name: "repair_loop_protocol",
+        status: "ok",
+        message: "Snapshot includes Codex repair-loop states and acceptance fields.",
       },
       {
         name: "live_auth_storage",
