@@ -15,6 +15,7 @@ import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/
 import ProfilePage from "./pages/ProfilePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import PublicTemplateServicesPanel from "./components/PublicTemplateServicesPanel.jsx";
 import "./index.css";
 import "./degreeSettings.css";
 import "./stepSettings.css";
@@ -668,6 +669,10 @@ function SectionStage({ section, item }) {
             ))}
           </div>
         )}
+
+        {/(магазин|услуг|предлож)/i.test(section.title || "") && (
+          <PublicTemplateServicesPanel enabled />
+        )}
       </section>
     );
   }
@@ -699,6 +704,10 @@ function SectionStage({ section, item }) {
             </div>
           ))}
         </div>
+      )}
+
+      {/(магазин|услуг|предлож)/i.test([section.title, item.label, page.title, page.subtitle].filter(Boolean).join(" ")) && (
+        <PublicTemplateServicesPanel enabled />
       )}
 
       {page.cta && <div className="knowledgeMeta"><b>Статус:</b> {page.cta}</div>}

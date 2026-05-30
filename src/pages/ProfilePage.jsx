@@ -42,6 +42,7 @@ import {
 } from "../lib/powerPlaceClient.js";
 import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
 import { formatCabinetId } from "../lib/masterChatClient.js";
+import MasterTemplateServicesPanel from "../components/MasterTemplateServicesPanel.jsx";
 import "../profileMandalaWorkspace.css";
 
 const EMPTY_PROFILE = {
@@ -710,6 +711,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
   const [activeTopTab, setActiveTopTab] = useState("power-place");
+  const [templateServicesTab, setTemplateServicesTab] = useState("services");
+  const [powerPlaceServiceDraft, setPowerPlaceServiceDraft] = useState(null);
   const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
   const [activeMaterialSubcategory, setActiveMaterialSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
   const [activeMaterialThirdLevel, setActiveMaterialThirdLevel] = useState("");
@@ -2395,12 +2398,22 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       setSelectedCompositionId(saved?.id || "");
       setCompositionTitle(saved?.title || compositionTitle);
       setMessage(selectedCompositionId ? "Место силы обновлено." : "Место силы сохранено.");
+      setPowerPlaceServiceDraft({
+        composition_id: saved?.id || selectedCompositionId || "",
+        title: saved?.title || compositionTitle || "Мандала Места Силы",
+        image_url: saved?.cover_ref?.src || selectedCover?.src || customCoverImage || centerImage || "",
+        template_image_url: saved?.cover_ref?.src || selectedCover?.src || customCoverImage || centerImage || "",
+        image_bucket: saved?.cover_ref?.bucket || null,
+        image_path: saved?.cover_ref?.path || null
+      });
     } catch (err) {
       setError(err.message || "Не удалось сохранить место силы.");
     }
   };
 
   const handleLogout = () => {
+    setTemplateServicesTab("services");
+    setPowerPlaceServiceDraft(null);
     clearStoredSession();
     setSession(null);
     setUser(null);
@@ -2633,6 +2646,8 @@ const resourceComparisonPanel = (
               <div className="workspaceTabs" role="tablist" aria-label="Основной раздел кабинета">
                 <button className={activeTopTab === "power-place" ? "active" : ""} type="button" onClick={() => setActiveTopTab("power-place")}>Место силы</button>
                 <button className={activeTopTab === "mandalas" ? "active" : ""} type="button" onClick={() => setActiveTopTab("mandalas")}>Мои мандалы</button>
+                <button className={activeTopTab === "services" ? "active" : ""} type="button" onClick={() => { setActiveTopTab("services"); setTemplateServicesTab("services"); }}>Услуги</button>
+                <button className={activeTopTab === "orders" ? "active" : ""} type="button" onClick={() => { setActiveTopTab("orders"); setTemplateServicesTab("orders"); }}>Заявки</button>
                 <button className={activeTopTab === "chats" ? "active" : ""} type="button" onClick={() => setActiveTopTab("chats")}>Чаты</button>
                 <button className={activeTopTab === "profile" ? "active" : ""} type="button" onClick={() => setActiveTopTab("profile")}>Профиль</button>
               </div>
@@ -3498,6 +3513,24 @@ const resourceComparisonPanel = (
                 <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>
                   {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}
                 </button>
+                <button
+                  className="cabinetSecondary"
+                  type="button"
+                  disabled={!profile?.id}
+                  onClick={() => {
+                    setPowerPlaceServiceDraft({
+                      composition_id: selectedCompositionId || "",
+                      title: compositionTitle || "Мандала Места Силы",
+                      image_url: selectedCover?.src || customCoverImage || centerImage || "",
+                      template_image_url: selectedCover?.src || customCoverImage || centerImage || ""
+                    });
+                    setTemplateServicesTab("services");
+                    setActiveTopTab("services");
+                    setMessage("Черновик услуги создан из текущего шаблона мандалы. Добавьте описание и цены.");
+                  }}
+                >
+                  В услуги
+                </button>
                 <button className="cabinetSecondary" type="button" onClick={handleDownloadMandala}>Скачать</button>
                 <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
                 <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
@@ -3653,6 +3686,19 @@ const resourceComparisonPanel = (
                   )}
                 </section>
               </div>
+            )}
+
+            {(activeTopTab === "services" || activeTopTab === "orders") && (
+              <MasterTemplateServicesPanel
+                activeTab={templateServicesTab}
+                onActiveTabChange={(nextTab) => {
+                  setTemplateServicesTab(nextTab);
+                  setActiveTopTab(nextTab === "orders" ? "orders" : "services");
+                }}
+                profile={profile}
+                session={session}
+                powerPlaceDraft={powerPlaceServiceDraft}
+              />
             )}
 
             {activeTopTab === "mandalas" && (

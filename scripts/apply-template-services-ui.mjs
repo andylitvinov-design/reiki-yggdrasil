@@ -56,7 +56,7 @@ function patchProfilePage() {
 
   content = insertAfter(
     content,
-    `      setMessage(selectedCompositionId ? "Место силы обновлено." : "Место силы сохранено.");\n    } catch (err) {`,
+    `      setMessage(selectedCompositionId ? "Место силы обновлено." : "Место силы сохранено.");`,
     `\n      setPowerPlaceServiceDraft({\n        composition_id: saved?.id || selectedCompositionId || "",\n        title: saved?.title || compositionTitle || "Мандала Места Силы",\n        image_url: saved?.cover_ref?.src || selectedCover?.src || customCoverImage || centerImage || "",\n        template_image_url: saved?.cover_ref?.src || selectedCover?.src || customCoverImage || centerImage || "",\n        image_bucket: saved?.cover_ref?.bucket || null,\n        image_path: saved?.cover_ref?.path || null\n      });`,
     "ProfilePage draft service after composition save"
   );
@@ -106,6 +106,13 @@ function patchMain() {
     `import AdminPage from "./pages/AdminPage.jsx";`,
     `\nimport PublicTemplateServicesPanel from "./components/PublicTemplateServicesPanel.jsx";`,
     "main public services import"
+  );
+
+  content = insertBefore(
+    content,
+    `      </section>\n    );\n  }\n\n  const page = item.page || {`,
+    `\n        {/(магазин|услуг|предлож)/i.test(section.title || "") && (\n          <PublicTemplateServicesPanel enabled />\n        )}\n`,
+    "main public services section overview render"
   );
 
   content = insertBefore(
