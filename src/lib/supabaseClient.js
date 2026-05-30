@@ -112,6 +112,7 @@ export function getStoredSession() {
     const raw = localStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
+    clearStoredSession();
     return null;
   }
 }

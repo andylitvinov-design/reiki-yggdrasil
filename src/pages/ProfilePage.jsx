@@ -76,6 +76,8 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_index: firstSettings.length > 0 ? 1 : null
 });
 
+const PROFILE_LOADING_TIMEOUT_MS = 15000;
+
 const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
   { value: "zodiac", label: "Зодиак" },
@@ -681,6 +683,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [materialsLoading, setMaterialsLoading] = useState(false);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [fileNotice, setFileNotice] = useState("");
@@ -722,6 +725,44 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [mediaStatus, setMediaStatus] = useState("");
   const [mediaUploadTarget, setMediaUploadTarget] = useState("");
   const [isClientPhotoUploadOpen, setIsClientPhotoUploadOpen] = useState(false);
+
+  const resetProfileSessionState = () => {
+    clearStoredSession();
+    setSession(null);
+    setUser(null);
+    setProfile(EMPTY_PROFILE);
+    setMaterials([]);
+    setClientGoalPhotos([]);
+    setTraditionAssets([]);
+    setPowerPlaceCompositions([]);
+    setMaterialForm(EMPTY_MATERIAL);
+    setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
+    setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
+    setObjectImages({});
+    setObjectImageUrls({});
+    setMaterialFile(null);
+    setMaterialFilePreview("");
+    setSelectedCentralPhotoId("");
+    setSelectedCentralImageRef("");
+    setSelectedCompositionId("");
+    setCompositionTitle("");
+    setImagePickerContext({ mode: "", slotId: "" });
+    setActiveTopTab("power-place");
+    setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
+    setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+    setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setActivePickerCategory(SOURCE_LIBRARY_CATEGORIES[0].value);
+    setActivePickerSubcategory(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
+    setActivePickerThirdLevel(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
+    setSelectedObjectSlotId("");
+    setMaterialFilter("all");
+    setFileNotice("");
+    setMediaStatus("");
+    setMediaUploadTarget("");
+    setLoading(false);
+    setLoadingTimedOut(false);
+  };
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -1345,6 +1386,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   }, []);
 
   useEffect(() => {
+    if (!loading || user) {
+      setLoadingTimedOut(false);
+      return undefined;
+    }
+
+    const timeoutId = globalThis.setTimeout(() => setLoadingTimedOut(true), PROFILE_LOADING_TIMEOUT_MS);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [loading, user]);
+
+  useEffect(() => {
     if (!materialFile) {
       setMaterialFilePreview("");
       return undefined;
@@ -1387,17 +1438,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
 
       if (isStoredSessionExpired(session)) {
-        clearStoredSession();
-        setSession(null);
-        setUser(null);
-        setProfile(EMPTY_PROFILE);
-        setMaterials([]);
-        setClientGoalPhotos([]);
-        setTraditionAssets([]);
-        setPowerPlaceCompositions([]);
-        setMaterialFile(null);
-        setMaterialFilePreview("");
-        setLoading(false);
+        resetProfileSessionState();
         return;
       }
 
@@ -1414,17 +1455,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         }
       } catch (err) {
         if (isExpiredOrInvalidAuthError(err)) {
-          clearStoredSession();
           if (!cancelled) {
-            setSession(null);
-            setUser(null);
-            setProfile(EMPTY_PROFILE);
-            setMaterials([]);
-            setClientGoalPhotos([]);
-            setTraditionAssets([]);
-            setPowerPlaceCompositions([]);
-            setMaterialFile(null);
-            setMaterialFilePreview("");
+            resetProfileSessionState();
             setError("");
           }
           return;
@@ -2401,38 +2433,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const handleLogout = () => {
-    clearStoredSession();
-    setSession(null);
-    setUser(null);
-    setProfile(EMPTY_PROFILE);
-    setMaterials([]);
-    setClientGoalPhotos([]);
-    setTraditionAssets([]);
-    setPowerPlaceCompositions([]);
-    setMaterialForm(EMPTY_MATERIAL);
-    setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
-    setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
-    setObjectImages({});
-    setObjectImageUrls({});
-    setMaterialFile(null);
-    setMaterialFilePreview("");
-    setSelectedCentralPhotoId("");
-    setSelectedCompositionId("");
-    setCompositionTitle("");
-    setImagePickerContext({ mode: "", slotId: "" });
-    setActiveTopTab("power-place");
-    setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
-    setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
-    setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
-    setActivePickerCategory(SOURCE_LIBRARY_CATEGORIES[0].value);
-    setActivePickerSubcategory(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
-    setActivePickerThirdLevel(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
-    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
-    setSelectedObjectSlotId("");
-    setMaterialFilter("all");
-    setFileNotice("");
-    setMediaStatus("");
-    setMediaUploadTarget("");
+    resetProfileSessionState();
     setMessage("Вы вышли из кабинета.");
   };
 
@@ -2588,6 +2589,14 @@ const resourceComparisonPanel = (
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
       {loading && !user && <div className="cabinetNotice">Загружаю кабинет...</div>}
+      {loading && !user && loadingTimedOut && (
+        <div className="cabinetCard authCard" role="alert">
+          <p className="cabinetEyebrow">Восстановление входа</p>
+          <h2>Кабинет загружается слишком долго</h2>
+          <p>Можно сбросить текущий вход и открыть форму входа заново. Токены и настройки не показываются.</p>
+          <button className="cabinetGoogle" type="button" onClick={resetProfileSessionState}>Войти заново</button>
+        </div>
+      )}
 
       {!loading && !user && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>

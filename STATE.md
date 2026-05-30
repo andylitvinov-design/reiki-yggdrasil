@@ -12,6 +12,28 @@ Last updated: 2026-05-29
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-31 — PR #131 profile loading recovery
+
+- Branch: `codex-fix-profile-loading-regression`, rebased onto `origin/main` after PR #130 added `docs/PROFILE_SERVICES_ROADMAP.md`.
+- Scope: minimal `/profile` loading safety only; no services/shop integration, no homepage changes, no Vercel rewrite changes.
+- Added request abort timeouts in `src/lib/supabaseClient.js` and `src/lib/powerPlaceClient.js` with safe Russian timeout messages.
+- Malformed stored profile sessions are now cleared through the existing session helper instead of being left in localStorage.
+- Added React-level `/profile` loading fallback in `src/pages/ProfilePage.jsx`:
+  - after a long initial load, the UI offers `Войти заново`;
+  - the action clears only the stored profile session through the existing session helper and returns to login state;
+  - raw errors, tokens, env values, and request URLs are not displayed.
+- Kept `public/profile-loading-recovery.js` as a temporary DOM-level fallback guard while the React fallback is verified.
+- Removed the unsafe React Fiber hook-index state dispatch path from `public/profile-power-place-visual-export.js`; normal save/update remains the supported path, and save-as-new remains temporarily disabled until it is owned by React.
+
+Verification:
+
+- Passed `npm run test:profile-media`, `npm run test:profile-materials`, `npm run test:profile-services`, `npm run test:power-place`, `npm run check`, and `npm run build` after `npm install`.
+- Browser QA on local Vite dev server covered `/`, `/profile`, `/masters`, `/profile/admin`, desktop 1366, and mobile 390 with no console warnings/errors and no horizontal overflow in the no-env state.
+- Session QA covered clean storage, expired session clearing, malformed session clearing, and invalid-token/no-env non-hanging state.
+- Runtime isolation disabled each profile helper script one by one in `index.html`; none was confirmed to break initial `/profile` load in the local no-env state.
+- Not verified locally: authenticated profile load, Google OAuth, slow/blocked real Supabase request, and normal save/update against Supabase because `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_ADMIN_EMAIL` were unset in this shell.
+- Production/live verification remains required after merge and deploy.
+
 ## 2026-05-29 — Public right-panel materials feed upgrade
 
 ## 2026-05-29 — Profile power sources UX (issue #72)
