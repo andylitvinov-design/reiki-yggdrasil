@@ -15,6 +15,13 @@ npm run dev
 npm run build
 ```
 
+## Domains
+
+- Target production URL: `https://mentalica.vercel.app`
+- Current/legacy URL until migration is fully verified: `https://reiki-yggdrasil.vercel.app`
+
+The frontend OAuth redirect flow uses `window.location.origin`, so the app should work on the active Vercel domain after the domain alias and Supabase Auth redirects are configured. Keep both target and legacy redirect URLs during the migration window.
+
 ## Profile cabinet setup
 
 The profile cabinet MVP is routed at `/profile`, `/masters`, and `/profile/admin`.
@@ -39,11 +46,14 @@ Supabase setup steps:
 7. Apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`.
 8. Apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`.
 9. Apply `supabase/migrations/20260527143000_power_place_star_format.sql`.
-10. Add these auth redirect URLs in Supabase:
-   - `https://reiki-yggdrasil.vercel.app/profile`
-   - `https://reiki-yggdrasil.vercel.app/profile/admin`
-11. Add the Vercel production env vars named above.
-12. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+10. Add these auth redirect URLs in Supabase for the target domain:
+    - `https://mentalica.vercel.app/profile`
+    - `https://mentalica.vercel.app/profile/admin`
+11. Keep these legacy auth redirect URLs until the migration is fully verified:
+    - `https://reiki-yggdrasil.vercel.app/profile`
+    - `https://reiki-yggdrasil.vercel.app/profile/admin`
+12. Add the Vercel production env vars named above.
+13. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -60,10 +70,36 @@ Google OAuth setup:
 1. Enable the Google provider in Supabase Auth.
 2. Configure Google OAuth credentials in the Supabase dashboard.
 3. Add the Supabase callback URL from the Supabase dashboard to Google Cloud OAuth redirect URIs.
-4. Add these auth redirect URLs in Supabase:
+4. Add these target auth redirect URLs in Supabase:
+   - `https://mentalica.vercel.app/profile`
+   - `https://mentalica.vercel.app/profile/admin`
+5. Keep these legacy auth redirect URLs until the migration is fully verified:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
-5. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
+6. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
+
+## Domain migration checklist
+
+Before switching production traffic to `https://mentalica.vercel.app`:
+
+1. Confirm the Vercel project is the same project connected to `andylitvinov-design/reiki-yggdrasil`.
+2. Confirm `mentalica.vercel.app` is assigned to the intended Vercel project.
+3. Confirm Vercel production env names are configured:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_ADMIN_EMAIL`
+4. Confirm Supabase Auth Site URL and Redirect URLs include the target `/profile` and `/profile/admin` URLs.
+5. Keep the old `reiki-yggdrasil.vercel.app` redirects during transition.
+6. Verify:
+   - `https://mentalica.vercel.app/`
+   - `https://mentalica.vercel.app/profile`
+   - `https://mentalica.vercel.app/masters`
+   - `https://mentalica.vercel.app/profile/admin`
+   - Google login from `/profile`
+   - Google login/admin access from `/profile/admin`
+   - no console errors
+   - desktop three-column layout remains intact
+   - mobile layout under 980px remains usable
 
 Power Place persistence setup:
 
