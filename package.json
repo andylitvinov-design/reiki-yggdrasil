@@ -13,7 +13,8 @@
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
     "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
     "validate:free-courses": "node scripts/validate-free-course-links.mjs",
-    "check": "npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run test:profile-services && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
+    "verify:debug-contract": "node scripts/verify-reiki-debug-contract.mjs",
+    "check": "npm run verify:debug-contract && npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run test:profile-services && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
