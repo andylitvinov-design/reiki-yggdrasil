@@ -1,5 +1,45 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — PR #131 profile loading recovery pass
+
+- PR: #131 `fix: prevent profile loading lock`.
+- Branch: `codex-fix-profile-loading-regression`, rebased cleanly onto `origin/main`.
+- Changed files:
+  - `src/lib/supabaseClient.js`
+  - `src/pages/ProfilePage.jsx`
+  - `public/profile-power-place-visual-export.js`
+  - `STATE.md`
+  - `LOG.md`
+- Preserved existing PR timeout files:
+  - `src/lib/powerPlaceClient.js`
+  - `public/profile-loading-recovery.js`
+  - `index.html`
+- Root cause status:
+  - confirmed: missing request timeouts can leave `/profile` waiting indefinitely on stalled Supabase requests;
+  - confirmed risk: the old visual-export helper mutated React state through Fiber internals and a hardcoded hook index;
+  - not confirmed: MutationObserver as a direct cause of the loading hang.
+- Runtime decision: save-as-new remains disabled in this safety PR; normal save/update stays in the supported flow.
+- Checks run:
+  - `npm install`
+  - `npm run test:profile-media`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run check`
+  - `npm run build`
+- Browser QA:
+  - local `/`, `/profile`, `/masters`, `/profile/admin` loaded without console warnings/errors;
+  - desktop 1366 and mobile 390 had no horizontal overflow;
+  - clean, expired, malformed, and invalid-token/no-env session states did not hang on `Загружаю кабинет...`;
+  - malformed stored session is cleared;
+  - each profile runtime script was disabled one by one and none was confirmed to break initial `/profile` load in the local no-env state.
+- Not verified:
+  - authenticated profile load;
+  - Google OAuth;
+  - slow/blocked real Supabase request;
+  - normal Supabase save/update;
+  - live production routes after merge/deploy.
+
 ## 2026-05-29 — Issue #72 profile power sources UX implementation
 
 Mode: profile cabinet UX rework for `/profile` power and mandala sources.

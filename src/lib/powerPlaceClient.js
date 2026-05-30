@@ -9,6 +9,7 @@ import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
+const REQUEST_TIMEOUT_MS = 12000;
 
 const CLIENT_PHOTOS_TABLE = "profile_cabinet_client_goal_photos";
 const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
@@ -73,16 +74,34 @@ async function request(path, options = {}) {
   }
 
   const session = requestSession(options.session);
-  const response = await fetch(`${SUPABASE_URL}${path}`, {
-    method: options.method || "GET",
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
-      "Content-Type": "application/json",
-      ...(options.prefer ? { Prefer: options.prefer } : {})
-    },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body)
-  });
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), options.timeoutMs || REQUEST_TIMEOUT_MS);
+
+  let response;
+  try {
+    response = await fetch(`${SUPABASE_URL}${path}`, {
+      method: options.method || "GET",
+      signal: controller.signal,
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        ...(options.prefer ? { Prefer: options.prefer } : {})
+      },
+      body: options.body === undefined ? undefined : JSON.stringify(options.body)
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw powerPlaceError("Загрузка или сохранение места силы заняли слишком много времени. Проверьте подключение и попробуйте снова.", {
+        status: 408,
+        timeout: true
+      });
+    }
+
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
 
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
