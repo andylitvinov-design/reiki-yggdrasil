@@ -114,6 +114,31 @@ export function buildReikiDebugSnapshot(options = {}) {
       temporary_preview_prefix: "data:image",
       public_leak_forbidden: true,
     },
+    intake_contract: {
+      task_types: [
+        "bug",
+        "design_mismatch",
+        "live_mismatch",
+        "auth_data_flow",
+        "media_storage",
+        "service_order",
+        "content",
+        "quality_audit",
+      ],
+      required_fields: [
+        "project",
+        "task_type",
+        "user_symptom",
+        "affected_route",
+        "environment",
+        "device_or_viewport",
+        "auth_state",
+        "expected_behavior",
+        "actual_behavior",
+        "evidence_provided",
+      ],
+      max_clarifying_questions_before_self_checks: 1,
+    },
     evidence_contract: {
       levels: EVIDENCE_LEVELS,
       confidence_labels: ["confirmed", "likely", "possible", "needs verification"],
@@ -150,6 +175,33 @@ export function buildReikiDebugSnapshot(options = {}) {
       ],
       default_not_visible_classification: "DEPLOY_MISMATCH until disproven",
     },
+    quality_rubric: {
+      target_scores: {
+        codex_implementation_prompt: 16,
+        analysis_answer: 14,
+        revise_below: 12,
+      },
+      score_areas: [
+        "project_context",
+        "bug_classification",
+        "evidence",
+        "files",
+        "root_cause",
+        "safety",
+        "codex_prompt",
+        "verification",
+        "honesty",
+      ],
+      mandatory_self_checks: [
+        "affected_route_environment_identified",
+        "live_preview_local_distinguished",
+        "primary_bug_layer_classified",
+        "confirmed_vs_needs_verification_split",
+        "likely_files_named",
+        "checks_specified",
+        "not_verified_items_listed",
+      ],
+    },
     bug_taxonomy: BUG_TAXONOMY,
     audit_checks: [
       {
@@ -163,6 +215,11 @@ export function buildReikiDebugSnapshot(options = {}) {
         message: "Core Reiki routes are listed for debugger checks.",
       },
       {
+        name: "intake_protocol",
+        status: "ok",
+        message: "Snapshot includes required bug intake fields and question limit.",
+      },
+      {
         name: "evidence_protocol",
         status: "ok",
         message: "Snapshot includes evidence levels and required report fields.",
@@ -171,6 +228,11 @@ export function buildReikiDebugSnapshot(options = {}) {
         name: "repair_loop_protocol",
         status: "ok",
         message: "Snapshot includes Codex repair-loop states and acceptance fields.",
+      },
+      {
+        name: "quality_rubric",
+        status: "ok",
+        message: "Snapshot includes debugger answer quality scoring and self-checks.",
       },
       {
         name: "live_auth_storage",
