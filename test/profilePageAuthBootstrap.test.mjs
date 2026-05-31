@@ -63,14 +63,14 @@ assert.match(
 
 assert.match(
   profilePageSource,
-  /const cabinetReady = Boolean\(user && authStatus === "ready"\);/,
-  "cabinet render gate should be named and limited to applied user plus completed auth state"
+  /const shouldShowCabinet = Boolean\(user\?\.id\);/,
+  "cabinet render gate should open as soon as user.id is present, regardless of authStatus"
 );
 
 assert.match(
   profilePageSource,
-  /\{cabinetReady && \(/,
-  "authenticated cabinet shell should render from cabinetReady"
+  /\{shouldShowCabinet && \(/,
+  "authenticated cabinet shell should render from shouldShowCabinet"
 );
 
 assert.match(
