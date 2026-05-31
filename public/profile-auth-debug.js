@@ -9,7 +9,8 @@
     exchangeErrorStatus: "",
     getCurrentUserStatus: "idle",
     getCurrentUserErrorMessage: "",
-    getCurrentUserErrorStatus: ""
+    getCurrentUserErrorStatus: "",
+    getCurrentUserResponseIdPresent: false
   };
 
   window.__REIKI_PROFILE_AUTH_REQUEST_DEBUG__ = state;
@@ -45,6 +46,17 @@
     }
   }
 
+  async function readSafeUserIdPresence(response) {
+    try {
+      const text = await response.clone().text();
+      if (!text) return false;
+      const data = JSON.parse(text);
+      return Boolean(data?.id || data?.user?.id || data?.data?.user?.id);
+    } catch (_error) {
+      return false;
+    }
+  }
+
   const nativeFetch = window.fetch?.bind(window);
   if (!nativeFetch || window.__REIKI_PROFILE_AUTH_FETCH_PATCHED__) return;
   window.__REIKI_PROFILE_AUTH_FETCH_PATCHED__ = true;
@@ -56,7 +68,7 @@
       publish({ exchangeStatus: "loading", exchangeErrorMessage: "", exchangeErrorStatus: "" });
     }
     if (kind === "getCurrentUser") {
-      publish({ getCurrentUserStatus: "loading", getCurrentUserErrorMessage: "", getCurrentUserErrorStatus: "" });
+      publish({ getCurrentUserStatus: "loading", getCurrentUserErrorMessage: "", getCurrentUserErrorStatus: "", getCurrentUserResponseIdPresent: false });
     }
 
     try {
@@ -74,12 +86,18 @@
       }
       if (kind === "getCurrentUser") {
         if (response.ok) {
-          publish({ getCurrentUserStatus: "success", getCurrentUserErrorMessage: "", getCurrentUserErrorStatus: "" });
+          publish({
+            getCurrentUserStatus: "success",
+            getCurrentUserErrorMessage: "",
+            getCurrentUserErrorStatus: "",
+            getCurrentUserResponseIdPresent: await readSafeUserIdPresence(response)
+          });
         } else {
           publish({
             getCurrentUserStatus: "error",
             getCurrentUserErrorMessage: await readSafeResponseMessage(response),
-            getCurrentUserErrorStatus: String(response.status || "")
+            getCurrentUserErrorStatus: String(response.status || ""),
+            getCurrentUserResponseIdPresent: false
           });
         }
       }
@@ -96,7 +114,8 @@
         publish({
           getCurrentUserStatus: "error",
           getCurrentUserErrorMessage: sanitizeMessage(error?.message || "network error"),
-          getCurrentUserErrorStatus: "network"
+          getCurrentUserErrorStatus: "network",
+          getCurrentUserResponseIdPresent: false
         });
       }
       throw error;

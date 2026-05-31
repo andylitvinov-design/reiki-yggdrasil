@@ -12,6 +12,33 @@ Last updated: 2026-05-29
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-31 — Profile bootstrap user-state fix
+
+- Branch: `codex/fix-profile-bootstrap-user-state`, based on fresh `origin/main` commit `7c44be6`.
+- Scope: targeted `/profile` bootstrap/auth state only; no homepage, `/masters`, `/profile/admin`, Supabase schema, OAuth provider settings, env, or Vercel rewrite changes.
+- `loadProfileCabinetBootstrap` now:
+  - normalizes direct user, `{ user }`, and `{ data: { user } }` auth response shapes;
+  - keeps the direct `id` path as the primary success path;
+  - uses JWT `sub` / `user_id` fallback when `getCurrentUser` times out, hits non-401/403 network-style failure, or resolves without a usable `id`;
+  - refuses fallback for real 401/403 auth failures.
+- `/profile?debugAuth=1` now reports safe bootstrap pipeline fields:
+  - `bootstrap step`
+  - `bootstrap error safe message`
+  - `currentUser id present after bootstrap`
+  - `cancelled before apply`
+  - `react bootstrap checkpoint`
+  - `getCurrentUser response id present`
+- `ProfilePage.jsx` now marks the pipeline before/after `loadProfileCabinetBootstrap`, after return, around `setUser`, after `setAuthStatus("ready")`, and on cleanup/cancel.
+- Cabinet shell remains gated by `user && authStatus === "ready"`.
+- Optional data loads for materials, client/goal photos, power places, and tradition assets remain separate effects after the shell user/profile bootstrap and do not block cabinet opening.
+
+Verification:
+
+- Passed `node test/profileBootstrapClient.test.mjs`.
+- Passed `npm run check` (including debug contract/manifest, profile tests, validators, and build).
+- Passed `npm run build`.
+- Not verified locally/live: real Google OAuth session on `https://mentalica.vercel.app/profile?debugAuth=1`, because live auth requires browser/account interaction after merge/deploy.
+
 ## 2026-05-31 — PR #131 profile loading recovery
 
 - Branch: `codex-fix-profile-loading-regression`, rebased onto `origin/main` after PR #130 added `docs/PROFILE_SERVICES_ROADMAP.md`.

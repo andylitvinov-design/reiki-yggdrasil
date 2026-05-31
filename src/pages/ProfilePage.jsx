@@ -674,6 +674,21 @@ function isUsableStoredSession(session) {
   );
 }
 
+const EMPTY_BOOTSTRAP_DEBUG = {
+  bootstrapStep: "idle",
+  bootstrapErrorMessage: "",
+  bootstrapCurrentUserIdPresent: false,
+  bootstrapCancelledBeforeApply: false,
+  reactBootstrapCheckpoint: "idle"
+};
+
+function sanitizeDebugMessage(value) {
+  return String(value || "")
+    .replace(/eyJ[a-zA-Z0-9._-]+/g, "[redacted]")
+    .replace(/[a-zA-Z0-9_-]{24,}\.[a-zA-Z0-9_.-]{24,}/g, "[redacted]")
+    .slice(0, 180);
+}
+
 function getInitialStoredSession() {
   let hadStoredSession = false;
 
@@ -753,6 +768,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [isClientPhotoUploadOpen, setIsClientPhotoUploadOpen] = useState(false);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [bootstrapRetryKey, setBootstrapRetryKey] = useState(0);
+  const [bootstrapDebug, setBootstrapDebug] = useState(EMPTY_BOOTSTRAP_DEBUG);
 
   const resetProfileSessionState = (notice = "") => {
     clearProfileSessionStorage();
@@ -1476,6 +1492,22 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   const sessionAccessToken = session?.access_token || "";
 
+  const publishBootstrapDebug = (patch) => {
+    setBootstrapDebug((current) => {
+      const next = { ...current, ...patch };
+      if (typeof window !== "undefined") {
+        window.__REIKI_PROFILE_REACT_DEBUG__ = {
+          ...(window.__REIKI_PROFILE_REACT_DEBUG__ || {}),
+          ...next
+        };
+        window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
+          detail: window.__REIKI_PROFILE_REACT_DEBUG__
+        }));
+      }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const debugAuth = new URLSearchParams(window.location.search).get("debugAuth") === "1";
@@ -1487,28 +1519,38 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       hasUserId: Boolean(user?.id),
       hasSessionState: Boolean(sessionAccessToken),
       cabinetCondition: Boolean(user && authStatus === "ready"),
-      loadingTimedOut: Boolean(loadingTimedOut)
+      loadingTimedOut: Boolean(loadingTimedOut),
+      ...bootstrapDebug
     };
     window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
       detail: window.__REIKI_PROFILE_REACT_DEBUG__
     }));
-  }, [authStatus, user, sessionAccessToken, loadingTimedOut]);
+  }, [authStatus, user, sessionAccessToken, loadingTimedOut, bootstrapDebug]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       if (!supabaseEnv.isConfigured) {
+        publishBootstrapDebug({ ...EMPTY_BOOTSTRAP_DEBUG });
         setAuthStatus("idle");
         return;
       }
 
       if (!session?.access_token) {
+        publishBootstrapDebug({ ...EMPTY_BOOTSTRAP_DEBUG, bootstrapStep: "no-session" });
         setAuthStatus("idle");
         return;
       }
 
       if (isStoredSessionExpired(session)) {
+        publishBootstrapDebug({
+          bootstrapStep: "error",
+          bootstrapErrorMessage: "Сессия устарела.",
+          bootstrapCurrentUserIdPresent: false,
+          bootstrapCancelledBeforeApply: false,
+          reactBootstrapCheckpoint: "session-expired"
+        });
         resetProfileSessionState("Сессия устарела. Войдите заново.");
         return;
       }
@@ -1516,21 +1558,57 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       setAuthStatus("loading");
       setLoadingTimedOut(false);
       setError("");
+      publishBootstrapDebug({
+        ...EMPTY_BOOTSTRAP_DEBUG,
+        bootstrapStep: "started",
+        reactBootstrapCheckpoint: "before-bootstrap-call"
+      });
 
       try {
         const { currentUser, currentProfile } = await loadProfileCabinetBootstrap({
           session,
           getCurrentUser,
-          getOwnProfile
+          getOwnProfile,
+          onStep: (bootstrapStep, stepError) => publishBootstrapDebug({
+            bootstrapStep,
+            bootstrapErrorMessage: stepError ? sanitizeDebugMessage(stepError?.message || "bootstrap error") : "",
+            reactBootstrapCheckpoint: "inside-bootstrap"
+          })
         });
 
-        if (!cancelled) {
-          setUser(currentUser);
-          setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
-          setLoadingTimedOut(false);
-          setAuthStatus("ready");
+        publishBootstrapDebug({
+          bootstrapCurrentUserIdPresent: Boolean(currentUser?.id),
+          reactBootstrapCheckpoint: "bootstrap-returned"
+        });
+
+        if (cancelled) {
+          publishBootstrapDebug({
+            bootstrapStep: "cancelled",
+            bootstrapCancelledBeforeApply: true,
+            reactBootstrapCheckpoint: "cancelled-before-apply"
+          });
+          return;
         }
+
+        publishBootstrapDebug({ reactBootstrapCheckpoint: "before-set-user" });
+        setUser(currentUser);
+        publishBootstrapDebug({
+          bootstrapStep: "user-applied",
+          bootstrapCurrentUserIdPresent: Boolean(currentUser?.id),
+          reactBootstrapCheckpoint: "after-set-user"
+        });
+        setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
+        setLoadingTimedOut(false);
+        setAuthStatus("ready");
+        publishBootstrapDebug({ reactBootstrapCheckpoint: "after-auth-ready" });
       } catch (err) {
+        publishBootstrapDebug({
+          bootstrapStep: "error",
+          bootstrapErrorMessage: sanitizeDebugMessage(err?.message || "bootstrap error"),
+          bootstrapCurrentUserIdPresent: false,
+          reactBootstrapCheckpoint: "bootstrap-error"
+        });
+
         if (err?.code === "auth_load_timeout") {
           if (!cancelled) {
             resetProfileSessionState("Вход не отвечает. Сессия сброшена, войдите заново.");
@@ -1556,6 +1634,16 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     return () => {
       cancelled = true;
+      if (typeof window !== "undefined") {
+        window.__REIKI_PROFILE_REACT_DEBUG__ = {
+          ...(window.__REIKI_PROFILE_REACT_DEBUG__ || {}),
+          bootstrapStep: "cancelled",
+          reactBootstrapCheckpoint: "cleanup-cancelled"
+        };
+        window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
+          detail: window.__REIKI_PROFILE_REACT_DEBUG__
+        }));
+      }
     };
   }, [sessionAccessToken, bootstrapRetryKey]);
 
