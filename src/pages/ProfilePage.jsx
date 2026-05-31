@@ -1436,7 +1436,13 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       resetProfileSessionState("Сессия повреждена. Войдите заново.");
       return;
     }
-    setSession(nextSession);
+
+    setSession((currentSession) => {
+      if (currentSession?.access_token && currentSession.access_token === nextSession?.access_token) {
+        return currentSession;
+      }
+      return nextSession;
+    });
   }, []);
 
   useEffect(() => {
@@ -1466,6 +1472,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   useEffect(() => {
     setActivePickerThirdLevel(activePickerSubcategoryData?.thirdLevels?.[0]?.value || "");
   }, [activePickerSubcategoryData]);
+
+  const sessionAccessToken = session?.access_token || "";
 
   useEffect(() => {
     let cancelled = false;
@@ -1501,6 +1509,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           setUser(currentUser);
           setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
           setLoadingTimedOut(false);
+          setLoading(false);
         }
       } catch (err) {
         if (err?.code === "auth_load_timeout") {
@@ -1528,7 +1537,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     return () => {
       cancelled = true;
     };
-  }, [session, bootstrapRetryKey]);
+  }, [sessionAccessToken, bootstrapRetryKey]);
 
   useEffect(() => {
     let cancelled = false;
