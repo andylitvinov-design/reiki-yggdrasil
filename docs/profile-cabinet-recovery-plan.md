@@ -443,7 +443,192 @@ Likely suspect classes:
 - DOM-level recovery scripts inserted into `index.html` or `public/`;
 - any patch that clears session on timeout instead of rendering a recoverable authenticated state.
 
-## 12. Testing a checkpoint safely
+## 12. Staged rollback depth ladder
+
+Use this ladder only after PR #162 has been deployed and verified as still failing. Each depth is more invasive than the previous one. Stop as soon as a stage restores the cabinet or gives a clear first-bad commit.
+
+### Depth 0 — no rollback: prove deploy freshness
+
+Goal: ensure the live site actually contains the intended fix.
+
+Actions:
+
+- verify Vercel deployment status for target SHA;
+- verify live HTML JS asset changed;
+- verify `/profile?debugAuth=1` reports current debug fields;
+- verify `/profile-lite` still works.
+
+Move deeper only if:
+
+```text
+live is fresh, /profile-lite works, old /profile still fails.
+```
+
+Risk: wasting time debugging stale code.  
+Decision: if stale, fix deploy/alias first and do not rollback.
+
+### Depth 1 — hunk-level rollback/fix inside `ProfilePage.jsx`
+
+Goal: undo or patch only the exact render/state hunk that blocks the shell.
+
+Allowed actions:
+
+- change render gate conditions;
+- change timeout/recovery branch;
+- move secondary data errors into inline warnings;
+- remove only a proven blocking condition.
+
+Forbidden:
+
+- reverting whole recent PRs;
+- touching OAuth, migrations, or Vercel config.
+
+Move deeper only if:
+
+```text
+/ProfilePage.jsx hunk-level fixes do not restore the shell and debug proves auth/user are present.
+```
+
+Risk: missing an earlier bootstrap/session issue.  
+Decision: compare `/profile-lite` before touching lower layers.
+
+### Depth 2 — disable DOM-level recovery scripts
+
+Goal: remove reload/fetch-patching interference without losing React fixes.
+
+Suspect files:
+
+```text
+index.html
+public/profile-auth-render-recovery.js
+public/profile-loading-recovery.js
+public/profile-*recovery*.js
+```
+
+Allowed action:
+
+- create a branch that removes the script tag or disables the script behind a safe flag.
+
+Move deeper only if:
+
+```text
+old /profile still fails after DOM recovery scripts are disabled, and live bundle is fresh.
+```
+
+Risk: losing a workaround that masks a deeper issue.  
+Decision: test with `/profile?debugAuth=1` and compare before/after values.
+
+### Depth 3 — revert late old-profile repair chain only
+
+Goal: remove late attempts after `/profile-lite` while preserving `/profile-lite` itself.
+
+Candidate boundary:
+
+```text
+af5642d872d7ab2fef48e27cf4e1fc6840d750c9
+feat: add profile lite diagnostic cabinet
+```
+
+Strategy:
+
+- create a branch from current `main`;
+- revert only PRs/commits after `af5642d` that touch old `/profile` runtime;
+- keep `/profile-lite`, tests, docs, and fallback workflow.
+
+Move deeper only if:
+
+```text
+after late-chain revert, /profile still fails and /profile-lite still works.
+```
+
+Risk: conflicts and losing useful tests/docs.  
+Decision: use targeted revert commits, not reset.
+
+### Depth 4 — test pre-`/profile-lite` auth/bootstrap state
+
+Goal: find whether `/profile-lite` era introduced side effects or whether the issue predates it.
+
+Checkpoint:
+
+```text
+5a9a8649664235558c21ecd18d5bb41b5c96f691
+```
+
+Actions:
+
+- create test branch from this checkpoint;
+- build and verify old `/profile` behavior;
+- do not use this branch as final restore unless it is proven good.
+
+Move deeper only if:
+
+```text
+checkpoint is bad or inconclusive.
+```
+
+Risk: losing `/profile-lite`, so this is diagnostic only.  
+Decision: if this is good, restore from this baseline and reapply `/profile-lite` carefully.
+
+### Depth 5 — investigate PR #138–#145 zone
+
+Goal: find the earlier actual regression if the issue existed before today’s diagnostic chain.
+
+Known marker:
+
+```text
+5f45c44d3e3ce2c0b0687fd8964e04c2059c4cb3
+```
+
+This marker is already bad, not good.
+
+Focus:
+
+- PR #142: old cabinet no longer waits for `getOwnProfile`;
+- PR #145: manual Supabase PKCE callback handling;
+- timeout/session clearing changes;
+- any DOM recovery script introduced before the diagnostic plan.
+
+Move deeper only if:
+
+```text
+all PR #138–#145 candidates are bad or no good commit is found.
+```
+
+Risk: increasingly old code may not include later required fixes.  
+Decision: use bisect and hunk-level analysis, not wholesale revert.
+
+### Depth 6 — restore from confirmed known-good baseline and reapply features
+
+Goal: emergency recovery if the chain is too tangled.
+
+Requirements before use:
+
+- a confirmed known-good commit where old `/profile` opens after Google login;
+- a confirmed bad current commit;
+- written evidence from live/preview testing.
+
+Procedure:
+
+```bash
+git checkout -b restore/profile-from-known-good <confirmed-good-sha>
+```
+
+Reapply in this order:
+
+```text
+1. Vercel fallback workflow if missing;
+2. docs and tests that do not change runtime;
+3. /profile-lite diagnostic route;
+4. only proven Supabase/session fixes;
+5. old /profile user-id render gate;
+6. secondary data non-blocking warnings;
+7. UI improvements unrelated to auth.
+```
+
+Risk: large diff and regression in newer features.  
+Decision: use only if depths 0–5 fail and a good baseline is proven.
+
+## 13. Testing a checkpoint safely
 
 Never move `main` to a checkpoint directly.
 
@@ -474,7 +659,7 @@ expected JS asset:
 conclusion: good / bad / inconclusive
 ```
 
-## 13. Preferred bisect strategy
+## 14. Preferred bisect strategy
 
 Only start bisect after identifying one confirmed good and one confirmed bad commit.
 
@@ -513,7 +698,7 @@ When bisect finds the first bad commit, inspect only the files touching:
 - auth/profile tests
 - Vercel/deploy config only if live is stale or route-level 404 appears.
 
-## 14. Recovery options after finding first bad commit
+## 15. Recovery options after finding first bad commit
 
 ### Option 1 — hunk-level fix, preferred
 
@@ -559,7 +744,7 @@ npm run build
 
 4. Live-test `/profile` only on the smallest candidate set.
 
-## 15. What to preserve if rollback is needed
+## 16. What to preserve if rollback is needed
 
 Preserve if possible:
 
@@ -576,7 +761,7 @@ Potentially remove or disable only after evidence:
 - duplicate debug scripts that conflict with React state;
 - session-clearing timeout paths that treat slow current-user requests as expired sessions.
 
-## 16. Production deploy discipline
+## 17. Production deploy discipline
 
 Vercel free/Hobby daily limit can block production deploys. To avoid wasting deploy attempts:
 
@@ -588,7 +773,7 @@ Vercel free/Hobby daily limit can block production deploys. To avoid wasting dep
 
 Production fallback inputs must always include `expected_sha`.
 
-## 17. Final report format for any recovery PR
+## 18. Final report format for any recovery PR
 
 Every recovery PR must report:
 
@@ -597,18 +782,19 @@ Every recovery PR must report:
 3. Current deployed commit and current `main` commit.
 4. Whether live was stale or current.
 5. Checkpoints tested.
-6. Confirmed good commit.
-7. Confirmed bad commit.
-8. First bad commit, if bisect was used.
-9. Exact broken file/condition.
-10. Fix type: hunk patch / targeted revert / restore branch.
-11. Changed files.
-12. Checks run.
-13. Live QA routes.
-14. What was not verified.
-15. Risks.
+6. Rollback depth reached.
+7. Confirmed good commit.
+8. Confirmed bad commit.
+9. First bad commit, if bisect was used.
+10. Exact broken file/condition.
+11. Fix type: hunk patch / targeted revert / restore branch.
+12. Changed files.
+13. Checks run.
+14. Live QA routes.
+15. What was not verified.
+16. Risks.
 
-## 18. Short operating rule
+## 19. Short operating rule
 
 Do not roll back because the last fix did not deploy. Deploy first, verify live, then decide.
 
