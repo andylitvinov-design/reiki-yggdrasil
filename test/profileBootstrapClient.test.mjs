@@ -50,6 +50,8 @@ const timeoutError = await loadProfileCabinetBootstrap({
 }).catch((error) => error);
 
 assert.equal(timeoutError.code, "auth_load_timeout");
+assert.equal(timeoutError.details?.status, 408);
+assert.equal(timeoutError.details?.timeout, true);
 assert.match(timeoutError.message, /Вход не отвечает/);
 
 const fallbackSession = {
@@ -65,6 +67,16 @@ assert.equal(fallbackUser.currentUser.id, "user-from-token");
 assert.equal(fallbackUser.currentUser.email, "fallback@example.com");
 assert.equal(fallbackUser.currentUser.source, "session-jwt-fallback");
 assert.equal(fallbackUser.currentProfile, null);
+
+const malformedCurrentUserFallback = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => ({ email: "missing-id@example.com" }),
+  timeoutMs: 20
+});
+
+assert.equal(malformedCurrentUserFallback.currentUser.id, "user-from-token");
+assert.equal(malformedCurrentUserFallback.currentUser.source, "session-jwt-fallback");
+assert.equal(malformedCurrentUserFallback.currentProfile, null);
 
 const unauthorizedError = await loadProfileCabinetBootstrap({
   session: fallbackSession,
