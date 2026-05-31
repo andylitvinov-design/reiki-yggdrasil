@@ -39,6 +39,9 @@ When giving the user a terminal prompt for this repo:
   - `git fetch origin`
 - Do not assume `main` can be checked out; it may be locked by another worktree.
 - Prefer resetting/branching from `origin/main` when a clean base is needed.
+- For clean task branches, use `git switch -C <branch> origin/main` or an equivalent branch-from-remote command instead of `git checkout main && git pull`.
+- If any setup command fails (`checkout`, `switch`, `pull`, `merge`, `rebase`, pattern replacement), stop the script immediately; do not continue into edits/checks/commit.
+- In generated patch scripts, assert the intended old pattern exists exactly once when possible, and verify the resulting diff does not contain duplicated old/new code blocks.
 - Abort or stop if `MERGE_HEAD`, rebase, cherry-pick, unresolved conflicts, or unexpected dirty files are present.
 - Before commit, print and verify:
   - `git status --short`
