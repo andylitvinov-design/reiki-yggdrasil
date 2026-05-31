@@ -14,7 +14,7 @@ Last updated: 2026-05-29
 
 ## 2026-05-31 — Profile bootstrap user-state fix
 
-- Branch: `codex/fix-profile-bootstrap-user-state`, based on fresh `origin/main` commit `7c44be6`.
+- Branch: `codex/fix-profile-bootstrap-user-state`, rebased onto fresh `origin/main` commit `a34e699`.
 - Scope: targeted `/profile` bootstrap/auth state only; no homepage, `/masters`, `/profile/admin`, Supabase schema, OAuth provider settings, env, or Vercel rewrite changes.
 - `loadProfileCabinetBootstrap` now:
   - normalizes direct user, `{ user }`, and `{ data: { user } }` auth response shapes;
@@ -26,9 +26,10 @@ Last updated: 2026-05-29
   - `bootstrap error safe message`
   - `currentUser id present after bootstrap`
   - `cancelled before apply`
+  - `fallback user used`
   - `react bootstrap checkpoint`
   - `getCurrentUser response id present`
-- `ProfilePage.jsx` now marks the pipeline before/after `loadProfileCabinetBootstrap`, after return, around `setUser`, after `setAuthStatus("ready")`, and on cleanup/cancel.
+- `ProfilePage.jsx` now marks the pipeline before/after `loadProfileCabinetBootstrap`, after return, around `setUser`, after `setAuthStatus("ready")` as `auth-ready-applied`, and on cleanup/cancel.
 - Cabinet shell remains gated by `user && authStatus === "ready"`.
 - Optional data loads for materials, client/goal photos, power places, and tradition assets remain separate effects after the shell user/profile bootstrap and do not block cabinet opening.
 

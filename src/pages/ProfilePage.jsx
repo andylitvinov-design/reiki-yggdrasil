@@ -679,6 +679,7 @@ const EMPTY_BOOTSTRAP_DEBUG = {
   bootstrapErrorMessage: "",
   bootstrapCurrentUserIdPresent: false,
   bootstrapCancelledBeforeApply: false,
+  bootstrapFallbackUserUsed: false,
   reactBootstrapCheckpoint: "idle"
 };
 
@@ -1549,6 +1550,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           bootstrapErrorMessage: "Сессия устарела.",
           bootstrapCurrentUserIdPresent: false,
           bootstrapCancelledBeforeApply: false,
+          bootstrapFallbackUserUsed: false,
           reactBootstrapCheckpoint: "session-expired"
         });
         resetProfileSessionState("Сессия устарела. Войдите заново.");
@@ -1572,6 +1574,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           onStep: (bootstrapStep, stepError) => publishBootstrapDebug({
             bootstrapStep,
             bootstrapErrorMessage: stepError ? sanitizeDebugMessage(stepError?.message || "bootstrap error") : "",
+            bootstrapFallbackUserUsed: bootstrapStep === "fallback-used",
             reactBootstrapCheckpoint: "inside-bootstrap"
           })
         });
@@ -1600,7 +1603,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
         setLoadingTimedOut(false);
         setAuthStatus("ready");
-        publishBootstrapDebug({ reactBootstrapCheckpoint: "after-auth-ready" });
+        publishBootstrapDebug({
+          bootstrapStep: "auth-ready-applied",
+          bootstrapCurrentUserIdPresent: Boolean(currentUser?.id),
+          reactBootstrapCheckpoint: "after-auth-ready"
+        });
       } catch (err) {
         publishBootstrapDebug({
           bootstrapStep: "error",

@@ -111,6 +111,7 @@
           flags.bootstrapErrorMessage = reactDebug.bootstrapErrorMessage || "";
           flags.bootstrapCurrentUserIdPresent = reactDebug.bootstrapCurrentUserIdPresent ? "yes" : "no";
           flags.bootstrapCancelledBeforeApply = reactDebug.bootstrapCancelledBeforeApply ? "yes" : "no";
+          flags.bootstrapFallbackUserUsed = reactDebug.bootstrapFallbackUserUsed ? "yes" : "no";
           flags.reactBootstrapCheckpoint = reactDebug.reactBootstrapCheckpoint || "idle";
           return flags;
         }
@@ -144,6 +145,7 @@
             ["bootstrap error safe message", flags.bootstrapErrorMessage],
             ["currentUser id present after bootstrap", flags.bootstrapCurrentUserIdPresent],
             ["cancelled before apply", flags.bootstrapCancelledBeforeApply],
+            ["fallback user used", flags.bootstrapFallbackUserUsed],
             ["react bootstrap checkpoint", flags.reactBootstrapCheckpoint],
             ["react authStatus", flags.reactAuthStatus],
             ["react user state", flags.reactUserState],

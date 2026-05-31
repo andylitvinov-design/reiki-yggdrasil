@@ -19,7 +19,7 @@
   - normalize direct, `{ user }`, and `{ data: { user } }` auth response shapes;
   - use JWT `sub` / `user_id` fallback for timeout/network-style failures and success-without-id;
   - preserve no-fallback behavior for real 401/403 auth failures;
-  - add safe `/profile?debugAuth=1` bootstrap steps and React apply checkpoints.
+  - add safe `/profile?debugAuth=1` bootstrap steps, fallback-used status, `auth-ready-applied`, and React apply checkpoints.
 - Checks run:
   - `node test/profileBootstrapClient.test.mjs`
   - `npm run check`
