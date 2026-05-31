@@ -55,7 +55,8 @@
           return "login/no-session";
         }
 
-        function detectExchangeStatus(flags) {
+        function detectExchangeStatus(flags, requestDebug) {
+          if (requestDebug?.exchangeStatus && requestDebug.exchangeStatus !== "idle") return requestDebug.exchangeStatus;
           if (flags.hasStoredSession) return "success";
           if (flags.initialHasUrlCode && !flags.hasPkceVerifier) return "error";
           if (flags.initialHasUrlCode && flags.hasPkceVerifier) return "loading";
@@ -65,6 +66,7 @@
         function readFlags() {
           const currentSearch = new URLSearchParams(window.location.search);
           const currentHash = new URLSearchParams(window.location.hash.slice(1));
+          const requestDebug = window.__REIKI_PROFILE_AUTH_REQUEST_DEBUG__ || {};
           const flags = {
             initialHasUrlCode: Boolean(window.__REIKI_PROFILE_AUTH_ENTRY_DEBUG__?.hasUrlCode),
             hasUrlCode: currentSearch.has("code"),
@@ -73,10 +75,12 @@
             hasPkceVerifier: safeHas(window.sessionStorage, verifierKey),
             renderState: detectRenderState()
           };
-          flags.exchangeStatus = detectExchangeStatus(flags);
-          flags.exchangeErrorMessage = flags.exchangeStatus === "error" ? "PKCE verifier missing or callback code was already cleared before a session appeared." : "";
-          flags.exchangeErrorStatus = flags.exchangeStatus === "error" ? "diagnostic_inferred" : "";
-          flags.getCurrentUserStatus = flags.renderState === "user" ? "success" : (flags.hasStoredSession && flags.renderState === "loading" ? "loading" : "idle");
+          flags.exchangeStatus = detectExchangeStatus(flags, requestDebug);
+          flags.exchangeErrorMessage = requestDebug.exchangeErrorMessage || (flags.exchangeStatus === "error" ? "PKCE verifier missing or callback code was already cleared before a session appeared." : "");
+          flags.exchangeErrorStatus = requestDebug.exchangeErrorStatus || (flags.exchangeStatus === "error" ? "diagnostic_inferred" : "");
+          flags.getCurrentUserStatus = requestDebug.getCurrentUserStatus || (flags.renderState === "user" ? "success" : (flags.hasStoredSession && flags.renderState === "loading" ? "loading" : "idle"));
+          flags.getCurrentUserErrorMessage = requestDebug.getCurrentUserErrorMessage || "";
+          flags.getCurrentUserErrorStatus = requestDebug.getCurrentUserErrorStatus || "";
           return flags;
         }
 
@@ -103,13 +107,14 @@
             ["exchange status", flags.exchangeStatus],
             ["exchange error message/status", [flags.exchangeErrorMessage, flags.exchangeErrorStatus].filter(Boolean).join(" / ") || ""],
             ["getCurrentUser status", flags.getCurrentUserStatus],
+            ["getCurrentUser error/status", [flags.getCurrentUserErrorMessage, flags.getCurrentUserErrorStatus].filter(Boolean).join(" / ") || ""],
             ["render state", flags.renderState]
           ];
 
           ensurePanel().innerHTML = `
             <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px;">
               <strong>Profile OAuth/session debug</strong>
-              <span style="font-size:11px;color:#6b7280;">safe booleans only</span>
+              <span style="font-size:11px;color:#6b7280;">safe booleans/status only</span>
             </div>
             <div style="display:grid;grid-template-columns:minmax(180px,1fr) minmax(120px,2fr);gap:4px 12px;">
               ${rows.map(([label, value]) => `<div style="color:#4b5563;">${safeText(label)}</div><div><code>${safeText(value ? String(value) : "no")}</code></div>`).join("")}
@@ -119,10 +124,12 @@
 
         window.addEventListener("DOMContentLoaded", renderPanel);
         window.addEventListener("storage", renderPanel);
+        window.addEventListener("reiki-profile-auth-debug-update", renderPanel);
         window.setInterval(renderPanel, 500);
         renderPanel();
       })();
     </script>
+    <script src="/profile-auth-debug.js?v=20260531-1"></script>
   </head>
   <body>
     <div id="root"></div>
