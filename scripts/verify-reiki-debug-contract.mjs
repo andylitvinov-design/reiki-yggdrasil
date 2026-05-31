@@ -60,7 +60,7 @@ requireArray("bug_taxonomy", snapshot.bug_taxonomy, 10);
 requireArray("audit_checks", snapshot.audit_checks, 1);
 requireArray("warnings", snapshot.warnings, 0);
 
-for (const route of ["/", "/profile", "/masters", "/profile/admin"]) {
+for (const route of ["/", "/profile", "/profile-lite", "/masters", "/profile/admin"]) {
   requireIncludes("expected_routes", snapshot.expected_routes, route);
 }
 

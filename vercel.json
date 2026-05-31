@@ -8,6 +8,10 @@
       "destination": "/"
     },
     {
+      "source": "/profile-lite",
+      "destination": "/"
+    },
+    {
       "source": "/masters",
       "destination": "/"
     },
