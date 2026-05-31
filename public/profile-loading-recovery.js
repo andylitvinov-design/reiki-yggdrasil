@@ -56,6 +56,7 @@
   function clearAutoResetMarkerWhenRecovered() {
     if (!isProfileRoute()) return;
     if (!hasLoginUi() && !hasLoadedCabinetUi()) return;
+    document.querySelector("[data-profile-loading-recovery='true']")?.remove();
     try {
       window.sessionStorage.removeItem(AUTO_RESET_KEY);
     } catch (_error) {
