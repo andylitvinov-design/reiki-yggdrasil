@@ -62,6 +62,13 @@ function fallbackUserFromSession(session) {
   }
 }
 
+function normalizeCurrentUser(value) {
+  if (value?.id) return value;
+  if (value?.user?.id) return value.user;
+  if (value?.data?.user?.id) return value.data.user;
+  return value || null;
+}
+
 function shouldUseSessionFallback(error) {
   const details = error?.details || {};
   const status = Number(details.status || details.code || 0);
@@ -97,7 +104,7 @@ export async function loadProfileCabinetBootstrap({
 
   let currentUser;
   try {
-    currentUser = await withTimeout(getCurrentUser(session), timeoutMs);
+    currentUser = normalizeCurrentUser(await withTimeout(getCurrentUser(session), timeoutMs));
   } catch (error) {
     const fallbackUser = shouldUseSessionFallback(error) ? fallbackUserFromSession(session) : null;
     if (fallbackUser?.id) {
