@@ -1423,6 +1423,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   }, [constructorType, zodiacVisibleCount]);
 
   useEffect(() => {
+    const resetParams = new URLSearchParams(window.location.search);
+    if (resetParams.get("resetProfileSession") === "1") {
+      clearStoredSession();
+      window.history.replaceState({}, document.title, window.location.pathname);
+      resetProfileSessionState();
+      return;
+    }
+
     const nextSession = storeSessionFromUrlHash();
     if (nextSession && !isUsableStoredSession(nextSession)) {
       resetProfileSessionState("Сессия повреждена. Войдите заново.");
@@ -2662,9 +2670,9 @@ const resourceComparisonPanel = (
       {loading && !user && !loadingTimedOut && (
         <div className="cabinetNotice">
           <p>Загружаю кабинет...</p>
-          <button className="cabinetSecondary" type="button" onClick={handleLogout}>
+          <a className="cabinetSecondary" href="/profile?resetProfileSession=1">
             Войти заново / сбросить вход
-          </button>
+          </a>
         </div>
       )}
 
@@ -2673,8 +2681,8 @@ const resourceComparisonPanel = (
           <p>Не удалось дождаться загрузки кабинета. Проверьте соединение и попробуйте снова.</p>
           {error && <div className="cabinetError">{error}</div>}
           <div className="cabinetActions">
-            <button className="cabinetPrimary" type="button" onClick={handleRetryBootstrap}>Повторить загрузку</button>
-            <button className="cabinetSecondary" type="button" onClick={handleLogout}>Войти заново</button>
+            <a className="cabinetPrimary" href="/profile">Повторить загрузку</a>
+            <a className="cabinetSecondary" href="/profile?resetProfileSession=1">Войти заново</a>
           </div>
         </div>
       )}
