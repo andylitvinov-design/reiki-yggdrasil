@@ -2,14 +2,34 @@
   const PROFILE_PATH = "/profile";
   const SESSION_KEY = "reiki-yggdrasil-session";
   const LOADING_TEXT = "Загружаю кабинет";
-  const TIMEOUT_MS = 15000;
+  const NOTICE_DELAY_MS = 1200;
+  const FORCE_NOTICE_MS = 5000;
 
   function isProfileRoute() {
     return window.location.pathname === PROFILE_PATH;
   }
 
+  function pageText() {
+    return document.body?.textContent || "";
+  }
+
   function hasLoadingText() {
-    return document.body?.textContent?.includes(LOADING_TEXT);
+    return pageText().includes(LOADING_TEXT);
+  }
+
+  function hasLoginUi() {
+    const text = pageText();
+    return text.includes("Войти через Google") || text.includes("Отправить ссылку") || text.includes("Кабинет мастера подготовлен, но Supabase ещё не подключён");
+  }
+
+  function hasLoadedCabinetUi() {
+    const text = pageText();
+    return text.includes("Мастерская мандал") || text.includes("Магическая мандала") || text.includes("Галерея мастера");
+  }
+
+  function shouldShowRecoveryNotice({ force = false } = {}) {
+    if (!isProfileRoute() || hasRecoveredNotice() || hasLoginUi() || hasLoadedCabinetUi()) return false;
+    return hasLoadingText() || force;
   }
 
   function hasRecoveredNotice() {
@@ -25,8 +45,8 @@
     window.location.replace(PROFILE_PATH);
   }
 
-  function showRecoveryNotice() {
-    if (!isProfileRoute() || !hasLoadingText() || hasRecoveredNotice()) return;
+  function showRecoveryNotice(options = {}) {
+    if (!shouldShowRecoveryNotice(options)) return;
 
     const host = document.querySelector(".authCard") || document.querySelector("main") || document.getElementById("root") || document.body;
     const notice = document.createElement("section");
@@ -41,7 +61,9 @@
       "background:#fff8e9",
       "color:#3b2a16",
       "box-shadow:0 12px 28px rgba(73, 42, 10, 0.12)",
-      "font-family:inherit"
+      "font-family:inherit",
+      "position:relative",
+      "z-index:20"
     ].join(";");
 
     const title = document.createElement("b");
@@ -53,7 +75,7 @@
 
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = "Войти заново";
+    button.textContent = "Войти заново / сбросить вход";
     button.style.cssText = [
       "border:0",
       "border-radius:999px",
@@ -81,9 +103,15 @@
     window.alert("Сохранение выбранной мандалы как новой временно отключено для защиты кабинета. Используйте обычное сохранение/обновление, пока мы переносим эту функцию в React без runtime-патча.");
   }
 
-  function scheduleRecoveryCheck() {
+  function scheduleRecoveryChecks() {
     if (!isProfileRoute()) return;
-    window.setTimeout(showRecoveryNotice, TIMEOUT_MS);
+
+    window.setTimeout(() => showRecoveryNotice(), NOTICE_DELAY_MS);
+    window.setTimeout(() => showRecoveryNotice({ force: true }), FORCE_NOTICE_MS);
+
+    const observer = new MutationObserver(() => showRecoveryNotice());
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    window.setTimeout(() => observer.disconnect(), FORCE_NOTICE_MS + 20000);
   }
 
   // This listener must be registered before profile-power-place-visual-export.js.
@@ -91,8 +119,8 @@
   document.addEventListener("click", guardUnsafeSaveAsNew, true);
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", scheduleRecoveryCheck, { once: true });
+    document.addEventListener("DOMContentLoaded", scheduleRecoveryChecks, { once: true });
   } else {
-    scheduleRecoveryCheck();
+    scheduleRecoveryChecks();
   }
 })();
