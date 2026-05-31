@@ -2,6 +2,7 @@
   const PANEL_SELECTOR = "[data-power-background-panel]";
   const TAB_SELECTOR = "[data-power-background-tab]";
   const tabs = ["inner", "outer", "layout", "analysis"];
+  let syncQueued = false;
 
   const readTab = (coverSelector) => {
     const current = coverSelector?.dataset?.powerBackgroundTab;
@@ -10,19 +11,31 @@
 
   const writeTab = (coverSelector, tab) => {
     const nextTab = tabs.includes(tab) ? tab : "inner";
-    coverSelector.dataset.powerBackgroundTab = nextTab;
+    if (coverSelector.dataset.powerBackgroundTab !== nextTab) {
+      coverSelector.dataset.powerBackgroundTab = nextTab;
+    }
     if (window.__reikiPowerBackgroundZoneControls?.setActiveTab) {
       window.__reikiPowerBackgroundZoneControls.setActiveTab(nextTab);
     }
+  };
+
+  const setHidden = (element, hidden) => {
+    if (!element || element.hidden === hidden) return;
+    element.hidden = hidden;
+  };
+
+  const setActive = (button, active) => {
+    if (!button) return;
+    if (button.classList.contains("active") !== active) button.classList.toggle("active", active);
+    const ariaValue = active ? "true" : "false";
+    if (button.getAttribute("aria-selected") !== ariaValue) button.setAttribute("aria-selected", ariaValue);
   };
 
   const syncPanels = () => {
     document.querySelectorAll(".coverSelector").forEach((coverSelector) => {
       const activeTab = readTab(coverSelector);
       coverSelector.querySelectorAll(TAB_SELECTOR).forEach((button) => {
-        const isActive = button.dataset.powerBackgroundTab === activeTab;
-        button.classList.toggle("active", isActive);
-        button.setAttribute("aria-selected", isActive ? "true" : "false");
+        setActive(button, button.dataset.powerBackgroundTab === activeTab);
       });
 
       coverSelector.querySelectorAll(PANEL_SELECTOR).forEach((panel) => {
@@ -30,11 +43,10 @@
         const isSharedBackground = panelName === "inner" && (activeTab === "inner" || activeTab === "outer");
         const isDirectMatch = panelName === activeTab;
         const shouldShow = isSharedBackground || isDirectMatch;
-        panel.hidden = !shouldShow;
+        setHidden(panel, !shouldShow);
       });
 
-      const outerPanel = coverSelector.querySelector('[data-power-background-panel="outer"]');
-      if (outerPanel) outerPanel.hidden = true;
+      setHidden(coverSelector.querySelector('[data-power-background-panel="outer"]'), true);
     });
   };
 
@@ -45,18 +57,24 @@
         button.dataset.powerTabsRefined = "true";
         button.addEventListener("click", () => {
           writeTab(coverSelector, button.dataset.powerBackgroundTab);
-          window.requestAnimationFrame(syncPanels);
+          scheduleSync();
         });
       });
     });
   };
 
   const sync = () => {
+    syncQueued = false;
     wireTabs();
     syncPanels();
   };
 
-  const scheduleSync = () => window.requestAnimationFrame(sync);
+  const scheduleSync = () => {
+    if (syncQueued) return;
+    syncQueued = true;
+    window.requestAnimationFrame(sync);
+  };
+
   window.addEventListener("DOMContentLoaded", scheduleSync);
   window.addEventListener("load", scheduleSync);
   document.addEventListener("click", (event) => {
@@ -66,7 +84,8 @@
   const observer = new MutationObserver(scheduleSync);
   const start = () => {
     const root = document.getElementById("root") || document.body;
-    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "class", "data-power-background-tab"] });
+    // Watch for new panels/buttons only. Do not observe hidden/class/data attributes that this script writes.
+    observer.observe(root, { childList: true, subtree: true });
     sync();
   };
 
