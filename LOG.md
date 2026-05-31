@@ -1,5 +1,31 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — Old `/profile` authenticated render gate after auth
+
+- Branch: `codex/fix-profile-cabinet-render-gate-after-auth`.
+- Changed files:
+  - `src/lib/profileBootstrapClient.js`
+  - `src/pages/ProfilePage.jsx`
+  - `test/profileBootstrapClient.test.mjs`
+  - `test/profilePageAuthBootstrap.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause found:
+  - `/profile-lite` proved the live Supabase auth/session/current-user/own-profile path;
+  - old `/profile` after PR #158 still used a cabinet shell gate of applied `user` plus completed auth state, but bootstrap no longer loaded `getOwnProfile`;
+  - the old cabinet could therefore be authenticated but profileless, leaving `profile.id` missing and secondary materials/media/power-place areas unable to hydrate, which made the main cabinet look blocked after login.
+- Fix:
+  - named the old cabinet render gate as `cabinetReady = Boolean(user && authStatus === "ready")`;
+  - restored own-profile loading as secondary bootstrap data after current-user success;
+  - profile load failure/timeout now returns a sanitized inline warning and still opens the shell;
+  - materials/media/power-place/tradition load failures now show sanitized inline cabinet warnings instead of blocking the whole cabinet;
+  - React loading now reaches the existing recoverable timeout state instead of relying only on DOM fallback.
+- Not changed:
+  - OAuth redirect logic;
+  - Supabase client API;
+  - schemas/migrations;
+  - `/profile-lite`, `/masters`, `/profile/admin`, `/`.
+
 ## 2026-05-31 — Old `/profile` loading recovery from `/profile-lite` proof
 
 - Branch: `codex/fix-old-profile-loading-from-profile-lite-proof`.

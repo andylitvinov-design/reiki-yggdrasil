@@ -16,6 +16,14 @@ function authTimeoutError(message) {
   return error;
 }
 
+function sanitizeSecondaryDataMessage(value) {
+  return String(value || "")
+    .replace(/https?:\/\/\S+/gi, "[url hidden]")
+    .replace(/[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}/g, "[token hidden]")
+    .replace(/[A-Za-z0-9_-]{32,}/g, "[secret hidden]")
+    .slice(0, 180);
+}
+
 function base64UrlDecode(value) {
   if (!value || typeof value !== "string") return "";
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -96,6 +104,7 @@ async function withTimeout(promise, timeoutMs = PROFILE_LOADING_TIMEOUT_MS) {
 export async function loadProfileCabinetBootstrap({
   session,
   getCurrentUser,
+  getOwnProfile,
   timeoutMs = PROFILE_LOADING_TIMEOUT_MS,
   onStep = () => {}
 } = {}) {
@@ -103,7 +112,7 @@ export async function loadProfileCabinetBootstrap({
 
   if (!session?.access_token) {
     onStep("no-session");
-    return { currentUser: null, currentProfile: null };
+    return { currentUser: null, currentProfile: null, notices: [] };
   }
 
   let currentUser;
@@ -115,7 +124,7 @@ export async function loadProfileCabinetBootstrap({
     const fallbackUser = shouldUseSessionFallback(error) ? fallbackUserFromSession(session) : null;
     if (fallbackUser?.id) {
       onStep("fallback-used");
-      return { currentUser: fallbackUser, currentProfile: null };
+      return { currentUser: fallbackUser, currentProfile: null, notices: [] };
     }
     onStep("error", error);
     throw error;
@@ -126,7 +135,7 @@ export async function loadProfileCabinetBootstrap({
     const fallbackUser = fallbackUserFromSession(session);
     if (fallbackUser?.id) {
       onStep("fallback-used");
-      return { currentUser: fallbackUser, currentProfile: null };
+      return { currentUser: fallbackUser, currentProfile: null, notices: [] };
     }
 
     const error = authLoadError("Сессия устарела. Войдите заново.");
@@ -136,9 +145,23 @@ export async function loadProfileCabinetBootstrap({
 
   onStep("user-has-id");
 
-  // Keep the critical cabinet path limited to auth → current user.
-  // Profile data can be absent/slow without blocking the cabinet shell.
-  return { currentUser, currentProfile: null };
+  if (typeof getOwnProfile !== "function") {
+    return { currentUser, currentProfile: null, notices: [] };
+  }
+
+  try {
+    onStep("profile-request-started");
+    const currentProfile = await withTimeout(getOwnProfile(currentUser.id, session), timeoutMs);
+    onStep("profile-request-resolved");
+    return { currentUser, currentProfile: currentProfile || null, notices: [] };
+  } catch (error) {
+    onStep("profile-request-failed", error);
+    return {
+      currentUser,
+      currentProfile: null,
+      notices: [`Профиль не загрузился: ${sanitizeSecondaryDataMessage(error?.message || "данные профиля временно недоступны")}. Кабинет открыт в базовом режиме.`]
+    };
+  }
 }
 
 export async function loadPowerPlaceOptionalData({

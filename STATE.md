@@ -12,6 +12,32 @@ Last updated: 2026-05-31
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-31 — Old `/profile` authenticated render gate after auth
+
+- Branch: `codex/fix-profile-cabinet-render-gate-after-auth`, based on fresh `origin/main` commit `3a877b8`.
+- Scope: minimal old `/profile` render/cabinet gate fix after `/profile-lite` proved live OAuth/session/current-user/own-profile are healthy; no OAuth, Supabase client API, schema/migrations, `/profile-lite`, `/masters`, `/profile/admin`, or `/` behavior changes.
+- Root cause path:
+  - `/profile-lite` proves the session/user/profile layer can succeed on live;
+  - old `/profile` cabinet shell was gated only after bootstrap applied `user` and `authStatus="ready"`, but the post-PR #158 bootstrap deliberately skipped `getOwnProfile`;
+  - that left old `/profile` able to enter an authenticated-but-profileless state where `profile.id` was absent, secondary material/media loaders did not hydrate, and the main cabinet could appear stuck/not ready even though auth was valid.
+- Change:
+  - `loadProfileCabinetBootstrap` now loads own profile as secondary data after current-user success;
+  - profile load timeout/failure returns a sanitized inline notice and still opens the authenticated shell;
+  - `ProfilePage.jsx` uses a named `cabinetReady = Boolean(user && authStatus === "ready")` gate for the shell;
+  - materials, Power Place, and tradition media failures now show sanitized inline cabinet warnings instead of promoting secondary data failures into the global auth error path;
+  - React loading now has a finite timeout that switches to the existing recoverable state.
+- Verification:
+  - Passed `npm run test:profile-lite`.
+  - Passed `npm run test:profile-loading-recovery`.
+  - Passed `npm run test:profile-media`.
+  - Passed `npm run test:profile-materials`.
+  - Passed `npm run test:profile-services`.
+  - Passed `npm run test:power-place`.
+  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+  - Passed `npm run build`.
+  - Local browser QA on `http://localhost:5177` covered `/`, `/profile`, `/profile-lite`, `/masters`, `/profile/admin` at desktop 1366 and mobile 390 with no console warnings/errors, no horizontal overflow, and no persistent `Загружаю кабинет...` in the no-env state.
+- Live QA remains required after PR merge/deploy, including real Google login on `https://mentalica.vercel.app/profile`.
+
 ## 2026-05-31 — Old `/profile` loading recovery from `/profile-lite` proof
 
 - Branch: `codex/fix-old-profile-loading-from-profile-lite-proof`, based on fresh `origin/main` commit `af5642d`.

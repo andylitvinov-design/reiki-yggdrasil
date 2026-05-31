@@ -685,8 +685,11 @@ const EMPTY_BOOTSTRAP_DEBUG = {
 
 function sanitizeDebugMessage(value) {
   return String(value || "")
+    .replace(/https?:\/\/\S+/gi, "[url hidden]")
     .replace(/eyJ[a-zA-Z0-9._-]+/g, "[redacted]")
+    .replace(/[a-zA-Z0-9_-]{3,}\.[a-zA-Z0-9_-]{3,}\.[a-zA-Z0-9_-]{3,}/g, "[token hidden]")
     .replace(/[a-zA-Z0-9_-]{24,}\.[a-zA-Z0-9_.-]{24,}/g, "[redacted]")
+    .replace(/[a-zA-Z0-9_-]{32,}/g, "[secret hidden]")
     .slice(0, 180);
 }
 
@@ -768,8 +771,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [mediaUploadTarget, setMediaUploadTarget] = useState("");
   const [isClientPhotoUploadOpen, setIsClientPhotoUploadOpen] = useState(false);
   const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [secondaryDataNotice, setSecondaryDataNotice] = useState("");
   const [bootstrapRetryKey, setBootstrapRetryKey] = useState(0);
   const [bootstrapDebug, setBootstrapDebug] = useState(EMPTY_BOOTSTRAP_DEBUG);
+  const cabinetReady = Boolean(user && authStatus === "ready");
 
   const resetProfileSessionState = (notice = "") => {
     clearProfileSessionStorage();
@@ -812,6 +817,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setMediaUploadTarget("");
     setIsClientPhotoUploadOpen(false);
     setLoadingTimedOut(false);
+    setSecondaryDataNotice("");
     setBootstrapRetryKey(0);
     setPowerPlaceServiceDraft(null);
     setTemplateServicesTab("services");
@@ -1519,14 +1525,29 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       hasUser: Boolean(user),
       hasUserId: Boolean(user?.id),
       hasSessionState: Boolean(sessionAccessToken),
-      cabinetCondition: Boolean(user && authStatus === "ready"),
+      cabinetCondition: cabinetReady,
       loadingTimedOut: Boolean(loadingTimedOut),
       ...bootstrapDebug
     };
     window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
       detail: window.__REIKI_PROFILE_REACT_DEBUG__
     }));
-  }, [authStatus, user, sessionAccessToken, loadingTimedOut, bootstrapDebug]);
+  }, [authStatus, user, sessionAccessToken, loadingTimedOut, bootstrapDebug, cabinetReady]);
+
+  useEffect(() => {
+    if (authStatus !== "loading" || user) {
+      setLoadingTimedOut(false);
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setLoadingTimedOut(true);
+      setAuthStatus("error");
+      setError((current) => current || "Не удалось дождаться загрузки кабинета. Попробуйте обновить страницу или войти заново.");
+    }, 16000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [authStatus, user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1567,7 +1588,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       });
 
       try {
-        const { currentUser, currentProfile } = await loadProfileCabinetBootstrap({
+        const { currentUser, currentProfile, notices = [] } = await loadProfileCabinetBootstrap({
           session,
           getCurrentUser,
           getOwnProfile,
@@ -1601,6 +1622,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           reactBootstrapCheckpoint: "after-set-user"
         });
         setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
+        setSecondaryDataNotice(notices.map(sanitizeDebugMessage).filter(Boolean).join(" "));
         setLoadingTimedOut(false);
         setAuthStatus("ready");
         publishBootstrapDebug({
@@ -1670,7 +1692,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         const rows = await listOwnMaterials(profile.id, session);
         if (!cancelled) setMaterials(rows || []);
       } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить мандалы и материалы.");
+        if (!cancelled) {
+          setMaterials([]);
+          setSecondaryDataNotice(`Материалы не загрузились: ${sanitizeDebugMessage(err?.message || "данные материалов временно недоступны")}. Кабинет открыт в базовом режиме.`);
+        }
       } finally {
         if (!cancelled) setMaterialsLoading(false);
       }
@@ -1706,11 +1731,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           setPowerPlaceCompositions(compositions || []);
           setSelectedCentralPhotoId((current) => current || photos?.[0]?.id || "");
           if (notices.length) {
-            setError(notices.join(" "));
+            setSecondaryDataNotice(notices.map(sanitizeDebugMessage).join(" "));
           }
         }
       } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить места силы.");
+        if (!cancelled) setSecondaryDataNotice(`Места силы не загрузились: ${sanitizeDebugMessage(err?.message || "данные временно недоступны")}. Кабинет открыт в базовом режиме.`);
       }
     }
 
@@ -1736,7 +1761,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       } catch (err) {
         if (!cancelled) {
           setTraditionAssets([]);
-          setError(err.message || "Не удалось загрузить образы традиции.");
+          setSecondaryDataNotice(`Медиа традиции не загрузились: ${sanitizeDebugMessage(err?.message || "данные временно недоступны")}. Кабинет открыт в базовом режиме.`);
         }
       }
     }
@@ -2839,7 +2864,7 @@ const resourceComparisonPanel = (
         </form>
       )}
 
-      {user && authStatus === "ready" && (
+      {cabinetReady && (
         <div className="cabinetGrid">
           <section className={`mandalaWorkspace ${activeTopTab === "power-place" ? "powerPlaceMode" : ""}`}>
             <div className="mandalaHero">
@@ -2874,6 +2899,7 @@ const resourceComparisonPanel = (
             </div>
 
             {authStatus === "loading" && !loadingTimedOut && <div className="cabinetNotice">Загружаю кабинет...</div>}
+            {secondaryDataNotice && <div className="cabinetNotice cabinetSecondaryDataWarning">{secondaryDataNotice}</div>}
             {error && <div className="cabinetError">{error}</div>}
             {message && <div className="cabinetSuccess">{message}</div>}
 

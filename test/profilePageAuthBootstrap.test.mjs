@@ -30,6 +30,12 @@ assert.match(
   "old /profile should bootstrap through the proven current-user auth path"
 );
 
+assert.match(
+  profilePageSource,
+  /loadProfileCabinetBootstrap\(\{[\s\S]*getOwnProfile,/,
+  "old /profile should load the own profile as secondary bootstrap data"
+);
+
 assertOrder(
   profilePageSource,
   "setUser(currentUser);",
@@ -57,8 +63,26 @@ assert.match(
 
 assert.match(
   profilePageSource,
-  /\{user && authStatus === "ready" && \(/,
-  "cabinet render should require the applied user and completed auth state"
+  /const cabinetReady = Boolean\(user && authStatus === "ready"\);/,
+  "cabinet render gate should be named and limited to applied user plus completed auth state"
+);
+
+assert.match(
+  profilePageSource,
+  /\{cabinetReady && \(/,
+  "authenticated cabinet shell should render from cabinetReady"
+);
+
+assert.match(
+  profilePageSource,
+  /setSecondaryDataNotice\(/,
+  "secondary profile/material/media failures should render an inline cabinet warning"
+);
+
+assert.match(
+  profilePageSource,
+  /setLoadingTimedOut\(true\)/,
+  "profile loading should have a finite timeout recovery state"
 );
 
 assert.match(

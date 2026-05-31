@@ -31,23 +31,53 @@ const noSession = await loadProfileCabinetBootstrap({
   }
 });
 
-assert.deepEqual(noSession, { currentUser: null, currentProfile: null });
+assert.deepEqual(noSession, { currentUser: null, currentProfile: null, notices: [] });
 assert.equal(noSessionCurrentUserCalled, false);
 
 const currentUserSteps = [];
 const currentUserOnly = await loadProfileCabinetBootstrap({
   session: { access_token: "token-1" },
   getCurrentUser: async () => ({ id: "user-1", email: "master@example.com" }),
-  getOwnProfile: () => new Promise(() => {}),
+  getOwnProfile: undefined,
   timeoutMs: 20,
   onStep: (step) => currentUserSteps.push(step)
 });
 
 assert.deepEqual(currentUserOnly, {
   currentUser: { id: "user-1", email: "master@example.com" },
-  currentProfile: null
+  currentProfile: null,
+  notices: []
 });
 assert.equal(currentUserSteps.includes("fallback-used"), false);
+
+const currentUserWithProfile = await loadProfileCabinetBootstrap({
+  session: { access_token: "token-profile" },
+  getCurrentUser: async () => ({ id: "user-profile", email: "master@example.com" }),
+  getOwnProfile: async (userId) => ({ id: "profile-1", user_id: userId, display_name: "Master" }),
+  timeoutMs: 20
+});
+
+assert.deepEqual(currentUserWithProfile.currentProfile, {
+  id: "profile-1",
+  user_id: "user-profile",
+  display_name: "Master"
+});
+assert.deepEqual(currentUserWithProfile.notices, []);
+
+const profileLoadFailure = await loadProfileCabinetBootstrap({
+  session: { access_token: "token-profile-failure" },
+  getCurrentUser: async () => ({ id: "user-profile-failure", email: "master@example.com" }),
+  getOwnProfile: async () => {
+    throw new Error("profile table unavailable token abc.def.ghi");
+  },
+  timeoutMs: 20
+});
+
+assert.equal(profileLoadFailure.currentUser.id, "user-profile-failure");
+assert.equal(profileLoadFailure.currentProfile, null);
+assert.equal(profileLoadFailure.notices.length, 1);
+assert.match(profileLoadFailure.notices[0], /Профиль/);
+assert.doesNotMatch(profileLoadFailure.notices[0], /abc\.def\.ghi/);
 
 const wrappedCurrentUser = await loadProfileCabinetBootstrap({
   session: { access_token: "token-wrapped" },
@@ -57,7 +87,8 @@ const wrappedCurrentUser = await loadProfileCabinetBootstrap({
 
 assert.deepEqual(wrappedCurrentUser, {
   currentUser: { id: "user-wrapped", email: "wrapped@example.com" },
-  currentProfile: null
+  currentProfile: null,
+  notices: []
 });
 
 const timeoutError = await loadProfileCabinetBootstrap({
@@ -84,6 +115,7 @@ assert.equal(fallbackUser.currentUser.id, "user-from-token");
 assert.equal(fallbackUser.currentUser.email, "fallback@example.com");
 assert.equal(fallbackUser.currentUser.source, "session-jwt-fallback");
 assert.equal(fallbackUser.currentProfile, null);
+assert.deepEqual(fallbackUser.notices, []);
 
 const malformedCurrentUserFallback = await loadProfileCabinetBootstrap({
   session: fallbackSession,
