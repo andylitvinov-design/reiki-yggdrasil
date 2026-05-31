@@ -706,7 +706,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [clientPhotoForm, setClientPhotoForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [materialsLoading, setMaterialsLoading] = useState(false);
-  const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
+  const [authStatus, setAuthStatus] = useState(supabaseEnv.isConfigured ? "loading" : "idle");
+  const loading = authStatus === "loading";
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [fileNotice, setFileNotice] = useState("");
@@ -801,7 +802,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setResourceComparisonMode("photo_mandala");
     setResourceWithoutMandalaComment("");
     setResourceWithMandalaComment("");
-    setLoading(false);
+    setAuthStatus("idle");
     setError("");
     setMessage(notice);
   };
@@ -1480,12 +1481,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
     async function load() {
       if (!supabaseEnv.isConfigured) {
-        setLoading(false);
+        setAuthStatus("idle");
         return;
       }
 
       if (!session?.access_token) {
-        setLoading(false);
+        setAuthStatus("idle");
         return;
       }
 
@@ -1494,7 +1495,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         return;
       }
 
-      setLoading(true);
+      setAuthStatus("loading");
       setLoadingTimedOut(false);
       setError("");
 
@@ -1509,7 +1510,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           setUser(currentUser);
           setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
           setLoadingTimedOut(false);
-          setLoading(false);
+          setAuthStatus("ready");
         }
       } catch (err) {
         if (err?.code === "auth_load_timeout") {
@@ -1526,9 +1527,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           return;
         }
 
-        if (!cancelled) setError(err.message || "Не удалось загрузить профиль.");
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setAuthStatus("error");
+          setError(err.message || "Не удалось загрузить профиль.");
+        }
       }
     }
 
@@ -2520,7 +2522,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setLoadingTimedOut(false);
     setError("");
     setMessage("");
-    setLoading(true);
+    setAuthStatus("loading");
     setBootstrapRetryKey((current) => current + 1);
   };
 
@@ -2675,7 +2677,7 @@ const resourceComparisonPanel = (
 
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
-      {loading && !user && !loadingTimedOut && (
+      {authStatus === "loading" && !user && !loadingTimedOut && (
         <div className="cabinetNotice">
           <p>Загружаю кабинет...</p>
           <a className="cabinetSecondary" href="/profile?resetProfileSession=1">
@@ -2695,7 +2697,7 @@ const resourceComparisonPanel = (
         </div>
       )}
 
-      {!loading && !user && !loadingTimedOut && (
+      {authStatus !== "loading" && !user && !loadingTimedOut && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
           <p className="cabinetEyebrow">Вход мастера</p>
           <h2>Войдите, чтобы создать профиль мастера</h2>
@@ -2712,7 +2714,7 @@ const resourceComparisonPanel = (
         </form>
       )}
 
-      {!loading && user && (
+      {user && authStatus === "ready" && (
         <div className="cabinetGrid">
           <section className={`mandalaWorkspace ${activeTopTab === "power-place" ? "powerPlaceMode" : ""}`}>
             <div className="mandalaHero">
@@ -2746,7 +2748,7 @@ const resourceComparisonPanel = (
               </div>
             </div>
 
-            {loading && !loadingTimedOut && <div className="cabinetNotice">Загружаю кабинет...</div>}
+            {authStatus === "loading" && !loadingTimedOut && <div className="cabinetNotice">Загружаю кабинет...</div>}
             {error && <div className="cabinetError">{error}</div>}
             {message && <div className="cabinetSuccess">{message}</div>}
 
