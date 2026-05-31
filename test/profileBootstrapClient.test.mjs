@@ -43,6 +43,28 @@ assert.deepEqual(currentUserOnly, {
   currentProfile: null
 });
 
+const wrappedCurrentUser = await loadProfileCabinetBootstrap({
+  session: { access_token: "token-wrapped" },
+  getCurrentUser: async () => ({ user: { id: "user-wrapped", email: "wrapped@example.com" } }),
+  timeoutMs: 20
+});
+
+assert.deepEqual(wrappedCurrentUser, {
+  currentUser: { id: "user-wrapped", email: "wrapped@example.com" },
+  currentProfile: null
+});
+
+const dataWrappedCurrentUser = await loadProfileCabinetBootstrap({
+  session: { access_token: "token-data-wrapped" },
+  getCurrentUser: async () => ({ data: { user: { id: "user-data-wrapped", email: "data@example.com" } } }),
+  timeoutMs: 20
+});
+
+assert.deepEqual(dataWrappedCurrentUser, {
+  currentUser: { id: "user-data-wrapped", email: "data@example.com" },
+  currentProfile: null
+});
+
 const timeoutError = await loadProfileCabinetBootstrap({
   session: { access_token: "token-2" },
   getCurrentUser: () => new Promise(() => {}),
