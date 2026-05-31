@@ -168,6 +168,9 @@ export function signInWithGoogle(redirectPath = "/profile") {
 
   authorizeUrl.searchParams.set("provider", "google");
   authorizeUrl.searchParams.set("redirect_to", redirectTo);
+  // This app stores Supabase sessions from the URL hash. Request the implicit token flow
+  // explicitly so Google OAuth returns #access_token instead of a PKCE ?code callback.
+  authorizeUrl.searchParams.set("response_type", "token");
 
   window.location.assign(authorizeUrl.toString());
 }
