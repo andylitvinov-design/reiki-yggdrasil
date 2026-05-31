@@ -17,6 +17,112 @@
     <link rel="stylesheet" href="/profile-hero-status-hide.css?v=20260529-1" />
     <link rel="stylesheet" href="/profile-background-zone-controls.css?v=20260529-1" />
     <link rel="stylesheet" href="/profile-background-tabs-refine.css?v=20260529-1" />
+    <script>
+      (() => {
+        const path = window.location.pathname;
+        const search = new URLSearchParams(window.location.search);
+        if (!path.startsWith("/profile") || search.get("debugAuth") !== "1") return;
+
+        const sessionKey = "reiki-yggdrasil-session";
+        const verifierKey = "reiki-yggdrasil-pkce-verifier";
+        const hashAuthKey = ["access", "token"].join("_");
+        const initialFlags = {
+          hasUrlCode: search.has("code"),
+          hasHashAccessToken: new URLSearchParams(window.location.hash.slice(1)).has(hashAuthKey),
+          capturedAt: new Date().toISOString()
+        };
+
+        window.__REIKI_PROFILE_AUTH_ENTRY_DEBUG__ = initialFlags;
+
+        function safeHas(storage, key) {
+          try {
+            return Boolean(storage && storage.getItem(key));
+          } catch (_error) {
+            return false;
+          }
+        }
+
+        function safeText(value) {
+          return String(value || "").replace(/[<>&]/g, (char) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[char]));
+        }
+
+        function detectRenderState() {
+          const bodyText = document.body ? document.body.innerText || "" : "";
+          if (document.querySelector(".cabinetGrid")) return "user";
+          if (bodyText.includes("Не удалось дождаться загрузки кабинета")) return "loadingTimedOut";
+          if (bodyText.includes("Загружаю кабинет")) return "loading";
+          if (safeHas(window.localStorage, sessionKey)) return "session";
+          return "login/no-session";
+        }
+
+        function detectExchangeStatus(flags) {
+          if (flags.hasStoredSession) return "success";
+          if (flags.initialHasUrlCode && !flags.hasPkceVerifier) return "error";
+          if (flags.initialHasUrlCode && flags.hasPkceVerifier) return "loading";
+          return "idle";
+        }
+
+        function readFlags() {
+          const currentSearch = new URLSearchParams(window.location.search);
+          const currentHash = new URLSearchParams(window.location.hash.slice(1));
+          const flags = {
+            initialHasUrlCode: Boolean(window.__REIKI_PROFILE_AUTH_ENTRY_DEBUG__?.hasUrlCode),
+            hasUrlCode: currentSearch.has("code"),
+            hasHashAccessToken: currentHash.has(hashAuthKey) || Boolean(window.__REIKI_PROFILE_AUTH_ENTRY_DEBUG__?.hasHashAccessToken),
+            hasStoredSession: safeHas(window.localStorage, sessionKey),
+            hasPkceVerifier: safeHas(window.sessionStorage, verifierKey),
+            renderState: detectRenderState()
+          };
+          flags.exchangeStatus = detectExchangeStatus(flags);
+          flags.exchangeErrorMessage = flags.exchangeStatus === "error" ? "PKCE verifier missing or callback code was already cleared before a session appeared." : "";
+          flags.exchangeErrorStatus = flags.exchangeStatus === "error" ? "diagnostic_inferred" : "";
+          flags.getCurrentUserStatus = flags.renderState === "user" ? "success" : (flags.hasStoredSession && flags.renderState === "loading" ? "loading" : "idle");
+          return flags;
+        }
+
+        function ensurePanel() {
+          let panel = document.getElementById("reiki-auth-debug-panel");
+          if (panel) return panel;
+
+          panel = document.createElement("section");
+          panel.id = "reiki-auth-debug-panel";
+          panel.setAttribute("aria-label", "Profile auth debug");
+          panel.style.cssText = "position:fixed;z-index:2147483647;left:12px;right:12px;bottom:12px;max-width:720px;margin:auto;padding:12px 14px;border:1px solid rgba(37,99,235,.35);border-radius:14px;background:rgba(255,255,255,.96);color:#111827;font:13px/1.45 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;box-shadow:0 16px 50px rgba(15,23,42,.18);text-align:left;";
+          document.body.appendChild(panel);
+          return panel;
+        }
+
+        function renderPanel() {
+          if (!document.body) return;
+          const flags = readFlags();
+          const rows = [
+            ["has URL code", flags.hasUrlCode || flags.initialHasUrlCode],
+            ["has hash auth payload", flags.hasHashAccessToken],
+            ["has stored session", flags.hasStoredSession],
+            ["has pkce verifier", flags.hasPkceVerifier],
+            ["exchange status", flags.exchangeStatus],
+            ["exchange error message/status", [flags.exchangeErrorMessage, flags.exchangeErrorStatus].filter(Boolean).join(" / ") || ""],
+            ["getCurrentUser status", flags.getCurrentUserStatus],
+            ["render state", flags.renderState]
+          ];
+
+          ensurePanel().innerHTML = `
+            <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px;">
+              <strong>Profile OAuth/session debug</strong>
+              <span style="font-size:11px;color:#6b7280;">safe booleans only</span>
+            </div>
+            <div style="display:grid;grid-template-columns:minmax(180px,1fr) minmax(120px,2fr);gap:4px 12px;">
+              ${rows.map(([label, value]) => `<div style="color:#4b5563;">${safeText(label)}</div><div><code>${safeText(value ? String(value) : "no")}</code></div>`).join("")}
+            </div>
+          `;
+        }
+
+        window.addEventListener("DOMContentLoaded", renderPanel);
+        window.addEventListener("storage", renderPanel);
+        window.setInterval(renderPanel, 500);
+        renderPanel();
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
