@@ -6,6 +6,22 @@ import {
   normalizeProfileRecord
 } from "../src/lib/profileBootstrapClient.js";
 
+function base64UrlEncodeJson(value) {
+  return Buffer.from(JSON.stringify(value), "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function fakeJwt(payload) {
+  return [
+    base64UrlEncodeJson({ alg: "none", typ: "JWT" }),
+    base64UrlEncodeJson(payload),
+    "signature"
+  ].join(".");
+}
+
 const noSession = await loadProfileCabinetBootstrap({
   session: null,
   getCurrentUser: async () => {
@@ -35,6 +51,33 @@ const timeoutError = await loadProfileCabinetBootstrap({
 
 assert.equal(timeoutError.code, "auth_load_timeout");
 assert.match(timeoutError.message, /Вход не отвечает/);
+
+const fallbackSession = {
+  access_token: fakeJwt({ sub: "user-from-token", email: "fallback@example.com" })
+};
+const fallbackUser = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: () => new Promise(() => {}),
+  timeoutMs: 20
+});
+
+assert.equal(fallbackUser.currentUser.id, "user-from-token");
+assert.equal(fallbackUser.currentUser.email, "fallback@example.com");
+assert.equal(fallbackUser.currentUser.source, "session-jwt-fallback");
+assert.equal(fallbackUser.currentProfile, null);
+
+const unauthorizedError = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => {
+    const error = new Error("Unauthorized");
+    error.details = { status: 401 };
+    throw error;
+  },
+  timeoutMs: 20
+}).catch((error) => error);
+
+assert.equal(unauthorizedError.details?.status, 401);
+assert.equal(unauthorizedError.source, undefined);
 
 const invalidSessionError = await loadProfileCabinetBootstrap({
   session: { access_token: "token-3" },

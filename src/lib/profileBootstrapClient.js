@@ -10,6 +10,59 @@ function authLoadError(message) {
   return cabinetError(message, { status: 401 });
 }
 
+function base64UrlDecode(value) {
+  if (!value || typeof value !== "string") return "";
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + (4 - normalized.length % 4) % 4, "=");
+
+  if (typeof atob === "function") {
+    try {
+      return atob(padded);
+    } catch {
+      return "";
+    }
+  }
+
+  if (typeof Buffer !== "undefined") {
+    try {
+      return Buffer.from(padded, "base64").toString("utf8");
+    } catch {
+      return "";
+    }
+  }
+
+  return "";
+}
+
+function fallbackUserFromSession(session) {
+  const token = session?.access_token || "";
+  const [, payloadSegment] = token.split(".");
+  if (!payloadSegment) return null;
+
+  try {
+    const payload = JSON.parse(base64UrlDecode(payloadSegment));
+    const id = payload?.sub || payload?.user_id || "";
+    if (!id) return null;
+
+    return {
+      id,
+      email: typeof payload.email === "string" ? payload.email : "",
+      app_metadata: payload.app_metadata || {},
+      user_metadata: payload.user_metadata || {},
+      source: "session-jwt-fallback"
+    };
+  } catch {
+    return null;
+  }
+}
+
+function shouldUseSessionFallback(error) {
+  const details = error?.details || {};
+  const status = Number(details.status || details.code || 0);
+  if (status === 401 || status === 403) return false;
+  return error?.code === "auth_load_timeout" || status === 408 || details.timeout || !status;
+}
+
 async function withTimeout(promise, timeoutMs = PROFILE_LOADING_TIMEOUT_MS) {
   let timeoutId;
   const timeoutPromise = new Promise((_, reject) => {
@@ -36,7 +89,17 @@ export async function loadProfileCabinetBootstrap({
     return { currentUser: null, currentProfile: null };
   }
 
-  const currentUser = await withTimeout(getCurrentUser(session), timeoutMs);
+  let currentUser;
+  try {
+    currentUser = await withTimeout(getCurrentUser(session), timeoutMs);
+  } catch (error) {
+    const fallbackUser = shouldUseSessionFallback(error) ? fallbackUserFromSession(session) : null;
+    if (fallbackUser?.id) {
+      return { currentUser: fallbackUser, currentProfile: null };
+    }
+    throw error;
+  }
+
   if (!currentUser?.id) {
     throw authLoadError("Сессия устарела. Войдите заново.");
   }
