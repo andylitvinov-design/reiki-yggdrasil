@@ -67,6 +67,7 @@
           const currentSearch = new URLSearchParams(window.location.search);
           const currentHash = new URLSearchParams(window.location.hash.slice(1));
           const requestDebug = window.__REIKI_PROFILE_AUTH_REQUEST_DEBUG__ || {};
+          const reactDebug = window.__REIKI_PROFILE_REACT_DEBUG__ || {};
           const flags = {
             initialHasUrlCode: Boolean(window.__REIKI_PROFILE_AUTH_ENTRY_DEBUG__?.hasUrlCode),
             hasUrlCode: currentSearch.has("code"),
@@ -81,6 +82,12 @@
           flags.getCurrentUserStatus = requestDebug.getCurrentUserStatus || (flags.renderState === "user" ? "success" : (flags.hasStoredSession && flags.renderState === "loading" ? "loading" : "idle"));
           flags.getCurrentUserErrorMessage = requestDebug.getCurrentUserErrorMessage || "";
           flags.getCurrentUserErrorStatus = requestDebug.getCurrentUserErrorStatus || "";
+          flags.reactAuthStatus = reactDebug.authStatus || "";
+          flags.reactUserState = reactDebug.hasUser ? "yes" : "no";
+          flags.reactUserIdPresent = reactDebug.hasUserId ? "yes" : "no";
+          flags.reactSessionState = reactDebug.hasSessionState ? "yes" : "no";
+          flags.reactCabinetCondition = reactDebug.cabinetCondition ? "yes" : "no";
+          flags.reactLoadingTimedOut = reactDebug.loadingTimedOut ? "yes" : "no";
           return flags;
         }
 
@@ -108,6 +115,12 @@
             ["exchange error message/status", [flags.exchangeErrorMessage, flags.exchangeErrorStatus].filter(Boolean).join(" / ") || ""],
             ["getCurrentUser status", flags.getCurrentUserStatus],
             ["getCurrentUser error/status", [flags.getCurrentUserErrorMessage, flags.getCurrentUserErrorStatus].filter(Boolean).join(" / ") || ""],
+            ["react authStatus", flags.reactAuthStatus],
+            ["react user state", flags.reactUserState],
+            ["react user id present", flags.reactUserIdPresent],
+            ["react session state", flags.reactSessionState],
+            ["react cabinet condition", flags.reactCabinetCondition],
+            ["react loadingTimedOut", flags.reactLoadingTimedOut],
             ["render state", flags.renderState]
           ];
 
@@ -125,6 +138,7 @@
         window.addEventListener("DOMContentLoaded", renderPanel);
         window.addEventListener("storage", renderPanel);
         window.addEventListener("reiki-profile-auth-debug-update", renderPanel);
+        window.addEventListener("reiki-profile-react-debug-update", renderPanel);
         window.setInterval(renderPanel, 500);
         renderPanel();
       })();

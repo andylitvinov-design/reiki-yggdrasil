@@ -1477,6 +1477,24 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const sessionAccessToken = session?.access_token || "";
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const debugAuth = new URLSearchParams(window.location.search).get("debugAuth") === "1";
+    if (!debugAuth) return;
+
+    window.__REIKI_PROFILE_REACT_DEBUG__ = {
+      authStatus,
+      hasUser: Boolean(user),
+      hasUserId: Boolean(user?.id),
+      hasSessionState: Boolean(sessionAccessToken),
+      cabinetCondition: Boolean(user && authStatus === "ready"),
+      loadingTimedOut: Boolean(loadingTimedOut)
+    };
+    window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
+      detail: window.__REIKI_PROFILE_REACT_DEBUG__
+    }));
+  }, [authStatus, user, sessionAccessToken, loadingTimedOut]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function load() {
@@ -1902,7 +1920,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setError("");
 
     try {
-      signInWithGoogle();
+      const debugAuth = new URLSearchParams(window.location.search).get("debugAuth") === "1";
+      signInWithGoogle(debugAuth ? "/profile?debugAuth=1" : "/profile");
     } catch (err) {
       setError(err.message || "Не удалось начать вход через Google.");
     }
