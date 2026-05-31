@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const ADMIN_EMAIL = import.meta.env?.VITE_ADMIN_EMAIL || "";
 
 const SESSION_KEY = "reiki-yggdrasil-session";
+const PKCE_VERIFIER_KEY = "reiki-yggdrasil-pkce-verifier";
 const PROFILES_TABLE = "profile_cabinet_profiles";
 const REQUEST_TIMEOUT_MS = 12000;
 
@@ -107,6 +108,73 @@ async function request(path, options = {}) {
   return data;
 }
 
+function storeSession(session) {
+  if (!session?.access_token) return null;
+
+  const expiresAt = Number(session.expires_at) || (session.expires_in ? Math.floor(Date.now() / 1000) + Number(session.expires_in) : null);
+  const storedSession = {
+    access_token: session.access_token,
+    refresh_token: session.refresh_token || "",
+    expires_at: expiresAt,
+    token_type: session.token_type || "bearer"
+  };
+
+  localStorage.setItem(SESSION_KEY, JSON.stringify(storedSession));
+  return storedSession;
+}
+
+function base64UrlEncode(value) {
+  const bytes = value instanceof ArrayBuffer ? new Uint8Array(value) : value;
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function createPkceVerifier() {
+  const bytes = new Uint8Array(64);
+  crypto.getRandomValues(bytes);
+  return base64UrlEncode(bytes);
+}
+
+async function createPkceChallenge(verifier) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+  return base64UrlEncode(digest);
+}
+
+async function exchangeOAuthCodeFromUrl() {
+  if (typeof window === "undefined" || !supabaseEnv.isConfigured) return;
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const authCode = searchParams.get("code");
+  if (!authCode) return;
+
+  const codeVerifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
+  if (!codeVerifier) return;
+
+  try {
+    const data = await request("/auth/v1/token?grant_type=pkce", {
+      method: "POST",
+      body: {
+        auth_code: authCode,
+        code_verifier: codeVerifier
+      }
+    });
+    const storedSession = storeSession(data);
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    if (storedSession?.access_token) window.location.reload();
+  } catch (_error) {
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+if (typeof window !== "undefined") {
+  void exchangeOAuthCodeFromUrl();
+}
+
 export function getStoredSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -133,7 +201,7 @@ export function storeSessionFromUrlHash() {
   };
 
   if (session.access_token) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    storeSession(session);
     window.history.replaceState({}, document.title, window.location.pathname);
     return session;
   }
@@ -159,15 +227,20 @@ export async function sendMagicLink(email, redirectPath = "/profile") {
   });
 }
 
-export function signInWithGoogle(redirectPath = "/profile") {
+export async function signInWithGoogle(redirectPath = "/profile") {
   requireConfig();
 
   const safePath = redirectPath.startsWith("/") && !redirectPath.startsWith("//") ? redirectPath : "/profile";
   const redirectTo = new URL(safePath, window.location.origin).toString();
   const authorizeUrl = new URL("/auth/v1/authorize", `${SUPABASE_URL}/`);
+  const codeVerifier = createPkceVerifier();
+  const codeChallenge = await createPkceChallenge(codeVerifier);
 
+  sessionStorage.setItem(PKCE_VERIFIER_KEY, codeVerifier);
   authorizeUrl.searchParams.set("provider", "google");
   authorizeUrl.searchParams.set("redirect_to", redirectTo);
+  authorizeUrl.searchParams.set("code_challenge", codeChallenge);
+  authorizeUrl.searchParams.set("code_challenge_method", "s256");
 
   window.location.assign(authorizeUrl.toString());
 }
