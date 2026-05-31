@@ -1,5 +1,36 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — `/profile` shell gate uses authenticated user id
+
+- Branch: `codex/fix-profile-render-gate-user-id`.
+- Changed files:
+  - `src/pages/ProfilePage.jsx`
+  - `test/profilePageAuthBootstrap.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause found:
+  - live diagnostics proved the stored session and current-user path can succeed, and React can have a user/session while `authStatus` remains `loading`;
+  - the old `/profile` shell gate still required `user && authStatus === "ready"`, so the cabinet could stay blocked even after a valid authenticated user id existed.
+- Fix:
+  - derive `hasAuthenticatedUser` from `Boolean(user?.id)`;
+  - render the cabinet shell from `shouldShowCabinet = hasAuthenticatedUser`;
+  - guard loading, recovery, and login surfaces with `!hasAuthenticatedUser`;
+  - publish React debug `cabinetCondition` from `shouldShowCabinet`.
+- Checks run:
+  - `node test/profilePageAuthBootstrap.test.mjs`
+  - `node test/profileBootstrapClient.test.mjs`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Not changed:
+  - OAuth redirect/provider logic;
+  - Supabase schema/migrations/env values;
+  - Vercel rewrites;
+  - `/`, `/masters`, `/profile/admin`.
+- Not verified:
+  - production Google OAuth and live cabinet shell after merge/deploy.
+
 ## 2026-05-31 — Old `/profile` authenticated render gate after auth
 
 - Branch: `codex/fix-profile-cabinet-render-gate-after-auth`.

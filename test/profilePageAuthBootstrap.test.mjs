@@ -63,14 +63,50 @@ assert.match(
 
 assert.match(
   profilePageSource,
-  /const cabinetReady = Boolean\(user && authStatus === "ready"\);/,
-  "cabinet render gate should be named and limited to applied user plus completed auth state"
+  /const hasAuthenticatedUser = Boolean\(user\?\.id\);/,
+  "old /profile should derive authenticated render state from a valid user id"
 );
 
 assert.match(
   profilePageSource,
-  /\{cabinetReady && \(/,
-  "authenticated cabinet shell should render from cabinetReady"
+  /const shouldShowCabinet = hasAuthenticatedUser;/,
+  "cabinet shell should not require authStatus ready once a user id exists"
+);
+
+assert.match(
+  profilePageSource,
+  /const shouldShowInitialLoading = !hasAuthenticatedUser && authStatus === "loading" && !loadingTimedOut;/,
+  "initial loading gate should be blocked only while no authenticated user id exists"
+);
+
+assert.match(
+  profilePageSource,
+  /const shouldShowRecovery = !hasAuthenticatedUser && loadingTimedOut;/,
+  "recovery gate should be blocked only while no authenticated user id exists"
+);
+
+assert.match(
+  profilePageSource,
+  /const shouldShowLogin = !hasAuthenticatedUser && authStatus !== "loading" && !loadingTimedOut;/,
+  "login gate should be blocked only while no authenticated user id exists"
+);
+
+assert.match(
+  profilePageSource,
+  /\{shouldShowCabinet && \(/,
+  "authenticated cabinet shell should render from shouldShowCabinet"
+);
+
+assert.match(
+  profilePageSource,
+  /cabinetCondition: shouldShowCabinet,/,
+  "React debug cabinetCondition should use the same user-id cabinet rule"
+);
+
+assert.equal(
+  /Boolean\(user && authStatus === "ready"\)/.test(profilePageSource),
+  false,
+  "old /profile must not keep the authStatus-ready cabinet gate"
 );
 
 assert.match(
