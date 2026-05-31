@@ -41,6 +41,11 @@ import {
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
 import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
+import {
+  loadPowerPlaceOptionalData,
+  loadProfileCabinetBootstrap,
+  normalizeProfileRecord
+} from "../lib/profileBootstrapClient.js";
 import { formatCabinetId } from "../lib/masterChatClient.js";
 import MasterTemplateServicesPanel from "../components/MasterTemplateServicesPanel.jsx";
 import "../profileMandalaWorkspace.css";
@@ -57,6 +62,7 @@ const EMPTY_PROFILE = {
   status: "draft"
 };
 
+const PROFILE_SESSION_STORAGE_KEY = "reiki-yggdrasil-session";
 const stepOptions = reikiLevels.flatMap((level) =>
   level.steps.map((step) => ({
     ...step,
@@ -485,14 +491,6 @@ const MATERIAL_CATEGORY_TABS = [
   }
 ];
 
-function normalizeProfile(profile, user) {
-  return {
-    ...EMPTY_PROFILE,
-    ...(profile || {}),
-    user_id: profile?.user_id || user?.id || ""
-  };
-}
-
 function settingsForStep(stepId) {
   const step = stepOptions.find((item) => item.id === stepId);
   return sourcedStepSettings[stepId] || step?.settings || [];
@@ -657,10 +655,38 @@ function zodiacVariantOption(optionValue, visibleCount) {
   return option ? option.value : fallbackValue;
 }
 
+function clearProfileSessionStorage() {
+  clearStoredSession();
+
+  try {
+    localStorage.removeItem(PROFILE_SESSION_STORAGE_KEY);
+  } catch {
+    // Ignore storage access failures and still reset in-memory state.
+  }
+}
+
+function isUsableStoredSession(session) {
+  return Boolean(
+    session
+    && typeof session === "object"
+    && typeof session.access_token === "string"
+    && session.access_token.trim()
+    && !isStoredSessionExpired(session)
+  );
+}
+
 function getInitialStoredSession() {
+  let hadStoredSession = false;
+
+  try {
+    hadStoredSession = localStorage.getItem(PROFILE_SESSION_STORAGE_KEY) !== null;
+  } catch {
+    hadStoredSession = false;
+  }
+
   const storedSession = getStoredSession();
-  if (isStoredSessionExpired(storedSession)) {
-    clearStoredSession();
+  if (hadStoredSession && !isUsableStoredSession(storedSession)) {
+    clearProfileSessionStorage();
     return null;
   }
   return storedSession;
@@ -725,6 +751,61 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [mediaStatus, setMediaStatus] = useState("");
   const [mediaUploadTarget, setMediaUploadTarget] = useState("");
   const [isClientPhotoUploadOpen, setIsClientPhotoUploadOpen] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [bootstrapRetryKey, setBootstrapRetryKey] = useState(0);
+
+  const resetProfileSessionState = (notice = "") => {
+    clearProfileSessionStorage();
+    setSession(null);
+    setUser(null);
+    setProfile(EMPTY_PROFILE);
+    setMaterials([]);
+    setClientGoalPhotos([]);
+    setTraditionAssets([]);
+    setPowerPlaceCompositions([]);
+    setMaterialForm(EMPTY_MATERIAL);
+    setMaterialFile(null);
+    setMaterialFilePreview("");
+    setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
+    setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
+    setObjectImages({});
+    setObjectImageUrls({});
+    setSelectedCentralPhotoId("");
+    setSelectedCentralImageRef("");
+    setSelectedCompositionId("");
+    setCompositionTitle("");
+    setImagePickerContext({ mode: "", slotId: "" });
+    setSelectedObjectSlotId("");
+    setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
+    setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
+    setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
+    setActivePickerCategory(SOURCE_LIBRARY_CATEGORIES[0].value);
+    setActivePickerSubcategory(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
+    setActivePickerThirdLevel(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setMaterialFilter("all");
+    setCustomCoverImage("");
+    setCustomOuterCoverImage("");
+    setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
+    setSelectedOuterCoverId("no-cover");
+    setActiveCoverLayer("inner");
+    setCoverNotice("");
+    setFileNotice("");
+    setMediaStatus("");
+    setMediaUploadTarget("");
+    setIsClientPhotoUploadOpen(false);
+    setLoadingTimedOut(false);
+    setBootstrapRetryKey(0);
+    setPowerPlaceServiceDraft(null);
+    setTemplateServicesTab("services");
+    setActiveTopTab("power-place");
+    setResourceComparisonMode("photo_mandala");
+    setResourceWithoutMandalaComment("");
+    setResourceWithMandalaComment("");
+    setLoading(false);
+    setError("");
+    setMessage(notice);
+  };
 
   const statusText = useMemo(() => {
     if (profile.status === "approved") return "опубликован";
@@ -1344,6 +1425,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
+    if (nextSession && !isUsableStoredSession(nextSession)) {
+      resetProfileSessionState("Сессия повреждена. Войдите заново.");
+      return;
+    }
     setSession(nextSession);
   }, []);
 
@@ -1390,45 +1475,38 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
 
       if (isStoredSessionExpired(session)) {
-        clearStoredSession();
-        setSession(null);
-        setUser(null);
-        setProfile(EMPTY_PROFILE);
-        setMaterials([]);
-        setClientGoalPhotos([]);
-        setTraditionAssets([]);
-        setPowerPlaceCompositions([]);
-        setMaterialFile(null);
-        setMaterialFilePreview("");
-        setLoading(false);
+        resetProfileSessionState("Сессия устарела. Войдите заново.");
         return;
       }
 
       setLoading(true);
+      setLoadingTimedOut(false);
       setError("");
 
       try {
-        const currentUser = await getCurrentUser(session);
-        const currentProfile = await getOwnProfile(currentUser.id, session);
+        const { currentUser, currentProfile } = await loadProfileCabinetBootstrap({
+          session,
+          getCurrentUser,
+          getOwnProfile
+        });
 
         if (!cancelled) {
           setUser(currentUser);
-          setProfile(normalizeProfile(currentProfile, currentUser));
+          setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
+          setLoadingTimedOut(false);
         }
       } catch (err) {
-        if (isExpiredOrInvalidAuthError(err)) {
-          clearStoredSession();
+        if (err?.code === "auth_load_timeout") {
           if (!cancelled) {
-            setSession(null);
-            setUser(null);
-            setProfile(EMPTY_PROFILE);
-            setMaterials([]);
-            setClientGoalPhotos([]);
-            setTraditionAssets([]);
-            setPowerPlaceCompositions([]);
-            setMaterialFile(null);
-            setMaterialFilePreview("");
-            setError("");
+            setLoadingTimedOut(true);
+            setError(err.message || "Не удалось загрузить профиль.");
+          }
+          return;
+        }
+
+        if (isExpiredOrInvalidAuthError(err)) {
+          if (!cancelled) {
+            resetProfileSessionState(err?.message || "Сессия устарела. Войдите заново.");
           }
           return;
         }
@@ -1444,7 +1522,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [session, bootstrapRetryKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1485,15 +1563,20 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
 
       try {
-        const [photos, compositions] = await Promise.all([
-          listClientGoalPhotos(profile.id, session),
-          listPowerPlaceCompositions(profile.id, session)
-        ]);
+        const { clientGoalPhotos: photos, powerPlaceCompositions: compositions, notices } = await loadPowerPlaceOptionalData({
+          profileId: profile.id,
+          session,
+          listClientGoalPhotos,
+          listPowerPlaceCompositions
+        });
 
         if (!cancelled) {
           setClientGoalPhotos(photos || []);
           setPowerPlaceCompositions(compositions || []);
           setSelectedCentralPhotoId((current) => current || photos?.[0]?.id || "");
+          if (notices.length) {
+            setError(notices.join(" "));
+          }
         }
       } catch (err) {
         if (!cancelled) setError(err.message || "Не удалось загрузить места силы.");
@@ -1520,7 +1603,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         const rows = await listTraditionAssets(profile.id, selectedTraditionId, session);
         if (!cancelled) setTraditionAssets(rows || []);
       } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить образы традиции.");
+        if (!cancelled) {
+          setTraditionAssets([]);
+          setError(err.message || "Не удалось загрузить образы традиции.");
+        }
       }
     }
 
@@ -2412,41 +2498,15 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   };
 
   const handleLogout = () => {
-    setTemplateServicesTab("services");
-    setPowerPlaceServiceDraft(null);
-    clearStoredSession();
-    setSession(null);
-    setUser(null);
-    setProfile(EMPTY_PROFILE);
-    setMaterials([]);
-    setClientGoalPhotos([]);
-    setTraditionAssets([]);
-    setPowerPlaceCompositions([]);
-    setMaterialForm(EMPTY_MATERIAL);
-    setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
-    setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
-    setObjectImages({});
-    setObjectImageUrls({});
-    setMaterialFile(null);
-    setMaterialFilePreview("");
-    setSelectedCentralPhotoId("");
-    setSelectedCompositionId("");
-    setCompositionTitle("");
-    setImagePickerContext({ mode: "", slotId: "" });
-    setActiveTopTab("power-place");
-    setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
-    setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
-    setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
-    setActivePickerCategory(SOURCE_LIBRARY_CATEGORIES[0].value);
-    setActivePickerSubcategory(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
-    setActivePickerThirdLevel(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
-    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
-    setSelectedObjectSlotId("");
-    setMaterialFilter("all");
-    setFileNotice("");
-    setMediaStatus("");
-    setMediaUploadTarget("");
-    setMessage("Вы вышли из кабинета.");
+    resetProfileSessionState("Вход сброшен. Можно войти заново.");
+  };
+
+  const handleRetryBootstrap = () => {
+    setLoadingTimedOut(false);
+    setError("");
+    setMessage("");
+    setLoading(true);
+    setBootstrapRetryKey((current) => current + 1);
   };
 
   if (!supabaseEnv.isConfigured) {
@@ -2600,9 +2660,27 @@ const resourceComparisonPanel = (
 
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
-      {loading && !user && <div className="cabinetNotice">Загружаю кабинет...</div>}
+      {loading && !user && !loadingTimedOut && (
+        <div className="cabinetNotice">
+          <p>Загружаю кабинет...</p>
+          <button className="cabinetSecondary" type="button" onClick={handleLogout}>
+            Войти заново / сбросить вход
+          </button>
+        </div>
+      )}
 
-      {!loading && !user && (
+      {loadingTimedOut && !user && (
+        <div className="cabinetNotice cabinetRecovery">
+          <p>Не удалось дождаться загрузки кабинета. Проверьте соединение и попробуйте снова.</p>
+          {error && <div className="cabinetError">{error}</div>}
+          <div className="cabinetActions">
+            <button className="cabinetPrimary" type="button" onClick={handleRetryBootstrap}>Повторить загрузку</button>
+            <button className="cabinetSecondary" type="button" onClick={handleLogout}>Войти заново</button>
+          </div>
+        </div>
+      )}
+
+      {!loading && !user && !loadingTimedOut && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
           <p className="cabinetEyebrow">Вход мастера</p>
           <h2>Войдите, чтобы создать профиль мастера</h2>
@@ -2653,7 +2731,7 @@ const resourceComparisonPanel = (
               </div>
             </div>
 
-            {loading && <div className="cabinetNotice">Загружаю кабинет...</div>}
+            {loading && !loadingTimedOut && <div className="cabinetNotice">Загружаю кабинет...</div>}
             {error && <div className="cabinetError">{error}</div>}
             {message && <div className="cabinetSuccess">{message}</div>}
 
