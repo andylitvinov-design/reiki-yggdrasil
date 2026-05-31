@@ -774,7 +774,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [secondaryDataNotice, setSecondaryDataNotice] = useState("");
   const [bootstrapRetryKey, setBootstrapRetryKey] = useState(0);
   const [bootstrapDebug, setBootstrapDebug] = useState(EMPTY_BOOTSTRAP_DEBUG);
-  const cabinetReady = Boolean(user && authStatus === "ready");
+  const hasAuthenticatedUser = Boolean(user?.id);
+  const shouldShowCabinet = hasAuthenticatedUser;
+  const shouldShowInitialLoading = !hasAuthenticatedUser && authStatus === "loading" && !loadingTimedOut;
+  const shouldShowRecovery = !hasAuthenticatedUser && loadingTimedOut;
+  const shouldShowLogin = !hasAuthenticatedUser && authStatus !== "loading" && !loadingTimedOut;
 
   const resetProfileSessionState = (notice = "") => {
     clearProfileSessionStorage();
@@ -1525,17 +1529,17 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       hasUser: Boolean(user),
       hasUserId: Boolean(user?.id),
       hasSessionState: Boolean(sessionAccessToken),
-      cabinetCondition: cabinetReady,
+      cabinetCondition: shouldShowCabinet,
       loadingTimedOut: Boolean(loadingTimedOut),
       ...bootstrapDebug
     };
     window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
       detail: window.__REIKI_PROFILE_REACT_DEBUG__
     }));
-  }, [authStatus, user, sessionAccessToken, loadingTimedOut, bootstrapDebug, cabinetReady]);
+  }, [authStatus, user, sessionAccessToken, loadingTimedOut, bootstrapDebug, shouldShowCabinet]);
 
   useEffect(() => {
-    if (authStatus !== "loading" || user) {
+    if (authStatus !== "loading" || hasAuthenticatedUser) {
       setLoadingTimedOut(false);
       return undefined;
     }
@@ -1547,7 +1551,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     }, 16000);
 
     return () => window.clearTimeout(timeoutId);
-  }, [authStatus, user]);
+  }, [authStatus, hasAuthenticatedUser]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2820,7 +2824,7 @@ const resourceComparisonPanel = (
 
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
-      {authStatus === "loading" && !user && !loadingTimedOut && (
+      {shouldShowInitialLoading && (
         <div className="cabinetNotice">
           <p>Загружаю кабинет...</p>
           <a className="cabinetSecondary" href="/profile?resetProfileSession=1">
@@ -2832,7 +2836,7 @@ const resourceComparisonPanel = (
         </div>
       )}
 
-      {loadingTimedOut && !user && (
+      {shouldShowRecovery && (
         <div className="cabinetNotice cabinetRecovery">
           <p>Не удалось дождаться загрузки кабинета. Проверьте соединение и попробуйте снова.</p>
           {error && <div className="cabinetError">{error}</div>}
@@ -2844,7 +2848,7 @@ const resourceComparisonPanel = (
         </div>
       )}
 
-      {authStatus !== "loading" && !user && !loadingTimedOut && (
+      {shouldShowLogin && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
           <p className="cabinetEyebrow">Вход мастера</p>
           <h2>Войдите, чтобы создать профиль мастера</h2>
@@ -2864,7 +2868,7 @@ const resourceComparisonPanel = (
         </form>
       )}
 
-      {cabinetReady && (
+      {shouldShowCabinet && (
         <div className="cabinetGrid">
           <section className={`mandalaWorkspace ${activeTopTab === "power-place" ? "powerPlaceMode" : ""}`}>
             <div className="mandalaHero">

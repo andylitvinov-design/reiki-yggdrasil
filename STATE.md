@@ -12,6 +12,28 @@ Last updated: 2026-05-31
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-31 — `/profile` cabinet shell opens from authenticated user id
+
+- Branch: `codex/fix-profile-render-gate-user-id`, based on fresh `origin/main` commit `425192b`.
+- Scope: minimal old `/profile` render gate change only; no OAuth provider, Supabase schema/migrations, Vercel rewrites, `/`, `/masters`, `/profile/admin`, or RU-default interface changes.
+- Root cause path:
+  - live diagnostics showed stored session, current-user success, and React user/session state could exist while `authStatus` remained `loading`;
+  - the old cabinet shell still required `user && authStatus === "ready"`, so a valid authenticated user id could be present while the main shell remained blocked behind the global loading state.
+- Change:
+  - `ProfilePage.jsx` now derives `hasAuthenticatedUser = Boolean(user?.id)`;
+  - the main cabinet shell renders from `shouldShowCabinet = hasAuthenticatedUser`;
+  - loading/recovery/login gates are explicitly guarded by `!hasAuthenticatedUser`;
+  - React debug `cabinetCondition` now reports the same `shouldShowCabinet` rule;
+  - the existing internal cabinet loading notice remains non-blocking inside the opened shell.
+- Verification:
+  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
+  - Passed `node test/profileBootstrapClient.test.mjs`.
+  - Passed `npm run test:profile-lite`.
+  - Passed `npm run test:profile-loading-recovery`.
+  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+  - Passed `npm run build`.
+- Live QA remains required after PR merge/deploy, including real Google login on `https://mentalica.vercel.app/profile?debugAuth=1`.
+
 ## 2026-05-31 — Old `/profile` authenticated render gate after auth
 
 - Branch: `codex/fix-profile-cabinet-render-gate-after-auth`, based on fresh `origin/main` commit `3a877b8`.
