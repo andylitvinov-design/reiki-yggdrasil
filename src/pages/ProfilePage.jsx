@@ -1505,8 +1505,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       } catch (err) {
         if (err?.code === "auth_load_timeout") {
           if (!cancelled) {
-            setLoadingTimedOut(true);
-            setError(err.message || "Не удалось загрузить профиль.");
+            resetProfileSessionState("Вход не отвечает. Сессия сброшена, войдите заново.");
           }
           return;
         }
