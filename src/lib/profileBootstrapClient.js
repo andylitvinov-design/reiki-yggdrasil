@@ -10,6 +10,12 @@ function authLoadError(message) {
   return cabinetError(message, { status: 401 });
 }
 
+function authTimeoutError(message) {
+  const error = cabinetError(message, { status: 408, timeout: true });
+  error.code = "auth_load_timeout";
+  return error;
+}
+
 function base64UrlDecode(value) {
   if (!value || typeof value !== "string") return "";
   const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
@@ -59,17 +65,17 @@ function fallbackUserFromSession(session) {
 function shouldUseSessionFallback(error) {
   const details = error?.details || {};
   const status = Number(details.status || details.code || 0);
+
+  if (error?.code === "auth_load_timeout" || status === 408 || details.timeout) return true;
   if (status === 401 || status === 403) return false;
-  return error?.code === "auth_load_timeout" || status === 408 || details.timeout || !status;
+  return !status;
 }
 
 async function withTimeout(promise, timeoutMs = PROFILE_LOADING_TIMEOUT_MS) {
   let timeoutId;
   const timeoutPromise = new Promise((_, reject) => {
     timeoutId = globalThis.setTimeout(() => {
-      const error = authLoadError("Вход не отвечает. Сессия сброшена, войдите заново.");
-      error.code = "auth_load_timeout";
-      reject(error);
+      reject(authTimeoutError("Вход не отвечает. Пробую открыть кабинет по сохранённой сессии."));
     }, timeoutMs);
   });
 
@@ -101,6 +107,11 @@ export async function loadProfileCabinetBootstrap({
   }
 
   if (!currentUser?.id) {
+    const fallbackUser = fallbackUserFromSession(session);
+    if (fallbackUser?.id) {
+      return { currentUser: fallbackUser, currentProfile: null };
+    }
+
     throw authLoadError("Сессия устарела. Войдите заново.");
   }
 
