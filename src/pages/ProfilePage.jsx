@@ -41,6 +41,11 @@ import {
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
 import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
+import {
+  loadPowerPlaceOptionalData,
+  loadProfileCabinetBootstrap,
+  normalizeProfileRecord
+} from "../lib/profileBootstrapClient.js";
 import { formatCabinetId } from "../lib/masterChatClient.js";
 import "../profileMandalaWorkspace.css";
 
@@ -56,6 +61,7 @@ const EMPTY_PROFILE = {
   status: "draft"
 };
 
+const PROFILE_SESSION_STORAGE_KEY = "reiki-yggdrasil-session";
 const stepOptions = reikiLevels.flatMap((level) =>
   level.steps.map((step) => ({
     ...step,
@@ -75,8 +81,6 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_title: firstSettings[0]?.title || "",
   setting_index: firstSettings.length > 0 ? 1 : null
 });
-
-const PROFILE_LOADING_TIMEOUT_MS = 15000;
 
 const POWER_SOURCE_COUNTS = [2, 4, 6, 8, 12];
 const CONSTRUCTOR_TYPES = [
@@ -486,14 +490,6 @@ const MATERIAL_CATEGORY_TABS = [
   }
 ];
 
-function normalizeProfile(profile, user) {
-  return {
-    ...EMPTY_PROFILE,
-    ...(profile || {}),
-    user_id: profile?.user_id || user?.id || ""
-  };
-}
-
 function settingsForStep(stepId) {
   const step = stepOptions.find((item) => item.id === stepId);
   return sourcedStepSettings[stepId] || step?.settings || [];
@@ -658,10 +654,38 @@ function zodiacVariantOption(optionValue, visibleCount) {
   return option ? option.value : fallbackValue;
 }
 
+function clearProfileSessionStorage() {
+  clearStoredSession();
+
+  try {
+    localStorage.removeItem(PROFILE_SESSION_STORAGE_KEY);
+  } catch {
+    // Ignore storage access failures and still reset in-memory state.
+  }
+}
+
+function isUsableStoredSession(session) {
+  return Boolean(
+    session
+    && typeof session === "object"
+    && typeof session.access_token === "string"
+    && session.access_token.trim()
+    && !isStoredSessionExpired(session)
+  );
+}
+
 function getInitialStoredSession() {
+  let hadStoredSession = false;
+
+  try {
+    hadStoredSession = localStorage.getItem(PROFILE_SESSION_STORAGE_KEY) !== null;
+  } catch {
+    hadStoredSession = false;
+  }
+
   const storedSession = getStoredSession();
-  if (isStoredSessionExpired(storedSession)) {
-    clearStoredSession();
+  if (hadStoredSession && !isUsableStoredSession(storedSession)) {
+    clearProfileSessionStorage();
     return null;
   }
   return storedSession;
@@ -683,7 +707,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [traditionAssetForm, setTraditionAssetForm] = useState({ title: "", image_url: "", notes: "", file: null });
   const [materialsLoading, setMaterialsLoading] = useState(false);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
-  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [fileNotice, setFileNotice] = useState("");
@@ -713,6 +736,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
   const [activeTopTab, setActiveTopTab] = useState("power-place");
+  const [templateServicesTab, setTemplateServicesTab] = useState("services");
+  const [powerPlaceServiceDraft, setPowerPlaceServiceDraft] = useState(null);
   const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);
   const [activeMaterialSubcategory, setActiveMaterialSubcategory] = useState(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
   const [activeMaterialThirdLevel, setActiveMaterialThirdLevel] = useState("");
@@ -725,9 +750,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [mediaStatus, setMediaStatus] = useState("");
   const [mediaUploadTarget, setMediaUploadTarget] = useState("");
   const [isClientPhotoUploadOpen, setIsClientPhotoUploadOpen] = useState(false);
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false);
+  const [bootstrapRetryKey, setBootstrapRetryKey] = useState(0);
 
-  const resetProfileSessionState = () => {
-    clearStoredSession();
+  const resetProfileSessionState = (notice = "") => {
+    clearProfileSessionStorage();
     setSession(null);
     setUser(null);
     setProfile(EMPTY_PROFILE);
@@ -736,32 +763,47 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     setTraditionAssets([]);
     setPowerPlaceCompositions([]);
     setMaterialForm(EMPTY_MATERIAL);
+    setMaterialFile(null);
+    setMaterialFilePreview("");
     setClientPhotoForm({ title: "", image_url: "", notes: "", file: null });
     setTraditionAssetForm({ title: "", image_url: "", notes: "", file: null });
     setObjectImages({});
     setObjectImageUrls({});
-    setMaterialFile(null);
-    setMaterialFilePreview("");
     setSelectedCentralPhotoId("");
     setSelectedCentralImageRef("");
     setSelectedCompositionId("");
     setCompositionTitle("");
     setImagePickerContext({ mode: "", slotId: "" });
-    setActiveTopTab("power-place");
+    setSelectedObjectSlotId("");
     setActiveMaterialCategory(MATERIAL_CATEGORY_TABS[0].value);
     setActiveMaterialSubcategory(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.value || "");
     setActiveMaterialThirdLevel(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
+    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
     setActivePickerCategory(SOURCE_LIBRARY_CATEGORIES[0].value);
     setActivePickerSubcategory(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.value || "");
     setActivePickerThirdLevel(SOURCE_LIBRARY_CATEGORIES[0].subcategories[0]?.thirdLevels?.[0]?.value || "");
-    setIsMaterialThirdLevelPanelOpen(Boolean(MATERIAL_CATEGORY_TABS[0].subcategories[0]?.thirdLevels?.length));
-    setSelectedObjectSlotId("");
     setMaterialFilter("all");
+    setCustomCoverImage("");
+    setCustomOuterCoverImage("");
+    setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
+    setSelectedOuterCoverId("no-cover");
+    setActiveCoverLayer("inner");
+    setCoverNotice("");
     setFileNotice("");
     setMediaStatus("");
     setMediaUploadTarget("");
-    setLoading(false);
+    setIsClientPhotoUploadOpen(false);
     setLoadingTimedOut(false);
+    setBootstrapRetryKey(0);
+    setPowerPlaceServiceDraft(null);
+    setTemplateServicesTab("services");
+    setActiveTopTab("power-place");
+    setResourceComparisonMode("photo_mandala");
+    setResourceWithoutMandalaComment("");
+    setResourceWithMandalaComment("");
+    setLoading(false);
+    setError("");
+    setMessage(notice);
   };
 
   const statusText = useMemo(() => {
@@ -1382,18 +1424,12 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
   useEffect(() => {
     const nextSession = storeSessionFromUrlHash();
+    if (nextSession && !isUsableStoredSession(nextSession)) {
+      resetProfileSessionState("Сессия повреждена. Войдите заново.");
+      return;
+    }
     setSession(nextSession);
   }, []);
-
-  useEffect(() => {
-    if (!loading || user) {
-      setLoadingTimedOut(false);
-      return undefined;
-    }
-
-    const timeoutId = globalThis.setTimeout(() => setLoadingTimedOut(true), PROFILE_LOADING_TIMEOUT_MS);
-    return () => globalThis.clearTimeout(timeoutId);
-  }, [loading, user]);
 
   useEffect(() => {
     if (!materialFile) {
@@ -1438,26 +1474,38 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
 
       if (isStoredSessionExpired(session)) {
-        resetProfileSessionState();
+        resetProfileSessionState("Сессия устарела. Войдите заново.");
         return;
       }
 
       setLoading(true);
+      setLoadingTimedOut(false);
       setError("");
 
       try {
-        const currentUser = await getCurrentUser(session);
-        const currentProfile = await getOwnProfile(currentUser.id, session);
+        const { currentUser, currentProfile } = await loadProfileCabinetBootstrap({
+          session,
+          getCurrentUser,
+          getOwnProfile
+        });
 
         if (!cancelled) {
           setUser(currentUser);
-          setProfile(normalizeProfile(currentProfile, currentUser));
+          setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
+          setLoadingTimedOut(false);
         }
       } catch (err) {
+        if (err?.code === "auth_load_timeout") {
+          if (!cancelled) {
+            setLoadingTimedOut(true);
+            setError(err.message || "Не удалось загрузить профиль.");
+          }
+          return;
+        }
+
         if (isExpiredOrInvalidAuthError(err)) {
           if (!cancelled) {
-            resetProfileSessionState();
-            setError("");
+            resetProfileSessionState(err?.message || "Сессия устарела. Войдите заново.");
           }
           return;
         }
@@ -1473,7 +1521,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [session, bootstrapRetryKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1514,15 +1562,20 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       }
 
       try {
-        const [photos, compositions] = await Promise.all([
-          listClientGoalPhotos(profile.id, session),
-          listPowerPlaceCompositions(profile.id, session)
-        ]);
+        const { clientGoalPhotos: photos, powerPlaceCompositions: compositions, notices } = await loadPowerPlaceOptionalData({
+          profileId: profile.id,
+          session,
+          listClientGoalPhotos,
+          listPowerPlaceCompositions
+        });
 
         if (!cancelled) {
           setClientGoalPhotos(photos || []);
           setPowerPlaceCompositions(compositions || []);
           setSelectedCentralPhotoId((current) => current || photos?.[0]?.id || "");
+          if (notices.length) {
+            setError(notices.join(" "));
+          }
         }
       } catch (err) {
         if (!cancelled) setError(err.message || "Не удалось загрузить места силы.");
@@ -1549,7 +1602,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         const rows = await listTraditionAssets(profile.id, selectedTraditionId, session);
         if (!cancelled) setTraditionAssets(rows || []);
       } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить образы традиции.");
+        if (!cancelled) {
+          setTraditionAssets([]);
+          setError(err.message || "Не удалось загрузить образы традиции.");
+        }
       }
     }
 
@@ -2427,14 +2483,29 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
       setSelectedCompositionId(saved?.id || "");
       setCompositionTitle(saved?.title || compositionTitle);
       setMessage(selectedCompositionId ? "Место силы обновлено." : "Место силы сохранено.");
+      setPowerPlaceServiceDraft({
+        composition_id: saved?.id || selectedCompositionId || "",
+        title: saved?.title || compositionTitle || "Мандала Места Силы",
+        image_url: saved?.cover_ref?.src || selectedCover?.src || customCoverImage || centerImage || "",
+        template_image_url: saved?.cover_ref?.src || selectedCover?.src || customCoverImage || centerImage || "",
+        image_bucket: saved?.cover_ref?.bucket || null,
+        image_path: saved?.cover_ref?.path || null
+      });
     } catch (err) {
       setError(err.message || "Не удалось сохранить место силы.");
     }
   };
 
   const handleLogout = () => {
-    resetProfileSessionState();
-    setMessage("Вы вышли из кабинета.");
+    resetProfileSessionState("Вход сброшен. Можно войти заново.");
+  };
+
+  const handleRetryBootstrap = () => {
+    setLoadingTimedOut(false);
+    setError("");
+    setMessage("");
+    setLoading(true);
+    setBootstrapRetryKey((current) => current + 1);
   };
 
   if (!supabaseEnv.isConfigured) {
@@ -2588,17 +2659,27 @@ const resourceComparisonPanel = (
 
   return (
     <CabinetShell title="Кабинет мастера" onNavigateHome={onNavigateHome} onNavigateMasters={onNavigateMasters}>
-      {loading && !user && <div className="cabinetNotice">Загружаю кабинет...</div>}
-      {loading && !user && loadingTimedOut && (
-        <div className="cabinetCard authCard" role="alert">
-          <p className="cabinetEyebrow">Восстановление входа</p>
-          <h2>Кабинет загружается слишком долго</h2>
-          <p>Можно сбросить текущий вход и открыть форму входа заново. Токены и настройки не показываются.</p>
-          <button className="cabinetGoogle" type="button" onClick={resetProfileSessionState}>Войти заново</button>
+      {loading && !user && !loadingTimedOut && (
+        <div className="cabinetNotice">
+          <p>Загружаю кабинет...</p>
+          <button className="cabinetSecondary" type="button" onClick={handleLogout}>
+            Войти заново / сбросить вход
+          </button>
         </div>
       )}
 
-      {!loading && !user && (
+      {loadingTimedOut && !user && (
+        <div className="cabinetNotice cabinetRecovery">
+          <p>Не удалось дождаться загрузки кабинета. Проверьте соединение и попробуйте снова.</p>
+          {error && <div className="cabinetError">{error}</div>}
+          <div className="cabinetActions">
+            <button className="cabinetPrimary" type="button" onClick={handleRetryBootstrap}>Повторить загрузку</button>
+            <button className="cabinetSecondary" type="button" onClick={handleLogout}>Войти заново</button>
+          </div>
+        </div>
+      )}
+
+      {!loading && !user && !loadingTimedOut && (
         <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
           <p className="cabinetEyebrow">Вход мастера</p>
           <h2>Войдите, чтобы создать профиль мастера</h2>
@@ -2642,12 +2723,14 @@ const resourceComparisonPanel = (
               <div className="workspaceTabs" role="tablist" aria-label="Основной раздел кабинета">
                 <button className={activeTopTab === "power-place" ? "active" : ""} type="button" onClick={() => setActiveTopTab("power-place")}>Место силы</button>
                 <button className={activeTopTab === "mandalas" ? "active" : ""} type="button" onClick={() => setActiveTopTab("mandalas")}>Мои мандалы</button>
+                <button className={activeTopTab === "services" ? "active" : ""} type="button" onClick={() => { setActiveTopTab("services"); setTemplateServicesTab("services"); }}>Услуги</button>
+                <button className={activeTopTab === "orders" ? "active" : ""} type="button" onClick={() => { setActiveTopTab("orders"); setTemplateServicesTab("orders"); }}>Заявки</button>
                 <button className={activeTopTab === "chats" ? "active" : ""} type="button" onClick={() => setActiveTopTab("chats")}>Чаты</button>
                 <button className={activeTopTab === "profile" ? "active" : ""} type="button" onClick={() => setActiveTopTab("profile")}>Профиль</button>
               </div>
             </div>
 
-            {loading && <div className="cabinetNotice">Загружаю кабинет...</div>}
+            {loading && !loadingTimedOut && <div className="cabinetNotice">Загружаю кабинет...</div>}
             {error && <div className="cabinetError">{error}</div>}
             {message && <div className="cabinetSuccess">{message}</div>}
 
@@ -3506,6 +3589,24 @@ const resourceComparisonPanel = (
               <div className="powerPlaceActions">
                 <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>
                   {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}
+                </button>
+                <button
+                  className="cabinetSecondary"
+                  type="button"
+                  disabled={!profile?.id}
+                  onClick={() => {
+                    setPowerPlaceServiceDraft({
+                      composition_id: selectedCompositionId || "",
+                      title: compositionTitle || "Мандала Места Силы",
+                      image_url: selectedCover?.src || customCoverImage || centerImage || "",
+                      template_image_url: selectedCover?.src || customCoverImage || centerImage || ""
+                    });
+                    setTemplateServicesTab("services");
+                    setActiveTopTab("services");
+                    setMessage("Черновик услуги создан из текущего шаблона мандалы. Добавьте описание и цены.");
+                  }}
+                >
+                  В услуги
                 </button>
                 <button className="cabinetSecondary" type="button" onClick={handleDownloadMandala}>Скачать</button>
                 <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
