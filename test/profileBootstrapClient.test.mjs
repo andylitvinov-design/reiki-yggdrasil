@@ -22,24 +22,41 @@ function fakeJwt(payload) {
   ].join(".");
 }
 
+let noSessionCurrentUserCalled = false;
 const noSession = await loadProfileCabinetBootstrap({
   session: null,
   getCurrentUser: async () => {
+    noSessionCurrentUserCalled = true;
     throw new Error("should not run");
   }
 });
 
 assert.deepEqual(noSession, { currentUser: null, currentProfile: null });
+assert.equal(noSessionCurrentUserCalled, false);
 
+const currentUserSteps = [];
 const currentUserOnly = await loadProfileCabinetBootstrap({
   session: { access_token: "token-1" },
   getCurrentUser: async () => ({ id: "user-1", email: "master@example.com" }),
   getOwnProfile: () => new Promise(() => {}),
-  timeoutMs: 20
+  timeoutMs: 20,
+  onStep: (step) => currentUserSteps.push(step)
 });
 
 assert.deepEqual(currentUserOnly, {
   currentUser: { id: "user-1", email: "master@example.com" },
+  currentProfile: null
+});
+assert.equal(currentUserSteps.includes("fallback-used"), false);
+
+const wrappedCurrentUser = await loadProfileCabinetBootstrap({
+  session: { access_token: "token-wrapped" },
+  getCurrentUser: async () => ({ user: { id: "user-wrapped", email: "wrapped@example.com" } }),
+  timeoutMs: 20
+});
+
+assert.deepEqual(wrappedCurrentUser, {
+  currentUser: { id: "user-wrapped", email: "wrapped@example.com" },
   currentProfile: null
 });
 
@@ -78,6 +95,50 @@ assert.equal(malformedCurrentUserFallback.currentUser.id, "user-from-token");
 assert.equal(malformedCurrentUserFallback.currentUser.source, "session-jwt-fallback");
 assert.equal(malformedCurrentUserFallback.currentProfile, null);
 
+const missingIdFallbackUser = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => ({ aud: "authenticated" }),
+  timeoutMs: 20
+});
+
+assert.equal(missingIdFallbackUser.currentUser.id, "user-from-token");
+
+const userIdFallbackSession = {
+  access_token: fakeJwt({ user_id: "user-id-from-token" })
+};
+const missingIdUserIdFallbackUser = await loadProfileCabinetBootstrap({
+  session: userIdFallbackSession,
+  getCurrentUser: async () => ({ aud: "authenticated" }),
+  timeoutMs: 20
+});
+
+assert.equal(missingIdUserIdFallbackUser.currentUser.id, "user-id-from-token");
+
+const networkFallbackUser = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => {
+    throw new TypeError("Failed to fetch");
+  },
+  timeoutMs: 20
+});
+
+assert.equal(networkFallbackUser.currentUser.id, "user-from-token");
+
+const bootstrapSteps = [];
+await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => ({ data: { user: { id: "user-from-wrapper" } } }),
+  timeoutMs: 20,
+  onStep: (step) => bootstrapSteps.push(step)
+});
+
+assert.deepEqual(bootstrapSteps, [
+  "started",
+  "user-request-started",
+  "user-request-resolved",
+  "user-has-id"
+]);
+
 const unauthorizedError = await loadProfileCabinetBootstrap({
   session: fallbackSession,
   getCurrentUser: async () => {
@@ -90,6 +151,19 @@ const unauthorizedError = await loadProfileCabinetBootstrap({
 
 assert.equal(unauthorizedError.details?.status, 401);
 assert.equal(unauthorizedError.source, undefined);
+
+const forbiddenError = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => {
+    const error = new Error("Forbidden");
+    error.details = { status: 403 };
+    throw error;
+  },
+  timeoutMs: 20
+}).catch((error) => error);
+
+assert.equal(forbiddenError.details?.status, 403);
+assert.equal(forbiddenError.source, undefined);
 
 const invalidSessionError = await loadProfileCabinetBootstrap({
   session: { access_token: "token-3" },

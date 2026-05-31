@@ -100,12 +100,19 @@
           flags.getCurrentUserStatus = requestDebug.getCurrentUserStatus || (flags.renderState === "user" ? "success" : (flags.hasStoredSession && flags.renderState === "loading" ? "loading" : "idle"));
           flags.getCurrentUserErrorMessage = requestDebug.getCurrentUserErrorMessage || "";
           flags.getCurrentUserErrorStatus = requestDebug.getCurrentUserErrorStatus || "";
+          flags.getCurrentUserResponseIdPresent = requestDebug.getCurrentUserResponseIdPresent ? "yes" : "no";
           flags.reactAuthStatus = reactDebug.authStatus || "";
           flags.reactUserState = reactDebug.hasUser ? "yes" : "no";
           flags.reactUserIdPresent = reactDebug.hasUserId ? "yes" : "no";
           flags.reactSessionState = reactDebug.hasSessionState ? "yes" : "no";
           flags.reactCabinetCondition = reactDebug.cabinetCondition ? "yes" : "no";
           flags.reactLoadingTimedOut = reactDebug.loadingTimedOut ? "yes" : "no";
+          flags.bootstrapStep = reactDebug.bootstrapStep || "idle";
+          flags.bootstrapErrorMessage = reactDebug.bootstrapErrorMessage || "";
+          flags.bootstrapCurrentUserIdPresent = reactDebug.bootstrapCurrentUserIdPresent ? "yes" : "no";
+          flags.bootstrapCancelledBeforeApply = reactDebug.bootstrapCancelledBeforeApply ? "yes" : "no";
+          flags.bootstrapFallbackUserUsed = reactDebug.bootstrapFallbackUserUsed ? "yes" : "no";
+          flags.reactBootstrapCheckpoint = reactDebug.reactBootstrapCheckpoint || "idle";
           return flags;
         }
 
@@ -133,6 +140,13 @@
             ["exchange error message/status", [flags.exchangeErrorMessage, flags.exchangeErrorStatus].filter(Boolean).join(" / ") || ""],
             ["getCurrentUser status", flags.getCurrentUserStatus],
             ["getCurrentUser error/status", [flags.getCurrentUserErrorMessage, flags.getCurrentUserErrorStatus].filter(Boolean).join(" / ") || ""],
+            ["getCurrentUser response id present", flags.getCurrentUserResponseIdPresent],
+            ["bootstrap step", flags.bootstrapStep],
+            ["bootstrap error safe message", flags.bootstrapErrorMessage],
+            ["currentUser id present after bootstrap", flags.bootstrapCurrentUserIdPresent],
+            ["cancelled before apply", flags.bootstrapCancelledBeforeApply],
+            ["fallback user used", flags.bootstrapFallbackUserUsed],
+            ["react bootstrap checkpoint", flags.reactBootstrapCheckpoint],
             ["react authStatus", flags.reactAuthStatus],
             ["react user state", flags.reactUserState],
             ["react user id present", flags.reactUserIdPresent],
@@ -161,7 +175,7 @@
         renderPanel();
       })();
     </script>
-    <script src="/profile-auth-debug.js?v=20260531-1"></script>
+    <script src="/profile-auth-debug.js?v=20260531-2"></script>
   </head>
   <body>
     <div id="root"></div>

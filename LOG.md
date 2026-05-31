@@ -1,5 +1,33 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — Profile bootstrap user-state fix
+
+- Branch: `codex/fix-profile-bootstrap-user-state`.
+- Changed files:
+  - `src/lib/profileBootstrapClient.js`
+  - `src/pages/ProfilePage.jsx`
+  - `public/profile-auth-debug.js`
+  - `index.html`
+  - `test/profileBootstrapClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause status:
+  - confirmed code gap: successful `getCurrentUser` responses without a direct top-level `id` were treated as expired auth and did not try the existing JWT fallback;
+  - confirmed code gap: the existing timeout fallback was blocked by the local timeout error carrying 401-style details;
+  - confirmed diagnostic gap: fetch-level success did not prove that `loadProfileCabinetBootstrap` returned a user with `id` or that `ProfilePage` applied it before cleanup.
+- Fix:
+  - normalize direct, `{ user }`, and `{ data: { user } }` auth response shapes;
+  - use JWT `sub` / `user_id` fallback for timeout/network-style failures and success-without-id;
+  - preserve no-fallback behavior for real 401/403 auth failures;
+  - add safe `/profile?debugAuth=1` bootstrap steps, fallback-used status, `auth-ready-applied`, and React apply checkpoints.
+- Checks run:
+  - `node test/profileBootstrapClient.test.mjs`
+  - `npm run check`
+  - `npm run build`
+- Not verified:
+  - live Google OAuth session after merge/deploy;
+  - live production debug values on `https://mentalica.vercel.app/profile?debugAuth=1`.
+
 ## 2026-05-31 — PR #131 profile loading recovery pass
 
 - PR: #131 `fix: prevent profile loading lock`.

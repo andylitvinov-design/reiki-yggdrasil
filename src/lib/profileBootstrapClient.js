@@ -62,6 +62,13 @@ function fallbackUserFromSession(session) {
   }
 }
 
+function normalizeCurrentUser(value) {
+  if (value?.id) return value;
+  if (value?.user?.id) return value.user;
+  if (value?.data?.user?.id) return value.data.user;
+  return value || null;
+}
+
 function shouldUseSessionFallback(error) {
   const details = error?.details || {};
   const status = Number(details.status || details.code || 0);
@@ -89,31 +96,45 @@ async function withTimeout(promise, timeoutMs = PROFILE_LOADING_TIMEOUT_MS) {
 export async function loadProfileCabinetBootstrap({
   session,
   getCurrentUser,
-  timeoutMs = PROFILE_LOADING_TIMEOUT_MS
+  timeoutMs = PROFILE_LOADING_TIMEOUT_MS,
+  onStep = () => {}
 } = {}) {
+  onStep("started");
+
   if (!session?.access_token) {
+    onStep("no-session");
     return { currentUser: null, currentProfile: null };
   }
 
   let currentUser;
   try {
-    currentUser = await withTimeout(getCurrentUser(session), timeoutMs);
+    onStep("user-request-started");
+    currentUser = normalizeCurrentUser(await withTimeout(getCurrentUser(session), timeoutMs));
+    onStep("user-request-resolved");
   } catch (error) {
     const fallbackUser = shouldUseSessionFallback(error) ? fallbackUserFromSession(session) : null;
     if (fallbackUser?.id) {
+      onStep("fallback-used");
       return { currentUser: fallbackUser, currentProfile: null };
     }
+    onStep("error", error);
     throw error;
   }
 
   if (!currentUser?.id) {
+    onStep("user-missing-id");
     const fallbackUser = fallbackUserFromSession(session);
     if (fallbackUser?.id) {
+      onStep("fallback-used");
       return { currentUser: fallbackUser, currentProfile: null };
     }
 
-    throw authLoadError("Сессия устарела. Войдите заново.");
+    const error = authLoadError("Сессия устарела. Войдите заново.");
+    onStep("error", error);
+    throw error;
   }
+
+  onStep("user-has-id");
 
   // Keep the critical cabinet path limited to auth → current user.
   // Profile data can be absent/slow without blocking the cabinet shell.
