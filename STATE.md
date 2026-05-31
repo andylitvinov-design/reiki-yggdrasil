@@ -12,6 +12,19 @@ Last updated: 2026-05-31
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-05-31 — Old `/profile` loading recovery from `/profile-lite` proof
+
+- Branch: `codex/fix-old-profile-loading-from-profile-lite-proof`, based on fresh `origin/main` commit `af5642d`.
+- Scope: minimal old `/profile` auth-bootstrap recovery only; no homepage, `/masters`, `/profile/admin`, `/profile-lite`, Supabase schema, OAuth redirect, env, or domain hardcoding changes.
+- Root cause path:
+  - `/profile-lite` proves Supabase OAuth/session/current-user/profile RLS are working;
+  - old `/profile` depends on `ProfilePage.jsx` applying `currentUser` and then leaving `authStatus="loading"`;
+  - the critical path is now guarded by a contract test: `setUser(currentUser)` must happen before `setAuthStatus("ready")`, and expired sessions must be cleared.
+- Change:
+  - a `getCurrentUser` timeout/bootstrap error no longer clears the stored session as if it were expired;
+  - old `/profile` now finishes loading with `authStatus="error"` and a sanitized error message, matching the safe non-hanging `/profile-lite` behavior;
+  - `test/profilePageAuthBootstrap.test.mjs` locks the old `/profile` auth path, cabinet render gate, expired-session reset, current-user response normalization, and token non-rendering contract.
+
 ## 2026-05-31 — Profile Lite diagnostic cabinet
 
 - Branch: `codex/profile-lite-master-cabinet-diagnostic`, based on `origin/main` commit `5a9a864`.

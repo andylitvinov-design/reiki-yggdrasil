@@ -1,5 +1,27 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — Old `/profile` loading recovery from `/profile-lite` proof
+
+- Branch: `codex/fix-old-profile-loading-from-profile-lite-proof`.
+- Changed files:
+  - `src/pages/ProfilePage.jsx`
+  - `test/profilePageAuthBootstrap.test.mjs`
+  - `package.json`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause found:
+  - live `/profile-lite` proves OAuth, stored session, `getCurrentUser`, own profile, and RLS are healthy;
+  - old `/profile` failure surface is the React bootstrap/apply path in `ProfilePage.jsx`, specifically whether successful current-user bootstrap becomes `user` state and whether bootstrap errors leave `authStatus="loading"`;
+  - previous behavior treated a current-user timeout as a session reset path, which is too close to expired-session handling and does not match `/profile-lite`'s safe error-state behavior.
+- Fix:
+  - old `/profile` now handles `auth_load_timeout` by setting `authStatus="error"` and rendering a sanitized error instead of clearing stored session state;
+  - added `test/profilePageAuthBootstrap.test.mjs` to guard session bootstrap, `getCurrentUser`, `setUser(currentUser)` before `setAuthStatus("ready")`, expired-session clearing, cabinet gate, and no raw token/session rendering.
+- Not changed:
+  - OAuth redirect logic;
+  - Supabase client API;
+  - schemas/migrations;
+  - `/profile-lite`, `/masters`, `/profile/admin`, `/`.
+
 ## 2026-05-31 — Profile Lite diagnostic cabinet
 
 - Branch: `codex/profile-lite-master-cabinet-diagnostic`.

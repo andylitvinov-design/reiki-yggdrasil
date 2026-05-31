@@ -1618,7 +1618,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
 
         if (err?.code === "auth_load_timeout") {
           if (!cancelled) {
-            resetProfileSessionState("Вход не отвечает. Сессия сброшена, войдите заново.");
+            setAuthStatus("error");
+            setError(sanitizeDebugMessage(err.message || "Пользователь не загрузился."));
           }
           return;
         }
