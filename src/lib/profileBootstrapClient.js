@@ -30,22 +30,20 @@ async function withTimeout(promise, timeoutMs = PROFILE_LOADING_TIMEOUT_MS) {
 export async function loadProfileCabinetBootstrap({
   session,
   getCurrentUser,
-  getOwnProfile,
   timeoutMs = PROFILE_LOADING_TIMEOUT_MS
 } = {}) {
   if (!session?.access_token) {
     return { currentUser: null, currentProfile: null };
   }
 
-  return withTimeout((async () => {
-    const currentUser = await getCurrentUser(session);
-    if (!currentUser?.id) {
-      throw authLoadError("Сессия устарела. Войдите заново.");
-    }
+  const currentUser = await withTimeout(getCurrentUser(session), timeoutMs);
+  if (!currentUser?.id) {
+    throw authLoadError("Сессия устарела. Войдите заново.");
+  }
 
-    const currentProfile = await getOwnProfile(currentUser.id, session);
-    return { currentUser, currentProfile };
-  })(), timeoutMs);
+  // Keep the critical cabinet path limited to auth → current user.
+  // Profile data can be absent/slow without blocking the cabinet shell.
+  return { currentUser, currentProfile: null };
 }
 
 export async function loadPowerPlaceOptionalData({

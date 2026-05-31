@@ -10,18 +10,26 @@ const noSession = await loadProfileCabinetBootstrap({
   session: null,
   getCurrentUser: async () => {
     throw new Error("should not run");
-  },
-  getOwnProfile: async () => {
-    throw new Error("should not run");
   }
 });
 
 assert.deepEqual(noSession, { currentUser: null, currentProfile: null });
 
-const timeoutError = await loadProfileCabinetBootstrap({
+const currentUserOnly = await loadProfileCabinetBootstrap({
   session: { access_token: "token-1" },
   getCurrentUser: async () => ({ id: "user-1", email: "master@example.com" }),
   getOwnProfile: () => new Promise(() => {}),
+  timeoutMs: 20
+});
+
+assert.deepEqual(currentUserOnly, {
+  currentUser: { id: "user-1", email: "master@example.com" },
+  currentProfile: null
+});
+
+const timeoutError = await loadProfileCabinetBootstrap({
+  session: { access_token: "token-2" },
+  getCurrentUser: () => new Promise(() => {}),
   timeoutMs: 20
 }).catch((error) => error);
 
@@ -29,9 +37,8 @@ assert.equal(timeoutError.code, "auth_load_timeout");
 assert.match(timeoutError.message, /Вход не отвечает/);
 
 const invalidSessionError = await loadProfileCabinetBootstrap({
-  session: { access_token: "token-2" },
-  getCurrentUser: async () => null,
-  getOwnProfile: async () => ({ id: "profile-1" })
+  session: { access_token: "token-3" },
+  getCurrentUser: async () => null
 }).catch((error) => error);
 
 assert.equal(invalidSessionError.details?.status, 401);
