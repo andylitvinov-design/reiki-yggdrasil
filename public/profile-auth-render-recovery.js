@@ -3,8 +3,8 @@
 
   const SESSION_KEY = "reiki-yggdrasil-session";
   const RECOVERY_KEY = "reiki-profile-auth-render-recovery-v1";
-  const CHECK_DELAY_MS = 5000;
-  const USER_SUCCESS_GRACE_MS = 1800;
+  const CHECK_DELAY_MS = 6000;
+  const USER_SUCCESS_GRACE_MS = 3500;
 
   let currentUserOkAt = 0;
 
@@ -32,6 +32,19 @@
     }
   }
 
+  function reactDebugState() {
+    return window.__REIKI_PROFILE_REACT_DEBUG__ || {};
+  }
+
+  function isReactAuthReady() {
+    const debug = reactDebugState();
+    return Boolean(
+      debug.hasUser
+      || debug.cabinetCondition
+      || debug.authStatus === "ready"
+    );
+  }
+
   function isProfileCabinetVisible() {
     return Boolean(document.querySelector(".cabinetGrid"));
   }
@@ -44,6 +57,7 @@
   function shouldRecover() {
     if (!safeHasStoredSession()) return false;
     if (isProfileCabinetVisible()) return false;
+    if (isReactAuthReady()) return false;
     if (!isProfileStillLoading()) return false;
     if (hasRecoveredOnce()) return false;
     if (currentUserOkAt && Date.now() - currentUserOkAt < USER_SUCCESS_GRACE_MS) return false;
@@ -74,6 +88,10 @@
     };
   }
 
+  window.addEventListener("reiki-profile-react-debug-update", () => {
+    if (isReactAuthReady()) return;
+    window.setTimeout(recoverIfStalled, 500);
+  });
   window.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(recoverIfStalled, CHECK_DELAY_MS);
   });
