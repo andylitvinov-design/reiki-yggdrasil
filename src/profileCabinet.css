@@ -147,6 +147,7 @@
 
 .profileForm input,
 .profileForm textarea,
+.profileForm select,
 .authCard input,
 .materialBuilder input,
 .materialBuilder textarea,
@@ -333,6 +334,52 @@
   font-weight: 700;
 }
 
+.profileLiteMain {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 18px;
+}
+
+.profileLitePanel {
+  min-width: 0;
+}
+
+.profileLiteDebug dl {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.profileLiteDebug dl div,
+.profileLiteSummary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(184, 121, 29, 0.16);
+  padding: 8px 0;
+}
+
+.profileLiteDebug dt,
+.profileLiteSummary span {
+  color: #7d6b56;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profileLiteDebug dd,
+.profileLiteSummary strong {
+  margin: 0;
+  color: #24180e;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.profileLiteFallbackLink {
+  display: inline-flex;
+  margin-top: 12px;
+  text-decoration: none;
+}
+
 @media (max-width: 760px) {
   .cabinetTopbar {
     grid-template-columns: 1fr;
@@ -345,6 +392,7 @@
   }
 
   .cabinetGrid,
+  .profileLiteMain,
   .cabinetTwoColumns,
   .masterCatalogCard,
   .materialCard {

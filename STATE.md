@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-29
+Last updated: 2026-05-31
 
 ## Current verified repo state
 
@@ -11,6 +11,34 @@ Last updated: 2026-05-29
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-05-31 — Profile Lite diagnostic cabinet
+
+- Branch: `codex/profile-lite-master-cabinet-diagnostic`, based on `origin/main` commit `5a9a864`.
+- Scope: additive `/profile-lite` diagnostic route only; no OAuth rewrite, no hardcoded domain, no Supabase schema changes, and no rewrite of old `ProfilePage.jsx`.
+- Added a lightweight profile cabinet that:
+  - uses the existing Supabase session helpers and Google login redirect path `/profile-lite`;
+  - reports safe boolean/status diagnostics for env presence, stored session, session expiry, current user, user id/email presence, own profile, auth status, and profile status;
+  - shows non-hanging no-env and no-session states;
+  - can save a minimal `display_name`, `bio`, and `draft`/`pending` profile through the existing `saveOwnProfile` contract;
+  - reads own materials through the existing materials client when a profile id is available, otherwise marks materials as `needs verification`.
+- Added Vercel SPA rewrite and debug manifest/contract awareness for `/profile-lite`.
+- Added only small `Открыть простой кабинет` links to the old `/profile` loading/recovery/login surfaces.
+- New tests cover profile-lite state helpers, safe diagnostics, route wiring, Vercel rewrite, old-profile fallback link, and source-level secret-string guard for the new page.
+
+Verification:
+
+- Passed `npm run test:profile-lite`.
+- Passed `npm run test:profile-media`.
+- Passed `npm run test:profile-materials`.
+- Passed `npm run test:profile-services`.
+- Passed `npm run test:power-place`.
+- Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+- Passed `npm run build`.
+- Browser QA on local Vite dev server covered `/`, `/profile`, `/profile-lite`, `/masters`, and `/profile/admin`:
+  - desktop 1366 had no console errors/warnings and no horizontal overflow;
+  - mobile breakpoint QA requested 390px, but Chrome DevTools reported a minimum `innerWidth` of 500px; below-760px mobile CSS was active, with no console errors/warnings and no horizontal overflow.
+- Live QA remains required after merge/deploy.
 
 ## 2026-05-31 — Profile bootstrap user-state fix
 

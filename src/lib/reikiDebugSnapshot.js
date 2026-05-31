@@ -4,7 +4,7 @@ const REQUIRED_ENV_NAMES = [
   "VITE_ADMIN_EMAIL",
 ];
 
-const EXPECTED_ROUTES = ["/", "/profile", "/masters", "/profile/admin"];
+const EXPECTED_ROUTES = ["/", "/profile", "/profile-lite", "/masters", "/profile/admin"];
 
 const BUG_TAXONOMY = [
   "DEPLOY_MISMATCH",
@@ -84,7 +84,7 @@ export function buildReikiDebugSnapshot(options = {}) {
       desktop_layout: "three-column",
       mobile_breakpoint_px: 980,
       public_routes: ["/", "/masters"],
-      protected_routes: ["/profile", "/profile/admin"],
+      protected_routes: ["/profile", "/profile-lite", "/profile/admin"],
       preserve: [
         "public home page unless explicitly targeted",
         "RU-default interface",

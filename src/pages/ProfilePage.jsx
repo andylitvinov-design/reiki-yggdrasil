@@ -2646,6 +2646,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         <div className="cabinetNotice">
           <b>Кабинет мастера подготовлен, но Supabase ещё не подключён.</b>
           <p>Нужно настроить env names в Vercel: VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY. Значения не должны храниться в repo.</p>
+          <a className="cabinetGhost profileLiteFallbackLink" href="/profile-lite">
+            Открыть простой кабинет
+          </a>
         </div>
       </CabinetShell>
     );
@@ -2797,6 +2800,9 @@ const resourceComparisonPanel = (
           <a className="cabinetSecondary" href="/profile?resetProfileSession=1">
             Войти заново / сбросить вход
           </a>
+          <a className="cabinetGhost profileLiteFallbackLink" href="/profile-lite">
+            Открыть простой кабинет
+          </a>
         </div>
       )}
 
@@ -2807,6 +2813,7 @@ const resourceComparisonPanel = (
           <div className="cabinetActions">
             <a className="cabinetPrimary" href="/profile">Повторить загрузку</a>
             <a className="cabinetSecondary" href="/profile?resetProfileSession=1">Войти заново</a>
+            <a className="cabinetGhost" href="/profile-lite">Открыть простой кабинет</a>
           </div>
         </div>
       )}
@@ -2819,6 +2826,9 @@ const resourceComparisonPanel = (
           {error && <div className="cabinetError">{error}</div>}
           {message && <div className="cabinetSuccess">{message}</div>}
           <button className="cabinetGoogle" type="button" onClick={handleGoogleLogin}>Войти через Google</button>
+          <a className="cabinetGhost profileLiteFallbackLink" href="/profile-lite">
+            Открыть простой кабинет
+          </a>
           <div className="authDivider">или войдите по email</div>
           <label>
             Email

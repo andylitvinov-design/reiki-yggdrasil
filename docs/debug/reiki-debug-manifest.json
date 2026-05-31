@@ -7,7 +7,7 @@
     "current_legacy": "https://reiki-yggdrasil.vercel.app",
     "target_production": "https://mentalica.vercel.app"
   },
-  "required_routes": ["/", "/profile", "/masters", "/profile/admin"],
+  "required_routes": ["/", "/profile", "/profile-lite", "/masters", "/profile/admin"],
   "required_commands": [
     "npm run verify:debug-contract",
     "npm run check",

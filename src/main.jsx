@@ -13,6 +13,7 @@ import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
 import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/youtube.js";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import ProfileLitePage from "./pages/ProfileLitePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import "./index.css";
@@ -167,6 +168,10 @@ function RootRouter() {
 
   if (path === "/profile/admin") {
     return <AdminPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile-lite") {
+    return <ProfileLitePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile") {

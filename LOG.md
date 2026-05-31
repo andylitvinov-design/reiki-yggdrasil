@@ -1,5 +1,47 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-05-31 — Profile Lite diagnostic cabinet
+
+- Branch: `codex/profile-lite-master-cabinet-diagnostic`.
+- Changed files:
+  - `src/lib/profileLiteClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/main.jsx`
+  - `src/pages/ProfilePage.jsx`
+  - `src/profileCabinet.css`
+  - `src/lib/reikiDebugSnapshot.js`
+  - `docs/debug/reiki-debug-manifest.json`
+  - `scripts/verify-reiki-debug-contract.mjs`
+  - `scripts/verify-reiki-debug-manifest.mjs`
+  - `vercel.json`
+  - `test/profileLiteClient.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `package.json`
+  - `STATE.md`
+  - `LOG.md`
+- Fix:
+  - added additive `/profile-lite` route for testing stored session, current user, own profile, minimal profile save, and own materials separately from the old large `/profile` component;
+  - added a safe debug panel with statuses/booleans only;
+  - kept Google redirect origin-based through the existing `signInWithGoogle("/profile-lite")`;
+  - added a small fallback link from old `/profile` surfaces without changing old bootstrap/render logic.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run check`
+  - `npm run build`
+- Browser QA:
+  - local Vite dev server on `http://localhost:5177`;
+  - desktop 1366 checked `/`, `/profile`, `/profile-lite`, `/masters`, `/profile/admin`;
+  - mobile breakpoint checked the same routes after requesting 390px; DevTools reported `innerWidth=500`, still below the 760px mobile CSS breakpoint;
+  - no console errors/warnings and no horizontal overflow observed.
+- Not verified:
+  - real Google OAuth session;
+  - live Supabase RLS/profile/materials behavior;
+  - production routes after merge/deploy.
+
 ## 2026-05-31 — Profile bootstrap user-state fix
 
 - Branch: `codex/fix-profile-bootstrap-user-state`.

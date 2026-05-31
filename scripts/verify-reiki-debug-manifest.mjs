@@ -52,7 +52,7 @@ if (!failures.length) {
   requireArray("evidence_levels", manifest.evidence_levels, 5);
   requireArray("safety_invariants", manifest.safety_invariants, 5);
 
-  for (const route of ["/", "/profile", "/masters", "/profile/admin"]) {
+  for (const route of ["/", "/profile", "/profile-lite", "/masters", "/profile/admin"]) {
     requireIncludes("required_routes", manifest.required_routes, route);
   }
 
