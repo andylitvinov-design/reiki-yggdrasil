@@ -45,6 +45,17 @@ const FALLBACK_COVERS = [
   { id: "cover-forest", label: "Лесной фон", type: "placeholder", tone: "green", src: "" },
   { id: "cover-night", label: "Ночной фон", type: "placeholder", tone: "blue", src: "" }
 ];
+const SOURCE_GROUPS = [
+  { value: "all", label: "Все источники" },
+  { value: "client-photo", label: "Фото клиентов" },
+  { value: "tradition-asset", label: "Традиции" },
+  { value: "material", label: "Материалы" }
+];
+const FIELD_LAYOUTS = [
+  { value: "square", label: "Квадрат" },
+  { value: "vertical", label: "Вертикальное" },
+  { value: "horizontal", label: "Горизонтальное" }
+];
 
 function objectRefText(value) {
   try {
@@ -78,6 +89,10 @@ function cleanObjectRefs(refs) {
 
 function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
+}
+
+function sourceGroupLabel(value) {
+  return SOURCE_GROUPS.find((group) => group.value === value)?.label || "Все источники";
 }
 
 function buildSlotList(draft) {
@@ -167,6 +182,8 @@ export default function ProfileLitePowerPlaceModule({
   const [pickerMode, setPickerMode] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [coverLayerMode, setCoverLayerMode] = useState("inner");
+  const [sourceGroup, setSourceGroup] = useState("all");
+  const [sourceCategory, setSourceCategory] = useState("all");
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -220,6 +237,18 @@ export default function ProfileLitePowerPlaceModule({
     ...(innerCover?.id === "custom-cover" ? [innerCover] : []),
     ...(outerCover?.id === "custom-outer-cover" ? [outerCover] : [])
   ], [innerCover, outerCover, savedImages]);
+  const sourceCategories = useMemo(() => {
+    const categories = savedImages
+      .filter((item) => sourceGroup === "all" || item.kind === sourceGroup)
+      .map((item) => item.meta || sourceGroupLabel(item.kind))
+      .filter(Boolean);
+    return ["all", ...Array.from(new Set(categories))];
+  }, [savedImages, sourceGroup]);
+  const filteredSavedImages = useMemo(() => savedImages.filter((item) => {
+    const groupMatches = sourceGroup === "all" || item.kind === sourceGroup;
+    const categoryMatches = sourceCategory === "all" || item.meta === sourceCategory;
+    return groupMatches && categoryMatches;
+  }), [savedImages, sourceCategory, sourceGroup]);
 
   const openObjectPicker = (slotId) => {
     setSelectedSlotId(slotId);
@@ -274,7 +303,7 @@ export default function ProfileLitePowerPlaceModule({
   };
 
   return (
-    <section className="profileLiteModule profileLitePowerPlace mandalaWorkspace powerPlaceMode" aria-label="Мои мандалы">
+    <section className="profileLiteModule profileLitePowerPlace mandalaWorkspace" aria-label="Мои мандалы">
       <div className="mandalaHero">
         <div className="mandalaHeroSeal">♣</div>
         <div>
@@ -303,7 +332,10 @@ export default function ProfileLitePowerPlaceModule({
       <div className="workspaceMainColumns profileLitePowerPlaceColumns">
         <aside className="mandalaModeSidebar powerLibrarySidebar">
           <p className="cabinetEyebrow">Источники силы</p>
-          <h3>Сохранённые образы</h3>
+          <h3>Источники силы</h3>
+          <button className="powerAddImageButton" type="button" onClick={() => setWorkspaceTab("mandalas")}>
+            Добавить мандалу
+          </button>
           <select value={compositionDraft.id || ""} onChange={(event) => {
             const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
             if (composition) onCompositionLoad(composition);
@@ -322,18 +354,55 @@ export default function ProfileLitePowerPlaceModule({
             ))}
             {mandalasStatus === "success" && powerPlaceCompositions.length === 0 && <p>Сохранённые мандалы пока не найдены.</p>}
           </div>
-          <div className="powerSavedImageList">
-            {savedImages.slice(0, 8).map((item) => (
-              <button key={item.id} type="button" onClick={() => chooseImage(item)}>
-                <span className={item.displaySrc ? "hasImage" : ""} style={imageStyle(item.displaySrc || item.src)} />
+          <div className="powerLibraryFilter">
+            <label className="powerLibrarySelectLabel">
+              Группа
+              <select value={sourceGroup} onChange={(event) => {
+                setSourceGroup(event.target.value);
+                setSourceCategory("all");
+              }}>
+                {SOURCE_GROUPS.map((group) => (
+                  <option key={group.value} value={group.value}>{group.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="powerLibrarySelectLabel">
+              Категория
+              <select value={sourceCategory} onChange={(event) => setSourceCategory(event.target.value)}>
+                {sourceCategories.map((category) => (
+                  <option key={category} value={category}>{category === "all" ? "Все категории" : category}</option>
+                ))}
+              </select>
+            </label>
+            <div className="powerLibrarySubcategoryButtons" aria-label="Быстрые группы источников">
+              {SOURCE_GROUPS.map((group) => (
+                <button className={sourceGroup === group.value ? "active" : ""} key={group.value} type="button" onClick={() => {
+                  setSourceGroup(group.value);
+                  setSourceCategory("all");
+                }}>
+                  {group.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="powerSavedImageList" aria-label="Сохранённые изображения">
+            <div className="powerSavedImageHeader">
+              <b>Сохранённые изображения</b>
+              <small>{selectedSlot ? `Позиция: ${selectedSlot.label}` : "Выберите позицию на схеме"}</small>
+            </div>
+            {filteredSavedImages.map((item) => (
+              <button className="powerSavedImageCard" key={item.id} type="button" onClick={() => chooseImage(item)}>
+                <span className={`powerSavedImageThumb${item.displaySrc ? " hasImage" : ""}`} style={imageStyle(item.displaySrc || item.src)} />
                 <b>{item.label}</b>
                 <small>{item.meta}</small>
               </button>
             ))}
+            {savedImages.length === 0 && <p>Сохранённые фото, подложки и изображения появятся здесь после загрузки.</p>}
+            {savedImages.length > 0 && filteredSavedImages.length === 0 && <p>В этой категории пока нет изображений.</p>}
           </div>
         </aside>
 
-        <div className="workspaceRightColumn">
+        <div className="workspaceCenterColumn">
           {workspaceTab === "mandalas" ? (
             <section className="cabinetCard mandalaGallery">
               <div className="cabinetFormHeader">
@@ -417,8 +486,8 @@ export default function ProfileLitePowerPlaceModule({
                 )}
               </div>
 
-              <div className="powerPlacePrintArea field-layout-square">
-                <div className={`powerMandalaPanel field-layout-square outer-cover-${outerCover?.tone || "gold"}`} style={imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src)}>
+              <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "gold"}`} style={imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src)}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
@@ -432,75 +501,6 @@ export default function ProfileLitePowerPlaceModule({
                 </div>
               </div>
 
-              <aside className="powerPlaceSettings">
-                <div className="coverPickerPanel">
-                  <p className="cabinetEyebrow">Фон места силы</p>
-                  <div className="clientPhotoPickerModeTabs" role="tablist" aria-label="Слой фона">
-                    <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
-                    <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
-                  </div>
-                  <div className="coverVariantsGrid" aria-label="Варианты фона">
-                    {coverOptions.map((cover) => (
-                      <button className={visibleCover?.id === cover.id ? "active" : ""} key={`${coverLayerMode}-${cover.id}`} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
-                        {cover.label}
-                      </button>
-                    ))}
-                  </div>
-                  <label className="coverUploadButton">
-                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (file) onCoverFileUpload(coverLayerMode, file);
-                      event.target.value = "";
-                    }} />
-                    Своё изображение
-                  </label>
-                  <button className="coverPickerButton" type="button" onClick={() => setPickerMode("cover")}>Выбрать фото</button>
-                </div>
-
-                <div className="objectImageEditor">
-                  <p className="cabinetEyebrow">Объекты композиции</p>
-                  <div className="selectedObjectControl">
-                    <div className={selectedSlotImage ? "selectedObjectPreview hasImage" : "selectedObjectPreview"} style={imageStyle(objectRefUrls[selectedSlotImage] || selectedSlotImage)}>
-                      {!selectedSlotImage && <span>◎</span>}
-                    </div>
-                    <div className="selectedObjectBody">
-                      <b>{selectedSlot?.label || "Выберите позицию на мандале"}</b>
-                      <small>Нажмите точку на диаграмме, затем выберите образ или загрузите файл.</small>
-                      <select disabled={!selectedSlot} value={selectedSlotImage} onChange={(event) => selectedSlot && onCompositionObjectRefSelect(selectedSlot.id, event.target.value, event.target.value)}>
-                        <option value="">Пусто</option>
-                        {savedImages.map((item) => (
-                          <option key={`${selectedSlot?.id || "slot"}-${item.id}`} value={item.src}>{item.label}</option>
-                        ))}
-                      </select>
-                      <div className="selectedObjectActions">
-                        <button type="button" disabled={!selectedSlot} onClick={() => selectedSlot && setPickerMode("object")}>Выбрать образ</button>
-                        <label className={!selectedSlot ? "disabled" : ""}>
-                          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={!selectedSlot} onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file && selectedSlot) onObjectFileUpload(selectedSlot.id, file);
-                            event.target.value = "";
-                          }} />
-                          Загрузить
-                        </label>
-                        <button type="button" disabled={!selectedSlot || !selectedSlotImage} onClick={() => selectedSlot && onCompositionObjectRefSelect(selectedSlot.id, "", "")}>Очистить</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </aside>
-
-              <label className="compositionTitleField">
-                Название мандалы
-                <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
-              </label>
-              <div className="powerPlaceActions">
-                <button className="cabinetPrimary" type="button" onClick={onSave}>{compositionDraft.id ? "Обновить место силы" : "Сохранить место силы"}</button>
-                <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
-                <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать</button>
-                <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
-                <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
-              </div>
-
               <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
                 <summary>Диагностика / advanced object refs JSON</summary>
                 <label>
@@ -510,6 +510,121 @@ export default function ProfileLitePowerPlaceModule({
               </details>
             </section>
           )}
+        </div>
+
+        <div className="workspaceRightColumn">
+          <aside className="powerPlaceSettings">
+            <div className="coverPickerPanel">
+              <p className="cabinetEyebrow">Фон места силы</p>
+              <div className="clientPhotoPickerModeTabs" role="tablist" aria-label="Слой фона">
+                <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
+                <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
+              </div>
+              <div className="coverVariantsGrid" aria-label="Варианты фона">
+                {coverOptions.map((cover) => (
+                  <button className={visibleCover?.id === cover.id ? "active" : ""} key={`${coverLayerMode}-${cover.id}`} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
+                    {cover.label}
+                  </button>
+                ))}
+              </div>
+              <label className="coverUploadButton">
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) onCoverFileUpload(coverLayerMode, file);
+                  event.target.value = "";
+                }} />
+                Своё изображение
+              </label>
+              <button className="coverPickerButton" type="button" onClick={() => setPickerMode("cover")}>Выбрать фото</button>
+            </div>
+
+            <div className="powerLayoutPanel">
+              <p className="cabinetEyebrow">Макет</p>
+              <div className="mandalaFieldLayoutButtons" role="group" aria-label="Макет поля мандалы">
+                {FIELD_LAYOUTS.map((layout) => (
+                  <button
+                    className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
+                    key={layout.value}
+                    onClick={() => onCompositionDraftChange("field_layout", layout.value)}
+                    type="button"
+                  >
+                    {layout.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="resourceComparisonPanel">
+              <p className="cabinetEyebrow">Анализ</p>
+              <div className="resourceModeToggle" aria-label="Сравнение ресурса">
+                <button className={compositionDraft.resource_comparison_mode === "client_photo" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "client_photo")}>Фото цели</button>
+                <button className={compositionDraft.resource_comparison_mode === "photo_mandala" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "photo_mandala")}>Цель + мандала</button>
+              </div>
+              <label className="resourceField">
+                Ресурс без мандалы
+                <textarea
+                  className="resourceFieldInput"
+                  value={compositionDraft.resource_without_mandala_comment || ""}
+                  onChange={(event) => onCompositionDraftChange("resource_without_mandala_comment", event.target.value)}
+                  rows={3}
+                />
+              </label>
+              <label className="resourceField">
+                Ресурс с мандалой
+                <textarea
+                  className="resourceFieldInput"
+                  value={compositionDraft.resource_with_mandala_comment || ""}
+                  onChange={(event) => onCompositionDraftChange("resource_with_mandala_comment", event.target.value)}
+                  rows={3}
+                />
+              </label>
+            </div>
+
+            <div className="objectImageEditor">
+              <p className="cabinetEyebrow">Объекты композиции</p>
+              <div className="selectedObjectControl">
+                <div className={selectedSlotImage ? "selectedObjectPreview hasImage" : "selectedObjectPreview"} style={imageStyle(objectRefUrls[selectedSlotImage] || selectedSlotImage)}>
+                  {!selectedSlotImage && <span>◎</span>}
+                </div>
+                <div className="selectedObjectBody">
+                  <b>{selectedSlot?.label || "Выберите позицию на мандале"}</b>
+                  <small>Нажмите точку на диаграмме, затем выберите образ или загрузите файл.</small>
+                  <select disabled={!selectedSlot} value={selectedSlotImage} onChange={(event) => selectedSlot && onCompositionObjectRefSelect(selectedSlot.id, event.target.value, event.target.value)}>
+                    <option value="">Пусто</option>
+                    {savedImages.map((item) => (
+                      <option key={`${selectedSlot?.id || "slot"}-${item.id}`} value={item.src}>{item.label}</option>
+                    ))}
+                  </select>
+                  <div className="selectedObjectActions">
+                    <button type="button" disabled={!selectedSlot} onClick={() => selectedSlot && setPickerMode("object")}>Выбрать образ</button>
+                    <label className={!selectedSlot ? "disabled" : ""}>
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={!selectedSlot} onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file && selectedSlot) onObjectFileUpload(selectedSlot.id, file);
+                        event.target.value = "";
+                      }} />
+                      Загрузить
+                    </label>
+                    <button type="button" disabled={!selectedSlot || !selectedSlotImage} onClick={() => selectedSlot && onCompositionObjectRefSelect(selectedSlot.id, "", "")}>Очистить</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div className="profileLitePowerPlaceActions">
+        <label className="compositionTitleField">
+          Название мандалы
+          <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
+        </label>
+        <div className="powerPlaceActions">
+          <button className="cabinetPrimary" type="button" onClick={onSave}>{compositionDraft.id ? "Обновить место силы" : "Сохранить место силы"}</button>
+          <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
+          <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать</button>
+          <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
+          <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
         </div>
       </div>
 

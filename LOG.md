@@ -1,5 +1,45 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite Power Place true 3-column layout parity
+
+- Branch: `codex/fix-profile-lite-power-place-layout-parity`.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Fix:
+  - restored Lite `/profile/mandalas` to the old Power Place workspace DOM shape: left source rail, center constructor, separate right settings rail;
+  - removed the Lite `powerPlaceMode` class so the shared CSS no longer hides the center column or spans the constructor across the right side;
+  - added source-library controls for group/category filtering and saved images;
+  - moved `Фон места силы`, `Макет`, `Анализ`, resource comparison fields, and object controls into the right rail;
+  - added final Lite-scoped CSS overrides so desktop 1280 keeps a real 3-column grid and the center mandala visual is sized like the old reference rather than tiny/overflowing;
+  - preserved `/profile-old`, auth/bootstrap code, media loaders, and advanced-only `Object refs JSON`.
+- Contract test:
+  - extended `test/profileLiteCabinetContract.test.mjs` so Lite Power Place requires `workspaceMainColumns`, `workspaceCenterColumn`, `workspaceRightColumn`, `powerLibrarySidebar`, `powerPlaceSettings`, `coverPickerPanel`, old source/settings text, and no primary `powerPlaceMode` regression.
+  - Red check failed first on missing `Добавить мандалу`; green check passed after the JSX/CSS fix.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - first `npm run check` stopped at `vite: command not found` in the clean worktree before `npm install`;
+  - after `npm install`, `npm run check` passed with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05` plus the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the same Vite large-chunk warning.
+- Local rendered QA:
+  - local URL: `http://localhost:4182/profile/mandalas`;
+  - used layout-only fake Supabase env and fake hash session to open the authenticated shell locally; no real credentials were used;
+  - desktop 1280: columns measured `260px 640px 320px`, left rail visible, right rail visible, center mandala panel `560px`, mandala `362px`, horizontal overflow `0`, console errors/warnings `0`;
+  - mobile 390: columns collapsed to one `358px` track, stack order was hero/tabs/center visual/left controls/right settings/actions, horizontal overflow `0`, console errors/warnings `0`;
+  - `/profile-old` at 1280 still opened locally, no Vite overlay, horizontal overflow `0`, console errors/warnings `0`.
+- Live QA:
+  - not deployed from this branch yet;
+  - production/legacy live verification remains required after merge/deploy.
+
 ## 2026-06-01 — PR #191 production deploy status for Power Place parity
 
 - PR: #191 `Restore Profile Lite Power Place visual parity`.
