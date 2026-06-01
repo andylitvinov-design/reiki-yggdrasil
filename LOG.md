@@ -21,6 +21,15 @@
   - mark real RLS/storage flows as `needs verification` until tested with a signed-in production/preview session.
 - Parity gaps recorded in `STATE.md`.
 
+### Post-merge deployment evidence
+
+- PR #189 merged to `main` as `1926d97398e9292f65e9bebc50c6dfe01dde618e`.
+- GitHub CI `26778434490` passed.
+- GitHub Deployment `4895245323` completed `Production` successfully at `2026-06-01T19:56:49Z`, target `https://reiki-yggdrasil-fx6it9y95-super10.vercel.app`.
+- Vercel commit status is `success`.
+- GitHub Pages workflow `26778434493` failed at `Configure Pages`; Vercel remains the hosting target for this repo.
+- Browser/live authenticated route QA remains not completed because this execution environment could not access localhost preview (`EPERM`) or Vercel MCP project/fetch endpoints (`403 Forbidden`).
+
 ## 2026-06-01 — Profile Lite full alternative cabinet
 
 - Branch: `codex/profile-lite-full-alternative-cabinet`.

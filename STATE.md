@@ -39,6 +39,15 @@ Last updated: 2026-06-01
   - live schema state for `profile_cabinet_services`, `profile_cabinet_service_orders`, `profile_cabinet_chat_*`, storage bucket policies, and chess composition migration;
   - production/legacy visual route QA after this branch is merged/deployed.
 
+### Post-merge deployment evidence for PR #189
+
+- PR #189 merged into `main` at commit `1926d97398e9292f65e9bebc50c6dfe01dde618e`.
+- GitHub CI run `26778434490` passed on that SHA.
+- GitHub Deployment `4895245323` reports `Production` success at `2026-06-01T19:56:49Z` with target `https://reiki-yggdrasil-fx6it9y95-super10.vercel.app`.
+- Vercel commit status for that SHA is `success`.
+- GitHub Pages workflow `26778434493` failed at `Configure Pages`; this is recorded as non-blocking for Vercel hosting but remains a repo workflow risk.
+- Live route/browser inspection is still not claimed: local fetch to preview was blocked by sandbox `EPERM`, and Vercel MCP project/fetch access returned `403 Forbidden`.
+
 ## 2026-06-01 — Profile Lite full alternative cabinet
 
 - Branch: `codex/profile-lite-full-alternative-cabinet`, based on fresh `origin/main` commit `7645c0c`.
