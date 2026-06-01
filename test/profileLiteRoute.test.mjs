@@ -22,10 +22,30 @@ function assertRouteMapsWithInitialTopTab(path, initialTopTab) {
   );
 }
 
+function assertProfilePageHasKey(path, expectedKey) {
+  assert.match(
+    mainSource,
+    new RegExp(`if \\(path === "${path.replace(/\//g, "\\/")}"\\) \\{[\\s\\S]*?return <ProfilePage\\b[^>]*key="${expectedKey}"`),
+    `${path} must render ProfilePage with key="${expectedKey}" so React remounts on navigation`
+  );
+}
+
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
 
 assertRouteMapsTo("/profile", "ProfilePage");
+
+for (const [path, key] of [
+  ["/profile", "profile"],
+  ["/profile-old", "profile-old"],
+  ["/profile/mandalas", "profile-mandalas"],
+  ["/profile/services", "profile-services"],
+  ["/profile/orders", "profile-orders"],
+  ["/profile/chats", "profile-chats"],
+  ["/profile/settings", "profile-settings"]
+]) {
+  assertProfilePageHasKey(path, key);
+}
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
 assertRouteMapsWithInitialTopTab("/profile/mandalas", "power-place");
