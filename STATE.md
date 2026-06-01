@@ -12,6 +12,43 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite route-backed tab navigation freeze fix
+
+- Branch: `codex/fix-profile-lite-tabs-freeze`, based on `origin/main`.
+- Scope: stabilize Profile Lite shell/tab navigation after PR #192/#193 without merging or reusing the central image picker PR #194.
+- Root cause found:
+  - Profile Lite top tabs were local-state-only `<button>` controls wired to `setActiveTab`;
+  - direct subroutes existed for several modules, but the shell tab map had no URL contract and `/profile?tab=...` was not parsed;
+  - if an active module render crashed after async profile/module data arrived, the module could take the shell subtree with it instead of failing inline.
+- Changed:
+  - `PROFILE_LITE_TABS` now owns stable `href` values;
+  - shell tabs render route-backed anchors and intercept clicks for SPA `pushState` navigation;
+  - `/profile?tab=profile|media|materials|diagnostics` and `/profile-lite?tab=...` resolve to the requested Lite tab after reload;
+  - existing subroutes remain active for `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings`;
+  - `ProfileLitePage` syncs `activeTab` from route/query changes and wraps the active module in an inline ErrorBoundary so shell tabs remain mounted if a module fails.
+- Route/tab behavior:
+  - Обзор -> `/profile`
+  - Профиль -> `/profile?tab=profile`
+  - Мои мандалы -> `/profile/mandalas`
+  - Фото / Медиа -> `/profile?tab=media`
+  - Материалы -> `/profile?tab=materials`
+  - Услуги -> `/profile/services`
+  - Заказы -> `/profile/orders`
+  - Чаты -> `/profile/chats`
+  - Настройки -> `/profile/settings`
+  - Диагностика -> `/profile?tab=diagnostics`
+- Verification status:
+  - passed `npm run test:profile-lite` after RED contract failures for route-backed tabs/query mapping/ErrorBoundary;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`, plus existing Vite chunk-size warning;
+  - passed standalone `npm run build` with the existing Vite chunk-size warning;
+  - local dev QA with fake Supabase env and fake JWT fallback opened `/profile`, waited 10 seconds, clicked every tab, verified URL + active tab changes, kept 10 tabs mounted, found no `clientPhotoPickerBackdrop`, no Vite overlay, and horizontal overflow `0`;
+  - direct local URLs opened the expected tabs for `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings`;
+  - local guard routes `/profile-old`, `/`, `/masters`, and `/profile/admin` opened without Vite overlay and with horizontal overflow `0`; `/masters` and `/profile/admin` showed expected `Failed to fetch` with fake Supabase URL only;
+  - merge/deploy and production/legacy live QA remain pending in this entry until completed.
+- Not changed:
+  - `/profile-old`, `/`, `/masters`, `/profile/admin`, Supabase env/auth, Vercel rewrites for existing routes, and Power Place UX depth.
+
 ## 2026-06-02 — Profile Lite Power Place layout parity follow-up
 
 - Branch: `codex/fix-profile-lite-power-place-layout-parity`, based on `origin/main` commit `d7cf7d7`.

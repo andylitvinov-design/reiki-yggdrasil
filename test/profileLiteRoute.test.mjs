@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
+import { getProfileLiteInitialTabFromLocation } from "../src/lib/profileLiteClient.js";
+
 const mainSource = readFileSync("src/main.jsx", "utf8");
 const vercelConfig = JSON.parse(readFileSync("vercel.json", "utf8"));
 const profilePageSource = readFileSync("src/pages/ProfilePage.jsx", "utf8");
@@ -44,6 +46,28 @@ assertRouteMapsToProfileLiteTab("/profile/chats", "chats");
 assertRouteMapsToProfileLiteTab("/profile/settings", "settings");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
+
+assert.match(
+  mainSource,
+  /const \[location, setLocation\] = useState\(\(\) => \(\{ pathname: window\.location\.pathname, search: window\.location\.search \}\)\);/,
+  "RootRouter should track pathname and search so /profile?tab=... reloads open the requested Lite tab"
+);
+
+assert.match(
+  mainSource,
+  /const profileQueryTab = getProfileLiteInitialTabFromLocation\(path, search\);/,
+  "RootRouter should map /profile query tabs before rendering ProfileLitePage"
+);
+
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=media"), "media");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=materials"), "materials");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/services", ""), "services");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/orders", ""), "orders");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/chats", ""), "chats");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/settings", ""), "settings");
 
 assert.ok(
   /if \(path === "\/profile-lite"\) \{[\s\S]*?return <ProfileLitePage\b/.test(mainSource),

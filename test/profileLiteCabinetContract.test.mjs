@@ -7,6 +7,7 @@ import {
   createProfileLiteForm,
   createProfileLiteSavePayload,
   createProfileLiteShellViewModel,
+  getProfileLiteRouteByTabId,
   getProfileLiteTabById,
   PROFILE_LITE_TABS,
   safeProfileLiteError
@@ -31,8 +32,31 @@ assert.deepEqual(
   "Profile Lite cabinet should expose the complete tab map"
 );
 
+assert.deepEqual(
+  PROFILE_LITE_TABS.map((tab) => [tab.id, tab.href]),
+  [
+    ["overview", "/profile"],
+    ["profile", "/profile?tab=profile"],
+    ["mandalas", "/profile/mandalas"],
+    ["media", "/profile?tab=media"],
+    ["materials", "/profile?tab=materials"],
+    ["services", "/profile/services"],
+    ["orders", "/profile/orders"],
+    ["chats", "/profile/chats"],
+    ["settings", "/profile/settings"],
+    ["diagnostics", "/profile?tab=diagnostics"]
+  ],
+  "Profile Lite tabs must be backed by stable URL paths or query strings"
+);
+
 assert.equal(getProfileLiteTabById("missing").id, "overview");
 assert.equal(getProfileLiteTabById("orders").label, "Заказы");
+assert.equal(getProfileLiteRouteByTabId("mandalas"), "/profile/mandalas");
+assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
+assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
+assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
+assert.equal(getProfileLiteRouteByTabId("settings"), "/profile/settings");
+assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
 
 const fullForm = createProfileLiteForm({
   display_name: "Master",
@@ -158,6 +182,8 @@ for (const forbidden of [
 }
 
 const powerPlaceSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
+const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
+const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -222,4 +248,28 @@ assert.match(
   readmeSource,
   /20260531090000_power_place_chess_format\.sql/,
   "README setup must include the chess composition migration used by Profile Lite"
+);
+
+assert.match(shellSource, /href=\{tab\.href\}/, "ProfileLiteShell tabs should render route-backed hrefs");
+assert.match(shellSource, /event\.preventDefault\(\)/, "ProfileLiteShell should intercept tab links for SPA navigation");
+assert.match(
+  shellSource,
+  /onTabNavigate\(tab\)/,
+  "ProfileLiteShell tab click should delegate to URL-aware navigation"
+);
+
+assert.match(
+  profileLitePageSource,
+  /class ProfileLiteModuleErrorBoundary extends React\.Component/,
+  "ProfileLitePage should isolate the active module with an ErrorBoundary"
+);
+assert.match(
+  profileLitePageSource,
+  /<ProfileLiteModuleErrorBoundary[^>]*moduleLabel=/,
+  "ProfileLitePage should wrap renderedModule in the module ErrorBoundary"
+);
+assert.match(
+  profileLitePageSource,
+  /profileLiteModuleError/,
+  "ProfileLitePage should render inline module errors without removing shell tabs"
 );
