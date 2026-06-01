@@ -96,3 +96,59 @@
 .power-place-chess.runtime-compact-5 .power-place-chess__center {
   border-radius: 20px;
 }
+
+.powerMandala,
+.altarMandalaSheet,
+.businessMandalaSheet,
+.zodiacMandalaSheet,
+.starMandalaSheet,
+.daoMandalaSheet,
+.power-place-chess {
+  position: relative;
+}
+
+.powerMandala::after,
+.altarMandalaSheet::after,
+.businessMandalaSheet::after,
+.zodiacMandalaSheet::after,
+.starMandalaSheet::after,
+.daoMandalaSheet::after,
+.power-place-chess::after {
+  content: "Менталика";
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 20;
+  transform: translateX(-50%);
+  border: 1px solid rgba(96, 61, 17, 0.18);
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: rgba(255, 248, 229, 0.58);
+  color: rgba(72, 45, 12, 0.62);
+  font-family: inherit;
+  font-size: clamp(11px, 1.45vw, 15px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.42);
+  pointer-events: none;
+  backdrop-filter: blur(3px);
+}
+
+.power-place-chess::after {
+  bottom: 8px;
+}
+
+@media print {
+  .powerMandala::after,
+  .altarMandalaSheet::after,
+  .businessMandalaSheet::after,
+  .zodiacMandalaSheet::after,
+  .starMandalaSheet::after,
+  .daoMandalaSheet::after,
+  .power-place-chess::after {
+    background: rgba(255, 248, 229, 0.72);
+    color: rgba(72, 45, 12, 0.7);
+  }
+}
