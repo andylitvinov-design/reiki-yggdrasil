@@ -25,7 +25,7 @@ function assertRouteMapsWithInitialTopTab(path, initialTopTab) {
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
 
-assertRouteMapsTo("/profile", "ProfileLitePage");
+assertRouteMapsTo("/profile", "ProfilePage");
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
 assertRouteMapsWithInitialTopTab("/profile/mandalas", "power-place");
@@ -36,11 +36,25 @@ assertRouteMapsWithInitialTopTab("/profile/settings", "profile");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
 
-assert.equal(
-  /if \(path === "\/profile"\) \{[\s\S]*?return <ProfilePage\b/.test(mainSource),
-  false,
-  "/profile must not route back to the old heavy ProfilePage"
+assert.ok(
+  /if \(path === "\/profile-lite"\) \{[\s\S]*?return <ProfileLitePage\b/.test(mainSource),
+  "/profile-lite must remain the lightweight fallback route"
 );
+
+assert.ok(
+  /if \(path === "\/profile-old"\) \{[\s\S]*?return <ProfilePage\b/.test(mainSource),
+  "/profile-old must remain the heavy diagnostic alias"
+);
+
+for (const [path, initialTopTab] of [
+  ["/profile/mandalas", "power-place"],
+  ["/profile/services", "services"],
+  ["/profile/orders", "orders"],
+  ["/profile/chats", "chats"],
+  ["/profile/settings", "profile"]
+]) {
+  assertRouteMapsWithInitialTopTab(path, initialTopTab);
+}
 
 assert.ok(
   vercelConfig.rewrites.some((rewrite) => rewrite.source === "/profile-lite" && rewrite.destination === "/"),

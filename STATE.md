@@ -12,6 +12,14 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — Heavy ProfilePage restored to `/profile` after PR #180
+
+- Branch: `codex/restore-heavy-profile-after-recovery-script-removal`, based on fresh `origin/main` after PR #180.
+- Scope: restore `/profile` to the heavy `ProfilePage` after PR #180 removed `profile-auth-render-recovery.js` from `index.html`.
+- Route safety: `/profile-lite` remains the lightweight fallback and `/profile-old` remains the diagnostic heavy alias.
+- Evidence used: live `/profile-old?debugAuth=1` showed `render state: user` and `bootstrap step: auth-ready-applied`.
+- Live QA remains required after deploy on `/profile?debugAuth=1`, `/profile-old?debugAuth=1`, `/profile-lite`, and Network/Sources for absence of `profile-auth-render-recovery.js`.
+
 ## 2026-06-01 — PR #180 recovery cleanup for `/profile`
 
 - Branch: `codex/revert-heavy-profile-main-route`.

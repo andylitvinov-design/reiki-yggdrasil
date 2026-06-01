@@ -199,7 +199,7 @@ function RootRouter() {
   }
 
   if (path === "/profile") {
-    return <ProfileLitePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfilePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/masters") {

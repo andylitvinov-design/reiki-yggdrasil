@@ -1,5 +1,24 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — Restore heavy ProfilePage after recovery script removal
+
+- Branch: `codex/restore-heavy-profile-after-recovery-script-removal`.
+- Changed files:
+  - `src/main.jsx`
+  - `test/profileLiteRoute.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Route result:
+  - `/profile` renders heavy `ProfilePage`;
+  - `/profile-lite` remains `ProfileLitePage` fallback;
+  - `/profile-old` remains heavy `ProfilePage` diagnostic alias;
+  - modular heavy routes remain unchanged: `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings`.
+- Reason:
+  - PR #180 removed `profile-auth-render-recovery.js` from `index.html`;
+  - live `/profile-old?debugAuth=1` evidence showed `render state: user` and `bootstrap step: auth-ready-applied`.
+- Live QA:
+  - Required after deploy on `/profile?debugAuth=1`, `/profile-old?debugAuth=1`, `/profile-lite`, and Network/Sources absence of `profile-auth-render-recovery.js`.
+
 ## 2026-06-01 — PR #180 recovery cleanup for path-sensitive `/profile` script
 
 - Branch: `codex/revert-heavy-profile-main-route`.
