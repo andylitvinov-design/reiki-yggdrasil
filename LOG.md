@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — Restore heavy profile as main `/profile`
+
+- Branch: `codex/restore-heavy-profile-as-main`.
+- Changed files:
+  - `src/main.jsx`
+  - `test/profileLiteRoute.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Route result:
+  - `/profile` now renders heavy `ProfilePage`;
+  - `/profile-lite` remains `ProfileLitePage` as the emergency fallback;
+  - `/profile-old` remains heavy `ProfilePage` as the diagnostic alias;
+  - `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings` still render heavy `ProfilePage` with their existing `initialTopTab`;
+  - `/profile/admin`, `/masters`, and `/` are unchanged.
+- Reason:
+  - the heavy `ProfilePage` save path was fixed before this restore, and live showed `Профиль сохранён.`;
+  - this change only restores the main route after that recovery.
+- Not changed:
+  - OAuth redirects/provider logic;
+  - Supabase schema/migrations/env names;
+  - storage/session keys;
+  - `ProfilePage.jsx` UI/bootstrap;
+  - `ProfileLitePage.jsx`;
+  - Vercel rewrites.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `node test/profilePageAuthBootstrap.test.mjs`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-media`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `PATH="/usr/local/bin:$PATH" npm run check`
+  - `PATH="/usr/local/bin:$PATH" npm run build`
+- Check notes:
+  - `npm run check` initially reached `vite build` and failed because the fresh worktree had no installed `vite`; after `npm install`, it passed.
+  - Existing `validate:videos` warnings remain for `RY-L04-S04` and `RY-L04-S05` source-verified placeholders without extracted videos.
+- Live QA:
+  - Pending until merge/deploy on `https://mentalica.vercel.app`.
+
 ## 2026-06-01 — `/profile-old` heavy cabinet smoke QA hardening
 
 - Branch: `codex/profile-old-heavy-cabinet-smoke-qa`.
