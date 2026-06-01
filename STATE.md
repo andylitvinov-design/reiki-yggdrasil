@@ -14,23 +14,17 @@ Last updated: 2026-06-02
 
 ## 2026-06-02 — Profile Lite central image picker extraction
 
-- Branch: `codex/fix-profile-lite-central-image-picker`.
+- Branch: `profile-lite-central-image-picker-fix`.
 - Scope: `/profile/mandalas` Profile Lite Power Place central/object/cover image picker only.
 - Changed:
   - added dedicated `ProfileLiteImagePicker` component for saved-image selection, upload, delete, signed-URL placeholders, and modal close timing;
-  - removed the old mixed inline picker modal from `ProfileLitePowerPlaceModule`;
+  - wired the picker into the existing Profile Lite three-column Power Place layout without changing `/profile-old`, auth/bootstrap, Vercel rewrites, Supabase env, `/`, `/masters`, or `/profile/admin`;
   - replaced inert `Выбрать из базы` with active `Сохранённые фото`;
   - central-photo selection now updates `central_photo_id`, `object_refs.__center_image`, and `object_ref_urls` immediately when a card has a display URL;
   - central-photo upload now keeps `saved.display_url || saved.signed_url || uploaded.signedUrl` and `saved.image_ref || uploaded.ref`, adds the saved photo to `clientGoalPhotos`, and selects it as the mandala center;
   - raw `storage://` images without a display URL show `Нужна signed URL` placeholders instead of transparent cards;
   - deleting the active client photo clears the central photo ref and display URL mapping;
-  - picker CSS now uses solid cards, small corner delete buttons, and mobile two-column layout without horizontal overflow.
-- Not changed:
-  - `/profile-old`;
-  - auth/bootstrap;
-  - Supabase env names or values;
-  - Vercel rewrites;
-  - `/`, `/masters`, `/profile/admin`.
+  - upload prerequisite failures now reject after setting the existing UI error state, so the modal does not close as a false success.
 - Verification status:
   - passed `npm run test:profile-lite`;
   - passed `npm run test:profile-media`;
@@ -38,36 +32,74 @@ Last updated: 2026-06-02
   - passed `npm run test:profile-loading-recovery`;
   - passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05` and the existing Vite chunk-size warning;
   - passed `npm run build` with the existing Vite chunk-size warning;
-  - local preview `http://localhost:4181/profile/mandalas` opened at desktop 1280 and mobile 390 in the no-env/auth-gate state with no browser console warnings/errors;
-  - authenticated Supabase upload/select/delete QA on live remains `needs manual verification by Andrey`.
+  - authenticated Supabase upload/select/delete QA on live remains `needs manual verification by Andrey` until the deployed branch is checked with a real session.
 
-## 2026-06-01 — PR #191 controlled merge and production deploy
+## 2026-06-02 — Profile Lite Power Place layout parity follow-up
 
-- PR: #191, `Restore Profile Lite Power Place visual parity`.
-- Merge commit: `42491aa3395470ac6013a28bc5e8292feb53507f`.
+- Branch: `codex/fix-profile-lite-power-place-layout-parity`, based on `origin/main` commit `d7cf7d7`.
+- PR: #192, merged into `main` as `70d0fa881bbc51adb0c42d4b456162086f473e05`.
 - Production deploy:
-  - Vercel Production deployment created for SHA `42491aa3395470ac6013a28bc5e8292feb53507f`.
-  - Deployment state: `success`.
-  - Deployment URL: `https://reiki-yggdrasil-3r2lyyjhk-super10.vercel.app`.
+  - Vercel Production deployment `4896832273` succeeded for SHA `70d0fa881bbc51adb0c42d4b456162086f473e05`.
+  - Deployment URL: `https://reiki-yggdrasil-4xrwn9vz8-super10.vercel.app`.
   - Fallback workflow was not used because Vercel auto-deploy reported success for the merge SHA.
-- Pre-merge checks:
-  - PR was mergeable: `MERGEABLE`, `mergeStateStatus=CLEAN`.
-  - GitHub CI `validate-and-build` passed on the PR and on `main` after merge.
-  - PR Vercel status was `SUCCESS`.
-  - Source diff did not touch `src/main.jsx` or `vercel.json`; `/profile-old`, `/`, `/masters`, and `/profile/admin` route mappings remained present.
-- Unauthenticated live QA status:
-  - External web fetch reached `https://mentalica.vercel.app/`.
-  - Full route QA for `https://mentalica.vercel.app/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/masters`, and `/profile/admin` was not completed in this environment because local DNS could not resolve Vercel hosts and browser automation transport closed during the route batch.
-  - Do not mark HTTP 200/no-404, login/env gate, or no-runtime-crash verification as complete for the deep routes until rerun from a working browser/network context.
-- Authenticated QA remains `needs manual verification by Andrey`:
+- Main CI:
+  - GitHub Actions `CI` run `26785839679` passed for the merge SHA.
+  - GitHub Pages run `26785839690` failed, but this repo's production path for the profile cabinet is Vercel.
+- Scope: fix the live visual regression after PR #191 where `/profile/mandalas` had the old workspace content but not the old desktop layout.
+- Fixed in Lite Power Place:
+  - removed the Lite use of the old `.powerPlaceMode` two-column override that hid the center column and stretched the constructor into the right side;
+  - restored a true `workspaceMainColumns` structure: left `powerLibrarySidebar`, center `workspaceCenterColumn`, right `workspaceRightColumn`;
+  - restored left source controls: `Добавить мандалу`, `Группа`, `Категория`, quick source buttons, `Сохранённые изображения`, and saved-image list state;
+  - moved background, layout, analysis, resource comparison, and object controls into the separate right rail;
+  - kept constructor type controls and the mandala visual in the center;
+  - constrained the Lite mandala visual to an old-reference-sized center panel instead of oversized/overflowing or collapsed sizing;
+  - kept `Object refs JSON` inside advanced diagnostics only, not as the primary UX.
+- Local rendered QA:
+  - local dev server used layout-only fake Supabase env and fake hash session; no real tokens/env/JWT were used;
+  - `/profile/mandalas` at 1280 showed `260px 640px 320px` columns, visible right rail, visible left source controls, center mandala panel `560px`, mandala `362px`, and horizontal overflow `0`;
+  - `/profile/mandalas` at 390 stacked hero, tabs, center constructor/visual, left source controls, right settings controls, then save/download/print actions, with horizontal overflow `0`;
+  - `/profile-old` still opened locally at 1280 with no Vite overlay, no console errors, and horizontal overflow `0`.
+- Live rendered QA after merge/deploy:
+  - `https://mentalica.vercel.app/profile/mandalas` at 1280 showed `260px 640px 320px` columns, visible left rail, visible center constructor, visible right rail, mandala panel `560px`, mandala `362px`, horizontal overflow `0`, no Vite overlay, and no browser console warnings/errors.
+  - `https://mentalica.vercel.app/profile/mandalas` at 390 showed a single `358px` column with visible left rail, center constructor, right rail, mandala panel `342px`, mandala `218px`, horizontal overflow `0`, no Vite overlay, and no browser console warnings/errors.
+  - `https://reiki-yggdrasil.vercel.app/profile/mandalas` at 1280 matched the same `260px 640px 320px` columns and overflow `0`.
+  - `https://mentalica.vercel.app/profile-old` opened to the heavy cabinet login gate with no Vite overlay and horizontal overflow `0`; authenticated old-workspace live comparison still requires a real signed-in session.
+- Verification:
+  - Passed `npm run test:profile-lite` after a red/green contract-test cycle.
+  - Passed `npm run test:profile-media`.
+  - Passed `npm run test:power-place`.
+  - Passed `npm run test:profile-loading-recovery`.
+  - Passed `npm run check` with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05` and existing Vite chunk-size warning.
+  - Passed standalone `npm run build` with existing Vite chunk-size warning.
+- Not verified:
+  - real authenticated Google/Supabase/RLS media and composition save/load flows.
+  - authenticated `/profile-old` workspace comparison on live with a real user session.
+
+## 2026-06-01 — PR #191 production deploy status for Power Place parity
+
+- PR: #191 `Restore Profile Lite Power Place visual parity`.
+- Merge SHA: `42491aa3395470ac6013a28bc5e8292feb53507f`.
+- Reported deployment result: Vercel Production deploy succeeded for the merge SHA.
+- Fallback deploy: not used, correctly, because the normal production deployment succeeded.
+- Scope already merged:
+  - `/profile` and `/profile/mandalas` remain Profile Lite routes;
+  - `/profile-old` remains the heavy reference route;
+  - `/`, `/masters`, and `/profile/admin` remain unchanged;
+  - Lite Power Place primary UX is visual `Мастерская мандал`, not JSON-first.
+- Current verification status:
+  - source/tests/build were verified before merge in PR #191;
+  - production deployment is reported successful;
+  - unauthenticated live route QA still needs to be run when network/browser access is available;
+  - authenticated Google/Supabase/RLS QA is not verified by automation and must be manually verified by Andrey on live.
+- Do not claim as verified yet:
   - Google login;
-  - authenticated `/profile/mandalas`;
-  - visual parity inside the cabinet;
-  - old photos/media;
-  - saved compositions;
-  - save/update;
-  - Storage/RLS;
-  - services/orders/chats.
+  - authenticated `/profile/mandalas` visual parity with `/profile-old`;
+  - Storage/RLS media upload/display/delete;
+  - saved composition save/load/update;
+  - services/orders/chats live data behavior.
+- Required next checks:
+  - no-auth route QA on `https://mentalica.vercel.app/`, `/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/masters`, `/profile/admin`;
+  - manual authenticated QA by Andrey with screenshots comparing `/profile/mandalas` and `/profile-old`.
 
 ## 2026-06-01 — Profile Lite Power Place parity restoration
 
@@ -175,646 +207,3 @@ Last updated: 2026-06-02
 
 - Branch: `codex/restore-heavy-profile-after-recovery-script-removal`, based on fresh `origin/main` after PR #180.
 - Scope: restore `/profile` to the heavy `ProfilePage` after PR #180 removed `profile-auth-render-recovery.js` from `index.html`.
-- Route safety: `/profile-lite` remains the lightweight fallback and `/profile-old` remains the diagnostic heavy alias.
-- Evidence used: live `/profile-old?debugAuth=1` showed `render state: user` and `bootstrap step: auth-ready-applied`.
-- Live QA remains required after deploy on `/profile?debugAuth=1`, `/profile-old?debugAuth=1`, `/profile-lite`, and Network/Sources for absence of `profile-auth-render-recovery.js`.
-
-## 2026-06-01 — PR #180 recovery cleanup for `/profile`
-
-- Branch: `codex/revert-heavy-profile-main-route`.
-- Scope: PR #180 reverts PR #179 by returning `/profile` to `ProfileLitePage`; `/profile-old` remains the heavy `ProfilePage` diagnostic route.
-- Root cause: `public/profile-auth-render-recovery.js` made `/profile` and `/profile-old` non-equivalent because it was active only on exact `/profile`, patched `window.fetch`, and could call `window.location.replace(...)` from the loading state.
-- Cleanup: `index.html` no longer loads `profile-auth-render-recovery.js`; the standalone file remains manual/diagnostic-only behind `?enableRenderRecovery=1` and exact `/profile`.
-- Guardrail: tests now assert that `index.html` does not include the recovery script and that the standalone script is opt-in only.
-- Do not restore the heavy `ProfilePage` on `/profile` again until PR #180 is merged, deployed, and live QA passes for `/profile` and `/profile-old`.
-
-## 2026-06-01 — Heavy ProfilePage restored as main `/profile`
-
-- Branch: `codex/restore-heavy-profile-as-main`, based on fresh `origin/main` commit `dacd076`.
-- Scope: minimal route restore only after the heavy profile save bug was fixed and live showed `Профиль сохранён.`.
-- Route mapping change:
-  - `/profile` now renders the heavy `ProfilePage` again;
-  - `/profile-lite` remains the emergency lightweight fallback;
-  - `/profile-old` remains the diagnostic heavy profile alias;
-  - modular heavy routes remain unchanged: `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings`;
-  - `/profile/admin`, `/masters`, and `/` remain unchanged.
-- Not changed:
-  - OAuth/provider redirect logic;
-  - Supabase schema, migrations, env names, storage, or session keys;
-  - `ProfilePage.jsx` UI or bootstrap logic;
-  - `ProfileLitePage.jsx`;
-  - Vercel rewrites.
-- Verification:
-  - Passed `npm run test:profile-lite`.
-  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
-  - Passed `npm run test:profile-materials`.
-  - Passed `npm run test:profile-media`.
-  - Passed `npm run test:profile-services`.
-  - Passed `npm run test:power-place`.
-  - Passed `npm run check` after `npm install`; existing video placeholder warnings remain for `RY-L04-S04` and `RY-L04-S05`.
-  - Passed `npm run build`.
-- Live QA remains required after merge/deploy on `https://mentalica.vercel.app/profile`, `/profile-lite`, `/profile-old`, modular profile routes, `/masters`, and `/profile/admin`.
-
-## 2026-06-01 — `/profile-old` heavy cabinet smoke QA hardening
-
-- Branch: `codex/profile-old-heavy-cabinet-smoke-qa`, based on fresh `origin/main` commit `6e4dc59`.
-- Scope: source-level smoke hardening for the old heavy `/profile-old` cabinet only; `/profile` stays mapped to `ProfileLitePage`, `/profile-old` stays mapped to `ProfilePage`.
-- Inspected modules:
-  - top tabs: `power-place`, `mandalas`, `services`, `orders`, `chats`, `profile`;
-  - profile form;
-  - materials list/form;
-  - Power Place constructor, saved images, client/goal photos, tradition media, and media upload paths;
-  - services/orders/chats source-level presence.
-- Change:
-  - added inline smoke-mode notices for `services` and `orders` tabs inside `ProfilePage.jsx`, because these tabs existed in the top nav but had no body inside the heavy component;
-  - kept services/orders isolated from the auth/bootstrap path and full-page loading state;
-  - strengthened `test/profilePageAuthBootstrap.test.mjs` so services/orders cannot silently regress to blank/blocking tabs and secondary module failures cannot force global loading.
-- Verification:
-  - Passed `npm run test:profile-lite`.
-  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
-  - Passed `npm run test:profile-materials`.
-  - Passed `npm run test:profile-media`.
-  - Passed `npm run test:profile-services`.
-  - Passed `npm run test:power-place`.
-  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
-  - Passed `npm run build`.
-  - Local preview QA on `http://localhost:4173` covered `/profile` and `/profile-old?debugAuth=1` at desktop 1280 and mobile 390 with no horizontal overflow and no visible Vite/runtime error overlay in the no-env state.
-- Live `/profile-old?debugAuth=1` authenticated module QA remains required after merge/deploy.
-
-## 2026-06-01 — Old `/profile` fast session fallback while `/auth/v1/user` stalls
-
-- Branch: `codex/profile-fast-session-fallback`, based on fresh `origin/main` commit `8290430`.
-- Scope: minimal old `/profile` auth-bootstrap recovery only; no OAuth provider/redirect logic, Supabase schema/migrations/env names, Vercel routing, `/`, `/masters`, `/profile/admin`, `/profile-lite`, or heavy cabinet UI changes.
-- Root cause path:
-  - PR #171 removed `getOwnProfile` from the critical bootstrap path;
-  - live `/profile?debugAuth=1` then showed a stored session and successful exchange, but `getCurrentUser` remained `loading`;
-  - `loadProfileCabinetBootstrap` still waited on the long current-user timeout before using the existing JWT fallback, so React could remain in `loading` while a valid stored session contained a usable user id.
-- Change:
-  - `loadProfileCabinetBootstrap` now starts `getCurrentUser(session)` and a short fallback race in parallel;
-  - fallback timeout is `1500 ms`;
-  - if `getCurrentUser` returns a direct/wrapped user id first, that user wins;
-  - if `getCurrentUser` returns explicit 401/403 first, fallback remains disabled and the auth error is returned;
-  - if `getCurrentUser` is still pending at fallback timeout and the stored JWT has `sub` or `user_id`, bootstrap returns the fallback user and emits `fallback-used`;
-  - if the JWT is not parseable, the existing sanitized `auth_load_timeout` error path is preserved;
-  - `profile-request-started` remains absent in recovery bootstrap.
-- Verification:
-  - Passed `node test/profileBootstrapClient.test.mjs`.
-  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
-- Live QA remains required after PR merge/deploy on `https://mentalica.vercel.app/profile?debugAuth=1`.
-
-## 2026-05-31 — `/profile` cabinet shell opens from authenticated user id
-
-- Branch: `codex/fix-profile-render-gate-user-id`, based on fresh `origin/main` commit `425192b`.
-- Scope: minimal old `/profile` render gate change only; no OAuth provider, Supabase schema/migrations, Vercel rewrites, `/`, `/masters`, `/profile/admin`, or RU-default interface changes.
-- Root cause path:
-  - live diagnostics showed stored session, current-user success, and React user/session state could exist while `authStatus` remained `loading`;
-  - the old cabinet shell still required `user && authStatus === "ready"`, so a valid authenticated user id could be present while the main shell remained blocked behind the global loading state.
-- Change:
-  - `ProfilePage.jsx` now derives `hasAuthenticatedUser = Boolean(user?.id)`;
-  - the main cabinet shell renders from `shouldShowCabinet = hasAuthenticatedUser`;
-  - loading/recovery/login gates are explicitly guarded by `!hasAuthenticatedUser`;
-  - React debug `cabinetCondition` now reports the same `shouldShowCabinet` rule;
-  - the existing internal cabinet loading notice remains non-blocking inside the opened shell.
-- Verification:
-  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
-  - Passed `node test/profileBootstrapClient.test.mjs`.
-  - Passed `npm run test:profile-lite`.
-  - Passed `npm run test:profile-loading-recovery`.
-  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
-  - Passed `npm run build`.
-- Live QA remains required after PR merge/deploy, including real Google login on `https://mentalica.vercel.app/profile?debugAuth=1`.
-
-## 2026-05-31 — Old `/profile` authenticated render gate after auth
-
-- Branch: `codex/fix-profile-cabinet-render-gate-after-auth`, based on fresh `origin/main` commit `3a877b8`.
-- Scope: minimal old `/profile` render/cabinet gate fix after `/profile-lite` proved live OAuth/session/current-user/own-profile are healthy; no OAuth, Supabase client API, schema/migrations, `/profile-lite`, `/masters`, `/profile/admin`, or `/` behavior changes.
-- Root cause path:
-  - `/profile-lite` proves the session/user/profile layer can succeed on live;
-  - old `/profile` cabinet shell was gated only after bootstrap applied `user` and `authStatus="ready"`, but the post-PR #158 bootstrap deliberately skipped `getOwnProfile`;
-  - that left old `/profile` able to enter an authenticated-but-profileless state where `profile.id` was absent, secondary material/media loaders did not hydrate, and the main cabinet could appear stuck/not ready even though auth was valid.
-- Change:
-  - `loadProfileCabinetBootstrap` now loads own profile as secondary data after current-user success;
-  - profile load timeout/failure returns a sanitized inline notice and still opens the authenticated shell;
-  - `ProfilePage.jsx` uses a named `cabinetReady = Boolean(user && authStatus === "ready")` gate for the shell;
-  - materials, Power Place, and tradition media failures now show sanitized inline cabinet warnings instead of promoting secondary data failures into the global auth error path;
-  - React loading now has a finite timeout that switches to the existing recoverable state.
-- Verification:
-  - Passed `npm run test:profile-lite`.
-  - Passed `npm run test:profile-loading-recovery`.
-  - Passed `npm run test:profile-media`.
-  - Passed `npm run test:profile-materials`.
-  - Passed `npm run test:profile-services`.
-  - Passed `npm run test:power-place`.
-  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
-  - Passed `npm run build`.
-  - Local browser QA on `http://localhost:5177` covered `/`, `/profile`, `/profile-lite`, `/masters`, `/profile/admin` at desktop 1366 and mobile 390 with no console warnings/errors, no horizontal overflow, and no persistent `Загружаю кабинет...` in the no-env state.
-- Live QA remains required after PR merge/deploy, including real Google login on `https://mentalica.vercel.app/profile`.
-
-## 2026-05-31 — Old `/profile` loading recovery from `/profile-lite` proof
-
-- Branch: `codex/fix-old-profile-loading-from-profile-lite-proof`, based on fresh `origin/main` commit `af5642d`.
-- Scope: minimal old `/profile` auth-bootstrap recovery only; no homepage, `/masters`, `/profile/admin`, `/profile-lite`, Supabase schema, OAuth redirect, env, or domain hardcoding changes.
-- Root cause path:
-  - `/profile-lite` proves Supabase OAuth/session/current-user/profile RLS are working;
-  - old `/profile` depends on `ProfilePage.jsx` applying `currentUser` and then leaving `authStatus="loading"`;
-  - the critical path is now guarded by a contract test: `setUser(currentUser)` must happen before `setAuthStatus("ready")`, and expired sessions must be cleared.
-- Change:
-  - a `getCurrentUser` timeout/bootstrap error no longer clears the stored session as if it were expired;
-  - old `/profile` now finishes loading with `authStatus="error"` and a sanitized error message, matching the safe non-hanging `/profile-lite` behavior;
-  - `test/profilePageAuthBootstrap.test.mjs` locks the old `/profile` auth path, cabinet render gate, expired-session reset, current-user response normalization, and token non-rendering contract.
-
-## 2026-05-31 — Profile Lite diagnostic cabinet
-
-- Branch: `codex/profile-lite-master-cabinet-diagnostic`, based on `origin/main` commit `5a9a864`.
-- Scope: additive `/profile-lite` diagnostic route only; no OAuth rewrite, no hardcoded domain, no Supabase schema changes, and no rewrite of old `ProfilePage.jsx`.
-- Added a lightweight profile cabinet that:
-  - uses the existing Supabase session helpers and Google login redirect path `/profile-lite`;
-  - reports safe boolean/status diagnostics for env presence, stored session, session expiry, current user, user id/email presence, own profile, auth status, and profile status;
-  - shows non-hanging no-env and no-session states;
-  - can save a minimal `display_name`, `bio`, and `draft`/`pending` profile through the existing `saveOwnProfile` contract;
-  - reads own materials through the existing materials client when a profile id is available, otherwise marks materials as `needs verification`.
-- Added Vercel SPA rewrite and debug manifest/contract awareness for `/profile-lite`.
-- Added only small `Открыть простой кабинет` links to the old `/profile` loading/recovery/login surfaces.
-- New tests cover profile-lite state helpers, safe diagnostics, route wiring, Vercel rewrite, old-profile fallback link, and source-level secret-string guard for the new page.
-
-Verification:
-
-- Passed `npm run test:profile-lite`.
-- Passed `npm run test:profile-media`.
-- Passed `npm run test:profile-materials`.
-- Passed `npm run test:profile-services`.
-- Passed `npm run test:power-place`.
-- Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
-- Passed `npm run build`.
-- Browser QA on local Vite dev server covered `/`, `/profile`, `/profile-lite`, `/masters`, and `/profile/admin`:
-  - desktop 1366 had no console errors/warnings and no horizontal overflow;
-  - mobile breakpoint QA requested 390px, but Chrome DevTools reported a minimum `innerWidth` of 500px; below-760px mobile CSS was active, with no console errors/warnings and no horizontal overflow.
-- Live QA remains required after merge/deploy.
-
-## 2026-05-31 — Profile bootstrap user-state fix
-
-- Branch: `codex/fix-profile-bootstrap-user-state`, rebased onto fresh `origin/main` commit `a34e699`.
-- Scope: targeted `/profile` bootstrap/auth state only; no homepage, `/masters`, `/profile/admin`, Supabase schema, OAuth provider settings, env, or Vercel rewrite changes.
-- `loadProfileCabinetBootstrap` now:
-  - normalizes direct user, `{ user }`, and `{ data: { user } }` auth response shapes;
-  - keeps the direct `id` path as the primary success path;
-  - uses JWT `sub` / `user_id` fallback when `getCurrentUser` times out, hits non-401/403 network-style failure, or resolves without a usable `id`;
-  - refuses fallback for real 401/403 auth failures.
-- `/profile?debugAuth=1` now reports safe bootstrap pipeline fields:
-  - `bootstrap step`
-  - `bootstrap error safe message`
-  - `currentUser id present after bootstrap`
-  - `cancelled before apply`
-  - `fallback user used`
-  - `react bootstrap checkpoint`
-  - `getCurrentUser response id present`
-- `ProfilePage.jsx` now marks the pipeline before/after `loadProfileCabinetBootstrap`, after return, around `setUser`, after `setAuthStatus("ready")` as `auth-ready-applied`, and on cleanup/cancel.
-- Cabinet shell remains gated by `user && authStatus === "ready"`.
-- Optional data loads for materials, client/goal photos, power places, and tradition assets remain separate effects after the shell user/profile bootstrap and do not block cabinet opening.
-
-Verification:
-
-- Passed `node test/profileBootstrapClient.test.mjs`.
-- Passed `npm run check` (including debug contract/manifest, profile tests, validators, and build).
-- Passed `npm run build`.
-- Not verified locally/live: real Google OAuth session on `https://mentalica.vercel.app/profile?debugAuth=1`, because live auth requires browser/account interaction after merge/deploy.
-
-## 2026-05-31 — PR #131 profile loading recovery
-
-- Branch: `codex-fix-profile-loading-regression`, rebased onto `origin/main` after PR #130 added `docs/PROFILE_SERVICES_ROADMAP.md`.
-- Scope: minimal `/profile` loading safety only; no services/shop integration, no homepage changes, no Vercel rewrite changes.
-- Added request abort timeouts in `src/lib/supabaseClient.js` and `src/lib/powerPlaceClient.js` with safe Russian timeout messages.
-- Malformed stored profile sessions are now cleared through the existing session helper instead of being left in localStorage.
-- Added React-level `/profile` loading fallback in `src/pages/ProfilePage.jsx`:
-  - after a long initial load, the UI offers `Войти заново`;
-  - the action clears only the stored profile session through the existing session helper and returns to login state;
-  - raw errors, tokens, env values, and request URLs are not displayed.
-- Kept `public/profile-loading-recovery.js` as a temporary DOM-level fallback guard while the React fallback is verified.
-- Removed the unsafe React Fiber hook-index state dispatch path from `public/profile-power-place-visual-export.js`; normal save/update remains the supported path, and save-as-new remains temporarily disabled until it is owned by React.
-
-Verification:
-
-- Passed `npm run test:profile-media`, `npm run test:profile-materials`, `npm run test:profile-services`, `npm run test:power-place`, `npm run check`, and `npm run build` after `npm install`.
-- Browser QA on local Vite dev server covered `/`, `/profile`, `/masters`, `/profile/admin`, desktop 1366, and mobile 390 with no console warnings/errors and no horizontal overflow in the no-env state.
-- Session QA covered clean storage, expired session clearing, malformed session clearing, and invalid-token/no-env non-hanging state.
-- Runtime isolation disabled each profile helper script one by one in `index.html`; none was confirmed to break initial `/profile` load in the local no-env state.
-- Not verified locally: authenticated profile load, Google OAuth, slow/blocked real Supabase request, and normal save/update against Supabase because `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_ADMIN_EMAIL` were unset in this shell.
-- Production/live verification remains required after merge and deploy.
-
-## 2026-05-29 — Public right-panel materials feed upgrade
-
-## 2026-05-29 — Profile power sources UX (issue #72)
-
-- Branch: `codex/issue-72-profile-power-sources-ux` (in progress)
-- `/profile` defaults updated for Power Place focus first:
-  - `activeTopTab` default `power-place`
-  - `resourceComparisonMode` default `photo_mandala`
-  - Reset/logout path keeps `activeTopTab = "power-place"` and `resourceComparisonMode = "photo_mandala"`
-- Unified source panel and popup taxonomy for Power Place and Mandalas:
-  - visible source block title unified to `Источники силы`
-  - category set now includes `Клиенты` in shared source taxonomy
-  - client/goal center selection flows through shared source/popup stack
-- `POWER_SOURCE_COUNTS` increased to `[2, 4, 6, 8, 12, 18]` for ~1.5x capacity
-  - geometry/visual sizing adjusted in `src/profileMandalaWorkspace.css` and related source layout sizing.
-- Mystery label normalization:
-  - all user-visible category label wording aligned to `Мистерии` (removed `Каналы Богов` from UI labels)
-- Mobile behavior:
-  - source column order adjusted to render workspace main area before source list under `980px`.
-
-- Branch: `codex/public-right-materials-panel-upgrade` (in progress)
-- Public home and left-navigation label updated:
-  - `src/data/topSectionMenus.js`: home item `home-dao-ri` label changed to `Школа ДАО РИ`.
-- Added a public materials helper:
-  - `src/lib/profileMaterialsClient.js`: `listPublicMaterials({ limit })`
-  - reads only `status=approved`
-  - selects safe fields from `profile_cabinet_publications`
-  - returns `[]` safely when Supabase is not configured
-  - avoids signed URL creation for anonymous reads
-  - joins profile display when supported by Supabase relation; otherwise degrades safely.
-- Extended right rail in `src/main.jsx` to render approved materials for public sections:
-  - DAO RI and all public top sections (including Mysteries, Mastery, Shop, home) show a contextual right panel.
-  - Context priority is by current step (`step_id`/title/context), then token-based text matching across material metadata.
-  - If no match exists for the active section, panel falls back to newest approved materials list with note `Новые материалы сайта`.
-- Added minimal styles in `src/index.css` for public feed wrapper, panel states, cards, chips, and safe thumbnails/placeholders.
-- `publicText` safety guard remains: audio/video playback was not introduced because schema has no explicit audio URL field in known fields.
-- Private storage refs (e.g. `storage://...`) are not exposed in the public card DOM.
-
-## 2026-05-28 — Mandala category popover UX reapply
-
-- Branch: `codex/refine-profile-mandala-category-popovers` (SHA `1fed4773a6f6f0b2f8f2f2f7d7f2c2e7f8c2a3d1`), merged from clean worktree based on current `origin/main`.
-- Reapplied mandala category popover UX onto the current repository state for `/profile`:
-  - `mandalaAtelierGrid` now renders before category controls by layout ordering.
-  - Category controls are split into compact disclosure blocks: `Дополнительные категории`, `Подкатегории`, and `DAO ступени` (DAO only when relevant).
-  - Compact selection chips now show current category, subcategory, and DAO step in the category panel.
-  - Desktop and mobile order is set so section header, form, category controls, then gallery ordering are explicit in layout.
-  - Panels have max-height and overflow constraints to avoid vertical overflow.
-- Existing behavior was intentionally preserved:
-  - Save/upload/download flows
-  - Supabase auth/session and media/power-place data flow
-  - Storage refs + signed URL handling
-  - `Фото клиентов / цели`, `Скачать`, `Название мандалы`, and picker modal behavior from PR #69
-  - RU-first interface and Vercel rewrites
-- Primary category labels were aligned to show `Мистерия / Каналы Богов` in the second tab.
-- PR created: https://github.com/andylitvinov-design/reiki-yggdrasil/pull/70
-
-Needs verification:
-
-- Browser QA should confirm `/` `/profile` `/masters` `/profile/admin` desktop 1280/1366/1440/1710 and mobile 390 with no horizontal overflow and working disclosure toggles.
-- Confirm PR #68 star format and PR #69 picker/download UX remain unchanged through runtime smoke tests.
-
-## 2026-05-27 Power Place image picker and download UX
-
-- Branch: `codex/refine-power-place-image-picker-download`, based on fresh `origin/main` commit `81bbda92aed1bfbfaad259b6329419ab135a3367`.
-- `/profile` Power Place center zones now show the readable placeholder `Фото клиента / цели` and open the client/goal photo picker.
-- Non-center Power Place object slots now open the same popup pattern for selecting saved images; the compact object editor remains available as a secondary control.
-- Object picker category sources:
-  - `ДАО РИ`: `src/data/reikiKnowledgeBase.js` via `reikiLevels`; saved material images are filtered by level steps when `step_id` is available.
-  - `Каналы Богов`: `src/data/mysteryTraditions.js` via traditions/entities; saved tradition images are filtered by parent `tradition_id` because entity-level image mapping is not persisted.
-  - `Талисманы`: `src/data/topSectionMenus.js` via `artifact-creation` labels containing `Талисман`; dedicated talisman taxonomy is `needs verification`, and only safely matched saved artifact images are shown.
-  - `Артефакты`: `src/data/topSectionMenus.js` via `artifact-creation` items/groups; saved artifact/material images are shown.
-- The resource comparison controls now sit in the right rail next to the visual area on desktop and stack on mobile.
-- `Фото цели` mode hides surrounding mandala/object visuals without clearing state; `Цель + мандала` restores the full constructor visual.
-- `Название места силы` was relabeled to `Название мандалы` and moved above the final action buttons while keeping the same `compositionTitle` / saved composition title field.
-- Added `Скачать` between save/update and print. It downloads a dependency-free HTML representation of the visible Power Place metadata and image refs; full PNG/JPEG composition export remains `not verified` / out of scope for this pass.
-- No database schema, Supabase env, Vercel routing, auth flow, or save/update/print persistence paths were changed.
-
-Needs verification:
-
-- Authenticated upload/save/reload still depends on live Supabase env, applied Storage migration, and a real profile session.
-- Browser QA should verify `/profile`, `/masters`, `/profile/admin`, desktop widths 1280/1366/1440/1710, and mobile 390 for overflow/readability.
-
-## 2026-05-27 Power Place Star format and left library
-
-- Branch: `codex/add-star-power-place-format-and-left-library`, updated from main `origin/main`.
-- `Место силы` includes constructor format `Звезда` and keeps both variants: `Закрытая` and `Открытая`.
-- `Звезда` uses five object positions (`star-1` through `star-5`) with existing selector/upload/save/print flows and storage-backed object refs.
-- Added/kept `supabase/migrations/20260527143000_power_place_star_format.sql` support for `constructor_type: star` and `star_variant` normalization.
-
-Needs verification:
-
-- Apply `20260527143000_power_place_star_format.sql` in live Supabase.
-- Verify authenticated save/reload of `star_variant` and `constructor_type: star` against production data.
-
-## 2026-05-27 profile mandala cabinet UX refinement
-
-- Branch: `codex/refine-profile-mandala-cabinet-ux`, based on fresh `origin/main` commit `50e2373cfb0c1e87a58ad2b2cc5ed3967e13f194`.
-- `/profile` top tabs remain `Мои мандалы`, `Место силы`, `Чаты`, and `Профиль`.
-- Expired/invalid stored Supabase sessions are cleared before showing the login UI; real post-login/save errors still render.
-- System notices now render inside the authenticated cabinet workspace under the personal cabinet hero.
-- The separate `Настройка потока` panel was removed from `Мои мандалы`; step/settings selects remain inside the material form.
-- Material category sources:
-  - `ДАО РИ`: `src/data/reikiKnowledgeBase.js` via `reikiLevels` and steps.
-  - `Каналы Богов`: `src/data/mysteryTraditions.js` via traditions/entities.
-  - `Талисманы`: `src/data/topSectionMenus.js` via `artifact-creation` items/groups filtered by labels containing `Талисман`; dedicated talisman taxonomy is `needs verification`.
-  - `Артефакты`: `src/data/topSectionMenus.js` via `artifact-creation` items/groups.
-- Material images now use the existing private `profile-cabinet-media` Storage flow under `{profile_id}/materials/...` and persist `storage://...` refs in `profile_cabinet_publications.image_url`.
-- No new migration was added; this relies on the existing `image_url` field and `20260527_profile_cabinet_media_storage.sql` bucket/policies.
-
-Needs verification:
-
-- Apply/confirm `20260527_profile_cabinet_media_storage.sql` in the live Supabase project before treating authenticated material image upload/reload as production-verified.
-- Browser QA should verify `/profile`, `/masters`, and `/profile/admin` at desktop widths 1280/1366/1440/1710 and mobile 390 for overflow/readability.
-
-## 2026-05-27 profile Power Place top tab
-
-- Branch: `codex/move-power-place-to-top-tab`, based on fresh `origin/main` commit `499d8f58259f0b4e4e141ce8526f7011513de4d7`.
-- `/profile` top tabs are now `Мои мандалы`, `Место силы`, `Чаты`, and `Профиль`.
-- The old independent right-panel switch `Мои мандалы и материалы` / `Место силы` and its `activeRightPanel` state were removed.
-- `Место силы` keeps the left management/browser column visible and opens the existing Power Place constructor in the main/right workspace; the `Мои мандалы и материалы` gallery only renders on `Мои мандалы`.
-- Preserved PR #60 cover/background persistence, center photo picker modal, clickable center zones, compact object editor, Power Place save/update/print behavior, material save/list flow, and Supabase auth/data flow.
-- Preserved the combined profile workspace direction from PR #61/#63: profile and chat content stay inside their top tabs, and the old top profile blocks do not return.
-
-## 2026-05-27 profile layout restore
-
-- Restore branch: `codex/restore-profile-layout-fix-live`, based on PR #60 merge commit `e6877fdbfb9e80022bd1001c6d886dcecde57d7c`.
-- Previous Task 1 source found locally at branch `codex/fix-profile-cabinet-layout-panels`, worktree `/Users/andriilitvinov/.config/superpowers/worktrees/reiki-yggdrasil/profile-combined-cabinet-design`, HEAD `3e1dc36701c794131d02bd8ba58bcf3d6137d6f1`.
-- The layout source was dirty worktree state, so the restore ports the missing layout manually instead of cherry-picking the branch tip.
-- PR #60 Power Place cover persistence, cover restoration, center photo picker modal, and save/update/print behavior are preserved.
-
-## Current app structure
-
-The current repo is a Vite/React public prototype with a GitHub-stored course knowledge base and a profile cabinet MVP merged in PR #26.
-
-Confirmed files:
-
-- `AGENTS.md`
-- `README.md`
-- `STATE.md`
-- `LOG.md`
-- `package.json`
-- `vercel.json`
-- `index.html`
-- `src/main.jsx`
-- `src/index.css`
-- `src/data/reikiKnowledgeBase.js`
-- `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
-- `scripts/validate-knowledge-base.mjs`
-- `.github/workflows/ci.yml`
-- `package-lock.json`
-- `src/lib/supabaseClient.js`
-- `src/pages/ProfilePage.jsx`
-- `src/pages/MastersPage.jsx`
-- `src/pages/AdminPage.jsx`
-- `src/profileCabinet.css`
-- `supabase/migrations/20260524_profile_cabinet_mvp.sql`
-- `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
-- `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
-- `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
-- `supabase/migrations/20260526_power_place_persistence.sql`
-- `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
-- `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
-- `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
-- `supabase/migrations/20260527143000_power_place_star_format.sql`
-- `src/lib/profileMediaClient.js`
-- `scripts/apply-reiki-supabase-migrations.mjs`
-
-Supabase migration runner state:
-
-- `npm run supabase:migrations:apply` applies the committed Power Place migrations plus `20260527_profile_cabinet_media_storage.sql` and `20260527143000_power_place_star_format.sql`.
-- Credentials are read from the local wallet endpoint `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
-- Required secret names are `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`.
-- Wallet-unavailable and missing-secret states fail before any Supabase CLI command runs.
-
-Still not part of the current app:
-
-- `src/App.jsx`
-- `supabase/migrations/20260428_master_cabinet_mvp.sql`
-
-## Knowledge base state
-
-Canonical knowledge files:
-
-- `src/data/reikiKnowledgeBase.js`
-- `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
-
-Coverage:
-
-- 7 levels
-- 37 stable records
-- Level/step titles follow the latest user corrections from 2026-05-05 and 2026-05-06
-- Central learner-facing card fields now have draft content for all 37 records:
-  - `intro`
-  - `meaning`
-  - `opens`
-  - `skills`
-  - `result`
-- All draft-filled records are marked `contentStatus: "needs_review"`.
-- Original methodichki/source text was not found in repo search and still needs verification.
-- Full practices, settings, homework, media, and expected results still need author-approved expansion.
-
-Canonical level map:
-
-1. `Базовая программа Рейки Иггдрасиль` — 5 items, label `Уровень`
-2. `Инструкторский курс` — 6 items, label `Ступень`
-3. `Храмовая магия` — 5 items, label `Ступень`
-4. `Восточная магия` — 5 items, label `Ступень`
-5. `Западноевропейская магия. Каббала и Таро` — 5 items, label `Ступень`
-6. `Продвинутая магия рун` — 5 items, label `Ступень`
-7. `Высшая магия` — 6 items, label `Ступень`
-
-Stable ID format:
-
-```text
-RY-L01-S01
-RY-L07-S06
-```
-
-## Content status policy
-
-- `needs_content`: record has structure but no usable learner-facing content.
-- `needs_review`: draft content exists but has not been checked against author methodichki.
-- `verified`: reserved only for content explicitly reviewed and approved by the course author.
-
-Current central descriptions are a draft scaffold, not final verified methodichki text.
-
-## Historical memory note
-
-Older audits noted that external project memory described `/profile`, `/masters`, `/profile/admin`, and Supabase files before those files existed on `main`.
-PR #26 reconciled that mismatch by adding the profile cabinet MVP to `main`.
-
-## Env names
-
-Used by the profile cabinet MVP. Values are not stored in the repo:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_ADMIN_EMAIL`
-
-## Profile cabinet MVP state
-
-PR #26 added the routed master cabinet as a narrow MVP, not a broad marketplace:
-
-- `/profile` lets a master sign in by magic link, save a profile draft, and submit it for moderation.
-- `/profile` now also offers a Google OAuth login button before the email magic-link fallback.
-- `/masters` lists approved public profiles.
-- `/profile/admin` lets the configured admin email review pending profiles.
-- `vercel.json` rewrites these SPA routes so direct refresh does not 404.
-- Without Supabase env, all three routes render a Russian fallback instead of crashing.
-
-Issue #41 adds the first profile materials MVP:
-
-- `/profile` shows `Мандалы и материалы по Рейки Иггдрасиль` after an authenticated profile row exists.
-- A master can create `mandala`, `artifact`, or `practice` records linked to a Reiki level/step and sourced setting.
-- Materials save into `profile_cabinet_publications` as either `draft` or `pending`.
-- The first version stores an image URL only. Supabase Storage upload is a follow-up requiring a bucket, storage policies, and live verification.
-
-Power-place mandala constructor branches extend the authenticated `/profile` mandala workspace:
-
-- Adds a compact `Места силы / Магическая мандала` constructor inside `/profile`.
-- Supports cover selection from reusable profile/material image URLs, local safe custom cover image, and placeholder covers.
-- Supports type selection between `Мандала клиенту` and `Алтарь`.
-- `Мандала клиенту` supports geometry selection for 2, 4, 5, 6, 8, and 12 power-source objects around the center.
-- The 12-position layout keeps the 8-position cross/intermediate structure and adds four outer corner `хранители пространства`.
-- `Алтарь` supports five top image objects, a larger central top object with 1:1 / 1.5:1 / 2:1 / 3:1 proportions, a slightly lower center photo, and two lower support images.
-- Active constructor object positions support local upload and selection from reusable profile/material image URLs.
-- Adds a print action scoped to the mandala composition only.
-- Branch `codex/power-place-persistence-plans` adds metadata persistence for saved compositions, profile-level Start/Pro limits, client/goal photo references, and selected mystery-tradition asset references.
-- Power-place upgrade #5 adds `Бизнес-мандала` and `ДАО` constructor formats, resource comparison mode/comments, and additive persistence fields for those settings.
-- Power-place upgrade #6 adds `Зодиак` with 2/4/6/8/12 visible clock positions, `zodiac_visible_count`, and `zodiac-*` image refs in the existing composition `object_refs`.
-- Start allows 7 saved Power Place compositions and 10 client/goal photos.
-- Pro allows 20 saved Power Place compositions and 30 client/goal photos.
-- Central Power Place photos must come from the `Фото клиентов / целей` section.
-- Altar object selectors use images saved under the selected tradition in `Мистерии`.
-- Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload to private Supabase Storage bucket `profile-cabinet-media`.
-- Database rows store durable `image_bucket` / `image_path` metadata for client/goal and tradition images; saved Power Place object refs store `storage://profile-cabinet-media/...` refs.
-- Private Storage images are displayed through short-lived signed URLs. Legacy external URL refs still load.
-- Saved Power Place `cover_ref.src` now restores the selected cover/background across client, altar, business, zodiac, and DAO layouts.
-- The central Power Place photo zone opens a compact `Выбрать фото клиента` modal that lists saved client/goal photos and can create/select a new one through the existing client-photo flow.
-- The mobile `/profile` workspace now keeps authenticated cabinet content within viewport width, moves `Место силы` first on mobile, collapses `Мой профиль` by default, uses tabs `Мои мандалы` / `Чаты` / `Профиль`, removes `Команда 1–5`, and assigns Power Place slot images directly from visible diagram positions.
-- The Power Place mode switch shows `Режим: START/PRO` and still uses the existing `account_plan` limits: Start 7/10 and Pro 20/30.
-
-Live data flow still depends on manual Supabase/Vercel setup:
-
-- apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`
-- apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`
-- apply `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`
-- apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`
-- apply `supabase/migrations/20260526_power_place_persistence.sql`
-- apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`
-- apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`
-- apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`
-- set Vercel env names `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`
-- add Supabase auth redirect URLs for `/profile` and `/profile/admin`
-- enable and configure the Google provider in Supabase Auth before treating Google login as live
-- after first admin login, add a row to `profile_cabinet_admins`
-
-Master chat state:
-
-- `/profile` has a `Чаты` tab for authenticated masters.
-- Master cabinet IDs are displayed as `RY-<first 8 profile uuid chars>` and search matches display name, raw UUID, or formatted ID.
-- Chat tables are private by RLS: no anon policies, only participants can read conversations/messages, only participants can send, and favorites are owner-only.
-- Favorite chats are sorted before non-favorites in the cabinet UI.
-- Live chat persistence remains needs verification until the upgrade #6 migration is applied in Supabase and tested with two authenticated master profiles.
-
-## Verification status
-
-Verified by GitHub file inspection:
-
-- repo exists and is accessible
-- `vercel.json` points to Vite build output `dist`
-- current UI is built from `src/main.jsx` and `src/index.css`
-- canonical static knowledge data lives in `src/data/reikiKnowledgeBase.js`
-- top header section data lives in `src/data/topSectionMenus.js`
-- free-course title/link-status data lives in `src/data/freeCourseLinks.js`
-- knowledge-base data defines 7 levels / 37 records
-- central card fields are now populated for all records by draft content
-- raw `needs_content` placeholders should no longer appear for central cards because all records now get `needs_review` draft content
-
-## Current public navigation state
-
-- The top header now has five buttons:
-  - `ДАО РИ`
-  - `ШКОЛА ВОЛШЕБНИКОВ`
-  - `МИСТЕРИИ`
-  - `УСЛУГИ`
-  - `БЕСПЛАТНЫЕ КУРСЫ`
-- These buttons switch the left menu only.
-- `ДАО РИ` keeps the existing 7-level / 37-step Reiki menu and step-selection behavior.
-- The center card and right practice panel remain tied to the selected Reiki step and do not change when non-Reiki top sections are selected.
-- `БЕСПЛАТНЫЕ КУРСЫ` shows the PR #11 free-course titles as left-menu cards.
-- Direct free-course URLs and embed URLs are not verified; records remain `courseUrl: null`, `embedUrl: null`, and `urlStatus: "needs verification"`.
-
-## Mystery traditions UI state
-
-PR #40 added static mystery-tradition data in `src/data/mysteryTraditions.js`. The current implementation wires the first UI mode to the independent top-level `МИСТЕРИИ` section, parallel to `ДАО РИ`.
-
-Current implemented trigger:
-
-- `activeTopSection === "mysteries-school"`
-- `selectedLeftItemId === "mysteries-greek"`
-
-When `МИСТЕРИИ → Греческие мистерии` is selected:
-
-- the left panel switches from the broad mystery list to Greek deity tabs;
-- `← Все мистерии` returns to the broad mystery list;
-- the center panel shows the selected deity archetype, description, articles, notes, and video placeholder;
-- the right panel shows initiation, mandalas, and artefacts/shop placeholders for the selected deity.
-
-The mystery traditions UI must not depend on `RY-L03-S03`, `selectedStepId`, `reikiLevels`, or the DAO RI level accordion.
-
-All deity content remains `needs_review` / placeholder until author-approved materials are available.
-
-Verified locally on 2026-05-15:
-
-- `npm ci`
-- `npm run validate:knowledge`
-- `npm run validate:videos`
-- `npm run validate:free-courses`
-- `npm run check`
-- `npm run build`
-- `npm run preview -- --port 4173`
-- `/` desktop top-button switching and Reiki step selection
-- `/` mobile top-nav horizontal scrolling and left-menu overflow check
-- browser console: no warnings or errors during manual QA
-
-Not verified:
-
-- Supabase migration applied in the production Supabase project
-- Vercel production env configured
-- Supabase auth redirect URLs configured
-- Supabase Google provider configured and verified
-- first admin row exists in `profile_cabinet_admins`
-- full authenticated owner/admin data flow against production Supabase
-- upgrade #6 chat RLS and two-master message flow against production Supabase
-
-## Risks
-
-- Draft texts are not verified against original methodichki.
-- Some descriptions are safe generalized scaffold copy based on titles/themes rather than exact course text.
-- Long Russian descriptions may need visual QA in the central card on mobile screens.
-- Profile cabinet live data remains unavailable until Supabase setup is completed and verified.
-
-## Next actions
-
-1. Complete Supabase/Vercel profile cabinet setup.
-2. Verify authenticated `/profile` owner save and submit flow.
-3. Verify public approved profile read on `/masters`.
-4. Verify `/profile/admin` moderation with a row in `profile_cabinet_admins`.
-5. Replace draft descriptions with exact methodichki text where available.
-6. After author review, mark approved course records `verified`.
-
-## 2026-05-28 — Реализация категории `Каналы` в материалах и Power Place
-
-Внедрена категория материалов `Каналы` в `src/pages/ProfilePage.jsx` без изменений backend/миграций:
-
-- Порядок первичных категорий в `MATERIAL_CATEGORY_TABS` подтверждён:
-  - `ДАО РИ`
-  - `Мистерия / Каналы Богов`
-  - `Каналы`
-  - `Талисманы`
-  - `Артефакты`
-- Для `Каналы` добавлены подкатегории:
-  - `Сефирот` (`Большие арканы`, `Малые арканы`, `Сиферы`)
-  - `Руны` (`Первый атт`, `Второй атт`, `Третий атт`)
-  - `Планеты` (`Солнце`, `Луна`, `Меркурий`, `Венера`, `Марс`, `Юпитер`, `Сатурн`)
-  - `Деньги`
-  - `Жизнь`
-- Добавлено третье состояние для материалов и picker:
-  - `activeMaterialThirdLevel`
-  - `isMaterialThirdLevelPanelOpen`
-  - `activePickerThirdLevel`
-  - инициализация/сброс при смене категорий и подкатегорий.
-- `filteredMaterials` и `pickerImageOptions` расширены для `channels`:
-  - фильтрация по подкатегории и третьему уровню с UI-only fallback сопоставлением по тексту/метаданным.
-- В Power Place picker для `Каналы` добавлен отдельный пустой текст:
-  - `Материалы для этого канала пока не добавлены.`
