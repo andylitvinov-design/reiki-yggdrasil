@@ -164,10 +164,19 @@ for (const requiredPowerPlaceText of [
   "Место силы",
   "Мои мандалы",
   "Загрузить сохранённое место силы",
+  "Добавить мандалу",
+  "Группа",
+  "Категория",
+  "Сохранённые изображения",
   "Фото клиента / цели",
+  "Фон места силы",
   "Фон внутри",
   "Фон снаружи",
   "Без фона",
+  "Макет",
+  "Анализ",
+  "Ресурс без мандалы",
+  "Ресурс с мандалой",
   "Объекты композиции",
   "Сохранить место силы",
   "Скачать",
@@ -184,16 +193,28 @@ for (const requiredFormat of ["2", "4", "6", "8", "8+", "12", "12+", "closed", "
 
 for (const requiredClass of [
   "mandalaWorkspace",
+  "workspaceMainColumns",
+  "workspaceCenterColumn",
+  "workspaceRightColumn",
   "powerPlaceConstructor",
   "powerPlacePrintArea",
   "powerMandalaPanel",
   "powerCenterPhoto",
   "powerLibrarySidebar",
+  "powerPlaceSettings",
+  "coverPickerPanel",
   "objectImageEditor",
   "clientPhotoPickerModal"
 ]) {
   assert.match(powerPlaceSource, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
 }
+
+assert.doesNotMatch(powerPlaceSource, /mandalaWorkspace powerPlaceMode/, "Lite Power Place must not use the old two-column powerPlaceMode override");
+assert.match(
+  powerPlaceSource,
+  /<aside className="mandalaModeSidebar powerLibrarySidebar"[\s\S]*<div className="workspaceCenterColumn"[\s\S]*<div className="workspaceRightColumn"/,
+  "Lite Power Place should render old left / center / right workspace columns in order"
+);
 
 assert.match(powerPlaceSource, /advanced|diagnostics|Диагностика/i, "Object refs JSON should be hidden behind an advanced diagnostics surface");
 

@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-01
+Last updated: 2026-06-02
 
 ## Current verified repo state
 
@@ -11,6 +11,34 @@ Last updated: 2026-06-01
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-06-02 — Profile Lite Power Place layout parity follow-up
+
+- Branch: `codex/fix-profile-lite-power-place-layout-parity`, based on `origin/main` commit `d7cf7d7`.
+- Scope: fix the live visual regression after PR #191 where `/profile/mandalas` had the old workspace content but not the old desktop layout.
+- Fixed in Lite Power Place:
+  - removed the Lite use of the old `.powerPlaceMode` two-column override that hid the center column and stretched the constructor into the right side;
+  - restored a true `workspaceMainColumns` structure: left `powerLibrarySidebar`, center `workspaceCenterColumn`, right `workspaceRightColumn`;
+  - restored left source controls: `Добавить мандалу`, `Группа`, `Категория`, quick source buttons, `Сохранённые изображения`, and saved-image list state;
+  - moved background, layout, analysis, resource comparison, and object controls into the separate right rail;
+  - kept constructor type controls and the mandala visual in the center;
+  - constrained the Lite mandala visual to an old-reference-sized center panel instead of oversized/overflowing or collapsed sizing;
+  - kept `Object refs JSON` inside advanced diagnostics only, not as the primary UX.
+- Local rendered QA:
+  - local dev server used layout-only fake Supabase env and fake hash session; no real tokens/env/JWT were used;
+  - `/profile/mandalas` at 1280 showed `260px 640px 320px` columns, visible right rail, visible left source controls, center mandala panel `560px`, mandala `362px`, and horizontal overflow `0`;
+  - `/profile/mandalas` at 390 stacked hero, tabs, center constructor/visual, left source controls, right settings controls, then save/download/print actions, with horizontal overflow `0`;
+  - `/profile-old` still opened locally at 1280 with no Vite overlay, no console errors, and horizontal overflow `0`.
+- Verification:
+  - Passed `npm run test:profile-lite` after a red/green contract-test cycle.
+  - Passed `npm run test:profile-media`.
+  - Passed `npm run test:power-place`.
+  - Passed `npm run test:profile-loading-recovery`.
+  - Passed `npm run check` with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05` and existing Vite chunk-size warning.
+  - Passed standalone `npm run build` with existing Vite chunk-size warning.
+- Not verified:
+  - production deploy/live parity after merge;
+  - real authenticated Google/Supabase/RLS media and composition save/load flows.
 
 ## 2026-06-01 — PR #191 production deploy status for Power Place parity
 
