@@ -2,7 +2,8 @@
   --chess-cell-scale: 100%;
 }
 
-.profileChessCellScaleControl {
+.profileChessCellScaleControl,
+.profileChessVariantRuntimeControl {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -10,7 +11,8 @@
   margin-top: 8px;
 }
 
-.profileChessCellScaleControl > span {
+.profileChessCellScaleControl > span,
+.profileChessVariantRuntimeControl > span {
   color: #6a4a1d;
   font-size: 12px;
   font-weight: 900;
@@ -18,7 +20,8 @@
   text-transform: uppercase;
 }
 
-.profileChessCellScaleControl button {
+.profileChessCellScaleControl button,
+.profileChessVariantRuntimeControl button {
   border: 1px solid rgba(157, 99, 25, 0.28);
   border-radius: 999px;
   padding: 7px 10px;
@@ -30,7 +33,8 @@
   cursor: pointer;
 }
 
-.profileChessCellScaleControl button.active {
+.profileChessCellScaleControl button.active,
+.profileChessVariantRuntimeControl button.active {
   background: linear-gradient(180deg, #3a250e, #98600e);
   border-color: rgba(255, 216, 128, 0.58);
   color: #fff2ce;
@@ -63,4 +67,32 @@
 .power-place-chess--plus-8 .power-place-chess__center {
   transform: translate(-50%, -50%) scale(calc(var(--chess-cell-scale-number, 100) / 100));
   transform-origin: center;
+}
+
+.power-place-chess.runtime-compact-5 .power-place-chess__board {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.power-place-chess.runtime-compact-5 .power-place-chess__cell {
+  aspect-ratio: 1 / 1;
+}
+
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(1) { order: 1; }
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(5) { order: 2; }
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(2) { order: 3; }
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(3) { order: 4; }
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(4) { order: 5; }
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(6) { order: 6; }
+
+.power-place-chess.runtime-compact-5 .power-place-chess__board > .power-place-chess__cell:nth-child(n+7) {
+  display: none;
+}
+
+.power-place-chess.runtime-compact-5 .power-place-chess__cell--center {
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.power-place-chess.runtime-compact-5 .power-place-chess__center {
+  border-radius: 20px;
 }
