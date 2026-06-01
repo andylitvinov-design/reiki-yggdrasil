@@ -425,3 +425,39 @@ assert.deepEqual(
     resource_with_mandala_comment: ""
   }
 );
+
+// __center_image in object_refs with empty central_photo_id
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Центр из мандалы ",
+    constructor_type: "client",
+    geometry: 4,
+    object_refs: {
+      "__center_image": "storage://profile-cabinet-media/profile-1/materials/uuid-center.webp",
+      "source-1": "https://example.com/source.jpg"
+    },
+    central_photo_id: ""
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Центр из мандалы",
+    constructor_type: "client",
+    geometry: 4,
+    zodiac_visible_count: 12,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    star_variant: "closed",
+    cover_ref: null,
+    object_refs: {
+      "__center_image": "storage://profile-cabinet-media/profile-1/materials/uuid-center.webp",
+      "source-1": "https://example.com/source.jpg"
+    },
+    central_photo_id: null,
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
+  }
+);

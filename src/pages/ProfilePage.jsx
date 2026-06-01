@@ -2591,8 +2591,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
       const display = displayImageUrl(ref);
       return `<li><b>${escapeHtml(slot.label)}</b>: ${ref ? escapeHtml(ref) : "пусто"}${display && display !== ref ? `<br><small>${escapeHtml(display)}</small>` : ""}</li>`;
     }).join("");
-    const centerRef = selectedCentralPhoto?.image_ref || selectedCentralPhoto?.image_url || "";
-    const centerDisplay = selectedCentralPhoto?.display_url || selectedCentralPhoto?.image_url || "";
+    const centerRef = selectedCentralImageRef || selectedCentralPhoto?.image_ref || selectedCentralPhoto?.image_url || "";
+    const centerDisplay = selectedCentralImageRef
+      ? (displayImageUrl ? displayImageUrl(selectedCentralImageRef) : selectedCentralImageRef)
+      : (selectedCentralPhoto?.display_url || selectedCentralPhoto?.image_url || "");
     const coverRef = selectedCover ? {
       id: selectedCover.id,
       label: selectedCover.label,
@@ -2615,8 +2617,8 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
   <section>
     <p><b>Формат:</b> ${escapeHtml(constructorTypeLabel(constructorType))}</p>
     <p><b>Режим:</b> ${escapeHtml(RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото цели")}</p>
-    <p><b>Фото клиента / цели:</b> ${centerRef ? escapeHtml(centerRef) : "не выбрано"}</p>
-    ${centerDisplay && isImagePreview(centerDisplay) ? `<img src="${escapeHtml(centerDisplay)}" alt="Фото клиента / цели">` : ""}
+    <p><b>Центральное изображение:</b> ${centerRef ? escapeHtml(centerRef) : "не выбрано"}</p>
+    ${centerDisplay && isImagePreview(centerDisplay) ? `<img src="${escapeHtml(centerDisplay)}" alt="Центральное изображение">` : ""}
   </section>
   <section>
     <h2>Объекты</h2>
@@ -2653,8 +2655,9 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
       return;
     }
 
-    if (!selectedCentralPhotoId) {
-      setError("Выберите центральное фото из раздела «Фото клиентов / целей».");
+    const hasCentralImage = Boolean(selectedCentralPhotoId || selectedCentralImageRef || centerImage);
+    if (!hasCentralImage) {
+      setError("Выберите или загрузите центральное изображение.");
       return;
     }
 
@@ -2939,7 +2942,7 @@ const resourceComparisonPanel = (
                 <>
                   <p className="cabinetEyebrow">Источники силы</p>
                   <h3>Источники силы</h3>
-                  <button className="powerAddImageButton" type="button" onClick={openClientPhotoUpload}>
+                  <button className="powerAddImageButton" type="button" onClick={() => setActiveTopTab("mandalas")}>
                     Добавить мандалу
                   </button>
                   <div className="powerLibrarySidebar" aria-label="Единый источник материалов для мест силы">
@@ -3854,7 +3857,7 @@ const resourceComparisonPanel = (
                   <div className="clientPhotoPickerHeader">
                     <div>
                       <p className="cabinetEyebrow">{imagePickerContext.mode === "center" ? "Центр мандалы" : imagePickerContext.mode === "cover" ? "Фон Места Силы" : selectedObjectSlot?.label || "Объект мандалы"}</p>
-                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Выбрать фото клиента / цели" : imagePickerContext.mode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
+                      <h2 id="clientPhotoPickerTitle">{imagePickerContext.mode === "center" ? "Выбрать центральное изображение" : imagePickerContext.mode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
                       <small>Выберите группу, категорию и подкатегорию — как в левом поле источников.</small>
                     </div>
                     <button type="button" onClick={closeImagePicker} aria-label="Закрыть выбор изображения">×</button>
@@ -3936,7 +3939,7 @@ const resourceComparisonPanel = (
                     ))}
                     {modalPickerImageOptions.length === 0 && (
                       <div className="clientPhotoPickerEmpty">
-                        <b>{imagePickerContext.mode === "center" ? "Фото клиента / цели пока не добавлены." : activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
+                        <b>{imagePickerContext.mode === "center" ? "В этой категории пока нет сохранённых изображений." : activePickerCategory === "channels" ? "Материалы для этого канала пока не добавлены." : "В этой категории пока нет сохранённых изображений."}</b>
                         <p>Выберите другую группу или нажмите «Загрузить новое фото».</p>
                       </div>
                     )}
