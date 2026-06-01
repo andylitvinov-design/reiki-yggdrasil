@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 const profilePageSource = readFileSync("src/pages/ProfilePage.jsx", "utf8");
 const bootstrapClientSource = readFileSync("src/lib/profileBootstrapClient.js", "utf8");
 const renderRecoverySource = readFileSync("public/profile-auth-render-recovery.js", "utf8");
+const indexHtml = readFileSync("index.html", "utf8");
 
 function assertOrder(source, first, second, message) {
   const firstIndex = source.indexOf(first);
@@ -206,6 +207,12 @@ assert.match(
   renderRecoverySource,
   /const renderRecoveryEnabled = search\.get\("enableRenderRecovery"\) === "1";/,
   "profile render recovery must be explicitly opt-in"
+);
+
+assert.equal(
+  indexHtml.includes("profile-auth-render-recovery"),
+  false,
+  "profile-auth-render-recovery.js must not be loaded by index.html because it creates path-sensitive /profile reload behavior"
 );
 
 assert.match(
