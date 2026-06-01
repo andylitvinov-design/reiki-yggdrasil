@@ -3,6 +3,16 @@
 ## 2026-06-02 — Profile Lite Power Place true 3-column layout parity
 
 - Branch: `codex/fix-profile-lite-power-place-layout-parity`.
+- PR: #192.
+- Merge:
+  - merged into `main`;
+  - merge commit: `70d0fa881bbc51adb0c42d4b456162086f473e05`;
+  - main `CI` run `26785839679` passed;
+  - GitHub Pages run `26785839690` failed, but the production profile-cabinet path is Vercel.
+- Deployment:
+  - Vercel Production deployment `4896832273` succeeded for merge SHA `70d0fa881bbc51adb0c42d4b456162086f473e05`;
+  - deployment URL: `https://reiki-yggdrasil-4xrwn9vz8-super10.vercel.app`;
+  - fallback workflow was not used.
 - Changed files:
   - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
   - `src/profileMandalaWorkspace.css`
@@ -37,8 +47,11 @@
   - mobile 390: columns collapsed to one `358px` track, stack order was hero/tabs/center visual/left controls/right settings/actions, horizontal overflow `0`, console errors/warnings `0`;
   - `/profile-old` at 1280 still opened locally, no Vite overlay, horizontal overflow `0`, console errors/warnings `0`.
 - Live QA:
-  - not deployed from this branch yet;
-  - production/legacy live verification remains required after merge/deploy.
+  - `https://mentalica.vercel.app/profile/mandalas` desktop 1280: columns measured `260px 640px 320px`, left rail visible, center constructor visible, right rail visible, mandala panel `560px`, mandala `362px`, horizontal overflow `0`, no Vite overlay, console errors/warnings `0`;
+  - `https://mentalica.vercel.app/profile/mandalas` mobile 390: single `358px` column, left rail visible, center constructor visible, right rail visible, mandala panel `342px`, mandala `218px`, horizontal overflow `0`, no Vite overlay, console errors/warnings `0`;
+  - `https://reiki-yggdrasil.vercel.app/profile/mandalas` desktop 1280: same `260px 640px 320px` columns and horizontal overflow `0`;
+  - `https://mentalica.vercel.app/profile-old` opened to the heavy cabinet login gate with no Vite overlay and horizontal overflow `0`;
+  - authenticated live comparison against the old `/profile-old` workspace still requires a real signed-in session.
 
 ## 2026-06-01 — PR #191 production deploy status for Power Place parity
 
