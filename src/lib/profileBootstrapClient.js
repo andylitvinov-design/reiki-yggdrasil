@@ -1,4 +1,5 @@
 const PROFILE_LOADING_TIMEOUT_MS = 15000;
+const CURRENT_USER_FALLBACK_TIMEOUT_MS = 1500;
 
 function cabinetError(message, details = null) {
   const error = new Error(message);
@@ -101,10 +102,46 @@ async function withTimeout(promise, timeoutMs = PROFILE_LOADING_TIMEOUT_MS) {
   }
 }
 
+async function getCurrentUserWithFastFallback({
+  session,
+  getCurrentUser,
+  timeoutMs,
+  fallbackTimeoutMs
+}) {
+  let fallbackTimeoutId;
+  const currentUserPromise = Promise.resolve().then(() => getCurrentUser(session));
+  const fallbackPromise = new Promise((resolve, reject) => {
+    fallbackTimeoutId = globalThis.setTimeout(() => {
+      const fallbackUser = fallbackUserFromSession(session);
+      if (fallbackUser?.id) {
+        resolve({ user: fallbackUser, fallbackUsed: true });
+        return;
+      }
+
+      reject(authTimeoutError("Вход не отвечает. Пробую открыть кабинет по сохранённой сессии."));
+    }, Math.min(fallbackTimeoutMs, timeoutMs));
+  });
+
+  try {
+    const result = await Promise.race([
+      withTimeout(currentUserPromise, timeoutMs).then((user) => ({
+        user: normalizeCurrentUser(user),
+        fallbackUsed: false
+      })),
+      fallbackPromise
+    ]);
+
+    return result;
+  } finally {
+    globalThis.clearTimeout(fallbackTimeoutId);
+  }
+}
+
 export async function loadProfileCabinetBootstrap({
   session,
   getCurrentUser,
   timeoutMs = PROFILE_LOADING_TIMEOUT_MS,
+  fallbackTimeoutMs = CURRENT_USER_FALLBACK_TIMEOUT_MS,
   onStep = () => {}
 } = {}) {
   onStep("started");
@@ -117,7 +154,17 @@ export async function loadProfileCabinetBootstrap({
   let currentUser;
   try {
     onStep("user-request-started");
-    currentUser = normalizeCurrentUser(await withTimeout(getCurrentUser(session), timeoutMs));
+    const currentUserResult = await getCurrentUserWithFastFallback({
+      session,
+      getCurrentUser,
+      timeoutMs,
+      fallbackTimeoutMs
+    });
+    currentUser = currentUserResult.user;
+    if (currentUserResult.fallbackUsed) {
+      onStep("fallback-used");
+      return { currentUser, currentProfile: null, notices: [] };
+    }
     onStep("user-request-resolved");
   } catch (error) {
     const fallbackUser = shouldUseSessionFallback(error) ? fallbackUserFromSession(session) : null;

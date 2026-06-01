@@ -105,6 +105,22 @@ assert.match(timeoutError.message, /Вход не отвечает/);
 const fallbackSession = {
   access_token: fakeJwt({ sub: "user-from-token", email: "fallback@example.com" })
 };
+const fastFallbackSteps = [];
+const fastFallbackStartedAt = Date.now();
+const fastFallbackUser = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: () => new Promise(() => {}),
+  timeoutMs: 500,
+  fallbackTimeoutMs: 20,
+  onStep: (step) => fastFallbackSteps.push(step)
+});
+
+assert.equal(fastFallbackUser.currentUser.id, "user-from-token");
+assert.equal(fastFallbackUser.currentUser.source, "session-jwt-fallback");
+assert.ok(Date.now() - fastFallbackStartedAt < 200, "JWT fallback should not wait for the long auth timeout");
+assert.equal(fastFallbackSteps.includes("fallback-used"), true);
+assert.equal(fastFallbackSteps.includes("profile-request-started"), false);
+
 const fallbackUser = await loadProfileCabinetBootstrap({
   session: fallbackSession,
   getCurrentUser: () => new Promise(() => {}),
@@ -116,6 +132,31 @@ assert.equal(fallbackUser.currentUser.email, "fallback@example.com");
 assert.equal(fallbackUser.currentUser.source, "session-jwt-fallback");
 assert.equal(fallbackUser.currentProfile, null);
 assert.deepEqual(fallbackUser.notices, []);
+
+const fastNoFallbackStartedAt = Date.now();
+const fastNoFallbackTimeoutError = await loadProfileCabinetBootstrap({
+  session: { access_token: "not-a-parseable-jwt" },
+  getCurrentUser: () => new Promise(() => {}),
+  timeoutMs: 500,
+  fallbackTimeoutMs: 20
+}).catch((error) => error);
+
+assert.equal(fastNoFallbackTimeoutError.code, "auth_load_timeout");
+assert.equal(fastNoFallbackTimeoutError.details?.status, 408);
+assert.equal(fastNoFallbackTimeoutError.details?.timeout, true);
+assert.ok(Date.now() - fastNoFallbackStartedAt < 200, "missing JWT fallback should still fail on the short recovery timeout");
+
+const quickDirectSteps = [];
+const quickDirectUser = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => ({ id: "direct-user", email: "direct@example.com" }),
+  timeoutMs: 500,
+  fallbackTimeoutMs: 20,
+  onStep: (step) => quickDirectSteps.push(step)
+});
+
+assert.equal(quickDirectUser.currentUser.id, "direct-user");
+assert.equal(quickDirectSteps.includes("fallback-used"), false);
 
 const malformedCurrentUserFallback = await loadProfileCabinetBootstrap({
   session: fallbackSession,
