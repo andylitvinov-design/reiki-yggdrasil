@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {
   loadPowerPlaceOptionalData,
   loadProfileCabinetBootstrap,
-  normalizeProfileRecord
+  normalizeProfileRecord,
+  runBackgroundUserVerification
 } from "../src/lib/profileBootstrapClient.js";
 
 const RECOVERY_NOTICE_PATTERN = /базовом режиме|без ожидания дополнительных данных/;
@@ -117,8 +118,9 @@ const fastFallbackUser = await loadProfileCabinetBootstrap({
 
 assert.equal(fastFallbackUser.currentUser.id, "user-from-token");
 assert.equal(fastFallbackUser.currentUser.source, "session-jwt-fallback");
-assert.ok(Date.now() - fastFallbackStartedAt < 200, "JWT fallback should not wait for the long auth timeout");
-assert.equal(fastFallbackSteps.includes("fallback-used"), true);
+assert.ok(Date.now() - fastFallbackStartedAt < 50, "JWT session-shell-opened should not wait for any auth timeout");
+assert.equal(fastFallbackSteps.includes("session-shell-opened"), true);
+assert.equal(fastFallbackSteps.includes("fallback-used"), false);
 assert.equal(fastFallbackSteps.includes("profile-request-started"), false);
 
 const fallbackUser = await loadProfileCabinetBootstrap({
@@ -155,7 +157,9 @@ const quickDirectUser = await loadProfileCabinetBootstrap({
   onStep: (step) => quickDirectSteps.push(step)
 });
 
-assert.equal(quickDirectUser.currentUser.id, "direct-user");
+assert.equal(quickDirectUser.currentUser.id, "user-from-token");
+assert.equal(quickDirectUser.currentUser.source, "session-jwt-fallback");
+assert.equal(quickDirectSteps.includes("session-shell-opened"), true);
 assert.equal(quickDirectSteps.includes("fallback-used"), false);
 
 const malformedCurrentUserFallback = await loadProfileCabinetBootstrap({
@@ -207,14 +211,27 @@ await loadProfileCabinetBootstrap({
 
 assert.deepEqual(bootstrapSteps, [
   "started",
+  "session-shell-opened"
+]);
+
+const nonJwtBootstrapSteps = [];
+await loadProfileCabinetBootstrap({
+  session: { access_token: "non-jwt-token" },
+  getCurrentUser: async () => ({ data: { user: { id: "user-from-wrapper" } } }),
+  timeoutMs: 20,
+  onStep: (step) => nonJwtBootstrapSteps.push(step)
+});
+
+assert.deepEqual(nonJwtBootstrapSteps, [
+  "started",
   "user-request-started",
   "user-request-resolved",
   "user-has-id",
   "profile-request-skipped-for-recovery"
 ]);
 
-const unauthorizedError = await loadProfileCabinetBootstrap({
-  session: fallbackSession,
+const nonJwtUnauthorizedError = await loadProfileCabinetBootstrap({
+  session: { access_token: "non-jwt-token" },
   getCurrentUser: async () => {
     const error = new Error("Unauthorized");
     error.details = { status: 401 };
@@ -223,11 +240,11 @@ const unauthorizedError = await loadProfileCabinetBootstrap({
   timeoutMs: 20
 }).catch((error) => error);
 
-assert.equal(unauthorizedError.details?.status, 401);
-assert.equal(unauthorizedError.source, undefined);
+assert.equal(nonJwtUnauthorizedError.details?.status, 401);
+assert.equal(nonJwtUnauthorizedError.source, undefined);
 
-const forbiddenError = await loadProfileCabinetBootstrap({
-  session: fallbackSession,
+const nonJwtForbiddenError = await loadProfileCabinetBootstrap({
+  session: { access_token: "non-jwt-token" },
   getCurrentUser: async () => {
     const error = new Error("Forbidden");
     error.details = { status: 403 };
@@ -236,8 +253,91 @@ const forbiddenError = await loadProfileCabinetBootstrap({
   timeoutMs: 20
 }).catch((error) => error);
 
-assert.equal(forbiddenError.details?.status, 403);
-assert.equal(forbiddenError.source, undefined);
+assert.equal(nonJwtForbiddenError.details?.status, 403);
+assert.equal(nonJwtForbiddenError.source, undefined);
+
+const bgVerifySuccessSteps = [];
+const bgVerifySuccess = await runBackgroundUserVerification({
+  session: fallbackSession,
+  getCurrentUser: async () => ({ id: "verified-user", email: "ok@example.com" }),
+  timeoutMs: 500,
+  onStep: (step) => bgVerifySuccessSteps.push(step)
+});
+
+assert.equal(bgVerifySuccess.status, "success");
+assert.equal(bgVerifySuccess.user.id, "verified-user");
+assert.equal(bgVerifySuccessSteps.includes("background-verification-started"), true);
+assert.equal(bgVerifySuccessSteps.includes("background-verification-success"), true);
+
+const bgVerifyTimeoutSteps = [];
+const bgVerifyTimeoutStartedAt = Date.now();
+const bgVerifyTimeout = await runBackgroundUserVerification({
+  session: fallbackSession,
+  getCurrentUser: () => new Promise(() => {}),
+  timeoutMs: 30,
+  onStep: (step) => bgVerifyTimeoutSteps.push(step)
+});
+
+assert.equal(bgVerifyTimeout.status, "timeout");
+assert.ok(Date.now() - bgVerifyTimeoutStartedAt < 200, "background timeout should fire within the given timeoutMs");
+assert.equal(bgVerifyTimeoutSteps.includes("background-verification-timeout"), true);
+
+const bgVerify401Steps = [];
+const bgVerify401 = await runBackgroundUserVerification({
+  session: fallbackSession,
+  getCurrentUser: async () => {
+    const error = new Error("Unauthorized");
+    error.details = { status: 401 };
+    throw error;
+  },
+  timeoutMs: 500,
+  onStep: (step) => bgVerify401Steps.push(step)
+});
+
+assert.equal(bgVerify401.status, "auth-error");
+assert.equal(bgVerify401Steps.includes("background-verification-auth-error"), true);
+
+const bgVerify403 = await runBackgroundUserVerification({
+  session: fallbackSession,
+  getCurrentUser: async () => {
+    const error = new Error("Forbidden");
+    error.details = { status: 403 };
+    throw error;
+  },
+  timeoutMs: 500
+});
+
+assert.equal(bgVerify403.status, "auth-error");
+
+const bgVerifyNetworkFail = await runBackgroundUserVerification({
+  session: fallbackSession,
+  getCurrentUser: async () => { throw new TypeError("Failed to fetch"); },
+  timeoutMs: 500
+});
+
+assert.equal(bgVerifyNetworkFail.status, "network-fail");
+
+const bgVerifySkipped = await runBackgroundUserVerification({
+  session: null
+});
+assert.equal(bgVerifySkipped.status, "skipped");
+
+let bgVerifyGetCurrentUserCalled = false;
+const sessionShellOpenedTiming = Date.now();
+const jwtShellResult = await loadProfileCabinetBootstrap({
+  session: fallbackSession,
+  getCurrentUser: async () => {
+    bgVerifyGetCurrentUserCalled = true;
+    return { id: "remote-user" };
+  },
+  timeoutMs: 500,
+  fallbackTimeoutMs: 20
+});
+
+assert.equal(jwtShellResult.currentUser.id, "user-from-token");
+assert.equal(jwtShellResult.currentUser.source, "session-jwt-fallback");
+assert.equal(bgVerifyGetCurrentUserCalled, false, "getCurrentUser must not be called in critical path for JWT sessions");
+assert.ok(Date.now() - sessionShellOpenedTiming < 50, "JWT shell should open without waiting for getCurrentUser");
 
 const invalidSessionError = await loadProfileCabinetBootstrap({
   session: { access_token: "token-3" },

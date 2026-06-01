@@ -12,6 +12,19 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — JWT immediate shell-open for heavy ProfilePage
+
+- Branch: `claude/festive-beaver-3ceaf9`.
+- Root cause fixed: heavy `ProfilePage` hung on "Загружаю кабинет..." because the shell waited for remote `getCurrentUser` (even with a 1500ms race fallback). When `/auth/v1/user` endpoint hangs, the fallback did not reliably open the cabinet.
+- Fix: `loadProfileCabinetBootstrap` now parses the JWT from `session.access_token` synchronously. If `sub`/`user_id` is present, the shell opens immediately (step: `session-shell-opened`, fallback user used: yes). `getCurrentUser` runs in background only via new `runBackgroundUserVerification` with 4s timeout.
+- Background verification outcomes:
+  - success: no visible change (cabinet already open);
+  - timeout/network-fail: `setSecondaryDataNotice` with safe offline notice;
+  - auth-error (401/403): `resetProfileSessionState("Сессия устарела. Войдите заново.")`.
+- Non-JWT session path: unchanged — old `getCurrentUserWithFastFallback` race with 1500ms fallback still used for safety.
+- Changed files: `src/lib/profileBootstrapClient.js`, `src/pages/ProfilePage.jsx`, `test/profileBootstrapClient.test.mjs`, `test/profilePageAuthBootstrap.test.mjs`.
+- Live QA required after deploy: `/profile?debugAuth=1` must show `bootstrap step: session-shell-opened`, `fallback user used: yes`, `render state: user` within 1 sec. Also verify `/profile-old?debugAuth=1` and `/profile-lite`.
+
 ## 2026-06-01 — Heavy ProfilePage restored to `/profile` after PR #180
 
 - Branch: `codex/restore-heavy-profile-after-recovery-script-removal`, based on fresh `origin/main` after PR #180.

@@ -132,6 +132,7 @@ assert.match(
 
 for (const checkpoint of [
   "before-bootstrap-call",
+  "session-shell-opened",
   "user-request-started",
   "fallback-used",
   "user-request-resolved",
