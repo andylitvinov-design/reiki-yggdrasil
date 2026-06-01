@@ -3277,6 +3277,38 @@ const resourceComparisonPanel = (
                 </div>
               </section>
             )}
+            {activeTopTab === "services" && (
+              <section className="chatPlaceholderWorkspace" aria-label="Диагностика модуля услуг">
+                <div className="chatPlaceholderHeader">
+                  <p className="cabinetEyebrow">Услуги</p>
+                  <h2>Каталог услуг</h2>
+                  <span>Источник данных: profile_cabinet_services · inline smoke mode</span>
+                </div>
+                <div className="cabinetNotice cabinetSecondaryDataWarning">
+                  Модуль услуг не участвует в критической загрузке кабинета. Если таблицы услуг, RLS или runtime-блок недоступны, тяжелый кабинет остаётся открытым, а услугу можно подготовить из сохранённого места силы следующим отдельным шагом.
+                </div>
+                {powerPlaceServiceDraft?.title && (
+                  <div className="chatMockMessages">
+                    <div>
+                      <b>{powerPlaceServiceDraft.title}</b>
+                      <p>Черновик подготовлен из вкладки «Место силы». Сохранение услуги требует отдельной live-проверки таблицы услуг.</p>
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
+            {activeTopTab === "orders" && (
+              <section className="chatPlaceholderWorkspace" aria-label="Диагностика модуля заявок">
+                <div className="chatPlaceholderHeader">
+                  <p className="cabinetEyebrow">Заявки</p>
+                  <h2>Заявки клиентов</h2>
+                  <span>Источник данных: profile_cabinet_service_orders · inline smoke mode</span>
+                </div>
+                <div className="cabinetNotice cabinetSecondaryDataWarning">
+                  Модуль заявок изолирован от auth/bootstrap пути. Ошибка загрузки заявок должна оставаться inline-сообщением внутри этой вкладки и не возвращать весь heavy cabinet в полноэкранную загрузку.
+                </div>
+              </section>
+            )}
             {activeTopTab === "profile" && profileEditor}
             </div>
 

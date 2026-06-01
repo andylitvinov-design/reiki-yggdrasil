@@ -12,6 +12,13 @@ function assertOrder(source, first, second, message) {
   assert.ok(firstIndex < secondIndex, message);
 }
 
+function assertNearbyExcludes(source, marker, forbidden, message) {
+  const markerIndex = source.indexOf(marker);
+  assert.notEqual(markerIndex, -1, `${message}: missing ${marker}`);
+  const snippet = source.slice(markerIndex, markerIndex + 700);
+  assert.equal(snippet.includes(forbidden), false, message);
+}
+
 assert.match(
   profilePageSource,
   /const \[authStatus, setAuthStatus\] = useState\(supabaseEnv\.isConfigured \? "loading" : "idle"\);/,
@@ -156,6 +163,31 @@ assert.match(
   /setSecondaryDataNotice\(/,
   "secondary profile/material/media failures should render an inline cabinet warning"
 );
+
+assert.match(
+  profilePageSource,
+  /activeTopTab === "services"[\s\S]*profile_cabinet_services[\s\S]*inline smoke mode/,
+  "old /profile services tab should render an inline smoke notice instead of a blank or blocking module"
+);
+
+assert.match(
+  profilePageSource,
+  /activeTopTab === "orders"[\s\S]*profile_cabinet_service_orders[\s\S]*не возвращать весь heavy cabinet в полноэкранную загрузку/,
+  "old /profile orders tab should render an inline smoke notice instead of a blank or blocking module"
+);
+
+for (const marker of [
+  "Материалы не загрузились:",
+  "Места силы не загрузились:",
+  "Медиа традиции не загрузились:"
+]) {
+  assertNearbyExcludes(
+    profilePageSource,
+    marker,
+    'setAuthStatus("loading")',
+    "secondary module failures must not force the heavy cabinet back into global loading"
+  );
+}
 
 assert.match(
   profilePageSource,
