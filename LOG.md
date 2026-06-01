@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — `/profile-old` heavy cabinet smoke QA hardening
+
+- Branch: `codex/profile-old-heavy-cabinet-smoke-qa`.
+- Changed files:
+  - `src/pages/ProfilePage.jsx`
+  - `test/profilePageAuthBootstrap.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Source-level QA result:
+  - `/profile` remains routed to `ProfileLitePage`;
+  - `/profile-old` remains routed to `ProfilePage`;
+  - old debug remains route-aware through safe `profileOld`/`routeName` booleans;
+  - old heavy cabinet still opens from `user?.id`;
+  - `getOwnProfile` is not in the critical recovery bootstrap path;
+  - materials, media, Power Place, and tradition-image failures stay as inline notices;
+  - services/orders tabs now render inline smoke notices instead of a blank body.
+- Not changed:
+  - OAuth redirects/provider logic;
+  - Supabase schema/migrations/env names;
+  - Vercel routing;
+  - production `/profile` behavior.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `node test/profilePageAuthBootstrap.test.mjs`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-media`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run check`
+  - `npm run build`
+- Local browser QA:
+  - local Vite preview on `http://localhost:4173`;
+  - `/profile` opened the lite cabinet in the no-env state;
+  - `/profile-old?debugAuth=1` opened the old heavy route's no-env/debug surface;
+  - desktop 1280 and mobile 390 checks reported no horizontal overflow and no visible Vite/runtime error overlay.
+- Not verified yet:
+  - authenticated heavy cabinet module clicks on live `https://mentalica.vercel.app/profile-old?debugAuth=1`;
+  - production/legacy deploy verification after merge.
+
 ## 2026-06-01 — Fast JWT fallback for stalled old `/profile` current-user bootstrap
 
 - Branch: `codex/profile-fast-session-fallback`.

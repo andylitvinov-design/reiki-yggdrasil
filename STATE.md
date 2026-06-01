@@ -12,6 +12,32 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — `/profile-old` heavy cabinet smoke QA hardening
+
+- Branch: `codex/profile-old-heavy-cabinet-smoke-qa`, based on fresh `origin/main` commit `6e4dc59`.
+- Scope: source-level smoke hardening for the old heavy `/profile-old` cabinet only; `/profile` stays mapped to `ProfileLitePage`, `/profile-old` stays mapped to `ProfilePage`.
+- Inspected modules:
+  - top tabs: `power-place`, `mandalas`, `services`, `orders`, `chats`, `profile`;
+  - profile form;
+  - materials list/form;
+  - Power Place constructor, saved images, client/goal photos, tradition media, and media upload paths;
+  - services/orders/chats source-level presence.
+- Change:
+  - added inline smoke-mode notices for `services` and `orders` tabs inside `ProfilePage.jsx`, because these tabs existed in the top nav but had no body inside the heavy component;
+  - kept services/orders isolated from the auth/bootstrap path and full-page loading state;
+  - strengthened `test/profilePageAuthBootstrap.test.mjs` so services/orders cannot silently regress to blank/blocking tabs and secondary module failures cannot force global loading.
+- Verification:
+  - Passed `npm run test:profile-lite`.
+  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
+  - Passed `npm run test:profile-materials`.
+  - Passed `npm run test:profile-media`.
+  - Passed `npm run test:profile-services`.
+  - Passed `npm run test:power-place`.
+  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+  - Passed `npm run build`.
+  - Local preview QA on `http://localhost:4173` covered `/profile` and `/profile-old?debugAuth=1` at desktop 1280 and mobile 390 with no horizontal overflow and no visible Vite/runtime error overlay in the no-env state.
+- Live `/profile-old?debugAuth=1` authenticated module QA remains required after merge/deploy.
+
 ## 2026-06-01 — Old `/profile` fast session fallback while `/auth/v1/user` stalls
 
 - Branch: `codex/profile-fast-session-fallback`, based on fresh `origin/main` commit `8290430`.
