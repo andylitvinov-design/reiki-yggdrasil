@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-05-31
+Last updated: 2026-06-01
 
 ## Current verified repo state
 
@@ -11,6 +11,27 @@ Last updated: 2026-05-31
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-06-01 — Old `/profile` fast session fallback while `/auth/v1/user` stalls
+
+- Branch: `codex/profile-fast-session-fallback`, based on fresh `origin/main` commit `8290430`.
+- Scope: minimal old `/profile` auth-bootstrap recovery only; no OAuth provider/redirect logic, Supabase schema/migrations/env names, Vercel routing, `/`, `/masters`, `/profile/admin`, `/profile-lite`, or heavy cabinet UI changes.
+- Root cause path:
+  - PR #171 removed `getOwnProfile` from the critical bootstrap path;
+  - live `/profile?debugAuth=1` then showed a stored session and successful exchange, but `getCurrentUser` remained `loading`;
+  - `loadProfileCabinetBootstrap` still waited on the long current-user timeout before using the existing JWT fallback, so React could remain in `loading` while a valid stored session contained a usable user id.
+- Change:
+  - `loadProfileCabinetBootstrap` now starts `getCurrentUser(session)` and a short fallback race in parallel;
+  - fallback timeout is `1500 ms`;
+  - if `getCurrentUser` returns a direct/wrapped user id first, that user wins;
+  - if `getCurrentUser` returns explicit 401/403 first, fallback remains disabled and the auth error is returned;
+  - if `getCurrentUser` is still pending at fallback timeout and the stored JWT has `sub` or `user_id`, bootstrap returns the fallback user and emits `fallback-used`;
+  - if the JWT is not parseable, the existing sanitized `auth_load_timeout` error path is preserved;
+  - `profile-request-started` remains absent in recovery bootstrap.
+- Verification:
+  - Passed `node test/profileBootstrapClient.test.mjs`.
+  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
+- Live QA remains required after PR merge/deploy on `https://mentalica.vercel.app/profile?debugAuth=1`.
 
 ## 2026-05-31 — `/profile` cabinet shell opens from authenticated user id
 

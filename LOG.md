@@ -1,5 +1,35 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — Fast JWT fallback for stalled old `/profile` current-user bootstrap
+
+- Branch: `codex/profile-fast-session-fallback`.
+- Changed files:
+  - `src/lib/profileBootstrapClient.js`
+  - `test/profileBootstrapClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause confirmed:
+  - after PR #171 removed `getOwnProfile` from the critical path, the remaining blocker was `getCurrentUser`;
+  - stored session could be valid and parseable, but bootstrap still waited on the long current-user timeout before using the session JWT fallback.
+- Fix:
+  - added a separate `1500 ms` fallback race around `getCurrentUser(session)`;
+  - direct successful current-user response wins over fallback;
+  - explicit 401/403 still refuses fallback;
+  - pending current-user plus parseable JWT returns `session-jwt-fallback` and emits `fallback-used`;
+  - pending current-user plus no parseable JWT keeps the existing sanitized `auth_load_timeout` error;
+  - recovery bootstrap still never emits `profile-request-started`.
+- Checks run:
+  - `node test/profileBootstrapClient.test.mjs`
+  - `node test/profilePageAuthBootstrap.test.mjs`
+- Not changed:
+  - OAuth redirect/provider logic;
+  - Supabase schema/migrations/env values;
+  - Vercel routing;
+  - `/`, `/masters`, `/profile/admin`, `/profile-lite`;
+  - heavy cabinet UI.
+- Not verified:
+  - production Google OAuth/live debug state after merge/deploy.
+
 ## 2026-05-31 — `/profile` shell gate uses authenticated user id
 
 - Branch: `codex/fix-profile-render-gate-user-id`.
