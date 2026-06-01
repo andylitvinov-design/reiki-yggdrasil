@@ -12,6 +12,33 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — Profile Lite authenticated QA and gap-analysis after PR #188
+
+- Branch: `codex/profile-lite-authenticated-qa`, based on `origin/main` merge commit `5efbcea` for PR #188.
+- Scope: QA/gap-analysis of new `/profile` and `/profile-lite` Profile Lite cabinet against `/profile-old` reference, plus minimal schema-setup documentation guard.
+- Route mapping verified by source/tests:
+  - `/profile` and `/profile-lite` render `ProfileLitePage`;
+  - `/profile-old` remains the heavy `ProfilePage` reference/diagnostic route;
+  - `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings` render Profile Lite with the matching initial tab;
+  - `/`, `/masters`, and `/profile/admin` remain routed separately.
+- Authenticated flow coverage verified at client/contract level:
+  - profile save/load uses `profile_cabinet_profiles` through existing session auth and safe payload normalization;
+  - materials list/create/save uses `profile_cabinet_publications`, optional media upload, and storage-ref hydration;
+  - media upload/display/delete covers client/goal photos and DB-row deletion; tradition media upload/display exists, but tradition delete remains a parity gap vs broader media expectations;
+  - saved mandalas/compositions list/load/save/update uses `profile_cabinet_power_place_compositions`;
+  - services/orders/chats clients and Lite modules are wired to their Supabase tables with inline `needs verification` failures instead of global auth failure.
+- Gap fixed:
+  - README setup list now includes `supabase/migrations/20260531090000_power_place_chess_format.sql`, because Profile Lite can save `constructor_type='chess'` and `chess_variant`.
+- Parity gaps vs `/profile-old`:
+  - Profile Lite Power Place constructor is a compact form/JSON editor, not the full visual old constructor with image picker, object placement, cover layers, uploads per slot, rich mandala preview, and category libraries.
+  - Lite chats list/send existing conversations only; creating new conversations with approved masters remains `needs verification` in the UI.
+  - Lite media has no tradition asset delete action.
+  - Lite services can create/publish from form or selected composition, but no full service editing/archive UI is present.
+- Needs verification:
+  - real signed-in Supabase/RLS save/load/upload/delete flows on live production, because this QA environment has no `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`, `SUPABASE_ACCESS_TOKEN`, or `SUPABASE_PROJECT_REF`;
+  - live schema state for `profile_cabinet_services`, `profile_cabinet_service_orders`, `profile_cabinet_chat_*`, storage bucket policies, and chess composition migration;
+  - production/legacy visual route QA after this branch is merged/deployed.
+
 ## 2026-06-01 — Profile Lite full alternative cabinet
 
 - Branch: `codex/profile-lite-full-alternative-cabinet`, based on fresh `origin/main` commit `7645c0c`.
