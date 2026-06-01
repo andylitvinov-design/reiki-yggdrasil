@@ -109,6 +109,42 @@ assert.match(
   "React debug cabinetCondition should use the same user-id cabinet rule"
 );
 
+assert.match(
+  profilePageSource,
+  /routeName:[\s\S]*"profile-old"/,
+  "old /profile debug should identify the /profile-old route with a safe boolean"
+);
+
+assert.match(
+  profilePageSource,
+  /profileOld:/,
+  "old /profile debug should publish a safe profileOld boolean"
+);
+
+for (const checkpoint of [
+  "before-bootstrap-call",
+  "user-request-started",
+  "fallback-used",
+  "user-request-resolved",
+  "before-set-user",
+  "after-set-user",
+  "after-set-profile",
+  "after-auth-ready",
+  "first-cabinet-render-attempt"
+]) {
+  assert.match(
+    `${profilePageSource}\n${bootstrapClientSource}`,
+    new RegExp(checkpoint.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    `old /profile debug should publish checkpoint ${checkpoint}`
+  );
+}
+
+assert.match(
+  profilePageSource,
+  /renderGateOpen: shouldShowCabinet,/,
+  "old /profile debug should expose a safe renderGateOpen boolean"
+);
+
 assert.equal(
   /Boolean\(user && authStatus === "ready"\)/.test(profilePageSource),
   false,

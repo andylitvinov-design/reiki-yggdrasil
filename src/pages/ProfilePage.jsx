@@ -679,6 +679,7 @@ const EMPTY_BOOTSTRAP_DEBUG = {
   bootstrapCurrentUserIdPresent: false,
   bootstrapCancelledBeforeApply: false,
   bootstrapFallbackUserUsed: false,
+  renderGateOpen: false,
   reactBootstrapCheckpoint: "idle"
 };
 
@@ -707,6 +708,38 @@ function getInitialStoredSession() {
     return null;
   }
   return storedSession;
+}
+
+function getProfileRouteDebug() {
+  if (typeof window === "undefined") {
+    return {
+      routeName: "unknown",
+      profileOld: false
+    };
+  }
+
+  const profileOld = window.location.pathname === "/profile-old";
+  return {
+    routeName: profileOld ? "profile-old" : "profile",
+    profileOld
+  };
+}
+
+function isProfileReactDebugEnabled() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("debugAuth") === "1";
+}
+
+function publishProfileReactDebug(patch) {
+  if (!isProfileReactDebugEnabled()) return;
+  window.__REIKI_PROFILE_REACT_DEBUG__ = {
+    ...(window.__REIKI_PROFILE_REACT_DEBUG__ || {}),
+    ...getProfileRouteDebug(),
+    ...patch
+  };
+  window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
+    detail: window.__REIKI_PROFILE_REACT_DEBUG__
+  }));
 }
 
 export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
@@ -1505,37 +1538,31 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const publishBootstrapDebug = (patch) => {
     setBootstrapDebug((current) => {
       const next = { ...current, ...patch };
-      if (typeof window !== "undefined") {
-        window.__REIKI_PROFILE_REACT_DEBUG__ = {
-          ...(window.__REIKI_PROFILE_REACT_DEBUG__ || {}),
-          ...next
-        };
-        window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
-          detail: window.__REIKI_PROFILE_REACT_DEBUG__
-        }));
-      }
+      publishProfileReactDebug(next);
       return next;
     });
   };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const debugAuth = new URLSearchParams(window.location.search).get("debugAuth") === "1";
-    if (!debugAuth) return;
-
-    window.__REIKI_PROFILE_REACT_DEBUG__ = {
+    publishProfileReactDebug({
       authStatus,
       hasUser: Boolean(user),
       hasUserId: Boolean(user?.id),
       hasSessionState: Boolean(sessionAccessToken),
       cabinetCondition: shouldShowCabinet,
+      renderGateOpen: shouldShowCabinet,
       loadingTimedOut: Boolean(loadingTimedOut),
       ...bootstrapDebug
-    };
-    window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
-      detail: window.__REIKI_PROFILE_REACT_DEBUG__
-    }));
+    });
   }, [authStatus, user, sessionAccessToken, loadingTimedOut, bootstrapDebug, shouldShowCabinet]);
+
+  if (shouldShowCabinet) {
+    publishProfileReactDebug({
+      renderGateOpen: shouldShowCabinet,
+      reactBootstrapCheckpoint: "first-cabinet-render-attempt"
+    });
+  }
 
   useEffect(() => {
     if (authStatus !== "loading" || hasAuthenticatedUser) {
@@ -1624,6 +1651,11 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
           reactBootstrapCheckpoint: "after-set-user"
         });
         setProfile(normalizeProfileRecord(currentProfile, currentUser, EMPTY_PROFILE));
+        publishBootstrapDebug({
+          bootstrapStep: "profile-applied",
+          bootstrapCurrentUserIdPresent: Boolean(currentUser?.id),
+          reactBootstrapCheckpoint: "after-set-profile"
+        });
         setSecondaryDataNotice(notices.map(sanitizeDebugMessage).filter(Boolean).join(" "));
         setLoadingTimedOut(false);
         setAuthStatus("ready");
@@ -1667,14 +1699,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
     return () => {
       cancelled = true;
       if (typeof window !== "undefined") {
-        window.__REIKI_PROFILE_REACT_DEBUG__ = {
-          ...(window.__REIKI_PROFILE_REACT_DEBUG__ || {}),
+        publishProfileReactDebug({
           bootstrapStep: "cancelled",
           reactBootstrapCheckpoint: "cleanup-cancelled"
-        };
-        window.dispatchEvent(new CustomEvent("reiki-profile-react-debug-update", {
-          detail: window.__REIKI_PROFILE_REACT_DEBUG__
-        }));
+        });
       }
     };
   }, [sessionAccessToken, bootstrapRetryKey]);

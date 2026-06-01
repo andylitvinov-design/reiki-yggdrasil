@@ -23,6 +23,12 @@ assertRouteMapsTo("/profile-old", "ProfilePage");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
 
+assert.equal(
+  /if \(path === "\/profile"\) \{[\s\S]*?return <ProfilePage\b/.test(mainSource),
+  false,
+  "/profile must not route back to the old heavy ProfilePage"
+);
+
 assert.ok(
   vercelConfig.rewrites.some((rewrite) => rewrite.source === "/profile-lite" && rewrite.destination === "/"),
   "vercel.json should rewrite /profile-lite to the SPA root"
