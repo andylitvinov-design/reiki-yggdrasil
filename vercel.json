@@ -12,6 +12,10 @@
       "destination": "/"
     },
     {
+      "source": "/profile-old",
+      "destination": "/"
+    },
+    {
       "source": "/masters",
       "destination": "/"
     },
