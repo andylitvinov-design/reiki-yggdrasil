@@ -1,5 +1,28 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — JWT immediate shell-open: eliminate getCurrentUser from critical path
+
+- Branch: `claude/festive-beaver-3ceaf9`.
+- Root cause: heavy `ProfilePage` hung on "Загружаю кабинет..." when `/auth/v1/user` endpoint was slow or unresponsive. The 1500ms race fallback in `getCurrentUserWithFastFallback` was not reliably opening the cabinet.
+- Changed files:
+  - `src/lib/profileBootstrapClient.js`
+  - `src/pages/ProfilePage.jsx`
+  - `test/profileBootstrapClient.test.mjs`
+  - `test/profilePageAuthBootstrap.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Fix model:
+  - `loadProfileCabinetBootstrap`: parse JWT from `session.access_token` synchronously before calling `getCurrentUser`. If JWT has `sub`/`user_id`, emit `session-shell-opened` and return immediately.
+  - New export `runBackgroundUserVerification`: calls `getCurrentUser` with 4s timeout after shell is open. On timeout/network-fail: shows safe notice. On 401/403: resets session.
+  - `ProfilePage.jsx`: fires background verification for JWT path, handles results without blocking cabinet render.
+- Test updates:
+  - `fastFallbackUser`: now asserts `session-shell-opened` (not `fallback-used`), and timing < 50ms (not 200ms).
+  - `quickDirectUser`: JWT path returns JWT user, not `getCurrentUser` result.
+  - `bootstrapSteps`: JWT session gives `["started", "session-shell-opened"]`; added non-JWT path assertion.
+  - Replaced `unauthorizedError`/`forbiddenError` (were JWT path, now irrelevant for bootstrap) with non-JWT equivalents and full `runBackgroundUserVerification` test suite.
+  - `profilePageAuthBootstrap.test.mjs`: added `session-shell-opened` to checkpoint list.
+- Expected live debug after deploy: `bootstrap step: session-shell-opened`, `fallback user used: yes`, `render state: user` within 1 sec on `/profile?debugAuth=1`.
+
 ## 2026-06-01 — Restore heavy ProfilePage after recovery script removal
 
 - Branch: `codex/restore-heavy-profile-after-recovery-script-removal`.

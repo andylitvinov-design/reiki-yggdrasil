@@ -43,7 +43,8 @@ import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMedi
 import {
   loadPowerPlaceOptionalData,
   loadProfileCabinetBootstrap,
-  normalizeProfileRecord
+  normalizeProfileRecord,
+  runBackgroundUserVerification
 } from "../lib/profileBootstrapClient.js";
 import { formatCabinetId } from "../lib/masterChatClient.js";
 import "../profileMandalaWorkspace.css";
@@ -1624,7 +1625,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
           onStep: (bootstrapStep, stepError) => publishBootstrapDebug({
             bootstrapStep,
             bootstrapErrorMessage: stepError ? sanitizeDebugMessage(stepError?.message || "bootstrap error") : "",
-            bootstrapFallbackUserUsed: bootstrapStep === "fallback-used",
+            bootstrapFallbackUserUsed: bootstrapStep === "fallback-used" || bootstrapStep === "session-shell-opened",
             reactBootstrapCheckpoint: "inside-bootstrap"
           })
         });
@@ -1664,6 +1665,21 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
           bootstrapCurrentUserIdPresent: Boolean(currentUser?.id),
           reactBootstrapCheckpoint: "after-auth-ready"
         });
+
+        if (currentUser?.source === "session-jwt-fallback" && !cancelled) {
+          runBackgroundUserVerification({
+            session,
+            getCurrentUser,
+            onStep: (step) => publishBootstrapDebug({ bootstrapStep: step })
+          }).then((result) => {
+            if (cancelled) return;
+            if (result.status === "timeout" || result.status === "network-fail") {
+              setSecondaryDataNotice("Авторизация работает в автономном режиме. Кабинет открыт по сохранённой сессии.");
+            } else if (result.status === "auth-error") {
+              resetProfileSessionState("Сессия устарела. Войдите заново.");
+            }
+          }).catch(() => {});
+        }
       } catch (err) {
         publishBootstrapDebug({
           bootstrapStep: "error",

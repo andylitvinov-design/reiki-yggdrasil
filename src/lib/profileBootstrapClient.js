@@ -1,5 +1,6 @@
 const PROFILE_LOADING_TIMEOUT_MS = 15000;
 const CURRENT_USER_FALLBACK_TIMEOUT_MS = 1500;
+const BACKGROUND_VERIFICATION_TIMEOUT_MS = 4000;
 
 function cabinetError(message, details = null) {
   const error = new Error(message);
@@ -151,6 +152,12 @@ export async function loadProfileCabinetBootstrap({
     return { currentUser: null, currentProfile: null, notices: [] };
   }
 
+  const sessionJwtUser = fallbackUserFromSession(session);
+  if (sessionJwtUser?.id) {
+    onStep("session-shell-opened");
+    return { currentUser: sessionJwtUser, currentProfile: null, notices: [] };
+  }
+
   let currentUser;
   try {
     onStep("user-request-started");
@@ -245,4 +252,44 @@ export function normalizeProfileRecord(profile, user, emptyProfile = {}) {
 
 export function sanitizeProfileBootstrapNotice(value) {
   return sanitizeSecondaryDataMessage(value);
+}
+
+export async function runBackgroundUserVerification({
+  session,
+  getCurrentUser,
+  timeoutMs = BACKGROUND_VERIFICATION_TIMEOUT_MS,
+  onStep = () => {}
+} = {}) {
+  if (!session?.access_token || typeof getCurrentUser !== "function") {
+    return { status: "skipped" };
+  }
+
+  onStep("background-verification-started");
+
+  try {
+    const result = await withTimeout(
+      Promise.resolve().then(() => getCurrentUser(session)),
+      timeoutMs
+    );
+    const user = normalizeCurrentUser(result);
+    if (user?.id) {
+      onStep("background-verification-success");
+      return { status: "success", user };
+    }
+    onStep("background-verification-auth-error");
+    return { status: "auth-error" };
+  } catch (error) {
+    if (error?.code === "auth_load_timeout" || error?.details?.timeout) {
+      onStep("background-verification-timeout");
+      return { status: "timeout" };
+    }
+    const details = error?.details || {};
+    const httpStatus = Number(details.status || 0);
+    if (httpStatus === 401 || httpStatus === 403) {
+      onStep("background-verification-auth-error");
+      return { status: "auth-error", error };
+    }
+    onStep("background-verification-network-fail");
+    return { status: "network-fail" };
+  }
 }
