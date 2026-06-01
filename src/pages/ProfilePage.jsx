@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
@@ -807,6 +807,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
   const [secondaryDataNotice, setSecondaryDataNotice] = useState("");
   const [bootstrapRetryKey, setBootstrapRetryKey] = useState(0);
   const [bootstrapDebug, setBootstrapDebug] = useState(EMPTY_BOOTSTRAP_DEBUG);
+  const backgroundVerificationTokenRef = useRef("");
   const hasAuthenticatedUser = Boolean(user?.id);
   const shouldShowCabinet = hasAuthenticatedUser;
   const shouldShowInitialLoading = !hasAuthenticatedUser && authStatus === "loading" && !loadingTimedOut;
@@ -1545,6 +1546,14 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
   };
 
   useEffect(() => {
+    if (typeof window !== "undefined" && isProfileReactDebugEnabled()) {
+      window.__REIKI_PROFILE_REACT_DEBUG__ = {};
+    }
+    publishBootstrapDebug(EMPTY_BOOTSTRAP_DEBUG);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     publishProfileReactDebug({
       authStatus,
@@ -1665,21 +1674,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
           bootstrapCurrentUserIdPresent: Boolean(currentUser?.id),
           reactBootstrapCheckpoint: "after-auth-ready"
         });
-
-        if (currentUser?.source === "session-jwt-fallback" && !cancelled) {
-          runBackgroundUserVerification({
-            session,
-            getCurrentUser,
-            onStep: (step) => publishBootstrapDebug({ bootstrapStep: step })
-          }).then((result) => {
-            if (cancelled) return;
-            if (result.status === "timeout" || result.status === "network-fail") {
-              setSecondaryDataNotice("Авторизация работает в автономном режиме. Кабинет открыт по сохранённой сессии.");
-            } else if (result.status === "auth-error") {
-              resetProfileSessionState("Сессия устарела. Войдите заново.");
-            }
-          }).catch(() => {});
-        }
       } catch (err) {
         publishBootstrapDebug({
           bootstrapStep: "error",
@@ -1722,6 +1716,39 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
       }
     };
   }, [sessionAccessToken, bootstrapRetryKey]);
+
+  useEffect(() => {
+    if (
+      authStatus !== "ready" ||
+      !user?.id ||
+      !sessionAccessToken ||
+      user?.source !== "session-jwt-fallback"
+    ) return undefined;
+
+    if (backgroundVerificationTokenRef.current === sessionAccessToken) return undefined;
+    backgroundVerificationTokenRef.current = sessionAccessToken;
+
+    let cancelled = false;
+
+    runBackgroundUserVerification({
+      session,
+      getCurrentUser,
+      onStep: (step) => {
+        if (!cancelled) publishBootstrapDebug({ bootstrapStep: step });
+      }
+    }).then((result) => {
+      if (cancelled) return;
+      if (result.status === "timeout" || result.status === "network-fail") {
+        setSecondaryDataNotice("Авторизация работает в автономном режиме. Кабинет открыт по сохранённой сессии.");
+      } else if (result.status === "auth-error") {
+        resetProfileSessionState("Сессия устарела. Войдите заново.");
+      }
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authStatus, user?.id, user?.source, sessionAccessToken]);
 
   useEffect(() => {
     let cancelled = false;
