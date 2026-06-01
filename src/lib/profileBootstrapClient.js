@@ -205,7 +205,7 @@ export async function loadPowerPlaceOptionalData({
   }
 
   if (compositionsResult.status === "rejected") {
-    notices.push(photosResult.reason?.message || "Не удалось загрузить места силы.");
+    notices.push(compositionsResult.reason?.message || "Не удалось загрузить места силы.");
   }
 
   return { clientGoalPhotos, powerPlaceCompositions, notices };
