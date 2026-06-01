@@ -155,3 +155,43 @@ for (const forbidden of [
 ]) {
   assert.equal(moduleSource.includes(forbidden), false, `Profile Lite modules must not include ${forbidden}`);
 }
+
+const powerPlaceSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
+
+for (const requiredPowerPlaceText of [
+  "Мастерская мандал",
+  "Место силы",
+  "Мои мандалы",
+  "Загрузить сохранённое место силы",
+  "Фото клиента / цели",
+  "Фон внутри",
+  "Фон снаружи",
+  "Без фона",
+  "Объекты композиции",
+  "Сохранить место силы",
+  "Скачать",
+  "Печать",
+  "Загрузить новое фото",
+  "Удалить фото из базы?"
+]) {
+  assert.match(powerPlaceSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
+}
+
+for (const requiredFormat of ["2", "4", "6", "8", "8+", "12", "12+", "closed", "open", "classic-14", "classic-8", "plus-8", "client", "altar", "business", "dao"]) {
+  assert.match(powerPlaceSource, new RegExp(requiredFormat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should expose format ${requiredFormat}`);
+}
+
+for (const requiredClass of [
+  "mandalaWorkspace",
+  "powerPlaceConstructor",
+  "powerPlacePrintArea",
+  "powerMandalaPanel",
+  "powerCenterPhoto",
+  "powerLibrarySidebar",
+  "objectImageEditor",
+  "clientPhotoPickerModal"
+]) {
+  assert.match(powerPlaceSource, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
+}
+
+assert.match(powerPlaceSource, /advanced|diagnostics|Диагностика/i, "Object refs JSON should be hidden behind an advanced diagnostics surface");

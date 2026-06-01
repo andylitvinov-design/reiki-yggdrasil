@@ -93,6 +93,7 @@ const EMPTY_COMPOSITION = {
   title: "",
   constructor_type: "zodiac",
   geometry: 4,
+  zodiac_variant: "classic-12",
   zodiac_visible_count: 12,
   altar_center_ratio: "1",
   business_vertex_zone_count: 1,
@@ -156,6 +157,36 @@ function downloadText(filename, text) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeFilename(value) {
+  const safe = String(value || "power-place")
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return safe || "power-place";
+}
+
+function downloadHtml(filename, html) {
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
@@ -645,9 +676,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleDeleteClientPhoto = async (photo) => {
     if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) return;
+    const confirmed = window.confirm("Удалить фото из базы?");
+    if (!confirmed) return;
     try {
       await deleteClientGoalPhoto(photo.id, profile.id, session);
       setClientGoalPhotos((current) => current.filter((item) => item.id !== photo.id));
+      setCompositionDraft((current) => current.central_photo_id === photo.id ? { ...current, central_photo_id: "" } : current);
     } catch (error) {
       setMediaStatus("needs-verification");
       setMediaError(moduleError(error, "delete client goal photo failed or RLS not applied"));
@@ -668,12 +702,137 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const setCompositionObjectRef = (slotId, value, displayUrl = "") => {
+    setCompositionDraft((current) => ({
+      ...current,
+      object_refs: {
+        ...(current.object_refs || {}),
+        [slotId]: value
+      },
+      object_ref_urls: displayUrl && displayUrl !== value
+        ? { ...(current.object_ref_urls || {}), [value]: displayUrl }
+        : current.object_ref_urls
+    }));
+  };
+
+  const handleCompositionCoverSelect = (layer, cover) => {
+    const normalizeLayer = (item, fallbackId) => ({
+      id: item?.id || fallbackId,
+      label: item?.label || "Без фона",
+      type: item?.type || "none",
+      tone: item?.tone || "",
+      src: item?.src || "",
+      display_src: item?.display_src || item?.displaySrc || item?.src || ""
+    });
+
+    setCompositionDraft((current) => {
+      const currentCover = current.cover_ref || {};
+      const inner = normalizeLayer(currentCover.inner || currentCover, "no-cover");
+      const outer = normalizeLayer(currentCover.outer || { id: "no-cover", label: "Без фона", type: "none" }, "no-cover");
+      const nextLayer = normalizeLayer(cover, layer === "outer" ? "custom-outer-cover" : "custom-cover");
+      return {
+        ...current,
+        cover_ref: {
+          ...(layer === "outer" ? inner : nextLayer),
+          id: layer === "outer" ? inner.id : nextLayer.id,
+          inner: layer === "outer" ? inner : nextLayer,
+          outer: layer === "outer" ? nextLayer : outer
+        }
+      };
+    });
+  };
+
+  const handleUploadedCentralPhoto = async (file) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      return;
+    }
+
+    try {
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "client-goal" }, session);
+      const saved = await createClientGoalPhoto({
+        profile_id: profile.id,
+        title: file.name || "Фото клиента / цели",
+        image_url: "",
+        image_bucket: uploaded.bucket,
+        image_path: uploaded.path,
+        mime_type: uploaded.metadata.mimeType,
+        file_size_bytes: uploaded.metadata.size,
+        notes: "Центр мандалы"
+      }, accountPlan, session);
+      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
+      setCompositionDraft((current) => ({
+        ...current,
+        central_photo_id: saved?.id || "",
+        object_refs: { ...(current.object_refs || {}), __center_image: saved?.image_ref || uploaded.ref },
+        object_ref_urls: { ...(current.object_ref_urls || {}), [saved?.image_ref || uploaded.ref]: saved?.display_url || uploaded.signedUrl }
+      }));
+      setMediaStatus("success");
+      setMediaError("");
+    } catch (error) {
+      setMediaStatus("needs-verification");
+      setMediaError(moduleError(error, "central photo upload failed or Storage/RLS not applied"));
+    }
+  };
+
+  const handleCompositionObjectFileUpload = async (slotId, file) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      return;
+    }
+
+    try {
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, {
+        profileId: profile.id,
+        kind: "power-place",
+        compositionId: compositionDraft.id || "draft",
+        slotId
+      }, session);
+      setCompositionObjectRef(slotId, uploaded.ref, uploaded.signedUrl);
+      setMandalasStatus("success");
+      setMandalasError("");
+    } catch (error) {
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "power place object upload failed or Storage/RLS not applied"));
+    }
+  };
+
+  const handleCompositionCoverFileUpload = async (layer, file) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      return;
+    }
+
+    try {
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "underlay" }, session);
+      handleCompositionCoverSelect(layer, {
+        id: layer === "outer" ? "custom-outer-cover" : "custom-cover",
+        label: "Своё изображение",
+        type: "image",
+        src: uploaded.ref,
+        display_src: uploaded.signedUrl
+      });
+      setMandalasStatus("success");
+      setMandalasError("");
+    } catch (error) {
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "power place cover upload failed or Storage/RLS not applied"));
+    }
+  };
+
   const handleCompositionLoad = (composition) => {
     setCompositionDraft({
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
-      object_refs: composition.object_refs || {}
+      object_refs: composition.object_refs || {},
+      object_ref_urls: composition.object_ref_urls || {}
     });
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
   };
@@ -710,6 +869,50 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       image_url: compositionDraft.cover_ref?.src || ""
     }));
     setActiveTab("services");
+  };
+
+  const handleDownloadComposition = () => {
+    const objectRows = Object.entries(compositionDraft.object_refs || {})
+      .filter(([key]) => key !== "__center_image")
+      .map(([key, value]) => `<li><b>${escapeHtml(key)}</b>: ${escapeHtml(value)}</li>`)
+      .join("");
+    const centerRef = compositionDraft.object_refs?.__center_image || compositionDraft.central_photo_id || "";
+    const html = `<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(compositionDraft.title || "Место силы")}</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:880px;margin:32px auto;padding:0 18px;color:#2f2418;background:#fffaf0}
+    h1{margin:0 0 8px} section{border:1px solid #d2aa63;border-radius:14px;padding:16px;margin:14px 0;background:#fffdf8}
+    li{margin:8px 0;overflow-wrap:anywhere} pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(compositionDraft.title || "Место силы")}</h1>
+  <section>
+    <p><b>Формат:</b> ${escapeHtml(compositionDraft.constructor_type || "zodiac")}</p>
+    <p><b>Центральное изображение:</b> ${escapeHtml(centerRef || "не выбрано")}</p>
+  </section>
+  <section>
+    <h2>Объекты</h2>
+    <ul>${objectRows || "<li>Нет объектов</li>"}</ul>
+  </section>
+  <section>
+    <h2>Подложка</h2>
+    <pre>${escapeHtml(JSON.stringify(compositionDraft.cover_ref || null, null, 2))}</pre>
+  </section>
+</body>
+</html>`;
+    downloadHtml(`${safeFilename(compositionDraft.title || "power-place")}.html`, html);
+  };
+
+  const handlePrintComposition = () => {
+    const cleanup = () => document.body.classList.remove("printMandalaOnly");
+    document.body.classList.add("printMandalaOnly");
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.print();
+    window.setTimeout(cleanup, 1200);
   };
 
   const handleServiceSave = async (nextStatus = "draft") => {
@@ -859,13 +1062,19 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     mandalas: (
       <ProfileLiteMandalasModule
         {...moduleProps}
+        onClientPhotoDelete={handleDeleteClientPhoto}
+        onCompositionCoverSelect={handleCompositionCoverSelect}
         onCompositionDraftChange={handleCompositionDraftChange}
         onCompositionLoad={handleCompositionLoad}
+        onCompositionObjectRefSelect={setCompositionObjectRef}
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
-        onDownload={() => downloadText("power-place-composition.json", JSON.stringify(compositionDraft, null, 2))}
-        onPrint={() => window.print()}
+        onCoverFileUpload={handleCompositionCoverFileUpload}
+        onDownload={handleDownloadComposition}
+        onObjectFileUpload={handleCompositionObjectFileUpload}
+        onPrint={handlePrintComposition}
         onSave={handleCompositionSave}
         onSendToServices={handleSendCompositionToServices}
+        onUploadedCentralPhoto={handleUploadedCentralPhoto}
       />
     ),
     media: (

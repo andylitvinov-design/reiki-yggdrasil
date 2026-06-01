@@ -1,5 +1,38 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — Profile Lite Power Place parity restoration
+
+- Branch: `codex/profile-lite-power-place-parity`.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Result:
+  - replaced the Lite `Object refs JSON` primary screen with a visual `Мастерская мандал` workspace;
+  - restored `Место силы` / `Мои мандалы` switches, saved composition loading, central client/goal photo, format controls, background layers, object picker, save/update, HTML download fallback, and print;
+  - kept `Object refs JSON` only in an advanced diagnostics block;
+  - wired central/object/cover uploads to existing `uploadProfileMedia` paths and preserved saved composition persistence fields through `powerPlaceClient`;
+  - added source-level contract coverage so Lite cannot silently regress back to JSON-first placeholder UX.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - `npm run check` passed with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`.
+  - `npm run build` passed with the existing Vite chunk-size warning.
+- Local QA note:
+  - preview was started on `http://localhost:4180/`;
+  - Playwright screenshots covered `/profile/mandalas` desktop 1280, `/profile/mandalas` mobile 390, and `/profile-old` desktop in the no-env state;
+  - no console warnings/errors were reported for the checked no-env routes;
+  - authenticated visual parity remains pending because local preview has no Supabase env/session and both Lite and `/profile-old` stop at the auth/env gate.
+- Live QA:
+  - not run; changes are local branch work only and were not merged/deployed.
+
 ## 2026-06-01 — Profile Lite full alternative cabinet
 
 - Branch: `codex/profile-lite-full-alternative-cabinet`.
