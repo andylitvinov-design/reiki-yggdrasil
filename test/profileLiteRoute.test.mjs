@@ -25,7 +25,7 @@ function assertRouteMapsWithInitialTopTab(path, initialTopTab) {
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
 
-assertRouteMapsTo("/profile", "ProfileLitePage");
+assertRouteMapsTo("/profile", "ProfilePage");
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
 assertRouteMapsWithInitialTopTab("/profile/mandalas", "power-place");
@@ -37,9 +37,9 @@ assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
 
 assert.equal(
-  /if \(path === "\/profile"\) \{[\s\S]*?return <ProfilePage\b/.test(mainSource),
+  /if \(path === "\/profile"\) \{[\s\S]*?return <ProfileLitePage\b/.test(mainSource),
   false,
-  "/profile must not route back to the old heavy ProfilePage"
+  "/profile must not route back to the lite fallback"
 );
 
 assert.ok(
