@@ -12,32 +12,23 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
-## 2026-06-01 — Heavy ProfilePage restored as main `/profile`
+## 2026-06-01 — Emergency revert of PR #179 heavy `/profile` route
 
-- Branch: `codex/restore-heavy-profile-as-main`, based on fresh `origin/main` commit `dacd076`.
-- Scope: minimal route restore only after the heavy profile save bug was fixed and live showed `Профиль сохранён.`.
-- Route mapping change:
-  - `/profile` now renders the heavy `ProfilePage` again;
-  - `/profile-lite` remains the emergency lightweight fallback;
-  - `/profile-old` remains the diagnostic heavy profile alias;
-  - modular heavy routes remain unchanged: `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings`;
-  - `/profile/admin`, `/masters`, and `/` remain unchanged.
+- Branch: `codex/revert-heavy-profile-main-route`, based on fresh `origin/main` commit `3786fdd`.
+- Scope: immediate revert of PR #179 because live `https://mentalica.vercel.app/profile` regressed to persistent `Загружаю кабинет...` after the heavy `ProfilePage` was restored as the main `/profile` route.
+- Change:
+  - `/profile` routes back to `ProfileLitePage`;
+  - `/profile-lite` remains `ProfileLitePage`;
+  - `/profile-old` remains the heavy `ProfilePage`;
+  - modular heavy routes under `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings` remain routed to `ProfilePage`.
 - Not changed:
-  - OAuth/provider redirect logic;
-  - Supabase schema, migrations, env names, storage, or session keys;
-  - `ProfilePage.jsx` UI or bootstrap logic;
-  - `ProfileLitePage.jsx`;
-  - Vercel rewrites.
-- Verification:
-  - Passed `npm run test:profile-lite`.
-  - Passed `node test/profilePageAuthBootstrap.test.mjs`.
-  - Passed `npm run test:profile-materials`.
-  - Passed `npm run test:profile-media`.
-  - Passed `npm run test:profile-services`.
-  - Passed `npm run test:power-place`.
-  - Passed `npm run check` after `npm install`; existing video placeholder warnings remain for `RY-L04-S04` and `RY-L04-S05`.
-  - Passed `npm run build`.
-- Live QA remains required after merge/deploy on `https://mentalica.vercel.app/profile`, `/profile-lite`, `/profile-old`, modular profile routes, `/masters`, and `/profile/admin`.
+  - PR #178 normalizeProfile save fix;
+  - PR #176 modular routes;
+  - PR #177 recovery summary docs;
+  - Supabase/OAuth/env/migrations.
+- Live QA remains required after merge/deploy:
+  - `https://mentalica.vercel.app/profile` must open the lite cabinet;
+  - `https://mentalica.vercel.app/profile-old` must open the heavy cabinet.
 
 ## 2026-06-01 — `/profile-old` heavy cabinet smoke QA hardening
 
