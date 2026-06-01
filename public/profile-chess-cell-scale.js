@@ -1,6 +1,11 @@
 (() => {
   const SCALES = [100, 90, 80, 70, 60];
+  const LAYOUTS = [
+    { value: 'default', label: '8 ячеек' },
+    { value: 'compact-5', label: '5 ячеек' }
+  ];
   let activeScale = 100;
+  let activeLayout = 'default';
 
   function applyScale(scale) {
     activeScale = scale;
@@ -13,7 +18,17 @@
     });
   }
 
-  function createButton(scale) {
+  function applyLayout(layout) {
+    activeLayout = layout;
+    document.querySelectorAll('.power-place-chess').forEach((board) => {
+      board.classList.toggle('runtime-compact-5', layout === 'compact-5');
+    });
+    document.querySelectorAll('.profileChessVariantRuntimeControl button').forEach((button) => {
+      button.classList.toggle('active', button.dataset.layout === layout);
+    });
+  }
+
+  function createScaleButton(scale) {
     const button = document.createElement('button');
     button.type = 'button';
     button.textContent = scale + '%';
@@ -22,18 +37,30 @@
     return button;
   }
 
-  function ensureControl() {
-    const board = document.querySelector('.power-place-chess');
-    if (!board) return;
+  function createLayoutButton(layout) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.layout = layout.value;
+    button.textContent = layout.label;
+    button.className = layout.value === activeLayout ? 'active' : '';
+    button.addEventListener('click', () => applyLayout(layout.value));
+    return button;
+  }
 
-    applyScale(activeScale);
+  function buildLayoutControl() {
+    const control = document.createElement('div');
+    control.className = 'profileChessVariantRuntimeControl';
+    control.setAttribute('aria-label', 'Дополнительный формат шахмат');
 
-    if (document.querySelector('.profileChessCellScaleControl')) return;
+    const label = document.createElement('span');
+    label.textContent = 'Доп. формат';
+    control.appendChild(label);
 
-    const selectors = Array.from(document.querySelectorAll('.starVariantSelector'));
-    const chessSelector = selectors.find((item) => item.textContent.includes('Формат шахмат'));
-    if (!chessSelector) return;
+    LAYOUTS.forEach((layout) => control.appendChild(createLayoutButton(layout)));
+    return control;
+  }
 
+  function buildScaleControl() {
     const control = document.createElement('div');
     control.className = 'profileChessCellScaleControl';
     control.setAttribute('aria-label', 'Размер шахматных ячеек');
@@ -42,8 +69,29 @@
     label.textContent = 'Размер ячеек';
     control.appendChild(label);
 
-    SCALES.forEach((scale) => control.appendChild(createButton(scale)));
-    chessSelector.insertAdjacentElement('afterend', control);
+    SCALES.forEach((scale) => control.appendChild(createScaleButton(scale)));
+    return control;
+  }
+
+  function ensureControl() {
+    const board = document.querySelector('.power-place-chess');
+    if (!board) return;
+
+    applyScale(activeScale);
+    applyLayout(activeLayout);
+
+    const selectors = Array.from(document.querySelectorAll('.starVariantSelector'));
+    const chessSelector = selectors.find((item) => item.textContent.includes('Формат шахмат'));
+    if (!chessSelector) return;
+
+    if (!document.querySelector('.profileChessVariantRuntimeControl')) {
+      chessSelector.insertAdjacentElement('afterend', buildLayoutControl());
+    }
+
+    if (!document.querySelector('.profileChessCellScaleControl')) {
+      const variantControl = document.querySelector('.profileChessVariantRuntimeControl') || chessSelector;
+      variantControl.insertAdjacentElement('afterend', buildScaleControl());
+    }
   }
 
   function boot() {
