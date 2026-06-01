@@ -6,6 +6,14 @@ import {
   normalizeProfileRecord
 } from "../src/lib/profileBootstrapClient.js";
 
+const RECOVERY_NOTICE_PATTERN = /базовом режиме|без ожидания дополнительных данных/;
+
+function assertRecoveryNotice(result) {
+  assert.equal(result.currentProfile, null);
+  assert.equal(result.notices.length, 1);
+  assert.match(result.notices[0], RECOVERY_NOTICE_PATTERN);
+}
+
 function base64UrlEncodeJson(value) {
   return Buffer.from(JSON.stringify(value), "utf8")
     .toString("base64")
@@ -43,41 +51,35 @@ const currentUserOnly = await loadProfileCabinetBootstrap({
   onStep: (step) => currentUserSteps.push(step)
 });
 
-assert.deepEqual(currentUserOnly, {
-  currentUser: { id: "user-1", email: "master@example.com" },
-  currentProfile: null,
-  notices: []
-});
+assert.equal(currentUserOnly.currentUser.id, "user-1");
+assertRecoveryNotice(currentUserOnly);
 assert.equal(currentUserSteps.includes("fallback-used"), false);
+assert.equal(currentUserSteps.includes("profile-request-started"), false);
+assert.equal(currentUserSteps.includes("profile-request-skipped-for-recovery"), true);
 
-const currentUserWithProfile = await loadProfileCabinetBootstrap({
+let ownProfileCalled = false;
+const currentUserProfileSkippedSteps = [];
+const currentUserProfileSkipped = await loadProfileCabinetBootstrap({
   session: { access_token: "token-profile" },
   getCurrentUser: async () => ({ id: "user-profile", email: "master@example.com" }),
-  getOwnProfile: async (userId) => ({ id: "profile-1", user_id: userId, display_name: "Master" }),
-  timeoutMs: 20
-});
-
-assert.deepEqual(currentUserWithProfile.currentProfile, {
-  id: "profile-1",
-  user_id: "user-profile",
-  display_name: "Master"
-});
-assert.deepEqual(currentUserWithProfile.notices, []);
-
-const profileLoadFailure = await loadProfileCabinetBootstrap({
-  session: { access_token: "token-profile-failure" },
-  getCurrentUser: async () => ({ id: "user-profile-failure", email: "master@example.com" }),
   getOwnProfile: async () => {
-    throw new Error("profile table unavailable token abc.def.ghi");
+    ownProfileCalled = true;
+    throw new Error("profile request should not run during recovery bootstrap");
   },
-  timeoutMs: 20
+  timeoutMs: 20,
+  onStep: (step) => currentUserProfileSkippedSteps.push(step)
 });
 
-assert.equal(profileLoadFailure.currentUser.id, "user-profile-failure");
-assert.equal(profileLoadFailure.currentProfile, null);
-assert.equal(profileLoadFailure.notices.length, 1);
-assert.match(profileLoadFailure.notices[0], /Профиль/);
-assert.doesNotMatch(profileLoadFailure.notices[0], /abc\.def\.ghi/);
+assert.equal(ownProfileCalled, false);
+assert.equal(currentUserProfileSkipped.currentUser.id, "user-profile");
+assertRecoveryNotice(currentUserProfileSkipped);
+assert.deepEqual(currentUserProfileSkippedSteps, [
+  "started",
+  "user-request-started",
+  "user-request-resolved",
+  "user-has-id",
+  "profile-request-skipped-for-recovery"
+]);
 
 const wrappedCurrentUser = await loadProfileCabinetBootstrap({
   session: { access_token: "token-wrapped" },
@@ -85,11 +87,9 @@ const wrappedCurrentUser = await loadProfileCabinetBootstrap({
   timeoutMs: 20
 });
 
-assert.deepEqual(wrappedCurrentUser, {
-  currentUser: { id: "user-wrapped", email: "wrapped@example.com" },
-  currentProfile: null,
-  notices: []
-});
+assert.equal(wrappedCurrentUser.currentUser.id, "user-wrapped");
+assert.equal(wrappedCurrentUser.currentUser.email, "wrapped@example.com");
+assertRecoveryNotice(wrappedCurrentUser);
 
 const timeoutError = await loadProfileCabinetBootstrap({
   session: { access_token: "token-2" },
@@ -168,7 +168,8 @@ assert.deepEqual(bootstrapSteps, [
   "started",
   "user-request-started",
   "user-request-resolved",
-  "user-has-id"
+  "user-has-id",
+  "profile-request-skipped-for-recovery"
 ]);
 
 const unauthorizedError = await loadProfileCabinetBootstrap({

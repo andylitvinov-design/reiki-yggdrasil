@@ -1,7 +1,7 @@
 # Profile Cabinet Recovery Operator Checklist
 
-Last updated: 2026-05-31  
-Companion document for: `docs/profile-cabinet-recovery-plan.md`  
+Last updated: 2026-05-31
+Companion document for: `docs/profile-cabinet-recovery-plan.md`
 Scope: operating discipline for old `/profile` cabinet recovery.
 
 ## 1. Purpose

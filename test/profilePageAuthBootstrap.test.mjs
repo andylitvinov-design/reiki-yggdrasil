@@ -30,10 +30,16 @@ assert.match(
   "old /profile should bootstrap through the proven current-user auth path"
 );
 
-assert.match(
-  profilePageSource,
-  /loadProfileCabinetBootstrap\(\{[\s\S]*getOwnProfile,/,
-  "old /profile should load the own profile as secondary bootstrap data"
+assert.equal(
+  /loadProfileCabinetBootstrap\(\{[\s\S]*getOwnProfile,/.test(profilePageSource),
+  false,
+  "old /profile recovery bootstrap should not pass getOwnProfile as a blocking dependency"
+);
+
+assert.equal(
+  /\bgetOwnProfile\b/.test(bootstrapClientSource),
+  false,
+  "profile recovery bootstrap client should not require own-profile loading to open the shell"
 );
 
 assertOrder(
