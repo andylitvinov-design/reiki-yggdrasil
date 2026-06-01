@@ -18,6 +18,27 @@
     <link rel="stylesheet" href="/profile-background-zone-controls.css?v=20260529-1" />
     <link rel="stylesheet" href="/profile-background-tabs-refine.css?v=20260529-1" />
     <script>
+      // Compatibility shim for the legacy heavy ProfilePage save path.
+      // The React module has an old save handler that still calls normalizeProfile(saved, user).
+      // Keep this global safe and data-only until the handler is migrated to normalizeProfileRecord.
+      function normalizeProfile(profile, user) {
+        const safeProfile = profile && typeof profile === "object" ? profile : {};
+        return {
+          display_name: "",
+          bio: "",
+          city: "",
+          country: "",
+          telegram: "",
+          website: "",
+          avatar_url: "",
+          account_plan: "start",
+          status: "draft",
+          ...safeProfile,
+          user_id: safeProfile.user_id || user?.id || ""
+        };
+      }
+    </script>
+    <script>
       (() => {
         const path = window.location.pathname;
         const search = new URLSearchParams(window.location.search);
