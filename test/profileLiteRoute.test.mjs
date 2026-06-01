@@ -14,12 +14,25 @@ function assertRouteMapsTo(path, componentName) {
   );
 }
 
+function assertRouteMapsWithInitialTopTab(path, initialTopTab) {
+  assert.match(
+    mainSource,
+    new RegExp(`if \\(path === "${path.replace("/", "\\/")}"\\) \\{[\\s\\S]*?return <ProfilePage\\b[^>]*initialTopTab="${initialTopTab}"`),
+    `${path} should render ProfilePage with initialTopTab="${initialTopTab}"`
+  );
+}
+
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
 
 assertRouteMapsTo("/profile", "ProfileLitePage");
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
+assertRouteMapsWithInitialTopTab("/profile/mandalas", "power-place");
+assertRouteMapsWithInitialTopTab("/profile/services", "services");
+assertRouteMapsWithInitialTopTab("/profile/orders", "orders");
+assertRouteMapsWithInitialTopTab("/profile/chats", "chats");
+assertRouteMapsWithInitialTopTab("/profile/settings", "profile");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
 
@@ -37,6 +50,31 @@ assert.ok(
 assert.ok(
   vercelConfig.rewrites.some((rewrite) => rewrite.source === "/profile-old" && rewrite.destination === "/"),
   "vercel.json should rewrite /profile-old to the SPA root"
+);
+
+for (const path of [
+  "/profile/mandalas",
+  "/profile/services",
+  "/profile/orders",
+  "/profile/chats",
+  "/profile/settings"
+]) {
+  assert.ok(
+    vercelConfig.rewrites.some((rewrite) => rewrite.source === path && rewrite.destination === "/"),
+    `vercel.json should rewrite ${path} to the SPA root`
+  );
+}
+
+assert.match(
+  profilePageSource,
+  /export default function ProfilePage\(\{ onNavigateHome, onNavigateMasters, initialTopTab = "power-place" \}\)/,
+  "ProfilePage should accept a safe default initialTopTab prop"
+);
+
+assert.match(
+  profilePageSource,
+  /const \[activeTopTab, setActiveTopTab\] = useState\(initialTopTab\);/,
+  "ProfilePage should use initialTopTab only as the initial activeTopTab state"
 );
 
 assert.match(profilePageSource, /href="\/profile-lite"/);
