@@ -15,6 +15,14 @@ Last updated: 2026-06-02
 ## 2026-06-02 — Profile Lite Power Place layout parity follow-up
 
 - Branch: `codex/fix-profile-lite-power-place-layout-parity`, based on `origin/main` commit `d7cf7d7`.
+- PR: #192, merged into `main` as `70d0fa881bbc51adb0c42d4b456162086f473e05`.
+- Production deploy:
+  - Vercel Production deployment `4896832273` succeeded for SHA `70d0fa881bbc51adb0c42d4b456162086f473e05`.
+  - Deployment URL: `https://reiki-yggdrasil-4xrwn9vz8-super10.vercel.app`.
+  - Fallback workflow was not used because Vercel auto-deploy reported success for the merge SHA.
+- Main CI:
+  - GitHub Actions `CI` run `26785839679` passed for the merge SHA.
+  - GitHub Pages run `26785839690` failed, but this repo's production path for the profile cabinet is Vercel.
 - Scope: fix the live visual regression after PR #191 where `/profile/mandalas` had the old workspace content but not the old desktop layout.
 - Fixed in Lite Power Place:
   - removed the Lite use of the old `.powerPlaceMode` two-column override that hid the center column and stretched the constructor into the right side;
@@ -29,6 +37,11 @@ Last updated: 2026-06-02
   - `/profile/mandalas` at 1280 showed `260px 640px 320px` columns, visible right rail, visible left source controls, center mandala panel `560px`, mandala `362px`, and horizontal overflow `0`;
   - `/profile/mandalas` at 390 stacked hero, tabs, center constructor/visual, left source controls, right settings controls, then save/download/print actions, with horizontal overflow `0`;
   - `/profile-old` still opened locally at 1280 with no Vite overlay, no console errors, and horizontal overflow `0`.
+- Live rendered QA after merge/deploy:
+  - `https://mentalica.vercel.app/profile/mandalas` at 1280 showed `260px 640px 320px` columns, visible left rail, visible center constructor, visible right rail, mandala panel `560px`, mandala `362px`, horizontal overflow `0`, no Vite overlay, and no browser console warnings/errors.
+  - `https://mentalica.vercel.app/profile/mandalas` at 390 showed a single `358px` column with visible left rail, center constructor, right rail, mandala panel `342px`, mandala `218px`, horizontal overflow `0`, no Vite overlay, and no browser console warnings/errors.
+  - `https://reiki-yggdrasil.vercel.app/profile/mandalas` at 1280 matched the same `260px 640px 320px` columns and overflow `0`.
+  - `https://mentalica.vercel.app/profile-old` opened to the heavy cabinet login gate with no Vite overlay and horizontal overflow `0`; authenticated old-workspace live comparison still requires a real signed-in session.
 - Verification:
   - Passed `npm run test:profile-lite` after a red/green contract-test cycle.
   - Passed `npm run test:profile-media`.
@@ -37,8 +50,8 @@ Last updated: 2026-06-02
   - Passed `npm run check` with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05` and existing Vite chunk-size warning.
   - Passed standalone `npm run build` with existing Vite chunk-size warning.
 - Not verified:
-  - production deploy/live parity after merge;
   - real authenticated Google/Supabase/RLS media and composition save/load flows.
+  - authenticated `/profile-old` workspace comparison on live with a real user session.
 
 ## 2026-06-01 — PR #191 production deploy status for Power Place parity
 
