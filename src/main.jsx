@@ -174,8 +174,12 @@ function RootRouter() {
     return <ProfileLitePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
-  if (path === "/profile") {
+  if (path === "/profile-old") {
     return <ProfilePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile") {
+    return <ProfileLitePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/masters") {
