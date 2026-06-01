@@ -33,6 +33,27 @@
 - Live QA:
   - not run; changes are local branch work only and were not merged/deployed.
 
+## 2026-06-01 — Profile Lite QA after PR #188
+
+- Branch: `codex/profile-lite-authenticated-qa`.
+- PR reference: #188, merge commit `5efbcea`, `Build modular Profile Lite alternative cabinet`.
+- Changed files:
+  - `README.md`
+  - `STATE.md`
+  - `LOG.md`
+  - `test/profileLiteCabinetContract.test.mjs`
+- QA focus:
+  - compared new `/profile` and `/profile-lite` Lite cabinet wiring with `/profile-old` heavy reference route;
+  - checked profile save/load, materials, media, saved Power Place compositions, services, orders, chats, and diagnostics safety at source/contract-test level;
+  - confirmed no tokens/env/JWT are rendered by Profile Lite diagnostics tests.
+- Bug/gap fixed:
+  - added missing README setup entry for `supabase/migrations/20260531090000_power_place_chess_format.sql`;
+  - added a Profile Lite contract assertion so the chess composition migration remains documented with the client that writes `chess_variant`.
+- Authenticated live QA:
+  - not completed in this environment because local env and Supabase project credentials are unset;
+  - mark real RLS/storage flows as `needs verification` until tested with a signed-in production/preview session.
+- Parity gaps recorded in `STATE.md`.
+
 ## 2026-06-01 — Profile Lite full alternative cabinet
 
 - Branch: `codex/profile-lite-full-alternative-cabinet`.

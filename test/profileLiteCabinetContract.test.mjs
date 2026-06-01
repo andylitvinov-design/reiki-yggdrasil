@@ -141,6 +141,7 @@ const moduleSource = readdirSync(moduleDir)
   .filter((file) => file.endsWith(".jsx"))
   .map((file) => readFileSync(join(moduleDir, file), "utf8"))
   .join("\n");
+const readmeSource = readFileSync("README.md", "utf8");
 
 for (const label of expectedTabs.map(([, label]) => label)) {
   assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
@@ -195,3 +196,9 @@ for (const requiredClass of [
 }
 
 assert.match(powerPlaceSource, /advanced|diagnostics|Диагностика/i, "Object refs JSON should be hidden behind an advanced diagnostics surface");
+
+assert.match(
+  readmeSource,
+  /20260531090000_power_place_chess_format\.sql/,
+  "README setup must include the chess composition migration used by Profile Lite"
+);
