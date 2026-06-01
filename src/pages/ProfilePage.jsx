@@ -742,7 +742,7 @@ function publishProfileReactDebug(patch) {
   }));
 }
 
-export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
+export default function ProfilePage({ onNavigateHome, onNavigateMasters, initialTopTab = "power-place" }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getInitialStoredSession());
   const [user, setUser] = useState(null);
@@ -787,7 +787,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
   const [resourceComparisonMode, setResourceComparisonMode] = useState("photo_mandala");
   const [resourceWithoutMandalaComment, setResourceWithoutMandalaComment] = useState("");
   const [resourceWithMandalaComment, setResourceWithMandalaComment] = useState("");
-  const [activeTopTab, setActiveTopTab] = useState("power-place");
+  const [activeTopTab, setActiveTopTab] = useState(initialTopTab);
   const [templateServicesTab, setTemplateServicesTab] = useState("services");
   const [powerPlaceServiceDraft, setPowerPlaceServiceDraft] = useState(null);
   const [activeMaterialCategory, setActiveMaterialCategory] = useState(MATERIAL_CATEGORY_TABS[0].value);

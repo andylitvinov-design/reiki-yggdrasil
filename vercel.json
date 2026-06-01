@@ -16,6 +16,26 @@
       "destination": "/"
     },
     {
+      "source": "/profile/mandalas",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/services",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/orders",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/chats",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/settings",
+      "destination": "/"
+    },
+    {
       "source": "/masters",
       "destination": "/"
     },

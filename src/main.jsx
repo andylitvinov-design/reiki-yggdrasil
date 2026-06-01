@@ -178,6 +178,26 @@ function RootRouter() {
     return <ProfilePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path === "/profile/mandalas") {
+    return <ProfilePage initialTopTab="power-place" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile/services") {
+    return <ProfilePage initialTopTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile/orders") {
+    return <ProfilePage initialTopTab="orders" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile/chats") {
+    return <ProfilePage initialTopTab="chats" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile/settings") {
+    return <ProfilePage initialTopTab="profile" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
   if (path === "/profile") {
     return <ProfileLitePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
