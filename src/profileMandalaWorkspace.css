@@ -2712,6 +2712,7 @@
 .businessMandalaSheet.cover-image,
 .zodiacMandalaSheet.cover-image,
 .starMandalaSheet.cover-image,
+.power-place-chess.cover-image,
 .daoMandalaSheet.cover-image {
   background:
     linear-gradient(rgba(44, 27, 8, 0.18), rgba(255, 248, 230, 0.58)),
@@ -2726,6 +2727,7 @@
 .businessMandalaSheet.cover-forest,
 .zodiacMandalaSheet.cover-forest,
 .starMandalaSheet.cover-forest,
+.power-place-chess.cover-forest,
 .daoMandalaSheet.cover-forest {
   background:
     radial-gradient(circle at 50% 44%, rgba(255, 249, 229, 0.92) 0 18%, rgba(126, 139, 74, 0.3) 40%, rgba(48, 62, 32, 0.46) 100%),
@@ -2737,6 +2739,7 @@
 .businessMandalaSheet.cover-night,
 .zodiacMandalaSheet.cover-night,
 .starMandalaSheet.cover-night,
+.power-place-chess.cover-night,
 .daoMandalaSheet.cover-night {
   background:
     radial-gradient(circle at 50% 45%, rgba(255, 243, 204, 0.86) 0 18%, rgba(67, 46, 91, 0.42) 42%, rgba(28, 19, 44, 0.72) 100%),
@@ -2748,6 +2751,7 @@
 .businessMandalaSheet.cover-gold,
 .zodiacMandalaSheet.cover-gold,
 .starMandalaSheet.cover-gold,
+.power-place-chess.cover-gold,
 .daoMandalaSheet.cover-gold {
   background:
     radial-gradient(circle at 50% 50%, #fffdf6 0 18%, rgba(255, 244, 219, 0.9) 38%, rgba(232, 178, 74, 0.24) 100%),
@@ -3522,6 +3526,7 @@
 .businessMandalaSheet.cover-none,
 .zodiacMandalaSheet.cover-none,
 .daoMandalaSheet.cover-none,
+.power-place-chess.cover-none,
 .starMandalaSheet.cover-none {
   background: rgba(255, 255, 255, 0.18) !important;
   box-shadow: none !important;
@@ -3546,6 +3551,7 @@
 .starMandalaSheet.cover-zodiac-map,
 .daoMandalaSheet.cover-zodiac-map,
 .businessMandalaSheet.cover-zodiac-map,
+.power-place-chess.cover-zodiac-map,
 .altarMandalaSheet.cover-zodiac-map {
   background:
     repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 34px),
@@ -4868,3 +4874,197 @@
 .powerLibrarySubcategoryButtons{display:flex;flex-wrap:wrap;gap:7px;max-height:172px;overflow:auto}
 .powerLibrarySubcategoryButtons button{border:1px solid rgba(150,97,31,.2);border-radius:999px;padding:7px 10px;background:rgba(255,255,255,.78);color:#5b3a12;font-size:12px;font-weight:850;cursor:pointer}
 .powerLibrarySubcategoryButtons button.active{background:linear-gradient(180deg,#3a250e,#98600e);border-color:rgba(255,216,128,.58);color:#fff2ce}
+
+.power-place-chess {
+  width: min(100%, 420px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 238, 184, 0.28), transparent 42%),
+    rgba(255, 249, 236, 0.72);
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 34px rgba(122, 78, 22, 0.08);
+}
+
+.power-place-chess__top-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.power-place-chess__top-slot,
+.power-place-chess__slot,
+.power-place-chess__center {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(175, 120, 36, 0.32);
+  background-size: cover;
+  background-position: center;
+  color: #5c3b12;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: inset 0 0 18px rgba(80, 49, 12, 0.08);
+}
+
+.power-place-chess__top-slot {
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 45% 32%, #fff5d1, #c48a2c 58%, #473016 100%);
+}
+
+.power-place-chess__board {
+  width: 100%;
+  display: grid;
+  gap: 8px;
+}
+
+.power-place-chess__cell {
+  min-width: 0;
+  display: grid;
+  place-items: stretch;
+  border-radius: 18px;
+  padding: 5px;
+}
+
+.power-place-chess__cell.is-dark,
+.power-place-chess__slot.is-dark {
+  background-color: rgba(113, 74, 27, 0.12);
+}
+
+.power-place-chess__cell.is-light,
+.power-place-chess__slot.is-light {
+  background-color: rgba(255, 244, 214, 0.52);
+}
+
+.power-place-chess__slot {
+  min-height: 0;
+  border-radius: 15px;
+  background-image:
+    radial-gradient(circle at 46% 30%, rgba(255, 244, 205, 0.95), rgba(195, 137, 43, 0.74) 58%, rgba(54, 34, 11, 0.86));
+}
+
+.power-place-chess__center {
+  height: 100%;
+  min-height: 0;
+  border: 2px solid rgba(255, 218, 131, 0.9);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 32%, #fff8d7, #d89b31 58%, #301b08 100%);
+  color: #2f1d0a;
+  text-align: center;
+  box-shadow: 0 0 0 5px rgba(255, 225, 156, 0.18), 0 14px 28px rgba(83, 51, 12, 0.16);
+}
+
+.power-place-chess__top-slot.hasImage span,
+.power-place-chess__slot.hasImage span,
+.power-place-chess__center.hasImage span {
+  display: none;
+}
+
+.power-place-chess__top-slot.selected,
+.power-place-chess__slot.selected,
+.power-place-chess__center.selected {
+  outline: 3px solid rgba(248, 194, 78, 0.82);
+  outline-offset: 2px;
+}
+
+.power-place-chess--classic-14 .power-place-chess__board,
+.power-place-chess--classic-8 .power-place-chess__board {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.power-place-chess--classic-14 .power-place-chess__cell {
+  aspect-ratio: 3 / 4;
+}
+
+.power-place-chess--classic-14 .power-place-chess__cell--center {
+  transform: scale(1.08);
+  z-index: 2;
+}
+
+.power-place-chess--classic-8 .power-place-chess__cell {
+  aspect-ratio: 1 / 1.15;
+}
+
+.power-place-chess--classic-8 .power-place-chess__cell--center {
+  transform: scale(1.06);
+  z-index: 2;
+}
+
+.power-place-chess--plus-8 .power-place-chess__board {
+  position: relative;
+  min-height: 430px;
+}
+
+.power-place-chess--plus-8 .power-place-chess__center,
+.power-place-chess--plus-8 .power-place-chess__slot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.power-place-chess--plus-8 .power-place-chess__center {
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  aspect-ratio: 1 / 1;
+}
+
+.power-place-chess--plus-8 .power-place-chess__slot {
+  aspect-ratio: 1 / 1;
+}
+
+.power-place-chess__slot--cross-top,
+.power-place-chess__slot--cross-right,
+.power-place-chess__slot--cross-bottom,
+.power-place-chess__slot--cross-left {
+  width: 31%;
+  border-radius: 18px;
+}
+
+.power-place-chess__slot--corner-top-left,
+.power-place-chess__slot--corner-top-right,
+.power-place-chess__slot--corner-bottom-left,
+.power-place-chess__slot--corner-bottom-right {
+  width: 20%;
+  border-radius: 14px;
+}
+
+.power-place-chess__slot--cross-top { left: 50%; top: 17%; }
+.power-place-chess__slot--cross-right { left: 83%; top: 50%; }
+.power-place-chess__slot--cross-bottom { left: 50%; top: 83%; }
+.power-place-chess__slot--cross-left { left: 17%; top: 50%; }
+.power-place-chess__slot--corner-top-left { left: 18%; top: 18%; }
+.power-place-chess__slot--corner-top-right { left: 82%; top: 18%; }
+.power-place-chess__slot--corner-bottom-left { left: 18%; top: 82%; }
+.power-place-chess__slot--corner-bottom-right { left: 82%; top: 82%; }
+
+@media (max-width: 640px) {
+  .power-place-chess {
+    width: min(100%, 360px);
+    padding: 10px;
+  }
+
+  .power-place-chess__board {
+    gap: 6px;
+  }
+
+  .power-place-chess__top-row {
+    gap: 4px;
+  }
+
+  .power-place-chess--plus-8 .power-place-chess__board {
+    min-height: min(430px, calc(100vw - 54px));
+  }
+}
