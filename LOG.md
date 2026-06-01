@@ -1,5 +1,28 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite central image picker extraction
+
+- Branch: `profile-lite-central-image-picker-fix`.
+- Root cause:
+  - central, object, cover selection, upload, and delete were mixed inside one modal in `ProfileLitePowerPlaceModule`;
+  - the old picker could close immediately after choosing a file, before upload + `createClientGoalPhoto` + preview state were complete;
+  - raw Storage refs without signed/display URLs were treated like images, creating transparent cards or non-rendering center previews;
+  - `Выбрать из базы` was a passive selected-looking button, not a real action.
+- Changed:
+  - added `src/pages/profile-lite/ProfileLiteImagePicker.jsx` with active `Сохранённые фото`, upload, direct card select, delete action, and `Нужна signed URL` placeholder state;
+  - wired the picker into the existing Profile Lite Power Place three-column layout;
+  - central upload now preserves `saved.display_url || saved.signed_url || uploaded.signedUrl`, writes `__center_image`, writes `object_ref_urls`, adds the saved photo to `clientGoalPhotos`, and keeps the modal open on failed prerequisites/upload;
+  - delete confirmation remains `Удалить фото из базы?`, and deleting the selected client photo clears stale center refs and display URL mapping.
+- Checks:
+  - `npm run test:profile-lite` passed after a RED failure for the missing upload-prerequisite rejection;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`, plus the existing Vite chunk-size warning;
+  - `npm run build` passed with the existing Vite chunk-size warning.
+- Live/authenticated QA:
+  - real signed-in Storage/RLS upload, saved-list refresh, select-from-base, and delete confirmation still require live authenticated testing after merge/deploy.
+
 ## 2026-06-02 — Profile Lite tabs freeze stabilization
 
 - Branch: `codex/fix-profile-lite-tabs-freeze`.

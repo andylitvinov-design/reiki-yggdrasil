@@ -4868,6 +4868,131 @@
 .clientPhotoPickerUploadDirectButton { position: relative; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(184, 121, 29, 0.3); border-radius: 999px; padding: 9px 14px; background: linear-gradient(180deg, #2a1a09, #8c570d); color: #fff0cd; font-weight: 900; cursor: pointer; }
 .clientPhotoPickerUploadDirectButton input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
+/* 2026-06-02 — Profile Lite extracted image picker. */
+.profileLiteImagePicker {
+  width: min(820px, calc(100vw - 24px));
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.profileLiteImagePicker .clientPhotoPickerHeader > button:disabled,
+.profileLiteImagePicker .clientPhotoPickerUploadDirectButton:has(input:disabled) {
+  opacity: 0.62;
+  cursor: wait;
+}
+
+.imagePickerModeBar {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profileLiteImagePickerGrid {
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  justify-content: stretch;
+  max-width: 100%;
+}
+
+.profileLiteImagePickerCard {
+  position: relative;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  background: #fffdf8;
+  border-color: rgba(147, 93, 22, 0.32);
+  box-shadow: 0 10px 24px rgba(82, 48, 11, 0.08);
+}
+
+.profileLiteImagePickerSelect {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  border: 0;
+  padding: 9px;
+  background: transparent;
+  color: #4a3012;
+  text-align: left;
+}
+
+.profileLiteImagePickerSelect > span:first-child {
+  width: 100%;
+  height: auto;
+  min-height: 116px;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
+    repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.12) 0 8px, rgba(255, 255, 255, 0.18) 8px 16px);
+  background-size: cover;
+  background-position: center;
+}
+
+.profileLiteImagePickerSelect > span.hasImage {
+  background-color: #fffaf0;
+}
+
+.profileLiteImagePickerSelect > span.needsSignedUrl em {
+  max-width: 92%;
+  color: #744c17;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.profileLiteImagePickerCard b,
+.profileLiteImagePickerCard small {
+  text-align: left;
+}
+
+.profileLiteImagePickerCard .savedImageDeleteButton {
+  top: 7px;
+  right: 7px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.96;
+  pointer-events: auto;
+}
+
+.profileLiteImagePickerCard .savedImageDeleteButton:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+@media (max-width: 680px) {
+  .profileLiteImagePicker {
+    width: calc(100vw - 18px);
+    max-height: calc(100vh - 18px);
+    padding: 12px;
+  }
+
+  .imagePickerModeBar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .profileLiteImagePickerGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileLiteImagePickerSelect {
+    padding: 7px;
+  }
+
+  .profileLiteImagePickerSelect > span:first-child {
+    min-height: 104px;
+  }
+}
+
 .powerLibraryFilter{display:grid;gap:10px;padding:10px;border:1px solid rgba(150,97,31,.16);border-radius:18px;background:rgba(255,248,232,.72)}
 .powerLibrarySelectLabel{display:grid;gap:6px;color:#6a4a1d;font-size:12px;font-weight:900}
 .powerLibrarySelectLabel select{width:100%;border:1px solid rgba(150,97,31,.24);border-radius:14px;padding:10px 12px;background:#fffdf7;color:#2c1d0c;font-weight:850}

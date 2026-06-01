@@ -12,6 +12,28 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite central image picker extraction
+
+- Branch: `profile-lite-central-image-picker-fix`.
+- Scope: `/profile/mandalas` Profile Lite Power Place central/object/cover image picker only.
+- Changed:
+  - added dedicated `ProfileLiteImagePicker` component for saved-image selection, upload, delete, signed-URL placeholders, and modal close timing;
+  - wired the picker into the existing Profile Lite three-column Power Place layout without changing `/profile-old`, auth/bootstrap, Vercel rewrites, Supabase env, `/`, `/masters`, or `/profile/admin`;
+  - replaced inert `Выбрать из базы` with active `Сохранённые фото`;
+  - central-photo selection now updates `central_photo_id`, `object_refs.__center_image`, and `object_ref_urls` immediately when a card has a display URL;
+  - central-photo upload now keeps `saved.display_url || saved.signed_url || uploaded.signedUrl` and `saved.image_ref || uploaded.ref`, adds the saved photo to `clientGoalPhotos`, and selects it as the mandala center;
+  - raw `storage://` images without a display URL show `Нужна signed URL` placeholders instead of transparent cards;
+  - deleting the active client photo clears the central photo ref and display URL mapping;
+  - upload prerequisite failures now reject after setting the existing UI error state, so the modal does not close as a false success.
+- Verification status:
+  - passed `npm run test:profile-lite`;
+  - passed `npm run test:profile-media`;
+  - passed `npm run test:power-place`;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05` and the existing Vite chunk-size warning;
+  - passed `npm run build` with the existing Vite chunk-size warning;
+  - authenticated Supabase upload/select/delete QA on live remains `needs manual verification by Andrey` until the deployed branch is checked with a real session.
+
 ## 2026-06-02 — Profile Lite route-backed tab navigation freeze fix
 
 - Branch: `codex/fix-profile-lite-tabs-freeze`, based on `origin/main`.

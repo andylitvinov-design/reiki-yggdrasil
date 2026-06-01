@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
 import "../../profileMandalaWorkspace.css";
 
 const CONSTRUCTOR_TYPES = [
@@ -180,6 +181,8 @@ export default function ProfileLitePowerPlaceModule({
   const [workspaceTab, setWorkspaceTab] = useState("power-place");
   const [selectedSlotId, setSelectedSlotId] = useState("");
   const [pickerMode, setPickerMode] = useState("");
+  const [pickerUploadStatus, setPickerUploadStatus] = useState("idle");
+  const [pickerUploadError, setPickerUploadError] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [coverLayerMode, setCoverLayerMode] = useState("inner");
   const [sourceGroup, setSourceGroup] = useState("all");
@@ -191,7 +194,8 @@ export default function ProfileLitePowerPlaceModule({
   const objectRefUrls = cleanObjectRefs(compositionDraft.object_ref_urls);
   const centralPhoto = clientGoalPhotos.find((item) => item.id === compositionDraft.central_photo_id) || null;
   const centralImageRef = objectRefs.__center_image || "";
-  const centralImage = objectRefUrls[centralImageRef] || centralImageRef || centralPhoto?.display_url || centralPhoto?.signed_url || centralPhoto?.image_url || "";
+  const centralDisplayCandidate = objectRefUrls[centralImageRef] || centralPhoto?.display_url || centralPhoto?.signed_url || centralPhoto?.image_url || centralImageRef;
+  const centralImage = isImagePreview(centralDisplayCandidate) ? centralDisplayCandidate : "";
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
@@ -252,10 +256,10 @@ export default function ProfileLitePowerPlaceModule({
 
   const openObjectPicker = (slotId) => {
     setSelectedSlotId(slotId);
-    setPickerMode("object");
+    openPicker("object");
   };
 
-  const chooseImage = (item) => {
+  const chooseImage = async (item) => {
     if (pickerMode === "center") {
       onCompositionDraftChange("central_photo_id", item.kind === "client-photo" ? item.photoId : "");
       onCompositionObjectRefSelect("__center_image", item.src || "", item.displaySrc || item.src || "");
@@ -270,7 +274,33 @@ export default function ProfileLitePowerPlaceModule({
     } else if (selectedSlotId) {
       onCompositionObjectRefSelect(selectedSlotId, item.src || "", item.displaySrc || item.src || "");
     }
+  };
+
+  const openPicker = (mode) => {
+    setPickerUploadStatus("idle");
+    setPickerUploadError("");
+    setPickerMode(mode);
+  };
+
+  const closePicker = () => {
     setPickerMode("");
+    setPickerUploadStatus("idle");
+    setPickerUploadError("");
+  };
+
+  const uploadPickerImage = async (file) => {
+    setPickerUploadStatus("loading");
+    setPickerUploadError("");
+    try {
+      if (pickerMode === "center") await onUploadedCentralPhoto(file);
+      if (pickerMode === "cover") await onCoverFileUpload(coverLayerMode, file);
+      if (pickerMode === "object" && selectedSlot) await onObjectFileUpload(selectedSlot.id, file);
+      setPickerUploadStatus("success");
+    } catch (error) {
+      setPickerUploadStatus("error");
+      setPickerUploadError(error?.message || "Загрузка не завершилась.");
+      throw error;
+    }
   };
 
   const renderSlot = (slot, index) => {
@@ -493,7 +523,7 @@ export default function ProfileLitePowerPlaceModule({
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-${compositionDraft.constructor_type}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
-                    <button className={`powerCenterPhoto${centralImage ? " hasImage" : ""}`} style={imageStyle(centralImage)} onClick={() => setPickerMode("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
+                    <button className={`powerCenterPhoto${centralImage ? " hasImage" : ""}`} style={imageStyle(centralImage)} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
                       {!centralImage && <span>Фото клиента / цели</span>}
                     </button>
                     <div className="powerMandalaBase">{slots.map(renderSlot)}</div>
@@ -535,7 +565,7 @@ export default function ProfileLitePowerPlaceModule({
                 }} />
                 Своё изображение
               </label>
-              <button className="coverPickerButton" type="button" onClick={() => setPickerMode("cover")}>Выбрать фото</button>
+              <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
 
             <div className="powerLayoutPanel">
@@ -596,7 +626,7 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </select>
                   <div className="selectedObjectActions">
-                    <button type="button" disabled={!selectedSlot} onClick={() => selectedSlot && setPickerMode("object")}>Выбрать образ</button>
+                    <button type="button" disabled={!selectedSlot} onClick={() => selectedSlot && openPicker("object")}>Выбрать образ</button>
                     <label className={!selectedSlot ? "disabled" : ""}>
                       <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={!selectedSlot} onChange={(event) => {
                         const file = event.target.files?.[0];
@@ -629,66 +659,17 @@ export default function ProfileLitePowerPlaceModule({
       </div>
 
       {pickerMode && (
-        <div className="clientPhotoPickerBackdrop" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setPickerMode("");
-        }}>
-          <section className="clientPhotoPickerModal" role="dialog" aria-modal="true" aria-labelledby="clientPhotoPickerTitle">
-            <div className="clientPhotoPickerHeader">
-              <div>
-                <p className="cabinetEyebrow">{pickerMode === "center" ? "Центр мандалы" : pickerMode === "cover" ? "Фон Места Силы" : selectedSlot?.label || "Объект мандалы"}</p>
-                <h2 id="clientPhotoPickerTitle">{pickerMode === "center" ? "Выбрать центральное изображение" : pickerMode === "cover" ? "Выбрать фон" : "Выбрать изображение объекта"}</h2>
-                <small>Выберите сохранённый образ или загрузите новый файл.</small>
-              </div>
-              <button type="button" onClick={() => setPickerMode("")} aria-label="Закрыть выбор изображения">×</button>
-            </div>
-            <div className="clientPhotoPickerGrid">
-              {savedImages.map((item) => (
-                <button className="clientPhotoPickerCard" key={item.id} onClick={() => chooseImage(item)} type="button">
-                  <span style={imageStyle(item.displaySrc || item.src)} />
-                  <b>{item.label}</b>
-                  {item.meta && <small>{item.meta}</small>}
-                  {item.kind === "client-photo" && (
-                    <span
-                      className="savedImageDeleteButton"
-                      role="button"
-                      tabIndex={0}
-                      title="Удалить фото"
-                      aria-label="Удалить фото из базы"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onClientPhotoDelete({ id: item.photoId });
-                      }}
-                    >
-                      ×
-                    </span>
-                  )}
-                </button>
-              ))}
-              {savedImages.length === 0 && (
-                <div className="clientPhotoPickerEmpty">
-                  <b>В этой категории пока нет сохранённых изображений.</b>
-                  <p>Нажмите «Загрузить новое фото».</p>
-                </div>
-              )}
-            </div>
-            <div className="clientPhotoPickerModeTabs" role="tablist" aria-label="Режим выбора фото">
-              <button className="active" type="button">Выбрать из базы</button>
-              <label className="clientPhotoPickerUploadDirectButton">
-                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  if (pickerMode === "center") onUploadedCentralPhoto(file);
-                  if (pickerMode === "cover") onCoverFileUpload(coverLayerMode, file);
-                  if (pickerMode === "object" && selectedSlot) onObjectFileUpload(selectedSlot.id, file);
-                  setPickerMode("");
-                  event.target.value = "";
-                }} />
-                Загрузить новое фото
-              </label>
-            </div>
-            <p className="powerPlanNote">Фото клиента / цели: {clientGoalPhotos.length}/{planLimits.clientPhotos}. Удаление спрашивает подтверждение «Удалить фото из базы?».</p>
-          </section>
-        </div>
+        <ProfileLiteImagePicker
+          mode={pickerMode}
+          images={savedImages}
+          selectedImageRef={pickerMode === "center" ? centralImageRef : pickerMode === "cover" ? visibleCover?.src || "" : selectedSlotImage}
+          onSelect={chooseImage}
+          onUpload={uploadPickerImage}
+          onDelete={onClientPhotoDelete}
+          onClose={closePicker}
+          uploadStatus={pickerUploadStatus}
+          uploadError={pickerUploadError}
+        />
       )}
     </section>
   );
