@@ -128,6 +128,7 @@ for (const file of [
   "ProfileLiteMediaModule.jsx",
   "ProfileLiteMaterialsModule.jsx",
   "ProfileLitePowerPlaceModule.jsx",
+  "ProfileLiteImagePicker.jsx",
   "ProfileLiteServicesModule.jsx",
   "ProfileLiteOrdersModule.jsx",
   "ProfileLiteChatsModule.jsx",
@@ -158,6 +159,9 @@ for (const forbidden of [
 }
 
 const powerPlaceSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
+const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8");
+const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
+const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -175,7 +179,7 @@ for (const requiredPowerPlaceText of [
   "Загрузить новое фото",
   "Удалить фото из базы?"
 ]) {
-  assert.match(powerPlaceSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
+  assert.match(powerPlacePickerSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
 }
 
 for (const requiredFormat of ["2", "4", "6", "8", "8+", "12", "12+", "closed", "open", "classic-14", "classic-8", "plus-8", "client", "altar", "business", "dao"]) {
@@ -192,10 +196,46 @@ for (const requiredClass of [
   "objectImageEditor",
   "clientPhotoPickerModal"
 ]) {
-  assert.match(powerPlaceSource, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
+  assert.match(powerPlacePickerSource, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
 }
 
 assert.match(powerPlaceSource, /advanced|diagnostics|Диагностика/i, "Object refs JSON should be hidden behind an advanced diagnostics surface");
+
+assert.match(powerPlaceSource, /ProfileLiteImagePicker/, "Lite Power Place should delegate image picking to ProfileLiteImagePicker");
+assert.doesNotMatch(powerPlaceSource, /clientPhotoPickerBackdrop[\s\S]*Выбрать из базы[\s\S]*setPickerMode\(""\)/, "old mixed picker modal must not keep inert select-from-base and immediate upload close logic");
+
+for (const requiredPickerProp of [
+  "mode",
+  "images",
+  "selectedImageRef",
+  "onSelect",
+  "onUpload",
+  "onDelete",
+  "onClose",
+  "uploadStatus",
+  "uploadError"
+]) {
+  assert.match(imagePickerSource, new RegExp(requiredPickerProp), `ProfileLiteImagePicker should expose ${requiredPickerProp}`);
+}
+
+for (const requiredPickerText of [
+  "Сохранённые фото",
+  "Нужна signed URL",
+  "Загрузить новое фото",
+  "Удалить фото из базы?"
+]) {
+  assert.match(imagePickerSource, new RegExp(requiredPickerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `ProfileLiteImagePicker should include ${requiredPickerText}`);
+}
+
+assert.match(imagePickerSource, /onSelect\(image\)/, "picker cards should select images directly");
+assert.match(imagePickerSource, /await onUpload\(file\)/, "picker upload should wait for the parent upload flow before closing");
+assert.doesNotMatch(imagePickerSource, /onChange=\{\(event\)[\s\S]*onClose\(\)/, "picker file input must not close the modal before upload success");
+
+assert.match(profileLitePageSource, /savedDisplayUrl\s*=\s*saved\?\.display_url\s*\|\|\s*saved\?\.signed_url\s*\|\|\s*uploaded\.signedUrl/, "central upload should keep saved display URL or uploaded signed URL fallback");
+assert.match(profileLitePageSource, /savedImageRef\s*=\s*saved\?\.image_ref\s*\|\|\s*uploaded\.ref/, "central upload should keep saved image ref or uploaded ref fallback");
+assert.match(profileLitePageSource, /__center_image:\s*savedImageRef/, "central upload should set __center_image to the durable ref");
+assert.match(profileLitePageSource, /\[savedImageRef\]:\s*savedDisplayUrl/, "central upload should populate object_ref_urls for the durable ref");
+assert.match(profileLitePageSource, /throw new Error\("Сначала сохраните профиль мастера\."\)/, "upload handlers should reject missing profile/session so the picker modal stays open");
 
 assert.match(
   readmeSource,

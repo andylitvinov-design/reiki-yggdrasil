@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-01
+Last updated: 2026-06-02
 
 ## Current verified repo state
 
@@ -11,6 +11,63 @@ Last updated: 2026-06-01
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-06-02 — Profile Lite central image picker extraction
+
+- Branch: `codex/fix-profile-lite-central-image-picker`.
+- Scope: `/profile/mandalas` Profile Lite Power Place central/object/cover image picker only.
+- Changed:
+  - added dedicated `ProfileLiteImagePicker` component for saved-image selection, upload, delete, signed-URL placeholders, and modal close timing;
+  - removed the old mixed inline picker modal from `ProfileLitePowerPlaceModule`;
+  - replaced inert `Выбрать из базы` with active `Сохранённые фото`;
+  - central-photo selection now updates `central_photo_id`, `object_refs.__center_image`, and `object_ref_urls` immediately when a card has a display URL;
+  - central-photo upload now keeps `saved.display_url || saved.signed_url || uploaded.signedUrl` and `saved.image_ref || uploaded.ref`, adds the saved photo to `clientGoalPhotos`, and selects it as the mandala center;
+  - raw `storage://` images without a display URL show `Нужна signed URL` placeholders instead of transparent cards;
+  - deleting the active client photo clears the central photo ref and display URL mapping;
+  - picker CSS now uses solid cards, small corner delete buttons, and mobile two-column layout without horizontal overflow.
+- Not changed:
+  - `/profile-old`;
+  - auth/bootstrap;
+  - Supabase env names or values;
+  - Vercel rewrites;
+  - `/`, `/masters`, `/profile/admin`.
+- Verification status:
+  - passed `npm run test:profile-lite`;
+  - passed `npm run test:profile-media`;
+  - passed `npm run test:power-place`;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05` and the existing Vite chunk-size warning;
+  - passed `npm run build` with the existing Vite chunk-size warning;
+  - local preview `http://localhost:4181/profile/mandalas` opened at desktop 1280 and mobile 390 in the no-env/auth-gate state with no browser console warnings/errors;
+  - authenticated Supabase upload/select/delete QA on live remains `needs manual verification by Andrey`.
+
+## 2026-06-01 — PR #191 controlled merge and production deploy
+
+- PR: #191, `Restore Profile Lite Power Place visual parity`.
+- Merge commit: `42491aa3395470ac6013a28bc5e8292feb53507f`.
+- Production deploy:
+  - Vercel Production deployment created for SHA `42491aa3395470ac6013a28bc5e8292feb53507f`.
+  - Deployment state: `success`.
+  - Deployment URL: `https://reiki-yggdrasil-3r2lyyjhk-super10.vercel.app`.
+  - Fallback workflow was not used because Vercel auto-deploy reported success for the merge SHA.
+- Pre-merge checks:
+  - PR was mergeable: `MERGEABLE`, `mergeStateStatus=CLEAN`.
+  - GitHub CI `validate-and-build` passed on the PR and on `main` after merge.
+  - PR Vercel status was `SUCCESS`.
+  - Source diff did not touch `src/main.jsx` or `vercel.json`; `/profile-old`, `/`, `/masters`, and `/profile/admin` route mappings remained present.
+- Unauthenticated live QA status:
+  - External web fetch reached `https://mentalica.vercel.app/`.
+  - Full route QA for `https://mentalica.vercel.app/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/masters`, and `/profile/admin` was not completed in this environment because local DNS could not resolve Vercel hosts and browser automation transport closed during the route batch.
+  - Do not mark HTTP 200/no-404, login/env gate, or no-runtime-crash verification as complete for the deep routes until rerun from a working browser/network context.
+- Authenticated QA remains `needs manual verification by Andrey`:
+  - Google login;
+  - authenticated `/profile/mandalas`;
+  - visual parity inside the cabinet;
+  - old photos/media;
+  - saved compositions;
+  - save/update;
+  - Storage/RLS;
+  - services/orders/chats.
 
 ## 2026-06-01 — Profile Lite Power Place parity restoration
 

@@ -681,7 +681,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     try {
       await deleteClientGoalPhoto(photo.id, profile.id, session);
       setClientGoalPhotos((current) => current.filter((item) => item.id !== photo.id));
-      setCompositionDraft((current) => current.central_photo_id === photo.id ? { ...current, central_photo_id: "" } : current);
+      setCompositionDraft((current) => {
+        if (current.central_photo_id !== photo.id) return current;
+        const centerRef = current.object_refs?.__center_image || "";
+        const nextObjectRefs = { ...(current.object_refs || {}) };
+        const nextObjectRefUrls = { ...(current.object_ref_urls || {}) };
+        delete nextObjectRefs.__center_image;
+        if (centerRef) delete nextObjectRefUrls[centerRef];
+        return { ...current, central_photo_id: "", object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls };
+      });
     } catch (error) {
       setMediaStatus("needs-verification");
       setMediaError(moduleError(error, "delete client goal photo failed or RLS not applied"));
@@ -746,7 +754,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMediaError("Сначала сохраните профиль мастера.");
       setMediaStatus("needs-verification");
-      return;
+      throw new Error("Сначала сохраните профиль мастера.");
     }
 
     try {
@@ -762,18 +770,23 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         file_size_bytes: uploaded.metadata.size,
         notes: "Центр мандалы"
       }, accountPlan, session);
-      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
+      const savedImageRef = saved?.image_ref || uploaded.ref;
+      const savedDisplayUrl = saved?.display_url || saved?.signed_url || uploaded.signedUrl;
+      const savedPhoto = saved ? { ...saved, image_ref: savedImageRef, display_url: savedDisplayUrl } : null;
+      setClientGoalPhotos((current) => [savedPhoto, ...current].filter(Boolean));
       setCompositionDraft((current) => ({
         ...current,
         central_photo_id: saved?.id || "",
-        object_refs: { ...(current.object_refs || {}), __center_image: saved?.image_ref || uploaded.ref },
-        object_ref_urls: { ...(current.object_ref_urls || {}), [saved?.image_ref || uploaded.ref]: saved?.display_url || uploaded.signedUrl }
+        object_refs: { ...(current.object_refs || {}), __center_image: savedImageRef },
+        object_ref_urls: { ...(current.object_ref_urls || {}), [savedImageRef]: savedDisplayUrl }
       }));
       setMediaStatus("success");
       setMediaError("");
+      return savedPhoto;
     } catch (error) {
       setMediaStatus("needs-verification");
       setMediaError(moduleError(error, "central photo upload failed or Storage/RLS not applied"));
+      throw error;
     }
   };
 
@@ -781,7 +794,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMandalasError("Сначала сохраните профиль мастера.");
       setMandalasStatus("needs-verification");
-      return;
+      throw new Error("Сначала сохраните профиль мастера.");
     }
 
     try {
@@ -795,9 +808,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setCompositionObjectRef(slotId, uploaded.ref, uploaded.signedUrl);
       setMandalasStatus("success");
       setMandalasError("");
+      return uploaded;
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "power place object upload failed or Storage/RLS not applied"));
+      throw error;
     }
   };
 
@@ -805,7 +820,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMandalasError("Сначала сохраните профиль мастера.");
       setMandalasStatus("needs-verification");
-      return;
+      throw new Error("Сначала сохраните профиль мастера.");
     }
 
     try {
@@ -820,9 +835,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       });
       setMandalasStatus("success");
       setMandalasError("");
+      return uploaded;
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "power place cover upload failed or Storage/RLS not applied"));
+      throw error;
     }
   };
 

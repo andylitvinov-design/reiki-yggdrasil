@@ -1,5 +1,72 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite central image picker extraction
+
+- Branch: `codex/fix-profile-lite-central-image-picker`.
+- Root cause:
+  - central, object, cover selection, upload, and delete were mixed inside one modal in `ProfileLitePowerPlaceModule`;
+  - the old picker could close immediately after choosing a file, before upload + `createClientGoalPhoto` + preview state were complete;
+  - raw Storage refs without signed/display URLs were treated like images, creating transparent cards or non-rendering center previews;
+  - `Выбрать из базы` was a passive selected-looking button, not a real action.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Result:
+  - added a dedicated image picker with active `Сохранённые фото`, upload, direct card select, delete action, and `Нужна signed URL` placeholder state;
+  - central upload now preserves signed/display URL fallbacks and writes `__center_image` plus `object_ref_urls` before the picker closes;
+  - uploaded central photos are inserted into `clientGoalPhotos`, selected immediately, and available in the saved list;
+  - delete confirmation remains `Удалить фото из базы?`, and deleting the selected client photo clears stale center refs.
+- Checks:
+  - `npm run test:profile-lite` passed after RED failure on missing `ProfileLiteImagePicker.jsx`;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`, plus the existing Vite chunk-size warning;
+  - `npm run build` passed with the existing Vite chunk-size warning.
+- Local QA:
+  - preview URL: `http://localhost:4181/profile/mandalas`;
+  - desktop 1280 and mobile 390 opened the route in the no-env/auth-gate state;
+  - browser console warnings/errors: 0 on both checked viewports;
+  - mobile 390 screenshot showed contained one-column layout without visible horizontal overflow in the no-env state.
+- Live/authenticated QA:
+  - real signed-in Storage/RLS upload, saved-list refresh, and center preview verification still require live authenticated testing.
+
+## 2026-06-01 — PR #191 controlled merge and deploy
+
+- PR: #191, `Restore Profile Lite Power Place visual parity`.
+- Merge:
+  - PR was checked before merge: `MERGEABLE`, `mergeStateStatus=CLEAN`, non-draft.
+  - PR checks were green: GitHub `validate-and-build` success, Vercel status success, Vercel Preview Comments success.
+  - Changed files were limited to `STATE.md`, `LOG.md`, `src/pages/ProfileLitePage.jsx`, `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`, and `test/profileLiteCabinetContract.test.mjs`.
+  - `src/main.jsx` and `vercel.json` were not changed by PR #191; `/profile-old`, `/`, `/masters`, and `/profile/admin` mappings remained present.
+  - Merge commit: `42491aa3395470ac6013a28bc5e8292feb53507f`.
+- Deployment:
+  - Vercel auto-deploy created Production deployment `4896312694` for merge SHA `42491aa3395470ac6013a28bc5e8292feb53507f`.
+  - Deployment status: `success`.
+  - Deployment URL: `https://reiki-yggdrasil-3r2lyyjhk-super10.vercel.app`.
+  - Fallback workflow was not used.
+- Post-merge checks:
+  - `main` CI run `26783282549` passed `validate-and-build`.
+  - External web fetch reached `https://mentalica.vercel.app/`.
+- Unauthenticated route QA:
+  - Requested routes: `/`, `/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/masters`, `/profile/admin`.
+  - Full deep-route QA was blocked in this environment: local shell DNS could not resolve `mentalica.vercel.app` or Vercel deployment hosts, the in-app browser `iab` was unavailable, and the Playwright batch transport closed before returning route results.
+  - Therefore HTTP 200/no-404, route-open, login/env/auth gate display, and no public runtime crash are not claimed as verified for the deep routes.
+- Manual QA still required from Andrey:
+  - open `https://mentalica.vercel.app/`, `/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/masters`, and `/profile/admin`;
+  - confirm each route returns 200/no 404 and has no public runtime crash;
+  - sign in with Google and check authenticated `/profile/mandalas`;
+  - compare Profile Lite Power Place visual parity against `/profile-old`;
+  - verify old photos/media, saved compositions, save/update, Storage/RLS, services, orders, and chats.
+- Follow-up:
+  - no code fix PR is indicated from the merge/deploy evidence alone;
+  - a follow-up fix PR may be needed after Andrey sends screenshots or authenticated QA evidence.
+
 ## 2026-06-01 — Profile Lite Power Place parity restoration
 
 - Branch: `codex/profile-lite-power-place-parity`.
