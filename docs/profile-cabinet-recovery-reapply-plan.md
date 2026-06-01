@@ -1,6 +1,6 @@
 # Profile Cabinet Recovery Reapply Program
 
-Last updated: 2026-05-31  
+Last updated: 2026-05-31
 Companion documents:
 - `docs/profile-cabinet-recovery-plan.md`
 - `docs/profile-cabinet-recovery-operator-checklist.md`

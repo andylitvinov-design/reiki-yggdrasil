@@ -15,7 +15,6 @@ import {
 import {
   clearStoredSession,
   getCurrentUser,
-  getOwnProfile,
   getStoredSession,
   isExpiredOrInvalidAuthError,
   isStoredSessionExpired,
@@ -1595,7 +1594,6 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters }) {
         const { currentUser, currentProfile, notices = [] } = await loadProfileCabinetBootstrap({
           session,
           getCurrentUser,
-          getOwnProfile,
           onStep: (bootstrapStep, stepError) => publishBootstrapDebug({
             bootstrapStep,
             bootstrapErrorMessage: stepError ? sanitizeDebugMessage(stepError?.message || "bootstrap error") : "",

@@ -1,9 +1,9 @@
 # Profile Cabinet Recovery Plan
 
-Last updated: 2026-05-31  
-Scope: Reiki Yggdrasil old `/profile` cabinet after Google OAuth.  
-Live target: `https://mentalica.vercel.app`  
-Legacy target: `https://reiki-yggdrasil.vercel.app`  
+Last updated: 2026-05-31
+Scope: Reiki Yggdrasil old `/profile` cabinet after Google OAuth.
+Live target: `https://mentalica.vercel.app`
+Legacy target: `https://reiki-yggdrasil.vercel.app`
 Current main target commit before this document update: `d9db454d34ad29f742b76e5325f14d84b81be1a3` (`fix: open profile cabinet from authenticated user id`).
 
 ## 1. Purpose
@@ -464,7 +464,7 @@ Move deeper only if:
 live is fresh, /profile-lite works, old /profile still fails.
 ```
 
-Risk: wasting time debugging stale code.  
+Risk: wasting time debugging stale code.
 Decision: if stale, fix deploy/alias first and do not rollback.
 
 ### Depth 1 — hunk-level rollback/fix inside `ProfilePage.jsx`
@@ -489,7 +489,7 @@ Move deeper only if:
 /ProfilePage.jsx hunk-level fixes do not restore the shell and debug proves auth/user are present.
 ```
 
-Risk: missing an earlier bootstrap/session issue.  
+Risk: missing an earlier bootstrap/session issue.
 Decision: compare `/profile-lite` before touching lower layers.
 
 ### Depth 2 — disable DOM-level recovery scripts
@@ -515,7 +515,7 @@ Move deeper only if:
 old /profile still fails after DOM recovery scripts are disabled, and live bundle is fresh.
 ```
 
-Risk: losing a workaround that masks a deeper issue.  
+Risk: losing a workaround that masks a deeper issue.
 Decision: test with `/profile?debugAuth=1` and compare before/after values.
 
 ### Depth 3 — revert late old-profile repair chain only
@@ -541,7 +541,7 @@ Move deeper only if:
 after late-chain revert, /profile still fails and /profile-lite still works.
 ```
 
-Risk: conflicts and losing useful tests/docs.  
+Risk: conflicts and losing useful tests/docs.
 Decision: use targeted revert commits, not reset.
 
 ### Depth 4 — test pre-`/profile-lite` auth/bootstrap state
@@ -566,7 +566,7 @@ Move deeper only if:
 checkpoint is bad or inconclusive.
 ```
 
-Risk: losing `/profile-lite`, so this is diagnostic only.  
+Risk: losing `/profile-lite`, so this is diagnostic only.
 Decision: if this is good, restore from this baseline and reapply `/profile-lite` carefully.
 
 ### Depth 5 — investigate PR #138–#145 zone
@@ -594,7 +594,7 @@ Move deeper only if:
 all PR #138–#145 candidates are bad or no good commit is found.
 ```
 
-Risk: increasingly old code may not include later required fixes.  
+Risk: increasingly old code may not include later required fixes.
 Decision: use bisect and hunk-level analysis, not wholesale revert.
 
 ### Depth 6 — restore from confirmed known-good baseline and reapply features
@@ -625,7 +625,7 @@ Reapply in this order:
 7. UI improvements unrelated to auth.
 ```
 
-Risk: large diff and regression in newer features.  
+Risk: large diff and regression in newer features.
 Decision: use only if depths 0–5 fail and a good baseline is proven.
 
 ## 13. Testing a checkpoint safely
