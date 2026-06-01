@@ -1,5 +1,8 @@
 (() => {
-  if (window.location.pathname !== "/profile") return;
+  const search = new URLSearchParams(window.location.search);
+  const renderRecoveryEnabled = search.get("enableRenderRecovery") === "1";
+
+  if (window.location.pathname !== "/profile" || !renderRecoveryEnabled) return;
 
   const SESSION_KEY = "reiki-yggdrasil-session";
   const RECOVERY_KEY = "reiki-profile-auth-render-recovery-v1";
