@@ -12,6 +12,35 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — Profile Lite Power Place parity restoration
+
+- Branch: `codex/profile-lite-power-place-parity`, originally based on `5efbcea` and merged with current `origin/main` commit `1926d97` before PR review.
+- Scope: replace the formal JSON-first Lite Power Place module with a visual mandala workshop modeled on `/profile-old`, while keeping `/profile-old` available as the heavy reference.
+- Restored in Lite:
+  - hero/section `Мастерская мандал`;
+  - workspace switches `Место силы` / `Мои мандалы`;
+  - saved composition selector `Загрузить сохранённое место силы`;
+  - central `Фото клиента / цели` flow;
+  - visual constructor area for `Зодиак`, `Звезда`, `Шахматы`, `Мандала`, `Алтарь`, `Бизнес`, `ДАО`;
+  - zodiac variants `2/4/6/8/8+/12/12+`, star `closed/open`, chess `classic-14/classic-8/plus-8`, business `1/3` zones;
+  - inner/outer background controls, `Без фона`, saved-image cover picker, custom cover upload;
+  - object image picker from client photos, tradition assets, and materials, plus per-slot upload;
+  - Storage-backed central/object/cover upload wiring through `uploadProfileMedia`;
+  - client photo delete confirmation `Удалить фото из базы?`;
+  - save/update through existing `createPowerPlaceComposition` / `updatePowerPlaceComposition`;
+  - old HTML download fallback and print flow;
+  - `Object refs JSON` moved to an advanced diagnostics details block instead of primary UX.
+- Verification:
+  - Passed `npm run test:profile-lite`.
+  - Passed `npm run test:profile-media`.
+  - Passed `npm run test:power-place`.
+  - Passed `npm run test:profile-loading-recovery`.
+  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+  - Passed `npm run build` with existing Vite chunk-size warning.
+- Not verified:
+  - authenticated live Supabase media/composition save/load parity;
+  - authenticated screenshot-level visual parity against `/profile-old`, because local preview has no Supabase env/session and the checked routes stop at the auth/env gate.
+
 ## 2026-06-01 — Profile Lite authenticated QA and gap-analysis after PR #188
 
 - Branch: `codex/profile-lite-authenticated-qa`, based on `origin/main` merge commit `5efbcea` for PR #188.
