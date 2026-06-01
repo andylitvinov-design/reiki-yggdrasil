@@ -1501,3 +1501,44 @@ Next step:
 ## Final summary
 
 The new Profile Lite alternative cabinet is successful only when it gives the user the same practical cabinet capabilities as the old heavy profile, while improving reliability through a modular shell, independent loaders, inline errors, safe diagnostics, no secret exposure, and `/profile-old` preserved for comparison until full parity is verified.
+
+---
+
+## 26. Implementation inventory and route result — 2026-06-01
+
+Branch: `codex/profile-lite-full-alternative-cabinet`.
+
+Inventory confirmed before implementation:
+
+- Route map before: `/profile` and modular profile routes rendered heavy `ProfilePage`; `/profile-lite` rendered diagnostic `ProfileLitePage`; `/profile-old` rendered heavy `ProfilePage`.
+- Old tabs: `Место силы`, `Мои мандалы`, `Услуги`, `Заявки`, `Чаты`, `Профиль`.
+- Profile fields: `display_name`, `bio`, `city`, `country`, `telegram`, `website`, `avatar_url`, `account_plan`, `status`, `user_id`.
+- Materials: `profile_cabinet_publications` through `profileMaterialsClient`; types `mandala`, `artifact`, `practice`; statuses `draft`, `pending`, `approved`, `rejected`; categories `ДАО РИ`, `Мистерии`, `Каналы`, `Фон`, `Форма`, `Талисманы`, `Артефакты`, `Клиенты`.
+- Media: `profile-cabinet-media`; upload kinds `client-goal`, `tradition`, `power-place`, `material`, `underlay`; signed URLs display only.
+- Mandalas: `profile_cabinet_power_place_compositions`; constructor types `zodiac`, `star`, `chess`, `client`, `altar`, `business`, `dao`; persistence fields include `geometry`, `zodiac_visible_count`, `star_variant`, `chess_variant`, `altar_center_ratio`, `business_vertex_zone_count`, `cover_ref`, `object_refs`, `central_photo_id`, tradition/resource fields.
+- Services/orders/chats: clients exist for `profile_cabinet_services`, `profile_cabinet_service_orders`, and `profile_cabinet_chat_*`; live schema/RLS still needs verification.
+- CSS/tests: `src/profileCabinet.css`, `src/profileMandalaWorkspace.css`, `test/profileLiteRoute.test.mjs`, `test/profileLiteClient.test.mjs`, `test/profileLiteCabinetContract.test.mjs`, and existing profile client tests.
+
+Route map after implementation:
+
+```text
+/                     -> public home, unchanged
+/profile              -> ProfileLitePage, overview tab
+/profile-lite         -> ProfileLitePage, overview tab
+/profile-old          -> old ProfilePage reference/diagnostic
+/profile/mandalas     -> ProfileLitePage, mandalas tab
+/profile/services     -> ProfileLitePage, services tab
+/profile/orders       -> ProfileLitePage, orders tab
+/profile/chats        -> ProfileLitePage, chats tab
+/profile/settings     -> ProfileLitePage, settings tab
+/masters              -> MastersPage, unchanged
+/profile/admin        -> AdminPage, unchanged
+```
+
+Implementation result:
+
+- `ProfileLitePage.jsx` is now the container for auth/session bootstrap, active route tab, and module wiring.
+- Focused modules live under `src/pages/profile-lite/`.
+- The shell opens from a valid session/user via the proven bootstrap helper and does not wait for profile/materials/media/mandalas/services/orders/chats.
+- Secondary modules load through isolated effects and report sanitized inline `needs verification` messages.
+- `/profile-old` remains the heavy reference cabinet.

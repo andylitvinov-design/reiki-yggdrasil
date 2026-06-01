@@ -380,6 +380,176 @@
   text-decoration: none;
 }
 
+.profileLiteFullShell {
+  gap: 18px;
+}
+
+.profileLiteTopbar small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(36, 24, 14, 0.68);
+}
+
+.profileLiteTabs,
+.profileLiteStatusRail,
+.profileLiteSegmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.profileLiteTabs {
+  padding: 10px;
+  border: 1px solid rgba(184, 121, 29, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.profileLiteTabs button,
+.profileLiteSegmented button {
+  min-height: 36px;
+  border: 1px solid rgba(184, 121, 29, 0.26);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #24180e;
+  cursor: pointer;
+}
+
+.profileLiteTabs button.active,
+.profileLiteSegmented button.active {
+  background: rgba(184, 121, 29, 0.14);
+  border-color: rgba(184, 121, 29, 0.68);
+}
+
+.profileLiteStatusRail {
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.profileLiteWorkspace,
+.profileLiteModule {
+  display: grid;
+  gap: 16px;
+}
+
+.profileLiteModule {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.profileLiteProfileGrid,
+.profileLiteMaterialsModule,
+.profileLiteMediaModule,
+.profileLitePowerPlace,
+.profileLiteServices,
+.profileLiteOrders,
+.profileLiteChats,
+.profileLiteDiagnostics {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  align-items: start;
+}
+
+.profileLiteOverview {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+}
+
+.profileLiteMetricGrid,
+.profileLiteMediaGrid,
+.profileLiteServiceList,
+.profileLiteCompositionList,
+.profileLiteThreadList {
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteMetricGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profileLiteMetric span,
+.profileLiteSettingsList dt {
+  display: block;
+  color: #7d6b56;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profileLiteMetric strong,
+.profileLiteSettingsList dd {
+  color: #24180e;
+}
+
+.profileLiteMediaGrid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.profileLiteMediaCard,
+.profileLiteOrderCard {
+  min-width: 0;
+}
+
+.profileLiteMediaThumb {
+  display: grid;
+  min-height: 110px;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(184, 121, 29, 0.1);
+  background-position: center;
+  background-size: cover;
+}
+
+.profileLiteCompositionList button,
+.profileLiteThreadList button {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(184, 121, 29, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #24180e;
+  text-align: left;
+}
+
+.profileLiteThreadList button.active {
+  border-color: rgba(184, 121, 29, 0.68);
+}
+
+.profileLiteConstructor textarea,
+.profileLiteMaterialForm textarea {
+  font-family: inherit;
+}
+
+.profileLiteMandalaPreview {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  padding: 24px;
+  border: 1px dashed rgba(184, 121, 29, 0.5);
+  border-radius: 8px;
+  background: radial-gradient(circle at center, rgba(184, 121, 29, 0.14), rgba(255, 255, 255, 0.7));
+  text-align: center;
+}
+
+.profileLiteMandalaPreview strong {
+  font-size: 1.4rem;
+}
+
+.profileLiteFileInput {
+  display: grid;
+  gap: 8px;
+}
+
+.profileLiteSettingsList,
+.profileLiteDebug dl {
+  display: grid;
+  gap: 10px;
+}
+
 @media (max-width: 760px) {
   .cabinetTopbar {
     grid-template-columns: 1fr;
@@ -393,9 +563,28 @@
 
   .cabinetGrid,
   .profileLiteMain,
+  .profileLiteProfileGrid,
+  .profileLiteMaterialsModule,
+  .profileLiteMediaModule,
+  .profileLitePowerPlace,
+  .profileLiteServices,
+  .profileLiteOrders,
+  .profileLiteChats,
+  .profileLiteDiagnostics,
+  .profileLiteOverview,
+  .profileLiteMetricGrid,
   .cabinetTwoColumns,
   .masterCatalogCard,
   .materialCard {
     grid-template-columns: 1fr;
+  }
+
+  .profileLiteStatusRail {
+    align-items: stretch;
+  }
+
+  .profileLiteStatusRail .cabinetActions,
+  .profileLiteTabs button {
+    width: 100%;
   }
 }

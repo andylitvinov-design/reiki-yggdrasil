@@ -179,27 +179,27 @@ function RootRouter() {
   }
 
   if (path === "/profile/mandalas") {
-    return <ProfilePage key="profile-mandalas" initialTopTab="power-place" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialTab="mandalas" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/services") {
-    return <ProfilePage key="profile-services" initialTopTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/orders") {
-    return <ProfilePage key="profile-orders" initialTopTab="orders" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialTab="orders" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/chats") {
-    return <ProfilePage key="profile-chats" initialTopTab="chats" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialTab="chats" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/settings") {
-    return <ProfilePage key="profile-settings" initialTopTab="profile" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialTab="settings" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile") {
-    return <ProfilePage key="profile" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/masters") {

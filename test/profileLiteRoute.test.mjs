@@ -14,11 +14,11 @@ function assertRouteMapsTo(path, componentName) {
   );
 }
 
-function assertRouteMapsWithInitialTopTab(path, initialTopTab) {
+function assertRouteMapsToProfileLiteTab(path, initialTab) {
   assert.match(
     mainSource,
-    new RegExp(`if \\(path === "${path.replace("/", "\\/")}"\\) \\{[\\s\\S]*?return <ProfilePage\\b[^>]*initialTopTab="${initialTopTab}"`),
-    `${path} should render ProfilePage with initialTopTab="${initialTopTab}"`
+    new RegExp(`if \\(path === "${path.replace("/", "\\/")}"\\) \\{[\\s\\S]*?return <ProfileLitePage\\b[^>]*initialTab="${initialTab}"`),
+    `${path} should render ProfileLitePage with initialTab="${initialTab}"`
   );
 }
 
@@ -33,26 +33,15 @@ function assertProfilePageHasKey(path, expectedKey) {
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
 
-assertRouteMapsTo("/profile", "ProfilePage");
-
-for (const [path, key] of [
-  ["/profile", "profile"],
-  ["/profile-old", "profile-old"],
-  ["/profile/mandalas", "profile-mandalas"],
-  ["/profile/services", "profile-services"],
-  ["/profile/orders", "profile-orders"],
-  ["/profile/chats", "profile-chats"],
-  ["/profile/settings", "profile-settings"]
-]) {
-  assertProfilePageHasKey(path, key);
-}
+assertRouteMapsTo("/profile", "ProfileLitePage");
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
-assertRouteMapsWithInitialTopTab("/profile/mandalas", "power-place");
-assertRouteMapsWithInitialTopTab("/profile/services", "services");
-assertRouteMapsWithInitialTopTab("/profile/orders", "orders");
-assertRouteMapsWithInitialTopTab("/profile/chats", "chats");
-assertRouteMapsWithInitialTopTab("/profile/settings", "profile");
+assertProfilePageHasKey("/profile-old", "profile-old");
+assertRouteMapsToProfileLiteTab("/profile/mandalas", "mandalas");
+assertRouteMapsToProfileLiteTab("/profile/services", "services");
+assertRouteMapsToProfileLiteTab("/profile/orders", "orders");
+assertRouteMapsToProfileLiteTab("/profile/chats", "chats");
+assertRouteMapsToProfileLiteTab("/profile/settings", "settings");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
 
@@ -66,14 +55,14 @@ assert.ok(
   "/profile-old must remain the heavy diagnostic alias"
 );
 
-for (const [path, initialTopTab] of [
-  ["/profile/mandalas", "power-place"],
+for (const [path, initialTab] of [
+  ["/profile/mandalas", "mandalas"],
   ["/profile/services", "services"],
   ["/profile/orders", "orders"],
   ["/profile/chats", "chats"],
-  ["/profile/settings", "profile"]
+  ["/profile/settings", "settings"]
 ]) {
-  assertRouteMapsWithInitialTopTab(path, initialTopTab);
+  assertRouteMapsToProfileLiteTab(path, initialTab);
 }
 
 assert.ok(
