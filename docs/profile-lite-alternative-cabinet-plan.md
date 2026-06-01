@@ -1,123 +1,226 @@
-# Profile Lite Alternative Cabinet — Full Rebuild Plan
+# Profile Lite Alternative Cabinet — Exact Rebuild Specification
 
 Last updated: 2026-06-01
 
 Repo: `andylitvinov-design/reiki-yggdrasil`  
-Live: `https://mentalica.vercel.app`  
+Production/live: `https://mentalica.vercel.app`  
 Legacy: `https://reiki-yggdrasil.vercel.app`
 
-## 0. Short Codex link
+## 0. Purpose of this document
 
-Use this document as the canonical plan for rebuilding the master cabinet on top of `ProfileLitePage`:
+This is the canonical implementation specification for rebuilding the master cabinet on top of `ProfileLitePage`.
+
+Short link for Codex:
 
 ```text
 docs/profile-lite-alternative-cabinet-plan.md
 ```
 
-Recommended first implementation branch:
+Target implementation branch:
 
 ```text
 codex/profile-lite-full-alternative-cabinet
 ```
 
-## 1. Main goal
-
-Create a new alternative full master cabinet on the basis of `ProfileLitePage`.
-
-The new cabinet must eventually include all useful functions from the old heavy `ProfilePage`, but must be rebuilt as a lighter, modular, safer cabinet that opens reliably and never hangs the whole profile page because one secondary feature is slow or broken.
-
-The old heavy cabinet remains available as a reference/diagnostic implementation until the new cabinet fully covers the previous functionality.
-
-## 2. Key idea
-
-Do not copy `ProfilePage.jsx` as one huge component.
-
-Instead:
-
-1. keep the stable auth/session/profile foundation from `ProfileLitePage`;
-2. create a modular cabinet shell;
-3. move every old function into a separate Lite module;
-4. each module loads independently;
-5. each module can fail independently with an inline notice;
-6. the profile shell must stay open if user/session is valid.
-
-## 3. Existing implementations
+Main instruction:
 
 ```text
-src/pages/ProfilePage.jsx      # old heavy cabinet, source/reference
-src/pages/ProfileLitePage.jsx  # current light diagnostic cabinet, new foundation
+Recreate the old master cabinet functionality inside the new stable Profile Lite cabinet, but do not copy the old heavy ProfilePage.jsx as one monolithic component.
 ```
 
-Before every task, verify actual routing in:
+## 1. Final goal
+
+Build a new alternative full master cabinet that looks and behaves like the old cabinet from the user's point of view, but uses the safer `ProfileLitePage` auth/session foundation.
+
+The final user experience must preserve the old cabinet's useful functions:
 
 ```text
-src/main.jsx
+1. Google login / session recovery.
+2. Master profile editing.
+3. Master public preview.
+4. Material publishing workspace.
+5. Saved images / uploaded media workspace.
+6. Client/goal photo workspace.
+7. Mandala / Power Place constructor.
+8. Saved mandala/composition loading and saving.
+9. Mandala download/export/print fallback if available.
+10. Publishing saved mandala into Services.
+11. Services management.
+12. Orders management.
+13. Chats management.
+14. Settings/session/account controls.
+15. Safe diagnostics.
+```
+
+The old cabinet must remain available as `/profile-old` until the new Lite cabinet covers all previous functionality and live QA passes.
+
+## 2. Current source of truth
+
+The current project has two profile implementations:
+
+```text
+src/pages/ProfilePage.jsx      # old heavy cabinet, source/reference for behavior and UI
+src/pages/ProfileLitePage.jsx  # current light diagnostic cabinet, foundation for the new full cabinet
+```
+
+`ProfilePage.jsx` is the reference for what the old cabinet did. `ProfileLitePage.jsx` is the foundation for how the new cabinet must open safely.
+
+Before coding, Codex must inspect the actual current code, because routing and recovery work changed many times.
+
+Must read first:
+
+```text
+AGENTS.md
+README.md
+STATE.md
+LOG.md
+docs/profile-lite-alternative-cabinet-plan.md
+docs/profile-cabinet-recovery-summary-2026-06-01.md, if present
+package.json
 vercel.json
+src/main.jsx
+src/pages/ProfileLitePage.jsx
+src/pages/ProfilePage.jsx
+src/lib/profileLiteClient.js
+src/lib/profileBootstrapClient.js
+src/lib/supabaseClient.js
+src/lib/profileMaterialsClient.js
+src/lib/profileMediaClient.js
+src/lib/powerPlaceClient.js
+src/lib/profileServicesClient.js, if present
+src/lib/masterChatClient.js, if present
+all profile/power-place/services tests under test/
 ```
 
-Important routes to preserve/check:
+If a file is missing, report:
 
 ```text
-/
-/profile
-/profile-lite
-/profile-old
-/profile/mandalas
-/profile/services
-/profile/orders
-/profile/chats
-/profile/settings
-/masters
-/profile/admin
+not found
 ```
 
-## 4. Non-negotiable safety rules
+Do not invent APIs, schema fields, or table names.
 
-### 4.1 Do not block shell render with secondary data
+## 3. Route contract
 
-The new Lite shell must never depend on these loaders before rendering the cabinet:
+These routes must be checked before and after every implementation step:
+
+```text
+/                     -> public home, unchanged
+/profile              -> final target: ProfileLitePage overview tab
+/profile-lite         -> ProfileLitePage overview tab / fallback
+/profile-old          -> old ProfilePage reference/diagnostic route
+/profile/mandalas     -> final target: ProfileLitePage mandalas tab
+/profile/services     -> final target: ProfileLitePage services tab
+/profile/orders       -> final target: ProfileLitePage orders tab
+/profile/chats        -> final target: ProfileLitePage chats tab
+/profile/settings     -> final target: ProfileLitePage settings/profile tab
+/masters              -> MastersPage, unchanged
+/profile/admin        -> AdminPage, unchanged
+```
+
+Important:
+
+1. Do not remove `/profile-old`.
+2. Do not break `/masters`.
+3. Do not break `/profile/admin`.
+4. Do not break Vercel SPA rewrites.
+5. If switching `/profile` to Lite is risky in the first PR, keep the new full cabinet behind `/profile-lite` first and perform the route switch in a final PR.
+
+## 4. Main architectural rule
+
+The old heavy cabinet mixed auth, profile, materials, media, mandalas, services, orders, chats, and UI in one large component.
+
+The new cabinet must not repeat that architecture.
+
+New architecture:
+
+```text
+ProfileLitePage
+  auth/session/bootstrap foundation
+  stable shell
+  independent module tabs
+```
+
+Recommended component structure:
+
+```text
+src/pages/ProfileLitePage.jsx
+src/profile-lite/ProfileLiteShell.jsx
+src/profile-lite/ProfileLiteNav.jsx
+src/profile-lite/ProfileLiteOverview.jsx
+src/profile-lite/ProfileLiteProfileModule.jsx
+src/profile-lite/ProfileLiteMaterialsModule.jsx
+src/profile-lite/ProfileLiteMediaModule.jsx
+src/profile-lite/ProfileLiteMandalasModule.jsx
+src/profile-lite/ProfileLiteServicesModule.jsx
+src/profile-lite/ProfileLiteOrdersModule.jsx
+src/profile-lite/ProfileLiteChatsModule.jsx
+src/profile-lite/ProfileLiteSettingsModule.jsx
+src/profile-lite/ProfileLiteDiagnosticsModule.jsx
+```
+
+If extraction is too risky, Codex may implement the first version inside `ProfileLitePage.jsx`, but the render blocks must still be clearly separated and named.
+
+## 5. Critical auth/bootstrap rule
+
+Only auth/session/user may be required for opening the shell.
+
+The following must never block shell render:
 
 ```text
 getOwnProfile
+profile save
 materials loader
 media loader
-Power Place loader
-saved mandalas loader
+Power Place / saved composition loader
+client/goal photo loader
+tradition assets loader
 services loader
 orders loader
 chats loader
-admin/moderation loader
 ```
 
-Only auth/session/user may participate in the early shell opening logic.
+When `session` and `user?.id` are available, the cabinet shell must render.
 
-Once user/session is valid, render the cabinet shell immediately and load everything else inside modules.
+Secondary data loads after shell render. Secondary failures must be shown inside their module only.
 
-### 4.2 Inline failures only
-
-If a module fails:
+Forbidden regression:
 
 ```text
-show inline warning inside that module
-keep other modules usable
-keep profile shell open
-do not show global “Загружаю кабинет...”
-do not reset session unless auth is explicitly 401/403/expired
+Valid session exists but the whole page stays on “Загружаю кабинет...” because materials/media/mandalas/services/orders/chats are loading.
 ```
 
-### 4.3 Secret safety
+## 6. Safe diagnostics rule
 
-Never display or commit:
+Diagnostics may show:
+
+```text
+supabase configured: yes/no
+stored session: yes/no
+session expired: yes/no
+user state: yes/no
+user id present: yes/no
+profile state: yes/no
+authStatus
+profileStatus
+active route
+active tab
+module statuses
+short user id
+safe profile id / short id
+```
+
+Diagnostics must never show:
 
 ```text
 access_token
 refresh_token
 raw JWT
-Supabase env values
-request headers
-private request body
+full authorization headers
+env values
+request body
+private uploaded file URLs if they are signed/private and not already displayed as UI images
 service-role keys
-private user data not needed for UI
 ```
 
 Allowed env names only:
@@ -128,68 +231,11 @@ VITE_SUPABASE_ANON_KEY
 VITE_ADMIN_EMAIL
 ```
 
-### 4.4 UI/project safety
+## 7. Final UI structure
 
-Preserve:
+The new cabinet must have the same practical user areas as the old cabinet.
 
-```text
-RU-default interface
-public home page /
-/masters
-/profile/admin
-Vercel rewrites
-Supabase auth/data flows
-mobile layout below 980px
-desktop usability
-```
-
-Do not rewrite the whole project when a small additive step is enough.
-
-## 5. Target architecture
-
-### 5.1 New page shell
-
-`ProfileLitePage.jsx` should become a small orchestrator:
-
-```text
-ProfileLitePage
-  ProfileLiteShell
-    ProfileLiteHeader
-    ProfileLiteNav
-    ProfileLiteOverview
-    ProfileLiteProfileModule
-    ProfileLiteMaterialsModule
-    ProfileLiteMediaModule
-    ProfileLiteMandalasModule
-    ProfileLiteServicesModule
-    ProfileLiteOrdersModule
-    ProfileLiteChatsModule
-    ProfileLiteSettingsModule
-    ProfileLiteDiagnosticsModule
-```
-
-Preferred structure can be either inside one file at first or extracted gradually into components. If extracting, use a safe folder:
-
-```text
-src/profile-lite/
-  ProfileLiteShell.jsx
-  ProfileLiteOverview.jsx
-  ProfileLiteProfileModule.jsx
-  ProfileLiteMaterialsModule.jsx
-  ProfileLiteMediaModule.jsx
-  ProfileLiteMandalasModule.jsx
-  ProfileLiteServicesModule.jsx
-  ProfileLiteOrdersModule.jsx
-  ProfileLiteChatsModule.jsx
-  ProfileLiteSettingsModule.jsx
-  ProfileLiteDiagnosticsModule.jsx
-```
-
-If a folder extraction creates too much risk, keep the first version inside `ProfileLitePage.jsx` and extract later.
-
-### 5.2 Internal tabs
-
-The cabinet must have these tabs:
+Required top/internal tabs:
 
 ```text
 Обзор
@@ -219,199 +265,185 @@ settings
 diagnostics
 ```
 
-### 5.3 Route-to-tab mapping
-
-Final intended routing after migration:
+The shell must include:
 
 ```text
-/profile              -> ProfileLitePage, tab overview
-/profile-lite         -> ProfileLitePage, tab overview
-/profile/mandalas     -> ProfileLitePage, tab mandalas
-/profile/services     -> ProfileLitePage, tab services
-/profile/orders       -> ProfileLitePage, tab orders
-/profile/chats        -> ProfileLitePage, tab chats
-/profile/settings     -> ProfileLitePage, tab settings
-/profile-old          -> ProfilePage, old heavy diagnostic/reference
-/profile/admin        -> AdminPage, unchanged
-/masters              -> MastersPage, unchanged
-/                     -> public home, unchanged
+1. Header/topbar with На главную and Мастера buttons.
+2. Master/cabinet title.
+3. Current user/profile status.
+4. Tab navigation.
+5. Inline global notice area for non-secret messages.
+6. Active module content area.
+7. Mobile-friendly single-column behavior.
 ```
 
-Do not switch all routes until module QA passes. It is acceptable to first build `ProfileLitePage` behind `/profile-lite` and then switch routes in a later PR.
+The Overview tab must include quick cards to all modules and current account/profile status.
 
-## 6. State model
+## 8. Exact old profile fields to restore
 
-The Lite cabinet should keep global state minimal:
-
-```text
-session
-user
-profile
-authStatus
-profileStatus
-authError
-profileError
-activeLiteTab
-safeDiagnostics
-```
-
-Each module should own its own loading/error/data state:
-
-```text
-materialsStatus/materialsError/materials
-mediaStatus/mediaError/mediaItems
-mandalasStatus/mandalasError/mandalas
-servicesStatus/servicesError/services
-ordersStatus/ordersError/orders
-chatsStatus/chatsError/conversations
-```
-
-Do not create one giant `loading` that controls the whole cabinet after auth is done.
-
-## 7. Data clients to inspect and reuse
-
-Before implementing module logic, inspect and reuse existing clients where possible:
-
-```text
-src/lib/supabaseClient.js
-src/lib/profileLiteClient.js
-src/lib/profileBootstrapClient.js
-src/lib/profileMaterialsClient.js
-src/lib/profileMediaClient.js
-src/lib/profileServicesClient.js
-src/lib/powerPlaceClient.js
-```
-
-If some file is missing, report `not found` and do not invent APIs.
-
-## 8. Full module requirements
-
-## 8.1 Overview module
-
-Purpose:
-
-Give the master a quick dashboard.
-
-Must show:
-
-```text
-login state
-email
-short user id
-profile status
-master display name
-quick links/cards to all modules
-module health badges where safe
-```
-
-Quick cards:
-
-```text
-Профиль
-Мои мандалы
-Фото / Медиа
-Материалы
-Услуги
-Заказы
-Чаты
-Настройки
-```
-
-Clicking a card should switch `activeLiteTab` without full page reload.
-
-## 8.2 Profile module
-
-Purpose:
-
-Create/edit master profile.
-
-Start with fields already supported by `ProfileLitePage`:
+The old cabinet profile editor used these profile fields:
 
 ```text
 display_name
 bio
+city
+country
+telegram
+website
+avatar_url
+account_plan
 status
 ```
 
-Then verify old profile fields before adding:
+The new Lite profile module must support these fields if they are present in `supabaseClient.js` / migrations / existing save helpers.
+
+Profile UI must include:
 
 ```text
-avatar/photo
-public visibility
-master public id / RY id
-contact fields
-practice description
-catalog publication status
-account plan
-limits
+Имя мастера
+Описание
+Город
+Страна
+Telegram
+Сайт
+Аватар / фото URL
+План кабинета
+status badge
+ID using formatCabinetId(profile.id), if available
+Сохранить черновик
+Отправить на модерацию
+Выйти
+Public preview card: Как это будет выглядеть
 ```
 
-Do not add schema fields unless they exist in Supabase migrations/client code.
-
-Save behavior:
+Account plan copy from old cabinet:
 
 ```text
-saveOwnProfile(payload, session)
-show success inline
-show error inline
-keep shell open
+Start: 7 мест силы и 10 фото клиентов.
+Pro: 20 мест силы и 30 фото.
+Биллинг: needs verification.
 ```
 
-## 8.3 Materials module
+Do not create new profile schema fields unless verified.
 
-Purpose:
+## 9. Exact material workspace to restore
 
-Move all master materials from old cabinet.
+The old cabinet included a material publishing workspace.
 
-Required features:
+The new Lite materials module must restore:
 
 ```text
 list own materials
-create material
-edit material
+create own material
 save draft
-show status
-filter by type/status if already supported
-show image/display URL if already supported
-publish/request moderation if already supported
+send/publish/request moderation if existing helper supports it
+material title
+material description
+material type
+step_id
+step_title
+setting_title
+setting_index
+status text
+image_url / display_url / uploaded image if supported
+file upload if supported by existing helpers
+materials grid/list
+filters/categories
 ```
 
-Existing source to inspect:
+Known material type/category sources to inspect and preserve:
 
 ```text
-src/lib/profileMaterialsClient.js
+MATERIAL_TYPES
+createEmptyMaterialForm
+createOwnMaterial
+listOwnMaterials
+materialStatusText
+normalizeMaterialForm
+publicationTypeLabel
+SOURCE_LIBRARY_CATEGORIES
+MATERIAL_CATEGORY_TABS
+reikiLevels
+mysteryTraditions
+leftMenuSections artifact items
+CHANNELS_SUBCATEGORIES
+```
+
+Required category structure to preserve if existing code supports it:
+
+```text
+ДАО РИ
+Мистерии
+Каналы
+Фон
+Форма
+Талисманы
+Артефакты
+Клиенты
+```
+
+For `Каналы`, preserve subcategories:
+
+```text
+Сефирот -> Большие арканы / Малые арканы / Сиферы
+Руны -> Первый атт / Второй атт / Третий атт
+Планеты -> Солнце / Луна / Меркурий / Венера / Марс / Юпитер / Сатурн
+Деньги
+Жизнь
+```
+
+For `Форма`, preserve:
+
+```text
+Защитные
+Целебные
+Бизнес
+Другие
+```
+
+If any taxonomy is not actually present in code, mark as `needs verification` in the report and keep the UI safe.
+
+## 10. Exact media/photo workspace to restore
+
+The old cabinet used media for materials, client/goal photos, tradition assets, object images, covers, and saved mandala compositions.
+
+The new Lite media module must inspect and restore supported flows from:
+
+```text
+src/lib/profileMediaClient.js
+src/lib/powerPlaceClient.js
 src/pages/ProfilePage.jsx
-test/profileMaterials.test.mjs
 ```
 
-Safe fallback:
-
-If materials cannot load, show:
+Must support or explicitly report `needs verification` for:
 
 ```text
-Материалы: needs verification.
+uploadProfileMedia
+validateProfileMediaFile
+listClientGoalPhotos
+createClientGoalPhoto
+deleteClientGoalPhoto
+listTraditionAssets
+createTraditionAsset
+private signed URL display
+storage://profile-cabinet-media/... refs
+legacy external image URLs
+data:image previews only as temporary previews, not persisted payloads
 ```
 
-Do not block other modules.
-
-## 8.4 Media module
-
-Purpose:
-
-Move all profile media/photo storage into Lite.
-
-Required features:
+Required UI behavior:
 
 ```text
-list uploaded media
-upload new media if existing helper supports it
-delete media if existing helper supports it
-show signed/private URLs safely
-show old existing photos
-show categories/filters if already supported
+1. Show saved client/goal photos.
+2. Upload new client/goal photo.
+3. Delete client/goal photo with confirm text: Удалить фото из базы?
+4. Show saved reusable media/mandalas if they exist.
+5. Open clicked photo in Мои мандалы with ability to add/edit description if old flow supports it.
+6. Do not hide old photos because filters are active.
+7. If a filter is selected, show only matching media; otherwise show latest media first.
 ```
 
-Must inspect old photo paths and patterns:
+Known old image/state names Codex must search in `ProfilePage.jsx`:
 
 ```text
 clientGoalPhotos
@@ -421,253 +453,460 @@ materials.display_url
 savedPowerImages
 objectImageUrls
 selectedCentralPhoto
+selectedCentralPhotoId
+selectedCentralImageRef
 reusableImages
-profile-cabinet-media
-storage://profile-cabinet-media/...
-signed URL creation
-category/filter logic
+imagePickerContext
+activeSourceCategory
+activeSourceSubcategory
+activeSourceThirdLevel
 ```
 
-Do not assume missing photos are route-related. Verify loader timing, profile id hydration, storage ref format, signed URL creation, and filters.
+## 11. Exact mandala / Power Place constructor to restore
 
-## 8.5 Mandalas module
+The new Lite mandalas module must eventually reproduce the old Power Place constructor user experience.
 
-Purpose:
-
-Move saved mandalas and Power Place compositions into Lite.
-
-Required features:
+Known constructor types from old cabinet:
 
 ```text
-list saved mandalas/compositions
-open saved mandala
-edit title/description if supported
-save composition
-use central client/goal photo
-use tradition/object images
-support existing formats
-export/download if existing fallback exists
-publish mandala to services, later connected to Services module
+zodiac    -> Зодиак
+star      -> Звезда
+chess     -> Шахматы
+client    -> Мандала
+altar     -> Алтарь
+business  -> Бизнес
+dao       -> ДАО
 ```
 
-Do this in two sub-steps:
+Important: old UI filtered out `client` from constructor type selector in one place. Codex must verify whether `client` should remain internal/default or visible.
 
-### Step A — list/display saved mandalas
+Known variants/options to preserve:
 
-Show saved mandalas and old images first. No constructor yet.
+```text
+POWER_SOURCE_COUNTS: 2 / 4 / 6 / 8 / 12
+STAR_VARIANTS: closed / open
+CHESS_VARIANTS: classic-14 / classic-8 / plus-8
+ZODIAC_VARIANTS: classic-2 / classic-4 / classic-6 / classic-8 / plus-8 / classic-12 / plus-12
+BUSINESS_VERTEX_ZONE_COUNTS: 1 / 3
+ALTAR_CENTER_RATIOS, if present
+resource comparison modes, if present
+```
 
-### Step B — move constructor
+Known visual/interaction features to preserve:
 
-Only after list/display works, move or extract Power Place constructor.
+```text
+central photo button: Фото клиента / цели
+object slot picker
+cover picker
+inner/outer cover support
+slot image upload
+object image selection from source library
+saved composition select: Загрузить сохранённое место силы
+composition title
+save new composition
+update selected composition
+print mandala
+download/export HTML fallback
+resource comparison comments: without mandala / with mandala
+photo-only mode, if present
+```
 
-Do not import the whole old heavy component blindly.
+Known persistence fields to preserve if supported:
 
-## 8.6 Services module
+```text
+profile_id
+title
+constructor_type
+geometry
+zodiac_visible_count
+altar_center_ratio
+business_vertex_zone_count
+star_variant
+chess_variant
+cover_ref
+object_refs
+central_photo_id
+tradition_id
+tradition_title
+resource_comparison_mode
+resource_without_mandala_comment
+resource_with_mandala_comment
+```
 
-Purpose:
+Required migration order inside implementation:
 
-Move service marketplace management into Lite.
+```text
+Step 1: show saved compositions list.
+Step 2: load selected composition into Lite state.
+Step 3: display central photo and object refs.
+Step 4: restore image picker and source library.
+Step 5: restore save/update composition.
+Step 6: restore constructor layouts.
+Step 7: restore download/print.
+Step 8: connect publish-to-services action.
+```
 
-Required features:
+Do not import the whole `ProfilePage.jsx` render tree. Extract pure helpers/constants when safe.
+
+## 12. Exact services module to restore
+
+The old cabinet had services/orders MVP work. Some heavy tabs were smoke placeholders at points in recovery, so Codex must verify actual current service client and schema before implementation.
+
+Files to inspect:
+
+```text
+src/lib/profileServicesClient.js, if present
+scripts/apply-master-services-orders-mvp.mjs
+supabase/migrations/*service* or *order*, if present
+src/pages/ProfilePage.jsx
+src/pages/MastersPage.jsx
+```
+
+The new Lite services module must support or report `needs verification` for:
 
 ```text
 list own services
 create service
-edit service title/description
-attach/publish saved mandala as a service
+edit service title
+delete service if supported
+edit service description
+attach saved mandala/composition
+publish saved mandala as service
 publish/unpublish service
 copy public service link
-show service status
-safe empty state
+open service in its own editable section
+status display
+empty state
+inline errors
 ```
 
-Specific user requirement:
-
-A saved mandala should have an action:
+Specific required user flow:
 
 ```text
-Опубликовать в услугах
+1. User saves a mandala/composition.
+2. Under the saved mandala there is a button: Опубликовать в услугах.
+3. After click, a service draft is created or prepared from that mandala.
+4. In Services tab, this service appears.
+5. Under the service/mandala there are actions:
+   - Редактировать описание
+   - Скопировать ссылку
+6. The copied link can be given to clients.
 ```
 
-After publishing, under it should be:
+Do not invent public URL format. Use existing route/link conventions if present; otherwise mark `needs verification` and create a safe placeholder link only if app routing supports it.
+
+## 13. Exact orders module to restore
+
+The new Lite orders module must implement the order flow connected to services.
+
+Client-side order scenario:
 
 ```text
-Редактировать описание
-Скопировать ссылку
-```
-
-The service should open in the Services section and be editable there.
-
-## 8.7 Orders module
-
-Purpose:
-
-Move service order creation and management into Lite.
-
-Client order scenario:
-
-```text
-1. User opens service feed.
-2. User opens service profile.
-3. User selects format:
+1. In service feed, user chooses a service.
+2. Service profile opens.
+3. User chooses format:
    - signature: С подписью мастера
    - no_signature: Без подписи мастера
    - both: Две версии
 4. If authorized, CTA: Оформить заказ.
 5. If not authorized, CTA: Войти через Google и оформить заказ.
-6. Selected service_id and format survive Google login.
-7. After login, user lands in order creation form with selected service and format prefilled.
+6. Selected service_id and format are stored safely before login.
+7. After Google login, user lands in order creation form with service and format prefilled.
 8. User fills request, goal, comment.
 9. User may upload files/photos/references if supported.
 10. User submits order.
 ```
 
-Master-side order module should show:
+Master-side order management must show:
 
 ```text
 incoming orders
 order status
-selected service
+service title
 selected format
-client request/goal/comment
-attached files if supported
+client request
+client goal
+client comment
+attached files/references if supported
+created/updated dates if available
 safe status transitions if supported
 ```
 
-Do not change OAuth blindly. Preserve redirect logic built from `window.location.origin`.
+Do not change OAuth provider setup blindly. Preserve existing redirect flow built from `window.location.origin`.
 
-## 8.8 Chats module
+## 14. Exact chats module to restore
 
-Purpose:
+The new Lite chats module must be implemented after orders/services are stable, unless existing chat client is already simple and safe.
 
-Move authenticated chats into Lite after orders are stable.
-
-Required features:
+Files to inspect:
 
 ```text
-conversation list
-message list
+src/lib/masterChatClient.js
+src/pages/ProfilePage.jsx
+supabase migrations for chat/conversations/messages
+```
+
+Required behavior:
+
+```text
+list conversations
+open conversation
+show messages
 send message
 favorite chats if supported
 show linked order/service if supported
-participant-only access
-inline errors
+participant-only RLS
+inline errors only
 ```
 
 Security:
 
 ```text
-no anon chat access
+no anon chat read
+no anon chat write
 only participants can read/send
-no private data in diagnostics
+no private chat body in diagnostics
 ```
 
-## 8.9 Settings module
+## 15. Settings module
 
-Purpose:
-
-Safe account/profile actions.
-
-Required features:
+The Settings tab must include safe account actions:
 
 ```text
-refresh data
+refresh cabinet data
 reset session / sign out
-profile visibility if supported
-account plan/limits if supported
-safe env configured/not configured status
-link to diagnostics
+show safe Supabase configured status
+show profile status
+show account plan/limits if supported
+link/switch to diagnostics
 ```
 
-Do not expose env values.
+Do not expose env values or tokens.
 
-## 8.10 Diagnostics module
+## 16. Implementation plan Codex must follow
 
-Purpose:
+Codex should implement this as a sequence inside one branch, committing logically if possible.
 
-Keep safe debug info for live QA.
+### Phase A — Inventory old cabinet
 
-Allowed diagnostics:
+Before code changes, Codex must produce an internal inventory by reading `ProfilePage.jsx`:
 
 ```text
-Supabase configured: yes/no
-stored session: yes/no
-session expired: yes/no
-user state: yes/no
-user id present: yes/no
-profile state: yes/no
-authStatus
-profileStatus
-active route
-active tab
-module statuses
+1. top tab ids and labels
+2. profile fields
+3. material fields and categories
+4. media helper functions
+5. mandala constructor constants and variants
+6. saved composition functions
+7. services functions/client/schema
+8. orders functions/client/schema
+9. chats functions/client/schema
+10. CSS files/classes used by old workspace
 ```
 
-Forbidden diagnostics:
+If a function is not found, report `not found`.
+
+### Phase B — Build full Lite shell
+
+Implement shell/tabs/overview/profile/materials preview/diagnostics/settings placeholders first.
+
+### Phase C — Move profile editor fully
+
+Restore old profile fields and preview.
+
+### Phase D — Move materials workspace
+
+Restore material list/create/save/status/categories/upload if supported.
+
+### Phase E — Move media workspace
+
+Restore saved photos/media, upload/delete, signed URL display, and click-to-open-in-mandalas behavior.
+
+### Phase F — Move saved mandalas first
+
+Restore saved composition list/load/display before constructor editing.
+
+### Phase G — Move mandala constructor
+
+Restore constructor types, layouts, object slots, covers, central photo, save/update/download/print.
+
+### Phase H — Move services
+
+Restore services and publish saved mandala to services.
+
+### Phase I — Move orders
+
+Restore service order flow, including selected service/format surviving login.
+
+### Phase J — Move chats
+
+Restore chats only after services/orders are stable or clearly isolate as safe module.
+
+### Phase K — Route switch
+
+Only after QA, switch `/profile` and modular `/profile/*` routes to Lite.
+
+## 17. Allowed files by phase
+
+### Early shell/profile/materials phases
 
 ```text
-raw tokens
-raw JWT
-refresh token
-request headers
-private payloads
-env values
+src/pages/ProfileLitePage.jsx
+src/profile-lite/*
+src/lib/profileLiteClient.js
+src/lib/profileMaterialsClient.js only if existing helper needs non-breaking extension
+src/profileCabinet.css
+src/profileMandalaWorkspace.css only for reused mandala classes, avoid destructive edits
+test/profileLiteClient.test.mjs
+test/profileLiteRoute.test.mjs
+test/profileMaterials.test.mjs
+STATE.md
+LOG.md
 ```
 
-## 9. Implementation phases for Codex
-
-### Phase 1 — Build shell and tabs
-
-Implement:
+### Media/mandala phases
 
 ```text
-ProfileLite tab nav
-overview/profile/materials/diagnostics moved into tabs
-placeholders for media/mandalas/services/orders/chats/settings
-no route switch yet unless explicitly safe
+src/profile-lite/*
+src/lib/profileMediaClient.js only if needed
+src/lib/powerPlaceClient.js only if needed
+test/profileMediaClient.test.mjs
+test/powerPlaceClient.test.mjs
+src/profileMandalaWorkspace.css
+STATE.md
+LOG.md
 ```
 
-### Phase 2 — Extract small components/helpers
+### Services/orders/chats phases
 
-If `ProfileLitePage.jsx` becomes large, extract stable components into `src/profile-lite/`.
+```text
+src/profile-lite/*
+src/lib/profileServicesClient.js, if present/needed
+src/lib/masterChatClient.js, if present/needed
+test/profileServicesClient.test.mjs
+new tests only if needed
+STATE.md
+LOG.md
+```
 
-Do not extract during Phase 1 if it increases risk.
+Read-only unless necessary:
 
-### Phase 3 — Materials CRUD
+```text
+src/pages/ProfilePage.jsx
+src/lib/profileBootstrapClient.js
+src/lib/supabaseClient.js
+supabase/migrations/*
+vercel.json
+src/main.jsx
+```
 
-Move material create/edit/list workflows.
+## 18. Hard no-go list
 
-### Phase 4 — Media list/upload/display
+Codex must not:
 
-Make old uploaded photos visible first.
+```text
+1. Delete /profile-old.
+2. Remove legacy redirect support.
+3. Hardcode mentalica.vercel.app into OAuth logic.
+4. Put getOwnProfile/materials/media/mandalas/services/orders/chats in auth critical path.
+5. Show tokens or env values in UI/debug/report.
+6. Replace the whole app router without need.
+7. Break /, /masters, /profile/admin.
+8. Make the whole shell wait for one module.
+9. Persist data:image previews as saved permanent refs.
+10. Change Supabase schema without verifying migrations and tests.
+11. Change public home page.
+12. Remove RU default text.
+```
 
-### Phase 5 — Saved mandalas list/display
+## 19. Required checks
 
-Show saved mandalas without constructor first.
+Run after implementation:
 
-### Phase 6 — Mandala constructor
+```bash
+npm run test:profile-lite
+npm run test:profile-materials
+npm run test:profile-media
+npm run test:profile-services
+npm run test:power-place
+npm run test:profile-loading-recovery
+npm run check
+npm run build
+```
 
-Move constructor after media/saved mandalas are stable.
+If a script does not exist, report it as `not found` and run the nearest available test from `package.json`.
 
-### Phase 7 — Services
+## 20. Required local QA
 
-Implement services and mandala-to-service publishing.
+Using local dev or preview, verify:
 
-### Phase 8 — Orders
+```text
+/
+/profile
+/profile-lite
+/profile-old
+/profile/mandalas
+/profile/services
+/profile/orders
+/profile/chats
+/profile/settings
+/masters
+/profile/admin
+```
 
-Implement service order flow and post-login order continuation.
+Verify desktop and mobile:
 
-### Phase 9 — Chats
+```text
+desktop around 1280px
+mobile below 980px
+no horizontal overflow
+no visible Vite/runtime error overlay
+no console errors from changed code
+```
 
-Implement chats after orders.
+## 21. Completion criteria for the full alternative cabinet
 
-### Phase 10 — Route switch
+The alternative cabinet is complete only when:
 
-Switch modular profile routes to Lite after QA.
+```text
+1. Profile Lite opens reliably after Google login.
+2. Valid session opens shell without global hang.
+3. Profile save works with old profile fields.
+4. Master preview works.
+5. Materials list/create/edit/save works.
+6. Material categories and filters work or unsupported items are marked needs verification.
+7. Old photos/media are visible.
+8. New upload works if supported.
+9. Client/goal photo upload/delete works.
+10. Saved mandalas/compositions are visible.
+11. Saved composition can be loaded.
+12. Mandala constructor works for supported constructor types.
+13. Mandala save/update works.
+14. Mandala download/print works if supported.
+15. Saved mandala can be published to services.
+16. Services can be edited and linked.
+17. Service link can be copied.
+18. Orders can be created from service profile.
+19. Selected service/format survives login.
+20. Master can view/manage orders.
+21. Chats work for participants if implemented.
+22. Settings/session controls work.
+23. Diagnostics are safe.
+24. /profile-old remains available.
+25. /profile/admin unchanged.
+26. /masters unchanged.
+27. / unchanged.
+28. No secrets in UI/logs/report.
+29. No secondary module causes global loading.
+30. Mobile below 980px is usable.
+31. npm run check passes.
+32. npm run build passes.
+33. Live QA passes on mentalica.vercel.app after deploy.
+```
 
-## 10. One-prompt Codex instruction
+## 22. One-prompt instruction for Codex
 
-Use this when asking Codex to implement the alternative cabinet:
+Use this exact prompt when giving the task to Codex:
 
 ```text
 Ты работаешь с проектом Reiki Yggdrasil.
@@ -684,11 +923,11 @@ https://reiki-yggdrasil.vercel.app
 Target branch:
 codex/profile-lite-full-alternative-cabinet
 
-Main document:
+Main spec:
 docs/profile-lite-alternative-cabinet-plan.md
 
 Задача:
-По документу docs/profile-lite-alternative-cabinet-plan.md начать создание нового альтернативного полноценного кабинета мастера на базе ProfileLitePage. Новый кабинет должен постепенно заменить старый тяжёлый ProfilePage, но старый кабинет должен остаться доступен как /profile-old для сверки и диагностики.
+Реализуй новый альтернативный полноценный кабинет мастера на базе ProfileLitePage по спецификации docs/profile-lite-alternative-cabinet-plan.md. Новый кабинет должен повторить полезный функционал старого тяжелого ProfilePage с точки зрения пользователя, но быть собран как модульный Lite cabinet, который не зависает из-за secondary loaders.
 
 Сначала прочитай:
 1. AGENTS.md
@@ -703,78 +942,45 @@ docs/profile-lite-alternative-cabinet-plan.md
 10. src/pages/ProfileLitePage.jsx
 11. src/pages/ProfilePage.jsx
 12. src/lib/profileLiteClient.js
-13. src/lib/supabaseClient.js
-14. src/lib/profileMaterialsClient.js
-15. src/lib/profileMediaClient.js
-16. src/lib/profileServicesClient.js, если есть
-17. src/lib/powerPlaceClient.js, если есть
-18. existing tests for profile-lite, profile-materials, profile-media, profile-services, power-place, profile-loading-recovery
+13. src/lib/profileBootstrapClient.js
+14. src/lib/supabaseClient.js
+15. src/lib/profileMaterialsClient.js
+16. src/lib/profileMediaClient.js
+17. src/lib/powerPlaceClient.js
+18. src/lib/profileServicesClient.js, если есть
+19. src/lib/masterChatClient.js, если есть
+20. all related tests under test/
 
-Если файла нет — напиши `not found`.
+Перед изменениями составь inventory старого кабинета из ProfilePage.jsx:
+- вкладки и labels;
+- profile fields;
+- material fields/categories;
+- media/photo flows;
+- mandala constructor types/variants;
+- saved composition fields;
+- service/order/chat clients and schema references;
+- CSS classes/files.
 
-Главные правила:
-- Не переписывай весь проект.
-- Не копируй старый ProfilePage.jsx как монолит.
-- Делай модульный Lite cabinet.
-- Profile shell должен открываться быстро после user/session.
-- Не ставь getOwnProfile/materials/media/mandalas/services/orders/chats в critical auth bootstrap path.
-- Любая ошибка вторичного модуля должна быть inline warning, а не global loading/error.
-- Не показывай access_token, refresh_token, raw JWT, env values, headers, private payloads.
-- Не hardcode domain; сохранить redirect flow через window.location.origin/existing helpers.
-- Не ломай /, /masters, /profile/admin, Vercel rewrites, RU-default.
-- Не меняй Supabase schema/migrations без отдельной необходимости.
+Реализация:
+1. Не копируй ProfilePage.jsx монолитом.
+2. Создай модульный Lite cabinet shell.
+3. Shell должен открываться после valid session/user, не ожидая profile/materials/media/mandalas/services/orders/chats.
+4. Добавь вкладки: Обзор, Профиль, Мои мандалы, Фото / Медиа, Материалы, Услуги, Заказы, Чаты, Настройки, Диагностика.
+5. Восстанови старые profile fields: display_name, bio, city, country, telegram, website, avatar_url, account_plan, status, preview card.
+6. Восстанови materials workspace: list/create/edit/save/status/categories/upload if supported.
+7. Восстанови media workspace: client/goal photos, upload, delete with confirm “Удалить фото из базы?”, signed URL display, latest-first default, filters if supported.
+8. Восстанови mandalas workspace: saved compositions list/load/display, constructor types/variants, central photo, object picker, covers, save/update, download/print if supported.
+9. Восстанови publish saved mandala to services: Опубликовать в услугах, Редактировать описание, Скопировать ссылку.
+10. Восстанови services/orders/chats where existing clients/schema support them. Unsupported pieces must show safe `needs verification`, not invented behavior.
+11. Keep /profile-old as old ProfilePage reference.
+12. Do not break /, /masters, /profile/admin, Vercel rewrites, RU-default.
+13. Do not expose access_token, refresh_token, raw JWT, env values, headers, private payloads.
+14. Update STATE.md and LOG.md.
 
-Первый безопасный scope:
-1. Превратить ProfileLitePage в рабочий Lite shell с вкладками:
-   - Обзор
-   - Профиль
-   - Мои мандалы
-   - Фото / Медиа
-   - Материалы
-   - Услуги
-   - Заказы
-   - Чаты
-   - Настройки
-   - Диагностика
-2. Перенести существующие блоки ProfileLitePage в соответствующие вкладки:
-   - auth/profile summary -> Обзор
-   - profile form -> Профиль
-   - current materials preview -> Материалы
-   - safe diagnostics -> Диагностика
-3. Добавить безопасные placeholders для:
-   - Мои мандалы
-   - Фото / Медиа
-   - Услуги
-   - Заказы
-   - Чаты
-   - Настройки
-4. Добавить quick cards on Overview for module navigation.
-5. Tab switching must not reload the page.
-6. Materials failure must not block the shell.
-7. Keep /profile-old on old ProfilePage.
-8. Do not move the full Power Place constructor in the first PR.
-9. Update STATE.md and LOG.md.
-
-Allowed files for first PR:
-- src/pages/ProfileLitePage.jsx
-- src/lib/profileLiteClient.js only if needed
-- src/profileCabinet.css or existing cabinet CSS
-- test/profileLiteClient.test.mjs
-- test/profileLiteRoute.test.mjs
-- STATE.md
-- LOG.md
-
-Read-only unless needed:
-- src/pages/ProfilePage.jsx
-- src/lib/profileBootstrapClient.js
-- src/lib/supabaseClient.js
-- src/lib/profileMaterialsClient.js
-- src/lib/profileMediaClient.js
-- src/lib/profileServicesClient.js
-- src/lib/powerPlaceClient.js
-- supabase/migrations/*
-- vercel.json
-- src/main.jsx
+If the full implementation is too large for one safe PR:
+- implement shell + profile + materials + media/saved mandalas first;
+- leave services/orders/chats as safe visible modules with exact next TODOs;
+- report what remains.
 
 Checks:
 - npm run test:profile-lite
@@ -786,7 +992,7 @@ Checks:
 - npm run check
 - npm run build
 
-Local preview QA:
+Local QA:
 - /
 - /profile
 - /profile-lite
@@ -798,72 +1004,61 @@ Local preview QA:
 - /profile/settings
 - /masters
 - /profile/admin
+- desktop 1280px
+- mobile below 980px
+- no console errors
+- no horizontal overflow
 
-Report format:
+Report:
 - changed files
+- inventory found
 - route map after change
+- implemented modules
+- modules left as needs verification
 - checks run
-- local preview QA
-- what was verified
-- what was not verified
+- QA run
 - risks
-- next recommended module PR
+- what was not verified
+- next PR if needed
 ```
 
-## 11. Completion criteria for the full migration
+## 23. Reporting template
 
-The alternative Lite cabinet can replace the old cabinet only when all are true:
+Every Codex report must use this format:
 
 ```text
-/profile-lite opens reliably after Google login
-profile save works
-materials list/create/edit works
-old photos/media are visible
-new upload works if supported
-saved mandalas are visible
-mandala constructor works or has safe equivalent
-saved mandala can publish to services
-services can be edited and linked
-orders can be created from service profile
-selected service/format survives login
-master can view/manage orders
-chats work for participants if implemented
-/profile/admin unchanged
-/masters unchanged
-/ unchanged
-no secrets in UI/logs
-no global loading caused by secondary modules
-mobile below 980px usable
-npm run check passes
-npm run build passes
-live QA passes on mentalica.vercel.app
+Branch:
+PR:
+
+Changed files:
+
+Inventory found:
+- tabs:
+- profile fields:
+- materials:
+- media:
+- mandalas:
+- services:
+- orders:
+- chats:
+
+Implemented:
+
+Needs verification:
+
+Route map after change:
+
+Checks run:
+
+Local QA:
+
+Not verified:
+
+Risks:
+
+Next step:
 ```
 
-## 12. Risks
+## 24. Final summary
 
-Main risks:
-
-```text
-old heavy ProfilePage has mixed auth/data/UI logic
-old images may use multiple storage reference formats
-signed URL resolution may be timing/profile-id dependent
-services/orders schema may be partial or MVP-only
-chat RLS must remain participant-only
-route switch can accidentally reintroduce old /profile hanging
-Vercel production may be stale if deploy limit/rate limit is hit
-```
-
-Mitigation:
-
-```text
-small PRs
-module-by-module transfer
-/profile-old kept as reference
-inline module errors
-tests after every step
-live QA before route switch
-```
-
-## 13. Final summary
-
-The new Profile Lite alternative cabinet must be rebuilt as a modular, reliable master workspace that contains all previous useful functions of the old heavy cabinet, but without inheriting the old global loading/auth bootstrap fragility.
+The new Profile Lite alternative cabinet must recreate the old cabinet's real user-facing functionality, but with a safer modular architecture: fast shell opening, independent modules, inline failures, safe diagnostics, no secrets, and `/profile-old` preserved as the old reference until the migration is complete.
