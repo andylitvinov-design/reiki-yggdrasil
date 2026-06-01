@@ -245,3 +245,39 @@ for (const rawSecretPattern of [
     "old /profile must not render stored tokens or raw session data"
   );
 }
+
+assert.equal(
+  /runBackgroundUserVerification[\s\S]{0,800}setAuthStatus\("ready"\)/.test(profilePageSource),
+  false,
+  "background verification must not be called inline before setAuthStatus(ready) commit"
+);
+
+assert.equal(
+  /setAuthStatus\("ready"\)[\s\S]{0,200}runBackgroundUserVerification/.test(profilePageSource),
+  false,
+  "background verification must not be called inline inside bootstrap load() after setAuthStatus(ready)"
+);
+
+assert.match(
+  profilePageSource,
+  /useEffect\(\(\) => \{[\s\S]{0,200}authStatus !== "ready"[\s\S]{0,400}runBackgroundUserVerification/,
+  "background verification must run in a dedicated useEffect that guards on authStatus === ready"
+);
+
+assert.match(
+  profilePageSource,
+  /backgroundVerificationTokenRef\.current === sessionAccessToken[\s\S]{0,50}return/,
+  "background verification useEffect must have a ref guard to run only once per access_token"
+);
+
+assert.equal(
+  /runBackgroundUserVerification[\s\S]{0,1000}setAuthStatus\("loading"\)/.test(profilePageSource),
+  false,
+  "background verification failure path must not set authStatus to loading"
+);
+
+assert.match(
+  profilePageSource,
+  /window\.__REIKI_PROFILE_REACT_DEBUG__ = \{\}/,
+  "profile debug must be reset to empty on component mount to prevent stale debug across route changes"
+);
