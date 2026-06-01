@@ -1,0 +1,66 @@
+.power-place-chess {
+  --chess-cell-scale: 100%;
+}
+
+.profileChessCellScaleControl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.profileChessCellScaleControl > span {
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.profileChessCellScaleControl button {
+  border: 1px solid rgba(157, 99, 25, 0.28);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #5b3a12;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.profileChessCellScaleControl button.active {
+  background: linear-gradient(180deg, #3a250e, #98600e);
+  border-color: rgba(255, 216, 128, 0.58);
+  color: #fff2ce;
+}
+
+.power-place-chess__cell {
+  place-items: center;
+  background-clip: padding-box;
+}
+
+.power-place-chess__cell > .power-place-chess__slot,
+.power-place-chess__cell > .power-place-chess__center {
+  width: var(--chess-cell-scale, 100%);
+  height: var(--chess-cell-scale, 100%);
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.power-place-chess__top-row {
+  align-items: center;
+  justify-items: center;
+}
+
+.power-place-chess__top-row > .power-place-chess__top-slot {
+  width: var(--chess-cell-scale, 100%);
+  max-width: 100%;
+}
+
+.power-place-chess--plus-8 .power-place-chess__slot,
+.power-place-chess--plus-8 .power-place-chess__center {
+  transform: translate(-50%, -50%) scale(calc(var(--chess-cell-scale-number, 100) / 100));
+  transform-origin: center;
+}
