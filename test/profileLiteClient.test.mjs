@@ -122,6 +122,12 @@ assert.deepEqual(payload, {
   user_id: "user-1",
   display_name: "Master",
   bio: "Bio",
+  city: "",
+  country: "",
+  telegram: "",
+  website: "",
+  avatar_url: "",
+  account_plan: "start",
   status: "draft"
 });
 

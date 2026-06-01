@@ -12,6 +12,39 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — Profile Lite full alternative cabinet
+
+- Branch: `codex/profile-lite-full-alternative-cabinet`, based on fresh `origin/main` commit `7645c0c`.
+- Scope: replace the daily `/profile` cabinet with a modular `ProfileLitePage` alternative while preserving old heavy `ProfilePage` at `/profile-old`.
+- Route mapping change:
+  - `/profile` renders `ProfileLitePage` overview;
+  - `/profile-lite` renders the same Lite overview fallback;
+  - `/profile-old` remains the heavy diagnostic/reference cabinet;
+  - `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings` render Lite tabs;
+  - `/`, `/masters`, `/profile/admin`, and Vercel rewrites remain unchanged.
+- Architecture:
+  - `ProfileLitePage.jsx` is the route container for auth/session/bootstrap and active-tab wiring;
+  - focused modules live under `src/pages/profile-lite/`;
+  - profile, materials, media/photos, saved mandalas, services, orders, and chats load independently after shell open;
+  - secondary module failures render inline sanitized `needs verification` messages and do not return the shell to global loading.
+- Implemented modules:
+  - Overview, Профиль, Мои мандалы / Power Place foundation, Фото / Медиа, Материалы, Услуги, Заказы, Чаты, Настройки, Диагностика.
+- Needs verification:
+  - live Supabase table/RLS availability for services/orders/chats;
+  - authenticated live media upload/delete and saved composition save/update;
+  - visual/data parity against `/profile-old` after deploy.
+- Verification so far:
+  - Passed `npm run test:profile-lite`.
+  - Passed `npm run test:profile-materials`.
+  - Passed `npm run test:profile-media`.
+  - Passed `npm run test:profile-services`.
+  - Passed `npm run test:power-place`.
+  - Passed `npm run test:profile-loading-recovery`.
+  - Passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`.
+  - Passed `npm run build`.
+  - Local preview QA at `http://localhost:4178` covered `/`, `/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings`, `/masters`, and `/profile/admin` at desktop 1280 and mobile 390 with HTTP 200, no console issues, no Vite overlay, and no horizontal overflow.
+  - Authenticated Supabase module QA and production/legacy live QA remain pending.
+
 ## 2026-06-01 — JWT immediate shell-open for heavy ProfilePage
 
 - Branch: `claude/festive-beaver-3ceaf9`.

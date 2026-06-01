@@ -9,7 +9,7 @@
     "test:profile-media": "node test/profileMediaClient.test.mjs",
     "test:profile-materials": "node test/profileMaterials.test.mjs",
     "test:profile-loading-recovery": "node test/profileLoadingRecovery.test.mjs && node test/profilePageAuthBootstrap.test.mjs && node test/profileAuthRenderRecovery.test.mjs",
-    "test:profile-lite": "node test/profileLiteClient.test.mjs && node test/profileLiteRoute.test.mjs",
+    "test:profile-lite": "node test/profileLiteClient.test.mjs && node test/profileLiteRoute.test.mjs && node test/profileLiteCabinetContract.test.mjs",
     "test:profile-services": "node test/profileServicesClient.test.mjs",
     "test:power-place": "node test/powerPlaceClient.test.mjs",
     "preview": "vite preview --host 0.0.0.0",

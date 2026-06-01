@@ -1,7 +1,22 @@
 export const PROFILE_LITE_AUTH_STATUSES = ["idle", "loading", "success", "error"];
 export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "error"];
 
-const SAFE_STATUS_VALUES = ["draft", "pending"];
+export const PROFILE_LITE_TABS = [
+  { id: "overview", label: "Обзор" },
+  { id: "profile", label: "Профиль" },
+  { id: "mandalas", label: "Мои мандалы" },
+  { id: "media", label: "Фото / Медиа" },
+  { id: "materials", label: "Материалы" },
+  { id: "services", label: "Услуги" },
+  { id: "orders", label: "Заказы" },
+  { id: "chats", label: "Чаты" },
+  { id: "settings", label: "Настройки" },
+  { id: "diagnostics", label: "Диагностика" }
+];
+
+const SAFE_STATUS_VALUES = ["draft", "pending", "approved", "rejected"];
+const SAVE_STATUS_VALUES = ["draft", "pending"];
+const SAFE_PLAN_VALUES = ["start", "pro"];
 
 function hasText(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -11,6 +26,14 @@ export function normalizeProfileLiteStatus(value, fallback = "idle") {
   return PROFILE_LITE_AUTH_STATUSES.includes(value) || PROFILE_LITE_PROFILE_STATUSES.includes(value)
     ? value
     : fallback;
+}
+
+export function getProfileLiteTabById(tabId) {
+  return PROFILE_LITE_TABS.find((tab) => tab.id === tabId) || PROFILE_LITE_TABS[0];
+}
+
+export function hasProfileLiteSessionCredential(session) {
+  return Boolean(session?.access_token);
 }
 
 export function shortUserId(value) {
@@ -55,17 +78,89 @@ export function createProfileLiteForm(profile = null, user = null) {
   return {
     display_name: profile?.display_name || user?.email?.split("@")?.[0] || "",
     bio: profile?.bio || "",
+    city: profile?.city || "",
+    country: profile?.country || "",
+    telegram: profile?.telegram || "",
+    website: profile?.website || "",
+    avatar_url: profile?.avatar_url || "",
+    account_plan: SAFE_PLAN_VALUES.includes(profile?.account_plan) ? profile.account_plan : "start",
     status: SAFE_STATUS_VALUES.includes(profile?.status) ? profile.status : "draft"
   };
 }
 
-export function createProfileLiteSavePayload(form = {}, user = null) {
+export function createProfileLiteSavePayload(form = {}, user = null, requestedStatus = form.status) {
   return {
     user_id: user?.id || "",
     display_name: String(form.display_name || "").trim(),
     bio: String(form.bio || "").trim(),
-    status: SAFE_STATUS_VALUES.includes(form.status) ? form.status : "draft"
+    city: String(form.city || "").trim(),
+    country: String(form.country || "").trim(),
+    telegram: String(form.telegram || "").trim(),
+    website: String(form.website || "").trim(),
+    avatar_url: String(form.avatar_url || "").trim(),
+    account_plan: SAFE_PLAN_VALUES.includes(form.account_plan) ? form.account_plan : "start",
+    status: SAVE_STATUS_VALUES.includes(requestedStatus) ? requestedStatus : "draft"
   };
+}
+
+export async function createProfileLiteShellViewModel({
+  supabaseConfigured = false,
+  session = null,
+  sessionExpired = false,
+  getCurrentUser
+} = {}) {
+  if (!supabaseConfigured) {
+    return {
+      authStatus: "idle",
+      user: null,
+      profile: null,
+      error: "Supabase не настроен."
+    };
+  }
+
+  if (!session) {
+    return {
+      authStatus: "idle",
+      user: null,
+      profile: null,
+      error: ""
+    };
+  }
+
+  if (sessionExpired) {
+    return {
+      authStatus: "error",
+      user: null,
+      profile: null,
+      error: "Сессия устарела. Войдите заново."
+    };
+  }
+
+  try {
+    const user = await getCurrentUser(session);
+    if (!user?.id) {
+      return {
+        authStatus: "error",
+        user: null,
+        profile: null,
+        error: "Пользователь не найден. Войдите заново."
+      };
+    }
+
+    return {
+      authStatus: "success",
+      user,
+      profile: null,
+      error: ""
+    };
+  } catch (error) {
+    return {
+      authStatus: "error",
+      user: null,
+      profile: null,
+      error: safeProfileLiteError(error, "Пользователь не загрузился.")
+    };
+  }
 }
 
 export async function loadProfileLiteViewModel({

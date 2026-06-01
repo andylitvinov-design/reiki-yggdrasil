@@ -1114,3 +1114,26 @@ The work is complete only when Codex can state:
 ```text
 The new Profile Lite cabinet is functionally usable as an alternative copy of the old master cabinet. The old cabinet remains available at /profile-old. All implemented modules load independently and do not block the shell. All unsupported pieces are explicitly marked needs verification with exact missing clients/schema/routes. Tests and build were run, and route/mobile/desktop QA was performed.
 ```
+
+---
+
+## 16. One-shot execution result — 2026-06-01
+
+Implemented on branch `codex/profile-lite-full-alternative-cabinet`.
+
+| Area | Status | Notes |
+|---|---|---|
+| Auth shell | done | Shell opens after valid session/user and keeps secondary loaders out of auth state. |
+| Overview | done | Summary cards show module counts/statuses. |
+| Profile | done | Old fields restored with draft/pending save and preview. |
+| Materials | partial | List/create/upload path uses existing client; edit existing material remains future work. |
+| Media | partial | Client/goal photos and tradition assets list/upload/delete where helpers support it. |
+| Saved mandalas | done | Existing compositions list/load into Lite constructor draft. |
+| Constructor | partial | Persistence foundation supports old fields/types/variants; heavy visual builder remains `/profile-old` reference. |
+| Services | partial | List/create/publish through existing client; live table/RLS needs verification. |
+| Orders | partial | List/update through existing client; live table/RLS needs verification. |
+| Chats | partial | Existing thread list/send through existing client; new conversation creation needs live approved-profile/RLS verification. |
+| Settings | done | Reset/status/reference links included. |
+| Diagnostics | done | Safe boolean/status diagnostics only. |
+| Routes | done | `/profile` and modular profile routes now render Lite; `/profile-old` remains heavy. |
+| QA | partial | Local automated checks/build run; browser/live QA remains required. |

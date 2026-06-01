@@ -1,5 +1,50 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — Profile Lite full alternative cabinet
+
+- Branch: `codex/profile-lite-full-alternative-cabinet`.
+- Changed files:
+  - `src/main.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/*`
+  - `src/lib/profileLiteClient.js`
+  - `src/profileCabinet.css`
+  - `test/profileLiteClient.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `package.json`
+  - `docs/profile-lite-alternative-cabinet-plan.md`
+  - `docs/profile-lite-alternative-cabinet-one-shot-program.md`
+  - `STATE.md`
+  - `LOG.md`
+- Route result:
+  - `/profile` and `/profile-lite` render the modular Lite cabinet overview;
+  - `/profile-old` remains heavy `ProfilePage`;
+  - `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings` route to Lite tab entrypoints;
+  - `/`, `/masters`, `/profile/admin`, and `vercel.json` rewrites are unchanged.
+- Implemented:
+  - shell opens after valid session/user and does not wait for profile/materials/media/mandalas/services/orders/chats;
+  - profile editor restores old fields and preview;
+  - materials/media/saved mandalas/Power Place persistence foundation use existing clients;
+  - services/orders/chats are visible modules using existing clients with inline `needs verification` fallbacks;
+  - diagnostics show safe statuses only.
+- Checks run so far:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-media`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Local browser QA:
+  - preview URL: `http://localhost:4178`;
+  - desktop 1280 and mobile 390 covered `/`, `/profile`, `/profile-lite`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings`, `/masters`, and `/profile/admin`;
+  - all checked routes returned HTTP 200, no console errors/warnings, no Vite error overlay, and no horizontal overflow.
+- Not verified yet:
+  - authenticated live Supabase data parity with `/profile-old`;
+  - production/legacy deployment verification.
+
 ## 2026-06-01 — JWT immediate shell-open: eliminate getCurrentUser from critical path
 
 - Branch: `claude/festive-beaver-3ceaf9`.

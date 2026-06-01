@@ -1,5 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { listOwnMaterials, materialStatusText, publicationTypeLabel } from "../lib/profileMaterialsClient.js";
+import { reikiLevels } from "../data/reikiKnowledgeBase.js";
+import { sourcedStepSettings } from "../data/reikiStepSettings.js";
+import { mysteryTraditions } from "../data/mysteryTraditions.js";
+import {
+  createEmptyMaterialForm,
+  createOwnMaterial,
+  listOwnMaterials,
+  normalizeMaterialForm
+} from "../lib/profileMaterialsClient.js";
+import {
+  createEmptyServiceForm,
+  createOwnService,
+  listOwnServiceOrders,
+  listOwnServices,
+  publishOwnService,
+  updateServiceOrder
+} from "../lib/profileServicesClient.js";
 import {
   clearStoredSession,
   getCurrentUser,
@@ -12,20 +28,138 @@ import {
   supabaseEnv
 } from "../lib/supabaseClient.js";
 import {
+  createClientGoalPhoto,
+  createPowerPlaceComposition,
+  createTraditionAsset,
+  deleteClientGoalPhoto,
+  getPlanLimits,
+  listClientGoalPhotos,
+  listPowerPlaceCompositions,
+  listTraditionAssets,
+  normalizeAccountPlan,
+  updatePowerPlaceComposition
+} from "../lib/powerPlaceClient.js";
+import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
+import { loadProfileCabinetBootstrap } from "../lib/profileBootstrapClient.js";
+import { listOwnChatThreads, sendChatMessage } from "../lib/masterChatClient.js";
+import {
   createProfileLiteDiagnostics,
   createProfileLiteForm,
   createProfileLiteSavePayload,
-  loadProfileLiteViewModel,
-  safeProfileLiteError,
-  shortUserId
+  getProfileLiteTabById,
+  hasProfileLiteSessionCredential,
+  safeProfileLiteError
 } from "../lib/profileLiteClient.js";
+import ProfileLiteShell from "./profile-lite/ProfileLiteShell.jsx";
+import ProfileLiteOverview from "./profile-lite/ProfileLiteOverview.jsx";
+import ProfileLiteProfileModule from "./profile-lite/ProfileLiteProfileModule.jsx";
+import ProfileLiteMandalasModule from "./profile-lite/ProfileLiteMandalasModule.jsx";
+import ProfileLiteMediaModule from "./profile-lite/ProfileLiteMediaModule.jsx";
+import ProfileLiteMaterialsModule from "./profile-lite/ProfileLiteMaterialsModule.jsx";
+import ProfileLiteServicesModule from "./profile-lite/ProfileLiteServicesModule.jsx";
+import ProfileLiteOrdersModule from "./profile-lite/ProfileLiteOrdersModule.jsx";
+import ProfileLiteChatsModule from "./profile-lite/ProfileLiteChatsModule.jsx";
+import ProfileLiteSettingsModule from "./profile-lite/ProfileLiteSettingsModule.jsx";
+import ProfileLiteDiagnosticsModule from "./profile-lite/ProfileLiteDiagnosticsModule.jsx";
+
+const stepOptions = reikiLevels.flatMap((level) =>
+  level.steps.map((step) => ({
+    ...step,
+    levelId: level.id,
+    levelName: level.name,
+    stepLabel: level.stepLabel,
+    fullLabel: `${level.id}. ${level.name} · ${level.stepLabel} ${step.number}: ${step.title}`
+  }))
+);
+
+const firstStep = stepOptions[0];
+const firstSettings = sourcedStepSettings[firstStep?.id] || firstStep?.settings || [];
+const EMPTY_MATERIAL = createEmptyMaterialForm({
+  step_id: firstStep?.id || "",
+  step_title: firstStep?.title || "",
+  setting_title: firstSettings[0]?.title || "",
+  setting_index: firstSettings.length > 0 ? 1 : null
+});
+const EMPTY_CLIENT_PHOTO = { title: "", image_url: "", notes: "", file: null };
+const EMPTY_TRADITION_ASSET = {
+  tradition_id: mysteryTraditions[0]?.id || "",
+  title: "",
+  image_url: "",
+  notes: "",
+  file: null
+};
+const EMPTY_COMPOSITION = {
+  id: "",
+  title: "",
+  constructor_type: "zodiac",
+  geometry: 4,
+  zodiac_visible_count: 12,
+  altar_center_ratio: "1",
+  business_vertex_zone_count: 1,
+  star_variant: "closed",
+  chess_variant: "classic-14",
+  cover_ref: null,
+  object_refs: {},
+  central_photo_id: "",
+  tradition_id: "",
+  tradition_title: "",
+  resource_comparison_mode: "client_photo",
+  resource_without_mandala_comment: "",
+  resource_with_mandala_comment: ""
+};
+const EMPTY_ORDER_PATCH = {
+  id: "",
+  master_comment: "",
+  result_image_url: "",
+  result_image_bucket: null,
+  result_image_path: null,
+  status: "sent"
+};
 
 function resetWindowUrl() {
   if (typeof window === "undefined") return;
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
-export default function ProfileLitePage({ onNavigateHome, onNavigateMasters }) {
+function settingsForStep(stepId) {
+  const step = stepOptions.find((item) => item.id === stepId) || firstStep;
+  return sourcedStepSettings[step?.id] || step?.settings || [];
+}
+
+function moduleError(error, fallback) {
+  return safeProfileLiteError(error, fallback);
+}
+
+function buildMaterialPayload(form, profileId, nextStatus) {
+  const step = stepOptions.find((item) => item.id === form.step_id) || firstStep;
+  const settings = settingsForStep(step?.id);
+  const settingIndex = settings.findIndex((item) => item.title === form.setting_title);
+
+  return {
+    profile_id: profileId,
+    ...normalizeMaterialForm({
+      ...form,
+      step_id: step?.id || "",
+      step_title: step?.title || "",
+      setting_title: form.setting_title || "",
+      setting_index: settingIndex >= 0 ? settingIndex + 1 : null
+    }, nextStatus),
+    updated_at: new Date().toISOString()
+  };
+}
+
+function downloadText(filename, text) {
+  const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
+  const [activeTab, setActiveTab] = useState(getProfileLiteTabById(initialTab).id);
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -36,10 +170,46 @@ export default function ProfileLitePage({ onNavigateHome, onNavigateMasters }) {
   const [form, setForm] = useState(() => createProfileLiteForm());
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveMessage, setSaveMessage] = useState("");
+
   const [materialsStatus, setMaterialsStatus] = useState("idle");
+  const [materialsError, setMaterialsError] = useState("");
   const [materials, setMaterials] = useState([]);
+  const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
+  const [materialFile, setMaterialFile] = useState(null);
+
+  const [mediaStatus, setMediaStatus] = useState("idle");
+  const [mediaError, setMediaError] = useState("");
+  const [clientGoalPhotos, setClientGoalPhotos] = useState([]);
+  const [traditionAssets, setTraditionAssets] = useState([]);
+  const [clientPhotoForm, setClientPhotoForm] = useState(EMPTY_CLIENT_PHOTO);
+  const [traditionAssetForm, setTraditionAssetForm] = useState(EMPTY_TRADITION_ASSET);
+
+  const [mandalasStatus, setMandalasStatus] = useState("idle");
+  const [mandalasError, setMandalasError] = useState("");
+  const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
+  const [compositionDraft, setCompositionDraft] = useState(EMPTY_COMPOSITION);
+  const [compositionMessage, setCompositionMessage] = useState("");
+
+  const [servicesStatus, setServicesStatus] = useState("idle");
+  const [servicesError, setServicesError] = useState("");
+  const [services, setServices] = useState([]);
+  const [serviceForm, setServiceForm] = useState(() => createEmptyServiceForm());
+
+  const [ordersStatus, setOrdersStatus] = useState("idle");
+  const [ordersError, setOrdersError] = useState("");
+  const [orders, setOrders] = useState([]);
+  const [orderPatch, setOrderPatch] = useState(EMPTY_ORDER_PATCH);
+
+  const [chatsStatus, setChatsStatus] = useState("idle");
+  const [chatsError, setChatsError] = useState("");
+  const [chatThreads, setChatThreads] = useState([]);
+  const [selectedThreadId, setSelectedThreadId] = useState("");
+  const [chatDraft, setChatDraft] = useState("");
 
   const sessionExpired = useMemo(() => isStoredSessionExpired(session), [session]);
+  const activeSettings = useMemo(() => settingsForStep(materialForm.step_id), [materialForm.step_id]);
+  const accountPlan = normalizeAccountPlan(form.account_plan || profile?.account_plan);
+  const planLimits = getPlanLimits(accountPlan);
   const diagnostics = useMemo(() => createProfileLiteDiagnostics({
     supabaseConfigured: supabaseEnv.isConfigured,
     session,
@@ -49,6 +219,39 @@ export default function ProfileLitePage({ onNavigateHome, onNavigateMasters }) {
     authStatus,
     profileStatus
   }), [authStatus, profile, profileStatus, session, sessionExpired, user]);
+
+  const moduleStates = useMemo(() => ({
+    profile: { status: profileStatus, count: profile ? 1 : 0, error: profileError },
+    materials: { status: materialsStatus, count: materials.length, error: materialsError },
+    media: { status: mediaStatus, count: clientGoalPhotos.length + traditionAssets.length, error: mediaError },
+    mandalas: { status: mandalasStatus, count: powerPlaceCompositions.length, error: mandalasError },
+    services: { status: servicesStatus, count: services.length, error: servicesError },
+    orders: { status: ordersStatus, count: orders.length, error: ordersError },
+    chats: { status: chatsStatus, count: chatThreads.length, error: chatsError }
+  }), [
+    chatThreads.length,
+    chatsError,
+    chatsStatus,
+    clientGoalPhotos.length,
+    materials.length,
+    materialsError,
+    materialsStatus,
+    mediaError,
+    mediaStatus,
+    mandalasError,
+    mandalasStatus,
+    orders.length,
+    ordersError,
+    ordersStatus,
+    powerPlaceCompositions.length,
+    profile,
+    profileError,
+    profileStatus,
+    services.length,
+    servicesError,
+    servicesStatus,
+    traditionAssets.length
+  ]);
 
   const resetLocalState = () => {
     clearStoredSession();
@@ -62,12 +265,29 @@ export default function ProfileLitePage({ onNavigateHome, onNavigateMasters }) {
     setForm(createProfileLiteForm());
     setSaveStatus("idle");
     setSaveMessage("");
-    setMaterialsStatus("idle");
     setMaterials([]);
+    setMaterialsStatus("idle");
+    setMaterialsError("");
+    setClientGoalPhotos([]);
+    setTraditionAssets([]);
+    setMediaStatus("idle");
+    setMediaError("");
+    setPowerPlaceCompositions([]);
+    setMandalasStatus("idle");
+    setMandalasError("");
+    setServices([]);
+    setServicesStatus("idle");
+    setServicesError("");
+    setOrders([]);
+    setOrdersStatus("idle");
+    setOrdersError("");
+    setChatThreads([]);
+    setChatsStatus("idle");
+    setChatsError("");
     resetWindowUrl();
   };
 
-  const refreshData = async () => {
+  const refreshShell = async () => {
     const nextSession = storeSessionFromUrlHash() || getStoredSession();
     setSession(nextSession);
     setUser(null);
@@ -75,107 +295,228 @@ export default function ProfileLitePage({ onNavigateHome, onNavigateMasters }) {
     setAuthError("");
     setProfileError("");
     setSaveMessage("");
-    setMaterials([]);
-    setMaterialsStatus("idle");
 
-    if (!supabaseEnv.isConfigured || !nextSession) {
-      const viewModel = await loadProfileLiteViewModel({
-        supabaseConfigured: supabaseEnv.isConfigured,
-        session: nextSession
-      });
-      setAuthStatus(viewModel.authStatus);
-      setProfileStatus(viewModel.profileStatus);
-      setAuthError(viewModel.error);
+    if (!supabaseEnv.isConfigured) {
+      setAuthStatus("idle");
+      setAuthError("Supabase не настроен. Кабинет не зависает и ждёт настройки окружения.");
+      return;
+    }
+
+    if (!nextSession) {
+      setAuthStatus("idle");
       return;
     }
 
     if (isStoredSessionExpired(nextSession)) {
-      const viewModel = await loadProfileLiteViewModel({
-        supabaseConfigured: true,
-        session: nextSession,
-        sessionExpired: true
-      });
-      setAuthStatus(viewModel.authStatus);
-      setProfileStatus(viewModel.profileStatus);
-      setAuthError(viewModel.error);
+      setAuthStatus("error");
+      setAuthError("Сессия устарела. Войдите заново.");
       return;
     }
 
     setAuthStatus("loading");
-    setProfileStatus("idle");
-    const viewModel = await loadProfileLiteViewModel({
-      supabaseConfigured: true,
-      session: nextSession,
-      getCurrentUser,
-      getOwnProfile
-    });
-    setAuthStatus(viewModel.authStatus);
-    setProfileStatus(viewModel.profileStatus);
-    setUser(viewModel.user);
-    setProfile(viewModel.profile);
-    setAuthError(viewModel.error);
-    setProfileError(viewModel.profileError);
-    setForm(createProfileLiteForm(viewModel.profile, viewModel.user));
+    try {
+      const { currentUser } = await loadProfileCabinetBootstrap({ session: nextSession, getCurrentUser });
+      if (!currentUser?.id) {
+        setAuthStatus("error");
+        setAuthError("Пользователь не найден. Войдите заново.");
+        return;
+      }
+      setUser(currentUser);
+      setForm(createProfileLiteForm(null, currentUser));
+      setAuthStatus("success");
+    } catch (error) {
+      setAuthStatus("error");
+      setAuthError(safeProfileLiteError(error, "Пользователь не загрузился."));
+    }
   };
 
   useEffect(() => {
-    void refreshData();
+    void refreshShell();
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-
-    async function loadMaterials() {
-      if (!profile?.id || !session || authStatus !== "success") {
-        setMaterialsStatus("idle");
-        setMaterials([]);
+    async function loadProfile() {
+      if (!user?.id || !hasProfileLiteSessionCredential(session)) {
+        setProfile(null);
+        setProfileStatus("idle");
         return;
       }
+      setProfileStatus("loading");
+      setProfileError("");
+      try {
+        const row = await getOwnProfile(user.id, session);
+        if (cancelled) return;
+        setProfile(row);
+        setForm(createProfileLiteForm(row, user));
+        setProfileStatus(row ? "success" : "idle");
+      } catch (error) {
+        if (cancelled) return;
+        setProfile(null);
+        setProfileStatus("error");
+        setProfileError(moduleError(error, "Профиль не загрузился."));
+      }
+    }
+    void loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [session, user?.id]);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMaterials() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+        setMaterials([]);
+        setMaterialsStatus("idle");
+        return;
+      }
       setMaterialsStatus("loading");
+      setMaterialsError("");
       try {
         const rows = await listOwnMaterials(profile.id, session);
         if (cancelled) return;
-        setMaterials(Array.isArray(rows) ? rows : []);
+        setMaterials(rows || []);
         setMaterialsStatus("success");
-      } catch (_error) {
+      } catch (error) {
         if (cancelled) return;
         setMaterials([]);
         setMaterialsStatus("needs-verification");
+        setMaterialsError(moduleError(error, "profile_cabinet_publications request failed or migration/RLS not applied"));
       }
     }
-
     void loadMaterials();
     return () => {
       cancelled = true;
     };
-  }, [authStatus, profile?.id, session]);
+  }, [profile?.id, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMediaAndMandalas() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+        setClientGoalPhotos([]);
+        setTraditionAssets([]);
+        setPowerPlaceCompositions([]);
+        setMediaStatus("idle");
+        setMandalasStatus("idle");
+        return;
+      }
+      setMediaStatus("loading");
+      setMandalasStatus("loading");
+      setMediaError("");
+      setMandalasError("");
+      const [photosResult, traditionResult, compositionsResult] = await Promise.allSettled([
+        listClientGoalPhotos(profile.id, session),
+        listTraditionAssets(profile.id, traditionAssetForm.tradition_id, session),
+        listPowerPlaceCompositions(profile.id, session)
+      ]);
+      if (cancelled) return;
+      if (photosResult.status === "fulfilled") {
+        setClientGoalPhotos(photosResult.value || []);
+      } else {
+        setMediaError(moduleError(photosResult.reason, "profile_cabinet_client_goal_photos request failed or migration/RLS not applied"));
+      }
+      if (traditionResult.status === "fulfilled") {
+        setTraditionAssets(traditionResult.value || []);
+      } else {
+        setMediaError(moduleError(traditionResult.reason, "profile_cabinet_tradition_assets request failed or migration/RLS not applied"));
+      }
+      if (compositionsResult.status === "fulfilled") {
+        setPowerPlaceCompositions(compositionsResult.value || []);
+        setMandalasStatus("success");
+      } else {
+        setPowerPlaceCompositions([]);
+        setMandalasStatus("needs-verification");
+        setMandalasError(moduleError(compositionsResult.reason, "profile_cabinet_power_place_compositions request failed or migration/RLS not applied"));
+      }
+      setMediaStatus(photosResult.status === "fulfilled" || traditionResult.status === "fulfilled" ? "success" : "needs-verification");
+    }
+    void loadMediaAndMandalas();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session, traditionAssetForm.tradition_id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBusinessModules() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+        setServices([]);
+        setOrders([]);
+        setChatThreads([]);
+        setServicesStatus("idle");
+        setOrdersStatus("idle");
+        setChatsStatus("idle");
+        return;
+      }
+      setServicesStatus("loading");
+      setOrdersStatus("loading");
+      setChatsStatus("loading");
+      const [servicesResult, ordersResult, chatsResult] = await Promise.allSettled([
+        listOwnServices(profile.id, session),
+        listOwnServiceOrders(profile.id, session),
+        listOwnChatThreads(profile.id, session)
+      ]);
+      if (cancelled) return;
+      if (servicesResult.status === "fulfilled") {
+        setServices(servicesResult.value || []);
+        setServicesStatus("success");
+        setServicesError("");
+      } else {
+        setServices([]);
+        setServicesStatus("needs-verification");
+        setServicesError(moduleError(servicesResult.reason, "profile_cabinet_services request failed or migration/RLS not applied"));
+      }
+      if (ordersResult.status === "fulfilled") {
+        setOrders(ordersResult.value || []);
+        setOrdersStatus("success");
+        setOrdersError("");
+      } else {
+        setOrders([]);
+        setOrdersStatus("needs-verification");
+        setOrdersError(moduleError(ordersResult.reason, "profile_cabinet_service_orders request failed or migration/RLS not applied"));
+      }
+      if (chatsResult.status === "fulfilled") {
+        const threads = (chatsResult.value || []).map((thread) => ({ ...thread, ownerProfileId: profile.id }));
+        setChatThreads(threads);
+        setSelectedThreadId((current) => current || threads[0]?.conversation_id || "");
+        setChatsStatus("success");
+        setChatsError("");
+      } else {
+        setChatThreads([]);
+        setChatsStatus("needs-verification");
+        setChatsError(moduleError(chatsResult.reason, "profile_cabinet_chat_* request failed or migration/RLS not applied"));
+      }
+    }
+    void loadBusinessModules();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
 
   const handleGoogleLogin = async () => {
     setAuthError("");
     try {
-      await signInWithGoogle("/profile-lite");
+      await signInWithGoogle(window.location.pathname === "/profile-lite" ? "/profile-lite" : "/profile");
     } catch (error) {
       setAuthStatus("error");
       setAuthError(safeProfileLiteError(error, "Не удалось начать вход через Google."));
     }
   };
 
-  const handleSaveProfile = async (event) => {
-    event.preventDefault();
-    if (!user?.id || !session) return;
-
+  const handleSaveProfile = async (nextStatus = "draft") => {
+    if (!user?.id || !hasProfileLiteSessionCredential(session)) return;
     setSaveStatus("loading");
     setSaveMessage("");
     setProfileError("");
-
     try {
-      const savedProfile = await saveOwnProfile(createProfileLiteSavePayload(form, user), session);
-      setProfile(savedProfile);
-      setForm(createProfileLiteForm(savedProfile, user));
+      const saved = await saveOwnProfile(createProfileLiteSavePayload(form, user, nextStatus), session);
+      setProfile(saved);
+      setForm(createProfileLiteForm(saved, user));
       setProfileStatus("success");
       setSaveStatus("success");
-      setSaveMessage("Профиль сохранён.");
+      setSaveMessage(nextStatus === "pending" ? "Профиль отправлен на модерацию." : "Профиль сохранён.");
     } catch (error) {
       setSaveStatus("error");
       setProfileStatus("error");
@@ -183,155 +524,421 @@ export default function ProfileLitePage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
-  return (
-    <div className="cabinetShell profileLiteShell">
-      <header className="cabinetTopbar">
-        <button type="button" onClick={onNavigateHome}>На главную</button>
-        <div>
-          <p>Диагностический кабинет</p>
-          <h1>Простой кабинет мастера</h1>
-        </div>
-        <button type="button" onClick={onNavigateMasters}>Мастера</button>
-      </header>
+  const handleMaterialStepChange = (value) => {
+    const step = stepOptions.find((item) => item.id === value) || firstStep;
+    const settings = settingsForStep(step?.id);
+    setMaterialForm((current) => ({
+      ...current,
+      step_id: step?.id || "",
+      step_title: step?.title || "",
+      setting_title: settings[0]?.title || "",
+      setting_index: settings.length > 0 ? 1 : null
+    }));
+  };
 
-      <main className="cabinetMain profileLiteMain">
-        <section className="cabinetCard profileLitePanel">
-          <p className="cabinetEyebrow">Auth flow</p>
-          <h2>Проверка входа без старого кабинета</h2>
-          <p>Эта страница проверяет сессию, пользователя и профиль отдельным лёгким маршрутом.</p>
+  const handleMaterialFieldChange = (field, value) => {
+    if (field === "step_id") {
+      handleMaterialStepChange(value);
+      return;
+    }
+    setMaterialForm((current) => ({ ...current, [field]: value }));
+  };
 
-          {!supabaseEnv.isConfigured && (
-            <div className="cabinetNotice compactNotice">
-              Supabase не настроен. Кабинет не зависает и ждёт настройки окружения.
-            </div>
-          )}
+  const handleMaterialSave = async (nextStatus = "draft") => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMaterialsError("Сначала сохраните профиль мастера.");
+      setMaterialsStatus("needs-verification");
+      return;
+    }
+    try {
+      let nextForm = materialForm;
+      if (materialFile) {
+        const uploaded = await uploadProfileMedia(materialFile, { profileId: profile.id, kind: "material" }, session);
+        nextForm = { ...materialForm, image_url: uploaded.ref };
+      }
+      const saved = await createOwnMaterial(buildMaterialPayload(nextForm, profile.id, nextStatus), session);
+      setMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setMaterialForm(EMPTY_MATERIAL);
+      setMaterialFile(null);
+      setMaterialsStatus("success");
+      setMaterialsError("");
+    } catch (error) {
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(moduleError(error, "profile_cabinet_publications save failed or migration/RLS not applied"));
+    }
+  };
 
-          {authStatus === "loading" && (
-            <div className="cabinetNotice compactNotice">Сессия найдена, загружаю пользователя...</div>
-          )}
+  const handleClientPhotoSave = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      return;
+    }
+    try {
+      let photo = {
+        profile_id: profile.id,
+        title: clientPhotoForm.title,
+        image_url: clientPhotoForm.image_url,
+        notes: clientPhotoForm.notes
+      };
+      if (clientPhotoForm.file) {
+        validateProfileMediaFile(clientPhotoForm.file);
+        const uploaded = await uploadProfileMedia(clientPhotoForm.file, { profileId: profile.id, kind: "client-goal" }, session);
+        photo = {
+          ...photo,
+          image_url: "",
+          image_bucket: uploaded.bucket,
+          image_path: uploaded.path,
+          mime_type: uploaded.metadata.mimeType,
+          file_size_bytes: uploaded.metadata.size
+        };
+      }
+      const saved = await createClientGoalPhoto(photo, accountPlan, session);
+      setClientGoalPhotos((current) => [saved, ...current].filter(Boolean));
+      setClientPhotoForm(EMPTY_CLIENT_PHOTO);
+      setMediaStatus("success");
+      setMediaError("");
+    } catch (error) {
+      setMediaStatus("needs-verification");
+      setMediaError(moduleError(error, "profile_cabinet_client_goal_photos save failed or migration/RLS not applied"));
+    }
+  };
 
-          {authError && <div className="cabinetError">{authError}</div>}
-          {profileError && <div className="cabinetError">{profileError}</div>}
+  const handleTraditionAssetSave = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      return;
+    }
+    const tradition = mysteryTraditions.find((item) => item.id === traditionAssetForm.tradition_id);
+    try {
+      let asset = {
+        profile_id: profile.id,
+        tradition_id: tradition?.id || traditionAssetForm.tradition_id,
+        tradition_title: tradition?.title || "",
+        title: traditionAssetForm.title,
+        image_url: traditionAssetForm.image_url,
+        notes: traditionAssetForm.notes
+      };
+      if (traditionAssetForm.file) {
+        validateProfileMediaFile(traditionAssetForm.file);
+        const uploaded = await uploadProfileMedia(traditionAssetForm.file, { profileId: profile.id, kind: "tradition", traditionId: asset.tradition_id }, session);
+        asset = {
+          ...asset,
+          image_url: "",
+          image_bucket: uploaded.bucket,
+          image_path: uploaded.path,
+          mime_type: uploaded.metadata.mimeType,
+          file_size_bytes: uploaded.metadata.size
+        };
+      }
+      const saved = await createTraditionAsset(asset, session);
+      setTraditionAssets((current) => [saved, ...current].filter(Boolean));
+      setTraditionAssetForm(EMPTY_TRADITION_ASSET);
+      setMediaStatus("success");
+      setMediaError("");
+    } catch (error) {
+      setMediaStatus("needs-verification");
+      setMediaError(moduleError(error, "profile_cabinet_tradition_assets save failed or migration/RLS not applied"));
+    }
+  };
 
-          {(!user || authStatus !== "success") && (
+  const handleDeleteClientPhoto = async (photo) => {
+    if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) return;
+    try {
+      await deleteClientGoalPhoto(photo.id, profile.id, session);
+      setClientGoalPhotos((current) => current.filter((item) => item.id !== photo.id));
+    } catch (error) {
+      setMediaStatus("needs-verification");
+      setMediaError(moduleError(error, "delete client goal photo failed or RLS not applied"));
+    }
+  };
+
+  const handleCompositionDraftChange = (field, value) => {
+    setCompositionDraft((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleCompositionObjectRefsChange = (value) => {
+    try {
+      const refs = value.trim() ? JSON.parse(value) : {};
+      setCompositionDraft((current) => ({ ...current, object_refs: refs }));
+      setCompositionMessage("");
+    } catch {
+      setCompositionMessage("Object refs JSON: needs verification, исправьте формат JSON.");
+    }
+  };
+
+  const handleCompositionLoad = (composition) => {
+    setCompositionDraft({
+      ...EMPTY_COMPOSITION,
+      ...composition,
+      id: composition.id || "",
+      object_refs: composition.object_refs || {}
+    });
+    setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
+  };
+
+  const handleCompositionSave = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      return;
+    }
+    try {
+      const payload = { ...compositionDraft, profile_id: profile.id };
+      const saved = compositionDraft.id
+        ? await updatePowerPlaceComposition(compositionDraft.id, payload, session)
+        : await createPowerPlaceComposition(payload, accountPlan, session);
+      setPowerPlaceCompositions((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setCompositionDraft({ ...EMPTY_COMPOSITION, ...saved, id: saved?.id || "" });
+      setCompositionMessage(compositionDraft.id ? "Место силы обновлено." : "Место силы сохранено.");
+      setMandalasStatus("success");
+      setMandalasError("");
+    } catch (error) {
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions save failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleSendCompositionToServices = () => {
+    setServiceForm((current) => ({
+      ...current,
+      profile_id: profile?.id || "",
+      composition_id: compositionDraft.id || "",
+      title: compositionDraft.title || "Мандала Места Силы",
+      description: current.description || "Услуга подготовлена из сохранённой мандалы.",
+      image_url: compositionDraft.cover_ref?.src || ""
+    }));
+    setActiveTab("services");
+  };
+
+  const handleServiceSave = async (nextStatus = "draft") => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    try {
+      const saved = await createOwnService({ ...serviceForm, profile_id: profile.id, status: nextStatus }, session);
+      setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setServiceForm(createEmptyServiceForm());
+      setServicesStatus("success");
+      setServicesError("");
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServicesError(moduleError(error, "profile_cabinet_services request failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleServicePublish = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) return;
+    try {
+      const saved = await publishOwnService({ ...serviceForm, profile_id: profile.id }, null, session);
+      setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setServiceForm(createEmptyServiceForm());
+      setServicesStatus("success");
+      setServicesError("");
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServicesError(moduleError(error, "profile_cabinet_services publish failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleOrderUpdate = async () => {
+    if (!orderPatch.id || !hasProfileLiteSessionCredential(session)) return;
+    try {
+      const saved = await updateServiceOrder(orderPatch.id, orderPatch, session);
+      setOrders((current) => current.map((item) => item.id === saved.id ? saved : item));
+      setOrderPatch(EMPTY_ORDER_PATCH);
+      setOrdersStatus("success");
+      setOrdersError("");
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "profile_cabinet_service_orders update failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleSendMessage = async (thread) => {
+    if (!thread?.conversation_id || !profile?.id || !chatDraft.trim() || !hasProfileLiteSessionCredential(session)) return;
+    try {
+      const message = await sendChatMessage(thread.conversation_id, profile.id, chatDraft, session);
+      setChatThreads((current) => current.map((item) => item.conversation_id === thread.conversation_id
+        ? { ...item, messages: [...(item.messages || []), message].filter(Boolean) }
+        : item));
+      setChatDraft("");
+      setChatsStatus("success");
+      setChatsError("");
+    } catch (error) {
+      setChatsStatus("needs-verification");
+      setChatsError(moduleError(error, "profile_cabinet_chat_messages send failed or migration/RLS not applied"));
+    }
+  };
+
+  if (!user || authStatus !== "success") {
+    return (
+      <div className="cabinetShell profileLiteShell profileLiteFullShell">
+        <header className="cabinetTopbar">
+          <button type="button" onClick={onNavigateHome}>На главную</button>
+          <div>
+            <p>Альтернативный кабинет</p>
+            <h1>Кабинет мастера Lite</h1>
+          </div>
+          <button type="button" onClick={onNavigateMasters}>Мастера</button>
+        </header>
+        <main className="cabinetMain profileLiteMain">
+          <section className="cabinetCard profileLitePanel">
+            <p className="cabinetEyebrow">Auth flow</p>
+            <h2>Вход в кабинет</h2>
+            {!supabaseEnv.isConfigured && <div className="cabinetNotice compactNotice">Supabase не настроен. Кабинет не зависает и ждёт настройки окружения.</div>}
+            {authStatus === "loading" && <div className="cabinetNotice compactNotice">Сессия найдена, открываю оболочку...</div>}
+            {authError && <div className="cabinetError">{authError}</div>}
             <div className="cabinetActions">
-              <button className="cabinetGoogle" type="button" onClick={handleGoogleLogin} disabled={!supabaseEnv.isConfigured}>
-                Войти через Google
-              </button>
-              <button className="cabinetSecondary" type="button" onClick={resetLocalState}>
-                Сбросить сессию
-              </button>
+              <button className="cabinetGoogle" type="button" onClick={handleGoogleLogin} disabled={!supabaseEnv.isConfigured}>Войти через Google</button>
+              <button className="cabinetSecondary" type="button" onClick={resetLocalState}>Сбросить сессию</button>
+              <button className="cabinetGhost" type="button" onClick={refreshShell}>Повторить</button>
             </div>
-          )}
-
-          {user && authStatus === "success" && (
-            <div className="profileLiteSummary">
-              <div>
-                <span>Email</span>
-                <strong>{user.email || "нет"}</strong>
-              </div>
-              <div>
-                <span>User ID</span>
-                <strong>{shortUserId(user.id)}</strong>
-              </div>
-              <div>
-                <span>Профиль</span>
-                <strong>{profile?.status || "не найден"}</strong>
-              </div>
-              <div className="cabinetActions">
-                <button className="cabinetPrimary" type="button" onClick={refreshData}>Обновить данные</button>
-                <button className="cabinetSecondary" type="button" onClick={resetLocalState}>Выйти / сбросить сессию</button>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="cabinetCard profileLiteDebug" aria-label="Безопасная диагностика">
-          <p className="cabinetEyebrow">Safe debug</p>
-          <h2>Диагностика</h2>
-          <dl>
-            {diagnostics.map((item) => (
-              <div key={item.label}>
-                <dt>{item.label}</dt>
-                <dd>{item.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        {user && authStatus === "success" && (
-          <section className="cabinetCard profileLitePanel">
-            <div className="cabinetFormHeader">
-              <div>
-                <p className="cabinetEyebrow">Профиль мастера</p>
-                <h2>{profile ? "Минимальные данные" : "Создать профиль"}</h2>
-              </div>
-              <span className={`cabinetStatus status-${profile?.status || form.status}`}>{profile?.status || form.status}</span>
-            </div>
-
-            <form className="profileForm" onSubmit={handleSaveProfile}>
-              <label>
-                Имя мастера
-                <input
-                  value={form.display_name}
-                  onChange={(event) => setForm((current) => ({ ...current, display_name: event.target.value }))}
-                  placeholder="Имя для кабинета"
-                />
-              </label>
-              <label>
-                Описание
-                <textarea
-                  value={form.bio}
-                  onChange={(event) => setForm((current) => ({ ...current, bio: event.target.value }))}
-                  placeholder="Короткое описание практики"
-                  rows={4}
-                />
-              </label>
-              <label>
-                Статус
-                <select
-                  value={form.status}
-                  onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}
-                >
-                  <option value="draft">draft</option>
-                  <option value="pending">pending</option>
-                </select>
-              </label>
-              {saveMessage && <div className="cabinetSuccess compactNotice">{saveMessage}</div>}
-              <div className="cabinetActions">
-                <button className="cabinetPrimary" type="submit" disabled={saveStatus === "loading"}>
-                  {saveStatus === "loading" ? "Сохраняю..." : "Сохранить профиль"}
-                </button>
-              </div>
-            </form>
           </section>
-        )}
+          <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
+        </main>
+      </div>
+    );
+  }
 
-        {user && authStatus === "success" && (
-          <section className="cabinetCard profileLitePanel">
-            <p className="cabinetEyebrow">Материалы</p>
-            <h2>Материалы мастера</h2>
-            {materialsStatus === "idle" && <p>Материалы: needs verification.</p>}
-            {materialsStatus === "loading" && <p>Загружаю материалы...</p>}
-            {materialsStatus === "needs-verification" && <p>Материалы: needs verification.</p>}
-            {materialsStatus === "success" && materials.length === 0 && <p>Материалы пока не найдены.</p>}
-            {materialsStatus === "success" && materials.length > 0 && (
-              <div className="materialsGrid profileLiteMaterials">
-                {materials.slice(0, 6).map((material) => (
-                  <article className="materialCard" key={material.id}>
-                    <div className="materialThumb">{publicationTypeLabel(material.type).slice(0, 1)}</div>
-                    <div>
-                      <h3>{material.title || "Без названия"}</h3>
-                      <p>{material.description || "Описание не заполнено."}</p>
-                      <small>{publicationTypeLabel(material.type)} · {materialStatusText(material.status)}</small>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-      </main>
-    </div>
+  const moduleProps = {
+    activeSettings,
+    accountPlan,
+    chatDraft,
+    chatThreads,
+    chatsError,
+    chatsStatus,
+    clientGoalPhotos,
+    clientPhotoForm,
+    compositionDraft,
+    compositionMessage,
+    form,
+    materialFile,
+    materialForm,
+    materials,
+    materialsError,
+    materialsStatus,
+    mediaError,
+    mediaStatus,
+    moduleStates,
+    orderPatch,
+    orders,
+    ordersError,
+    ordersStatus,
+    planLimits,
+    powerPlaceCompositions,
+    profile,
+    profileError,
+    profileStatus,
+    saveMessage,
+    saveStatus,
+    selectedThreadId,
+    serviceForm,
+    services,
+    servicesError,
+    servicesStatus,
+    session,
+    stepOptions,
+    traditionAssetForm,
+    traditionAssets,
+    user
+  };
+
+  const renderedModule = {
+    overview: <ProfileLiteOverview {...moduleProps} />,
+    profile: (
+      <ProfileLiteProfileModule
+        {...moduleProps}
+        onFieldChange={(field, value) => setForm((current) => ({ ...current, [field]: value }))}
+        onSave={handleSaveProfile}
+      />
+    ),
+    mandalas: (
+      <ProfileLiteMandalasModule
+        {...moduleProps}
+        onCompositionDraftChange={handleCompositionDraftChange}
+        onCompositionLoad={handleCompositionLoad}
+        onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
+        onDownload={() => downloadText("power-place-composition.json", JSON.stringify(compositionDraft, null, 2))}
+        onPrint={() => window.print()}
+        onSave={handleCompositionSave}
+        onSendToServices={handleSendCompositionToServices}
+      />
+    ),
+    media: (
+      <ProfileLiteMediaModule
+        {...moduleProps}
+        onClientPhotoDelete={handleDeleteClientPhoto}
+        onClientPhotoFieldChange={(field, value) => setClientPhotoForm((current) => ({ ...current, [field]: value }))}
+        onClientPhotoFileChange={(event) => setClientPhotoForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
+        onClientPhotoSave={handleClientPhotoSave}
+        onTraditionAssetFieldChange={(field, value) => setTraditionAssetForm((current) => ({ ...current, [field]: value }))}
+        onTraditionAssetFileChange={(event) => setTraditionAssetForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
+        onTraditionAssetSave={handleTraditionAssetSave}
+      />
+    ),
+    materials: (
+      <ProfileLiteMaterialsModule
+        {...moduleProps}
+        onFieldChange={handleMaterialFieldChange}
+        onFileChange={(event) => {
+          const file = event.target.files?.[0] || null;
+          setMaterialFile(file);
+          if (file) setMaterialForm((current) => ({ ...current, image_url: "" }));
+        }}
+        onSave={handleMaterialSave}
+      />
+    ),
+    services: (
+      <ProfileLiteServicesModule
+        {...moduleProps}
+        onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
+        onPublish={handleServicePublish}
+        onSave={handleServiceSave}
+      />
+    ),
+    orders: (
+      <ProfileLiteOrdersModule
+        {...moduleProps}
+        onOrderPatchChange={(patch) => setOrderPatch({
+          id: patch.id || "",
+          master_comment: patch.master_comment || "",
+          result_image_url: patch.result_image_url || "",
+          result_image_bucket: patch.result_image_bucket || null,
+          result_image_path: patch.result_image_path || null,
+          status: patch.status || "sent"
+        })}
+        onOrderUpdate={handleOrderUpdate}
+      />
+    ),
+    chats: (
+      <ProfileLiteChatsModule
+        {...moduleProps}
+        onChatDraftChange={setChatDraft}
+        onSendMessage={handleSendMessage}
+        onThreadSelect={setSelectedThreadId}
+      />
+    ),
+    settings: <ProfileLiteSettingsModule {...moduleProps} onReset={resetLocalState} />,
+    diagnostics: <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
+  }[activeTab] || <ProfileLiteOverview {...moduleProps} />;
+
+  return (
+    <ProfileLiteShell
+      activeTab={activeTab}
+      authStatus={authStatus}
+      onNavigateHome={onNavigateHome}
+      onNavigateMasters={onNavigateMasters}
+      onRefresh={refreshShell}
+      onReset={resetLocalState}
+      onTabChange={setActiveTab}
+      profile={profile}
+      user={user}
+    >
+      {renderedModule}
+    </ProfileLiteShell>
   );
 }

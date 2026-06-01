@@ -1,0 +1,157 @@
+import assert from "node:assert/strict";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import {
+  createProfileLiteDiagnostics,
+  createProfileLiteForm,
+  createProfileLiteSavePayload,
+  createProfileLiteShellViewModel,
+  getProfileLiteTabById,
+  PROFILE_LITE_TABS,
+  safeProfileLiteError
+} from "../src/lib/profileLiteClient.js";
+
+const expectedTabs = [
+  ["overview", "Обзор"],
+  ["profile", "Профиль"],
+  ["mandalas", "Мои мандалы"],
+  ["media", "Фото / Медиа"],
+  ["materials", "Материалы"],
+  ["services", "Услуги"],
+  ["orders", "Заказы"],
+  ["chats", "Чаты"],
+  ["settings", "Настройки"],
+  ["diagnostics", "Диагностика"]
+];
+
+assert.deepEqual(
+  PROFILE_LITE_TABS.map((tab) => [tab.id, tab.label]),
+  expectedTabs,
+  "Profile Lite cabinet should expose the complete tab map"
+);
+
+assert.equal(getProfileLiteTabById("missing").id, "overview");
+assert.equal(getProfileLiteTabById("orders").label, "Заказы");
+
+const fullForm = createProfileLiteForm({
+  display_name: "Master",
+  bio: "Bio",
+  city: "Barcelona",
+  country: "Spain",
+  telegram: "@master",
+  website: "https://example.com",
+  avatar_url: "https://example.com/avatar.jpg",
+  account_plan: "pro",
+  status: "approved"
+});
+
+for (const field of [
+  "display_name",
+  "bio",
+  "city",
+  "country",
+  "telegram",
+  "website",
+  "avatar_url",
+  "account_plan",
+  "status"
+]) {
+  assert.ok(Object.hasOwn(fullForm, field), `profile lite form should include ${field}`);
+}
+
+const payload = createProfileLiteSavePayload({
+  display_name: " Master ",
+  bio: " Bio ",
+  city: " Barcelona ",
+  country: " Spain ",
+  telegram: " @master ",
+  website: " https://example.com ",
+  avatar_url: " https://example.com/avatar.jpg ",
+  account_plan: "pro",
+  status: "approved"
+}, { id: "user-1" }, "pending");
+
+assert.deepEqual(payload, {
+  user_id: "user-1",
+  display_name: "Master",
+  bio: "Bio",
+  city: "Barcelona",
+  country: "Spain",
+  telegram: "@master",
+  website: "https://example.com",
+  avatar_url: "https://example.com/avatar.jpg",
+  account_plan: "pro",
+  status: "pending"
+});
+
+let profileLoaderCalled = false;
+const shell = await createProfileLiteShellViewModel({
+  supabaseConfigured: true,
+  session: { access_token: "present" },
+  sessionExpired: false,
+  getCurrentUser: async () => ({ id: "user-1", email: "master@example.com" }),
+  getOwnProfile: async () => {
+    profileLoaderCalled = true;
+    throw new Error("Profile should not block shell");
+  }
+});
+
+assert.equal(shell.authStatus, "success");
+assert.equal(shell.user.id, "user-1");
+assert.equal(shell.profile, null);
+assert.equal(profileLoaderCalled, false, "own profile loading must not be part of shell bootstrap");
+
+const diagnosticText = JSON.stringify(createProfileLiteDiagnostics({
+  supabaseConfigured: true,
+  session: {
+    access_token: "jwt.header.payload",
+    refresh_token: "refresh-secret",
+    authorization: "Bearer secret",
+    headers: { apikey: "anon" }
+  },
+  user: { id: "user-1", email: "master@example.com" },
+  authStatus: "success"
+}));
+
+assert.doesNotMatch(diagnosticText, /jwt\.header\.payload|refresh-secret|Bearer secret|apikey|anon/);
+assert.equal(safeProfileLiteError(new Error("failed https://project.supabase.co token abc.def.ghi")), "failed [url hidden] token [token hidden]");
+
+const moduleDir = "src/pages/profile-lite";
+assert.equal(existsSync(moduleDir), true, "Profile Lite cabinet modules directory should exist");
+
+for (const file of [
+  "ProfileLiteShell.jsx",
+  "ProfileLiteOverview.jsx",
+  "ProfileLiteProfileModule.jsx",
+  "ProfileLiteMandalasModule.jsx",
+  "ProfileLiteMediaModule.jsx",
+  "ProfileLiteMaterialsModule.jsx",
+  "ProfileLitePowerPlaceModule.jsx",
+  "ProfileLiteServicesModule.jsx",
+  "ProfileLiteOrdersModule.jsx",
+  "ProfileLiteChatsModule.jsx",
+  "ProfileLiteSettingsModule.jsx",
+  "ProfileLiteDiagnosticsModule.jsx"
+]) {
+  assert.equal(existsSync(join(moduleDir, file)), true, `${file} should exist`);
+}
+
+const moduleSource = readdirSync(moduleDir)
+  .filter((file) => file.endsWith(".jsx"))
+  .map((file) => readFileSync(join(moduleDir, file), "utf8"))
+  .join("\n");
+
+for (const label of expectedTabs.map(([, label]) => label)) {
+  assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
+}
+
+for (const forbidden of [
+  "refresh_token",
+  "VITE_SUPABASE_URL",
+  "VITE_SUPABASE_ANON_KEY",
+  "service_role",
+  "service-role"
+]) {
+  assert.equal(moduleSource.includes(forbidden), false, `Profile Lite modules must not include ${forbidden}`);
+}
