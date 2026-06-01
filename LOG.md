@@ -23,6 +23,48 @@
 - Live/authenticated QA:
   - real signed-in Storage/RLS upload, saved-list refresh, select-from-base, and delete confirmation still require live authenticated testing after merge/deploy.
 
+## 2026-06-02 — Profile Lite tabs freeze stabilization
+
+- Branch: `codex/fix-profile-lite-tabs-freeze`.
+- Root cause:
+  - Profile Lite shell tabs were local `button` controls with local-only `setActiveTab`;
+  - only some direct `/profile/...` subroutes existed, while profile/media/materials/diagnostics had no reloadable URL mapping;
+  - `renderedModule` was mounted directly, so a render crash in one module could remove the shell/tabs instead of showing an inline module error.
+- Fix:
+  - moved tab URL ownership into `PROFILE_LITE_TABS`;
+  - changed shell tabs to route-backed anchors with SPA `pushState` handling;
+  - added query-backed tab parsing for `/profile?tab=profile`, `/profile?tab=media`, `/profile?tab=materials`, and `/profile?tab=diagnostics`;
+  - kept existing route-backed tabs for `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings`;
+  - added `ProfileLiteModuleErrorBoundary` around the active module so the shell and tabs remain alive if one module fails.
+- Route/tab behavior:
+  - Обзор -> `/profile`
+  - Профиль -> `/profile?tab=profile`
+  - Мои мандалы -> `/profile/mandalas`
+  - Фото / Медиа -> `/profile?tab=media`
+  - Материалы -> `/profile?tab=materials`
+  - Услуги -> `/profile/services`
+  - Заказы -> `/profile/orders`
+  - Чаты -> `/profile/chats`
+  - Настройки -> `/profile/settings`
+  - Диагностика -> `/profile?tab=diagnostics`
+- Checks run so far:
+  - `npm run test:profile-lite` passed after RED failures for the missing route-backed/query/ErrorBoundary contracts;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`, plus existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning.
+- Local rendered QA:
+  - dev URL: `http://localhost:4187/`;
+  - used fake `VITE_SUPABASE_URL`, fake `VITE_SUPABASE_ANON_KEY`, and fake JWT hash session; no real tokens/env/JWT were used;
+  - `/profile` opened the authenticated Lite shell through JWT fallback, waited 10 seconds, kept 10 tabs mounted, and had no Vite overlay, no picker backdrop, no module error, and horizontal overflow `0`;
+  - clicking every tab changed the URL and active tab:
+    `/profile`, `/profile?tab=profile`, `/profile/mandalas`, `/profile?tab=media`, `/profile?tab=materials`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings`, `/profile?tab=diagnostics`;
+  - direct `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings` opened their matching active tabs;
+  - `/profile-old`, `/`, `/masters`, and `/profile/admin` opened without Vite overlay or horizontal overflow; `/masters` and `/profile/admin` showed expected `Failed to fetch` under fake Supabase URL.
+- Not changed:
+  - `/profile-old`, `/`, `/masters`, `/profile/admin`, Supabase env/auth, Vercel rewrites, or deep Power Place UX.
+- Pending:
+  - merge/deploy and production/legacy live QA.
+
 ## 2026-06-02 — Profile Lite Power Place true 3-column layout parity
 
 - Branch: `codex/fix-profile-lite-power-place-layout-parity`.

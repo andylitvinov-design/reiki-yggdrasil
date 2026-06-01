@@ -406,17 +406,22 @@
   background: rgba(255, 255, 255, 0.66);
 }
 
-.profileLiteTabs button,
+.profileLiteTabs a,
 .profileLiteSegmented button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 36px;
   border: 1px solid rgba(184, 121, 29, 0.26);
   border-radius: 8px;
+  padding: 1px 6px;
   background: rgba(255, 255, 255, 0.74);
   color: #24180e;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.profileLiteTabs button.active,
+.profileLiteTabs a.active,
 .profileLiteSegmented button.active {
   background: rgba(184, 121, 29, 0.14);
   border-color: rgba(184, 121, 29, 0.68);
@@ -584,7 +589,7 @@
   }
 
   .profileLiteStatusRail .cabinetActions,
-  .profileLiteTabs button {
+  .profileLiteTabs a {
     width: 100%;
   }
 }
