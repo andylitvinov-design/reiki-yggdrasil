@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 
 const profilePageSource = readFileSync("src/pages/ProfilePage.jsx", "utf8");
 const bootstrapClientSource = readFileSync("src/lib/profileBootstrapClient.js", "utf8");
+const renderRecoverySource = readFileSync("public/profile-auth-render-recovery.js", "utf8");
+const indexHtml = readFileSync("index.html", "utf8");
 
 function assertOrder(source, first, second, message) {
   const firstIndex = source.indexOf(first);
@@ -199,6 +201,36 @@ assert.match(
   bootstrapClientSource,
   /function normalizeCurrentUser\(value\) \{[\s\S]*value\?\.id[\s\S]*value\?\.user\?\.id[\s\S]*value\?\.data\?\.user\?\.id/,
   "bootstrap should accept direct, { user }, and { data: { user } } getCurrentUser response shapes"
+);
+
+assert.match(
+  renderRecoverySource,
+  /const renderRecoveryEnabled = search\.get\("enableRenderRecovery"\) === "1";/,
+  "profile render recovery must be explicitly opt-in"
+);
+
+assert.equal(
+  indexHtml.includes("profile-auth-render-recovery"),
+  false,
+  "profile-auth-render-recovery.js must not be loaded by index.html because it creates path-sensitive /profile reload behavior"
+);
+
+assert.match(
+  renderRecoverySource,
+  /if \(window\.location\.pathname !== "\/profile" \|\| !renderRecoveryEnabled\) return;/,
+  "profile render recovery must not auto-run on /profile without the opt-in flag"
+);
+
+assert.equal(
+  /window\.location\.pathname !== "\/profile"\) return;/.test(renderRecoverySource),
+  false,
+  "profile render recovery must not keep the old unconditional exact-/profile gate"
+);
+
+assert.match(
+  renderRecoverySource,
+  /window\.location\.replace\(url\.toString\(\)\);/,
+  "profile render recovery may still preserve its old replace behavior only behind the explicit opt-in gate"
 );
 
 for (const rawSecretPattern of [

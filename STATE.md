@@ -12,6 +12,15 @@ Last updated: 2026-06-01
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-01 — PR #180 recovery cleanup for `/profile`
+
+- Branch: `codex/revert-heavy-profile-main-route`.
+- Scope: PR #180 reverts PR #179 by returning `/profile` to `ProfileLitePage`; `/profile-old` remains the heavy `ProfilePage` diagnostic route.
+- Root cause: `public/profile-auth-render-recovery.js` made `/profile` and `/profile-old` non-equivalent because it was active only on exact `/profile`, patched `window.fetch`, and could call `window.location.replace(...)` from the loading state.
+- Cleanup: `index.html` no longer loads `profile-auth-render-recovery.js`; the standalone file remains manual/diagnostic-only behind `?enableRenderRecovery=1` and exact `/profile`.
+- Guardrail: tests now assert that `index.html` does not include the recovery script and that the standalone script is opt-in only.
+- Do not restore the heavy `ProfilePage` on `/profile` again until PR #180 is merged, deployed, and live QA passes for `/profile` and `/profile-old`.
+
 ## 2026-06-01 — Heavy ProfilePage restored as main `/profile`
 
 - Branch: `codex/restore-heavy-profile-as-main`, based on fresh `origin/main` commit `dacd076`.

@@ -1,5 +1,37 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-01 — PR #180 recovery cleanup for path-sensitive `/profile` script
+
+- Branch: `codex/revert-heavy-profile-main-route`.
+- PR: #180 — Revert PR #179 heavy profile main route.
+- Changed files:
+  - `index.html`
+  - `public/profile-auth-render-recovery.js`
+  - `package.json`
+  - `test/profilePageAuthBootstrap.test.mjs`
+  - `test/profileAuthRenderRecovery.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Route result:
+  - `/profile` renders `ProfileLitePage`;
+  - `/profile-lite` renders `ProfileLitePage`;
+  - `/profile-old` remains heavy `ProfilePage`;
+  - modular heavy routes stay on `ProfilePage` with their existing `initialTopTab`.
+- Root cause:
+  - `/profile` and `/profile-old` were not equivalent because `profile-auth-render-recovery.js` was active only on exact `/profile`;
+  - the script patched `window.fetch`, used delayed recovery checks, read `window.__REIKI_PROFILE_REACT_DEBUG__`, and could call `window.location.replace(...)` while React still showed `Загружаю кабинет...`;
+  - production without `?debugAuth=1` may not publish React debug state, so the script could treat a normal bootstrap as not ready.
+- Cleanup:
+  - removed the `profile-auth-render-recovery.js` script include from `index.html`;
+  - left the public file as manual diagnostic fallback only, gated by `?enableRenderRecovery=1` and exact `/profile`.
+- Test guard:
+  - `test/profilePageAuthBootstrap.test.mjs` asserts `index.html` does not include `profile-auth-render-recovery`;
+  - `test/profileAuthRenderRecovery.test.mjs` asserts the standalone script is opt-in and does not run on `/profile-old` or modular routes;
+  - `npm run check` runs both guards through `test:profile-loading-recovery`.
+- Live QA pending after merge/deploy:
+  - `https://mentalica.vercel.app/profile` should open the lite cabinet and not hang on `Загружаю кабинет...`;
+  - `https://mentalica.vercel.app/profile-old?debugAuth=1` should open the heavy cabinet debug route.
+
 ## 2026-06-01 — Restore heavy profile as main `/profile`
 
 - Branch: `codex/restore-heavy-profile-as-main`.
