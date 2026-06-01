@@ -47,6 +47,7 @@ import {
   createProfileLiteForm,
   createProfileLiteSavePayload,
   getProfileLiteTabById,
+  getProfileLiteRouteByTabId,
   hasProfileLiteSessionCredential,
   safeProfileLiteError
 } from "../lib/profileLiteClient.js";
@@ -116,6 +117,38 @@ const EMPTY_ORDER_PATCH = {
   result_image_path: null,
   status: "sent"
 };
+const ROUTE_CHANGE_EVENT = "reiki-route-change";
+
+class ProfileLiteModuleErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidUpdate(previousProps) {
+    if (previousProps.boundaryKey !== this.props.boundaryKey && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <section className="cabinetError profileLiteModuleError" aria-label="Ошибка модуля">
+          <p className="cabinetEyebrow">Module error</p>
+          <h2>{this.props.moduleLabel || "Раздел кабинета"} временно недоступен</h2>
+          <p>{safeProfileLiteError(this.state.error, "Модуль не отрисовался. Оболочка кабинета остаётся доступной.")}</p>
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 function resetWindowUrl() {
   if (typeof window === "undefined") return;
@@ -250,6 +283,10 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     authStatus,
     profileStatus
   }), [authStatus, profile, profileStatus, session, sessionExpired, user]);
+
+  useEffect(() => {
+    setActiveTab(getProfileLiteTabById(initialTab).id);
+  }, [initialTab]);
 
   const moduleStates = useMemo(() => ({
     profile: { status: profileStatus, count: profile ? 1 : 0, error: profileError },
@@ -868,7 +905,18 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       description: current.description || "Услуга подготовлена из сохранённой мандалы.",
       image_url: compositionDraft.cover_ref?.src || ""
     }));
-    setActiveTab("services");
+    handleProfileLiteTabNavigate({ id: "services", href: getProfileLiteRouteByTabId("services") });
+  };
+
+  const handleProfileLiteTabNavigate = (tab) => {
+    const nextTab = getProfileLiteTabById(tab?.id);
+    const href = tab?.href || getProfileLiteRouteByTabId(nextTab.id);
+    setActiveTab(nextTab.id);
+    if (typeof window !== "undefined" && window.location.pathname + window.location.search !== href) {
+      window.history.pushState({}, "", href);
+      window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleDownloadComposition = () => {
@@ -1134,6 +1182,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     settings: <ProfileLiteSettingsModule {...moduleProps} onReset={resetLocalState} />,
     diagnostics: <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
   }[activeTab] || <ProfileLiteOverview {...moduleProps} />;
+  const activeTabMeta = getProfileLiteTabById(activeTab);
 
   return (
     <ProfileLiteShell
@@ -1143,11 +1192,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       onNavigateMasters={onNavigateMasters}
       onRefresh={refreshShell}
       onReset={resetLocalState}
-      onTabChange={setActiveTab}
+      onTabNavigate={handleProfileLiteTabNavigate}
       profile={profile}
       user={user}
     >
-      {renderedModule}
+      <ProfileLiteModuleErrorBoundary boundaryKey={activeTab} moduleLabel={activeTabMeta.label}>
+        {renderedModule}
+      </ProfileLiteModuleErrorBoundary>
     </ProfileLiteShell>
   );
 }

@@ -2,16 +2,16 @@ export const PROFILE_LITE_AUTH_STATUSES = ["idle", "loading", "success", "error"
 export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "error"];
 
 export const PROFILE_LITE_TABS = [
-  { id: "overview", label: "Обзор" },
-  { id: "profile", label: "Профиль" },
-  { id: "mandalas", label: "Мои мандалы" },
-  { id: "media", label: "Фото / Медиа" },
-  { id: "materials", label: "Материалы" },
-  { id: "services", label: "Услуги" },
-  { id: "orders", label: "Заказы" },
-  { id: "chats", label: "Чаты" },
-  { id: "settings", label: "Настройки" },
-  { id: "diagnostics", label: "Диагностика" }
+  { id: "overview", label: "Обзор", href: "/profile" },
+  { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
+  { id: "mandalas", label: "Мои мандалы", href: "/profile/mandalas" },
+  { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
+  { id: "materials", label: "Материалы", href: "/profile?tab=materials" },
+  { id: "services", label: "Услуги", href: "/profile/services" },
+  { id: "orders", label: "Заказы", href: "/profile/orders" },
+  { id: "chats", label: "Чаты", href: "/profile/chats" },
+  { id: "settings", label: "Настройки", href: "/profile/settings" },
+  { id: "diagnostics", label: "Диагностика", href: "/profile?tab=diagnostics" }
 ];
 
 const SAFE_STATUS_VALUES = ["draft", "pending", "approved", "rejected"];
@@ -30,6 +30,29 @@ export function normalizeProfileLiteStatus(value, fallback = "idle") {
 
 export function getProfileLiteTabById(tabId) {
   return PROFILE_LITE_TABS.find((tab) => tab.id === tabId) || PROFILE_LITE_TABS[0];
+}
+
+export function getProfileLiteRouteByTabId(tabId) {
+  return getProfileLiteTabById(tabId).href;
+}
+
+export function getProfileLiteInitialTabFromLocation(pathname = "/profile", search = "") {
+  const routeTabMap = {
+    "/profile/mandalas": "mandalas",
+    "/profile/services": "services",
+    "/profile/orders": "orders",
+    "/profile/chats": "chats",
+    "/profile/settings": "settings"
+  };
+
+  if (routeTabMap[pathname]) return routeTabMap[pathname];
+
+  if (pathname === "/profile" || pathname === "/profile-lite") {
+    const queryTab = new URLSearchParams(search).get("tab");
+    return getProfileLiteTabById(queryTab).id;
+  }
+
+  return "overview";
 }
 
 export function hasProfileLiteSessionCredential(session) {

@@ -9,7 +9,7 @@ export default function ProfileLiteShell({
   onNavigateMasters,
   onRefresh,
   onReset,
-  onTabChange,
+  onTabNavigate,
   profile,
   user
 }) {
@@ -27,14 +27,18 @@ export default function ProfileLiteShell({
 
       <nav className="profileLiteTabs" aria-label="Разделы кабинета Profile Lite">
         {PROFILE_LITE_TABS.map((tab) => (
-          <button
+          <a
+            aria-current={activeTab === tab.id ? "page" : undefined}
             className={activeTab === tab.id ? "active" : ""}
+            href={tab.href}
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              onTabNavigate(tab);
+            }}
           >
             {tab.label}
-          </button>
+          </a>
         ))}
       </nav>
 
