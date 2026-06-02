@@ -42,23 +42,6 @@
       (() => {
         const path = window.location.pathname;
         const search = new URLSearchParams(window.location.search);
-        const debugPanelStorageKey = "reiki-profile-debug-panel";
-
-        if (path.startsWith("/profile")) {
-          try {
-            if (search.get("debugAuth") === "0") {
-              sessionStorage.removeItem(debugPanelStorageKey);
-            } else if (search.get("debugAuth") === "1") {
-              sessionStorage.setItem(debugPanelStorageKey, "1");
-            } else if (sessionStorage.getItem(debugPanelStorageKey) === "1") {
-              search.set("debugAuth", "1");
-              const nextUrl = `${window.location.pathname}?${search.toString()}${window.location.hash || ""}`;
-              window.history.replaceState({}, document.title, nextUrl);
-            }
-          } catch (_error) {
-            // Ignore storage/history failures; debug mode remains URL-only.
-          }
-        }
 
         if (!path.startsWith("/profile") || search.get("debugAuth") !== "1") return;
 
@@ -72,6 +55,9 @@
         };
 
         window.__REIKI_PROFILE_AUTH_ENTRY_DEBUG__ = initialFlags;
+
+        const showDebugPanel = search.get("debugAuthPanel") === "1" || search.get("showDebugPanel") === "1";
+        if (!showDebugPanel) return;
 
         function safeHas(storage, key) {
           try {
