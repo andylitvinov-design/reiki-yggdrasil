@@ -513,3 +513,28 @@ assert.equal(
   normalizePowerPlaceComposition({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
   "classic-14"
 );
+
+const compactChessComposition = normalizePowerPlaceComposition({
+  profile_id: "profile-1",
+  title: " Компактные шахматы ",
+  constructor_type: "chess",
+  chess_variant: "compact-5",
+  slot_scale: 1.14,
+  object_refs: {
+    "chess-1": "https://example.com/chess-1.jpg"
+  },
+  central_photo_id: "photo-compact"
+});
+
+assert.equal(compactChessComposition.chess_variant, "compact-5", "compact-5 should remain a saved technical chess variant");
+assert.equal(compactChessComposition.object_refs.__slot_scale, "1.14", "shared slot scale should persist inside object_refs without requiring a schema migration");
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    constructor_type: "chess",
+    chess_variant: "plus-8",
+    object_refs: { __slot_scale: "9" }
+  }).object_refs.__slot_scale,
+  "1.18",
+  "shared slot scale persisted in object_refs should be clamped"
+);

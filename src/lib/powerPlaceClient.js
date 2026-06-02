@@ -23,7 +23,7 @@ const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
-const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8"];
+const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -269,6 +269,11 @@ export function normalizePowerPlaceComposition(composition) {
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
   const chessVariant = cleanText(composition?.chess_variant);
+  const slotScale = Number(composition?.slot_scale ?? composition?.object_refs?.__slot_scale);
+  const objectRefs = cleanObjectRefs(composition?.object_refs);
+  if (Number.isFinite(slotScale)) {
+    objectRefs.__slot_scale = String(Math.min(1.18, Math.max(0.7, slotScale)));
+  }
 
   return {
     profile_id: cleanText(composition?.profile_id),
@@ -281,7 +286,7 @@ export function normalizePowerPlaceComposition(composition) {
     star_variant: VALID_STAR_VARIANTS.includes(starVariant) ? starVariant : "closed",
     chess_variant: VALID_CHESS_VARIANTS.includes(chessVariant) ? chessVariant : "classic-14",
     cover_ref: normalizeCoverRef(composition?.cover_ref),
-    object_refs: cleanObjectRefs(composition?.object_refs),
+    object_refs: objectRefs,
     central_photo_id: cleanText(composition?.central_photo_id) || null,
     tradition_id: constructorType === "altar" ? cleanText(composition?.tradition_id) : "",
     tradition_title: constructorType === "altar" ? cleanText(composition?.tradition_title) : "",

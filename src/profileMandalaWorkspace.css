@@ -1208,6 +1208,7 @@
 }
 
 .powerPlacePrintArea {
+  --power-source-slot-scale: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
@@ -1222,6 +1223,11 @@
 }
 
 .powerMandalaPanel {
+  --power-source-slot-scale: 1;
+  --power-field-aspect: 1 / 1;
+  --power-board-max-width: 560px;
+  --power-card-aspect: 1 / 1;
+  --power-card-height-factor: 1;
   display: grid;
   justify-items: center;
   gap: 10px;
@@ -1384,7 +1390,8 @@
   font: inherit;
   font-weight: 900;
   padding: 0;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--power-source-slot-scale));
+  transform-origin: center;
 }
 
 .powerSource.small {
@@ -1402,7 +1409,7 @@
   color: #fff1c9;
   background:
     radial-gradient(circle at 45% 35%, #f5c766, #7b5014 62%, #120d06 100%);
-  transform: translate(-50%, -50%) rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg) scale(var(--power-source-slot-scale));
 }
 
 .powerSource.guardian span {
@@ -1538,14 +1545,23 @@
 
 .altarTopSource {
   width: 100%;
+  max-height: calc(92px * var(--power-card-height-factor));
   aspect-ratio: 1;
   border-radius: 15px;
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
 }
 
 .altarTopSource.main {
   aspect-ratio: 1;
   min-height: 82px;
+  max-height: calc(112px * var(--power-card-height-factor));
   border-radius: 18px;
+}
+
+.altarSupportSource {
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
 }
 
 .altarMandalaSheet.ratio-1-5 .altarTopSource.main { aspect-ratio: 1.5 / 1; }
@@ -1760,6 +1776,8 @@
   width: 100%;
   aspect-ratio: 1;
   border-radius: 14px;
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
 }
 
 .businessMandalaSheet.zones-1 .businessVertexZone {
@@ -1816,6 +1834,8 @@
   width: min(76px, 100%);
   aspect-ratio: 1;
   border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
 }
 
 .zodiacMandalaSheet {
@@ -1880,6 +1900,8 @@
 .zodiacPositionImage {
   width: min(68px, 100%);
   aspect-ratio: 1;
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -2065,6 +2087,8 @@
 .starPositionImage {
   width: min(70px, 100%);
   aspect-ratio: 1;
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -3753,8 +3777,37 @@
 }
 
 /* Field layout fixes: change only the outer field, never stretch inner mandala geometry. */
+.powerMandalaPanel.field-layout-square {
+  --power-field-aspect: 1 / 1;
+  --power-board-max-width: 560px;
+  --power-card-aspect: 1 / 1;
+  --power-card-height-factor: 1;
+}
+
+.powerMandalaPanel.field-layout-vertical {
+  --power-field-aspect: 3 / 4;
+  --power-board-max-width: 520px;
+  --power-card-aspect: 1 / 1.08;
+  --power-card-height-factor: 1.08;
+}
+
+.powerMandalaPanel.field-layout-horizontal {
+  --power-field-aspect: 5 / 4;
+  --power-board-max-width: 620px;
+  --power-card-aspect: 1.12 / 1;
+  --power-card-height-factor: 0.92;
+}
+
+.powerMandalaPanel.field-layout-rectangle {
+  --power-field-aspect: 4 / 5;
+  --power-board-max-width: 540px;
+  --power-card-aspect: 1 / 1.06;
+  --power-card-height-factor: 1.04;
+}
+
 .powerMandalaPanel.field-layout-vertical,
 .powerMandalaPanel.field-layout-horizontal,
+.powerMandalaPanel.field-layout-rectangle,
 .powerMandalaPanel.field-layout-square {
   place-items: center;
 }
@@ -3776,6 +3829,13 @@
 .powerMandalaPanel.field-layout-square {
   aspect-ratio: 1;
   width: min(620px, 100%);
+  margin-inline: auto;
+}
+
+.powerMandalaPanel.field-layout-rectangle {
+  min-height: 560px;
+  aspect-ratio: 4 / 5;
+  width: min(640px, 100%);
   margin-inline: auto;
 }
 
@@ -5191,7 +5251,11 @@
 }
 
 .profileLitePowerPlace .profileLitePowerPlaceActions {
-  grid-column: auto;
+  grid-column: 2;
+}
+
+.profileLitePowerPlace .profileLiteAdvancedJson {
+  grid-column: 2;
 }
 
 .profileLitePowerPlace .coverPickerPanel,
@@ -5293,17 +5357,26 @@
     order: 1;
   }
 
-  .profileLitePowerPlace .mandalaModeSidebar {
-    order: 2;
-    position: static;
-  }
-
   .profileLitePowerPlace .workspaceRightColumn {
-    order: 3;
+    order: 2;
   }
 
   .profileLitePowerPlace .profileLitePowerPlaceActions {
+    order: 3;
+  }
+
+  .profileLitePowerPlace .profileLiteAdvancedJson {
     order: 4;
+  }
+
+  .profileLitePowerPlace .mandalaModeSidebar {
+    order: 5;
+    position: static;
+  }
+
+  .profileLitePowerPlace .profileLitePowerPlaceActions,
+  .profileLitePowerPlace .profileLiteAdvancedJson {
+    grid-column: 1;
   }
 }
 
@@ -5330,6 +5403,7 @@
   --power-place-chess-card-aspect: 1 / 1.08;
   --power-place-chess-board-max: 420px;
   --power-place-chess-absolute-height: 390px;
+  --power-source-slot-scale: var(--power-place-chess-slot-scale);
   width: min(100%, var(--power-place-chess-board-max));
   margin: 0 auto;
   display: flex;
@@ -5494,6 +5568,7 @@
 .power-place-chess--compact-5 .power-place-chess__board {
   position: relative;
   min-height: var(--power-place-chess-absolute-height);
+  overflow: visible;
 }
 
 .power-place-chess--plus-8 .power-place-chess__center,
@@ -5508,7 +5583,7 @@
 .power-place-chess--compact-5 .power-place-chess__center {
   left: 50%;
   top: 50%;
-  width: 30%;
+  width: 28%;
   aspect-ratio: 1 / 1;
 }
 
@@ -5519,34 +5594,34 @@
 }
 
 .power-place-chess__slot--outer-square {
-  width: 31%;
+  width: 22%;
   border-radius: 18px;
 }
 
 .power-place-chess__slot--inner-square {
-  width: 22%;
+  width: 17%;
   border-radius: 14px;
 }
 
-.power-place-chess__slot--outer-top-left { left: 18%; top: 18%; }
-.power-place-chess__slot--outer-top-right { left: 82%; top: 18%; }
-.power-place-chess__slot--outer-bottom-left { left: 18%; top: 82%; }
-.power-place-chess__slot--outer-bottom-right { left: 82%; top: 82%; }
-.power-place-chess__slot--inner-top-left { left: 35%; top: 35%; }
-.power-place-chess__slot--inner-top-right { left: 65%; top: 35%; }
-.power-place-chess__slot--inner-bottom-left { left: 35%; top: 65%; }
-.power-place-chess__slot--inner-bottom-right { left: 65%; top: 65%; }
+.power-place-chess__slot--outer-top-left { left: 15%; top: 15%; }
+.power-place-chess__slot--outer-top-right { left: 85%; top: 15%; }
+.power-place-chess__slot--outer-bottom-left { left: 15%; top: 85%; }
+.power-place-chess__slot--outer-bottom-right { left: 85%; top: 85%; }
+.power-place-chess__slot--inner-top-left { left: 39%; top: 39%; }
+.power-place-chess__slot--inner-top-right { left: 61%; top: 39%; }
+.power-place-chess__slot--inner-bottom-left { left: 39%; top: 61%; }
+.power-place-chess__slot--inner-bottom-right { left: 61%; top: 61%; }
 
 .power-place-chess--compact-5 .power-place-chess__slot {
-  width: 25%;
+  width: 22%;
   border-radius: 16px;
 }
 
-.power-place-chess__slot--compact-top { left: 50%; top: 18%; }
-.power-place-chess__slot--compact-right { left: 80%; top: 46%; }
-.power-place-chess__slot--compact-bottom { left: 58%; top: 82%; }
-.power-place-chess__slot--compact-left { left: 20%; top: 55%; }
-.power-place-chess__slot--compact-orbit { left: 32%; top: 26%; }
+.power-place-chess__slot--compact-top { left: 50%; top: 17%; }
+.power-place-chess__slot--compact-right { left: 76%; top: 42%; }
+.power-place-chess__slot--compact-bottom-right { left: 65%; top: 76%; }
+.power-place-chess__slot--compact-bottom-left { left: 35%; top: 76%; }
+.power-place-chess__slot--compact-left { left: 24%; top: 42%; }
 
 @media (max-width: 640px) {
   .power-place-chess {
@@ -5574,6 +5649,23 @@
   .power-place-chess--compact-5 .power-place-chess__board {
     min-height: min(var(--power-place-chess-absolute-height), calc(100vw - 54px));
   }
+
+  .power-place-chess__slot--outer-square {
+    width: 21%;
+  }
+
+  .power-place-chess__slot--inner-square {
+    width: 16%;
+  }
+
+  .power-place-chess--compact-5 .power-place-chess__slot {
+    width: 20%;
+  }
+
+  .power-place-chess--plus-8 .power-place-chess__center,
+  .power-place-chess--compact-5 .power-place-chess__center {
+    width: 26%;
+  }
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-square,
@@ -5593,10 +5685,10 @@
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal {
-  width: min(100%, 560px) !important;
+  width: min(100%, var(--power-board-max-width, 560px)) !important;
   height: auto !important;
   min-height: 520px !important;
-  aspect-ratio: 1 / 1 !important;
+  aspect-ratio: var(--power-field-aspect, 1 / 1) !important;
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel .powerMandala,
@@ -5609,18 +5701,19 @@
 .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal .powerMandala {
   width: min(390px, 82%) !important;
   height: auto !important;
-  aspect-ratio: 1 / 1 !important;
+  aspect-ratio: var(--power-card-aspect, 1 / 1) !important;
+  max-height: calc(390px * var(--power-card-height-factor, 1));
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle {
-  aspect-ratio: 4 / 5 !important;
+  aspect-ratio: var(--power-field-aspect, 4 / 5) !important;
   min-height: 560px !important;
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal {
-  aspect-ratio: 5 / 4 !important;
+  aspect-ratio: var(--power-field-aspect, 5 / 4) !important;
   min-height: 460px !important;
 }
 

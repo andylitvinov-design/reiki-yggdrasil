@@ -1,5 +1,67 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Fix Power Place mobile layouts, covers, global slot scale
+
+- Branch: `codex/fix-power-place-mobile-layout-covers-scale`.
+- Starting point: PR #205 merge commit `a12240fd9a516c0eeb0d45783ba9c517c1253e30`.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/lib/powerPlaceClient.js`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - chess variant labels counted source slots only;
+  - `plus-8` compound classes were rendered as `power-place-chess__slot--outer-square outer-top-left`, so coordinate selectors did not apply;
+  - compact chess used unstable placement;
+  - `Размер фото` existed only for chess and only as `chess_slot_scale`;
+  - old single `cover_ref` could leak into the outer layer fallback;
+  - mobile ordering kept actions/advanced before the right settings rail;
+  - Profile Lite layout overrides forced field proportions too close to square.
+- Changed:
+  - renamed UI labels to `15 фоток`, `9 фоток`, `9 фото+`, `6 фоток` without changing saved technical values;
+  - prefixed every chess slot placement class and tuned `9+` safe insets/sizes for desktop/mobile;
+  - changed compact chess to a 5-slot pentagon/ring;
+  - added shared `slot_scale` and CSS var `--power-source-slot-scale`, while keeping `chess_slot_scale` fallback;
+  - persisted shared scale in `object_refs.__slot_scale` to avoid a database migration;
+  - allowed `compact-5` through `powerPlaceClient` normalization;
+  - made old single `cover_ref` an inner-only fallback and kept outer defaulting to no cover;
+  - moved actions/advanced below the settings rail in source order and set mobile order to constructor -> settings -> actions -> advanced -> source rail;
+  - added field layout variables/hooks for square, vertical, horizontal, and rectangle.
+- Contract coverage:
+  - labels 15/9/9+/6 and unchanged technical values;
+  - plus-8 outer/inner markers and no top-row injection;
+  - compact pentagon marker;
+  - shared slot scale field/CSS hooks and old chess fallback;
+  - layer-specific cover behavior;
+  - field layout hooks;
+  - mobile order contract;
+  - `compact-5` and `slot_scale` persistence through `powerPlaceClient`.
+- Checks run:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` placeholder warnings and existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Rendered QA:
+  - local dev server: `http://127.0.0.1:4217/profile/mandalas`;
+  - fake public Supabase env, fake JWT, fake REST responses only; no real secrets;
+  - desktop 1280: columns `260px 620px 340px`, all constructor types clicked, overflowX `0`, no console warnings/errors;
+  - desktop chess: `9+` rendered 8 source slots + center, 4 outer and 4 inner; after size plus button clipped `0`, overlaps `0`, scale var `1.08`;
+  - mobile 390: one `358px` column; `9+` rendered 8 + center with clipped `0` / overlaps `0`; `6` rendered 5 pentagon slots + center with clipped `0` / overlaps `0`; overflowX `0`;
+  - mobile order: settings rail was below the visual constructor and before actions/advanced/source rail;
+  - cover check: inner `cover-mentalica`, outer `outer-cover-forest`.
+- Not verified:
+  - real Supabase session;
+  - real saved composition reload from production data;
+  - real upload/private signed URLs;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite chess variants, sizing, and Mentalica cover
 
 - Branch: `codex/fix-chess-layout-variants-size-mentalica`.

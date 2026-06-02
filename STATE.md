@@ -12,6 +12,57 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite Power Place mobile layouts, covers, and global slot scale
+
+- Branch: `codex/fix-power-place-mobile-layout-covers-scale`, based on PR #205 merge commit `a12240fd9a516c0eeb0d45783ba9c517c1253e30`.
+- Scope: follow-up fix for `/profile/mandalas` only; no Supabase migrations, env values, auth/session bootstrap, `/profile-old`, `/`, `/masters`, `/profile/admin`, or Vercel rewrites were changed.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/lib/powerPlaceClient.js`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - chess labels still counted only source slots, not the central client/goal photo;
+  - `plus-8` slot class rendering prefixed only the first compound class, so coordinate classes like `outer-top-left` did not receive the CSS selector prefix;
+  - compact chess placement was not a stable ring/pentagon and could visually collide;
+  - `Размер фото` was gated to chess and persisted only as `chess_slot_scale`;
+  - legacy single `cover_ref` was also used as an outer-cover fallback, so inner and outer layers were not cleanly separated in the preview path;
+  - mobile source order kept actions/advanced before the settings rail because they lived inside the center column;
+  - field layout classes existed but Profile Lite CSS forced much of the panel back toward square sizing.
+- Fixed live screenshot issues:
+  - chess UI labels now show `15 фоток`, `9 фоток`, `9 фото+`, `6 фоток`; technical values remain `classic-14`, `classic-8`, `plus-8`, `compact-5`;
+  - `9 фото+` renders 8 source slots plus center, with 4 outer-square and 4 inner-square slots, prefixed coordinate classes, no clipping, and no overlap at desktop 1280 or mobile 390 after the size button check;
+  - `6 фоток` renders 5 source slots plus center as a compact pentagon/ring with no clipping or overlap at desktop 1280 or mobile 390;
+  - `Фон внутри` and `Фон снаружи` now read layer-specific active/preview state; old single cover refs remain an inner fallback while outer defaults to `no-cover`;
+  - `Размер фото` is a shared `slot_scale` control for all constructor formats and still falls back to old `chess_slot_scale`;
+  - shared scale is persisted backward-compatibly in `object_refs.__slot_scale`, avoiding a schema migration;
+  - `Макет` now exposes field aspect/card hooks for square, vertical, horizontal, and rectangle layouts;
+  - mobile order now places the settings rail immediately after the visual constructor, with actions, advanced JSON, and source rail below it.
+- Verification:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Rendered QA with fake public Supabase env and fake JWT only:
+  - desktop 1280: Profile Lite columns stayed `260px 620px 340px`; all constructor types clicked (`Зодиак`, `Звезда`, `Шахматы`, `Мандала`, `Алтарь`, `Бизнес`, `ДАО`); overflowX `0`; no console warnings/errors;
+  - desktop chess: `15` had 14 source slots + center; `9` had 8 + center; `9+` had 8 + center, 4 outer and 4 inner; `6` had 5 pentagon slots + center;
+  - desktop targeted recheck after `Размер фото` plus button: `9+` had overflowX `0`, clipped `0`, overlaps `0`, scale var `1.08`;
+  - mobile 390: one `358px` column; `9+` had 8 + center, 4 outer and 4 inner, clipped `0`, overlaps `0`; `6` had 5 pentagon slots + center, clipped `0`, overlaps `0`; overflowX `0`; no console warnings/errors;
+  - mobile order: visual print area ended before the settings rail; actions, advanced JSON, and source rail followed below;
+  - cover check: inner class became `cover-mentalica`; outer panel class became `outer-cover-forest`.
+- Not verified:
+  - real Supabase session;
+  - real saved composition reload from production data;
+  - real upload/private signed URL flow;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite chess layout variants and sizing fix
 
 - Branch: `codex/fix-chess-layout-variants-size-mentalica`.
