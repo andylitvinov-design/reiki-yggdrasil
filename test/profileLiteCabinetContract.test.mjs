@@ -188,6 +188,8 @@ const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
+const backgroundZoneControlsSource = readFileSync("public/profile-background-zone-controls.js", "utf8");
+const backgroundTabsRefineSource = readFileSync("public/profile-background-tabs-refine.js", "utf8");
 const overviewModuleSource = readFileSync(join(moduleDir, "ProfileLiteOverview.jsx"), "utf8");
 const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
 const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
@@ -214,9 +216,16 @@ for (const requiredPowerPlaceText of [
   "Фон снаружи",
   "Без фона",
   "Макет",
-  "Анализ",
-  "Ресурс без мандалы",
-  "Ресурс с мандалой",
+  "Отчёт",
+  "С отчётом",
+  "Без отчёта",
+  "Анализ ситуации",
+  "Что даёт мандала",
+  "Что ещё поможет",
+  "О Мастере",
+  "Доступно в Pro формате.",
+  "Добавить отчёт",
+  "Удалить отчёт",
   "Объекты композиции",
   "Сохранить место силы",
   "Скачать",
@@ -287,6 +296,32 @@ assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse ol
 assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
 assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
 assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
+assert.match(
+  powerPlaceSource,
+  /mandalaFieldLayoutSwitch[\s\S]*\{renderReportModule\(\)\}[\s\S]*coverSelector[\s\S]*objectImageEditor/,
+  "Lite right rail should place Report after layout and before Power Place background"
+);
+assert.match(powerPlaceSource, /reportSettingsPanel/, "Report module should render as its own right-rail card");
+assert.doesNotMatch(
+  powerPlaceSource,
+  /coverSelector[\s\S]*resourceComparisonPanel|coverSelector[\s\S]*Анализ|coverSelector[\s\S]*Ресурс без мандалы|coverSelector[\s\S]*Ресурс с мандалой/,
+  "Power Place background card must not contain the old analysis/resource comparison UI"
+);
+assert.match(backgroundZoneControlsSource, /profileLitePowerPlace/, "legacy background zone enhancer should explicitly skip Profile Lite");
+assert.match(backgroundTabsRefineSource, /profileLitePowerPlace/, "legacy background tabs enhancer should explicitly skip Profile Lite");
+assert.match(profileLitePageSource, /report_mode:\s*"with_report"/, "empty composition should default to with-report mode");
+assert.match(profileLitePageSource, /report_added:\s*false/, "empty composition should keep report hidden until added");
+for (const reportField of ["report_situation", "report_mandala_effect", "report_extra_help", "report_master_note"]) {
+  assert.match(profileLitePageSource, new RegExp(`${reportField}:\\s*""`), `empty composition should include ${reportField}`);
+}
+for (const reportField of ["report_situation", "report_mandala_effect", "report_extra_help"]) {
+  assert.match(powerPlaceSource, new RegExp(`onCompositionDraftChange\\("${reportField}"`), `report module should save ${reportField} into the draft`);
+}
+assert.doesNotMatch(powerPlaceSource, /onCompositionDraftChange\("report_master_note"/, "disabled Pro master note should not save user input");
+assert.match(powerPlaceSource, /disabled[\s\S]*Доступно в Pro формате\./, "Master report field should be visibly disabled as a Pro-only placeholder");
+assert.match(powerPlaceSource, /reportEnabled && reportAdded[\s\S]*powerReportOutput/, "text report should render under the mandala only when enabled and added");
+assert.match(profileLitePageSource, /report_situation[\s\S]*report_mandala_effect[\s\S]*report_extra_help/, "download HTML should include only the three working report sections");
+assert.doesNotMatch(profileLitePageSource, /handleDownloadComposition[\s\S]*report_master_note/, "download HTML must not include the disabled Pro master note");
 assert.doesNotMatch(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must not render cabinet tabs before the active module canonical hero");
 assert.match(shellSource, /const shellChrome = \(/, "Profile Lite shell should expose tabs/status as canonical shell chrome");
 assert.match(shellSource, /typeof children === "function"/, "ProfileLitePage/Shell integration should let modules place shell chrome below their canonical hero");

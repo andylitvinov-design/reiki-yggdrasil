@@ -146,7 +146,13 @@ assert.deepEqual(
     tradition_title: " Греческие мистерии ",
     resource_comparison_mode: "photo_mandala",
     resource_without_mandala_comment: " До: мало сил ",
-    resource_with_mandala_comment: " После: яснее цель "
+    resource_with_mandala_comment: " После: яснее цель ",
+    report_mode: "with_report",
+    report_added: true,
+    report_situation: " Сейчас мало сил ",
+    report_mandala_effect: " Мандала собирает фокус ",
+    report_extra_help: " Поможет дыхательная практика ",
+    report_master_note: " Pro заметка "
   }),
   {
     profile_id: "profile-1",
@@ -165,7 +171,13 @@ assert.deepEqual(
     tradition_title: "Греческие мистерии",
     resource_comparison_mode: "photo_mandala",
     resource_without_mandala_comment: "До: мало сил",
-    resource_with_mandala_comment: "После: яснее цель"
+    resource_with_mandala_comment: "После: яснее цель",
+    report_mode: "with_report",
+    report_added: true,
+    report_situation: "Сейчас мало сил",
+    report_mandala_effect: "Мандала собирает фокус",
+    report_extra_help: "Поможет дыхательная практика",
+    report_master_note: ""
   }
 );
 
@@ -197,7 +209,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -241,7 +259,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "Фото без поддержки",
-    resource_with_mandala_comment: "Фото с мандалой"
+    resource_with_mandala_comment: "Фото с мандалой",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -281,7 +305,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -321,7 +351,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -355,7 +391,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -396,7 +438,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -430,7 +478,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -466,7 +520,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 
@@ -505,7 +565,13 @@ assert.deepEqual(
     tradition_title: "",
     resource_comparison_mode: "client_photo",
     resource_without_mandala_comment: "",
-    resource_with_mandala_comment: ""
+    resource_with_mandala_comment: "",
+    report_mode: "with_report",
+    report_added: false,
+    report_situation: "",
+    report_mandala_effect: "",
+    report_extra_help: "",
+    report_master_note: ""
   }
 );
 

@@ -352,6 +352,13 @@ export default function ProfileLitePowerPlaceModule({
     ...(imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src) || {}),
     "--power-place-chess-slot-scale": chessSlotScale
   };
+  const reportEnabled = (compositionDraft.report_mode || "with_report") === "with_report";
+  const reportAdded = Boolean(compositionDraft.report_added);
+  const reportRows = [
+    { key: "situation", label: "Анализ ситуации", value: compositionDraft.report_situation || "" },
+    { key: "mandala-effect", label: "Что даёт мандала", value: compositionDraft.report_mandala_effect || "" },
+    { key: "extra-help", label: "Что ещё поможет", value: compositionDraft.report_extra_help || "" }
+  ];
 
   const savedImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((photo) => ({
@@ -470,6 +477,49 @@ export default function ProfileLitePowerPlaceModule({
       throw error;
     }
   };
+
+  const renderReportModule = () => (
+    <div className="reportSettingsPanel">
+      <p className="cabinetEyebrow">Отчёт</p>
+      <h3>Отчёт</h3>
+      <div className="reportModeToggle" role="group" aria-label="Режим отчёта">
+        <button className={reportEnabled ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("report_mode", "with_report")}>
+          С отчётом
+        </button>
+        <button className={!reportEnabled ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("report_mode", "without_report")}>
+          Без отчёта
+        </button>
+      </div>
+      {reportEnabled && (
+        <>
+          <label className="reportField">
+            Анализ ситуации
+            <textarea value={compositionDraft.report_situation || ""} onChange={(event) => onCompositionDraftChange("report_situation", event.target.value)} rows={3} />
+          </label>
+          <label className="reportField">
+            Что даёт мандала
+            <textarea value={compositionDraft.report_mandala_effect || ""} onChange={(event) => onCompositionDraftChange("report_mandala_effect", event.target.value)} rows={3} />
+          </label>
+          <label className="reportField">
+            Что ещё поможет
+            <textarea value={compositionDraft.report_extra_help || ""} onChange={(event) => onCompositionDraftChange("report_extra_help", event.target.value)} rows={3} />
+          </label>
+          <label className="reportField disabled">
+            О Мастере
+            <textarea disabled value="" placeholder="Доступно в Pro формате." rows={2} />
+          </label>
+          <button className="reportPrimaryButton" type="button" onClick={() => onCompositionDraftChange("report_added", true)}>
+            {reportAdded ? "Обновить" : "Добавить отчёт"}
+          </button>
+          {reportAdded && (
+            <button className="reportDeleteButton" type="button" onClick={() => onCompositionDraftChange("report_added", false)}>
+              Удалить отчёт
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
 
   const renderSourceSlot = (slot, index) => {
     const src = objectRefs[slot.id] || "";
@@ -987,6 +1037,18 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   )}
                 </div>
+                {reportEnabled && reportAdded && (
+                  <section className="powerReportOutput" aria-label="Текстовый отчёт под мандалой">
+                    <p className="cabinetEyebrow">Отчёт</p>
+                    <h3>Отчёт</h3>
+                    {reportRows.map((row) => (
+                      <div className="powerReportOutputSection" key={row.key}>
+                        <b>{row.label}</b>
+                        <p>{row.value.trim() || "Текст будет добавлен после заполнения поля отчёта."}</p>
+                      </div>
+                    ))}
+                  </section>
+                )}
               </div>
 
               <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
@@ -1022,6 +1084,8 @@ export default function ProfileLitePowerPlaceModule({
               </div>
             </div>
 
+            {renderReportModule()}
+
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
@@ -1052,32 +1116,6 @@ export default function ProfileLitePowerPlaceModule({
                 Своё изображение
               </label>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
-            </div>
-
-            <div className="resourceComparisonPanel">
-              <p className="cabinetEyebrow">Анализ</p>
-              <div className="resourceModeToggle" aria-label="Сравнение ресурса">
-                <button className={compositionDraft.resource_comparison_mode === "client_photo" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "client_photo")}>Фото цели</button>
-                <button className={compositionDraft.resource_comparison_mode === "photo_mandala" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "photo_mandala")}>Цель + мандала</button>
-              </div>
-              <label className="resourceField">
-                Ресурс без мандалы
-                <textarea
-                  className="resourceFieldInput"
-                  value={compositionDraft.resource_without_mandala_comment || ""}
-                  onChange={(event) => onCompositionDraftChange("resource_without_mandala_comment", event.target.value)}
-                  rows={3}
-                />
-              </label>
-              <label className="resourceField">
-                Ресурс с мандалой
-                <textarea
-                  className="resourceFieldInput"
-                  value={compositionDraft.resource_with_mandala_comment || ""}
-                  onChange={(event) => onCompositionDraftChange("resource_with_mandala_comment", event.target.value)}
-                  rows={3}
-                />
-              </label>
             </div>
 
             <div className="objectImageEditor">

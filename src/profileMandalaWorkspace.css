@@ -5197,7 +5197,7 @@
 .profileLitePowerPlace .coverPickerPanel,
 .profileLitePowerPlace .powerLayoutPanel,
 .profileLitePowerPlace .objectImageEditor,
-.profileLitePowerPlace .resourceComparisonPanel {
+.profileLitePowerPlace .reportSettingsPanel {
   min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -5206,11 +5206,116 @@
 }
 
 .profileLitePowerPlace .coverPickerPanel,
-.profileLitePowerPlace .powerLayoutPanel {
+.profileLitePowerPlace .powerLayoutPanel,
+.profileLitePowerPlace .reportSettingsPanel {
   border: 1px solid rgba(203, 152, 64, 0.24);
   border-radius: 18px;
   padding: 12px;
   background: rgba(255, 253, 248, 0.66);
+}
+
+.profileLitePowerPlace .reportSettingsPanel h3,
+.profileLitePowerPlace .powerReportOutput h3 {
+  margin: 0;
+  color: #3b2714;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.profileLitePowerPlace .reportModeToggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.profileLitePowerPlace .reportModeToggle button,
+.profileLitePowerPlace .reportPrimaryButton,
+.profileLitePowerPlace .reportDeleteButton {
+  min-width: 0;
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  padding: 8px 10px;
+  background: rgba(255, 251, 243, 0.86);
+  color: #5c3c12;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileLitePowerPlace .reportModeToggle button.active,
+.profileLitePowerPlace .reportPrimaryButton {
+  background: linear-gradient(180deg, #f7cf82, #d99c3d);
+  border-color: rgba(147, 87, 10, 0.48);
+  color: #2e1d09;
+}
+
+.profileLitePowerPlace .reportDeleteButton {
+  width: fit-content;
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: #8d4d23;
+  text-decoration: underline;
+}
+
+.profileLitePowerPlace .reportField {
+  display: grid;
+  gap: 5px;
+  color: #5f3e12;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .reportField textarea {
+  width: 100%;
+  min-width: 0;
+  resize: vertical;
+  min-height: 58px;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #3c2a18;
+  font: inherit;
+  font-size: 12px;
+}
+
+.profileLitePowerPlace .reportField.disabled {
+  opacity: 0.68;
+}
+
+.profileLitePowerPlace .reportField textarea:disabled {
+  cursor: not-allowed;
+  background: rgba(237, 229, 214, 0.64);
+}
+
+.profileLitePowerPlace .powerReportOutput {
+  width: min(100%, 560px);
+  margin: 12px auto 0;
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(203, 152, 64, 0.28);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 253, 248, 0.84);
+  color: #3b2714;
+}
+
+.profileLitePowerPlace .powerReportOutputSection {
+  display: grid;
+  gap: 4px;
+}
+
+.profileLitePowerPlace .powerReportOutputSection b {
+  color: #5f3e12;
+  font-size: 12px;
+}
+
+.profileLitePowerPlace .powerReportOutputSection p {
+  margin: 0;
+  color: #3c2a18;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .profileLitePowerPlace .coverVariantsGrid {

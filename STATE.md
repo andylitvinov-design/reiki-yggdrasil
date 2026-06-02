@@ -12,6 +12,31 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite report module under Formats
+
+- Branch: `codex/profile-lite-report-under-formats`, based on fresh `origin/main` commit `169c854`.
+- Scope: `/profile/mandalas` Profile Lite Power Place right rail and saved composition payload only.
+- Changed:
+  - removed the old visible `Анализ` / resource comparison UI from the Profile Lite background card;
+  - added a standalone `Отчёт` card after `Макет` and before `Фон Места Силы`;
+  - added `С отчётом` / `Без отчёта`, three working report text fields, disabled Pro-only `О Мастере`, add/update/delete report behavior, and text report output under the mandala;
+  - added report fields to `EMPTY_COMPOSITION` and `normalizePowerPlaceComposition`;
+  - updated legacy public background enhancer scripts so they skip `.profileLitePowerPlace` and do not move layout/analysis controls back into the background card.
+- Verification:
+  - `npm run test:profile-lite` passed after RED failures for missing report UI/data contract;
+  - `npm run test:power-place` passed after RED failure for missing normalized report payload fields;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local rendered QA:
+  - dev server ran at `http://127.0.0.1:4224/profile/mandalas` with fake public Supabase env and fake JWT-shaped local session only;
+  - desktop 1280: right rail order was `Макет -> Отчёт -> Фон Места Силы -> Объекты композиции`, columns `260px 620px 340px`, overflow `0`, old resource panel absent, background card had no forbidden analysis/resource text;
+  - mobile 390: single `358px` column, same right rail order, overflow `0`;
+  - report interaction checked: add shows text report and changes button to `Обновить`, delete hides report without clearing text, `Без отчёта` hides fields/button/report without clearing text;
+  - browser console warning/error list was empty.
+- Not verified:
+  - real authenticated Supabase save/load of new report fields;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite chess layout variants and sizing fix
 
 - Branch: `codex/fix-chess-layout-variants-size-mentalica`.

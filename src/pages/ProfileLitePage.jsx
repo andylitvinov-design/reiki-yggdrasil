@@ -108,7 +108,13 @@ const EMPTY_COMPOSITION = {
   tradition_title: "",
   resource_comparison_mode: "client_photo",
   resource_without_mandala_comment: "",
-  resource_with_mandala_comment: ""
+  resource_with_mandala_comment: "",
+  report_mode: "with_report",
+  report_added: false,
+  report_situation: "",
+  report_mandala_effect: "",
+  report_extra_help: "",
+  report_master_note: ""
 };
 const EMPTY_ORDER_PATCH = {
   id: "",
@@ -947,6 +953,21 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       .map(([key, value]) => `<li><b>${escapeHtml(key)}</b>: ${escapeHtml(value)}</li>`)
       .join("");
     const centerRef = compositionDraft.object_refs?.__center_image || compositionDraft.central_photo_id || "";
+    const reportRows = [
+      ["Анализ ситуации", compositionDraft.report_situation],
+      ["Что даёт мандала", compositionDraft.report_mandala_effect],
+      ["Что ещё поможет", compositionDraft.report_extra_help]
+    ]
+      .map(([label, value]) => [label, String(value || "").trim()])
+      .filter(([, value]) => value)
+      .map(([label, value]) => `<p><b>${escapeHtml(label)}:</b> ${escapeHtml(value)}</p>`)
+      .join("");
+    const reportHtml = compositionDraft.report_mode === "with_report" && compositionDraft.report_added
+      ? `<section>
+    <h2>Отчёт</h2>
+    ${reportRows || "<p>Отчёт добавлен, текст пока не заполнен.</p>"}
+  </section>`
+      : "";
     const html = `<!doctype html>
 <html lang="ru">
 <head>
@@ -972,6 +993,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     <h2>Подложка</h2>
     <pre>${escapeHtml(JSON.stringify(compositionDraft.cover_ref || null, null, 2))}</pre>
   </section>
+  ${reportHtml}
 </body>
 </html>`;
     downloadHtml(`${safeFilename(compositionDraft.title || "power-place")}.html`, html);

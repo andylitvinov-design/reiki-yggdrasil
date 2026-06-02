@@ -22,6 +22,7 @@ const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
+const VALID_REPORT_MODES = ["with_report", "without_report"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8"];
 
@@ -267,6 +268,7 @@ export function normalizePowerPlaceComposition(composition) {
   const businessZoneCount = Number(composition?.business_vertex_zone_count);
   const zodiacVisibleCount = Number(composition?.zodiac_visible_count);
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
+  const reportMode = cleanText(composition?.report_mode);
   const starVariant = cleanText(composition?.star_variant);
   const chessVariant = cleanText(composition?.chess_variant);
 
@@ -287,7 +289,13 @@ export function normalizePowerPlaceComposition(composition) {
     tradition_title: constructorType === "altar" ? cleanText(composition?.tradition_title) : "",
     resource_comparison_mode: VALID_RESOURCE_COMPARISON_MODES.includes(resourceComparisonMode) ? resourceComparisonMode : "client_photo",
     resource_without_mandala_comment: cleanText(composition?.resource_without_mandala_comment),
-    resource_with_mandala_comment: cleanText(composition?.resource_with_mandala_comment)
+    resource_with_mandala_comment: cleanText(composition?.resource_with_mandala_comment),
+    report_mode: VALID_REPORT_MODES.includes(reportMode) ? reportMode : "with_report",
+    report_added: composition?.report_added === true,
+    report_situation: cleanText(composition?.report_situation),
+    report_mandala_effect: cleanText(composition?.report_mandala_effect),
+    report_extra_help: cleanText(composition?.report_extra_help),
+    report_master_note: ""
   };
 }
 

@@ -1,5 +1,39 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite report module under Formats
+
+- Branch: `codex/profile-lite-report-under-formats`.
+- Changed files:
+  - `public/profile-background-tabs-refine.js`
+  - `public/profile-background-zone-controls.js`
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - moved Profile Lite report controls out of `Фон Места Силы` and into a standalone `Отчёт` card directly after `Макет`;
+  - kept `Фон Места Силы` limited to inner/outer background controls, preview, variants, custom image, and photo picker;
+  - added `С отчётом` / `Без отчёта`, three working compact report textareas, disabled Pro-only `О Мастере`, add/update/delete report behavior, and text output under the mandala;
+  - added report payload defaults and normalization so save/load keeps `report_mode`, `report_added`, `report_situation`, `report_mandala_effect`, and `report_extra_help`; `report_master_note` remains non-working and normalizes to empty;
+  - made legacy public background enhancer scripts skip Profile Lite so they no longer inject `Макет` / `Анализ` tabs into the background card.
+- Checks run:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:power-place` passed;
+  - `npm run check` passed with existing video placeholder warnings for `RY-L04-S04` / `RY-L04-S05` and existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local rendered QA:
+  - `http://127.0.0.1:4224/profile/mandalas` with fake public Supabase env and fake JWT-shaped local session only;
+  - desktop 1280 and mobile 390 verified right rail order, no horizontal overflow, no old resource comparison panel, and no forbidden analysis/resource text inside the background card;
+  - report add/delete/without-report behavior preserved entered text and hid/shows the expected blocks;
+  - no browser console warnings/errors.
+- Not verified:
+  - real Supabase save/load with a live authenticated account;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite chess variants, sizing, and Mentalica cover
 
 - Branch: `codex/fix-chess-layout-variants-size-mentalica`.
