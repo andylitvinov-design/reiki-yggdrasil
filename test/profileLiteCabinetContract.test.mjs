@@ -331,7 +331,7 @@ for (const requiredPickerProp of [
 
 for (const requiredPickerText of [
   "Сохранённые фото",
-  "Нужна signed URL",
+  "signed URL не создан — проверьте Storage/RLS",
   "Загрузить новое фото",
   "Удалить фото из базы?"
 ]) {
@@ -340,6 +340,8 @@ for (const requiredPickerText of [
 
 assert.match(imagePickerSource, /onSelect\(image\)/, "picker cards should select images directly");
 assert.match(imagePickerSource, /await onUpload\(file\)/, "picker upload should wait for the parent upload flow before closing");
+assert.match(imagePickerSource, /mediaSigningError|signingError/, "picker should expose a safe signing diagnostic for storage refs without displaySrc");
+assert.doesNotMatch(imagePickerSource, /needsSignedUrl\s*\?\s*"Нужна signed URL"/, "storage refs without displaySrc must not look like a successful preview state");
 assert.doesNotMatch(imagePickerSource, /onChange=\{\(event\)[\s\S]*onClose\(\)/, "picker file input must not close the modal before upload success");
 
 assert.match(profileLitePageSource, /savedDisplayUrl\s*=\s*saved\?\.display_url\s*\|\|\s*saved\?\.signed_url\s*\|\|\s*uploaded\.signedUrl/, "central upload should keep saved display URL or uploaded signed URL fallback");

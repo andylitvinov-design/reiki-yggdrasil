@@ -92,15 +92,16 @@ export default function ProfileLiteImagePicker({
           {visibleImages.map((image) => {
             const displaySrc = image.displaySrc || "";
             const selected = selectedImageRef && (selectedImageRef === image.src || selectedImageRef === image.displaySrc);
-            const needsSignedUrl = !displaySrc && isStorageRef(image.src);
+            const mediaSigningError = image.signingError || (!displaySrc && isStorageRef(image.src) ? "signed URL не создан — проверьте Storage/RLS" : "");
             return (
               <article className={`clientPhotoPickerCard profileLiteImagePickerCard${selected ? " active" : ""}`} key={image.id}>
                 <button className="profileLiteImagePickerSelect" type="button" onClick={() => handleSelect(image)} disabled={isUploading}>
                   <span className={isDisplayUrl(displaySrc) ? "hasImage" : "needsSignedUrl"} style={imageStyle(displaySrc)}>
-                    {!isDisplayUrl(displaySrc) && <em>{needsSignedUrl ? "Нужна signed URL" : "Нет preview"}</em>}
+                    {!isDisplayUrl(displaySrc) && <em>{mediaSigningError || "Нет preview"}</em>}
                   </span>
                   <b>{image.label || "Изображение"}</b>
                   {image.meta && <small>{image.meta}</small>}
+                  {mediaSigningError && <small className="profileLiteImagePickerDiagnostic">{mediaSigningError}</small>}
                 </button>
                 {image.kind === "client-photo" && onDelete && (
                   <button

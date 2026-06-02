@@ -12,6 +12,37 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite media upload signed URL hydration fix
+
+- Branch: `codex/profile-lite-media-upload-signed-url-fix`, based on fresh `origin/main` commit `ef8c287`.
+- Scope: targeted Profile Lite `/profile/mandalas` media upload/list/hydration/render path only.
+- Root cause found:
+  - upload and DB insert paths were present, but private Storage hydration swallowed signed URL failures with `catch(() => "")`;
+  - storage rows with `image_bucket + image_path` became `storage://profile-cabinet-media/...` without a usable `display_url`, so the picker rendered blank placeholders;
+  - Storage sign/upload URLs did not segment-encode object paths.
+- Fixed:
+  - added segment-safe Storage object path encoding for upload and signed URL requests;
+  - moved media row hydration into `hydrateMediaRowsForDisplay`, preserving external `image_url` rows and keeping private signed URLs in `display_url` / `signed_url` only;
+  - added safe `media_signing_status` / `media_signing_error` diagnostics when signing fails;
+  - propagated signing diagnostics into the Profile Lite image picker with the explicit label `signed URL не создан — проверьте Storage/RLS`;
+  - kept Power Place `object_refs` durable and did not persist temporary signed URLs as source refs.
+- Verification:
+  - `npm run test:profile-media` passed after intentional RED failure on missing encoding/hydration exports;
+  - `npm run test:profile-lite` passed after intentional RED failure on missing picker diagnostic;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05` plus existing Vite large-chunk warning;
+  - standalone `npm run build` passed with existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local rendered QA:
+  - preview ran at `http://localhost:4193/profile/mandalas`;
+  - desktop 1280 and mobile 390 auth-gate route checks had horizontal overflow `0`, no Vite overlay, and no console warnings/errors.
+- Not verified:
+  - real authenticated Supabase Storage upload/sign/select/delete flow;
+  - real `/profile/mandalas` picker preview after upload and after reload;
+  - saved composition reload with private images visible;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite follow-up layout/print parity fix
 
 - Branch: `codex/profile-lite-followup-layout-print-parity`, based on fresh `origin/main` commit `abd47d2`.

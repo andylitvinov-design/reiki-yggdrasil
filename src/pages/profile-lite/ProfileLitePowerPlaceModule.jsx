@@ -340,6 +340,7 @@ export default function ProfileLitePowerPlaceModule({
       meta: photo.notes || "Клиенты",
       src: photo.image_ref || photo.image_url,
       displaySrc: photo.display_url || photo.signed_url || photo.image_url,
+      signingError: photo.media_signing_error || "",
       kind: "client-photo",
       photoId: photo.id
     })),
@@ -349,6 +350,7 @@ export default function ProfileLitePowerPlaceModule({
       meta: asset.tradition_title || "Мистерии",
       src: asset.image_ref || asset.image_url,
       displaySrc: asset.display_url || asset.signed_url || asset.image_url,
+      signingError: asset.media_signing_error || "",
       kind: "tradition-asset",
       traditionId: asset.tradition_id || ""
     })),
@@ -358,6 +360,7 @@ export default function ProfileLitePowerPlaceModule({
       meta: item.material_category || item.step_title || item.type || "Материалы",
       src: item.image_ref || item.image_url,
       displaySrc: item.display_url || item.image_url,
+      signingError: item.media_signing_error || "",
       kind: "material",
       stepId: item.step_id || "",
       type: item.type || ""
