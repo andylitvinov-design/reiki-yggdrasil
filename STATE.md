@@ -12,6 +12,36 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite copied old cabinet layout structures
+
+- Branch: `codex/copy-profile-old-layout-into-lite`, based on `origin/main` merge commit `dad752c`.
+- Scope: copy the already-working `/profile-old` cabinet layout structures from `src/pages/ProfilePage.jsx` into Profile Lite modules while preserving the new stable Profile Lite auth shell, route-backed tabs, and `ProfileLiteImagePicker`.
+- Old sections copied/reused:
+  - `profileEditor` structure: `profileTabContent`, `profileForm`, `cabinetPreview`, old RU preview copy;
+  - materials workspace: `workspaceMainColumns`, `mandalaModeSidebar`, `workspaceCenterColumn`, `mandalaGallery`, `mandalaCardsGrid`, `mandalaMaterialCard`, right-side material form;
+  - services/orders/chats workspaces: old `mandalaModeSidebar` left rail plus `chatPlaceholderWorkspace` / `chatPlaceholderHeader` center surface, with live Lite forms/lists kept in `workspaceRightColumn`;
+  - mandalas kept the old `workspaceMainColumns` / `powerLibrarySidebar` / `workspaceCenterColumn` / `workspaceRightColumn` / `powerPlaceConstructor` / `powerPlaceSettings` structure and received scoped fit/overflow hardening.
+- Contract coverage:
+  - `test/profileLiteCabinetContract.test.mjs` now asserts old non-mandala wrapper/class reuse, old material gallery classes, and old services/orders/chats placeholder surfaces.
+- Local route-stubbed rendered QA with fake public Supabase env and fake local session only:
+  - `/profile-old` desktop 1280: overflow `0`, old left/center/right structure present;
+  - `/profile/mandalas` desktop 1280: columns `260px 640px 320px`, mandala panel `560px`, mandala `362px`, overflow `0`;
+  - `/profile-old` mobile 390: single `358px` column, overflow `0`;
+  - `/profile/mandalas` mobile 390: single `358px` column, mandala panel `324px`, mandala `218px`, overflow `0`;
+  - `/profile?tab=materials`, `/profile/services`, `/profile/orders`, `/profile/chats` desktop 1280: old Lite legacy columns `260px 620px 340px`, left/center/right blocks present, overflow `0`;
+  - chat empty-data placeholder path rendered 3 old-style mock messages with no console warnings/errors.
+- Verification:
+  - passed `npm run test:profile-lite` after an intentional RED failure for missing old `profileTabContent`;
+  - passed `npm run test:profile-media`;
+  - passed `npm run test:power-place`;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05` plus existing Vite large-chunk warning;
+  - passed standalone `npm run build` with existing Vite large-chunk warning.
+- Not verified:
+  - real authenticated production Supabase/RLS media upload/delete, saved composition save/load/update, service publishing, orders, and chat data behavior;
+  - authenticated live `/profile-old` versus `/profile/mandalas` screenshot-level comparison with a real user session;
+  - production deployment of this branch.
+
 ## 2026-06-02 — Profile Lite parity PR #196 merged, production deploy blocked
 
 - PR: #196 `Polish Profile Lite mandala parity`.

@@ -5012,12 +5012,64 @@
   gap: 14px;
 }
 
+.profileLiteLegacyColumns {
+  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(280px, 340px);
+  gap: 14px;
+}
+
 .profileLitePowerPlace .mandalaModeSidebar,
+.profileLiteLegacyColumns .mandalaModeSidebar,
 .profileLitePowerPlace .workspaceCenterColumn,
+.profileLiteLegacyColumns .workspaceCenterColumn,
 .profileLitePowerPlace .workspaceRightColumn {
   grid-column: auto;
   grid-row: auto;
   min-width: 0;
+}
+
+.profileLiteLegacyColumns .workspaceRightColumn {
+  grid-column: auto;
+  grid-row: auto;
+  min-width: 0;
+}
+
+.profileLiteLegacyColumns .chatPlaceholderWorkspace,
+.profileLiteLegacyColumns .mandalaGallery {
+  min-width: 0;
+  width: 100%;
+}
+
+.profileLiteLegacyColumns .mandalaModeSidebar {
+  position: sticky;
+  top: 14px;
+}
+
+.profileLiteLegacyColumns .cabinetCard,
+.profileLiteLegacyColumns input,
+.profileLiteLegacyColumns textarea,
+.profileLiteLegacyColumns select,
+.profileLitePowerPlace input,
+.profileLitePowerPlace textarea,
+.profileLitePowerPlace select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.profileLiteLegacyColumns .materialCard,
+.profileLiteLegacyColumns .mandalaMaterialCard,
+.profileLitePowerPlace .powerSavedImageCard {
+  min-width: 0;
+}
+
+.profileLiteLegacyColumns .materialCard h3,
+.profileLiteLegacyColumns .materialCard p,
+.profileLiteLegacyColumns .materialCard small,
+.profileLiteLegacyColumns .mandalaCardBody h3,
+.profileLiteLegacyColumns .mandalaCardBody p,
+.profileLiteLegacyColumns .mandalaCardBody small,
+.profileLitePowerPlace .powerSavedImageCard b,
+.profileLitePowerPlace .powerSavedImageCard small {
+  overflow-wrap: anywhere;
 }
 
 .profileLitePowerPlace .powerLibrarySidebar {
@@ -5060,6 +5112,16 @@
 
 .profileLitePowerPlace .powerPlacePrintArea .powerMandala {
   width: min(390px, 88%) !important;
+}
+
+.profileLitePowerPlace .powerSource,
+.profileLitePowerPlace .altarObjectSlot,
+.profileLitePowerPlace .businessObjectSlot,
+.profileLitePowerPlace .zodiacObjectSlot,
+.profileLitePowerPlace .starObjectSlot,
+.profileLitePowerPlace .chessObjectSlot {
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .profileLitePowerPlace .powerPlaceSettings,
@@ -5122,6 +5184,40 @@
   border-color: rgba(245, 198, 106, 0.72);
   background: linear-gradient(180deg, #2a1a09, #8c570d);
   color: #fff0cd;
+}
+
+@media (max-width: 1180px) {
+  .profileLiteLegacyColumns {
+    grid-template-columns: minmax(210px, 240px) minmax(0, 1fr);
+  }
+
+  .profileLiteLegacyColumns .workspaceRightColumn {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .profileLiteLegacyColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteLegacyColumns .mandalaModeSidebar,
+  .profileLiteLegacyColumns .workspaceRightColumn {
+    position: static;
+    grid-column: 1;
+  }
+
+  .profileLiteLegacyColumns .chatPlaceholderWorkspace {
+    min-height: 0;
+  }
+
+  .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
+    width: min(100%, 342px) !important;
+  }
+
+  .profileLitePowerPlace .powerPlacePrintArea .powerMandala {
+    width: min(228px, 86%) !important;
+  }
 }
 
 .profileLitePowerPlace .powerSavedImageList {

@@ -13,12 +13,12 @@ export default function ProfileLiteProfileModule({
   saveStatus
 }) {
   return (
-    <section className="profileLiteModule profileLiteProfileGrid" aria-label="Профиль">
+    <section className="profileLiteModule profileLiteProfileGrid profileTabContent" aria-label="Профиль">
       <form className="cabinetCard profileForm" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
         <div className="cabinetFormHeader">
           <div>
-            <p className="cabinetEyebrow">Профиль</p>
-            <h2>{profile?.display_name || "Профиль мастера"}</h2>
+            <p className="cabinetEyebrow">Профиль мастера</p>
+            <h2>{profile?.display_name || "Новый профиль"}</h2>
             {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
           </div>
           <span className={`cabinetStatus status-${form.status || "draft"}`}>{form.status || "draft"}</span>
@@ -74,10 +74,10 @@ export default function ProfileLiteProfileModule({
       </form>
 
       <aside className="cabinetCard cabinetPreview">
-        <p className="cabinetEyebrow">Preview</p>
+        <p className="cabinetEyebrow">Как это будет выглядеть</p>
         <div className="masterPreviewImage" style={form.avatar_url ? { backgroundImage: `url(${form.avatar_url})` } : undefined}>◎</div>
         <h3>{form.display_name || "Имя мастера"}</h3>
-        <p>{form.bio || "Описание появится после заполнения профиля."}</p>
+        <p>{form.bio || "Здесь появится описание мастера, практик, мандал и артефактов."}</p>
         <small>{[form.city, form.country].filter(Boolean).join(", ") || "Локация не указана"}</small>
       </aside>
     </section>

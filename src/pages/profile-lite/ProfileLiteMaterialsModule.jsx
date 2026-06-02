@@ -14,83 +14,111 @@ export default function ProfileLiteMaterialsModule({
   stepOptions
 }) {
   return (
-    <section className="profileLiteModule profileLiteMaterialsModule" aria-label="Материалы">
-      <div className="cabinetCard">
-        <div className="cabinetFormHeader">
-          <div>
-            <p className="cabinetEyebrow">Материалы</p>
-            <h2>Материалы мастера</h2>
+    <section className="profileLiteModule profileLiteMaterialsModule mandalaWorkspace" aria-label="Материалы">
+      <div className="workspaceMainColumns profileLiteLegacyColumns">
+        <aside className="mandalaModeSidebar">
+          <p className="cabinetEyebrow">Рабочий режим</p>
+          <h3>Материалы</h3>
+          <div className="materialFilterList" aria-label="Типы материалов">
+            {MATERIAL_TYPES.map((type) => (
+              <button className={materialForm.type === type.value ? "active" : ""} key={type.value} type="button" onClick={() => onFieldChange("type", type.value)}>
+                <span>{type.label}</span>
+                <small>{type.value}</small>
+              </button>
+            ))}
           </div>
-          <span className="cabinetStatus">{materialsStatus}</span>
-        </div>
-        {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
-        {materialsStatus === "loading" && <p>Загружаю материалы...</p>}
-        <div className="materialsGrid profileLiteMaterials">
-          {materials.map((material) => (
-            <article className="materialCard" key={material.id || `${material.title}-${material.updated_at}`}>
-              <div
-                className={material.display_url || material.image_url ? "materialThumb hasImage" : "materialThumb"}
-                style={material.display_url || material.image_url ? { backgroundImage: `url(${material.display_url || material.image_url})` } : undefined}
-              >
-                {!(material.display_url || material.image_url) && publicationTypeLabel(material.type).slice(0, 1)}
-              </div>
+          <div className="cabinetNotice compactNotice">
+            Сохраняйте мандалы, артефакты и практики к выбранной ступени и настройке.
+          </div>
+        </aside>
+
+        <div className="workspaceCenterColumn">
+          <div className="mandalaGallery">
+            <div className="cabinetFormHeader">
               <div>
-                <h3>{material.title || "Без названия"}</h3>
-                <p>{material.description || "Описание не заполнено."}</p>
-                <small>{publicationTypeLabel(material.type)} · {materialStatusText(material.status)}</small>
+                <p className="cabinetEyebrow">Мои мандалы и материалы</p>
+                <h2>Галерея мастера</h2>
               </div>
-            </article>
-          ))}
-          {materialsStatus === "success" && materials.length === 0 && <p>Материалы пока не найдены.</p>}
+              <span className="cabinetStatus">{materialsStatus === "loading" ? "..." : materials.length}</span>
+            </div>
+            {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
+            {materialsStatus === "loading" && <p>Загружаю материалы...</p>}
+            {materialsStatus === "success" && materials.length === 0 && (
+              <div className="mandalaEmptyState">
+                <div className="mandalaEmptySeal">✦</div>
+                <b>Добавьте первую мандалу к выбранной настройке</b>
+                <p>Она появится здесь как карточка вашей мастерской.</p>
+              </div>
+            )}
+            {materials.length > 0 && (
+              <div className="mandalaCardsGrid profileLiteMaterials">
+                {materials.map((material) => (
+                  <article className="mandalaMaterialCard" key={material.id || `${material.title}-${material.updated_at}`}>
+                    {material.display_url || material.image_url ? (
+                      <div className="mandalaCardImage" style={{ backgroundImage: `url(${material.display_url || material.image_url})` }} />
+                    ) : (
+                      <div className="mandalaCardImage placeholder">◎</div>
+                    )}
+                    <div className="mandalaCardBody">
+                      <div className="mandalaCardChips">
+                        <span>{publicationTypeLabel(material.type)}</span>
+                        <span className={`statusChip status-${material.status || "draft"}`}>{materialStatusText(material.status)}</span>
+                      </div>
+                      <h3>{material.title || "Без названия"}</h3>
+                      <p>{material.description || "Описание не заполнено."}</p>
+                      <small>{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="workspaceRightColumn">
+          <form className="cabinetCard profileLiteMaterialForm" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
+            <p className="cabinetEyebrow">Создать материал</p>
+            <h2>Мандала / артефакт / практика</h2>
+            <div className="cabinetTwoColumns">
+              <label>
+                Ступень Reiki Yggdrasil
+                <select value={materialForm.step_id} onChange={(event) => onFieldChange("step_id", event.target.value)}>
+                  {stepOptions.map((step) => <option key={step.id} value={step.id}>{step.fullLabel}</option>)}
+                </select>
+              </label>
+              <label>
+                Настройка ступени
+                <select value={materialForm.setting_title} onChange={(event) => onFieldChange("setting_title", event.target.value)}>
+                  {activeSettings.length === 0 && <option value="">Настройки уточняются</option>}
+                  {activeSettings.map((setting, index) => <option key={`${setting.title}-${index}`} value={setting.title}>{setting.title}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="materialTitleDescriptionGrid">
+              <label>
+                Название
+                <input value={materialForm.title} onChange={(event) => onFieldChange("title", event.target.value)} placeholder="Например: Мандала денежной активации" />
+              </label>
+              <label>
+                Описание / инструкция
+                <textarea value={materialForm.description} onChange={(event) => onFieldChange("description", event.target.value)} rows={2} placeholder="(по желанию)" />
+              </label>
+            </div>
+            <label>
+              URL изображения / мандалы
+              <input value={materialForm.image_url} onChange={(event) => onFieldChange("image_url", event.target.value)} placeholder="https://... или загрузите файл" />
+            </label>
+            <label className="profileLiteFileInput">
+              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/webm,audio/ogg" onChange={onFileChange} />
+              {materialFile ? `Выбрано: ${materialFile.name}` : "Загрузить изображение / аудио практики"}
+            </label>
+            <div className="cabinetActions">
+              <button className="cabinetPrimary" type="submit">Сохранить черновик</button>
+              <button className="cabinetSecondary" type="button" onClick={() => onSave("pending")}>На модерацию</button>
+            </div>
+          </form>
         </div>
       </div>
-
-      <form className="cabinetCard profileLiteMaterialForm" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
-        <p className="cabinetEyebrow">Создать материал</p>
-        <h2>Мандала / артефакт / практика</h2>
-        <div className="profileLiteSegmented">
-          {MATERIAL_TYPES.map((type) => (
-            <button className={materialForm.type === type.value ? "active" : ""} key={type.value} type="button" onClick={() => onFieldChange("type", type.value)}>
-              {type.label}
-            </button>
-          ))}
-        </div>
-        <div className="cabinetTwoColumns">
-          <label>
-            Ступень Reiki Yggdrasil
-            <select value={materialForm.step_id} onChange={(event) => onFieldChange("step_id", event.target.value)}>
-              {stepOptions.map((step) => <option key={step.id} value={step.id}>{step.fullLabel}</option>)}
-            </select>
-          </label>
-          <label>
-            Настройка ступени
-            <select value={materialForm.setting_title} onChange={(event) => onFieldChange("setting_title", event.target.value)}>
-              {activeSettings.length === 0 && <option value="">Настройки уточняются</option>}
-              {activeSettings.map((setting, index) => <option key={`${setting.title}-${index}`} value={setting.title}>{setting.title}</option>)}
-            </select>
-          </label>
-        </div>
-        <label>
-          Название
-          <input value={materialForm.title} onChange={(event) => onFieldChange("title", event.target.value)} placeholder="Название материала" />
-        </label>
-        <label>
-          Описание / инструкция
-          <textarea value={materialForm.description} onChange={(event) => onFieldChange("description", event.target.value)} rows={3} placeholder="Описание для ученика или клиента" />
-        </label>
-        <label>
-          URL изображения / файла
-          <input value={materialForm.image_url} onChange={(event) => onFieldChange("image_url", event.target.value)} placeholder="https://... или загрузите файл" />
-        </label>
-        <label className="profileLiteFileInput">
-          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/webm,audio/ogg" onChange={onFileChange} />
-          {materialFile ? `Выбрано: ${materialFile.name}` : "Загрузить изображение / аудио практики"}
-        </label>
-        <div className="cabinetActions">
-          <button className="cabinetPrimary" type="submit">Сохранить черновик</button>
-          <button className="cabinetSecondary" type="button" onClick={() => onSave("pending")}>На модерацию</button>
-        </div>
-      </form>
     </section>
   );
 }

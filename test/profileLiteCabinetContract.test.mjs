@@ -187,6 +187,11 @@ const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.j
 const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
+const materialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
+const servicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
+const ordersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
+const chatsModuleSource = readFileSync(join(moduleDir, "ProfileLiteChatsModule.jsx"), "utf8");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -249,6 +254,32 @@ assert.match(
   /<aside className="mandalaModeSidebar powerLibrarySidebar"[\s\S]*<div className="workspaceCenterColumn"[\s\S]*<div className="workspaceRightColumn"/,
   "Lite Power Place should render old left / center / right workspace columns in order"
 );
+
+assert.match(profileModuleSource, /profileTabContent/, "Lite profile module should reuse old profileEditor profileTabContent wrapper");
+assert.match(profileModuleSource, /Как это будет выглядеть/, "Lite profile preview should use the old profile preview heading");
+
+for (const [source, label] of [
+  [materialsModuleSource, "materials"],
+  [servicesModuleSource, "services"],
+  [ordersModuleSource, "orders"],
+  [chatsModuleSource, "chats"]
+]) {
+  assert.match(source, /workspaceMainColumns/, `Lite ${label} module should use old workspaceMainColumns structure`);
+  assert.match(source, /mandalaModeSidebar/, `Lite ${label} module should keep the old left rail class`);
+  assert.match(source, /workspaceRightColumn/, `Lite ${label} module should keep the old right rail class`);
+}
+
+assert.match(materialsModuleSource, /mandalaGallery/, "Lite materials should reuse old mandalaGallery surface for saved materials");
+assert.match(materialsModuleSource, /mandalaCardsGrid/, "Lite materials should reuse old mandalaCardsGrid cards");
+
+for (const [source, label] of [
+  [servicesModuleSource, "services"],
+  [ordersModuleSource, "orders"],
+  [chatsModuleSource, "chats"]
+]) {
+  assert.match(source, /chatPlaceholderWorkspace/, `Lite ${label} module should reuse the old placeholder workspace surface`);
+  assert.match(source, /chatPlaceholderHeader/, `Lite ${label} module should reuse the old placeholder header`);
+}
 
 assert.match(powerPlaceSource, /advanced|diagnostics|Диагностика/i, "Object refs JSON should be hidden behind an advanced diagnostics surface");
 
