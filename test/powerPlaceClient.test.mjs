@@ -600,6 +600,46 @@ assert.deepEqual(
   }
 );
 
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Фото-макет 1 ",
+    constructor_type: "client",
+    geometry: 9,
+    object_refs: {
+      __mandala_template_id: "stone-mosaic-01",
+      "client-1": "https://example.com/client-1.jpg",
+      "client-9": "storage://profile-cabinet-media/profile-1/power-place/draft/client-9.webp",
+      "client-local": "data:image/png;base64,local"
+    },
+    central_photo_id: ""
+  }),
+  {
+    profile_id: "profile-1",
+    title: "Фото-макет 1",
+    constructor_type: "client",
+    geometry: 9,
+    zodiac_visible_count: 12,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    star_variant: "closed",
+    chess_variant: "classic-14",
+    cover_ref: null,
+    object_refs: {
+      __mandala_template_id: "stone-mosaic-01",
+      "client-1": "https://example.com/client-1.jpg",
+      "client-9": "storage://profile-cabinet-media/profile-1/power-place/draft/client-9.webp"
+    },
+    central_photo_id: null,
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: ""
+  },
+  "photo mandala template should preserve geometry 9, template id, and durable client refs"
+);
+
 assert.equal(
   normalizePowerPlaceComposition({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
   "classic-14"
