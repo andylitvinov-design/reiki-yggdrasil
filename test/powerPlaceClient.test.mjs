@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  __testPowerPlaceClient,
   getPlanLimits,
   normalizeAccountPlan,
   normalizeClientGoalPhoto,
@@ -8,6 +9,76 @@ import {
   normalizePowerPlaceComposition,
   normalizeTraditionAsset
 } from "../src/lib/powerPlaceClient.js";
+
+const storageRefs = {
+  slot: "storage://profile-cabinet-media/profile-1/power-place/draft/chess-1.png",
+  center: "storage://profile-cabinet-media/profile-1/client-goal/center.png",
+  legacyCover: "storage://profile-cabinet-media/profile-1/underlays/legacy.png",
+  innerCover: "storage://profile-cabinet-media/profile-1/underlays/inner.png",
+  outerCover: "storage://profile-cabinet-media/profile-1/underlays/outer.png"
+};
+
+const compositionRefs = __testPowerPlaceClient.collectCompositionStorageRefs({
+  object_refs: {
+    "chess-1": storageRefs.slot,
+    __center_image: storageRefs.center,
+    __profile_lite_report: { added: true },
+    __slot_scale: "1.08",
+    "chess-2": "https://example.com/public.jpg"
+  },
+  cover_ref: {
+    id: "custom-cover",
+    type: "image",
+    src: storageRefs.legacyCover,
+    inner: { id: "custom-cover", type: "image", src: storageRefs.innerCover },
+    outer: { id: "custom-outer-cover", type: "image", src: storageRefs.outerCover }
+  }
+});
+
+assert.deepEqual(
+  compositionRefs.sort(),
+  [storageRefs.center, storageRefs.innerCover, storageRefs.legacyCover, storageRefs.outerCover, storageRefs.slot].sort(),
+  "composition hydration should collect only string storage refs from object_refs and all cover layers"
+);
+
+const hydratedComposition = __testPowerPlaceClient.hydrateCompositionRowsWithSignedUrls([
+  {
+    id: "composition-1",
+    object_refs: {
+      "chess-1": storageRefs.slot,
+      __center_image: storageRefs.center,
+      __profile_lite_report: { added: true }
+    },
+    cover_ref: {
+      id: "custom-cover",
+      type: "image",
+      src: storageRefs.legacyCover,
+      inner: { id: "custom-cover", type: "image", src: storageRefs.innerCover },
+      outer: { id: "custom-outer-cover", type: "image", src: storageRefs.outerCover }
+    }
+  }
+], {
+  [storageRefs.slot]: "https://signed.example/slot.png",
+  [storageRefs.center]: "https://signed.example/center.png",
+  [storageRefs.legacyCover]: "https://signed.example/legacy.png",
+  [storageRefs.innerCover]: "https://signed.example/inner.png",
+  [storageRefs.outerCover]: "https://signed.example/outer.png"
+})[0];
+
+assert.deepEqual(
+  hydratedComposition.object_ref_urls,
+  {
+    [storageRefs.slot]: "https://signed.example/slot.png",
+    [storageRefs.center]: "https://signed.example/center.png",
+    [storageRefs.legacyCover]: "https://signed.example/legacy.png",
+    [storageRefs.innerCover]: "https://signed.example/inner.png",
+    [storageRefs.outerCover]: "https://signed.example/outer.png"
+  },
+  "object_ref_urls should be a storageRef -> signedUrl map, not a slotId -> signedUrl map"
+);
+assert.equal(hydratedComposition.cover_ref.display_src, "https://signed.example/legacy.png");
+assert.equal(hydratedComposition.cover_ref.inner.display_src, "https://signed.example/inner.png");
+assert.equal(hydratedComposition.cover_ref.outer.display_src, "https://signed.example/outer.png");
 
 assert.equal(normalizeAccountPlan("pro"), "pro");
 assert.equal(normalizeAccountPlan("unknown"), "start");

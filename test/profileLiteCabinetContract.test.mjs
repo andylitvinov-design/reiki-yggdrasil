@@ -294,6 +294,7 @@ assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*outer-square[\s\S]*inne
 assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*"compact-5"[\s\S]*compact-pentagon/, "Lite chess compact-5 should expose a stable pentagon/ring placement marker");
 assert.doesNotMatch(powerPlaceSource, /buildSlotList[\s\S]*type === "chess"[\s\S]*\.\.\.CHESS_TOP_SLOTS/, "Lite chess source slot lists should not automatically add top-row slots");
 assert.doesNotMatch(powerPlaceSource, /<div className="power-place-chess__top-row"[\s\S]*CHESS_TOP_SLOTS\.map/, "Lite chess top-row should not render unconditionally for every chess variant");
+assert.match(profileMandalaCss, /\.power-place-chess--plus-8 \.power-place-chess__center,[\s\S]*\.power-place-chess--compact-5 \.power-place-chess__center[\s\S]*height: auto;[\s\S]*aspect-ratio: 1 \/ 1;/, "absolute chess variants should override the shared center height so the center remains square");
 assert.match(powerPlaceSource, /chess_slot_scale/, "Lite chess should persist a slot size control value in the composition draft");
 assert.match(profileLitePageSource, /slot_scale:\s*1/, "Profile Lite empty composition should include the shared slot_scale field");
 assert.match(powerPlaceSource, /function slotScaleValue/, "Lite Power Place should use a shared slot scale helper for all constructor formats");
@@ -487,6 +488,10 @@ assert.match(libraryUploadSource, /savedDisplayUrl\s*=\s*saved\?\.display_url\s*
 assert.match(libraryUploadSource, /savedImageRef\s*=\s*saved\?\.image_ref\s*\|\|\s*uploaded\.ref/, "library upload should keep saved image ref or uploaded ref fallback");
 assert.match(profileLitePageSource, /__center_image:\s*savedImageRef/, "central upload should set __center_image to the durable ref");
 assert.match(profileLitePageSource, /\[savedImageRef\]:\s*savedDisplayUrl/, "central upload should populate object_ref_urls for the durable ref");
+assert.match(powerPlaceSource, /objectRefUrls\[centralImageRef\]\s*\|\|\s*objectRefUrls\.__center_image/, "central photo rendering should keep legacy __center_image URL fallback");
+assert.match(powerPlaceSource, /objectRefUrls\[src\]\s*\|\|\s*objectRefUrls\[slot\.id\]\s*\|\|\s*src/, "slot rendering should keep legacy slot-id URL fallback");
+assert.match(powerPlaceClientSource, /object_ref_urls:\s*\{\s*\.\.\.signedUrls\s*\}/, "hydrated composition rows should expose storageRef -> signedUrl object_ref_urls");
+assert.match(powerPlaceClientSource, /coverRef\.inner\?\.src[\s\S]*coverRef\.outer\?\.src/, "composition hydration should sign nested inner and outer cover refs");
 assert.match(profileLitePageSource, /handleCompositionObjectFileUpload[\s\S]*setCompositionObjectRef\(slotId,\s*savedImageRef,\s*savedDisplayUrl\)/, "object upload should apply to the selected object slot");
 assert.match(profileLitePageSource, /handleCompositionCoverFileUpload[\s\S]*handleCompositionCoverSelect\(layer/, "cover upload should apply to the active cover layer");
 assert.match(profileLitePageSource, /throw new Error\("Сначала сохраните профиль мастера\."\)/, "upload handlers should reject missing profile/session so the picker modal stays open");

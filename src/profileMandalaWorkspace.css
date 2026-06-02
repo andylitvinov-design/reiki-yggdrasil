@@ -5879,6 +5879,7 @@
   left: 50%;
   top: 50%;
   width: 28%;
+  height: auto;
   aspect-ratio: 1 / 1;
 }
 

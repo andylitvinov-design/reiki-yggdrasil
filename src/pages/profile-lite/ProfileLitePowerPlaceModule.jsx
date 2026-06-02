@@ -370,7 +370,7 @@ export default function ProfileLitePowerPlaceModule({
   const objectRefUrls = cleanObjectRefs(compositionDraft.object_ref_urls);
   const centralPhoto = clientGoalPhotos.find((item) => item.id === compositionDraft.central_photo_id) || null;
   const centralImageRef = objectRefs.__center_image || "";
-  const centralDisplayCandidate = objectRefUrls[centralImageRef] || centralPhoto?.display_url || centralPhoto?.signed_url || centralPhoto?.image_url || centralImageRef;
+  const centralDisplayCandidate = objectRefUrls[centralImageRef] || objectRefUrls.__center_image || centralPhoto?.display_url || centralPhoto?.signed_url || centralPhoto?.image_url || centralImageRef;
   const centralImage = isImagePreview(centralDisplayCandidate) ? centralDisplayCandidate : "";
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
@@ -601,7 +601,7 @@ export default function ProfileLitePowerPlaceModule({
 
   const renderSourceSlot = (slot, index) => {
     const src = objectRefs[slot.id] || "";
-    const displaySrc = objectRefUrls[src] || src;
+    const displaySrc = objectRefUrls[src] || objectRefUrls[slot.id] || src;
     const angle = (360 / Math.max(slots.length, 1)) * index - 90;
     const radius = 39;
     const radians = angle * (Math.PI / 180);
@@ -634,7 +634,7 @@ export default function ProfileLitePowerPlaceModule({
 
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
-    const displaySrc = objectRefUrls[src] || src;
+    const displaySrc = objectRefUrls[src] || objectRefUrls[slot.id] || src;
 
     return (
       <button
