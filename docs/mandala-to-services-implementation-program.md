@@ -18,55 +18,179 @@ codex/restore-mandala-to-services-flow
 
 ---
 
-## 0. Executive summary
+## 0. Product decision record — confirmed by Andrey
 
-This document consolidates the implementation program for the feature:
+These product decisions are now canonical for this feature.
+
+### 0.1. Public link timing
+
+Decision: **1A**.
+
+A public client link appears only after the service is published.
 
 ```text
-saved mandala / Power Place composition
-→ service draft
-→ service editor
-→ published service in shop
-→ public service link for clients
-→ public service profile
-→ client order
-→ master request queue
+Draft service:
+  no active public client link
+  UI text: Ссылка появится после публикации.
+
+Published service:
+  active public link appears
+  UI text: Публичная ссылка для клиентов
+  button: Скопировать ссылку
 ```
 
-The critical missing clarity is storage and flow ownership:
+### 0.2. Three separate buttons in mandala workspace
 
-- Saved mandalas live in `profile_cabinet_power_place_compositions`.
-- Service drafts and published services live in the same table: `profile_cabinet_services`.
-- The service status decides visibility:
-  - `draft` = visible only to owner/master in cabinet;
-  - `published` = visible publicly in shop and by public link;
+In the mandala creation area there must be three separate actions:
+
+```text
+1. Сохранить мандалу
+2. Перенести в услуги
+3. Опубликовать как услугу
+```
+
+Meaning:
+
+- `Сохранить мандалу` saves/updates the private master mandala composition only.
+- `Перенести в услуги` saves the mandala if needed and creates/opens a service draft in `/profile/services`.
+- `Опубликовать как услугу` saves the mandala if needed, creates/opens the service, publishes it immediately, and then shows the public client link.
+
+### 0.3. Service is a reusable template
+
+A mandala added to Services becomes a **service template**, not the final client result.
+
+Master creates a template mandala:
+
+```text
+profile_cabinet_power_place_compositions
+→ profile_cabinet_services.composition_id
+```
+
+Client orders this template.
+
+For the client order, the system/master creates a **personal client mandala** based on the service template:
+
+```text
+service template mandala
+→ insert client photo in the center
+→ save as personal client mandala/result
+→ keep inside master cabinet service/order workflow
+```
+
+The service template remains reusable. Each client order should create its own order result/personal mandala, not overwrite the template.
+
+### 0.4. There are two service/shop surfaces
+
+There are two different places:
+
+```text
+/profile/services
+→ master cabinet tab for managing own services/templates/drafts/published services
+
+/shop or existing site shop page/tab
+→ public site shop where all published services are visible
+```
+
+The public shop page already exists on the site according to product context; Codex must verify the exact route/component before coding.
+
+### 0.5. Publication is immediate
+
+No moderation gate for this MVP.
+
+When the master clicks `Опубликовать как услугу` or publishes from `/profile/services`, the service becomes public immediately if Supabase/RLS allows it.
+
+### 0.6. Ordering goes through cart
+
+Client ordering goes through the service cart flow, not a direct one-click order.
+
+Target public flow:
+
+```text
+public shop / service page
+→ add service to cart
+→ cart keeps selected service/template and format/details
+→ checkout/order flow
+→ client order reaches master cabinet
+```
+
+If the existing cart has already been planned elsewhere, Codex must inspect and connect to it rather than inventing a second cart.
+
+### 0.7. Client result appears in master cabinet
+
+The order/result should be visible in the master cabinet.
+
+Target master location:
+
+```text
+/profile/orders
+or existing service-orders area in the master cabinet
+```
+
+The result is a personal client mandala created from the service template and client photo.
+
+### 0.8. Pricing default
+
+Default price is free unless the master fills other details.
+
+Implementation rule:
+
+```text
+price_amount = null or 0
+price_currency = EUR by default
+public label = Бесплатно
+```
+
+If a price is entered, show the entered price/currency.
+
+---
+
+## 1. Executive summary
+
+This document consolidates the implementation program for:
+
+```text
+master mandala
+→ service template
+→ published public shop service
+→ public client link
+→ cart
+→ order
+→ personal client mandala/result in master cabinet
+```
+
+Main storage model:
+
+- Saved private mandalas live in `profile_cabinet_power_place_compositions`.
+- Service drafts and published service templates live in `profile_cabinet_services`.
+- Service visibility is controlled by `profile_cabinet_services.status`:
+  - `draft` = visible only to owner/master in the cabinet;
+  - `published` = visible publicly in the shop and by public link;
   - `archived` = hidden from public, kept for history.
-- Orders live in `profile_cabinet_service_orders`.
-- Public service links are generated from the service row ID or slug.
-- The link can be prepared after service draft save, but it must only be accessible to clients after publication.
+- Client orders live in `profile_cabinet_service_orders`.
+- Personal client mandala/result should be attached to the order, not overwrite the service template.
 
 Target product flow:
 
 ```text
 /profile/mandalas
-→ master saves/opens mandala
-→ clicks В услуги / Опубликовать в услугах
+→ master creates or opens mandala
+→ Сохранить мандалу / Перенести в услуги / Опубликовать как услугу
 → app saves composition if needed
-→ app creates or opens profile_cabinet_services draft
+→ app creates or opens profile_cabinet_services service template
 → /profile/services opens service editor
 → master edits title/description/price/preview
-→ master publishes service
-→ UI shows public link: https://mentalica.vercel.app/services/<service_id-or-slug>
-→ client opens link
-→ client chooses format
-→ client logs in if needed
-→ client creates order
-→ master sees order in /profile/orders
+→ master publishes service if not already published
+→ public link appears only after publication
+→ service appears in public shop
+→ client adds service to cart
+→ client checkout/order flow
+→ order appears in master cabinet
+→ master/client workflow creates personal mandala with client photo in center
 ```
 
 ---
 
-## 1. Non-negotiable project rules
+## 2. Non-negotiable project rules
 
 Before coding, Codex must read repo-local instructions and current state.
 
@@ -118,81 +242,26 @@ Hard safety rules:
 
 ---
 
-## 2. Existing source inventory
+## 3. Existing source inventory
 
-### 2.1. Product roadmap
+### 3.1. Roadmap and planning docs
 
-File:
+Primary docs:
 
 ```text
 docs/PROFILE_SERVICES_ROADMAP.md
+docs/profile-lite-alternative-cabinet-plan.md
+docs/master-services-orders-mvp.md
+docs/mandala-to-services-implementation-program.md
 ```
 
-Important existing concept:
+Important existing concept from roadmap:
 
 ```text
 saved mandala / template → master service → public service profile → authenticated order → master request queue → result delivery
 ```
 
-Master scenario:
-
-1. Master logs into `/profile`.
-2. Master creates or selects a saved mandala / Power Place composition.
-3. Master clicks `В услуги`.
-4. Cabinet opens service editor.
-5. Master edits title, description, preview, formats, price, publication status.
-6. Master publishes service.
-7. Master copies public service link.
-8. Master sees incoming orders in `Заявки`.
-
-Client scenario:
-
-1. Client opens public services feed or direct service link.
-2. Client opens service profile.
-3. Client chooses format:
-   - `signature` / `С подписью мастера`
-   - `no_signature` / `Без подписи мастера`
-   - `both` / `Две версии`
-4. If not authenticated, CTA says `Войти через Google и оформить заказ`.
-5. Selected `service_id` and format survive OAuth redirect.
-6. After login, client lands in cabinet order draft with selected service and format prefilled.
-7. Client submits order.
-8. Master sees order in `Заявки`.
-
-### 2.2. Profile Lite rebuild plan
-
-File:
-
-```text
-docs/profile-lite-alternative-cabinet-plan.md
-```
-
-Relevant acceptance indicators:
-
-- User can publish a saved mandala to Services.
-- User can edit service description.
-- User can copy service link if service routing exists.
-- User can create/view orders from services if schema/client exists.
-- `/profile-old` remains available for comparison.
-- `/`, `/masters`, `/profile/admin` remain unchanged.
-
-Current intended cabinet routes:
-
-```text
-/                     -> public home, unchanged
-/profile              -> ProfileLitePage, overview tab
-/profile-lite         -> ProfileLitePage, overview tab / fallback
-/profile-old          -> old ProfilePage, reference/diagnostic
-/profile/mandalas     -> ProfileLitePage, mandalas tab
-/profile/services     -> ProfileLitePage, services tab
-/profile/orders       -> ProfileLitePage, orders tab
-/profile/chats        -> ProfileLitePage, chats tab
-/profile/settings     -> ProfileLitePage, settings tab
-/masters              -> MastersPage, unchanged
-/profile/admin        -> AdminPage, unchanged
-```
-
-### 2.3. Old manual integration reference
+### 3.2. Old manual integration reference
 
 File:
 
@@ -222,7 +291,7 @@ saveCurrentPowerPlaceComposition()
 
 Profile Lite should preserve this behavior, but implement it safely in Lite architecture.
 
-### 2.4. Existing service client
+### 3.3. Existing service client
 
 File:
 
@@ -253,7 +322,7 @@ listOwnServiceOrders
 updateServiceOrder
 ```
 
-Known limitations in current target checkout direction:
+Known limitations for the final target:
 
 - `ORDER_STATUSES` currently do not include `draft`.
 - Existing `createServiceOrder` creates order as `new`.
@@ -263,9 +332,10 @@ Known limitations in current target checkout direction:
   - `goal_text`
   - `comment_text`
   - `attachment_refs`
+  - `result_composition_id`
 - `listOwnServiceOrders(profileId)` means incoming master orders by `master_profile_id`, not client-side `Мои заказы`.
 
-### 2.5. Existing Supabase migration
+### 3.4. Existing Supabase migration
 
 File:
 
@@ -318,49 +388,17 @@ created_at
 updated_at
 ```
 
-Existing RLS intent:
-
-- public/anon reads published services only;
-- owner manages own services;
-- public/anon creates orders for published services;
-- owner reads/updates own service orders.
-
 Needs verification:
 
 - Whether this migration is applied in live Supabase.
-- Whether RLS matches the future authenticated checkout model.
-
-### 2.6. Existing Profile Lite implementation
-
-Files:
-
-```text
-src/pages/ProfileLitePage.jsx
-src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx
-src/pages/profile-lite/ProfileLiteServicesModule.jsx
-```
-
-Confirmed current Lite direction:
-
-- Profile Lite imports services/orders helpers.
-- Profile Lite loads `listOwnServices`, `listOwnServiceOrders`, and chat threads after shell opens.
-- Profile Lite has Services and Orders modules.
-- `ProfileLitePowerPlaceModule` has button `В услуги` in mandala actions.
-- `ProfileLiteServicesModule` has form `Опубликовать мандалу как услугу` with title, description, price, currency, image, save draft, publish.
-
-Current gap:
-
-```text
-handleSendCompositionToServices()
-```
-
-currently fills `serviceForm` from `compositionDraft`, but it does not guarantee that the mandala is saved first. If `compositionDraft.id` is empty, the service can be prepared without a real `composition_id`.
+- Whether RLS matches the future cart/authenticated checkout model.
+- Whether result personal mandala requires `result_composition_id` or a separate table.
 
 ---
 
-## 3. Clear storage model
+## 4. Storage model
 
-### 3.1. Saved mandalas / Power Place compositions
+### 4.1. Saved master mandalas / Power Place compositions
 
 Storage:
 
@@ -370,44 +408,19 @@ public.profile_cabinet_power_place_compositions
 
 Purpose:
 
-- stores the actual mandala / Power Place constructor state;
+- stores the master mandala constructor state;
 - owner-only object;
 - not directly public;
-- reusable source for creating services.
-
-Core fields already used by the project:
-
-```text
-id
-profile_id
-title
-constructor_type
-geometry
-zodiac_visible_count
-altar_center_ratio
-business_vertex_zone_count
-star_variant
-chess_variant
-cover_ref
-object_refs
-central_photo_id
-tradition_id
-tradition_title
-resource_comparison_mode
-resource_without_mandala_comment
-resource_with_mandala_comment
-created_at
-updated_at
-```
+- reusable source for creating service templates.
 
 Rule:
 
 ```text
-A mandala becomes public only through a service row.
+A master mandala becomes public only through a service row.
 The composition itself remains private/owner-scoped unless public rendering is explicitly designed.
 ```
 
-### 3.2. Service drafts and published services
+### 4.2. Service templates
 
 Storage:
 
@@ -415,141 +428,118 @@ Storage:
 public.profile_cabinet_services
 ```
 
-One table stores all service states.
+A service is a reusable template linked to a master mandala.
+
+Core link:
 
 ```text
-status = draft      -> master-only draft in /profile/services
-status = published  -> public service in shop and public link
-status = archived   -> hidden from public, kept for history
+profile_cabinet_services.composition_id
+→ profile_cabinet_power_place_compositions.id
 ```
 
-Current fields are enough for basic draft/publish:
+One table stores all service states:
 
 ```text
-id
-profile_id
-composition_id
-title
-description
-image_url
-image_bucket
-image_path
-price_amount
-price_currency
-status
-created_at
-updated_at
+status = draft      → master-only draft in /profile/services
+status = published  → public service in shop and public link
+status = archived   → hidden from public, kept for history
 ```
 
-Recommended additional fields for a clearer public shop, if Codex confirms schema migration is safe:
+Required default values:
+
+```text
+price_amount = null or 0
+price_currency = 'EUR'
+public price label = Бесплатно
+```
+
+Recommended additional fields for clearer future implementation, if a migration is safe:
 
 ```text
 public_slug text unique null
 short_description text not null default ''
 category text not null default 'mandala'
 delivery_modes jsonb not null default '["signature","no_signature","both"]'::jsonb
-is_public_link_enabled boolean not null default false
 published_at timestamptz null
 archived_at timestamptz null
 ```
 
-Minimum no-migration route strategy:
+### 4.3. Public shop services
+
+Storage:
 
 ```text
-/services/:serviceId
+same table: profile_cabinet_services
+filter: status = 'published'
 ```
 
-Uses the existing UUID `id`, so no `public_slug` is required for Phase 1/2.
-
-Future prettier route strategy:
+Public shop query:
 
 ```text
-/services/:public_slug
+select published services only
 ```
 
-Requires `public_slug`.
+Drafts and archived services must not appear in the public shop.
 
-### 3.3. Public links
+### 4.4. Public links
 
-Canonical public link format for MVP:
+Canonical MVP public link:
 
 ```text
 https://mentalica.vercel.app/services/<service_id>
 ```
 
-Legacy equivalent during migration:
+Build URL on frontend:
 
 ```text
-https://reiki-yggdrasil.vercel.app/services/<service_id>
+window.location.origin + "/services/" + service.id
 ```
 
-Where the link is generated:
+Do not store full production URL in Supabase.
+
+Public link behavior:
 
 ```text
-frontend helper, not stored as full URL
+status = draft:
+  no active public link
+  UI: Ссылка появится после публикации.
+
+status = published:
+  active link appears
+  UI: Публичная ссылка для клиентов
+  action: Скопировать ссылку
+
+status = archived:
+  link disabled
+  UI: Услуга в архиве. Публичная ссылка отключена.
 ```
 
-Recommended helper:
+### 4.5. Cart
+
+Cart must hold selected service/template before order creation.
+
+Minimum cart item:
+
+```json
+{
+  "service_id": "<service id>",
+  "composition_id": "<template composition id>",
+  "master_profile_id": "<master profile id>",
+  "format": "signature | no_signature | both",
+  "price_amount": null,
+  "price_currency": "EUR"
+}
+```
+
+Default price label:
 
 ```text
-buildServicePublicUrl(service, origin = window.location.origin)
+Бесплатно
 ```
 
-MVP implementation:
+If an existing cart module/page already exists, use it. Do not create a duplicate cart without checking the existing site shop/cart implementation.
 
-```text
-origin + "/services/" + service.id
-```
-
-Do not store full production URL in Supabase. Store stable ID/slug only; build the URL from current `window.location.origin` so preview, production, and legacy domains work.
-
-Visibility rule:
-
-```text
-service.status === "published"
-→ public link is active and copyable
-
-service.status === "draft"
-→ service has an internal future link target, but UI should say:
-  "Ссылка появится после публикации"
-  or allow copying only as preview/admin if implemented safely
-
-service.status === "archived"
-→ public route returns not found / unavailable
-```
-
-UX rule from Andrey:
-
-```text
-When a saved mandala is added to the shop, a public link for clients must appear.
-```
-
-Precise implementation:
-
-1. `В услуги` creates/opens service draft.
-2. Draft has service ID immediately.
-3. In Services tab show a link area:
-
-```text
-Публичная ссылка
-Станет доступна после публикации.
-```
-
-4. After `Опубликовать`, show:
-
-```text
-Публичная ссылка для клиентов
-https://mentalica.vercel.app/services/<service_id>
-[Скопировать ссылку]
-```
-
-5. Copy action writes the URL to clipboard and shows:
-
-```text
-Ссылка скопирована. Её можно отправить клиенту.
-```
-
-### 3.4. Orders
+### 4.6. Orders
 
 Current storage:
 
@@ -557,21 +547,9 @@ Current storage:
 public.profile_cabinet_service_orders
 ```
 
-Current order state:
+Final order should represent a client request for a service template.
 
-```text
-new → in_progress → sent → closed
-```
-
-Recommended final order state:
-
-```text
-draft → new → in_progress → sent → closed
-```
-
-Current order table is enough for a public lead-form MVP but not enough for final authenticated checkout.
-
-Final checkout needs additional fields:
+Recommended additional fields:
 
 ```text
 client_profile_id uuid null references public.profile_cabinet_profiles(id)
@@ -579,39 +557,26 @@ order_format text not null default 'signature' check (order_format in ('signatur
 goal_text text not null default ''
 comment_text text not null default ''
 attachment_refs jsonb not null default '[]'::jsonb
+result_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
 submitted_at timestamptz null
 ```
 
-Order ownership:
+`result_composition_id` is important for Andrey's confirmed logic:
 
 ```text
-master_profile_id
-→ the master who owns the service and sees the order in Заявки / Заявки на мои услуги
-
-client_profile_id
-→ the authenticated client who created the order and sees it in Мои заказы
+service template mandala
+→ client photo inserted in center
+→ saved as personal client mandala/result
+→ linked to order via result_composition_id
 ```
 
-Do not confuse:
-
-```text
-/profile/services
-→ services created by the master
-
-/profile/orders or /profile/incoming-orders
-→ orders addressed to the master
-
-/profile/my-orders
-→ orders created by the current user as client
-```
-
-If only one `/profile/orders` tab exists in Phase 1, it should remain master incoming orders because current helper `listOwnServiceOrders(profileId)` is master-oriented.
+If using the same `profile_cabinet_power_place_compositions` table for personal client mandalas, the result composition should be owned by the master profile and linked to the order. It must not overwrite the original service template composition.
 
 ---
 
-## 4. Exact business flow
+## 5. Exact business flow
 
-### 4.1. Master: create mandala
+### 5.1. Master creates mandala
 
 Route:
 
@@ -625,82 +590,77 @@ Data written:
 profile_cabinet_power_place_compositions
 ```
 
-Actions:
+Required buttons:
 
 ```text
-Сохранить место силы
-В услуги / Опубликовать в услугах
-Скачать PDF
-Печать
+Сохранить мандалу
+Перенести в услуги
+Опубликовать как услугу
 ```
 
-If master clicks `В услуги` before saving:
+### 5.2. Button: Сохранить мандалу
+
+Behavior:
 
 ```text
-App must save composition first.
+create/update profile_cabinet_power_place_compositions only
 ```
 
-If save fails:
+Does not create service.
+
+Success message:
 
 ```text
-Do not navigate to services.
-Show inline error in Mandalas module.
+Мандала сохранена.
 ```
 
-### 4.2. Master: send mandala to services
+### 5.3. Button: Перенести в услуги
 
-Trigger:
+Behavior:
 
 ```text
-button: В услуги / Опубликовать в услугах
+1. Save/update mandala composition if needed.
+2. Get saved composition id.
+3. Check if a service already exists with this composition_id for current master.
+4. If yes: open existing service editor.
+5. If no: create service draft in profile_cabinet_services.
+6. status = 'draft'.
+7. price default = free.
+8. Navigate to /profile/services.
+9. Show: Мандала перенесена в услуги как черновик.
 ```
 
-Function target:
+Public link:
 
 ```text
-handleSendCompositionToServices()
+not active yet
+UI: Ссылка появится после публикации.
 ```
 
-Required algorithm:
+### 5.4. Button: Опубликовать как услугу
+
+Behavior:
 
 ```text
-1. Validate profile.id and session.
-2. Build composition payload from compositionDraft.
-3. If compositionDraft.id exists:
-   update profile_cabinet_power_place_compositions.
-4. If compositionDraft.id is empty:
-   create profile_cabinet_power_place_compositions.
-5. Refresh listPowerPlaceCompositions(profile.id, session).
-6. Get savedComposition.id.
-7. Find existing service for this composition_id, if any.
-8. If existing service exists:
-   open it in Services editor.
-9. If no service exists:
-   prepare or create service draft:
-     profile_id = profile.id
-     composition_id = savedComposition.id
-     title = savedComposition.title || "Мандала Места Силы"
-     description = "Услуга подготовлена из сохранённой мандалы."
-     image_url / image_bucket / image_path = stable preview only
-     price_currency = "EUR"
-     status = "draft"
-10. Navigate to /profile/services.
-11. Show notice:
-    "Мандала сохранена и подготовлена как черновик услуги."
+1. Save/update mandala composition if needed.
+2. Get saved composition id.
+3. Check if service exists with this composition_id.
+4. If service exists: update it.
+5. If no service: create service row.
+6. status = 'published'.
+7. price default = free.
+8. Navigate to /profile/services.
+9. Show public link block.
+10. Service appears in public shop.
 ```
 
-Important decision:
+Success message:
 
-For clearer UX, Phase 1 should create the service draft row immediately, not only fill an unsaved form. This guarantees:
+```text
+Мандала опубликована как услуга. Ссылка для клиентов доступна.
+```
 
-- the service has an `id`;
-- the future public link can be shown immediately as inactive/unpublished;
-- refresh does not lose the draft;
-- later publication is just status update.
-
-If Codex decides not to create the row immediately, it must explain why and preserve no-data-loss behavior.
-
-### 4.3. Master: edit service draft
+### 5.5. Master services tab
 
 Route:
 
@@ -714,47 +674,29 @@ Data read:
 listOwnServices(profile.id, session)
 ```
 
-Data written:
+Storage:
 
 ```text
 profile_cabinet_services
 ```
 
-Draft location:
+Sections:
 
 ```text
-profile_cabinet_services where profile_id = current profile id and status = 'draft'
+Черновики        -> status = draft
+Опубликованные   -> status = published
+Архив            -> status = archived
 ```
 
-Published services location:
-
-```text
-profile_cabinet_services where profile_id = current profile id and status = 'published'
-```
-
-Archived services location:
-
-```text
-profile_cabinet_services where profile_id = current profile id and status = 'archived'
-```
-
-Services tab sections:
-
-```text
-Черновики
-Опубликованные
-Архив
-```
-
-Minimum card fields:
+Minimum service card fields:
 
 ```text
 title
 description preview
-price/currency
+price/currency or Бесплатно
 status
 composition_id indicator
-public link status
+public link state
 ```
 
 Editor fields:
@@ -774,7 +716,6 @@ Draft actions:
 ```text
 Сохранить черновик
 Опубликовать
-Удалить / Архивировать later
 ```
 
 Published actions:
@@ -785,66 +726,43 @@ Published actions:
 Снять с публикации / В архив later
 ```
 
-### 4.4. Master: publish service
+### 5.6. Public shop
 
-Action:
+Public site has a general shop page/tab for all services.
 
-```text
-Опубликовать
-```
-
-Data update:
+Codex must verify exact route/component before coding. Possible routes:
 
 ```text
-profile_cabinet_services.status = 'published'
-published_at = now() if field exists
-is_public_link_enabled = true if field exists
+/shop
+existing Магазин page/tab
+existing public section in main site
 ```
 
-MVP without extra fields:
+Public shop data:
 
 ```text
-profile_cabinet_services.status = 'published'
+profile_cabinet_services where status = 'published'
 ```
 
-After publish:
+Public shop card:
 
 ```text
-1. reload own services list
-2. selected service status becomes published
-3. public link block becomes active
-4. copy button appears
+preview
+title
+short description
+Бесплатно or price
+button: Подробнее / В корзину
 ```
 
-Public link block:
+### 5.7. Public service page
 
-```text
-Публичная ссылка для клиентов
-https://mentalica.vercel.app/services/<service_id>
-[Скопировать ссылку]
-```
-
-Copy implementation:
-
-```text
-navigator.clipboard.writeText(publicUrl)
-```
-
-Fallback:
-
-```text
-selectable input with URL
-```
-
-### 4.5. Client: open public service link
-
-Route:
+Recommended route:
 
 ```text
 /services/:serviceId
 ```
 
-Vercel rewrite needed:
+Vercel rewrite required if route is implemented:
 
 ```json
 {
@@ -853,22 +771,10 @@ Vercel rewrite needed:
 }
 ```
 
-Data read:
+Public page must only load:
 
 ```text
-listPublicServices or getPublicServiceById
-```
-
-Important: client must only see:
-
-```text
-profile_cabinet_services.status = 'published'
-```
-
-Draft and archived services must return:
-
-```text
-not found / Услуга недоступна
+status = 'published'
 ```
 
 Public page content:
@@ -877,114 +783,86 @@ Public page content:
 image / preview
 title
 description
-price
-format selector
-CTA
-master display name if safe/available
+price label: Бесплатно by default
+format selector:
+  signature      -> С подписью мастера
+  no_signature   -> Без подписи мастера
+  both           -> Две версии
+button: В корзину / Оформить через корзину
 ```
 
-Format selector:
+### 5.8. Cart and checkout
+
+Client flow:
 
 ```text
-signature      -> С подписью мастера
-no_signature   -> Без подписи мастера
-both           -> Две версии
+public shop or service page
+→ choose service
+→ choose format/details
+→ add to cart
+→ cart checkout
+→ if needed, Google login
+→ order is created/submitted
+→ master sees order in cabinet
 ```
 
-CTA:
-
-```text
-if authenticated:
-  Оформить заказ
-else:
-  Войти через Google и оформить заказ
-```
-
-### 4.6. Client: selected service and format survive Google login
-
-Before OAuth, save pending checkout:
-
-```text
-localStorage key: reiki-yggdrasil-pending-service-checkout
-```
-
-Value:
-
-```json
-{
-  "service_id": "<service id>",
-  "format": "signature | no_signature | both",
-  "return_to": "/profile/orders?checkout=1",
-  "created_at": "ISO timestamp"
-}
-```
-
-Rules:
-
-- Do not store private user data here.
-- Expire after a safe time, for example 24 hours.
-- Clear after order draft is created or user cancels checkout.
-
-After Google login:
-
-```text
-/profile/orders?checkout=1
-```
-
-or future route:
-
-```text
-/profile/my-orders?checkout=1
-```
-
-The cabinet reads pending checkout, verifies service is still published, and creates/opens order draft.
-
-### 4.7. Client: create order
-
-Current MVP can create order as `new`, but final UX should create `draft` first.
-
-Recommended final flow:
-
-```text
-1. createDraftServiceOrder()
-2. user fills request/goal/comment/attachments
-3. submitServiceOrder()
-4. status changes draft -> new
-```
-
-Order data:
+Cart must preserve:
 
 ```text
 service_id
+format
 master_profile_id
-client_profile_id
-order_format
-request_text
-goal_text
-comment_text
-client_photo_url / client_photo_bucket / client_photo_path
-attachment_refs
-status
+composition_id
 ```
 
-Master sees submitted orders where:
+If client is not authenticated at checkout, save pending cart/checkout safely before Google OAuth.
+
+Suggested localStorage key:
 
 ```text
-master_profile_id = current profile.id
-status != 'draft'
+reiki-yggdrasil-pending-service-cart
 ```
 
-Client sees own orders where:
+Do not store secrets or private data there.
+
+### 5.9. Master receives order and creates personal mandala
+
+Master cabinet:
 
 ```text
-client_profile_id = current profile.id
+/profile/orders
+```
+
+Order points to:
+
+```text
+service_id
+service.composition_id = template mandala
+client photo / request / details
+```
+
+Personal result creation:
+
+```text
+1. Open order.
+2. Load service template composition.
+3. Insert client photo in center.
+4. Save as new personal composition/result.
+5. Link result to order via result_composition_id or equivalent.
+6. Keep template unchanged.
+```
+
+This is the core distinction:
+
+```text
+service template composition ≠ personal client result composition
 ```
 
 ---
 
-## 5. Route map
+## 6. Route map
 
-### Existing protected routes
+Protected/current routes:
 
 ```text
 /
@@ -1000,401 +878,188 @@ client_profile_id = current profile.id
 /profile/admin
 ```
 
-### Required public service routes
-
-MVP:
+Public shop/service routes to verify or add:
 
 ```text
+/shop or existing Магазин tab/page
 /services/:serviceId
 ```
 
-Optional later:
-
-```text
-/shop
-/services/:publicSlug
-```
-
-Vercel rewrite to add when route exists:
-
-```json
-{
-  "source": "/services/:serviceId",
-  "destination": "/"
-}
-```
-
-If `/shop` is added:
-
-```json
-{
-  "source": "/shop",
-  "destination": "/"
-}
-```
-
-Do not add fake copy-link if these routes are not implemented.
+Do not show a fake public link if `/services/:serviceId` is not implemented.
 
 ---
 
-## 6. UI mechanics by screen
+## 7. Implementation phases
 
-### 6.1. `/profile/mandalas`
-
-Add/keep action:
-
-```text
-Опубликовать в услугах
-```
-
-Button can still be shorter as `В услуги` if layout requires.
-
-Click result:
-
-```text
-Saving mandala...
-Creating service draft...
-Opening Services...
-```
-
-Visible success:
-
-```text
-Мандала сохранена и подготовлена как черновик услуги.
-```
-
-Visible failure examples:
-
-```text
-Не удалось сохранить мандалу. Проверьте подключение или Supabase RLS.
-Не удалось создать черновик услуги. Проверьте миграцию profile_cabinet_services.
-```
-
-### 6.2. `/profile/services`
-
-Recommended layout:
-
-```text
-Left/list:
-  Черновики
-  Опубликованные
-  Архив
-
-Center/editor:
-  Название
-  Описание
-  Цена
-  Валюта
-  Preview
-  Связанная мандала
-
-Right/actions:
-  Статус
-  Сохранить черновик
-  Опубликовать
-  Публичная ссылка
-  Скопировать ссылку
-```
-
-Draft public link area:
-
-```text
-Публичная ссылка
-Ссылка появится после публикации.
-```
-
-Published public link area:
-
-```text
-Публичная ссылка для клиентов
-https://mentalica.vercel.app/services/<service_id>
-[Скопировать ссылку]
-```
-
-Archived public link area:
-
-```text
-Услуга в архиве. Публичная ссылка отключена.
-```
-
-### 6.3. `/services/:serviceId`
-
-Public page states:
-
-```text
-loading
-not found / unavailable
-authorized client CTA
-unauthorized client CTA
-auth pending / redirecting
-```
-
-Public page must not expose:
-
-```text
-private object_refs if they contain private storage paths
-raw bucket paths without signed/public rendering strategy
-owner-only profile internals
-access tokens
-```
-
-Preview image strategy:
-
-- Use `image_url` if external/public.
-- If `image_bucket/image_path` is private, do not expose raw path.
-- For MVP, prefer storing a safe public/export preview URL in `image_url` or mark preview as needs verification.
-
----
-
-## 7. Data access / RLS model
-
-### 7.1. Services RLS
-
-Master own services:
-
-```text
-authenticated user can select/insert/update/delete or archive rows where
-profile_cabinet_profiles.id = profile_cabinet_services.profile_id
-and profile_cabinet_profiles.user_id = auth.uid()
-```
-
-Public service read:
-
-```text
-anon/authenticated can read services where
-status = 'published'
-and owner profile is approved
-```
-
-Draft protection:
-
-```text
-anon cannot read draft
-other users cannot read draft
-```
-
-### 7.2. Orders RLS — current vs final
-
-Current MVP:
-
-```text
-anon/authenticated can insert orders for published services
-master can read/update orders where master_profile_id belongs to them
-```
-
-Final checkout target:
-
-```text
-authenticated client creates draft/new order
-client can read own orders by client_profile_id
-master can read submitted incoming orders by master_profile_id
-anon cannot create final orders
-```
-
-Migration likely needed for final checkout.
-
----
-
-## 8. Implementation phases
-
-### Phase 1 — Safe mandala-to-service bridge in Profile Lite
+### Phase 1 — Profile Lite mandala-to-service template bridge
 
 Goal:
 
 ```text
-/profile/mandalas → В услуги → guaranteed saved composition → service draft row → /profile/services
+/profile/mandalas
+→ three buttons
+→ private save / draft transfer / immediate publish
+→ /profile/services
 ```
 
-Implementation requirements:
+Files:
 
-1. Refactor composition saving into a reusable helper, for example:
+```text
+src/pages/ProfileLitePage.jsx
+src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx
+src/pages/profile-lite/ProfileLiteServicesModule.jsx
+src/lib/profileServicesClient.js
+test/profileLiteCabinetContract.test.mjs
+test/profileServicesClient.test.mjs
+STATE.md
+LOG.md
+```
+
+Requirements:
+
+1. Add/ensure three separate buttons:
+
+```text
+Сохранить мандалу
+Перенести в услуги
+Опубликовать как услугу
+```
+
+2. Implement reusable helper:
 
 ```text
 saveCurrentCompositionDraft()
 ```
 
-It must:
-
-- require `profile.id` and session credential;
-- build payload with `profile_id`;
-- create or update composition;
-- refresh `listPowerPlaceCompositions(profile.id, session)`;
-- return the saved composition with a real `id`;
-- keep inline errors in Mandalas module, not crash shell.
-
-2. Update `handleSendCompositionToServices()`:
-
-- call the reusable save helper first;
-- use returned saved composition ID as `composition_id`;
-- search existing own service with same `composition_id`;
-- if exists, open existing service in editor;
-- if not exists, create `profile_cabinet_services` row with `status='draft'`;
-- avoid saving `data:image` as permanent refs;
-- prefer stable storage refs or external URLs;
-- navigate to `/profile/services`.
-
-3. Add service draft notice:
+3. Implement service creation helper flow:
 
 ```text
-Мандала сохранена и подготовлена как черновик услуги.
+save composition
+→ find existing service by composition_id
+→ create/update service row
+→ status draft or published depending action
+→ navigate to /profile/services
 ```
 
-4. Add public link block in Services tab:
+4. Default service price:
 
-- draft: link inactive / appears after publication;
-- published: active URL + copy button;
-- archived: disabled.
+```text
+Бесплатно
+```
+
+5. Public link block:
+
+- no link for draft;
+- active link after publish only.
 
 Acceptance checklist:
 
 ```text
 [ ] /profile/mandalas opens.
-[ ] `В услуги` or `Опубликовать в услугах` exists.
-[ ] Clicking button saves a new unsaved composition first.
-[ ] Clicking button keeps/updates existing composition if already saved.
-[ ] Service draft row is created in profile_cabinet_services.
-[ ] Service draft receives real composition_id.
-[ ] /profile/services opens after click.
-[ ] service title is prefilled from mandala title.
-[ ] service description has a safe default.
-[ ] preview does not persist data:image.
-[ ] draft link area says link appears after publication.
-[ ] Save draft works or shows clear needs verification.
-[ ] Publish works or shows clear needs verification.
-[ ] Published service shows public link.
-[ ] Copy link copies URL or shows safe fallback.
+[ ] Three buttons are visible.
+[ ] Сохранить мандалу saves only composition.
+[ ] Перенести в услуги creates/opens draft service.
+[ ] Опубликовать как услугу creates/opens published service.
+[ ] Unsaved mandala is saved before service creation.
+[ ] service.composition_id is real.
+[ ] Existing service with same composition_id is reused, not duplicated.
+[ ] Draft service does not show active public link.
+[ ] Published service shows active public link.
+[ ] Default price label is Бесплатно.
 [ ] Services failure does not close shell.
 ```
 
-### Phase 2 — Services module completion
+### Phase 2 — Services manager completion
 
 Goal:
 
 ```text
-Profile Lite services tab becomes a practical service manager.
+/profile/services becomes real service template manager.
 ```
 
 Requirements:
 
-1. Own services list sections:
-   - `Черновики`
-   - `Опубликованные`
-   - `Архив`
-2. Select existing service for editing.
-3. Save updates to existing service, not only create new rows.
-4. Publish existing draft.
-5. Archive/unpublish if supported and safe.
-6. Add copy-link action for published services.
-7. If public route does not exist, show `needs verification` instead of fake link.
-
-Acceptance checklist:
-
 ```text
-[ ] Services tab opens.
-[ ] Services list loads.
-[ ] Empty state is clear.
-[ ] Drafts are visible separately.
-[ ] Published services are visible separately.
-[ ] Archived services are hidden or separate.
-[ ] Service draft from mandala appears.
-[ ] Existing service can be selected.
-[ ] Title edit works.
-[ ] Description edit works.
-[ ] Save updates existing service.
-[ ] Publish sets status published.
-[ ] Status text is RU.
-[ ] Copy link works or says needs verification.
+[ ] Черновики section.
+[ ] Опубликованные section.
+[ ] Архив section.
+[ ] Edit title.
+[ ] Edit description.
+[ ] Edit price/currency.
+[ ] Save draft.
+[ ] Publish.
+[ ] Copy public link for published only.
+[ ] Show linked mandala/template.
 ```
 
-### Phase 3 — Public shop/profile route
+### Phase 3 — Public shop and service route
 
 Goal:
 
 ```text
-published services are visible and shareable publicly.
-```
-
-Files likely involved:
-
-```text
-src/main.jsx
-src/index.css
-src/lib/profileServicesClient.js
-vercel.json
-test/profileServicesClient.test.mjs
+Published service templates appear in public shop and open by public link.
 ```
 
 Requirements:
 
-1. Add `getPublicServiceById(serviceId)` or equivalent.
-2. Add `/services/:serviceId` route.
-3. Add Vercel rewrite for `/services/:serviceId`.
-4. Public route loads only `status='published'` service.
-5. Public route shows safe empty/not-found state.
-6. Add format selector.
-7. Add CTA based on auth state.
-
-Acceptance checklist:
-
 ```text
-[ ] Published service is visible publicly.
-[ ] Draft service is not visible publicly.
-[ ] Archived service is not visible publicly.
-[ ] /services/:serviceId refresh works on Vercel.
-[ ] Service profile has format selector.
-[ ] CTA text changes by auth state.
-[ ] No secrets/private refs are exposed.
+[ ] Verify existing shop route/component.
+[ ] Connect public shop to published services.
+[ ] Add /services/:serviceId if missing.
+[ ] Add Vercel rewrite if route added.
+[ ] Draft services are not public.
+[ ] Archived services are not public.
+[ ] Public service page has add-to-cart action.
 ```
 
-### Phase 4 — Authenticated checkout/order draft
+### Phase 4 — Cart and order flow
 
 Goal:
 
 ```text
-client selects service+format before login → after Google login order draft is prefilled.
+Client orders service template through cart.
 ```
 
-Likely schema additions:
+Requirements:
 
 ```text
-client_profile_id uuid null or not null depending final model
-order_format text check in ('signature', 'no_signature', 'both')
-goal_text text
-comment_text text
-attachment_refs jsonb default '[]'::jsonb
-status allows draft
-submitted_at timestamptz null
+[ ] Cart stores service_id.
+[ ] Cart stores format.
+[ ] Cart stores master_profile_id.
+[ ] Cart stores composition_id template reference.
+[ ] Checkout creates service order.
+[ ] If login is needed, pending cart survives Google OAuth.
+[ ] Master sees order in cabinet.
 ```
 
-Likely client additions:
+### Phase 5 — Personal client mandala result
+
+Goal:
 
 ```text
-createDraftServiceOrder
-submitServiceOrder
-listClientServiceOrders
-listMasterServiceOrders
+Order creates/receives personal mandala based on template + client photo.
 ```
 
-Acceptance checklist:
+Likely schema addition:
 
 ```text
-[ ] selected service_id is saved before OAuth.
-[ ] selected format is saved before OAuth.
-[ ] Google login returns to profile/order draft.
-[ ] order draft has selected service.
-[ ] order draft has selected format.
-[ ] request field exists.
-[ ] goal field exists.
-[ ] comment field exists.
-[ ] attachments are supported or marked later phase.
-[ ] submit changes status from draft to new.
-[ ] master sees submitted order in incoming requests.
-[ ] client sees own order in My orders if implemented.
+profile_cabinet_service_orders.result_composition_id
+```
+
+Requirements:
+
+```text
+[ ] Open order in master cabinet.
+[ ] Load service template composition.
+[ ] Insert client photo in center.
+[ ] Save as new personal composition.
+[ ] Link result composition to order.
+[ ] Template remains unchanged.
 ```
 
 ---
 
-## 9. Required checks
+## 8. Required checks
 
 Run after Phase 1 changes:
 
@@ -1421,6 +1086,14 @@ Manual/browser QA:
 /
 ```
 
+Public QA if Phase 3 is implemented:
+
+```text
+/shop or existing Магазин route
+/services/<published_service_id>
+/services/<draft_service_id> should not be public
+```
+
 Viewport QA:
 
 ```text
@@ -1429,36 +1102,9 @@ desktop 1366x900
 mobile 390x900
 ```
 
-Verify:
-
-```text
-[ ] no horizontal overflow
-[ ] no console errors
-[ ] shell opens even if services fail
-[ ] services error is inline
-[ ] mandala save and service draft path works
-[ ] public link appears only after publish
-[ ] copy public link works for published services
-[ ] no raw token/env values in UI or logs
-```
-
-Live verification after merge/deploy:
-
-```text
-https://mentalica.vercel.app/profile/mandalas
-https://mentalica.vercel.app/profile/services
-https://mentalica.vercel.app/profile-old
-https://mentalica.vercel.app/masters
-https://mentalica.vercel.app/profile/admin
-https://mentalica.vercel.app/services/<published_service_id>
-https://reiki-yggdrasil.vercel.app/profile/mandalas
-https://reiki-yggdrasil.vercel.app/profile/services
-https://reiki-yggdrasil.vercel.app/services/<published_service_id>
-```
-
 ---
 
-## 10. Minimal Codex prompt for Phase 1
+## 9. Minimal Codex prompt for Phase 1
 
 ```text
 Ты работаешь с проектом Reiki Yggdrasil.
@@ -1478,7 +1124,7 @@ Target branch:
 codex/restore-mandala-to-services-flow
 
 Задача:
-Восстановить и довести сценарий “сохранённая мандала → в услуги → публикация в магазин → публичная ссылка для клиентов” на базе Profile Lite, используя старую реализацию из тяжёлого /profile-old как reference.
+Реализовать точную механику “мандала → услуга-шаблон → публикация → публичная ссылка” в Profile Lite.
 
 Сначала прочитать:
 1. AGENTS.md
@@ -1501,70 +1147,53 @@ codex/restore-mandala-to-services-flow
 
 Если файла нет — написать `not found`.
 
-Главное понимание:
-- Черновики услуг и опубликованные услуги хранятся в одной таблице `profile_cabinet_services`.
-- Отличие только в `status`:
-  - `draft` — черновик мастера;
-  - `published` — публичная услуга магазина;
-  - `archived` — архив/скрыто.
-- Сохранённая мандала хранится в `profile_cabinet_power_place_compositions`.
-- Услуга связывается с мандалой через `profile_cabinet_services.composition_id`.
-- Публичная ссылка строится из service id: `/services/<service_id>`.
-- Ссылка появляется в UI после создания service draft, но активной для клиентов становится только после публикации.
+Продуктовые решения:
+- В зоне создания мандалы должны быть 3 кнопки:
+  1. Сохранить мандалу
+  2. Перенести в услуги
+  3. Опубликовать как услугу
+- `Перенести в услуги` создаёт черновик услуги.
+- `Опубликовать как услугу` сразу публикует услугу.
+- Услуга — это шаблон из мандалы.
+- Под этот шаблон клиент обращается через магазин/корзину.
+- В клиентском результате по центру вставляется фото клиента.
+- Клиентский результат сохраняется как персональная мандала клиента в workflow услуг/заказов мастера.
+- Черновики и опубликованные услуги хранятся в одной таблице `profile_cabinet_services` и отличаются `status`.
+- Публичная ссылка появляется только после публикации.
+- Магазин — общая вкладка/страница сайта, где видны все опубликованные услуги.
+- Цена по умолчанию: Бесплатно.
 
-Что реализовать минимально:
-1. В Profile Lite изменить flow кнопки `В услуги` / `Опубликовать в услугах`:
-   - если текущая мандала не сохранена или изменена, сначала сохранить/update composition;
-   - получить реальный `composition_id`;
-   - найти existing own service with same composition_id;
-   - если есть — открыть его в Services editor;
-   - если нет — создать service draft row в `profile_cabinet_services` со статусом `draft`;
-   - заполнить service editor;
-   - перейти на `/profile/services`;
-   - показать: “Мандала сохранена и подготовлена как черновик услуги.”
-2. В Services module сделать ясную механику хранения:
-   - Черновики = `status='draft'`;
-   - Опубликованные = `status='published'`;
-   - Архив = `status='archived'`;
-   - всё из `profile_cabinet_services`.
-3. Добавить public link block:
-   - draft: “Ссылка появится после публикации.”
-   - published: show `window.location.origin + '/services/' + service.id` and button `Скопировать ссылку`.
-   - archived: “Услуга в архиве. Публичная ссылка отключена.”
-4. Если route `/services/:serviceId` ещё не реализован, либо:
-   - добавить безопасную MVP route + Vercel rewrite;
-   - либо показать `needs verification: публичный маршрут услуги ещё не подключен` и не показывать фейковую ссылку.
-5. Не сохранять `data:image` как постоянный preview.
-6. Не добавлять payment processing.
-7. Не добавлять новый второй runtime.
-8. Не трогать OAuth, env values, service-role keys.
-9. Не ломать `/profile-old`, `/`, `/profile`, `/masters`, `/profile/admin`.
-10. Сохранить RU-default interface.
+Что реализовать в Phase 1:
+1. Разделить кнопки в Profile Lite mandala workspace:
+   - Сохранить мандалу
+   - Перенести в услуги
+   - Опубликовать как услугу
+2. Сделать общий helper сохранения текущей composition.
+3. Для `Перенести в услуги`:
+   - save/update composition;
+   - find existing service by composition_id;
+   - if none, create `profile_cabinet_services` row with `status='draft'`;
+   - price default free;
+   - navigate to `/profile/services`.
+4. Для `Опубликовать как услугу`:
+   - save/update composition;
+   - find or create service row;
+   - set `status='published'`;
+   - price default free;
+   - navigate to `/profile/services`;
+   - show active public link.
+5. In `/profile/services`:
+   - show sections: Черновики / Опубликованные / Архив;
+   - show public link only for published services;
+   - draft text: “Ссылка появится после публикации.”;
+   - published link: `window.location.origin + '/services/' + service.id`;
+   - copy link button for published only.
+6. Do not implement cart/order/personal result in Phase 1 unless already safe and existing. Document as next phase.
+7. Do not create fake route/link if `/services/:serviceId` is not implemented. Mark needs verification or implement safe route + Vercel rewrite if low-risk.
+8. Do not persist `data:image` as permanent preview.
+9. Preserve `/profile-old`, `/`, `/profile`, `/masters`, `/profile/admin`.
 
-Что проверить:
-- `/profile/mandalas`:
-  - создать/открыть мандалу;
-  - нажать `В услуги`;
-  - мандала сохраняется;
-  - создаётся service draft row;
-  - service draft имеет `composition_id`.
-- `/profile/services`:
-  - черновики видны отдельно;
-  - опубликованные видны отдельно;
-  - черновик можно сохранить;
-  - черновик можно опубликовать;
-  - после публикации появляется публичная ссылка;
-  - `Скопировать ссылку` работает или показывает fallback.
-- `/services/<published_service_id>` if route implemented:
-  - published service opens;
-  - draft service does not open publicly;
-  - archived service does not open publicly;
-  - refresh works on Vercel rewrite.
-- `/profile-old`, `/`, `/masters`, `/profile/admin` smoke.
-- mobile 390px: no horizontal overflow.
-- desktop 1280/1366: layout stable.
-
-Команды:
+Checks:
 npm run test:profile-lite
 npm run test:profile-services
 npm run test:power-place
@@ -1573,46 +1202,36 @@ npm run test:profile-loading-recovery
 npm run check
 npm run build
 
-Риски:
-- Live Supabase may not have services/orders migration applied.
-- Public service route may not exist yet.
-- Copy link must not point to a fake/unimplemented route.
-- Drafts must not be publicly readable.
-- Private image storage refs must not leak.
-- Existing heavy /profile-old must remain available.
-
-Формат отчёта:
+Report:
 1. Branch
 2. Changed files
-3. Storage model implemented
-4. Mandala → service draft flow
-5. Public link behavior
-6. What is published vs draft vs archived
-7. Checks run
-8. Browser QA / routes checked
-9. Supabase migration status
+3. Three-button behavior
+4. Storage model implemented
+5. Draft/published/archive behavior
+6. Public link behavior
+7. What remains for cart/order/personal client mandala
+8. Checks run
+9. Routes verified
 10. Risks / not verified
 ```
 
 ---
 
-## 11. Done definition
-
-Phase 1 is done only when:
+## 10. Done definition for Phase 1
 
 ```text
-[ ] New unsaved mandala can be sent to services and gets saved first.
-[ ] Existing saved mandala can be sent to services and keeps real composition_id.
-[ ] Service draft row is created in profile_cabinet_services.
-[ ] Draft service stays private to owner/master.
-[ ] Published service becomes public.
-[ ] Service draft opens in /profile/services.
-[ ] Service draft can be saved.
-[ ] Service can be published if migration/RLS is applied.
-[ ] Published service shows public client link.
-[ ] Copy public link works or has safe fallback.
-[ ] Draft and archived services are not public.
-[ ] Missing migration/RLS shows inline needs verification, not shell crash.
+[ ] Three mandala actions exist.
+[ ] Save mandala only saves composition.
+[ ] Transfer to services creates/opens draft service template.
+[ ] Publish as service creates/opens published service template.
+[ ] Service is linked to composition_id.
+[ ] Same composition does not create duplicate service unless explicitly requested later.
+[ ] Drafts are private.
+[ ] Published services show public client link.
+[ ] Public link appears only after publication.
+[ ] Default price is Бесплатно.
+[ ] /profile/services groups services by draft/published/archive.
+[ ] Services errors stay inline.
 [ ] /profile-old remains available.
 [ ] /, /profile, /masters, /profile/admin remain unchanged.
 [ ] Tests/build pass.
