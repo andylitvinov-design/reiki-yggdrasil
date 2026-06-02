@@ -205,7 +205,7 @@ function imageStyle(src) {
 function uniqueImageSources(items) {
   const seen = new Set();
   return items.filter((item) => {
-    const key = item?.src || item?.displaySrc;
+    const key = item?.src || item?.displaySrc || item?.id;
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;

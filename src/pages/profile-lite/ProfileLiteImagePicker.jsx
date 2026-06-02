@@ -40,7 +40,7 @@ export default function ProfileLiteImagePicker({
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
   const currentUploadError = uploadError || localUploadError;
   const isUploading = currentUploadStatus === "loading";
-  const visibleImages = useMemo(() => images.filter((image) => image?.src || image?.displaySrc), [images]);
+  const visibleImages = useMemo(() => images.filter((image) => image?.id || image?.src || image?.displaySrc), [images]);
 
   const handleSelect = async (image) => {
     await onSelect(image);
@@ -92,7 +92,12 @@ export default function ProfileLiteImagePicker({
           {visibleImages.map((image) => {
             const displaySrc = image.displaySrc || "";
             const selected = selectedImageRef && (selectedImageRef === image.src || selectedImageRef === image.displaySrc);
-            const mediaSigningError = image.signingError || (!displaySrc && isStorageRef(image.src) ? "signed URL не создан — проверьте Storage/RLS" : "");
+            const signingError = image.signingError || "";
+            const mediaSigningError = signingError
+              || (!image.src && !displaySrc ? "empty image ref"
+                : !isDisplayUrl(displaySrc) && image.src && !isStorageRef(image.src) ? "invalid image url"
+                : !isDisplayUrl(displaySrc) && isStorageRef(image.src) ? "signed URL не создан — проверьте Storage/RLS"
+                : "");
             return (
               <article className={`clientPhotoPickerCard profileLiteImagePickerCard${selected ? " active" : ""}`} key={image.id}>
                 <button className="profileLiteImagePickerSelect" type="button" onClick={() => handleSelect(image)} disabled={isUploading}>
