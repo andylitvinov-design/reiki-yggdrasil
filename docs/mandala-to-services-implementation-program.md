@@ -80,6 +80,7 @@ UI modes:
 ```text
 Кабинет Личный
   → Мои Заказы
+  → Мои Фото
 
 Кабинет Мастера
   → Заявки
@@ -145,7 +146,7 @@ Storage should reuse existing private media/storage flow where possible.
 Rules:
 
 ```text
-Кабинет Личный / Фото клиента:
+Кабинет Личный / Мои Фото:
   max 4 saved client photos
   user can upload a new photo if under limit
   user can choose any already uploaded photo when confirming an order
@@ -249,9 +250,184 @@ Add/verify Vercel rewrite:
 
 ---
 
-## 1. Storage model
+## 1. Intuitive product rules
 
-### 1.1. Mandalas / compositions
+This section exists to prevent technically correct but unintuitive implementation.
+
+### 1.1. The user should always understand where they are
+
+Every screen must clearly answer:
+
+```text
+Am I acting as a client or as a master?
+Am I editing a private mandala, a service template, an order, or a client result?
+Is this object private, draft, published, sent, or archived?
+What is the next action?
+```
+
+Required labels:
+
+```text
+Кабинет Личный
+Кабинет Мастера
+Черновик услуги
+Опубликовано
+Ожидает фото
+Заявка отправлена мастеру
+В работе у мастера
+Результат отправлен
+```
+
+### 1.2. Never hide the next step
+
+Every major state must have one primary next action.
+
+Examples:
+
+```text
+Saved mandala, not service yet:
+  primary action: Перенести в услуги
+
+Service draft:
+  primary action: Опубликовать
+
+Published service:
+  primary action: Скопировать ссылку
+
+Cart item:
+  primary action: Оформить заказ
+
+Client order without photo:
+  primary action: Загрузить / выбрать фото
+
+Client order with photo but not submitted:
+  primary action: Отправить заказ мастеру
+
+Master order with generated draft:
+  primary action: Отправить клиенту or Открыть и редактировать
+
+Sent client result:
+  primary action: Открыть результат / Скачать
+```
+
+### 1.3. Do not make irreversible actions silent
+
+Actions that change visibility or submit work must show confirmation or a clear result notice:
+
+```text
+Опубликовать как услугу
+Отправить заказ мастеру
+Отправить клиенту
+Архивировать услугу
+Удалить фото
+```
+
+MVP can use lightweight confirm dialogs for destructive actions.
+
+### 1.4. Template and client result must feel different
+
+UI must not confuse:
+
+```text
+Шаблон услуги
+Персональная мандала клиента
+```
+
+Labels:
+
+```text
+Шаблон услуги
+Мандала заказа
+Персональный результат
+```
+
+Never call a generated order result just “услуга”.
+
+### 1.5. Drafts must feel safe
+
+Draft service and draft order states are private working states. UI should communicate:
+
+```text
+Черновик виден только вам.
+Ссылка появится после публикации.
+Заказ ещё не отправлен мастеру.
+```
+
+### 1.6. Published objects must be obvious
+
+When service is published, show:
+
+```text
+Опубликовано в магазине
+Публичная ссылка для клиентов
+Скопировать ссылку
+```
+
+### 1.7. Missing data should produce useful empty states
+
+Empty states:
+
+```text
+No mandalas:
+  Сначала создайте и сохраните мандалу.
+
+No services:
+  Перенесите мандалу в услуги или создайте услугу из шаблона.
+
+No public services:
+  Опубликованные услуги появятся здесь после публикации мастерами.
+
+No client photos:
+  Загрузите фото, чтобы отправить заказ мастеру.
+
+No client orders:
+  Ваши заказы появятся здесь после оформления услуги в магазине.
+
+No master orders:
+  Заявки клиентов появятся здесь после оформления заказов.
+```
+
+### 1.8. Error messages must tell what to do
+
+Bad:
+
+```text
+Request failed.
+```
+
+Good:
+
+```text
+Не удалось создать черновик услуги. Проверьте, применена ли миграция profile_cabinet_services.
+```
+
+```text
+Не удалось загрузить фото. Попробуйте ещё раз или выберите уже загруженное фото.
+```
+
+```text
+Не удалось открыть публичную ссылку: маршрут /services/:serviceId ещё не подключён.
+```
+
+### 1.9. Keep phases separate
+
+Codex must not implement the entire system during Phase 1.
+
+```text
+Phase 1 = only mandala → service template bridge.
+Phase 2 = services manager.
+Phase 3 = public shop + service page + one-service cart.
+Phase 4 = personal/master cabinet order split.
+Phase 5 = personal result generation and delivery.
+```
+
+If later-phase code is touched, Codex must explain why and mark risks.
+
+---
+
+## 2. Storage model
+
+### 2.1. Mandalas / compositions
 
 Storage:
 
@@ -272,7 +448,7 @@ Rule:
 template composition must never be overwritten by order result generation
 ```
 
-### 1.2. Services
+### 2.2. Services
 
 Storage:
 
@@ -295,7 +471,7 @@ profile_cabinet_services.composition_id
 → template composition id
 ```
 
-### 1.3. Orders
+### 2.3. Orders
 
 Storage:
 
@@ -337,7 +513,7 @@ draft_result_composition_id
 final_result_composition_id
 ```
 
-### 1.4. Client photos
+### 2.4. Client photos
 
 Storage should use existing media/profile storage if possible.
 
@@ -359,9 +535,9 @@ Rules:
 
 ---
 
-## 2. Status model
+## 3. Status model
 
-### 2.1. Service statuses
+### 3.1. Service statuses
 
 ```text
 draft
@@ -369,7 +545,7 @@ published
 archived
 ```
 
-### 2.2. Order statuses
+### 3.2. Order statuses
 
 Recommended final statuses:
 
@@ -416,9 +592,9 @@ If migration is too much for one pass, Codex must document compromise and not pr
 
 ---
 
-## 3. Exact business flow
+## 4. Exact business flow
 
-### 3.1. Master: save/transfer/publish mandala
+### 4.1. Master: save/transfer/publish mandala
 
 Route:
 
@@ -460,7 +636,7 @@ save/update composition
 → show public link
 ```
 
-### 3.2. Services manager
+### 4.2. Services manager
 
 Route:
 
@@ -488,7 +664,7 @@ Published public link:
 window.location.origin + '/services/' + service.id
 ```
 
-### 3.3. Public shop and service page
+### 4.3. Public shop and service page
 
 Public shop shows:
 
@@ -513,7 +689,7 @@ format selector
 В корзину
 ```
 
-### 3.4. One-service cart
+### 4.4. One-service cart
 
 Cart MVP:
 
@@ -544,7 +720,7 @@ Actions:
 Оформить заказ
 ```
 
-### 3.5. Checkout and personal cabinet confirmation
+### 4.5. Checkout and personal cabinet confirmation
 
 Flow:
 
@@ -569,7 +745,7 @@ After client selects/uploads photo, show explicit button:
 
 Do not silently submit without client confirmation.
 
-### 3.6. Personal cabinet / My Orders
+### 4.6. Personal cabinet / My Orders
 
 `Кабинет Личный → Мои Заказы` must show:
 
@@ -586,7 +762,7 @@ open result
 download result
 ```
 
-### 3.7. Master cabinet / Requests
+### 4.7. Master cabinet / Requests
 
 `Кабинет Мастера → Заявки` must show:
 
@@ -604,7 +780,7 @@ approve/send
 master comment
 ```
 
-### 3.8. Personal result generation
+### 4.8. Personal result generation
 
 Algorithm:
 
@@ -626,7 +802,7 @@ Algorithm:
 9. Do not change original template composition.
 ```
 
-### 3.9. Master edit and send
+### 4.9. Master edit and send
 
 MVP edit flow:
 
@@ -653,9 +829,9 @@ Not email/Telegram in MVP. External delivery later.
 
 ---
 
-## 4. RLS / access rules
+## 5. RLS / access rules
 
-### 4.1. Profiles
+### 5.1. Profiles
 
 One profile row can act as both client and master.
 
@@ -664,7 +840,7 @@ profile_cabinet_profiles.id = client_profile_id
 profile_cabinet_profiles.id = master_profile_id
 ```
 
-### 4.2. Services
+### 5.2. Services
 
 ```text
 owner/master can manage services where service.profile_id belongs to auth.uid()
@@ -673,7 +849,7 @@ public cannot read draft/archived
 other users cannot read owner drafts
 ```
 
-### 4.3. Orders
+### 5.3. Orders
 
 ```text
 client can read/update own order where client_profile_id belongs to auth.uid()
@@ -682,7 +858,7 @@ public/anon cannot read orders
 public/anon cannot read private photos/result refs
 ```
 
-### 4.4. Photos/results
+### 5.4. Photos/results
 
 ```text
 client can access own uploaded photos
@@ -693,9 +869,9 @@ public cannot access private order photos/results
 
 ---
 
-## 5. Slippery cases / edge rules
+## 6. Slippery cases / edge rules
 
-### 5.1. Client has 4 photos already
+### 6.1. Client has 4 photos already
 
 If client already has 4 photos:
 
@@ -704,7 +880,7 @@ disable new upload
 show: Можно хранить до 4 фото. Удалите старое фото или выберите одно из существующих.
 ```
 
-### 5.2. Client selects photo but does not send order
+### 6.2. Client selects photo but does not send order
 
 Order remains:
 
@@ -718,7 +894,7 @@ Show button:
 Отправить заказ мастеру
 ```
 
-### 5.3. Client changes photo after sending
+### 6.3. Client changes photo after sending
 
 MVP rule:
 
@@ -726,9 +902,13 @@ MVP rule:
 After order.status = new or later, changing photo is disabled.
 ```
 
-Later can add “Запросить замену фото”.
+Later can add:
 
-### 5.4. Master publishes service without description
+```text
+Запросить замену фото
+```
+
+### 6.4. Master publishes service without description
 
 Allowed, but show warning:
 
@@ -736,7 +916,7 @@ Allowed, but show warning:
 Описание не заполнено. Услугу можно опубликовать, но лучше добавить описание.
 ```
 
-### 5.5. Master deletes/archive service with active orders
+### 6.5. Master deletes/archive service with active orders
 
 MVP rule:
 
@@ -746,7 +926,7 @@ Archive only.
 Existing orders keep service snapshot or linked service title.
 ```
 
-### 5.6. Service template changed after orders exist
+### 6.6. Service template changed after orders exist
 
 MVP rule:
 
@@ -756,7 +936,7 @@ Existing orders keep their generated draft_result_composition_id.
 Do not regenerate old results automatically.
 ```
 
-### 5.7. Both format
+### 6.7. Both format
 
 MVP short rule:
 
@@ -766,7 +946,7 @@ One final result may be delivered first.
 Dual-result display is later.
 ```
 
-### 5.8. Free service
+### 6.8. Free service
 
 ```text
 price null/0 → Бесплатно
@@ -774,7 +954,7 @@ checkout button → Оформить заказ
 no payment step
 ```
 
-### 5.9. Public link without route
+### 6.9. Public link without route
 
 If `/services/:serviceId` is not implemented:
 
@@ -783,7 +963,7 @@ Do not show fake copy link.
 Show needs verification or implement route + rewrite in same tested PR.
 ```
 
-### 5.10. Missing migrations/RLS
+### 6.10. Missing migrations/RLS
 
 If services/orders migration is missing live:
 
@@ -792,16 +972,78 @@ show inline needs verification
 cabinet shell must stay open
 ```
 
-### 5.11. PNG/JPEG export
+### 6.11. PNG/JPEG export
 
 ```text
 PDF/print may be used for MVP download.
 PNG/JPEG export = needs verification unless implemented and tested.
 ```
 
+### 6.12. Duplicate service from same mandala
+
+MVP rule:
+
+```text
+If service already exists for composition_id, open/update existing service.
+Do not create duplicate service unless a later explicit “Создать копию услуги” action is added.
+```
+
+### 6.13. User has no master profile details
+
+If user acts as master but profile fields are incomplete:
+
+```text
+Allow draft service creation.
+Before publication, warn: Заполните имя мастера / описание профиля, чтобы клиенты понимали, кто оказывает услугу.
+```
+
+Do not block publication unless RLS/profile approval requires it.
+
+### 6.14. Public service opened after archive
+
+Route must show:
+
+```text
+Услуга недоступна или снята с публикации.
+```
+
+Do not leak draft/archive details.
+
+### 6.15. Checkout interrupted
+
+If checkout is interrupted by login or refresh:
+
+```text
+Use pending cart/order localStorage key.
+After successful login, restore cart/order draft.
+If pending item is older than 24h, clear it and ask client to choose service again.
+```
+
+### 6.16. Client orders own service
+
+MVP can allow it for testing, but UI should not special-case unless needed.
+
+If blocked later, show:
+
+```text
+Вы не можете оформить заказ на собственную услугу.
+```
+
+### 6.17. Master sends without result
+
+Block sending if no result exists:
+
+```text
+Сначала создайте или выберите результат мандалы заказа.
+```
+
+### 6.18. Result visibility before sent
+
+Client must not see draft master work until order status is `sent`, unless a preview/review state is explicitly added later.
+
 ---
 
-## 6. Implementation phases
+## 7. Implementation phases
 
 ### Phase 1 — Mandala to service template bridge
 
@@ -875,7 +1117,7 @@ open/download result
 
 ---
 
-## 7. Final full-system Definition of Done
+## 8. Final full-system Definition of Done
 
 ```text
 [ ] Master creates mandala.
@@ -908,7 +1150,7 @@ open/download result
 
 ---
 
-## 8. Phase 1 Codex prompt
+## 9. Phase 1 Codex prompt
 
 ```text
 Ты работаешь с проектом Reiki Yggdrasil.
