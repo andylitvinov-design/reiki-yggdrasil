@@ -1,5 +1,61 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Copy old ProfilePage layout into Profile Lite
+
+- Branch: `codex/copy-profile-old-layout-into-lite`.
+- Starting point: `origin/main` merge commit `dad752c`.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLiteProfileModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteMaterialsModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteOrdersModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteChatsModule.jsx`
+  - `src/profileCabinet.css`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Copied/reused from old `src/pages/ProfilePage.jsx`:
+  - `profileEditor` wrapper/copy via `profileTabContent`, `profileForm`, `cabinetPreview`, and the old preview label `Как это будет выглядеть`;
+  - materials center gallery via `mandalaGallery`, `mandalaCardsGrid`, `mandalaMaterialCard`, and old empty-state copy;
+  - old workspace shell for materials/services/orders/chats via `workspaceMainColumns`, `mandalaModeSidebar`, `workspaceCenterColumn`, `workspaceRightColumn`;
+  - old services/orders/chats placeholder language and structure via `chatPlaceholderWorkspace` and `chatPlaceholderHeader`;
+  - existing mandala old classes remained in Lite: `workspaceMainColumns`, `powerLibrarySidebar`, `workspaceCenterColumn`, `workspaceRightColumn`, `powerPlaceConstructor`, `powerPlaceSettings`, `coverPickerPanel`, `resourceComparisonPanel`, `objectImageEditor`.
+- Preserved:
+  - `/profile-old` as the heavy reference route;
+  - Profile Lite stable auth shell and route-backed tabs;
+  - `ProfileLiteImagePicker`;
+  - auth/bootstrap/Supabase client code, Vercel rewrites, `/`, `/masters`, and `/profile/admin`.
+- Contract test:
+  - added assertions that Profile Lite non-mandala modules reuse old wrapper classes and old gallery/placeholder surfaces;
+  - first `npm run test:profile-lite` failed on missing old `profileTabContent`;
+  - after JSX/CSS changes, `npm run test:profile-lite` passed.
+- Local rendered QA:
+  - dev server: `http://localhost:4186/` with fake public Supabase env and fake local session only;
+  - `/profile-old` 1280: overflow `0`, old left/center/right structure present;
+  - `/profile/mandalas` 1280: `260px 640px 320px`, mandala panel `560px`, mandala `362px`, overflow `0`;
+  - `/profile-old` 390: single `358px` column, overflow `0`;
+  - `/profile/mandalas` 390: single `358px` column, mandala panel `324px`, mandala `218px`, overflow `0`;
+  - `/profile`, `/profile?tab=profile`, `/profile?tab=media`, `/profile?tab=materials`, `/profile/services`, `/profile/orders`, `/profile/chats`, `/profile/settings` opened locally under route-stubbed auth;
+  - `/profile?tab=materials`, `/profile/services`, `/profile/orders`, `/profile/chats` measured old legacy columns `260px 620px 340px`, left/center/right present, overflow `0`;
+  - chat empty-data placeholder path had no console warnings/errors.
+- Commands run:
+  - `npm install` to install missing worktree dependencies; reverted the incidental lockfile name churn afterward;
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all listed commands exited `0`;
+  - `npm run check` retained existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning.
+- Still not verified:
+  - real authenticated production Supabase/RLS upload/delete/save/load/update flows;
+  - live authenticated visual comparison of `/profile-old` and `/profile/mandalas`;
+  - production deployment of this branch.
+
 ## 2026-06-02 — PR #196 merge and deployment blocker
 
 - PR: #196 `Polish Profile Lite mandala parity`.

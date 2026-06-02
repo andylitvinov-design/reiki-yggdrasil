@@ -476,15 +476,14 @@
 }
 
 .profileLiteProfileGrid,
-.profileLiteMaterialsModule,
 .profileLiteMediaModule,
-.profileLitePowerPlace,
-.profileLiteServices,
-.profileLiteOrders,
-.profileLiteChats,
 .profileLiteDiagnostics {
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
   align-items: start;
+}
+
+.profileLiteProfileGrid.profileTabContent {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
 }
 
 .profileLiteOverview {
@@ -599,12 +598,7 @@
   .cabinetGrid,
   .profileLiteMain,
   .profileLiteProfileGrid,
-  .profileLiteMaterialsModule,
   .profileLiteMediaModule,
-  .profileLitePowerPlace,
-  .profileLiteServices,
-  .profileLiteOrders,
-  .profileLiteChats,
   .profileLiteDiagnostics,
   .profileLiteOverview,
   .profileLiteMetricGrid,
