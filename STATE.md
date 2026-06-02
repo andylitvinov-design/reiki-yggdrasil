@@ -63,6 +63,31 @@ Last updated: 2026-06-02
   - real upload/private signed URL flow;
   - production/legacy live QA after merge/deploy.
 
+## 2026-06-02 — Profile Lite compact left photo filter
+
+- Branch: `codex/refine-profile-lite-left-photo-filter`, based on fresh `origin/main` merge commit `169c854` after PR #206.
+- Scope: compact the `/profile/mandalas` left rail without changing `/profile-old`, public routes, auth/bootstrap, Vercel rewrites, or Supabase signed Storage helpers.
+- Changed:
+  - removed the left-rail `Выбрать из базы` action;
+  - kept `Добавить мандалу` as the single primary left action;
+  - changed the left rail to compact filters for group/category/subcategory-step, including `Избранные`;
+  - defaulted the left photo list to latest photos when no filter is selected;
+  - changed the left photo list to compact 56px previews with title, meta label, and hover/focus delete control for client photos;
+  - preserved `ProfileLiteImagePicker` for modal image picking and upload;
+  - extended Lite delete cleanup so deleted client photos are removed from object refs as well as the center ref.
+- Verification:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Not verified yet:
+  - real authenticated Supabase Storage photos on live data;
+  - real hover/delete flow against production RLS;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite chess layout variants and sizing fix
 
 - Branch: `codex/fix-chess-layout-variants-size-mentalica`.

@@ -717,17 +717,38 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) return;
     const confirmed = window.confirm("Удалить фото из базы?");
     if (!confirmed) return;
+    const deletedRefs = new Set([
+      photo.src,
+      photo.image_ref,
+      photo.image_url,
+      photo.displaySrc,
+      photo.display_url,
+      photo.signed_url
+    ].filter(Boolean));
     try {
       await deleteClientGoalPhoto(photo.id, profile.id, session);
       setClientGoalPhotos((current) => current.filter((item) => item.id !== photo.id));
       setCompositionDraft((current) => {
-        if (current.central_photo_id !== photo.id) return current;
         const centerRef = current.object_refs?.__center_image || "";
         const nextObjectRefs = { ...(current.object_refs || {}) };
         const nextObjectRefUrls = { ...(current.object_ref_urls || {}) };
-        delete nextObjectRefs.__center_image;
-        if (centerRef) delete nextObjectRefUrls[centerRef];
-        return { ...current, central_photo_id: "", object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls };
+        let changed = false;
+
+        for (const [slotId, ref] of Object.entries(nextObjectRefs)) {
+          if (deletedRefs.has(ref)) {
+            delete nextObjectRefs[slotId];
+            if (ref) delete nextObjectRefUrls[ref];
+            changed = true;
+          }
+        }
+
+        if (current.central_photo_id === photo.id) {
+          delete nextObjectRefs.__center_image;
+          if (centerRef) delete nextObjectRefUrls[centerRef];
+          return { ...current, central_photo_id: "", object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls };
+        }
+
+        return changed ? { ...current, object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls } : current;
       });
     } catch (error) {
       setMediaStatus("needs-verification");

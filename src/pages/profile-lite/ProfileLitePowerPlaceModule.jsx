@@ -187,6 +187,7 @@ const SOURCE_LIBRARY_CATEGORIES = [
   },
   { value: "talismans", label: "Талисманы", subcategories: [] },
   { value: "artifacts", label: "Артефакты", subcategories: [] },
+  { value: "favorites", label: "Избранные", subcategories: [] },
   { value: "client-goals", label: "Клиенты", subcategories: [{ value: "client-goals", label: "Фото клиентов" }] }
 ];
 const FIELD_LAYOUTS = [
@@ -336,9 +337,9 @@ export default function ProfileLitePowerPlaceModule({
   const [pickerUploadError, setPickerUploadError] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [coverLayerMode, setCoverLayerMode] = useState("inner");
-  const [activeSourceCategory, setActiveSourceCategory] = useState("dao-ri");
-  const [activeSourceSubcategory, setActiveSourceSubcategory] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.subcategories?.[0]?.value || "");
-  const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.subcategories?.[0]?.thirdLevels?.[0]?.value || "");
+  const [activeSourceCategory, setActiveSourceCategory] = useState("");
+  const [activeSourceSubcategory, setActiveSourceSubcategory] = useState("");
+  const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -372,7 +373,9 @@ export default function ProfileLitePowerPlaceModule({
       displaySrc: photo.display_url || photo.signed_url || photo.image_url,
       signingError: photo.media_signing_error || "",
       kind: "client-photo",
-      photoId: photo.id
+      photoId: photo.id,
+      favorite: Boolean(photo.favorite || photo.is_favorite || photo.pinned),
+      updatedAt: photo.updated_at || photo.created_at || ""
     })),
     ...traditionAssets.map((asset) => ({
       id: `tradition-${asset.id}`,
@@ -382,7 +385,9 @@ export default function ProfileLitePowerPlaceModule({
       displaySrc: asset.display_url || asset.signed_url || asset.image_url,
       signingError: asset.media_signing_error || "",
       kind: "tradition-asset",
-      traditionId: asset.tradition_id || ""
+      traditionId: asset.tradition_id || "",
+      favorite: Boolean(asset.favorite || asset.is_favorite || asset.pinned),
+      updatedAt: asset.updated_at || asset.created_at || ""
     })),
     ...materials.map((item) => ({
       id: `material-${item.id}`,
@@ -393,7 +398,9 @@ export default function ProfileLitePowerPlaceModule({
       signingError: item.media_signing_error || "",
       kind: "material",
       stepId: item.step_id || "",
-      type: item.type || ""
+      type: item.type || "",
+      favorite: Boolean(item.favorite || item.is_favorite || item.pinned),
+      updatedAt: item.updated_at || item.created_at || ""
     }))
   ]), [clientGoalPhotos, materials, traditionAssets]);
 
@@ -412,25 +419,38 @@ export default function ProfileLitePowerPlaceModule({
   ], [innerCover, outerCover, savedImages]);
   const activeCover = visibleCover;
   const coverLayerSaveTarget = coverLayerMode === "inner" ? "cover_ref.inner" : "cover_ref.outer";
-  const activeSourceCategoryData = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activeSourceCategory) || SOURCE_LIBRARY_CATEGORIES[0];
-  const activeSourceSubcategoryData = activeSourceCategoryData.subcategories.find((item) => item.value === activeSourceSubcategory) || activeSourceCategoryData.subcategories[0] || null;
+  const activeSourceCategoryData = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activeSourceCategory) || null;
+  const activeSourceSubcategoryData = activeSourceCategoryData?.subcategories?.find((item) => item.value === activeSourceSubcategory) || activeSourceCategoryData?.subcategories?.[0] || null;
   const activeSourceThirdLevelData = activeSourceSubcategoryData?.thirdLevels?.find((item) => item.value === activeSourceThirdLevel) || activeSourceSubcategoryData?.thirdLevels?.[0] || null;
 
-  const filteredSavedImages = useMemo(() => savedImages.filter((item) => {
-    if (activeSourceCategory === "client-goals") return item.kind === "client-photo";
-    if (activeSourceCategory === "god-channels") return item.kind === "tradition-asset" && (!activeSourceSubcategoryData?.traditionId || item.traditionId === activeSourceSubcategoryData.traditionId);
-    if (activeSourceCategory === "dao-ri") {
-      if (item.kind !== "material") return false;
-      const stepIds = new Set(activeSourceThirdLevelData?.stepId ? [activeSourceThirdLevelData.stepId] : activeSourceSubcategoryData?.steps?.map((step) => step.id) || []);
-      return !stepIds.size || !item.stepId || stepIds.has(item.stepId);
-    }
-    if (activeSourceCategory === "covers") return /фон|cover/i.test(item.meta || "");
-    if (activeSourceCategory === "form") return /форма|form|мандала/i.test(`${item.meta || ""} ${item.label || ""}`);
-    if (activeSourceCategory === "talismans") return /талисман/i.test(`${item.meta || ""} ${item.label || ""}`);
-    if (activeSourceCategory === "artifacts") return item.kind === "material" && /artifact|артефакт/i.test(item.meta || "");
-    if (activeSourceCategory === "channels") return item.kind === "material";
-    return true;
-  }), [activeSourceCategory, activeSourceSubcategoryData, activeSourceThirdLevelData, savedImages]);
+  const latestSavedImages = useMemo(() => [...savedImages].sort((a, b) => {
+    const left = Date.parse(a.updatedAt || "");
+    const right = Date.parse(b.updatedAt || "");
+    if (Number.isNaN(left) && Number.isNaN(right)) return 0;
+    if (Number.isNaN(left)) return 1;
+    if (Number.isNaN(right)) return -1;
+    return right - left;
+  }), [savedImages]);
+
+  const filteredSavedImages = useMemo(() => {
+    if (!activeSourceCategory) return latestSavedImages;
+    return savedImages.filter((item) => {
+      if (activeSourceCategory === "favorites") return item.favorite;
+      if (activeSourceCategory === "client-goals") return item.kind === "client-photo";
+      if (activeSourceCategory === "god-channels") return item.kind === "tradition-asset" && (!activeSourceSubcategoryData?.traditionId || item.traditionId === activeSourceSubcategoryData.traditionId);
+      if (activeSourceCategory === "dao-ri") {
+        if (item.kind !== "material") return false;
+        const stepIds = new Set(activeSourceThirdLevelData?.stepId ? [activeSourceThirdLevelData.stepId] : activeSourceSubcategoryData?.steps?.map((step) => step.id) || []);
+        return !stepIds.size || !item.stepId || stepIds.has(item.stepId);
+      }
+      if (activeSourceCategory === "covers") return /фон|cover/i.test(item.meta || "");
+      if (activeSourceCategory === "form") return /форма|form|мандала/i.test(`${item.meta || ""} ${item.label || ""}`);
+      if (activeSourceCategory === "talismans") return /талисман/i.test(`${item.meta || ""} ${item.label || ""}`);
+      if (activeSourceCategory === "artifacts") return item.kind === "material" && /artifact|артефакт/i.test(item.meta || "");
+      if (activeSourceCategory === "channels") return item.kind === "material";
+      return true;
+    });
+  }, [activeSourceCategory, activeSourceSubcategoryData, activeSourceThirdLevelData, latestSavedImages, savedImages]);
 
   const openObjectPicker = (slotId) => {
     setSelectedSlotId(slotId);
@@ -438,7 +458,7 @@ export default function ProfileLitePowerPlaceModule({
   };
 
   const chooseImage = async (item) => {
-    if (pickerMode === "center") {
+    if (pickerMode === "center" || (!pickerMode && !selectedSlot)) {
       onCompositionDraftChange("central_photo_id", item.kind === "client-photo" ? item.photoId : "");
       onCompositionObjectRefSelect("__center_image", item.src || "", item.displaySrc || item.src || "");
     } else if (pickerMode === "cover") {
@@ -449,9 +469,15 @@ export default function ProfileLitePowerPlaceModule({
         src: item.src,
         display_src: item.displaySrc || item.src
       });
-    } else if (selectedSlotId) {
-      onCompositionObjectRefSelect(selectedSlotId, item.src || "", item.displaySrc || item.src || "");
+    } else if (selectedSlotId || selectedSlot?.id) {
+      onCompositionObjectRefSelect(selectedSlotId || selectedSlot.id, item.src || "", item.displaySrc || item.src || "");
     }
+  };
+
+  const handleSavedImageDelete = (item, event) => {
+    event.stopPropagation();
+    if (!onClientPhotoDelete || item.kind !== "client-photo" || !item.photoId) return;
+    onClientPhotoDelete({ ...item, id: item.photoId });
   };
 
   const openPicker = (mode) => {
@@ -594,48 +620,28 @@ export default function ProfileLitePowerPlaceModule({
       <div className="workspaceMainColumns profileLitePowerPlaceColumns">
         <aside className="mandalaModeSidebar powerLibrarySidebar">
           <p className="cabinetEyebrow">Источники силы</p>
-          <h3>Источники силы</h3>
+          <h3>Фото</h3>
           <div className="powerLibraryPrimaryActions">
             <button className="powerAddImageButton" type="button" onClick={() => openPicker(selectedSlot ? "object" : "center")}>
               Добавить мандалу
             </button>
-            <button className="powerChooseBaseButton" type="button" onClick={() => openPicker(selectedSlot ? "object" : "center")}>
-              Выбрать из базы
-            </button>
-          </div>
-          <select value={compositionDraft.id || ""} onChange={(event) => {
-            const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
-            if (composition) onCompositionLoad(composition);
-          }}>
-            <option value="">Загрузить сохранённое место силы</option>
-            {powerPlaceCompositions.map((composition) => (
-              <option key={composition.id} value={composition.id}>{composition.title || "Место силы"}</option>
-            ))}
-          </select>
-          <div className="profileLiteCompositionList">
-            {powerPlaceCompositions.map((composition) => (
-              <button key={composition.id} type="button" onClick={() => onCompositionLoad(composition)}>
-                <b>{composition.title || "Место силы"}</b>
-                <span>{formatLabel(composition.constructor_type)}</span>
-              </button>
-            ))}
-            {mandalasStatus === "success" && powerPlaceCompositions.length === 0 && <p>Сохранённые мандалы пока не найдены.</p>}
           </div>
           <div className="powerLibraryFilter">
             <label className="powerLibrarySelectLabel">
               Группа
               <select value={activeSourceCategory} onChange={(event) => {
-                const nextCategory = SOURCE_LIBRARY_CATEGORIES.find((category) => category.value === event.target.value) || SOURCE_LIBRARY_CATEGORIES[0];
-                setActiveSourceCategory(nextCategory.value);
-                setActiveSourceSubcategory(nextCategory.subcategories[0]?.value || "");
-                setActiveSourceThirdLevel(nextCategory.subcategories[0]?.thirdLevels?.[0]?.value || "");
+                const nextCategory = SOURCE_LIBRARY_CATEGORIES.find((category) => category.value === event.target.value) || null;
+                setActiveSourceCategory(nextCategory?.value || "");
+                setActiveSourceSubcategory(nextCategory?.subcategories?.[0]?.value || "");
+                setActiveSourceThirdLevel(nextCategory?.subcategories?.[0]?.thirdLevels?.[0]?.value || "");
               }}>
+                <option value="">Последние фото</option>
                 {SOURCE_LIBRARY_CATEGORIES.map((category) => (
                   <option key={category.value} value={category.value}>{category.label}</option>
                 ))}
               </select>
             </label>
-            {activeSourceCategoryData.subcategories.length > 0 && (
+            {activeSourceCategoryData?.subcategories?.length > 0 && (
               <label className="powerLibrarySelectLabel">
                 Категория
                 <select
@@ -653,56 +659,41 @@ export default function ProfileLitePowerPlaceModule({
               </label>
             )}
             {activeSourceSubcategoryData?.thirdLevels?.length > 0 && (
-              <div className="powerLibrarySubcategoryButtons">
-                {activeSourceSubcategoryData.thirdLevels.map((thirdLevel) => (
-                  <button
-                    className={activeSourceThirdLevel === thirdLevel.value ? "active" : ""}
-                    key={thirdLevel.value}
-                    onClick={() => setActiveSourceThirdLevel(thirdLevel.value)}
-                    type="button"
-                  >
-                    {thirdLevel.label}
-                  </button>
-                ))}
-              </div>
+              <label className="powerLibrarySelectLabel">
+                Подкатегория / Ступень
+                <select value={activeSourceThirdLevel} onChange={(event) => setActiveSourceThirdLevel(event.target.value)}>
+                  {activeSourceSubcategoryData.thirdLevels.map((thirdLevel) => (
+                    <option key={thirdLevel.value} value={thirdLevel.value}>{thirdLevel.label}</option>
+                  ))}
+                </select>
+              </label>
             )}
-            {activeSourceCategory === "dao-ri" && activeSourceSubcategoryData?.steps?.length > 0 && (
-              <div className="powerLibrarySubcategoryButtons">
-                {activeSourceSubcategoryData.steps.map((step) => (
-                  <button
-                    className={activeSourceThirdLevel === step.id ? "active" : ""}
-                    key={step.id}
-                    onClick={() => setActiveSourceThirdLevel(step.id)}
-                    type="button"
-                  >
-                    {step.label} {step.number}: {step.title}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="powerLibrarySubcategoryButtons" aria-label="Быстрые группы источников">
-              {SOURCE_LIBRARY_CATEGORIES.map((category) => (
-                <button className={activeSourceCategory === category.value ? "active" : ""} key={category.value} type="button" onClick={() => {
-                  setActiveSourceCategory(category.value);
-                  setActiveSourceSubcategory(category.subcategories[0]?.value || "");
-                  setActiveSourceThirdLevel(category.subcategories[0]?.thirdLevels?.[0]?.value || "");
-                }}>
-                  {category.label}
-                </button>
-              ))}
-            </div>
           </div>
-          <div className="powerSavedImageList" aria-label="Сохранённые изображения">
+          <div className="powerSavedImageList compactPhotoList" aria-label="Компактный список фото" data-compact-photo-list="true">
             <div className="powerSavedImageHeader">
-              <b>Сохранённые изображения</b>
-              <small>{selectedSlot ? `Позиция: ${selectedSlot.label}` : "Выберите позицию на схеме"}</small>
+              <b>{activeSourceCategory ? "По фильтру" : "Последние фото"}</b>
+              <small>{selectedSlot ? `Позиция: ${selectedSlot.label}` : "Центр / объект"}</small>
             </div>
             {filteredSavedImages.map((item) => (
-              <button className="powerSavedImageCard" key={item.id} type="button" onClick={() => chooseImage(item)}>
-                <span className={`powerSavedImageThumb${item.displaySrc ? " hasImage" : ""}`} style={imageStyle(item.displaySrc || item.src)} />
-                <b>{item.label}</b>
-                <small>{item.meta}</small>
-              </button>
+              <div className="powerSavedImageItem" key={item.id}>
+                <button className="powerSavedImageCard" type="button" onClick={() => chooseImage(item)}>
+                  <span className={`powerSavedImageThumb${item.displaySrc ? " hasImage" : ""}`} style={imageStyle(item.displaySrc || item.src)} />
+                  <b>{item.label}</b>
+                  <small>{item.meta}</small>
+                </button>
+                {item.kind === "client-photo" && item.photoId && onClientPhotoDelete && (
+                  <button
+                    className="savedImageDeleteButton powerSavedImageDeleteButton"
+                    type="button"
+                    title="Удалить фото"
+                    aria-label="Удалить фото из базы?"
+                    data-delete-photo-button="true"
+                    onClick={(event) => handleSavedImageDelete(item, event)}
+                  >
+                    x
+                  </button>
+                )}
+              </div>
             ))}
             {savedImages.length === 0 && <p>Сохранённые фото, подложки и изображения появятся здесь после загрузки.</p>}
             {savedImages.length > 0 && filteredSavedImages.length === 0 && <p>В этой категории пока нет изображений.</p>}

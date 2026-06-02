@@ -202,12 +202,12 @@ for (const requiredPowerPlaceText of [
   "Мастерская мандал",
   "Место силы",
   "Мои мандалы",
-  "Загрузить сохранённое место силы",
   "Добавить мандалу",
-  "Выбрать из базы",
   "Группа",
   "Категория",
-  "Сохранённые изображения",
+  "Подкатегория / Ступень",
+  "Избранные",
+  "Последние фото",
   "Фото клиента / цели",
   "Фон места силы",
   "Фон внутри",
@@ -226,6 +226,14 @@ for (const requiredPowerPlaceText of [
 ]) {
   assert.match(powerPlacePickerSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
 }
+
+assert.doesNotMatch(powerPlaceSource, /Выбрать из базы/, "Profile Lite left rail should not render the old select-from-base button");
+assert.doesNotMatch(powerPlaceSource, /powerChooseBaseButton/, "Profile Lite left rail should remove the old select-from-base button class");
+assert.match(powerPlaceSource, /data-compact-photo-list="true"/, "Profile Lite left rail should expose a compact photo list marker");
+assert.match(powerPlaceSource, /aria-label="Компактный список фото"/, "Profile Lite left rail should label the compact photo list");
+assert.match(powerPlaceSource, /data-delete-photo-button="true"/, "Profile Lite left rail should expose a delete button marker for client photos");
+assert.match(powerPlaceSource, /value: "favorites"[\s\S]*label: "Избранные"/, "Profile Lite left filter should include favorites as a source group");
+assert.match(powerPlaceSource, /<option value="">Последние фото<\/option>/, "Profile Lite left filter should default to latest photos when no filter is selected");
 
 for (const requiredSourceGroup of ["ДАО РИ", "Мистерии", "Каналы", "Фон", "Форма", "Талисманы", "Артефакты", "Клиенты"]) {
   assert.match(powerPlaceSource, new RegExp(requiredSourceGroup), `Lite Power Place should expose old source taxonomy group: ${requiredSourceGroup}`);
@@ -261,8 +269,9 @@ assert.match(
 );
 assert.match(powerPlaceSource, /import \{ reikiLevels \}/, "Lite Power Place DAO RI hierarchy should be backed by the canonical Reiki levels");
 assert.match(powerPlaceSource, /SOURCE_LIBRARY_CATEGORIES[\s\S]*value: "dao-ri"[\s\S]*subcategories: reikiLevels\.map/, "Lite Power Place should copy old DAO RI level hierarchy instead of a flat label");
-assert.match(powerPlaceSource, /activeSourceSubcategoryData\?\.thirdLevels\?\.length/, "Lite Power Place should expose old source subcategory third-level buttons");
-assert.match(powerPlaceSource, /activeSourceCategory === "dao-ri"[\s\S]*activeSourceSubcategoryData\?\.steps/, "Lite Power Place should expose old DAO RI step buttons");
+assert.match(powerPlaceSource, /activeSourceSubcategoryData\?\.thirdLevels\?\.length[\s\S]*Подкатегория \/ Ступень[\s\S]*<select/, "Lite Power Place should expose DAO RI third-level filtering as a compact select");
+assert.doesNotMatch(powerPlaceSource, /aria-label="Быстрые группы источников"/, "Profile Lite left rail should not render the old large quick-group catalog");
+assert.doesNotMatch(powerPlaceSource, /activeSourceSubcategoryData\?\.steps\.map/, "Profile Lite left rail should not render the old large DAO step button catalog");
 assert.match(powerPlaceSource, /const ZODIAC_SIGNS = \[/, "Lite Power Place should copy old zodiac sign placement definitions");
 assert.match(powerPlaceSource, /ZODIAC_PLUS_SLOT_LAYOUT/, "Lite Power Place should copy old zodiac plus placement definitions");
 assert.match(powerPlaceSource, /const CHESS_TOP_SLOTS = Array\.from/, "Lite Power Place should copy old chess top row slot definitions");
@@ -419,6 +428,8 @@ assert.match(profileLitePageSource, /savedImageRef\s*=\s*saved\?\.image_ref\s*\|
 assert.match(profileLitePageSource, /__center_image:\s*savedImageRef/, "central upload should set __center_image to the durable ref");
 assert.match(profileLitePageSource, /\[savedImageRef\]:\s*savedDisplayUrl/, "central upload should populate object_ref_urls for the durable ref");
 assert.match(profileLitePageSource, /throw new Error\("Сначала сохраните профиль мастера\."\)/, "upload handlers should reject missing profile/session so the picker modal stays open");
+assert.match(profileLitePageSource, /const deletedRefs = new Set/, "client photo deletion should track all refs that can point at the deleted image");
+assert.match(profileLitePageSource, /for \(const \[slotId, ref\] of Object\.entries\(nextObjectRefs\)\)/, "client photo deletion should clear object refs that point at the deleted image");
 
 assert.match(
   readmeSource,
