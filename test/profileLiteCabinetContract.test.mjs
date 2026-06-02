@@ -187,6 +187,9 @@ const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.j
 const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
+const backgroundZoneControlsSource = readFileSync("public/profile-background-zone-controls.js", "utf8");
+const backgroundTabsRefineSource = readFileSync("public/profile-background-tabs-refine.js", "utf8");
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
 const overviewModuleSource = readFileSync(join(moduleDir, "ProfileLiteOverview.jsx"), "utf8");
 const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
@@ -321,6 +324,24 @@ assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse ol
 assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
 assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
 assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
+assert.match(powerPlaceSource, /mandalaFieldLayoutSwitch[\s\S]*\{renderReportModule\(\)\}[\s\S]*coverSelector/, "Lite right rail should place Report after layout and before Power Place background");
+assert.match(powerPlaceSource, /reportSettingsPanel/, "Report module should render as its own right-rail card");
+assert.match(powerPlaceSource, /С отчётом[\s\S]*Без отчёта/, "Report module should expose with/without report toggle");
+for (const reportLabel of ["Анализ ситуации", "Что даёт мандала", "Что ещё поможет", "О Мастере"]) {
+  assert.match(powerPlaceSource, new RegExp(reportLabel), `Report module should include ${reportLabel}`);
+}
+assert.match(powerPlaceSource, /Доступно в Pro формате\./, "Master report field should be visibly disabled as a Pro-only placeholder");
+for (const reportAction of ["Добавить отчёт", "Обновить", "Удалить отчёт"]) {
+  assert.match(powerPlaceSource, new RegExp(reportAction), `Report module should expose ${reportAction}`);
+}
+assert.match(powerPlaceSource, /reportAdded[\s\S]*powerReportOutput/, "Report output should render under the mandala only after the report is added");
+assert.match(powerPlaceSource, /__profile_lite_report/, "Report payload should persist through object_refs without a DB migration");
+assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
+assert.match(profileLitePageSource, /Отчёт[\s\S]*Анализ ситуации[\s\S]*Что даёт мандала[\s\S]*Что ещё поможет/, "composition download HTML should include working report sections");
+assert.doesNotMatch(profileLitePageSource, /handleDownloadComposition[\s\S]*О Мастере/, "composition download HTML must not include the disabled Pro master note");
+assert.match(powerPlaceClientSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*normalizeProfileLiteReport/, "Power Place API normalization should preserve the nested report object");
+assert.match(backgroundZoneControlsSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background zone enhancer should explicitly skip Profile Lite");
+assert.match(backgroundTabsRefineSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background tabs enhancer should explicitly skip Profile Lite");
 assert.doesNotMatch(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must not render cabinet tabs before the active module canonical hero");
 assert.match(shellSource, /const shellChrome = \(/, "Profile Lite shell should expose tabs/status as canonical shell chrome");
 assert.match(shellSource, /typeof children === "function"/, "ProfileLitePage/Shell integration should let modules place shell chrome below their canonical hero");
