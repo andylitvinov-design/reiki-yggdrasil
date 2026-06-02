@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
+import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
 import "../../profileMandalaWorkspace.css";
 
@@ -23,48 +25,169 @@ const ZODIAC_VARIANTS = [
   { value: "plus-12", label: "12+", visibleCount: 12 }
 ];
 const STAR_VARIANTS = [
-  { value: "closed", label: "Закрытая", slots: ["star-top", "star-right", "star-lower-right", "star-lower-left", "star-left"] },
-  { value: "open", label: "Открытая", slots: ["star-top", "star-right", "star-lower-right", "star-lower-left", "star-left"] }
+  { value: "closed", label: "Закрытая" },
+  { value: "open", label: "Открытая" }
+];
+const STAR_POINTS = [
+  { id: "top", className: "top", label: "Верхний луч" },
+  { id: "right", className: "right", label: "Правый луч" },
+  { id: "lower-right", className: "lowerRight", label: "Нижний правый луч" },
+  { id: "lower-left", className: "lowerLeft", label: "Нижний левый луч" },
+  { id: "left", className: "left", label: "Левый луч" }
 ];
 const CHESS_VARIANTS = [
-  { value: "classic-14", label: "14 фоток", count: 14 },
-  { value: "classic-8", label: "8 фоток", count: 8 },
-  { value: "plus-8", label: "8 фото+", count: 8 }
+  { value: "classic-14", label: "14 фоток", slotCount: 14, layout: "grid-5x3" },
+  { value: "classic-8", label: "8 фоток", slotCount: 8, layout: "grid-3x3" },
+  { value: "plus-8", label: "8 фото+", slotCount: 8, layout: "cross-plus-corners" }
+];
+const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
+  id: `chess-top-${index + 1}`,
+  className: `chess-top-${index + 1}`,
+  label: `Верхняя мандала ${index + 1}`,
+  classPrefix: "chess-top"
+}));
+const CHESS_SLOT_LAYOUTS = {
+  "classic-14": [
+    { id: "chess-1", row: 1, col: 1, label: "Шахматная ячейка 1" },
+    { id: "chess-2", row: 1, col: 2, label: "Шахматная ячейка 2" },
+    { id: "chess-3", row: 1, col: 3, label: "Шахматная ячейка 3" },
+    { id: "chess-4", row: 2, col: 1, label: "Шахматная ячейка 4" },
+    { id: "chess-5", row: 2, col: 2, label: "Шахматная ячейка 5" },
+    { id: "chess-6", row: 2, col: 3, label: "Шахматная ячейка 6" },
+    { id: "chess-7", row: 3, col: 1, label: "Шахматная ячейка 7" },
+    { id: "chess-8", row: 3, col: 3, label: "Шахматная ячейка 8" },
+    { id: "chess-9", row: 4, col: 1, label: "Шахматная ячейка 9" },
+    { id: "chess-10", row: 4, col: 2, label: "Шахматная ячейка 10" },
+    { id: "chess-11", row: 4, col: 3, label: "Шахматная ячейка 11" },
+    { id: "chess-12", row: 5, col: 1, label: "Шахматная ячейка 12" },
+    { id: "chess-13", row: 5, col: 2, label: "Шахматная ячейка 13" },
+    { id: "chess-14", row: 5, col: 3, label: "Шахматная ячейка 14" }
+  ],
+  "classic-8": [
+    { id: "chess-1", row: 1, col: 1, label: "Шахматная ячейка 1" },
+    { id: "chess-2", row: 1, col: 2, label: "Шахматная ячейка 2" },
+    { id: "chess-3", row: 1, col: 3, label: "Шахматная ячейка 3" },
+    { id: "chess-4", row: 2, col: 1, label: "Шахматная ячейка 4" },
+    { id: "chess-5", row: 2, col: 3, label: "Шахматная ячейка 5" },
+    { id: "chess-6", row: 3, col: 1, label: "Шахматная ячейка 6" },
+    { id: "chess-7", row: 3, col: 2, label: "Шахматная ячейка 7" },
+    { id: "chess-8", row: 3, col: 3, label: "Шахматная ячейка 8" }
+  ],
+  "plus-8": [
+    { id: "chess-1", className: "cross-top", label: "Верхняя большая мандала" },
+    { id: "chess-2", className: "cross-right", label: "Правая большая мандала" },
+    { id: "chess-3", className: "cross-bottom", label: "Нижняя большая мандала" },
+    { id: "chess-4", className: "cross-left", label: "Левая большая мандала" },
+    { id: "chess-5", className: "corner-top-left", label: "Верхний левый угол" },
+    { id: "chess-6", className: "corner-top-right", label: "Верхний правый угол" },
+    { id: "chess-7", className: "corner-bottom-left", label: "Нижний левый угол" },
+    { id: "chess-8", className: "corner-bottom-right", label: "Нижний правый угол" }
+  ]
+};
+const ZODIAC_SIGNS = [
+  { id: "aries", className: "aries", label: "Овен" },
+  { id: "taurus", className: "taurus", label: "Телец" },
+  { id: "gemini", className: "gemini", label: "Близнецы" },
+  { id: "cancer", className: "cancer", label: "Рак" },
+  { id: "leo", className: "leo", label: "Лев" },
+  { id: "virgo", className: "virgo", label: "Дева" },
+  { id: "libra", className: "libra", label: "Весы" },
+  { id: "scorpio", className: "scorpio", label: "Скорпион" },
+  { id: "sagittarius", className: "sagittarius", label: "Стрелец" },
+  { id: "capricorn", className: "capricorn", label: "Козерог" },
+  { id: "aquarius", className: "aquarius", label: "Водолей" },
+  { id: "pisces", className: "pisces", label: "Рыбы" }
+];
+const ZODIAC_PLUS_SLOT_LAYOUT = {
+  8: [
+    { id: "zodiac-plus-top", className: "zodiac-plus-top", label: "Топ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-right", className: "zodiac-plus-right", label: "Правая точка", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-bottom", className: "zodiac-plus-bottom", label: "Низ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-left", className: "zodiac-plus-left", label: "Лево", classPrefix: "zodiac-plus" }
+  ],
+  12: [
+    { id: "zodiac-plus-top", className: "zodiac-plus-top", label: "Топ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-right", className: "zodiac-plus-right", label: "Правая точка", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-bottom", className: "zodiac-plus-bottom", label: "Низ", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-left", className: "zodiac-plus-left", label: "Лево", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-tl", className: "zodiac-plus-corner-tl", label: "Угол верх-лев", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-tr", className: "zodiac-plus-corner-tr", label: "Угол верх-прав", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-bl", className: "zodiac-plus-corner-bl", label: "Угол низ-лев", classPrefix: "zodiac-plus" },
+    { id: "zodiac-plus-corner-br", className: "zodiac-plus-corner-br", label: "Угол низ-прав", classPrefix: "zodiac-plus" }
+  ]
+};
+const CHANNELS_SUBCATEGORIES = [
+  { value: "sefirot", label: "Сефирот", thirdLevels: [{ value: "major-arcana", label: "Большие арканы" }, { value: "minor-arcana", label: "Малые арканы" }, { value: "sephirot-siphers", label: "Сиферы" }] },
+  { value: "runes", label: "Руны", thirdLevels: [{ value: "first-at", label: "Первый атт" }, { value: "second-at", label: "Второй атт" }, { value: "third-at", label: "Третий атт" }] },
+  { value: "planets", label: "Планеты", thirdLevels: [{ value: "sun", label: "Солнце" }, { value: "moon", label: "Луна" }, { value: "mercury", label: "Меркурий" }, { value: "venus", label: "Венера" }, { value: "mars", label: "Марс" }, { value: "jupiter", label: "Юпитер" }, { value: "saturn", label: "Сатурн" }] },
+  { value: "money", label: "Деньги" },
+  { value: "life", label: "Жизнь" }
 ];
 const BUSINESS_VERTICES = [
-  { id: "goal", label: "Цель" },
-  { id: "function", label: "Функция / продукт" },
-  { id: "structure", label: "Структура" },
-  { id: "flow", label: "Поток клиентов" },
-  { id: "money", label: "Деньги" },
-  { id: "team", label: "Команда" }
+  { id: "goal", className: "top", label: "Цель" },
+  { id: "function", className: "left", label: "Функция / продукт" },
+  { id: "structure", className: "right", label: "Структура / связи / клиенты" }
 ];
-const DAO_SLOTS = ["dao-water", "dao-fire", "dao-earth", "dao-metal", "dao-wood"];
+const DAO_ELEMENTS = [
+  { id: "water", className: "water", label: "Вода" },
+  { id: "wood", className: "wood", label: "Дерево" },
+  { id: "fire", className: "fire", label: "Огонь" },
+  { id: "earth", className: "earth", label: "Земля" },
+  { id: "metal", className: "metal", label: "Металл" }
+];
 const FALLBACK_COVERS = [
   { id: "no-cover", label: "Без фона", type: "none", src: "" },
-  { id: "cover-gold", label: "Золотой фон", type: "placeholder", tone: "gold", src: "" },
-  { id: "cover-forest", label: "Лесной фон", type: "placeholder", tone: "green", src: "" },
-  { id: "cover-night", label: "Ночной фон", type: "placeholder", tone: "blue", src: "" }
+  { id: "cover-zodiac-map", label: "Карта мандалы", type: "placeholder", tone: "zodiac-map", src: "" },
+  { id: "cover-gold", label: "Золотой поток", type: "placeholder", tone: "gold", src: "" },
+  { id: "cover-forest", label: "Древо силы", type: "placeholder", tone: "forest", src: "" },
+  { id: "cover-night", label: "Ночная мандала", type: "placeholder", tone: "night", src: "" }
 ];
-const SOURCE_GROUPS = [
-  { value: "all", label: "Все источники" },
-  { value: "dao-ri", label: "ДАО РИ" },
-  { value: "mysteries", label: "Мистерии" },
-  { value: "channels", label: "Каналы" },
-  { value: "background", label: "Фон" },
-  { value: "shape", label: "Форма" },
-  { value: "talismans", label: "Талисманы" },
-  { value: "artifacts", label: "Артефакты" },
-  { value: "clients", label: "Клиенты" },
-  { value: "client-photo", label: "Фото клиентов" },
-  { value: "tradition-asset", label: "Традиции" },
-  { value: "material", label: "Материалы" }
+const SOURCE_LIBRARY_CATEGORIES = [
+  {
+    value: "dao-ri",
+    label: "ДАО РИ",
+    subcategories: reikiLevels.map((level) => ({
+      value: `level-${level.id}`,
+      label: `${level.id}. ${level.name}`,
+      steps: level.steps,
+      thirdLevels: level.steps.map((step) => ({
+        value: step.id,
+        label: `${level.stepLabel} ${step.number}: ${step.title}`,
+        stepId: step.id,
+        stepTitle: step.title
+      }))
+    }))
+  },
+  {
+    value: "god-channels",
+    label: "Мистерии",
+    subcategories: mysteryTraditions.map((tradition) => ({
+      value: tradition.id,
+      label: tradition.title,
+      traditionId: tradition.id,
+      entities: tradition.entities || []
+    }))
+  },
+  { value: "channels", label: "Каналы", subcategories: CHANNELS_SUBCATEGORIES },
+  { value: "covers", label: "Фон", subcategories: [{ value: "cover", label: "Фон" }] },
+  {
+    value: "form",
+    label: "Форма",
+    subcategories: [
+      { value: "zashchitnye", label: "Защитные" },
+      { value: "tselyebnye", label: "Целебные" },
+      { value: "business", label: "Бизнес" },
+      { value: "other", label: "Другие" }
+    ]
+  },
+  { value: "talismans", label: "Талисманы", subcategories: [] },
+  { value: "artifacts", label: "Артефакты", subcategories: [] },
+  { value: "client-goals", label: "Клиенты", subcategories: [{ value: "client-goals", label: "Фото клиентов" }] }
 ];
-const DATA_SOURCE_GROUPS = new Set(["client-photo", "tradition-asset", "material"]);
 const FIELD_LAYOUTS = [
-  { value: "square", label: "Квадрат" },
   { value: "vertical", label: "Вертикальное" },
-  { value: "horizontal", label: "Горизонтальное" }
+  { value: "horizontal", label: "Горизонтальное" },
+  { value: "square", label: "Квадрат" }
 ];
 
 function objectRefText(value) {
@@ -101,10 +224,6 @@ function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
 }
 
-function sourceGroupLabel(value) {
-  return SOURCE_GROUPS.find((group) => group.value === value)?.label || "Все источники";
-}
-
 function buildSlotList(draft) {
   const type = draft.constructor_type || "zodiac";
   if (type === "client") {
@@ -115,26 +234,30 @@ function buildSlotList(draft) {
   }
   if (type === "zodiac") {
     const visibleCount = Number(draft.zodiac_visible_count) || 12;
-    const classicSlots = Array.from({ length: visibleCount }, (_, index) => ({
-      id: `zodiac-${index + 1}`,
-      label: `Знак ${index + 1}`
-    }));
     const variant = draft.zodiac_variant || (visibleCount === 8 ? "classic-8" : visibleCount === 12 ? "classic-12" : `classic-${visibleCount}`);
-    const plusSlots = variant.includes("plus")
-      ? Array.from({ length: visibleCount === 12 ? 8 : 4 }, (_, index) => ({
-        id: `zodiac-plus-${index + 1}`,
-        label: `Доп. точка ${index + 1}`
-      }))
-      : [];
-    return [...classicSlots, ...plusSlots];
+    const isPlusVariant = variant.startsWith("plus");
+    const signSlots = ZODIAC_SIGNS.slice(0, isPlusVariant ? 8 : visibleCount).map((sign, index) => ({
+      id: `zodiac-${index + 1}`,
+      label: sign.label,
+      className: sign.className,
+      classPrefix: "classic"
+    }));
+
+    if (!isPlusVariant) return signSlots;
+    return [...signSlots, ...(ZODIAC_PLUS_SLOT_LAYOUT[visibleCount] || ZODIAC_PLUS_SLOT_LAYOUT[8])];
   }
   if (type === "star") {
-    return (STAR_VARIANTS.find((item) => item.value === draft.star_variant)?.slots || STAR_VARIANTS[0].slots)
-      .map((id, index) => ({ id, label: `Луч ${index + 1}` }));
+    return STAR_POINTS.map((point, index) => ({
+      id: `star-${index + 1}`,
+      label: point.label,
+      className: point.className
+    }));
   }
   if (type === "chess") {
-    const count = CHESS_VARIANTS.find((item) => item.value === draft.chess_variant)?.count || 14;
-    return Array.from({ length: count }, (_, index) => ({ id: `chess-${index + 1}`, label: `Шахматная ячейка ${index + 1}` }));
+    return [
+      ...CHESS_TOP_SLOTS,
+      ...(CHESS_SLOT_LAYOUTS[draft.chess_variant] || CHESS_SLOT_LAYOUTS["classic-14"])
+    ];
   }
   if (type === "altar") {
     return [
@@ -152,7 +275,11 @@ function buildSlotList(draft) {
       }))
     );
   }
-  if (type === "dao") return DAO_SLOTS.map((id) => ({ id, label: id.replace("dao-", "ДАО · ") }));
+  if (type === "dao") return DAO_ELEMENTS.map((element) => ({
+    id: `dao-${element.id}`,
+    label: element.label,
+    className: element.className
+  }));
   return [];
 }
 
@@ -194,8 +321,9 @@ export default function ProfileLitePowerPlaceModule({
   const [pickerUploadError, setPickerUploadError] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [coverLayerMode, setCoverLayerMode] = useState("inner");
-  const [sourceGroup, setSourceGroup] = useState("all");
-  const [sourceCategory, setSourceCategory] = useState("all");
+  const [activeSourceCategory, setActiveSourceCategory] = useState("dao-ri");
+  const [activeSourceSubcategory, setActiveSourceSubcategory] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.subcategories?.[0]?.value || "");
+  const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.subcategories?.[0]?.thirdLevels?.[0]?.value || "");
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -225,7 +353,8 @@ export default function ProfileLitePowerPlaceModule({
       meta: asset.tradition_title || "Мистерии",
       src: asset.image_ref || asset.image_url,
       displaySrc: asset.display_url || asset.signed_url || asset.image_url,
-      kind: "tradition-asset"
+      kind: "tradition-asset",
+      traditionId: asset.tradition_id || ""
     })),
     ...materials.map((item) => ({
       id: `material-${item.id}`,
@@ -233,7 +362,9 @@ export default function ProfileLitePowerPlaceModule({
       meta: item.material_category || item.step_title || item.type || "Материалы",
       src: item.image_ref || item.image_url,
       displaySrc: item.display_url || item.image_url,
-      kind: "material"
+      kind: "material",
+      stepId: item.step_id || "",
+      type: item.type || ""
     }))
   ]), [clientGoalPhotos, materials, traditionAssets]);
 
@@ -250,18 +381,25 @@ export default function ProfileLitePowerPlaceModule({
     ...(innerCover?.id === "custom-cover" ? [innerCover] : []),
     ...(outerCover?.id === "custom-outer-cover" ? [outerCover] : [])
   ], [innerCover, outerCover, savedImages]);
-  const sourceCategories = useMemo(() => {
-    const categories = savedImages
-      .filter((item) => sourceGroup === "all" || item.kind === sourceGroup || (!DATA_SOURCE_GROUPS.has(sourceGroup) && item.meta === sourceGroupLabel(sourceGroup)))
-      .map((item) => item.meta || sourceGroupLabel(item.kind))
-      .filter(Boolean);
-    return ["all", ...Array.from(new Set(categories))];
-  }, [savedImages, sourceGroup]);
+  const activeSourceCategoryData = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activeSourceCategory) || SOURCE_LIBRARY_CATEGORIES[0];
+  const activeSourceSubcategoryData = activeSourceCategoryData.subcategories.find((item) => item.value === activeSourceSubcategory) || activeSourceCategoryData.subcategories[0] || null;
+  const activeSourceThirdLevelData = activeSourceSubcategoryData?.thirdLevels?.find((item) => item.value === activeSourceThirdLevel) || activeSourceSubcategoryData?.thirdLevels?.[0] || null;
+
   const filteredSavedImages = useMemo(() => savedImages.filter((item) => {
-    const groupMatches = sourceGroup === "all" || item.kind === sourceGroup || (!DATA_SOURCE_GROUPS.has(sourceGroup) && item.meta === sourceGroupLabel(sourceGroup));
-    const categoryMatches = sourceCategory === "all" || item.meta === sourceCategory;
-    return groupMatches && categoryMatches;
-  }), [savedImages, sourceCategory, sourceGroup]);
+    if (activeSourceCategory === "client-goals") return item.kind === "client-photo";
+    if (activeSourceCategory === "god-channels") return item.kind === "tradition-asset" && (!activeSourceSubcategoryData?.traditionId || item.traditionId === activeSourceSubcategoryData.traditionId);
+    if (activeSourceCategory === "dao-ri") {
+      if (item.kind !== "material") return false;
+      const stepIds = new Set(activeSourceThirdLevelData?.stepId ? [activeSourceThirdLevelData.stepId] : activeSourceSubcategoryData?.steps?.map((step) => step.id) || []);
+      return !stepIds.size || !item.stepId || stepIds.has(item.stepId);
+    }
+    if (activeSourceCategory === "covers") return /фон|cover/i.test(item.meta || "");
+    if (activeSourceCategory === "form") return /форма|form|мандала/i.test(`${item.meta || ""} ${item.label || ""}`);
+    if (activeSourceCategory === "talismans") return /талисман/i.test(`${item.meta || ""} ${item.label || ""}`);
+    if (activeSourceCategory === "artifacts") return item.kind === "material" && /artifact|артефакт/i.test(item.meta || "");
+    if (activeSourceCategory === "channels") return item.kind === "material";
+    return true;
+  }), [activeSourceCategory, activeSourceSubcategoryData, activeSourceThirdLevelData, savedImages]);
 
   const openObjectPicker = (slotId) => {
     setSelectedSlotId(slotId);
@@ -312,19 +450,17 @@ export default function ProfileLitePowerPlaceModule({
     }
   };
 
-  const renderSlot = (slot, index) => {
+  const renderSourceSlot = (slot, index) => {
     const src = objectRefs[slot.id] || "";
     const displaySrc = objectRefUrls[src] || src;
     const angle = (360 / Math.max(slots.length, 1)) * index - 90;
-    const radius = compositionDraft.constructor_type === "chess" ? 0 : 39;
+    const radius = 39;
     const radians = angle * (Math.PI / 180);
-    const style = compositionDraft.constructor_type === "chess"
-      ? imageStyle(displaySrc)
-      : {
-        left: `${50 + radius * Math.cos(radians)}%`,
-        top: `${50 + radius * Math.sin(radians)}%`,
-        ...imageStyle(displaySrc)
-      };
+    const style = {
+      left: `${50 + radius * Math.cos(radians)}%`,
+      top: `${50 + radius * Math.sin(radians)}%`,
+      ...imageStyle(displaySrc)
+    };
 
     return (
       <button
@@ -340,6 +476,38 @@ export default function ProfileLitePowerPlaceModule({
       </button>
     );
   };
+
+  const renderCenterPhotoWithMode = (className) => (
+    <button className={`${className}${centralImage ? " hasImage" : ""}`} style={imageStyle(centralImage)} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
+      {!centralImage && <span>Фото клиента / цели</span>}
+    </button>
+  );
+
+  const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
+    const src = objectRefs[slot.id] || "";
+    const displaySrc = objectRefUrls[src] || src;
+
+    return (
+      <button
+        className={`${className}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}`}
+        key={slot.id}
+        onClick={() => openObjectPicker(slot.id)}
+        style={imageStyle(displaySrc)}
+        type="button"
+        title={slot.label}
+        aria-label={`Выбрать ${labelPrefix}${slot.label.toLowerCase()}`}
+      >
+        {!src && <span>{index + 1}</span>}
+      </button>
+    );
+  };
+
+  const renderChessSlot = (slot, index, extraClass = "") => renderObjectImageButton(
+    slot,
+    index,
+    `power-place-chess__slot ${extraClass}`.trim(),
+    ""
+  );
 
   return (
     <section className="profileLiteModule profileLitePowerPlace mandalaWorkspace" aria-label="Мои мандалы">
@@ -401,30 +569,70 @@ export default function ProfileLitePowerPlaceModule({
           <div className="powerLibraryFilter">
             <label className="powerLibrarySelectLabel">
               Группа
-              <select value={sourceGroup} onChange={(event) => {
-                setSourceGroup(event.target.value);
-                setSourceCategory("all");
+              <select value={activeSourceCategory} onChange={(event) => {
+                const nextCategory = SOURCE_LIBRARY_CATEGORIES.find((category) => category.value === event.target.value) || SOURCE_LIBRARY_CATEGORIES[0];
+                setActiveSourceCategory(nextCategory.value);
+                setActiveSourceSubcategory(nextCategory.subcategories[0]?.value || "");
+                setActiveSourceThirdLevel(nextCategory.subcategories[0]?.thirdLevels?.[0]?.value || "");
               }}>
-                {SOURCE_GROUPS.map((group) => (
-                  <option key={group.value} value={group.value}>{group.label}</option>
+                {SOURCE_LIBRARY_CATEGORIES.map((category) => (
+                  <option key={category.value} value={category.value}>{category.label}</option>
                 ))}
               </select>
             </label>
-            <label className="powerLibrarySelectLabel">
-              Категория
-              <select value={sourceCategory} onChange={(event) => setSourceCategory(event.target.value)}>
-                {sourceCategories.map((category) => (
-                  <option key={category} value={category}>{category === "all" ? "Все категории" : category}</option>
+            {activeSourceCategoryData.subcategories.length > 0 && (
+              <label className="powerLibrarySelectLabel">
+                Категория
+                <select
+                  value={activeSourceSubcategory}
+                  onChange={(event) => {
+                    const nextSubcategory = activeSourceCategoryData.subcategories.find((subcategory) => subcategory.value === event.target.value);
+                    setActiveSourceSubcategory(nextSubcategory?.value || "");
+                    setActiveSourceThirdLevel(nextSubcategory?.thirdLevels?.[0]?.value || "");
+                  }}
+                >
+                  {activeSourceCategoryData.subcategories.map((subcategory) => (
+                    <option key={subcategory.value} value={subcategory.value}>{subcategory.displayLabel || subcategory.label}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {activeSourceSubcategoryData?.thirdLevels?.length > 0 && (
+              <div className="powerLibrarySubcategoryButtons">
+                {activeSourceSubcategoryData.thirdLevels.map((thirdLevel) => (
+                  <button
+                    className={activeSourceThirdLevel === thirdLevel.value ? "active" : ""}
+                    key={thirdLevel.value}
+                    onClick={() => setActiveSourceThirdLevel(thirdLevel.value)}
+                    type="button"
+                  >
+                    {thirdLevel.label}
+                  </button>
                 ))}
-              </select>
-            </label>
+              </div>
+            )}
+            {activeSourceCategory === "dao-ri" && activeSourceSubcategoryData?.steps?.length > 0 && (
+              <div className="powerLibrarySubcategoryButtons">
+                {activeSourceSubcategoryData.steps.map((step) => (
+                  <button
+                    className={activeSourceThirdLevel === step.id ? "active" : ""}
+                    key={step.id}
+                    onClick={() => setActiveSourceThirdLevel(step.id)}
+                    type="button"
+                  >
+                    {step.label} {step.number}: {step.title}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="powerLibrarySubcategoryButtons" aria-label="Быстрые группы источников">
-              {SOURCE_GROUPS.map((group) => (
-                <button className={sourceGroup === group.value ? "active" : ""} key={group.value} type="button" onClick={() => {
-                  setSourceGroup(group.value);
-                  setSourceCategory("all");
+              {SOURCE_LIBRARY_CATEGORIES.map((category) => (
+                <button className={activeSourceCategory === category.value ? "active" : ""} key={category.value} type="button" onClick={() => {
+                  setActiveSourceCategory(category.value);
+                  setActiveSourceSubcategory(category.subcategories[0]?.value || "");
+                  setActiveSourceThirdLevel(category.subcategories[0]?.thirdLevels?.[0]?.value || "");
                 }}>
-                  {group.label}
+                  {category.label}
                 </button>
               ))}
             </div>
@@ -536,12 +744,186 @@ export default function ProfileLitePowerPlaceModule({
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
-                  <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-${compositionDraft.constructor_type}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
-                    <button className={`powerCenterPhoto${centralImage ? " hasImage" : ""}`} style={imageStyle(centralImage)} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
-                      {!centralImage && <span>Фото клиента / цели</span>}
-                    </button>
-                    <div className="powerMandalaBase">{slots.map(renderSlot)}</div>
-                  </div>
+                  {compositionDraft.constructor_type === "client" ? (
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      {renderCenterPhotoWithMode("powerCenterPhoto")}
+                      <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
+                    </div>
+                  ) : compositionDraft.constructor_type === "altar" ? (
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(slot, index, `altarObject altarObject-${index + 1}`))}
+                      {renderCenterPhotoWithMode("altarCenterPhoto")}
+                      {slots.slice(5).map((slot, index) => renderObjectImageButton(slot, index, `altarSupport altarSupport-${index + 1}`))}
+                    </div>
+                  ) : compositionDraft.constructor_type === "business" ? (
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      {renderCenterPhotoWithMode("businessCenterPhoto")}
+                      <div className="businessTriangleLines" aria-hidden="true" />
+                      {BUSINESS_VERTICES.map((vertex) => (
+                        <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
+                          <b>{vertex.label}</b>
+                          <div className="businessVertexZones">
+                            {Array.from({ length: Number(compositionDraft.business_vertex_zone_count) === 3 ? 3 : 1 }, (_, index) => {
+                              const slot = { id: `business-${vertex.id}-${index + 1}`, label: Number(compositionDraft.business_vertex_zone_count) === 3 ? `${vertex.label} · зона ${index + 1}` : vertex.label };
+                              return renderObjectImageButton(slot, index, "businessVertexZone");
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : compositionDraft.constructor_type === "zodiac" ? (
+                    <>
+                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                        {renderCenterPhotoWithMode("zodiacCenterPhoto")}
+                        <div className="zodiacClockFace" aria-hidden="true">
+                          <span>ЗОДИАК</span>
+                        </div>
+                        {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus")).map((slot, index) => {
+                          const src = objectRefs[slot.id] || "";
+                          const displaySrc = objectRefUrls[src] || src;
+                          return (
+                            <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                              <button
+                                className={`zodiacPositionImage${selectedSlotId === slot.id ? " selected" : ""}`}
+                                onClick={() => openObjectPicker(slot.id)}
+                                style={imageStyle(displaySrc)}
+                                type="button"
+                                title={slot.label}
+                                aria-label={`Выбрать знак ${slot.label}`}
+                              >
+                                {!src && <span>{index + 1}</span>}
+                              </button>
+                              <b>{slot.label}</b>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {slots.filter((slot) => slot.id.startsWith("zodiac-plus")).map((slot, index) => {
+                        const src = objectRefs[slot.id] || "";
+                        const displaySrc = objectRefUrls[src] || src;
+                        return (
+                          <div className={`zodiacFieldPlusPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
+                            <button
+                              className={`zodiacFieldPlusPositionImage${selectedSlotId === slot.id ? " selected" : ""}`}
+                              onClick={() => openObjectPicker(slot.id)}
+                              style={imageStyle(displaySrc)}
+                              type="button"
+                              title={slot.label}
+                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                            >
+                              {!src && <span>{index + 1}</span>}
+                            </button>
+                            <b>{slot.label}</b>
+                          </div>
+                        );
+                      })}
+                    </>
+                  ) : compositionDraft.constructor_type === "star" ? (
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      <div className="starSacredLabel starElhai">ELHAI</div>
+                      <div className="starSacredLabel starAdonay">ADONAY</div>
+                      {renderCenterPhotoWithMode("starCenterPhoto")}
+                      <div className="starGuide" aria-hidden="true">
+                        <span className="starAxis vertical" />
+                        <span className="starAxis horizontal" />
+                        <span className="starTriangle upper" />
+                        <span className="starTriangle lower" />
+                        <span className="starCoreTriangle" />
+                        <span className="starClosedFrame" />
+                        <span className="starClosedDivider horizontalTop" />
+                        <span className="starClosedDivider horizontalBottom" />
+                        <span className="starRay rayTop" />
+                        <span className="starRay rayRight" />
+                        <span className="starRay rayLowerRight" />
+                        <span className="starRay rayLowerLeft" />
+                        <span className="starRay rayLeft" />
+                        <span className="starOpenLine starOpenRight" />
+                        <span className="starOpenLine starOpenLowerLeft" />
+                      </div>
+                      {slots.map((slot, index) => {
+                        const src = objectRefs[slot.id] || "";
+                        const displaySrc = objectRefUrls[src] || src;
+                        return (
+                          <div className={`starPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                            <button
+                              className={`starPositionImage${selectedSlotId === slot.id ? " selected" : ""}`}
+                              onClick={() => openObjectPicker(slot.id)}
+                              style={imageStyle(displaySrc)}
+                              type="button"
+                              title={slot.label}
+                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                            >
+                              {!src && <span>{index + 1}</span>}
+                            </button>
+                            <b>{slot.label}</b>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : compositionDraft.constructor_type === "chess" ? (
+                    <div className={`power-place-chess power-place-chess--${compositionDraft.chess_variant || "classic-14"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      <div className="power-place-chess__top-row" aria-label="Верхний ряд мандал">
+                        {CHESS_TOP_SLOTS.map((slot, index) => renderObjectImageButton(slot, index, `power-place-chess__top-slot ${slot.className}`))}
+                      </div>
+                      <div className="power-place-chess__board" aria-label="Шахматная раскладка">
+                        {(compositionDraft.chess_variant || "classic-14") === "plus-8" ? (
+                          <>
+                            {renderCenterPhotoWithMode("power-place-chess__center")}
+                            {(CHESS_SLOT_LAYOUTS["plus-8"] || []).map((slot, index) => renderChessSlot(slot, index, `power-place-chess__slot--${slot.className}`))}
+                          </>
+                        ) : (
+                          Array.from({ length: (compositionDraft.chess_variant || "classic-14") === "classic-14" ? 15 : 9 }, (_, index) => {
+                            const row = Math.floor(index / 3) + 1;
+                            const col = (index % 3) + 1;
+                            const centerIndex = (compositionDraft.chess_variant || "classic-14") === "classic-14" ? 7 : 4;
+                            const toneClass = (row + col) % 2 === 0 ? "is-dark" : "is-light";
+
+                            if (index === centerIndex) {
+                              return (
+                                <div className={`power-place-chess__cell power-place-chess__cell--center ${toneClass}`} key="chess-center">
+                                  {renderCenterPhotoWithMode("power-place-chess__center")}
+                                </div>
+                              );
+                            }
+
+                            const slot = (CHESS_SLOT_LAYOUTS[compositionDraft.chess_variant || "classic-14"] || []).find((item) => item.row === row && item.col === col);
+                            return slot ? (
+                              <div className={`power-place-chess__cell ${toneClass}`} key={slot.id}>
+                                {renderChessSlot(slot, Number(slot.id.replace("chess-", "")) - 1)}
+                              </div>
+                            ) : null;
+                          })
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      {renderCenterPhotoWithMode("daoCenterPhoto")}
+                      <div className="daoUsinCore" aria-hidden="true">
+                        <span>УСИН</span>
+                      </div>
+                      {DAO_ELEMENTS.map((element) => {
+                        const slotId = `dao-${element.id}`;
+                        const src = objectRefs[slotId] || "";
+                        const displaySrc = objectRefUrls[src] || src;
+                        return (
+                          <div className={`daoElement ${element.className}`} key={element.id}>
+                            <button
+                              className={`daoElementImage${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}`}
+                              onClick={() => openObjectPicker(slotId)}
+                              style={imageStyle(displaySrc)}
+                              type="button"
+                              title={element.label}
+                              aria-label={`Выбрать элемент ${element.label}`}
+                            >
+                              {!src && <span>◎</span>}
+                            </button>
+                            <b>{element.label}</b>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -557,14 +939,41 @@ export default function ProfileLitePowerPlaceModule({
         </div>
 
         <div className="workspaceRightColumn">
-          <aside className="powerPlaceSettings">
-            <div className="coverPickerPanel">
-              <p className="cabinetEyebrow">Фон места силы</p>
-              <div className="clientPhotoPickerModeTabs" role="tablist" aria-label="Слой фона">
+          <aside className="powerCommandRail powerPlaceSettings">
+            <div className="mandalaFieldLayoutSwitch powerLayoutPanel" aria-label="Расположение поля мандалы">
+              <p className="cabinetEyebrow">Макет</p>
+              <span>Расположение поля мандалы</span>
+              <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
+                {FIELD_LAYOUTS.map((layout) => (
+                  <button
+                    className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
+                    key={layout.value}
+                    onClick={() => onCompositionDraftChange("field_layout", layout.value)}
+                    type="button"
+                    title={layout.label}
+                    aria-label={layout.label}
+                  >
+                    <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="coverSelector coverPickerPanel">
+              <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
+              <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
                 <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
               </div>
-              <div className="coverVariantsGrid" aria-label="Варианты фона">
+              <div className="coverPreviewWrap">
+                <div
+                  className={`coverPreview ${visibleCover?.type === "image" ? "hasImage" : `tone-${visibleCover?.tone || "none"}`}`}
+                  style={visibleCover?.type === "image" ? imageStyle(visibleCover.display_src || visibleCover.displaySrc || visibleCover.src) : undefined}
+                >
+                  <span>{visibleCover?.label || "Без фона"}</span>
+                </div>
+              </div>
+              <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона">
                 {coverOptions.map((cover) => (
                   <button className={visibleCover?.id === cover.id ? "active" : ""} key={`${coverLayerMode}-${cover.id}`} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
                     {cover.label}
@@ -580,22 +989,6 @@ export default function ProfileLitePowerPlaceModule({
                 Своё изображение
               </label>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
-            </div>
-
-            <div className="powerLayoutPanel">
-              <p className="cabinetEyebrow">Макет</p>
-              <div className="mandalaFieldLayoutButtons" role="group" aria-label="Макет поля мандалы">
-                {FIELD_LAYOUTS.map((layout) => (
-                  <button
-                    className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
-                    key={layout.value}
-                    onClick={() => onCompositionDraftChange("field_layout", layout.value)}
-                    type="button"
-                  >
-                    {layout.label}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="resourceComparisonPanel">

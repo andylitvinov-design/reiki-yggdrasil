@@ -12,6 +12,44 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite remaining old-profile parity gaps
+
+- Branch: `codex/profile-lite-old-profile-gap-fix`, based on fresh `origin/main` commit `e484b7a`.
+- Scope: minimal Profile Lite parity patch against `/profile-old`, preserving `/profile-old`, route-backed Lite tabs, `ProfileLiteImagePicker`, auth/bootstrap, `/`, `/masters`, `/profile/admin`, Vercel rewrites, and RU-default UI.
+- Gap list documented before patch in `docs/profile-lite-old-profile-gap-fix.md`:
+  - broken mandala object placement/order by constructor format;
+  - broken DAO RI category/subcategory hierarchy;
+  - right Power Place rail not matching old design;
+  - non-mandala Lite tabs still needing stricter old-cabinet parity coverage where old implementation exists.
+- Old sections copied/reused in `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`:
+  - old zodiac sign placement definitions and plus slot IDs/classes;
+  - old star point definitions and star sheet/ray class surface;
+  - old chess top row plus board coordinate/class layouts;
+  - old business three-vertex layout and DAO `water -> wood -> fire -> earth -> metal` element order;
+  - old DAO RI source hierarchy from `reikiLevels`, including level/category select and step/third-level buttons;
+  - old right rail shell classes: `powerCommandRail`, `mandalaFieldLayoutSwitch`, `coverSelector`, `coverLayerTabs`, `coverPreviewWrap`, `coverVariantList`, while keeping Lite picker/upload handlers.
+- Contract coverage:
+  - `test/profileLiteCabinetContract.test.mjs` now guards DAO RI hierarchy backing, old constructor placement definitions, old business/DAO order, and old right-rail shell classes.
+- Local rendered QA with fake public Supabase env and fake JWT-shaped local session only:
+  - `/profile-old` desktop 1280: rendered old authenticated mandala workspace, overflow `0`, no framework overlay, console warnings/errors `0`, workspace columns `260px 970px`;
+  - `/profile/mandalas` desktop 1280: rendered Lite authenticated mandala workspace, overflow `0`, no framework overlay, console warnings/errors `0`, workspace columns `260px 640px 320px`, DAO RI hierarchy visible, right `powerCommandRail` visible;
+  - `/profile-old` mobile 390: single `358px` column, overflow `0`, no framework overlay, console warnings/errors `0`;
+  - `/profile/mandalas` mobile 390: single `358px` column, overflow `0`, no framework overlay, console warnings/errors `0`, DAO RI hierarchy and right rail still present in stacked layout;
+  - all Lite constructor formats clicked and verified at desktop 1280: `Зодиак`, `Звезда`, `Шахматы`, `Мандала`, `Алтарь`, `Бизнес`, `ДАО`; each showed the expected old-format visual class, right rail present, overflow `0`, no framework overlay, console warnings/errors `0`;
+  - non-mandala Lite tabs checked locally: profile reused `profileTabContent`; materials/services/orders/chats reused old left/center/right workspace columns `260px 620px 340px`; media/settings remained existing Lite-specific surfaces; all checked routes had overflow `0`, no framework overlay, console warnings/errors `0`.
+- Verification:
+  - passed `npm run test:profile-lite` after an intentional RED failure on missing DAO RI hierarchy guard;
+  - passed `npm run test:profile-media`;
+  - passed `npm run test:power-place`;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05` plus existing Vite large-chunk warning;
+  - passed standalone `npm run build` with existing Vite large-chunk warning.
+- Not verified:
+  - real authenticated production Supabase/RLS media upload/delete, saved composition save/load/update, service publishing, orders, and chat data behavior;
+  - live production/legacy deploy of this branch;
+  - real signed-in browser comparison against latest user screenshots.
+- Deployment status: branch is local only at this entry; no PR, merge, or production deploy yet.
+
 ## 2026-06-02 — Profile Lite copied old cabinet layout structures
 
 - Branch: `codex/copy-profile-old-layout-into-lite`, based on `origin/main` merge commit `dad752c`.

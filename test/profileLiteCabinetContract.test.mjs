@@ -254,6 +254,22 @@ assert.match(
   /<aside className="mandalaModeSidebar powerLibrarySidebar"[\s\S]*<div className="workspaceCenterColumn"[\s\S]*<div className="workspaceRightColumn"/,
   "Lite Power Place should render old left / center / right workspace columns in order"
 );
+assert.match(powerPlaceSource, /import \{ reikiLevels \}/, "Lite Power Place DAO RI hierarchy should be backed by the canonical Reiki levels");
+assert.match(powerPlaceSource, /SOURCE_LIBRARY_CATEGORIES[\s\S]*value: "dao-ri"[\s\S]*subcategories: reikiLevels\.map/, "Lite Power Place should copy old DAO RI level hierarchy instead of a flat label");
+assert.match(powerPlaceSource, /activeSourceSubcategoryData\?\.thirdLevels\?\.length/, "Lite Power Place should expose old source subcategory third-level buttons");
+assert.match(powerPlaceSource, /activeSourceCategory === "dao-ri"[\s\S]*activeSourceSubcategoryData\?\.steps/, "Lite Power Place should expose old DAO RI step buttons");
+assert.match(powerPlaceSource, /const ZODIAC_SIGNS = \[/, "Lite Power Place should copy old zodiac sign placement definitions");
+assert.match(powerPlaceSource, /ZODIAC_PLUS_SLOT_LAYOUT/, "Lite Power Place should copy old zodiac plus placement definitions");
+assert.match(powerPlaceSource, /const CHESS_TOP_SLOTS = Array\.from/, "Lite Power Place should copy old chess top row slot definitions");
+assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*row: 5, col: 3/, "Lite Power Place should copy old chess board coordinate layout");
+assert.match(powerPlaceSource, /BUSINESS_VERTICES[\s\S]*className: "top"[\s\S]*className: "left"[\s\S]*className: "right"/, "Lite Power Place should copy old three-vertex business layout");
+assert.match(powerPlaceSource, /DAO_ELEMENTS[\s\S]*"water"[\s\S]*"wood"[\s\S]*"fire"[\s\S]*"earth"[\s\S]*"metal"/, "Lite Power Place should copy old DAO element order");
+assert.match(powerPlaceSource, /powerCommandRail/, "Lite right rail should reuse old powerCommandRail shell");
+assert.match(powerPlaceSource, /mandalaFieldLayoutSwitch/, "Lite right rail should reuse old mandala field layout switch");
+assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse old cover selector shell");
+assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
+assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
+assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
 
 assert.match(profileModuleSource, /profileTabContent/, "Lite profile module should reuse old profileEditor profileTabContent wrapper");
 assert.match(profileModuleSource, /Как это будет выглядеть/, "Lite profile preview should use the old profile preview heading");

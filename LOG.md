@@ -1,5 +1,66 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Fix remaining Profile Lite old-profile parity gaps
+
+- Branch: `codex/profile-lite-old-profile-gap-fix`.
+- Starting point: fresh `origin/main` commit `e484b7a`.
+- Changed files:
+  - `docs/profile-lite-old-profile-gap-fix.md`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Gap list documented before patch:
+  - broken mandala object placement/order by constructor format;
+  - broken DAO RI category/subcategory hierarchy;
+  - right Power Place rail not matching old design;
+  - non-mandala Lite tabs needing stricter old-cabinet parity coverage where old implementation exists.
+- Copied/reused from old `src/pages/ProfilePage.jsx` into Lite Power Place:
+  - old zodiac sign constants and plus slot layout;
+  - old star point constants and visual sheet/ray class structure;
+  - old chess top-row and board coordinate layouts;
+  - old business three-vertex layout;
+  - old DAO element order/classes;
+  - old DAO RI source-library hierarchy from `reikiLevels`;
+  - old right rail shell: `powerCommandRail`, `mandalaFieldLayoutSwitch`, `coverSelector`, `coverLayerTabs`, `coverPreviewWrap`, `coverVariantList`.
+- Preserved:
+  - `/profile-old`;
+  - route-backed Profile Lite tabs;
+  - `ProfileLiteImagePicker`;
+  - auth/bootstrap behavior;
+  - `/`, `/masters`, `/profile/admin`;
+  - Vercel rewrites and RU-default copy;
+  - no secrets/tokens/JWT/env values committed;
+  - no DOM reload hacks.
+- Contract test:
+  - added assertions for old DAO RI hierarchy, old constructor slot placement definitions, old business/DAO order, and old right rail shell classes;
+  - first `npm run test:profile-lite` failed on missing `reikiLevels` DAO RI hierarchy guard;
+  - after JSX/data-shape patch, `npm run test:profile-lite` passed.
+- Local rendered QA:
+  - dev server: `http://localhost:4188/` with fake public Supabase env and fake JWT-shaped local session only;
+  - Browser plugin path attempted first; opaque fake token could not pass auth, then fake JWT claims rendered the authenticated shell without real credentials;
+  - `/profile-old` 1280: old workspace rendered, columns `260px 970px`, overflow `0`, no framework overlay, console warnings/errors `0`;
+  - `/profile/mandalas` 1280: Lite workspace rendered, columns `260px 640px 320px`, DAO RI hierarchy visible, right `powerCommandRail` visible, overflow `0`, no framework overlay, console warnings/errors `0`;
+  - `/profile-old` 390: one `358px` column, overflow `0`, no framework overlay, console warnings/errors `0`;
+  - `/profile/mandalas` 390: one `358px` column, DAO RI hierarchy and right rail present in stacked layout, overflow `0`, no framework overlay, console warnings/errors `0`;
+  - clicked all Lite constructor formats at 1280: `Зодиак`, `Звезда`, `Шахматы`, `Мандала`, `Алтарь`, `Бизнес`, `ДАО`; each produced the expected old-format visual class with right rail present and overflow `0`;
+  - non-mandala Lite tabs: profile had `profileTabContent`; materials/services/orders/chats kept old columns `260px 620px 340px`; media/settings remained existing Lite-specific surfaces; checked routes had overflow `0`, no framework overlay, console warnings/errors `0`.
+- Commands run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all listed commands exited `0`;
+  - `npm run check` retained existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning.
+- Still not verified:
+  - real authenticated production Supabase/RLS upload/delete/save/load/update flows;
+  - real signed-in production comparison against latest user screenshots;
+  - merge, PR, deploy, and production/legacy live QA for this branch.
+
 ## 2026-06-02 — Copy old ProfilePage layout into Profile Lite
 
 - Branch: `codex/copy-profile-old-layout-into-lite`.
