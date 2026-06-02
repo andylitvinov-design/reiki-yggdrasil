@@ -1,5 +1,19 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite report fields Supabase migration follow-up
+
+- Branch: `codex/profile-lite-report-under-formats`.
+- Changed files:
+  - `supabase/migrations/20260602_power_place_report_fields.sql`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added a new Supabase migration for Profile Lite Power Place report payload fields;
+  - added `report_mode`, `report_added`, `report_situation`, `report_mandala_effect`, `report_extra_help`, and `report_master_note` columns to `public.profile_cabinet_power_place_compositions`;
+  - added a guarded `report_mode` check constraint for `with_report` / `without_report`.
+- Not verified:
+  - live Supabase save/load still requires applying `supabase/migrations/20260602_power_place_report_fields.sql` and checking a real authenticated account.
+
 ## 2026-06-02 — Profile Lite report module under Formats
 
 - Branch: `codex/profile-lite-report-under-formats`.

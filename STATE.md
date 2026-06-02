@@ -12,6 +12,22 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite report fields Supabase migration follow-up
+
+- Branch: `codex/profile-lite-report-under-formats`.
+- Scope: Supabase migration only for the Profile Lite Power Place `Отчёт` fields; no UI, OAuth/auth, RLS, env values, existing migrations, object/storage refs, Vercel rewrites, `/`, `/profile-old`, `/masters`, or `/profile/admin` changes.
+- Migration added:
+  - `supabase/migrations/20260602_power_place_report_fields.sql`
+- Columns added to `public.profile_cabinet_power_place_compositions`:
+  - `report_mode`
+  - `report_added`
+  - `report_situation`
+  - `report_mandala_effect`
+  - `report_extra_help`
+  - `report_master_note`
+- The migration also adds `profile_cabinet_power_place_compositions_report_mode_check` if missing, allowing only `with_report` / `without_report`.
+- Live Supabase save/load still requires applying this migration to the live Supabase project and checking a real authenticated account before claiming report persistence works in production.
+
 ## 2026-06-02 — Profile Lite report module under Formats
 
 - Branch: `codex/profile-lite-report-under-formats`, based on fresh `origin/main` commit `169c854`.
