@@ -4,6 +4,7 @@ const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 export const PROFILE_MEDIA_BUCKET = "profile-cabinet-media";
 export const PROFILE_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
 export const PROFILE_MEDIA_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+export const MEDIA_SIGNING_ERROR_MESSAGE = "signed URL не создан — проверьте Storage/RLS";
 
 function mediaError(message, details = null) {
   const error = new Error(message);
@@ -95,6 +96,14 @@ export function buildProfileMediaPath(file, context = {}, uuid = randomUuid()) {
   throw mediaError("Неизвестный тип загрузки изображения.");
 }
 
+export function encodeStorageObjectPath(path) {
+  return cleanText(path)
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
 export function toStorageRef(bucket, path) {
   return `storage://${bucket}/${path}`;
 }
@@ -117,6 +126,54 @@ export function parseStorageRef(value) {
   };
 }
 
+function storageRefFromRow(row) {
+  const path = cleanText(row?.image_path);
+  const bucket = cleanText(row?.image_bucket) || PROFILE_MEDIA_BUCKET;
+  if (path) return toStorageRef(bucket, path);
+  const imageUrl = cleanText(row?.image_url);
+  return isStorageRef(imageUrl) ? imageUrl : "";
+}
+
+export async function hydrateMediaRowsForDisplay(rows, session, signer = createSignedMediaUrl) {
+  return Promise.all((rows || []).map(async (row) => {
+    const storageRef = storageRefFromRow(row);
+    if (!storageRef) {
+      const imageUrl = cleanText(row?.image_url);
+      return {
+        ...row,
+        image_ref: imageUrl,
+        display_url: imageUrl,
+        media_signing_status: imageUrl ? "not-needed" : ""
+      };
+    }
+
+    try {
+      const parsed = parseStorageRef(storageRef);
+      const signedUrl = parsed?.path && session?.access_token
+        ? await signer(parsed.path, session, parsed.bucket || PROFILE_MEDIA_BUCKET)
+        : "";
+      if (!signedUrl) throw mediaError(MEDIA_SIGNING_ERROR_MESSAGE);
+      return {
+        ...row,
+        image_ref: storageRef,
+        signed_url: signedUrl,
+        display_url: signedUrl,
+        media_signing_status: "success",
+        media_signing_error: ""
+      };
+    } catch {
+      return {
+        ...row,
+        image_ref: storageRef,
+        signed_url: "",
+        display_url: "",
+        media_signing_status: "error",
+        media_signing_error: MEDIA_SIGNING_ERROR_MESSAGE
+      };
+    }
+  }));
+}
+
 function requireStorageConfig(session) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw mediaError("Загрузка файлов требует настройки подключения Supabase.");
@@ -127,7 +184,9 @@ function requireStorageConfig(session) {
 export async function createSignedMediaUrl(path, session, bucket = PROFILE_MEDIA_BUCKET, expiresIn = 3600) {
   requireStorageConfig(session);
 
-  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${path}`, {
+  const encodedBucket = encodeURIComponent(cleanText(bucket) || PROFILE_MEDIA_BUCKET);
+  const encodedPath = encodeStorageObjectPath(path);
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${encodedBucket}/${encodedPath}`, {
     method: "POST",
     headers: {
       apikey: SUPABASE_ANON_KEY,
@@ -141,7 +200,8 @@ export async function createSignedMediaUrl(path, session, bucket = PROFILE_MEDIA
 
   const signedURL = data?.signedURL || data?.signedUrl;
   if (!signedURL) throw mediaError("Supabase не вернул ссылку на изображение.");
-  return signedURL.startsWith("http") ? signedURL : `${SUPABASE_URL}${signedURL}`;
+  if (signedURL.startsWith("http")) return signedURL;
+  return signedURL.startsWith("/") ? `${SUPABASE_URL}${signedURL}` : `${SUPABASE_URL}/${signedURL}`;
 }
 
 export async function uploadProfileMedia(file, context = {}, session) {
@@ -149,7 +209,7 @@ export async function uploadProfileMedia(file, context = {}, session) {
   validateProfileMediaFile(file);
 
   const path = buildProfileMediaPath(file, context);
-  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${PROFILE_MEDIA_BUCKET}/${path}`, {
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${PROFILE_MEDIA_BUCKET}/${encodeStorageObjectPath(path)}`, {
     method: "POST",
     headers: {
       apikey: SUPABASE_ANON_KEY,

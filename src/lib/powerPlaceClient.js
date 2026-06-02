@@ -1,9 +1,9 @@
 import {
   PROFILE_MEDIA_BUCKET,
   createSignedMediaUrl,
+  hydrateMediaRowsForDisplay,
   isStorageRef,
   parseStorageRef,
-  toStorageRef
 } from "./profileMediaClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
@@ -119,18 +119,6 @@ async function countRows(table, profileId, session) {
   return Array.isArray(rows) ? rows.length : 0;
 }
 
-function storageRefFromRow(row) {
-  const path = cleanText(row?.image_path);
-  const bucket = cleanText(row?.image_bucket) || PROFILE_MEDIA_BUCKET;
-  if (path) return toStorageRef(bucket, path);
-  const imageUrl = cleanText(row?.image_url);
-  return isStorageRef(imageUrl) ? imageUrl : "";
-}
-
-function displayUrlFromRow(row) {
-  return cleanText(row?.display_url) || cleanText(row?.signed_url) || cleanText(row?.image_url);
-}
-
 async function resolveStorageRef(ref, session) {
   const parsed = parseStorageRef(ref);
   if (!parsed?.path || parsed.bucket !== PROFILE_MEDIA_BUCKET || !session?.access_token) return "";
@@ -152,25 +140,7 @@ async function resolveStorageRefs(refs, session) {
 }
 
 async function hydrateMediaRows(rows, session) {
-  return Promise.all((rows || []).map(async (row) => {
-    const storageRef = storageRefFromRow(row);
-    if (!storageRef) {
-      return {
-        ...row,
-        image_ref: cleanText(row?.image_url),
-        display_url: cleanText(row?.image_url)
-      };
-    }
-
-    const signedUrl = await resolveStorageRef(storageRef, session).catch(() => "");
-    return {
-      ...row,
-      image_ref: storageRef,
-      signed_url: signedUrl,
-      display_url: signedUrl || cleanText(row?.image_url),
-      image_url: signedUrl || cleanText(row?.image_url)
-    };
-  }));
+  return hydrateMediaRowsForDisplay(rows, session);
 }
 
 async function hydrateCompositionRows(rows, session) {

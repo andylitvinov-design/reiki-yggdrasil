@@ -1,5 +1,53 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite media upload signed URL hydration fix
+
+- Branch: `codex/profile-lite-media-upload-signed-url-fix`.
+- Starting point: fresh `origin/main` commit `ef8c287`.
+- Changed files:
+  - `src/lib/profileMediaClient.js`
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `test/profileMediaClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - private bucket rows with `image_bucket + image_path` were converted to durable `storage://...` refs, but signed URL failures were swallowed silently;
+  - the picker then received a storage ref without `displaySrc` and rendered an empty preview card;
+  - sign/upload request paths were not segment-encoded.
+- Fix:
+  - added `encodeStorageObjectPath()` and used it for Storage upload and `/storage/v1/object/sign/...` requests;
+  - added `hydrateMediaRowsForDisplay()` so rows with bucket/path produce durable `image_ref`, temporary `display_url`/`signed_url`, and safe signing diagnostics;
+  - preserved old external/public `image_url` rendering;
+  - stopped mutating storage-backed `image_url` to a temporary signed URL in hydration;
+  - passed `media_signing_error` through Profile Lite saved images and rendered `signed URL не создан — проверьте Storage/RLS` in the picker.
+- Contract/test coverage:
+  - profile media tests now cover sanitized profile-prefixed paths, unsafe filename/path rejection by construction, segment URL encoding, successful hydration to `display_url`, failed hydration diagnostics, and external URL preservation;
+  - Profile Lite contract now requires the safe signed URL diagnostic and rejects the old ambiguous `Нужна signed URL` placeholder.
+- Commands run:
+  - `npm run test:profile-media`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - all listed commands exited `0`;
+  - `npm run check` retained existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning.
+- Local rendered QA:
+  - preview URL: `http://localhost:4193/profile/mandalas`;
+  - desktop 1280 and mobile 390 route checks opened the auth gate with horizontal overflow `0`, no Vite overlay, and no console warnings/errors.
+- Still not verified:
+  - real Google-authenticated Supabase upload/sign/select/delete flow;
+  - immediate preview after JPG/PNG/WEBP upload;
+  - reload persistence of newly uploaded images;
+  - saved Power Place composition reload with private images visible;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite follow-up layout/print parity fix
 
 - Branch: `codex/profile-lite-followup-layout-print-parity`.
