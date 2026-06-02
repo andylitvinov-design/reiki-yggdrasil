@@ -234,16 +234,51 @@ function safeFilename(value) {
   return safe || "power-place";
 }
 
-function downloadHtml(filename, html) {
-  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+function collectPrintableStyles() {
+  return Array.from(document.styleSheets || []).map((sheet) => {
+    if (sheet.href) return `<link rel="stylesheet" href="${escapeHtml(sheet.href)}">`;
+    try {
+      const cssText = Array.from(sheet.cssRules || []).map((rule) => rule.cssText).join("\n");
+      return cssText ? `<style>${cssText}</style>` : "";
+    } catch {
+      return "";
+    }
+  }).join("\n");
+}
+
+function openPowerPlacePdfPrintView(title) {
+  const printArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
+  if (!printArea) throw new Error("Макет мандалы не найден.");
+
+  const filename = `${safeFilename(title || "power-place")}.pdf`;
+  const printWindow = window.open("", "_blank", "width=980,height=900");
+  if (!printWindow) throw new Error("Разрешите всплывающее окно для печати в PDF.");
+
+  const clonedArea = printArea.cloneNode(true);
+  clonedArea.classList.add("powerPlacePdfOnlyArea");
+  printWindow.document.open();
+  printWindow.document.write(`<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(filename)}</title>
+  ${collectPrintableStyles()}
+  <style>
+    body{margin:0;background:#fffaf0;color:#2f2418}
+    body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:100vh!important}
+    @page{size:auto;margin:10mm}
+  </style>
+</head>
+<body class="printMandalaOnly">
+  <main aria-label="Скачать PDF / Печать в PDF"></main>
+</body>
+</html>`);
+  printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
+  printWindow.document.close();
+  printWindow.setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 250);
 }
 
 export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
@@ -970,8 +1005,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       const saved = compositionDraft.id
         ? await updatePowerPlaceComposition(compositionDraft.id, payload, session)
         : await createPowerPlaceComposition(payload, accountPlan, session);
-      setPowerPlaceCompositions((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
-      setCompositionDraft({ ...EMPTY_COMPOSITION, ...saved, id: saved?.id || "" });
+      const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
+      const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
+      setPowerPlaceCompositions(freshCompositions.length
+        ? freshCompositions
+        : [saved].filter(Boolean)
+      );
+      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
       setCompositionMessage(compositionDraft.id ? "Место силы обновлено." : "Место силы сохранено.");
       setMandalasStatus("success");
       setMandalasError("");
@@ -1005,49 +1045,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleDownloadComposition = () => {
-    const objectRows = Object.entries(compositionDraft.object_refs || {})
-      .filter(([key]) => key !== "__center_image" && key !== PROFILE_LITE_REPORT_REF_KEY)
-      .map(([key, value]) => `<li><b>${escapeHtml(key)}</b>: ${escapeHtml(value)}</li>`)
-      .join("");
-    const centerRef = compositionDraft.object_refs?.__center_image || compositionDraft.central_photo_id || "";
-    const report = normalizeProfileLiteReport(compositionDraft.object_refs?.[PROFILE_LITE_REPORT_REF_KEY]);
-    const reportHtml = report.mode === "with_report" && report.added
-      ? `<section>
-    <h2>Отчёт</h2>
-    ${report.situation ? `<h3>Анализ ситуации</h3><p>${escapeHtml(report.situation)}</p>` : ""}
-    ${report.mandala_effect ? `<h3>Что даёт мандала</h3><p>${escapeHtml(report.mandala_effect)}</p>` : ""}
-    ${report.extra_help ? `<h3>Что ещё поможет</h3><p>${escapeHtml(report.extra_help)}</p>` : ""}
-  </section>`
-      : "";
-    const html = `<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <title>${escapeHtml(compositionDraft.title || "Место силы")}</title>
-  <style>
-    body{font-family:Arial,sans-serif;max-width:880px;margin:32px auto;padding:0 18px;color:#2f2418;background:#fffaf0}
-    h1{margin:0 0 8px} section{border:1px solid #d2aa63;border-radius:14px;padding:16px;margin:14px 0;background:#fffdf8}
-    li{margin:8px 0;overflow-wrap:anywhere} pre{white-space:pre-wrap;overflow-wrap:anywhere}
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(compositionDraft.title || "Место силы")}</h1>
-  <section>
-    <p><b>Формат:</b> ${escapeHtml(compositionDraft.constructor_type || "zodiac")}</p>
-    <p><b>Центральное изображение:</b> ${escapeHtml(centerRef || "не выбрано")}</p>
-  </section>
-  <section>
-    <h2>Объекты</h2>
-    <ul>${objectRows || "<li>Нет объектов</li>"}</ul>
-  </section>
-  ${reportHtml}
-  <section>
-    <h2>Подложка</h2>
-    <pre>${escapeHtml(JSON.stringify(compositionDraft.cover_ref || null, null, 2))}</pre>
-  </section>
-</body>
-</html>`;
-    downloadHtml(`${safeFilename(compositionDraft.title || "power-place")}.html`, html);
+    try {
+      openPowerPlacePdfPrintView(compositionDraft.title || "power-place");
+      setCompositionMessage("Скачать PDF / Печать в PDF: в открывшемся окне выберите Save as PDF.");
+    } catch (error) {
+      setCompositionMessage(moduleError(error, "PDF preview failed"));
+    }
   };
 
   const handlePrintComposition = () => {

@@ -167,6 +167,8 @@ const moduleSource = readdirSync(moduleDir)
   .map((file) => readFileSync(join(moduleDir, file), "utf8"))
   .join("\n");
 const readmeSource = readFileSync("README.md", "utf8");
+const compactChessMigrationSource = readFileSync("supabase/migrations/20260602120000_power_place_chess_compact_variant.sql", "utf8");
+const migrationRunnerSource = readFileSync("scripts/apply-reiki-supabase-migrations.mjs", "utf8");
 
 for (const label of expectedTabs.map(([, label]) => label)) {
   assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
@@ -222,8 +224,9 @@ for (const requiredPowerPlaceText of [
   "Ресурс с мандалой",
   "Объекты композиции",
   "Сохранить место силы",
-  "Скачать",
+  "Скачать PDF",
   "Печать",
+  "Для цветной печати включите в окне печати: Background graphics / Фоновая графика.",
   "Загрузить новое фото",
   "Удалить фото из базы?"
 ]) {
@@ -337,8 +340,8 @@ for (const reportAction of ["Добавить отчёт", "Обновить", "
 assert.match(powerPlaceSource, /reportAdded[\s\S]*powerReportOutput/, "Report output should render under the mandala only after the report is added");
 assert.match(powerPlaceSource, /__profile_lite_report/, "Report payload should persist through object_refs without a DB migration");
 assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
-assert.match(profileLitePageSource, /Отчёт[\s\S]*Анализ ситуации[\s\S]*Что даёт мандала[\s\S]*Что ещё поможет/, "composition download HTML should include working report sections");
-assert.doesNotMatch(profileLitePageSource, /handleDownloadComposition[\s\S]*О Мастере/, "composition download HTML must not include the disabled Pro master note");
+assert.match(powerPlaceSource, /powerPlacePrintArea[\s\S]*powerReportOutput[\s\S]*Анализ ситуации[\s\S]*Что даёт мандала[\s\S]*Что ещё поможет/, "print/PDF area should include the working report sections");
+assert.doesNotMatch(profileLitePageSource, /handleDownloadComposition[\s\S]*О Мастере/, "PDF flow must not rebuild the disabled Pro master note as export HTML");
 assert.match(powerPlaceClientSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*normalizeProfileLiteReport/, "Power Place API normalization should preserve the nested report object");
 assert.match(backgroundZoneControlsSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background zone enhancer should explicitly skip Profile Lite");
 assert.match(backgroundTabsRefineSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background tabs enhancer should explicitly skip Profile Lite");
@@ -354,6 +357,26 @@ assert.match(powerPlaceSource, /<div className="workspaceRightColumn"[\s\S]*powe
 assert.match(profileMandalaCss, /profileLitePowerPlaceColumns[\s\S]*minmax\(320px, 340px\)/, "Lite Power Place right rail should keep old thicker right-column proportions");
 assert.match(profileMandalaCss, /print-color-adjust:\s*exact/, "Print CSS should preserve color backgrounds");
 assert.match(profileMandalaCss, /-webkit-print-color-adjust:\s*exact/, "Print CSS should preserve WebKit color backgrounds");
+for (const printClass of [
+  "powerPlacePrintArea",
+  "powerMandalaPanel",
+  "powerMandala",
+  "zodiacMandalaSheet",
+  "starMandalaSheet",
+  "power-place-chess",
+  "altarMandalaSheet",
+  "businessMandalaSheet",
+  "daoMandalaSheet",
+  "powerSource",
+  "zodiacPositionImage",
+  "starPositionImage",
+  "powerCenterPhoto"
+]) {
+  assert.match(profileMandalaCss, new RegExp(`body\\.printMandalaOnly \\.${printClass}[\\s\\S]*print-color-adjust:\\s*exact`), `print CSS should explicitly preserve color for ${printClass}`);
+}
+assert.match(profileLitePageSource, /openPowerPlacePdfPrintView/, "PDF download action should open an isolated print/PDF view for the mandala area");
+assert.match(profileLitePageSource, /application\/pdf|Скачать PDF \/ Печать в PDF/, "PDF action should describe a PDF/print workflow instead of HTML export");
+assert.doesNotMatch(profileLitePageSource, /\.html[`'"]|downloadHtml\(/, "Profile Lite must not download a .html Power Place export");
 
 assert.match(profileModuleSource, /profileTabContent/, "Lite profile module should reuse old profileEditor profileTabContent wrapper");
 assert.match(profileModuleSource, /Как это будет выглядеть/, "Lite profile preview should use the old profile preview heading");
@@ -449,6 +472,8 @@ assert.match(profileLitePageSource, /savedImageRef\s*=\s*saved\?\.image_ref\s*\|
 assert.match(profileLitePageSource, /__center_image:\s*savedImageRef/, "central upload should set __center_image to the durable ref");
 assert.match(profileLitePageSource, /\[savedImageRef\]:\s*savedDisplayUrl/, "central upload should populate object_ref_urls for the durable ref");
 assert.match(profileLitePageSource, /throw new Error\("Сначала сохраните профиль мастера\."\)/, "upload handlers should reject missing profile/session so the picker modal stays open");
+assert.match(profileLitePageSource, /await listPowerPlaceCompositions\(profile\.id,\s*session\)/, "saving a Power Place should refresh saved compositions from Supabase");
+assert.match(profileLitePageSource, /setPowerPlaceCompositions\(freshCompositions/, "fresh Supabase composition list should drive the saved select/list after save");
 assert.match(profileLitePageSource, /const deletedRefs = new Set/, "client photo deletion should track all refs that can point at the deleted image");
 assert.match(profileLitePageSource, /for \(const \[slotId, ref\] of Object\.entries\(nextObjectRefs\)\)/, "client photo deletion should clear object refs that point at the deleted image");
 
@@ -456,6 +481,21 @@ assert.match(
   readmeSource,
   /20260531090000_power_place_chess_format\.sql/,
   "README setup must include the chess composition migration used by Profile Lite"
+);
+assert.match(
+  readmeSource,
+  /20260602120000_power_place_chess_compact_variant\.sql/,
+  "README setup must include the compact chess variant migration used by Profile Lite"
+);
+assert.match(
+  compactChessMigrationSource,
+  /chess_variant in \('classic-14', 'classic-8', 'plus-8', 'compact-5'\)/,
+  "compact chess migration should allow the UI's compact-5 technical value"
+);
+assert.match(
+  migrationRunnerSource,
+  /20260602120000_power_place_chess_compact_variant\.sql/,
+  "Supabase migration runner should allowlist the compact chess migration"
 );
 
 assert.match(shellSource, /href=\{tab\.href\}/, "ProfileLiteShell tabs should render route-backed hrefs");

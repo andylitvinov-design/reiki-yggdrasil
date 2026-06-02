@@ -664,10 +664,11 @@ export default function ProfileLitePowerPlaceModule({
       <div className="powerPlaceActions">
         <button className="cabinetPrimary" type="button" onClick={onSave}>{compositionDraft.id ? "Обновить место силы" : "Сохранить место силы"}</button>
         <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
-        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать</button>
+        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
         <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
       </div>
+      <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
   );
 

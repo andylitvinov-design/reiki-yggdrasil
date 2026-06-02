@@ -47,14 +47,15 @@ Supabase setup steps:
 8. Apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`.
 9. Apply `supabase/migrations/20260527143000_power_place_star_format.sql`.
 10. Apply `supabase/migrations/20260531090000_power_place_chess_format.sql`.
-11. Add these auth redirect URLs in Supabase for the target domain:
+11. Apply `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql`.
+12. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-12. Keep these legacy auth redirect URLs until the migration is fully verified:
+13. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-13. Add the Vercel production env vars named above.
-14. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+14. Add the Vercel production env vars named above.
+15. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -110,6 +111,7 @@ Power Place persistence setup:
 - `20260527_profile_cabinet_media_storage.sql` creates private bucket `profile-cabinet-media`, owner-only Storage policies, and durable media path columns for client/goal and tradition images.
 - `20260527143000_power_place_star_format.sql` extends saved compositions for `Звезда` with `star_variant` values `closed` / `open` and `star-*` object refs in the existing `object_refs` JSON payload.
 - `20260531090000_power_place_chess_format.sql` extends saved compositions for `Шахматы` with `chess_variant` values `classic-14` / `classic-8` / `plus-8` and allows `constructor_type='chess'`.
+- `20260602120000_power_place_chess_compact_variant.sql` allows the Profile Lite `compact-5` chess variant used by the 6-photo UI format.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.

@@ -3292,6 +3292,37 @@
     -webkit-print-color-adjust: exact;
   }
 
+  body.printMandalaOnly .powerPlacePrintArea,
+  body.printMandalaOnly .powerMandalaPanel,
+  body.printMandalaOnly .powerMandala,
+  body.printMandalaOnly .zodiacMandalaSheet,
+  body.printMandalaOnly .starMandalaSheet,
+  body.printMandalaOnly .power-place-chess,
+  body.printMandalaOnly .altarMandalaSheet,
+  body.printMandalaOnly .businessMandalaSheet,
+  body.printMandalaOnly .daoMandalaSheet,
+  body.printMandalaOnly .powerSource,
+  body.printMandalaOnly .zodiacPositionImage,
+  body.printMandalaOnly .starPositionImage,
+  body.printMandalaOnly .powerCenterPhoto,
+  body.printMandalaOnly .zodiacPlusPositionImage,
+  body.printMandalaOnly .zodiacFieldPlusPositionImage,
+  body.printMandalaOnly .starPointImage,
+  body.printMandalaOnly .altarTopSource,
+  body.printMandalaOnly .altarSupportSource,
+  body.printMandalaOnly .businessObjectSlot,
+  body.printMandalaOnly .businessVertexZone,
+  body.printMandalaOnly .daoElementImage,
+  body.printMandalaOnly .power-place-chess__slot,
+  body.printMandalaOnly .coverPreview,
+  body.printMandalaOnly [style*="background"],
+  body.printMandalaOnly [style*="background-image"] {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
   body.printMandalaOnly .powerPlaceHint,
   body.printMandalaOnly .objectImageEditor,
   body.printMandalaOnly .clientPhotoPickerBackdrop,
@@ -5308,6 +5339,13 @@
 
 .profileLitePowerPlace .powerPlaceHeader {
   margin-bottom: 0;
+}
+
+.profileLitePowerPlace .powerPrintColorHint {
+  margin: 2px 0 0;
+  color: #705f4d;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .profileLitePowerPlace .powerPlacePrintArea {
