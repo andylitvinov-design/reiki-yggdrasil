@@ -1,23 +1,30 @@
-.profileLiteShell .profileLiteTabs {
+.profileLiteModule > .mandalaHero,
+.profileLiteModule > .profileLiteShellChrome {
+  grid-column: 1 / -1 !important;
+}
+
+.profileLiteShell .profileLiteShellChrome .profileLiteTabs {
   display: flex !important;
   flex-wrap: wrap !important;
-  gap: 12px !important;
+  gap: 10px 12px !important;
   border: 0 !important;
   background: transparent !important;
   padding: 0 !important;
   overflow: visible !important;
 }
 
-.profileLiteShell .profileLiteTabs a {
+.profileLiteShell .profileLiteShellChrome .profileLiteTabs a {
   width: auto !important;
-  min-height: 46px !important;
+  flex: 0 1 auto !important;
+  min-height: 44px !important;
   border-radius: 999px !important;
-  padding: 10px 26px !important;
+  padding: 9px 22px !important;
   font-weight: 800 !important;
-  font-size: clamp(1.2rem, 4.5vw, 1.7rem) !important;
+  font-size: clamp(1.12rem, 4.2vw, 1.55rem) !important;
+  line-height: 1.1 !important;
 }
 
-.profileLiteShell .profileLiteTabs a.active {
+.profileLiteShell .profileLiteShellChrome .profileLiteTabs a.active {
   background: linear-gradient(135deg, #3b2606, #8a560c) !important;
   color: #fff7dc !important;
   box-shadow: 0 10px 22px rgba(76, 43, 8, 0.16) !important;
@@ -27,17 +34,58 @@
   margin-bottom: 18px !important;
 }
 
+.profileLiteProfileGrid.profileTabContent {
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr) !important;
+  align-items: start !important;
+}
+
+.profileLiteProfileGrid .profileForm,
+.profileLiteProfileGrid .cabinetPreview {
+  width: 100% !important;
+  min-width: 0 !important;
+  position: static !important;
+}
+
+.profileLiteProfileGrid .profileForm label,
+.profileLiteProfileGrid .profileForm input,
+.profileLiteProfileGrid .profileForm textarea,
+.profileLiteProfileGrid .profileForm select {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.profileLiteProfileGrid .cabinetTwoColumns {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
 @media (max-width: 760px) {
-  .profileLiteShell .profileLiteTabs {
+  .profileLiteShell .profileLiteShellChrome .profileLiteTabs {
     flex-wrap: wrap !important;
+    overflow: visible !important;
   }
 
-  .profileLiteShell .profileLiteTabs a {
+  .profileLiteShell .profileLiteShellChrome .profileLiteTabs a {
     flex: 0 1 auto !important;
     width: auto !important;
+    min-height: 42px !important;
+    padding: 8px 20px !important;
   }
 
   .profileLiteShell .profileLiteStatusRail {
     display: none !important;
+  }
+
+  .profileLiteProfileGrid.profileTabContent {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .profileLiteProfileGrid .profileForm,
+  .profileLiteProfileGrid .cabinetPreview {
+    grid-column: 1 / -1 !important;
+  }
+
+  .profileLiteProfileGrid .cabinetTwoColumns {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
