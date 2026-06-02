@@ -1,5 +1,50 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite chess variants, sizing, and Mentalica cover
+
+- Branch: `codex/fix-chess-layout-variants-size-mentalica`.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - chess layouts reused a legacy top-row helper as automatic source slots, which inflated the 8-photo variants;
+  - chess slot/card size was hardcoded and not persisted as composition data;
+  - Mentalica had no CSS-only fallback cover tone;
+  - square/rectangle selectors did not drive chess-specific aspect/card height behavior.
+- Changed:
+  - kept `classic-14` as 14 source slots plus center;
+  - kept `classic-8` as 8 source slots plus center;
+  - changed `plus-8` to 4 `outer-square` plus 4 `inner-square` source slots around center;
+  - added `compact-5` with 5 source slots around center;
+  - stopped auto-adding `CHESS_TOP_SLOTS` to 8 / 8+ / 5 chess layouts;
+  - added persisted `chess_slot_scale` and applies it through `--power-place-chess-slot-scale`;
+  - added `cover-mentalica` fallback cover styling;
+  - added rectangle chess aspect handling alongside square/horizontal/vertical sizing.
+- Contract coverage:
+  - `test/profileLiteCabinetContract.test.mjs` now guards compact-5, plus-8 outer/inner square markers, no automatic top-row rendering/source-list injection, `chess_slot_scale`, Mentalica cover, and square/rectangle chess aspect hooks.
+- Checks run:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local rendered QA:
+  - dev server: `http://127.0.0.1:4217/profile/mandalas` with fake public Supabase env, local fake JSON backend, and fake JWT session;
+  - desktop 1280: three-column layout measured `260px 620px 340px`, `plus-8` had 8 slots / 4 outer-square / 4 inner-square, `compact-5` had 5 compact slots, overflow `0`, no Vite overlay;
+  - mobile 390: one `358px` column, `plus-8` had 8 slots / 4 outer-square / 4 inner-square, `compact-5` had 5 compact slots, overflow `0`, no Vite overlay;
+  - captured console messages were only Vite/React dev info, with no app errors/warnings.
+- Not verified:
+  - real Supabase session;
+  - real saved composition reload;
+  - real upload/private signed URLs;
+  - production/live QA before deploy.
+
 ## 2026-06-02 — Profile Lite canonical shell tabs and outer cover fix
 
 - Branch: `codex/profile-lite-cover-tabs-canonical-shell`.

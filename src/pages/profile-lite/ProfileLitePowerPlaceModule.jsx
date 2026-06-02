@@ -38,7 +38,8 @@ const STAR_POINTS = [
 const CHESS_VARIANTS = [
   { value: "classic-14", label: "14 фоток", slotCount: 14, layout: "grid-5x3" },
   { value: "classic-8", label: "8 фоток", slotCount: 8, layout: "grid-3x3" },
-  { value: "plus-8", label: "8 фото+", slotCount: 8, layout: "cross-plus-corners" }
+  { value: "plus-8", label: "8 фото+", slotCount: 8, layout: "outer-inner-square" },
+  { value: "compact-5", label: "5 фоток", slotCount: 5, layout: "compact-ring" }
 ];
 const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
   id: `chess-top-${index + 1}`,
@@ -74,14 +75,21 @@ const CHESS_SLOT_LAYOUTS = {
     { id: "chess-8", row: 3, col: 3, label: "Шахматная ячейка 8" }
   ],
   "plus-8": [
-    { id: "chess-1", className: "cross-top", label: "Верхняя большая мандала" },
-    { id: "chess-2", className: "cross-right", label: "Правая большая мандала" },
-    { id: "chess-3", className: "cross-bottom", label: "Нижняя большая мандала" },
-    { id: "chess-4", className: "cross-left", label: "Левая большая мандала" },
-    { id: "chess-5", className: "corner-top-left", label: "Верхний левый угол" },
-    { id: "chess-6", className: "corner-top-right", label: "Верхний правый угол" },
-    { id: "chess-7", className: "corner-bottom-left", label: "Нижний левый угол" },
-    { id: "chess-8", className: "corner-bottom-right", label: "Нижний правый угол" }
+    { id: "chess-1", className: "outer-square outer-top-left", label: "Внешний квадрат · верхний левый" },
+    { id: "chess-2", className: "outer-square outer-top-right", label: "Внешний квадрат · верхний правый" },
+    { id: "chess-3", className: "outer-square outer-bottom-left", label: "Внешний квадрат · нижний левый" },
+    { id: "chess-4", className: "outer-square outer-bottom-right", label: "Внешний квадрат · нижний правый" },
+    { id: "chess-5", className: "inner-square inner-top-left", label: "Внутренний квадрат · верхний левый" },
+    { id: "chess-6", className: "inner-square inner-top-right", label: "Внутренний квадрат · верхний правый" },
+    { id: "chess-7", className: "inner-square inner-bottom-left", label: "Внутренний квадрат · нижний левый" },
+    { id: "chess-8", className: "inner-square inner-bottom-right", label: "Внутренний квадрат · нижний правый" }
+  ],
+  "compact-5": [
+    { id: "chess-1", className: "compact-top", label: "Верхняя мандала" },
+    { id: "chess-2", className: "compact-right", label: "Правая мандала" },
+    { id: "chess-3", className: "compact-bottom", label: "Нижняя мандала" },
+    { id: "chess-4", className: "compact-left", label: "Левая мандала" },
+    { id: "chess-5", className: "compact-orbit", label: "Орбитальная мандала" }
   ]
 };
 const ZODIAC_SIGNS = [
@@ -133,6 +141,7 @@ const DAO_ELEMENTS = [
 ];
 const FALLBACK_COVERS = [
   { id: "no-cover", label: "Без фона", type: "none", src: "" },
+  { id: "cover-mentalica", label: "Mentalica", type: "placeholder", tone: "mentalica", src: "" },
   { id: "cover-zodiac-map", label: "Карта мандалы", type: "placeholder", tone: "zodiac-map", src: "" },
   { id: "cover-gold", label: "Золотой поток", type: "placeholder", tone: "gold", src: "" },
   { id: "cover-forest", label: "Древо силы", type: "placeholder", tone: "forest", src: "" },
@@ -183,6 +192,7 @@ const SOURCE_LIBRARY_CATEGORIES = [
 const FIELD_LAYOUTS = [
   { value: "vertical", label: "Вертикальное" },
   { value: "horizontal", label: "Горизонтальное" },
+  { value: "rectangle", label: "Прямоугольник" },
   { value: "square", label: "Квадрат" }
 ];
 
@@ -200,6 +210,12 @@ function isImagePreview(value) {
 
 function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
+}
+
+function chessSlotScaleValue(value) {
+  const scale = Number(value);
+  if (!Number.isFinite(scale)) return 1;
+  return Math.min(1.25, Math.max(0.72, scale));
 }
 
 function uniqueImageSources(items) {
@@ -250,10 +266,7 @@ function buildSlotList(draft) {
     }));
   }
   if (type === "chess") {
-    return [
-      ...CHESS_TOP_SLOTS,
-      ...(CHESS_SLOT_LAYOUTS[draft.chess_variant] || CHESS_SLOT_LAYOUTS["classic-14"])
-    ];
+    return CHESS_SLOT_LAYOUTS[draft.chess_variant] || CHESS_SLOT_LAYOUTS["classic-14"];
   }
   if (type === "altar") {
     return [
@@ -333,6 +346,12 @@ export default function ProfileLitePowerPlaceModule({
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
+  const chessVariant = compositionDraft.chess_variant || "classic-14";
+  const chessSlotScale = chessSlotScaleValue(compositionDraft.chess_slot_scale);
+  const chessCoverStyle = {
+    ...(imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src) || {}),
+    "--power-place-chess-slot-scale": chessSlotScale
+  };
 
   const savedImages = useMemo(() => uniqueImageSources([
     ...clientGoalPhotos.map((photo) => ({
@@ -748,6 +767,21 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
+                {compositionDraft.constructor_type === "chess" && (
+                  <div className="chessSizeControl" aria-label="Размер фото">
+                    <span>Размер фото</span>
+                    <button type="button" onClick={() => onCompositionDraftChange("chess_slot_scale", Number((chessSlotScale - 0.08).toFixed(2)))} aria-label="Уменьшить размер фото">-</button>
+                    <input
+                      type="range"
+                      min="0.72"
+                      max="1.25"
+                      step="0.01"
+                      value={chessSlotScale}
+                      onChange={(event) => onCompositionDraftChange("chess_slot_scale", Number(event.target.value))}
+                    />
+                    <button type="button" onClick={() => onCompositionDraftChange("chess_slot_scale", Number((chessSlotScale + 0.08).toFixed(2)))} aria-label="Увеличить размер фото">+</button>
+                  </div>
+                )}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>
@@ -892,21 +926,18 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </div>
                   ) : compositionDraft.constructor_type === "chess" ? (
-                    <div className={`power-place-chess power-place-chess--${compositionDraft.chess_variant || "classic-14"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
-                      <div className="power-place-chess__top-row" aria-label="Верхний ряд мандал">
-                        {CHESS_TOP_SLOTS.map((slot, index) => renderObjectImageButton(slot, index, `power-place-chess__top-slot ${slot.className}`))}
-                      </div>
+                    <div className={`power-place-chess power-place-chess--${chessVariant} cover-${innerCover?.tone || "gold"}`} style={chessCoverStyle}>
                       <div className="power-place-chess__board" aria-label="Шахматная раскладка">
-                        {(compositionDraft.chess_variant || "classic-14") === "plus-8" ? (
+                        {chessVariant === "plus-8" || chessVariant === "compact-5" ? (
                           <>
                             {renderCenterPhotoWithMode("power-place-chess__center")}
-                            {(CHESS_SLOT_LAYOUTS["plus-8"] || []).map((slot, index) => renderChessSlot(slot, index, `power-place-chess__slot--${slot.className}`))}
+                            {(CHESS_SLOT_LAYOUTS[chessVariant] || []).map((slot, index) => renderChessSlot(slot, index, `power-place-chess__slot--${slot.className}`))}
                           </>
                         ) : (
-                          Array.from({ length: (compositionDraft.chess_variant || "classic-14") === "classic-14" ? 15 : 9 }, (_, index) => {
+                          Array.from({ length: chessVariant === "classic-14" ? 15 : 9 }, (_, index) => {
                             const row = Math.floor(index / 3) + 1;
                             const col = (index % 3) + 1;
-                            const centerIndex = (compositionDraft.chess_variant || "classic-14") === "classic-14" ? 7 : 4;
+                            const centerIndex = chessVariant === "classic-14" ? 7 : 4;
                             const toneClass = (row + col) % 2 === 0 ? "is-dark" : "is-light";
 
                             if (index === centerIndex) {
@@ -917,7 +948,7 @@ export default function ProfileLitePowerPlaceModule({
                               );
                             }
 
-                            const slot = (CHESS_SLOT_LAYOUTS[compositionDraft.chess_variant || "classic-14"] || []).find((item) => item.row === row && item.col === col);
+                            const slot = (CHESS_SLOT_LAYOUTS[chessVariant] || []).find((item) => item.row === row && item.col === col);
                             return slot ? (
                               <div className={`power-place-chess__cell ${toneClass}`} key={slot.id}>
                                 {renderChessSlot(slot, Number(slot.id.replace("chess-", "")) - 1)}

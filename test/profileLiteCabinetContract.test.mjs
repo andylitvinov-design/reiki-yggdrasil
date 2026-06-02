@@ -267,6 +267,18 @@ assert.match(powerPlaceSource, /const ZODIAC_SIGNS = \[/, "Lite Power Place shou
 assert.match(powerPlaceSource, /ZODIAC_PLUS_SLOT_LAYOUT/, "Lite Power Place should copy old zodiac plus placement definitions");
 assert.match(powerPlaceSource, /const CHESS_TOP_SLOTS = Array\.from/, "Lite Power Place should copy old chess top row slot definitions");
 assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*row: 5, col: 3/, "Lite Power Place should copy old chess board coordinate layout");
+assert.match(powerPlaceSource, /value: "compact-5"[\s\S]*label: "5 фоток"[\s\S]*slotCount: 5/, "Lite chess variants should include compact 5-photo format");
+assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*"compact-5"[\s\S]*id: "chess-5"/, "Lite chess compact-5 layout should define exactly five source slots");
+assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*outer-square[\s\S]*inner-square/, "Lite chess plus-8 should use outer and inner square markers");
+assert.doesNotMatch(powerPlaceSource, /buildSlotList[\s\S]*type === "chess"[\s\S]*\.\.\.CHESS_TOP_SLOTS/, "Lite chess source slot lists should not automatically add top-row slots");
+assert.doesNotMatch(powerPlaceSource, /<div className="power-place-chess__top-row"[\s\S]*CHESS_TOP_SLOTS\.map/, "Lite chess top-row should not render unconditionally for every chess variant");
+assert.match(powerPlaceSource, /chess_slot_scale/, "Lite chess should persist a slot size control value in the composition draft");
+assert.match(powerPlaceSource, /--power-place-chess-slot-scale/, "Lite chess should expose slot size via a CSS variable");
+assert.match(powerPlaceSource, /Размер фото/, "Lite chess should render a visible photo size control");
+assert.match(powerPlaceSource, /cover-mentalica[\s\S]*label: "Mentalica"/, "Lite fallback covers should include Mentalica");
+assert.match(profileMandalaCss, /\.power-place-chess\.cover-mentalica/, "Chess CSS should render a Mentalica fallback cover tone");
+assert.match(profileMandalaCss, /field-layout-square[\s\S]*--power-place-chess-card-aspect/, "Square field layout should affect chess card aspect");
+assert.match(profileMandalaCss, /field-layout-(?:vertical|rectangle)[\s\S]*--power-place-chess-card-aspect/, "Rectangle/vertical field layout should affect chess card aspect");
 assert.match(powerPlaceSource, /BUSINESS_VERTICES[\s\S]*className: "top"[\s\S]*className: "left"[\s\S]*className: "right"/, "Lite Power Place should copy old three-vertex business layout");
 assert.match(powerPlaceSource, /DAO_ELEMENTS[\s\S]*"water"[\s\S]*"wood"[\s\S]*"fire"[\s\S]*"earth"[\s\S]*"metal"/, "Lite Power Place should copy old DAO element order");
 assert.match(powerPlaceSource, /powerCommandRail/, "Lite right rail should reuse old powerCommandRail shell");
