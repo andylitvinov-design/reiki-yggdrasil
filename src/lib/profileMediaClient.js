@@ -104,6 +104,17 @@ export function encodeStorageObjectPath(path) {
     .join("/");
 }
 
+export function normalizeSignedStorageUrl(signedURL, baseUrl = SUPABASE_URL) {
+  const value = cleanText(signedURL);
+  const origin = cleanText(baseUrl).replace(/\/$/, "");
+
+  if (value.startsWith("http")) return value;
+  if (value.startsWith("/storage/v1/")) return `${origin}${value}`;
+  if (value.startsWith("/object/")) return `${origin}/storage/v1${value}`;
+
+  return `${origin}/storage/v1/${value.replace(/^\/+/, "")}`;
+}
+
 export function toStorageRef(bucket, path) {
   return `storage://${bucket}/${path}`;
 }
@@ -200,8 +211,7 @@ export async function createSignedMediaUrl(path, session, bucket = PROFILE_MEDIA
 
   const signedURL = data?.signedURL || data?.signedUrl;
   if (!signedURL) throw mediaError("Supabase не вернул ссылку на изображение.");
-  if (signedURL.startsWith("http")) return signedURL;
-  return signedURL.startsWith("/") ? `${SUPABASE_URL}${signedURL}` : `${SUPABASE_URL}/${signedURL}`;
+  return normalizeSignedStorageUrl(signedURL);
 }
 
 export async function uploadProfileMedia(file, context = {}, session) {

@@ -3329,6 +3329,7 @@
   body.printMandalaOnly .coverVariantList,
   body.printMandalaOnly .coverUploadButton,
   body.printMandalaOnly .coverNotice,
+  body.printMandalaOnly .reportSettingsPanel,
   body.printMandalaOnly .resourceComparisonPanel {
     display: none !important;
   }
@@ -5218,6 +5219,105 @@
   max-height: none;
   grid-template-rows: none;
   align-content: start;
+  gap: 10px;
+  padding: 12px;
+}
+
+.profileLitePowerPlace .powerLibrarySidebar h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.profileLitePowerPlace .powerLibraryPrimaryActions {
+  display: grid;
+  gap: 8px;
+}
+
+.profileLitePowerPlace .powerLibraryPrimaryActions .powerAddImageButton {
+  min-height: 38px;
+  padding: 9px 12px;
+}
+
+.profileLitePowerPlace .powerLibraryFilter {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.68);
+}
+
+.profileLitePowerPlace .powerLibrarySelectLabel {
+  gap: 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profileLitePowerPlace .powerLibrarySelectLabel select {
+  min-height: 34px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.profileLitePowerPlace .compactPhotoList {
+  display: grid;
+  gap: 7px;
+  border-top: 0;
+  padding-top: 0;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageHeader {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageItem {
+  position: relative;
+  min-width: 0;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageCard {
+  width: 100%;
+  min-height: 64px;
+  grid-template-columns: 56px minmax(0, 1fr);
+  padding: 6px 34px 6px 6px;
+  border-radius: 10px;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageThumb {
+  width: 56px;
+  border-radius: 8px;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageCard b {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageCard small {
+  padding: 0;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageDeleteButton {
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.profileLitePowerPlace .compactPhotoList .powerSavedImageItem:hover .powerSavedImageDeleteButton,
+.profileLitePowerPlace .compactPhotoList .powerSavedImageItem:focus-within .powerSavedImageDeleteButton {
+  display: grid;
+  place-items: center;
 }
 
 .profileLitePowerPlace .workspaceCenterColumn {
@@ -5299,6 +5399,7 @@
 .profileLitePowerPlace .coverPickerPanel,
 .profileLitePowerPlace .powerLayoutPanel,
 .profileLitePowerPlace .objectImageEditor,
+.profileLitePowerPlace .reportSettingsPanel,
 .profileLitePowerPlace .resourceComparisonPanel {
   min-width: 0;
   display: grid;
@@ -5308,11 +5409,105 @@
 }
 
 .profileLitePowerPlace .coverPickerPanel,
-.profileLitePowerPlace .powerLayoutPanel {
+.profileLitePowerPlace .powerLayoutPanel,
+.profileLitePowerPlace .reportSettingsPanel {
   border: 1px solid rgba(203, 152, 64, 0.24);
   border-radius: 18px;
   padding: 12px;
   background: rgba(255, 253, 248, 0.66);
+}
+
+.profileLitePowerPlace .reportModeToggle,
+.profileLitePowerPlace .reportActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.profileLitePowerPlace .reportModeToggle button,
+.profileLitePowerPlace .reportActions button {
+  min-width: 0;
+}
+
+.profileLitePowerPlace .reportModeToggle button {
+  border: 1px solid rgba(179, 126, 36, 0.28);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 250, 240, 0.72);
+  color: #5f3e12;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .reportModeToggle button.active {
+  border-color: rgba(154, 101, 23, 0.62);
+  background: rgba(245, 198, 106, 0.32);
+  color: #2f2418;
+}
+
+.profileLitePowerPlace .reportField {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  color: #5f3e12;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .reportField.disabled {
+  opacity: 0.72;
+}
+
+.profileLitePowerPlace .reportFieldInput {
+  min-width: 0;
+  width: 100%;
+  resize: vertical;
+  min-height: 58px;
+  border: 1px solid rgba(179, 126, 36, 0.32);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #3c2a18;
+  font: inherit;
+  font-size: 12px;
+}
+
+.profileLitePowerPlace .reportFieldInput:disabled {
+  cursor: not-allowed;
+  background: rgba(238, 228, 212, 0.62);
+  color: #7a6b5a;
+}
+
+.profileLitePowerPlace .powerReportOutput {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(154, 101, 23, 0.28);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 253, 248, 0.8);
+}
+
+.profileLitePowerPlace .powerReportOutput article {
+  display: grid;
+  gap: 5px;
+}
+
+.profileLitePowerPlace .powerReportOutput h3,
+.profileLitePowerPlace .powerReportOutput p {
+  margin: 0;
+}
+
+.profileLitePowerPlace .powerReportOutput h3 {
+  color: #5f3e12;
+  font-size: 13px;
+}
+
+.profileLitePowerPlace .powerReportOutput p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #3c2a18;
+  line-height: 1.45;
 }
 
 .profileLitePowerPlace .coverVariantsGrid {

@@ -111,6 +111,15 @@ const EMPTY_COMPOSITION = {
   resource_without_mandala_comment: "",
   resource_with_mandala_comment: ""
 };
+const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const EMPTY_PROFILE_LITE_REPORT = {
+  mode: "with_report",
+  added: false,
+  situation: "",
+  mandala_effect: "",
+  extra_help: "",
+  master_note: ""
+};
 const EMPTY_ORDER_PATCH = {
   id: "",
   master_comment: "",
@@ -201,6 +210,19 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function normalizeProfileLiteReport(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    ...EMPTY_PROFILE_LITE_REPORT,
+    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    added: Boolean(source.added),
+    situation: String(source.situation || "").trim(),
+    mandala_effect: String(source.mandala_effect || "").trim(),
+    extra_help: String(source.extra_help || "").trim(),
+    master_note: ""
+  };
 }
 
 function safeFilename(value) {
@@ -752,17 +774,38 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) return;
     const confirmed = window.confirm("Удалить фото из базы?");
     if (!confirmed) return;
+    const deletedRefs = new Set([
+      photo.src,
+      photo.image_ref,
+      photo.image_url,
+      photo.displaySrc,
+      photo.display_url,
+      photo.signed_url
+    ].filter(Boolean));
     try {
       await deleteClientGoalPhoto(photo.id, profile.id, session);
       setClientGoalPhotos((current) => current.filter((item) => item.id !== photo.id));
       setCompositionDraft((current) => {
-        if (current.central_photo_id !== photo.id) return current;
         const centerRef = current.object_refs?.__center_image || "";
         const nextObjectRefs = { ...(current.object_refs || {}) };
         const nextObjectRefUrls = { ...(current.object_ref_urls || {}) };
-        delete nextObjectRefs.__center_image;
-        if (centerRef) delete nextObjectRefUrls[centerRef];
-        return { ...current, central_photo_id: "", object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls };
+        let changed = false;
+
+        for (const [slotId, ref] of Object.entries(nextObjectRefs)) {
+          if (deletedRefs.has(ref)) {
+            delete nextObjectRefs[slotId];
+            if (ref) delete nextObjectRefUrls[ref];
+            changed = true;
+          }
+        }
+
+        if (current.central_photo_id === photo.id) {
+          delete nextObjectRefs.__center_image;
+          if (centerRef) delete nextObjectRefUrls[centerRef];
+          return { ...current, central_photo_id: "", object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls };
+        }
+
+        return changed ? { ...current, object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls } : current;
       });
     } catch (error) {
       setMediaStatus("needs-verification");
@@ -772,6 +815,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleCompositionDraftChange = (field, value) => {
     setCompositionDraft((current) => {
+      if (field === PROFILE_LITE_REPORT_REF_KEY) {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [PROFILE_LITE_REPORT_REF_KEY]: normalizeProfileLiteReport(value)
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,
@@ -954,11 +1006,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         ? await updatePowerPlaceComposition(compositionDraft.id, payload, session)
         : await createPowerPlaceComposition(payload, accountPlan, session);
       const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
+      const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
       setPowerPlaceCompositions(freshCompositions.length
         ? freshCompositions
         : [saved].filter(Boolean)
       );
-      setCompositionDraft({ ...EMPTY_COMPOSITION, ...saved, id: saved?.id || "" });
+      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
       setCompositionMessage(compositionDraft.id ? "Место силы обновлено." : "Место силы сохранено.");
       setMandalasStatus("success");
       setMandalasError("");

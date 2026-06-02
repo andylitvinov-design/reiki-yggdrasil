@@ -39,7 +39,48 @@
   - desktop 1280x920: required buttons were visible, mock compact save/list/load worked, PDF popup contained `.powerPlacePrintArea` only, and no app console errors were captured;
   - mobile 390x900: required buttons and Save as PDF / Background graphics hint were visible, horizontal overflow stayed `0`, and the saved list/empty-state path rendered;
   - real authenticated Supabase save/reload, production migration application, merge/deploy, production QA, and legacy live QA were not performed in this local turn.
+## 2026-06-02 — Reapply Profile Lite report module on current main
 
+- Branch: `codex/reapply-profile-lite-report-module-current-main`.
+- Starting point: fresh `origin/main` merge commit `22e4808`, after PR #206, PR #208, and PR #209.
+- Source idea: PR #207 `Add Profile Lite report module under formats`, reapplied manually without merging the PR branch.
+- Changed files:
+  - `public/profile-background-tabs-refine.js`
+  - `public/profile-background-zone-controls.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/lib/powerPlaceClient.js`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added a standalone right-rail `Отчёт` card directly after `Макет`;
+  - added `С отчётом` / `Без отчёта`, `Анализ ситуации`, `Что даёт мандала`, `Что ещё поможет`, disabled Pro placeholder `О Мастере`, and add/update/delete controls;
+  - renders the report block under the central mandala only after `Добавить отчёт`;
+  - persists report payload in `object_refs.__profile_lite_report`, avoiding a DB migration;
+  - download HTML includes the three working report sections and excludes the disabled Pro-only master note.
+  - legacy public background enhancer scripts now skip Profile Lite, so they do not move `Макет` / analysis controls back into the background card.
+- Not carried from PR #207:
+  - Supabase report columns / migration;
+  - older branch edits that would roll back PR #206 / #208 / #209 behavior.
+- Checks:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed.
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - standalone `npm run build` passed with existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Rendered QA:
+  - dev server ran at `http://localhost:4217/profile/mandalas` with fake public Supabase env, fake local session, and mocked REST/Storage responses only;
+  - right rail rendered in order: `Макет`, `Отчёт`, `Фон Места Силы`, `Анализ`, `Объекты композиции`;
+  - legacy public background enhancer scripts no longer created `powerBackgroundPanel` inside Profile Lite;
+  - report output was absent before add, appeared under the mandala after `Добавить отчёт`, stored text in `object_refs.__profile_lite_report`, and disappeared after `Удалить отчёт`;
+  - mocked Storage photo rendered in the compact left photo list, `Выбрать из базы` stayed absent, and the client-photo delete cross existed;
+  - chess `9 фото+` rendered 8 source slots plus center with 4 outer-square and 4 inner-square slots;
+  - desktop and mobile 390 had horizontal overflow `0`; mobile grid collapsed to one `358px` column with center/settings/actions/advanced/source order.
 ## 2026-06-02 — Fix Power Place mobile layouts, covers, global slot scale
 
 - Branch: `codex/fix-power-place-mobile-layout-covers-scale`.
@@ -101,6 +142,45 @@
   - real saved composition reload from production data;
   - real upload/private signed URLs;
   - production/legacy live QA after merge/deploy.
+
+## 2026-06-02 — Profile Lite compact left photo filter
+
+- Branch: `codex/refine-profile-lite-left-photo-filter`.
+- Starting point: fresh `origin/main` merge commit `169c854` after PR #206.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - removed the left-side `Выбрать из базы` button from `/profile/mandalas`;
+  - kept `Добавить мандалу` as the only primary left action;
+  - replaced the large left catalog with compact select filters: group, category, subcategory/step, plus `Избранные`;
+  - left list now shows latest photos by default and filtered photos when a filter is selected;
+  - compact photo rows use 56px thumbnails, title, meta label, and no large empty cards;
+  - client-photo rows expose the delete cross on hover/focus and still route through `onClientPhotoDelete`;
+  - Lite deletion now clears matching object refs, not only the selected center photo ref.
+- Preserved:
+  - `/profile-old`;
+  - `/`, `/profile`, `/masters`, `/profile/admin`;
+  - Supabase auth/bootstrap, signed URL hydration, durable `storage://` refs, upload/save/load media flow, Vercel rewrites, and env values.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - all listed commands exited `0`;
+  - `npm run check` retained existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning.
+- Not verified:
+  - real authenticated Supabase Storage photo display/delete with production RLS;
+  - live production/legacy QA after merge/deploy.
 
 ## 2026-06-02 — Profile Lite chess variants, sizing, and Mentalica cover
 

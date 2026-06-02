@@ -33,6 +33,7 @@
 
   const syncPanels = () => {
     document.querySelectorAll(".coverSelector").forEach((coverSelector) => {
+      if (coverSelector.closest(".profileLitePowerPlace")) return;
       const activeTab = readTab(coverSelector);
       coverSelector.querySelectorAll(TAB_SELECTOR).forEach((button) => {
         setActive(button, button.dataset.powerBackgroundTab === activeTab);
@@ -52,6 +53,7 @@
 
   const wireTabs = () => {
     document.querySelectorAll(".coverSelector").forEach((coverSelector) => {
+      if (coverSelector.closest(".profileLitePowerPlace")) return;
       coverSelector.querySelectorAll(TAB_SELECTOR).forEach((button) => {
         if (button.dataset.powerTabsRefined === "true") return;
         button.dataset.powerTabsRefined = "true";

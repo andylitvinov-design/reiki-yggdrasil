@@ -189,6 +189,9 @@ const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.j
 const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
+const backgroundZoneControlsSource = readFileSync("public/profile-background-zone-controls.js", "utf8");
+const backgroundTabsRefineSource = readFileSync("public/profile-background-tabs-refine.js", "utf8");
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
 const overviewModuleSource = readFileSync(join(moduleDir, "ProfileLiteOverview.jsx"), "utf8");
 const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
@@ -204,12 +207,12 @@ for (const requiredPowerPlaceText of [
   "Мастерская мандал",
   "Место силы",
   "Мои мандалы",
-  "Загрузить сохранённое место силы",
   "Добавить мандалу",
-  "Выбрать из базы",
   "Группа",
   "Категория",
-  "Сохранённые изображения",
+  "Подкатегория / Ступень",
+  "Избранные",
+  "Последние фото",
   "Фото клиента / цели",
   "Фон места силы",
   "Фон внутри",
@@ -229,6 +232,14 @@ for (const requiredPowerPlaceText of [
 ]) {
   assert.match(powerPlacePickerSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
 }
+
+assert.doesNotMatch(powerPlaceSource, /Выбрать из базы/, "Profile Lite left rail should not render the old select-from-base button");
+assert.doesNotMatch(powerPlaceSource, /powerChooseBaseButton/, "Profile Lite left rail should remove the old select-from-base button class");
+assert.match(powerPlaceSource, /data-compact-photo-list="true"/, "Profile Lite left rail should expose a compact photo list marker");
+assert.match(powerPlaceSource, /aria-label="Компактный список фото"/, "Profile Lite left rail should label the compact photo list");
+assert.match(powerPlaceSource, /data-delete-photo-button="true"/, "Profile Lite left rail should expose a delete button marker for client photos");
+assert.match(powerPlaceSource, /value: "favorites"[\s\S]*label: "Избранные"/, "Profile Lite left filter should include favorites as a source group");
+assert.match(powerPlaceSource, /<option value="">Последние фото<\/option>/, "Profile Lite left filter should default to latest photos when no filter is selected");
 
 for (const requiredSourceGroup of ["ДАО РИ", "Мистерии", "Каналы", "Фон", "Форма", "Талисманы", "Артефакты", "Клиенты"]) {
   assert.match(powerPlaceSource, new RegExp(requiredSourceGroup), `Lite Power Place should expose old source taxonomy group: ${requiredSourceGroup}`);
@@ -264,8 +275,9 @@ assert.match(
 );
 assert.match(powerPlaceSource, /import \{ reikiLevels \}/, "Lite Power Place DAO RI hierarchy should be backed by the canonical Reiki levels");
 assert.match(powerPlaceSource, /SOURCE_LIBRARY_CATEGORIES[\s\S]*value: "dao-ri"[\s\S]*subcategories: reikiLevels\.map/, "Lite Power Place should copy old DAO RI level hierarchy instead of a flat label");
-assert.match(powerPlaceSource, /activeSourceSubcategoryData\?\.thirdLevels\?\.length/, "Lite Power Place should expose old source subcategory third-level buttons");
-assert.match(powerPlaceSource, /activeSourceCategory === "dao-ri"[\s\S]*activeSourceSubcategoryData\?\.steps/, "Lite Power Place should expose old DAO RI step buttons");
+assert.match(powerPlaceSource, /activeSourceSubcategoryData\?\.thirdLevels\?\.length[\s\S]*Подкатегория \/ Ступень[\s\S]*<select/, "Lite Power Place should expose DAO RI third-level filtering as a compact select");
+assert.doesNotMatch(powerPlaceSource, /aria-label="Быстрые группы источников"/, "Profile Lite left rail should not render the old large quick-group catalog");
+assert.doesNotMatch(powerPlaceSource, /activeSourceSubcategoryData\?\.steps\.map/, "Profile Lite left rail should not render the old large DAO step button catalog");
 assert.match(powerPlaceSource, /const ZODIAC_SIGNS = \[/, "Lite Power Place should copy old zodiac sign placement definitions");
 assert.match(powerPlaceSource, /ZODIAC_PLUS_SLOT_LAYOUT/, "Lite Power Place should copy old zodiac plus placement definitions");
 assert.match(powerPlaceSource, /const CHESS_TOP_SLOTS = Array\.from/, "Lite Power Place should copy old chess top row slot definitions");
@@ -315,6 +327,24 @@ assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse ol
 assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
 assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
 assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
+assert.match(powerPlaceSource, /mandalaFieldLayoutSwitch[\s\S]*\{renderReportModule\(\)\}[\s\S]*coverSelector/, "Lite right rail should place Report after layout and before Power Place background");
+assert.match(powerPlaceSource, /reportSettingsPanel/, "Report module should render as its own right-rail card");
+assert.match(powerPlaceSource, /С отчётом[\s\S]*Без отчёта/, "Report module should expose with/without report toggle");
+for (const reportLabel of ["Анализ ситуации", "Что даёт мандала", "Что ещё поможет", "О Мастере"]) {
+  assert.match(powerPlaceSource, new RegExp(reportLabel), `Report module should include ${reportLabel}`);
+}
+assert.match(powerPlaceSource, /Доступно в Pro формате\./, "Master report field should be visibly disabled as a Pro-only placeholder");
+for (const reportAction of ["Добавить отчёт", "Обновить", "Удалить отчёт"]) {
+  assert.match(powerPlaceSource, new RegExp(reportAction), `Report module should expose ${reportAction}`);
+}
+assert.match(powerPlaceSource, /reportAdded[\s\S]*powerReportOutput/, "Report output should render under the mandala only after the report is added");
+assert.match(powerPlaceSource, /__profile_lite_report/, "Report payload should persist through object_refs without a DB migration");
+assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
+assert.match(powerPlaceSource, /powerPlacePrintArea[\s\S]*powerReportOutput[\s\S]*Анализ ситуации[\s\S]*Что даёт мандала[\s\S]*Что ещё поможет/, "print/PDF area should include the working report sections");
+assert.doesNotMatch(profileLitePageSource, /handleDownloadComposition[\s\S]*О Мастере/, "PDF flow must not rebuild the disabled Pro master note as export HTML");
+assert.match(powerPlaceClientSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*normalizeProfileLiteReport/, "Power Place API normalization should preserve the nested report object");
+assert.match(backgroundZoneControlsSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background zone enhancer should explicitly skip Profile Lite");
+assert.match(backgroundTabsRefineSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background tabs enhancer should explicitly skip Profile Lite");
 assert.doesNotMatch(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must not render cabinet tabs before the active module canonical hero");
 assert.match(shellSource, /const shellChrome = \(/, "Profile Lite shell should expose tabs/status as canonical shell chrome");
 assert.match(shellSource, /typeof children === "function"/, "ProfileLitePage/Shell integration should let modules place shell chrome below their canonical hero");
@@ -444,6 +474,8 @@ assert.match(profileLitePageSource, /\[savedImageRef\]:\s*savedDisplayUrl/, "cen
 assert.match(profileLitePageSource, /throw new Error\("Сначала сохраните профиль мастера\."\)/, "upload handlers should reject missing profile/session so the picker modal stays open");
 assert.match(profileLitePageSource, /await listPowerPlaceCompositions\(profile\.id,\s*session\)/, "saving a Power Place should refresh saved compositions from Supabase");
 assert.match(profileLitePageSource, /setPowerPlaceCompositions\(freshCompositions/, "fresh Supabase composition list should drive the saved select/list after save");
+assert.match(profileLitePageSource, /const deletedRefs = new Set/, "client photo deletion should track all refs that can point at the deleted image");
+assert.match(profileLitePageSource, /for \(const \[slotId, ref\] of Object\.entries\(nextObjectRefs\)\)/, "client photo deletion should clear object refs that point at the deleted image");
 
 assert.match(
   readmeSource,

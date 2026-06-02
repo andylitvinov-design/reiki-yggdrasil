@@ -46,7 +46,38 @@ Last updated: 2026-06-02
   - production/legacy live QA after merge/deploy.
 - Risk:
   - browser save-as-PDF still depends on the user's print dialog and browser support for background graphics; the UI now states the required Background graphics setting.
+## 2026-06-02 — Profile Lite report module reapplied on current main
 
+- Branch: `codex/reapply-profile-lite-report-module-current-main`, based on fresh `origin/main` merge commit `22e4808`.
+- Scope: manual reapply of the useful PR #207 report-module idea only; no direct PR #207 merge.
+- Preserved baseline:
+  - PR #206 signed URL / Storage photo path;
+  - PR #208 chess 15/9/9+/6, slot scale, cover inner/outer, mobile order;
+  - PR #209 compact left photo filter and delete cross behavior;
+  - `/profile-old`, `/profile`, `/masters`, `/profile/admin`, auth/data flows, and Vercel rewrites.
+- Current implementation:
+  - right rail now has a standalone `Отчёт` card directly after `Макет`;
+  - report fields are `Анализ ситуации`, `Что даёт мандала`, `Что ещё поможет`, plus disabled Pro placeholder `О Мастере`;
+  - report mode supports `С отчётом` / `Без отчёта`;
+  - report actions are `Добавить отчёт` / `Обновить` and `Удалить отчёт`;
+  - central report output appears under the mandala only after the report is added;
+  - report payload persists through `object_refs.__profile_lite_report`, so no Supabase migration was added.
+  - legacy public background enhancer scripts skip Profile Lite so `Макет`, report, and background stay as separate right-rail cards.
+- Initial checks:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing video placeholder and Vite large-chunk warnings;
+  - standalone `npm run build` passed with existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Rendered local QA:
+  - `/profile/mandalas` verified with fake public Supabase env and mocked REST/Storage responses;
+  - report output appears only after `Добавить отчёт` and disappears after `Удалить отчёт`;
+  - Storage signed-photo path, compact left list, chess `9 фото+`, cover inner/outer controls, and mobile order were checked locally.
+- Still to verify after merge/deploy:
+  - real authenticated Supabase save/load with production data;
+  - production/legacy live QA.
 ## 2026-06-02 — Profile Lite Power Place mobile layouts, covers, and global slot scale
 
 - Branch: `codex/fix-power-place-mobile-layout-covers-scale`, based on PR #205 merge commit `a12240fd9a516c0eeb0d45783ba9c517c1253e30`.
@@ -96,6 +127,31 @@ Last updated: 2026-06-02
   - real Supabase session;
   - real saved composition reload from production data;
   - real upload/private signed URL flow;
+  - production/legacy live QA after merge/deploy.
+
+## 2026-06-02 — Profile Lite compact left photo filter
+
+- Branch: `codex/refine-profile-lite-left-photo-filter`, based on fresh `origin/main` merge commit `169c854` after PR #206.
+- Scope: compact the `/profile/mandalas` left rail without changing `/profile-old`, public routes, auth/bootstrap, Vercel rewrites, or Supabase signed Storage helpers.
+- Changed:
+  - removed the left-rail `Выбрать из базы` action;
+  - kept `Добавить мандалу` as the single primary left action;
+  - changed the left rail to compact filters for group/category/subcategory-step, including `Избранные`;
+  - defaulted the left photo list to latest photos when no filter is selected;
+  - changed the left photo list to compact 56px previews with title, meta label, and hover/focus delete control for client photos;
+  - preserved `ProfileLiteImagePicker` for modal image picking and upload;
+  - extended Lite delete cleanup so deleted client photos are removed from object refs as well as the center ref.
+- Verification:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Not verified yet:
+  - real authenticated Supabase Storage photos on live data;
+  - real hover/delete flow against production RLS;
   - production/legacy live QA after merge/deploy.
 
 ## 2026-06-02 — Profile Lite chess layout variants and sizing fix

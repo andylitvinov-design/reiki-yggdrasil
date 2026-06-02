@@ -7,6 +7,7 @@ import {
   encodeStorageObjectPath,
   hydrateMediaRowsForDisplay,
   isStorageRef,
+  normalizeSignedStorageUrl,
   parseStorageRef,
   sanitizeMediaFilename,
   toStorageRef,
@@ -61,6 +62,24 @@ assert.equal(
   encodeStorageObjectPath("profile 1/client goal/фото 01.jpg"),
   "profile%201/client%20goal/%D1%84%D0%BE%D1%82%D0%BE%2001.jpg",
   "storage sign/upload paths should encode URL segments without encoding slashes"
+);
+
+const supabaseUrl = "https://project.supabase.co";
+assert.equal(
+  normalizeSignedStorageUrl("/object/sign/profile-cabinet-media/profile-1/photo.png?token=abc", supabaseUrl),
+  "https://project.supabase.co/storage/v1/object/sign/profile-cabinet-media/profile-1/photo.png?token=abc"
+);
+assert.equal(
+  normalizeSignedStorageUrl("/storage/v1/object/sign/profile-cabinet-media/profile-1/photo.png?token=abc", supabaseUrl),
+  "https://project.supabase.co/storage/v1/object/sign/profile-cabinet-media/profile-1/photo.png?token=abc"
+);
+assert.equal(
+  normalizeSignedStorageUrl("https://cdn.example.com/signed/photo.png?token=abc", supabaseUrl),
+  "https://cdn.example.com/signed/photo.png?token=abc"
+);
+assert.equal(
+  normalizeSignedStorageUrl("object/sign/profile-cabinet-media/profile-1/photo.png?token=abc", supabaseUrl),
+  "https://project.supabase.co/storage/v1/object/sign/profile-cabinet-media/profile-1/photo.png?token=abc"
 );
 
 assert.doesNotThrow(() => validateProfileMediaFile(imageFile));
