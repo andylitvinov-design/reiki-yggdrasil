@@ -1,4 +1,4 @@
-.profileLiteShell-mandalas .profileLiteTabs {
+.profileLiteShell .profileLiteTabs {
   display: flex !important;
   flex-wrap: wrap !important;
   gap: 12px !important;
@@ -8,7 +8,7 @@
   overflow: visible !important;
 }
 
-.profileLiteShell-mandalas .profileLiteTabs a {
+.profileLiteShell .profileLiteTabs a {
   width: auto !important;
   min-height: 46px !important;
   border-radius: 999px !important;
@@ -17,23 +17,27 @@
   font-size: clamp(1.2rem, 4.5vw, 1.7rem) !important;
 }
 
-.profileLiteShell-mandalas .profileLiteTabs a.active {
+.profileLiteShell .profileLiteTabs a.active {
   background: linear-gradient(135deg, #3b2606, #8a560c) !important;
   color: #fff7dc !important;
   box-shadow: 0 10px 22px rgba(76, 43, 8, 0.16) !important;
 }
 
+.profileLiteShell .profileLiteStatusRail {
+  margin-bottom: 18px !important;
+}
+
 @media (max-width: 760px) {
-  .profileLiteShell-mandalas .profileLiteTabs {
+  .profileLiteShell .profileLiteTabs {
     flex-wrap: wrap !important;
   }
 
-  .profileLiteShell-mandalas .profileLiteTabs a {
+  .profileLiteShell .profileLiteTabs a {
     flex: 0 1 auto !important;
     width: auto !important;
   }
 
-  .profileLiteShell-mandalas .profileLiteStatusRail {
+  .profileLiteShell .profileLiteStatusRail {
     display: none !important;
   }
 }
