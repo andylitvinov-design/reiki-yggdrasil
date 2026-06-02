@@ -770,6 +770,52 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleLibraryClientPhotoUpload = async ({
+    file,
+    title = "",
+    notes = "",
+    destination = "clients"
+  }) => {
+    if (destination === "materials") {
+      const error = new Error("Материалы: needs verification — создание image material без миграции пока не подтверждено.");
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(error.message);
+      throw error;
+    }
+
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      throw new Error("Сначала сохраните профиль мастера.");
+    }
+
+    try {
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "client-goal" }, session);
+      const saved = await createClientGoalPhoto({
+        profile_id: profile.id,
+        title: title || file.name || "Фото клиента / цели",
+        image_url: "",
+        image_bucket: uploaded.bucket,
+        image_path: uploaded.path,
+        mime_type: uploaded.metadata.mimeType,
+        file_size_bytes: uploaded.metadata.size,
+        notes
+      }, accountPlan, session);
+      const savedImageRef = saved?.image_ref || uploaded.ref;
+      const savedDisplayUrl = saved?.display_url || saved?.signed_url || uploaded.signedUrl;
+      const savedPhoto = saved ? { ...saved, image_ref: savedImageRef, display_url: savedDisplayUrl } : null;
+      setClientGoalPhotos((current) => [savedPhoto, ...current].filter(Boolean));
+      setMediaStatus("success");
+      setMediaError("");
+      return savedPhoto;
+    } catch (error) {
+      setMediaStatus("needs-verification");
+      setMediaError(moduleError(error, "profile_cabinet_client_goal_photos upload failed or Storage/RLS not applied"));
+      throw error;
+    }
+  };
+
   const handleDeleteClientPhoto = async (photo) => {
     if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) return;
     const confirmed = window.confirm("Удалить фото из базы?");
@@ -891,32 +937,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleUploadedCentralPhoto = async (file) => {
-    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
-      setMediaError("Сначала сохраните профиль мастера.");
-      setMediaStatus("needs-verification");
-      throw new Error("Сначала сохраните профиль мастера.");
-    }
-
     try {
-      validateProfileMediaFile(file);
-      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "client-goal" }, session);
-      const saved = await createClientGoalPhoto({
-        profile_id: profile.id,
-        title: file.name || "Фото клиента / цели",
-        image_url: "",
-        image_bucket: uploaded.bucket,
-        image_path: uploaded.path,
-        mime_type: uploaded.metadata.mimeType,
-        file_size_bytes: uploaded.metadata.size,
-        notes: "Центр мандалы"
-      }, accountPlan, session);
-      const savedImageRef = saved?.image_ref || uploaded.ref;
-      const savedDisplayUrl = saved?.display_url || saved?.signed_url || uploaded.signedUrl;
-      const savedPhoto = saved ? { ...saved, image_ref: savedImageRef, display_url: savedDisplayUrl } : null;
-      setClientGoalPhotos((current) => [savedPhoto, ...current].filter(Boolean));
+      const savedPhoto = await handleLibraryClientPhotoUpload({ file, notes: "Центр мандалы" });
+      const savedImageRef = savedPhoto?.image_ref || savedPhoto?.image_url || "";
+      const savedDisplayUrl = savedPhoto?.display_url || savedPhoto?.signed_url || savedPhoto?.image_url || savedImageRef;
       setCompositionDraft((current) => ({
         ...current,
-        central_photo_id: saved?.id || "",
+        central_photo_id: savedPhoto?.id || "",
         object_refs: { ...(current.object_refs || {}), __center_image: savedImageRef },
         object_ref_urls: { ...(current.object_ref_urls || {}), [savedImageRef]: savedDisplayUrl }
       }));
@@ -931,24 +958,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionObjectFileUpload = async (slotId, file) => {
-    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
-      setMandalasError("Сначала сохраните профиль мастера.");
-      setMandalasStatus("needs-verification");
-      throw new Error("Сначала сохраните профиль мастера.");
-    }
-
     try {
-      validateProfileMediaFile(file);
-      const uploaded = await uploadProfileMedia(file, {
-        profileId: profile.id,
-        kind: "power-place",
-        compositionId: compositionDraft.id || "draft",
-        slotId
-      }, session);
-      setCompositionObjectRef(slotId, uploaded.ref, uploaded.signedUrl);
+      const savedPhoto = await handleLibraryClientPhotoUpload({ file, notes: `Объект мандалы: ${slotId}` });
+      const savedImageRef = savedPhoto?.image_ref || savedPhoto?.image_url || "";
+      const savedDisplayUrl = savedPhoto?.display_url || savedPhoto?.signed_url || savedPhoto?.image_url || savedImageRef;
+      setCompositionObjectRef(slotId, savedImageRef, savedDisplayUrl);
       setMandalasStatus("success");
       setMandalasError("");
-      return uploaded;
+      return savedPhoto;
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "power place object upload failed or Storage/RLS not applied"));
@@ -957,25 +974,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionCoverFileUpload = async (layer, file) => {
-    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
-      setMandalasError("Сначала сохраните профиль мастера.");
-      setMandalasStatus("needs-verification");
-      throw new Error("Сначала сохраните профиль мастера.");
-    }
-
     try {
-      validateProfileMediaFile(file);
-      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "underlay" }, session);
+      const savedPhoto = await handleLibraryClientPhotoUpload({ file, notes: `Фон мандалы: ${layer}` });
+      const savedImageRef = savedPhoto?.image_ref || savedPhoto?.image_url || "";
+      const savedDisplayUrl = savedPhoto?.display_url || savedPhoto?.signed_url || savedPhoto?.image_url || savedImageRef;
       handleCompositionCoverSelect(layer, {
         id: layer === "outer" ? "custom-outer-cover" : "custom-cover",
         label: "Своё изображение",
         type: "image",
-        src: uploaded.ref,
-        display_src: uploaded.signedUrl
+        src: savedImageRef,
+        display_src: savedDisplayUrl
       });
       setMandalasStatus("success");
       setMandalasError("");
-      return uploaded;
+      return savedPhoto;
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "power place cover upload failed or Storage/RLS not applied"));
@@ -1216,6 +1228,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
         onCoverFileUpload={handleCompositionCoverFileUpload}
         onDownload={handleDownloadComposition}
+        onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
         onSave={handleCompositionSave}
