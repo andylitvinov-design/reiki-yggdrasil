@@ -152,6 +152,7 @@ for (const file of [
   "ProfileLiteMediaModule.jsx",
   "ProfileLiteMaterialsModule.jsx",
   "ProfileLitePowerPlaceModule.jsx",
+  "ProfileLitePowerPlaceModuleBase.jsx",
   "ProfileLiteImagePicker.jsx",
   "ProfileLiteServicesModule.jsx",
   "ProfileLiteOrdersModule.jsx",
@@ -184,7 +185,9 @@ for (const forbidden of [
   assert.equal(moduleSource.includes(forbidden), false, `Profile Lite modules must not include ${forbidden}`);
 }
 
-const powerPlaceSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
+const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
+const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
 const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8");
 const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
@@ -194,6 +197,8 @@ const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8
 const backgroundZoneControlsSource = readFileSync("public/profile-background-zone-controls.js", "utf8");
 const backgroundTabsRefineSource = readFileSync("public/profile-background-tabs-refine.js", "utf8");
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
+const mandalaTemplatePilotCss = readFileSync("src/profileMandalaTemplatePilot.css", "utf8");
+const mandalaTemplateSource = readFileSync("src/data/placePowerMandalaTemplates.js", "utf8");
 const overviewModuleSource = readFileSync(join(moduleDir, "ProfileLiteOverview.jsx"), "utf8");
 const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
 const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
@@ -353,6 +358,18 @@ assert.doesNotMatch(shellSource, /<header[\s\S]*<\/header>\s*<nav className="pro
 assert.match(shellSource, /const shellChrome = \(/, "Profile Lite shell should expose tabs/status as canonical shell chrome");
 assert.match(shellSource, /typeof children === "function"/, "ProfileLitePage/Shell integration should let modules place shell chrome below their canonical hero");
 assert.match(powerPlaceSource, /<div className="mandalaHero"[\s\S]*Мастерская мандал[\s\S]*\{shellChrome\}[\s\S]*<div className="workspaceSwitches"/, "Mandala hero must render before Profile Lite cabinet tabs/status chrome");
+assert.match(powerPlaceWrapperSource, /BaseProfileLitePowerPlaceModule/, "Power Place wrapper should delegate to the preserved base module");
+assert.match(powerPlaceWrapperSource, /\{props\.shellChrome\}[\s\S]*mandalaTemplatePilotPanel/, "template wrapper should keep shellChrome before the pilot template controls");
+assert.match(powerPlaceWrapperSource, /__mandala_template_id/, "template wrapper should store the selected template id in object_refs");
+assert.match(powerPlaceWrapperSource, /onCompositionDraftChange\?\.\("geometry", 9\)/, "template 1 should force client geometry 9 when selected");
+assert.match(mandalaTemplateSource, /id: "stone-mosaic-01"[\s\S]*src: "\/mandala-templates\/place-power\/stone-mosaic-01\.svg"/, "template registry should point template 1 at the pilot asset");
+assert.equal(existsSync("public/mandala-templates/place-power/stone-mosaic-01.svg"), true, "template 1 SVG asset should exist");
+for (const refId of ["client-1", "client-2", "client-3", "client-4", "client-5", "client-6", "client-7", "client-8", "client-9"]) {
+  assert.match(mandalaTemplateSource, new RegExp(refId), `template 1 should use existing ${refId} object ref`);
+}
+for (const sourceClass of ["source-1", "source-2", "source-3", "source-4", "source-5", "source-6", "source-7", "source-8", "source-9"]) {
+  assert.match(mandalaTemplatePilotCss, new RegExp(`\\.${sourceClass}\\s*\\{[^}]*left:[^}]*top:`), `template CSS should position ${sourceClass}`);
+}
 assert.match(powerPlaceSource, /className: "plus-top"[\s\S]*className: "plus-right"[\s\S]*className: "plus-bottom"[\s\S]*className: "plus-left"/, "Lite zodiac 8+ should use old plus slot class names");
 assert.match(powerPlaceSource, /className: "plus-corner-tl"[\s\S]*className: "plus-corner-tr"[\s\S]*className: "plus-corner-bl"[\s\S]*className: "plus-corner-br"/, "Lite zodiac 12+ should use old plus corner class names");
 assert.match(powerPlaceSource, /<div className="altarTopRow"[\s\S]*altarTopSource main[\s\S]*altarMandalaBase[\s\S]*altarBottomSupports/, "Lite altar should render the old top row, center/base, and bottom support structure");

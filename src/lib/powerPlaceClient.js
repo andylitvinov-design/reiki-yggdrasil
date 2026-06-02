@@ -17,7 +17,7 @@ const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
 const VALID_PLANS = ["start", "pro"];
 const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac", "star", "chess"];
-const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 12];
+const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 9, 12];
 const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
