@@ -17,8 +17,8 @@ export default function ProfileLiteMaterialsModule({
     <section className="profileLiteModule profileLiteMaterialsModule mandalaWorkspace" aria-label="Материалы">
       <div className="workspaceMainColumns profileLiteLegacyColumns">
         <aside className="mandalaModeSidebar">
-          <p className="cabinetEyebrow">Рабочий режим</p>
-          <h3>Материалы</h3>
+          <p className="cabinetEyebrow">Источники силы</p>
+          <h3>Выбор материала</h3>
           <div className="materialFilterList" aria-label="Типы материалов">
             {MATERIAL_TYPES.map((type) => (
               <button className={materialForm.type === type.value ? "active" : ""} key={type.value} type="button" onClick={() => onFieldChange("type", type.value)}>
@@ -27,12 +27,33 @@ export default function ProfileLiteMaterialsModule({
               </button>
             ))}
           </div>
+          <div className="powerLibraryPrimaryActions">
+            <button className="powerChooseBaseButton" type="button" onClick={() => onSave("draft")}>Добавить в список</button>
+          </div>
+          <div className="powerSavedImageList" aria-label="Сохранённые изображения">
+            <p className="cabinetEyebrow">Сохранённые изображения</p>
+            {materials.slice(0, 4).map((material) => (
+              <div className="powerSavedImageCard" key={`saved-${material.id || material.title}`}>
+                <div className={material.display_url || material.image_url ? "powerSavedImageThumb hasImage" : "powerSavedImageThumb"} style={material.display_url || material.image_url ? { backgroundImage: `url(${material.display_url || material.image_url})` } : undefined}>
+                  {!(material.display_url || material.image_url) && <span>◎</span>}
+                </div>
+                <b>{material.title || "Материал"}</b>
+                <small>{publicationTypeLabel(material.type)}</small>
+              </div>
+            ))}
+            {materials.length === 0 && <p>Сохранённые изображения появятся здесь после загрузки.</p>}
+          </div>
           <div className="cabinetNotice compactNotice">
             Сохраняйте мандалы, артефакты и практики к выбранной ступени и настройке.
           </div>
         </aside>
 
         <div className="workspaceCenterColumn">
+          <section className="cabinetCard profileLiteMaterialsAltar" aria-label="Алтарь материалов">
+            <p className="cabinetEyebrow">Алтарь материалов</p>
+            <h2>Основная рабочая зона</h2>
+            <p>Соберите материал вокруг выбранной ступени, настройки и образа. Список ниже повторяет старую рабочую логику кабинета.</p>
+          </section>
           <div className="mandalaGallery">
             <div className="cabinetFormHeader">
               <div>
@@ -77,7 +98,7 @@ export default function ProfileLiteMaterialsModule({
 
         <div className="workspaceRightColumn">
           <form className="cabinetCard profileLiteMaterialForm" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
-            <p className="cabinetEyebrow">Создать материал</p>
+            <p className="cabinetEyebrow">Создание материала</p>
             <h2>Мандала / артефакт / практика</h2>
             <div className="cabinetTwoColumns">
               <label>

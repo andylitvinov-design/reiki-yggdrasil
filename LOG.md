@@ -1,5 +1,57 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite follow-up layout/print parity fix
+
+- Branch: `codex/profile-lite-followup-layout-print-parity`.
+- Starting point: fresh `origin/main` commit `abd47d2`.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteMaterialsModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Regression findings:
+  - Lite zodiac plus slots used non-reference `zodiac-plus-*` classes, while old `/profile-old` and CSS placement expect `plus-*` / `plus-corner-*`;
+  - Lite altar rendered flat `altarObject` / `altarSupport` buttons instead of the old altar row/base/support structure;
+  - Lite save/actions block sat outside the center workspace grid;
+  - Lite Power Place right rail was narrower than the old thicker rail;
+  - print CSS hid the page but did not explicitly preserve color/background rendering;
+  - materials tab still had a simplified left/center/right shell rather than old sources / central work area / creation rail.
+- Fix:
+  - restored old zodiac `8+` and `12+` plus class names and render order;
+  - restored old altar DOM/classes: `altarTopRow`, `altarTopSource main`, `altarMandalaBase`, `altarBottomSupports`;
+  - moved `Сохранить место силы`, service/download/print actions under the center mandala workspace;
+  - changed Lite Power Place columns to `minmax(230px, 260px) minmax(0, 1fr) minmax(320px, 340px)`;
+  - added print color preservation with standard and WebKit `print-color-adjust`;
+  - restored materials old cabinet markers for sources, saved images, central altar/work zone, and right creation actions.
+- Contract test:
+  - added guards for shell hero-before-tabs order, old zodiac plus/altar markers, right rail width, center action placement, materials old layout markers, and print color markers;
+  - first `npm run test:profile-lite` failed on missing old zodiac plus class names;
+  - after JSX/CSS changes, `npm run test:profile-lite` passed.
+- Commands run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all listed commands exited `0`;
+  - `npm run check` retained existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning.
+- Local rendered QA:
+  - dev server started with fake public Supabase env values on `http://localhost:4189`;
+  - Browser plugin path was attempted first;
+  - Browser could open the Lite auth gate with horizontal overflow `0` and no console warnings/errors;
+  - authenticated workspace-level DOM QA could not be completed because this Browser wrapper did not allow seeding/reading page storage or passing evaluate args, and the hash fake-session path remained on the auth gate.
+- Still not verified:
+  - authenticated `/profile/mandalas` versus `/profile-old` rendered workspace comparison;
+  - desktop/mobile workspace screenshots after auth;
+  - real print preview/result from the Power Place workspace;
+  - real Supabase/RLS upload/delete/save/load/update flows;
+  - PR, merge, deploy, and production/legacy live QA.
+
 ## 2026-06-02 — Fix remaining Profile Lite old-profile parity gaps
 
 - Branch: `codex/profile-lite-old-profile-gap-fix`.

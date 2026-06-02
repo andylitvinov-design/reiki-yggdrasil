@@ -3215,6 +3215,13 @@
 }
 
 @media print {
+  *,
+  *::before,
+  *::after {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
   body.printMandalaOnly * {
     visibility: hidden !important;
   }
@@ -3232,13 +3239,19 @@
     grid-template-columns: minmax(0, 1fr) 240px;
     gap: 12px;
     padding: 18px;
-    background: #fffaf0;
+    background:
+      radial-gradient(circle at 50% 20%, rgba(255, 244, 208, 0.92), transparent 40%),
+      #fffaf0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   body.printMandalaOnly .powerMandalaPanel,
   body.printMandalaOnly .powerCommandRail {
     break-inside: avoid;
     box-shadow: none;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   body.printMandalaOnly .powerPlaceHint,
@@ -5008,7 +5021,7 @@
 }
 
 .profileLitePowerPlace .profileLitePowerPlaceColumns {
-  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(280px, 320px);
+  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(320px, 340px);
   gap: 14px;
 }
 
@@ -5140,7 +5153,7 @@
 }
 
 .profileLitePowerPlace .profileLitePowerPlaceActions {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .profileLitePowerPlace .coverPickerPanel,
