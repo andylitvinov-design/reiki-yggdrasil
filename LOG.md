@@ -1,5 +1,34 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — PR #196 merge and deployment blocker
+
+- PR: #196 `Polish Profile Lite mandala parity`.
+- Merge:
+  - merged into `main`;
+  - merge commit: `bfb9000c99e298b6f276b46aebf24a8bc07c819d`;
+  - merged at `2026-06-02T00:08:01Z`.
+- Main checks:
+  - `CI` run `26789917714` passed for merge SHA `bfb9000c99e298b6f276b46aebf24a8bc07c819d`;
+  - GitHub Pages run `26789917711` failed, but Vercel is the production path for this profile-cabinet work.
+- Vercel auto-deploy:
+  - merge-SHA Vercel commit status is `failure`;
+  - description: `Deployment rate limited — retry in 24 hours`.
+- Fallback workflow:
+  - command used:
+    `gh workflow run deploy-production.yml --ref main -f ref=main -f expected_sha=bfb9000c99e298b6f276b46aebf24a8bc07c819d -f reason="fallback deploy after Vercel rate-limited auto deploy"`;
+  - run: `26789944982`;
+  - checkout, expected-SHA verification, dependency install, project check, Vercel env pull, and Vercel build passed;
+  - failed on `Deploy prebuilt to Vercel production`;
+  - exact deploy error: `Resource is limited - try again in 24 hours (more than 100, code: "api-deployments-free-per-day")`.
+- Live after deploy failure:
+  - `https://mentalica.vercel.app/profile/mandalas`: reachable, no overlay, overflow `0`, but shows Lite auth/debug gate without a real signed-in session;
+  - `https://mentalica.vercel.app/profile-old`: reachable, no overlay, overflow `0`, but shows heavy login gate without a real signed-in session;
+  - `https://reiki-yggdrasil.vercel.app/profile/mandalas`: reachable, no overlay, overflow `0`, but shows Lite auth/debug gate / expired stored-session notice.
+- Result:
+  - code is merged into `main`;
+  - production is not proven updated to merge SHA because both normal Vercel deploy and fallback deploy hit the Vercel daily deployment limit;
+  - retry after the Vercel limit resets, then run production/legacy live QA again.
+
 ## 2026-06-02 — Profile Lite Power Place deep parity audit follow-up
 
 - Branch: `codex/profile-lite-power-place-parity-deep-audit`.
