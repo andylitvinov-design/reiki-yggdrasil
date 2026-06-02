@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Current main fallback production deploy succeeded
+
+- Target:
+  - repo: `andylitvinov-design/reiki-yggdrasil`;
+  - ref: `main`;
+  - expected/current main SHA: `dad752ce4eb3123c142e7e175da2cd554d86ee59`.
+- Fallback workflow:
+  - command used:
+    `gh workflow run deploy-production.yml --repo andylitvinov-design/reiki-yggdrasil --ref main -f ref=main -f expected_sha=dad752ce4eb3123c142e7e175da2cd554d86ee59 -f reason="fallback deploy retry after Vercel build-rate-limit reset"`;
+  - run: `26802061798`;
+  - result: success;
+  - checkout, expected-SHA verification, dependency install, project check, Vercel env pull, Vercel build, prebuilt production deploy, production alias wait, target URL check, and legacy URL check passed;
+  - Vercel deploy URL: `https://reiki-yggdrasil-3a2dc8z07-super10.vercel.app`;
+  - aliased production URL: `https://mentalica.vercel.app`.
+- HTTP route checks:
+  - `https://mentalica.vercel.app/profile`: `200 text/html`;
+  - `https://mentalica.vercel.app/profile/mandalas`: `200 text/html`;
+  - `https://mentalica.vercel.app/profile-old`: `200 text/html`;
+  - `https://mentalica.vercel.app/masters`: `200 text/html`;
+  - `https://mentalica.vercel.app/profile/admin`: `200 text/html`;
+  - the same five routes on `https://reiki-yggdrasil.vercel.app` also returned `200 text/html`.
+- Rendered live QA:
+  - both target and legacy `/profile` rendered `Кабинет мастера Lite`;
+  - both target and legacy `/profile/mandalas` rendered `Кабинет мастера Lite`;
+  - both target and legacy `/profile-old` rendered `Кабинет мастера`;
+  - both target and legacy `/masters` rendered `Каталог мастеров`;
+  - both target and legacy `/profile/admin` rendered `Админ-модерация`;
+  - all checked routes had no framework overlay, horizontal overflow `0`, and console warnings/errors `0`.
+- Live version check:
+  - status/version endpoint: none confirmed;
+  - expected SHA: `dad752ce4eb3123c142e7e175da2cd554d86ee59`;
+  - live SHA/build marker: unknown;
+  - commit-level match: unknown because no live commit metadata endpoint exists;
+  - deploy evidence: workflow run `26802061798` checked out and verified the expected SHA before the successful Vercel production deploy.
+- Still not verified:
+  - authenticated Google OAuth;
+  - signed-in Supabase/RLS media upload/delete and saved composition save/update/load;
+  - authenticated `/profile-old` visual comparison with a real user session.
+
 ## 2026-06-02 — PR #196 merge and deployment blocker
 
 - PR: #196 `Polish Profile Lite mandala parity`.

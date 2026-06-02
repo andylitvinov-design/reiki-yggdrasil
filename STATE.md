@@ -12,6 +12,41 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Production fallback deploy retry succeeded for current main
+
+- Trigger: retry production deploy after the earlier Vercel build/deployment rate limit.
+- Target ref: `main`.
+- Expected/current main SHA: `dad752ce4eb3123c142e7e175da2cd554d86ee59`.
+- Fallback workflow:
+  - workflow: `.github/workflows/deploy-production.yml`;
+  - run: `26802061798`;
+  - result: success;
+  - reason: `fallback deploy retry after Vercel build-rate-limit reset`;
+  - deploy URL: `https://reiki-yggdrasil-3a2dc8z07-super10.vercel.app`;
+  - Vercel production alias: `https://mentalica.vercel.app`.
+- Workflow evidence:
+  - checkout and expected-SHA verification passed for `dad752ce4eb3123c142e7e175da2cd554d86ee59`;
+  - dependency install, project check, Vercel env pull, Vercel build, prebuilt production deploy, alias wait, target URL check, and legacy URL check all passed.
+- Live route verification after deploy:
+  - `https://mentalica.vercel.app/profile` rendered `Кабинет мастера Lite`, HTTP `200`, no framework overlay, horizontal overflow `0`, console warnings/errors `0`;
+  - `https://mentalica.vercel.app/profile/mandalas` rendered `Кабинет мастера Lite`, HTTP `200`, no framework overlay, horizontal overflow `0`, console warnings/errors `0`;
+  - `https://mentalica.vercel.app/profile-old` rendered `Кабинет мастера`, HTTP `200`, no framework overlay, horizontal overflow `0`, console warnings/errors `0`;
+  - `https://mentalica.vercel.app/masters` rendered `Каталог мастеров`, HTTP `200`, no framework overlay, horizontal overflow `0`, console warnings/errors `0`;
+  - `https://mentalica.vercel.app/profile/admin` rendered `Админ-модерация`, HTTP `200`, no framework overlay, horizontal overflow `0`, console warnings/errors `0`;
+  - the same five routes on `https://reiki-yggdrasil.vercel.app` also returned HTTP `200`, rendered the expected route headings, had no framework overlay, horizontal overflow `0`, and console warnings/errors `0`.
+- Live version check:
+  - Production URL: `https://mentalica.vercel.app/`;
+  - Legacy URL: `https://reiki-yggdrasil.vercel.app/`;
+  - Status/version URL: none confirmed in this project;
+  - Expected SHA: `dad752ce4eb3123c142e7e175da2cd554d86ee59`;
+  - Live SHA/build marker: unknown;
+  - Match: unknown at endpoint level;
+  - Evidence source: successful fallback workflow checkout/SHA verification plus Vercel production deploy URL and post-deploy rendered route checks;
+  - If unknown, why: the app still has no confirmed live endpoint exposing commit SHA/build metadata.
+- Not verified:
+  - authenticated Google OAuth flow;
+  - real signed-in Supabase/RLS media upload/delete, saved composition save/update/load, service publishing, and authenticated `/profile-old` comparison.
+
 ## 2026-06-02 — Profile Lite parity PR #196 merged, production deploy blocked
 
 - PR: #196 `Polish Profile Lite mandala parity`.
