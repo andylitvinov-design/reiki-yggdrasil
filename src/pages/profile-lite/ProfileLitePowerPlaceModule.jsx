@@ -36,10 +36,10 @@ const STAR_POINTS = [
   { id: "left", className: "left", label: "Левый луч" }
 ];
 const CHESS_VARIANTS = [
-  { value: "classic-14", label: "14 фоток", slotCount: 14, layout: "grid-5x3" },
-  { value: "classic-8", label: "8 фоток", slotCount: 8, layout: "grid-3x3" },
-  { value: "plus-8", label: "8 фото+", slotCount: 8, layout: "outer-inner-square" },
-  { value: "compact-5", label: "5 фоток", slotCount: 5, layout: "compact-ring" }
+  { value: "classic-14", label: "15 фоток", slotCount: 14, layout: "grid-5x3" },
+  { value: "classic-8", label: "9 фоток", slotCount: 8, layout: "grid-3x3" },
+  { value: "plus-8", label: "9 фото+", slotCount: 8, layout: "outer-inner-square" },
+  { value: "compact-5", label: "6 фоток", slotCount: 5, layout: "compact-pentagon-ring" }
 ];
 const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
   id: `chess-top-${index + 1}`,
@@ -85,11 +85,11 @@ const CHESS_SLOT_LAYOUTS = {
     { id: "chess-8", className: "inner-square inner-bottom-right", label: "Внутренний квадрат · нижний правый" }
   ],
   "compact-5": [
-    { id: "chess-1", className: "compact-top", label: "Верхняя мандала" },
-    { id: "chess-2", className: "compact-right", label: "Правая мандала" },
-    { id: "chess-3", className: "compact-bottom", label: "Нижняя мандала" },
-    { id: "chess-4", className: "compact-left", label: "Левая мандала" },
-    { id: "chess-5", className: "compact-orbit", label: "Орбитальная мандала" }
+    { id: "chess-1", className: "compact-pentagon compact-top", label: "Верхняя мандала" },
+    { id: "chess-2", className: "compact-pentagon compact-right", label: "Правая мандала" },
+    { id: "chess-3", className: "compact-pentagon compact-bottom-right", label: "Нижняя правая мандала" },
+    { id: "chess-4", className: "compact-pentagon compact-bottom-left", label: "Нижняя левая мандала" },
+    { id: "chess-5", className: "compact-pentagon compact-left", label: "Левая мандала" }
   ]
 };
 const ZODIAC_SIGNS = [
@@ -212,10 +212,14 @@ function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
 }
 
-function chessSlotScaleValue(value) {
+function slotScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.25, Math.max(0.72, scale));
+  return Math.min(1.18, Math.max(0.7, scale));
+}
+
+function chessSlotScaleValue(value) {
+  return slotScaleValue(value);
 }
 
 function uniqueImageSources(items) {
@@ -294,7 +298,8 @@ function buildSlotList(draft) {
 
 function coverLayer(coverRef, layer) {
   if (!coverRef) return FALLBACK_COVERS[0];
-  return coverRef[layer] || coverRef || FALLBACK_COVERS[0];
+  if (layer === "inner") return coverRef.inner || coverRef || FALLBACK_COVERS[0];
+  return coverRef.outer || FALLBACK_COVERS[0];
 }
 
 export default function ProfileLitePowerPlaceModule({
@@ -346,11 +351,16 @@ export default function ProfileLitePowerPlaceModule({
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
+  const sourceSlotScale = slotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
-  const chessSlotScale = chessSlotScaleValue(compositionDraft.chess_slot_scale);
+  const chessSlotScale = chessSlotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
+  const sourceSlotScaleStyle = {
+    "--power-source-slot-scale": sourceSlotScale,
+    "--power-place-chess-slot-scale": chessSlotScale
+  };
   const chessCoverStyle = {
     ...(imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src) || {}),
-    "--power-place-chess-slot-scale": chessSlotScale
+    ...sourceSlotScaleStyle
   };
 
   const savedImages = useMemo(() => uniqueImageSources([
@@ -529,6 +539,12 @@ export default function ProfileLitePowerPlaceModule({
     `power-place-chess__slot ${extraClass}`.trim(),
     ""
   );
+
+  const chessSlotClass = (className = "") => className
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((item) => `power-place-chess__slot--${item}`)
+    .join(" ");
 
   const renderPowerPlaceActions = () => (
     <div className="profileLitePowerPlaceActions">
@@ -767,21 +783,19 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "chess" && (
-                  <div className="chessSizeControl" aria-label="Размер фото">
-                    <span>Размер фото</span>
-                    <button type="button" onClick={() => onCompositionDraftChange("chess_slot_scale", Number((chessSlotScale - 0.08).toFixed(2)))} aria-label="Уменьшить размер фото">-</button>
-                    <input
-                      type="range"
-                      min="0.72"
-                      max="1.25"
-                      step="0.01"
-                      value={chessSlotScale}
-                      onChange={(event) => onCompositionDraftChange("chess_slot_scale", Number(event.target.value))}
-                    />
-                    <button type="button" onClick={() => onCompositionDraftChange("chess_slot_scale", Number((chessSlotScale + 0.08).toFixed(2)))} aria-label="Увеличить размер фото">+</button>
-                  </div>
-                )}
+                <div className="chessSizeControl" aria-label="Размер фото">
+                  <span>Размер фото</span>
+                  <button type="button" onClick={() => onCompositionDraftChange("slot_scale", Number((sourceSlotScale - 0.08).toFixed(2)))} aria-label="Уменьшить размер фото">-</button>
+                  <input
+                    type="range"
+                    min="0.7"
+                    max="1.18"
+                    step="0.01"
+                    value={sourceSlotScale}
+                    onChange={(event) => onCompositionDraftChange("slot_scale", Number(event.target.value))}
+                  />
+                  <button type="button" onClick={() => onCompositionDraftChange("slot_scale", Number((sourceSlotScale + 0.08).toFixed(2)))} aria-label="Увеличить размер фото">+</button>
+                </div>
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>
@@ -792,8 +806,8 @@ export default function ProfileLitePowerPlaceModule({
                 )}
               </div>
 
-              <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`}>
-                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "gold"}`} style={imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src)}>
+              <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "none"}`} style={{ ...(imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src) || {}), ...sourceSlotScaleStyle }}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
@@ -931,7 +945,7 @@ export default function ProfileLitePowerPlaceModule({
                         {chessVariant === "plus-8" || chessVariant === "compact-5" ? (
                           <>
                             {renderCenterPhotoWithMode("power-place-chess__center")}
-                            {(CHESS_SLOT_LAYOUTS[chessVariant] || []).map((slot, index) => renderChessSlot(slot, index, `power-place-chess__slot--${slot.className}`))}
+                            {(CHESS_SLOT_LAYOUTS[chessVariant] || []).map((slot, index) => renderChessSlot(slot, index, chessSlotClass(slot.className)))}
                           </>
                         ) : (
                           Array.from({ length: chessVariant === "classic-14" ? 15 : 9 }, (_, index) => {
@@ -988,17 +1002,8 @@ export default function ProfileLitePowerPlaceModule({
                   )}
                 </div>
               </div>
-
-              <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
-                <summary>Диагностика / advanced object refs JSON</summary>
-                <label>
-                  Object refs JSON
-                  <textarea value={objectRefText(compositionDraft.object_refs)} onChange={(event) => onCompositionObjectRefsChange(event.target.value)} rows={6} />
-                </label>
-              </details>
             </section>
           )}
-          {workspaceTab === "power-place" && renderPowerPlaceActions()}
         </div>
 
         <div className="workspaceRightColumn">
@@ -1112,6 +1117,17 @@ export default function ProfileLitePowerPlaceModule({
             </div>
           </aside>
         </div>
+
+        {workspaceTab === "power-place" && renderPowerPlaceActions()}
+        {workspaceTab === "power-place" && (
+          <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
+            <summary>Диагностика / advanced object refs JSON</summary>
+            <label>
+              Object refs JSON
+              <textarea value={objectRefText(compositionDraft.object_refs)} onChange={(event) => onCompositionObjectRefsChange(event.target.value)} rows={6} />
+            </label>
+          </details>
+        )}
       </div>
 
       {pickerMode && (

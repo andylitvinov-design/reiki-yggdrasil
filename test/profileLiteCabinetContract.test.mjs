@@ -267,18 +267,43 @@ assert.match(powerPlaceSource, /const ZODIAC_SIGNS = \[/, "Lite Power Place shou
 assert.match(powerPlaceSource, /ZODIAC_PLUS_SLOT_LAYOUT/, "Lite Power Place should copy old zodiac plus placement definitions");
 assert.match(powerPlaceSource, /const CHESS_TOP_SLOTS = Array\.from/, "Lite Power Place should copy old chess top row slot definitions");
 assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*row: 5, col: 3/, "Lite Power Place should copy old chess board coordinate layout");
-assert.match(powerPlaceSource, /value: "compact-5"[\s\S]*label: "5 фоток"[\s\S]*slotCount: 5/, "Lite chess variants should include compact 5-photo format");
+assert.match(powerPlaceSource, /value: "classic-14"[\s\S]*label: "15 фоток"[\s\S]*slotCount: 14/, "classic-14 UI label should count the central photo as the 15th photo");
+assert.match(powerPlaceSource, /value: "classic-8"[\s\S]*label: "9 фоток"[\s\S]*slotCount: 8/, "classic-8 UI label should count the central photo as the 9th photo");
+assert.match(powerPlaceSource, /value: "plus-8"[\s\S]*label: "9 фото\+"[\s\S]*slotCount: 8/, "plus-8 UI label should count the central photo as the 9th photo");
+assert.match(powerPlaceSource, /value: "compact-5"[\s\S]*label: "6 фоток"[\s\S]*slotCount: 5/, "compact-5 UI label should count the central photo as the 6th photo");
 assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*"compact-5"[\s\S]*id: "chess-5"/, "Lite chess compact-5 layout should define exactly five source slots");
 assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*outer-square[\s\S]*inner-square/, "Lite chess plus-8 should use outer and inner square markers");
+assert.match(powerPlaceSource, /CHESS_SLOT_LAYOUTS[\s\S]*"compact-5"[\s\S]*compact-pentagon/, "Lite chess compact-5 should expose a stable pentagon/ring placement marker");
 assert.doesNotMatch(powerPlaceSource, /buildSlotList[\s\S]*type === "chess"[\s\S]*\.\.\.CHESS_TOP_SLOTS/, "Lite chess source slot lists should not automatically add top-row slots");
 assert.doesNotMatch(powerPlaceSource, /<div className="power-place-chess__top-row"[\s\S]*CHESS_TOP_SLOTS\.map/, "Lite chess top-row should not render unconditionally for every chess variant");
 assert.match(powerPlaceSource, /chess_slot_scale/, "Lite chess should persist a slot size control value in the composition draft");
+assert.match(profileLitePageSource, /slot_scale:\s*1/, "Profile Lite empty composition should include the shared slot_scale field");
+assert.match(powerPlaceSource, /function slotScaleValue/, "Lite Power Place should use a shared slot scale helper for all constructor formats");
+assert.match(powerPlaceSource, /compositionDraft\.slot_scale\s*\?\?\s*objectRefs\.__slot_scale\s*\?\?\s*compositionDraft\.chess_slot_scale\s*\?\?\s*1/, "chess should keep persisted object_refs and existing chess_slot_scale fallback behind shared slot_scale");
+assert.match(powerPlaceSource, /--power-source-slot-scale/, "Lite Power Place should expose shared source slot scale via a CSS variable");
 assert.match(powerPlaceSource, /--power-place-chess-slot-scale/, "Lite chess should expose slot size via a CSS variable");
 assert.match(powerPlaceSource, /Размер фото/, "Lite chess should render a visible photo size control");
+assert.doesNotMatch(powerPlaceSource, /compositionDraft\.constructor_type === "chess" && \(\s*<div className="chessSizeControl"/, "Размер фото control should not be gated to chess only");
+for (const scaledClass of [
+  "powerSource",
+  "zodiacPositionImage",
+  "starPositionImage",
+  "altarTopSource",
+  "altarSupportSource",
+  "businessVertexZone",
+  "daoElementImage",
+  "power-place-chess__slot"
+]) {
+  assert.match(profileMandalaCss, new RegExp(`${scaledClass.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*--power-source-slot-scale|--power-source-slot-scale[\\s\\S]*${scaledClass.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`), `${scaledClass} should be wired to the shared source slot scale`);
+}
 assert.match(powerPlaceSource, /cover-mentalica[\s\S]*label: "Mentalica"/, "Lite fallback covers should include Mentalica");
 assert.match(profileMandalaCss, /\.power-place-chess\.cover-mentalica/, "Chess CSS should render a Mentalica fallback cover tone");
 assert.match(profileMandalaCss, /field-layout-square[\s\S]*--power-place-chess-card-aspect/, "Square field layout should affect chess card aspect");
 assert.match(profileMandalaCss, /field-layout-(?:vertical|rectangle)[\s\S]*--power-place-chess-card-aspect/, "Rectangle/vertical field layout should affect chess card aspect");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-square[\s\S]*--power-field-aspect/, "field layout should expose panel aspect CSS variables");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-vertical[\s\S]*--power-field-aspect/, "vertical field layout should expose panel aspect CSS variables");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-horizontal[\s\S]*--power-field-aspect/, "horizontal field layout should expose panel aspect CSS variables");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-rectangle[\s\S]*--power-field-aspect/, "rectangle field layout should expose panel aspect CSS variables");
 assert.match(powerPlaceSource, /BUSINESS_VERTICES[\s\S]*className: "top"[\s\S]*className: "left"[\s\S]*className: "right"/, "Lite Power Place should copy old three-vertex business layout");
 assert.match(powerPlaceSource, /DAO_ELEMENTS[\s\S]*"water"[\s\S]*"wood"[\s\S]*"fire"[\s\S]*"earth"[\s\S]*"metal"/, "Lite Power Place should copy old DAO element order");
 assert.match(powerPlaceSource, /powerCommandRail/, "Lite right rail should reuse old powerCommandRail shell");
@@ -295,7 +320,7 @@ assert.match(powerPlaceSource, /className: "plus-top"[\s\S]*className: "plus-rig
 assert.match(powerPlaceSource, /className: "plus-corner-tl"[\s\S]*className: "plus-corner-tr"[\s\S]*className: "plus-corner-bl"[\s\S]*className: "plus-corner-br"/, "Lite zodiac 12+ should use old plus corner class names");
 assert.match(powerPlaceSource, /<div className="altarTopRow"[\s\S]*altarTopSource main[\s\S]*altarMandalaBase[\s\S]*altarBottomSupports/, "Lite altar should render the old top row, center/base, and bottom support structure");
 assert.doesNotMatch(powerPlaceSource, /altarObject altarObject-|altarSupport altarSupport-/, "Lite altar must not use non-reference altar object class names");
-assert.match(powerPlaceSource, /<div className="workspaceCenterColumn"[\s\S]*powerPlaceConstructor[\s\S]*workspaceTab === "power-place" && renderPowerPlaceActions\(\)[\s\S]*<div className="workspaceRightColumn"/, "Save/actions block should live in the center workspace before the right rail");
+assert.match(powerPlaceSource, /<div className="workspaceRightColumn"[\s\S]*powerCommandRail[\s\S]*workspaceTab === "power-place" && renderPowerPlaceActions\(\)[\s\S]*profileLiteAdvancedJson/, "Power Place settings rail should render before save/actions and advanced JSON in the mobile source order");
 assert.match(profileMandalaCss, /profileLitePowerPlaceColumns[\s\S]*minmax\(320px, 340px\)/, "Lite Power Place right rail should keep old thicker right-column proportions");
 assert.match(profileMandalaCss, /print-color-adjust:\s*exact/, "Print CSS should preserve color backgrounds");
 assert.match(profileMandalaCss, /-webkit-print-color-adjust:\s*exact/, "Print CSS should preserve WebKit color backgrounds");
@@ -307,8 +332,11 @@ assert.match(powerPlaceSource, /activeCover = visibleCover/, "cover active state
 assert.match(powerPlaceSource, /coverLayerMode === "inner"\s*\?\s*"cover_ref.inner"\s*:\s*"cover_ref.outer"/, "cover layer UI should carry explicit inner/outer save markers");
 assert.doesNotMatch(powerPlaceSource, /key=\{`\$\{coverLayerMode\}-\$\{cover\.id\}`\}/, "cover layer switching must not remount the full cover option list");
 assert.match(powerPlaceSource, /item\.display_url \|\| item\.signed_url \|\| item\.image_url/, "material cover options should use signed URL hydration like other media rows");
+assert.match(powerPlaceSource, /function coverLayer[\s\S]*layer === "inner"[\s\S]*coverRef\.inner \|\| coverRef[\s\S]*coverRef\.outer \|\| FALLBACK_COVERS\[0\]/, "old single cover_ref should remain an inner fallback while outer defaults to no-cover");
 assert.match(profileLitePageSource, /inner:\s*layer === "inner" \? nextLayer : inner/, "inner cover selection should save only into cover_ref.inner");
 assert.match(profileLitePageSource, /outer:\s*layer === "outer" \? nextLayer : outer/, "outer cover selection should save only into cover_ref.outer");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.workspaceCenterColumn[\s\S]*order:\s*1[\s\S]*\.workspaceRightColumn[\s\S]*order:\s*2[\s\S]*\.mandalaModeSidebar[\s\S]*order:\s*3/, "mobile order should keep the Power Place settings rail immediately after the visual constructor");
+assert.match(profileMandalaCss, /@media \(max-width: 1180px\)[\s\S]*\.profileLitePowerPlace \.workspaceCenterColumn[\s\S]*order:\s*1[\s\S]*\.profileLitePowerPlace \.workspaceRightColumn[\s\S]*order:\s*2[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions[\s\S]*order:\s*3[\s\S]*\.profileLitePowerPlace \.profileLiteAdvancedJson[\s\S]*order:\s*4[\s\S]*\.profileLitePowerPlace \.mandalaModeSidebar[\s\S]*order:\s*5/, "Profile Lite mobile order should place settings immediately after the constructor and move actions/advanced/source rail below");
 
 for (const [source, label] of [
   [overviewModuleSource, "overview"],

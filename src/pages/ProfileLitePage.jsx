@@ -101,6 +101,7 @@ const EMPTY_COMPOSITION = {
   star_variant: "closed",
   chess_variant: "classic-14",
   chess_slot_scale: 1,
+  slot_scale: 1,
   cover_ref: null,
   object_refs: {},
   central_photo_id: "",
@@ -735,7 +736,17 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionDraftChange = (field, value) => {
-    setCompositionDraft((current) => ({ ...current, [field]: value }));
+    setCompositionDraft((current) => {
+      if (field !== "slot_scale") return { ...current, [field]: value };
+      return {
+        ...current,
+        slot_scale: value,
+        object_refs: {
+          ...(current.object_refs || {}),
+          __slot_scale: String(value)
+        }
+      };
+    });
   };
 
   const handleCompositionObjectRefsChange = (value) => {
