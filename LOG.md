@@ -1,5 +1,51 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Fix Profile Lite chess center and cover hydration
+
+- Branch: `codex/fix-profile-lite-chess-center-cover-hydration`.
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - absolute chess variants inherited the shared center `height: 100%`, which stretched the center image in `9 фото+` and `6 фоток`;
+  - saved composition hydration returned slot-keyed display URLs instead of durable `storageRef -> signedUrl` entries;
+  - nested cover refs were not hydrated for inner/outer cover layers.
+- Changed:
+  - scoped `height: auto` onto `plus-8` and `compact-5` chess centers;
+  - hydrated only string Storage refs from `object_refs` and ignored non-string service objects;
+  - returned `object_ref_urls` as durable ref keys;
+  - hydrated `cover_ref.src`, `cover_ref.inner.src`, and `cover_ref.outer.src` into display-only `display_src`;
+  - kept legacy render fallback from durable ref to slot id / `__center_image`.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-bootstrap`
+  - `npm run test:profile-media`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-loading-recovery`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+- Check notes:
+  - all commands exited `0`;
+  - `npm run check` retained the existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - Vite retained the existing large-chunk warning.
+- Browser QA:
+  - Browser plugin `iab` backend was unavailable, so QA used Playwright fallback;
+  - local preview ran at `http://127.0.0.1:4174/profile/mandalas` with fake public Supabase env/session only;
+  - mobile 390x900: chess `15 фоток`, `9 фоток`, `9 фото+`, and `6 фоток` rendered with overflowX `0`;
+  - `9 фото+` and `6 фоток` center buttons measured square at 63px by 63px;
+  - `Фон внутри` changed the chess class to `cover-mentalica`; `Фон снаружи` changed the panel class to `outer-cover-forest`.
+- Not verified:
+  - real authenticated Supabase upload/save/reload/open saved composition;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Fix Profile Lite Power Place print, PDF, and save/list
 
 - Branch: `codex/fix-profile-lite-print-pdf-save-power-place`.

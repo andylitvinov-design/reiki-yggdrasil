@@ -152,37 +152,63 @@ async function resolveStorageRefs(refs, session) {
   return Object.fromEntries(entries.filter(([, url]) => Boolean(url)));
 }
 
+function collectCompositionStorageRefs(row) {
+  const refs = [];
+  for (const value of Object.values(cleanJsonObject(row?.object_refs))) {
+    if (typeof value === "string" && isStorageRef(value)) refs.push(value);
+  }
+
+  const coverRef = cleanJsonObject(row?.cover_ref);
+  for (const value of [coverRef.src, coverRef.inner?.src, coverRef.outer?.src]) {
+    if (typeof value === "string" && isStorageRef(value)) refs.push(value);
+  }
+
+  return refs;
+}
+
+function hydrateCoverDisplayRef(coverRef, signedUrls) {
+  const cover = cleanJsonObject(coverRef);
+  if (!coverRef || Object.keys(cover).length === 0) return coverRef;
+
+  const hydrateLayer = (layer) => {
+    const source = cleanJsonObject(layer);
+    if (!layer || Object.keys(source).length === 0) return layer;
+    const signedUrl = typeof source.src === "string" ? signedUrls[source.src] : "";
+    return signedUrl ? { ...source, display_src: signedUrl } : source;
+  };
+
+  const signedUrl = typeof cover.src === "string" ? signedUrls[cover.src] : "";
+  return {
+    ...cover,
+    ...(signedUrl ? { display_src: signedUrl } : {}),
+    ...(cover.inner ? { inner: hydrateLayer(cover.inner) } : {}),
+    ...(cover.outer ? { outer: hydrateLayer(cover.outer) } : {})
+  };
+}
+
+function hydrateCompositionRowsWithSignedUrls(rows, signedUrls) {
+  return (rows || []).map((row) => ({
+    ...row,
+    object_ref_urls: { ...signedUrls },
+    cover_ref: hydrateCoverDisplayRef(row.cover_ref, signedUrls)
+  }));
+}
+
 async function hydrateMediaRows(rows, session) {
   return hydrateMediaRowsForDisplay(rows, session);
 }
 
 async function hydrateCompositionRows(rows, session) {
-  const refs = [];
-  for (const row of rows || []) {
-    for (const value of Object.values(cleanJsonObject(row.object_refs))) {
-      if (isStorageRef(value)) refs.push(value);
-    }
-    const coverSrc = cleanText(row.cover_ref?.src);
-    if (isStorageRef(coverSrc)) refs.push(coverSrc);
-  }
+  const refs = (rows || []).flatMap(collectCompositionStorageRefs);
 
   const signedUrls = await resolveStorageRefs(refs, session);
-  return (rows || []).map((row) => {
-    const objectRefs = cleanJsonObject(row.object_refs);
-    const displayObjectRefs = Object.fromEntries(
-      Object.entries(objectRefs).map(([key, value]) => [key, signedUrls[value] || value])
-    );
-    const coverRef = row.cover_ref?.src && signedUrls[row.cover_ref.src]
-      ? { ...row.cover_ref, display_src: signedUrls[row.cover_ref.src] }
-      : row.cover_ref;
-
-    return {
-      ...row,
-      object_ref_urls: displayObjectRefs,
-      cover_ref: coverRef
-    };
-  });
+  return hydrateCompositionRowsWithSignedUrls(rows, signedUrls);
 }
+
+export const __testPowerPlaceClient = {
+  collectCompositionStorageRefs,
+  hydrateCompositionRowsWithSignedUrls
+};
 
 export function normalizeAccountPlan(plan) {
   const normalized = cleanText(plan).toLowerCase();

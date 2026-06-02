@@ -12,6 +12,31 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite chess center and cover hydration fix
+
+- Branch: `codex/fix-profile-lite-chess-center-cover-hydration`, based on `origin/main`.
+- Scope: Profile Lite `/profile/mandalas` Power Place chess layout and saved private-image hydration only; `/`, `/profile`, `/masters`, `/profile/admin`, auth/session flow, env values, migrations, and Vercel rewrites were not changed.
+- Root causes:
+  - absolute chess variants `plus-8` and `compact-5` inherited `.power-place-chess__center { height: 100%; }`, stretching the central image into a vertical strip;
+  - composition hydration returned `object_ref_urls` keyed by slot id instead of durable storage ref, so saved private Storage images could not be resolved after reload;
+  - hydration only signed legacy `cover_ref.src` and did not hydrate nested `cover_ref.inner.src` / `cover_ref.outer.src`.
+- Changed:
+  - added a scoped CSS override so `plus-8` and `compact-5` center photos remain square with `background-size: cover`;
+  - changed composition hydration to collect only string Storage refs from `object_refs`, ignore non-string service objects, and return `object_ref_urls` as `storageRef -> signedUrl`;
+  - hydrated legacy, inner, and outer cover layers with `display_src` without persisting signed URLs;
+  - kept backward-compatible Profile Lite rendering fallbacks for older slot-id and `__center_image` URL maps;
+  - added focused contract coverage for the hydration shape, nested covers, center square override, and fallback reads.
+- Verification:
+  - `npm install` completed with no vulnerabilities;
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-bootstrap`, `npm run test:profile-media`, `npm run test:profile-materials`, `npm run test:profile-loading-recovery`, and `npm run test:profile-services` passed;
+  - `npm run build` passed with the existing Vite large-chunk warning;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - local mobile QA on `http://127.0.0.1:4174/profile/mandalas` at 390x900 with fake public Supabase env/session confirmed `15 фоток`, `9 фоток`, `9 фото+`, and `6 фоток` render without horizontal overflow; `9 фото+` and `6 фоток` centers measured 63px by 63px;
+  - local cover UI QA confirmed `Фон внутри` applies `cover-mentalica` and `Фон снаружи` applies `outer-cover-forest`.
+- Not verified:
+  - real authenticated Supabase upload/save/reload and opening a saved production composition;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite Power Place print/PDF/save fix
 
 - Branch: `codex/fix-profile-lite-print-pdf-save-power-place`, created from clean `codex/fix-power-place-mobile-layout-covers-scale`.
