@@ -13,18 +13,8 @@ export default function ProfileLiteShell({
   profile,
   user
 }) {
-  return (
-    <div className={`cabinetShell profileLiteShell profileLiteFullShell profileLiteShell-${activeTab}`}>
-      <header className="cabinetTopbar profileLiteTopbar">
-        <button type="button" onClick={onNavigateHome}>На главную</button>
-        <div>
-          <p>Альтернативный кабинет</p>
-          <h1>Кабинет мастера Lite</h1>
-          <small>{user?.email || "вход не выполнен"} · {profile?.display_name || "профиль загружается отдельно"}</small>
-        </div>
-        <button type="button" onClick={onNavigateMasters}>Мастера</button>
-      </header>
-
+  const shellChrome = (
+    <div className="profileLiteShellChrome">
       <nav className="profileLiteTabs" aria-label="Разделы кабинета Profile Lite">
         {PROFILE_LITE_TABS.map((tab) => (
           <a
@@ -50,9 +40,30 @@ export default function ProfileLiteShell({
           <button className="cabinetGhost" type="button" onClick={onReset}>Выйти / сбросить</button>
         </div>
       </div>
+    </div>
+  );
+
+  const content = typeof children === "function" ? children(shellChrome) : (
+    <>
+      {shellChrome}
+      {children}
+    </>
+  );
+
+  return (
+    <div className={`cabinetShell profileLiteShell profileLiteFullShell profileLiteShell-${activeTab}`}>
+      <header className="cabinetTopbar profileLiteTopbar">
+        <button type="button" onClick={onNavigateHome}>На главную</button>
+        <div>
+          <p>Альтернативный кабинет</p>
+          <h1>Кабинет мастера Lite</h1>
+          <small>{user?.email || "вход не выполнен"} · {profile?.display_name || "профиль загружается отдельно"}</small>
+        </div>
+        <button type="button" onClick={onNavigateMasters}>Мастера</button>
+      </header>
 
       <main className="cabinetMain profileLiteWorkspace">
-        {children}
+        {content}
       </main>
     </div>
   );

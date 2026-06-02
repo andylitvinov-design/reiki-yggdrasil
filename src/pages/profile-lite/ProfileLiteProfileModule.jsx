@@ -10,10 +10,25 @@ export default function ProfileLiteProfileModule({
   profileError,
   profileStatus,
   saveMessage,
-  saveStatus
+  saveStatus,
+  shellChrome
 }) {
   return (
-    <section className="profileLiteModule profileLiteProfileGrid profileTabContent" aria-label="Профиль">
+    <section className="profileLiteModule profileLiteProfileGrid profileTabContent mandalaWorkspace" aria-label="Профиль">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">◉</div>
+        <div>
+          <p className="cabinetEyebrow">Профиль мастера</p>
+          <h2>{profile?.display_name || "Новый профиль"}</h2>
+          <p>Редактируйте публичную карточку мастера, статус модерации и лимиты кабинета в той же светло-золотой рабочей оболочке.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{form.account_plan || "start"}</b> План</span>
+          <span><b>{form.status || "draft"}</b> Статус</span>
+          <span><b>{formatCabinetId(profile?.id)}</b> ID</span>
+        </div>
+      </div>
+      {shellChrome}
       <form className="cabinetCard profileForm" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
         <div className="cabinetFormHeader">
           <div>

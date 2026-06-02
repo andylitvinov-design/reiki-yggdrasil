@@ -308,6 +308,7 @@ export default function ProfileLitePowerPlaceModule({
   onUploadedCentralPhoto,
   planLimits,
   powerPlaceCompositions,
+  shellChrome,
   traditionAssets
 }) {
   const [workspaceTab, setWorkspaceTab] = useState("power-place");
@@ -359,7 +360,7 @@ export default function ProfileLitePowerPlaceModule({
       label: item.title || "Материал",
       meta: item.material_category || item.step_title || item.type || "Материалы",
       src: item.image_ref || item.image_url,
-      displaySrc: item.display_url || item.image_url,
+      displaySrc: item.display_url || item.signed_url || item.image_url,
       signingError: item.media_signing_error || "",
       kind: "material",
       stepId: item.step_id || "",
@@ -380,6 +381,8 @@ export default function ProfileLitePowerPlaceModule({
     ...(innerCover?.id === "custom-cover" ? [innerCover] : []),
     ...(outerCover?.id === "custom-outer-cover" ? [outerCover] : [])
   ], [innerCover, outerCover, savedImages]);
+  const activeCover = visibleCover;
+  const coverLayerSaveTarget = coverLayerMode === "inner" ? "cover_ref.inner" : "cover_ref.outer";
   const activeSourceCategoryData = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activeSourceCategory) || SOURCE_LIBRARY_CATEGORIES[0];
   const activeSourceSubcategoryData = activeSourceCategoryData.subcategories.find((item) => item.value === activeSourceSubcategory) || activeSourceCategoryData.subcategories[0] || null;
   const activeSourceThirdLevelData = activeSourceSubcategoryData?.thirdLevels?.find((item) => item.value === activeSourceThirdLevel) || activeSourceSubcategoryData?.thirdLevels?.[0] || null;
@@ -539,6 +542,8 @@ export default function ProfileLitePowerPlaceModule({
           <span><b>{savedImages.length}</b> Образы</span>
         </div>
       </div>
+
+      {shellChrome}
 
       <div className="workspaceSwitches">
         <div className="workspaceTabs" role="tablist" aria-label="Раздел мастерской мандал">
@@ -1000,9 +1005,9 @@ export default function ProfileLitePowerPlaceModule({
                   <span>{visibleCover?.label || "Без фона"}</span>
                 </div>
               </div>
-              <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона">
+              <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона" data-cover-layer-target={coverLayerSaveTarget}>
                 {coverOptions.map((cover) => (
-                  <button className={visibleCover?.id === cover.id ? "active" : ""} key={`${coverLayerMode}-${cover.id}`} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
+                  <button className={activeCover?.id === cover.id ? "active" : ""} key={cover.id} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
                     {cover.label}
                   </button>
                 ))}

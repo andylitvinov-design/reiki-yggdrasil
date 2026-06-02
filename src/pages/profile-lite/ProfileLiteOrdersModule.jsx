@@ -1,9 +1,23 @@
 import React from "react";
 import { orderStatusText } from "../../lib/profileServicesClient.js";
 
-export default function ProfileLiteOrdersModule({ onOrderPatchChange, onOrderUpdate, orderPatch, orders, ordersError, ordersStatus }) {
+export default function ProfileLiteOrdersModule({ onOrderPatchChange, onOrderUpdate, orderPatch, orders, ordersError, ordersStatus, shellChrome }) {
   return (
     <section className="profileLiteModule profileLiteOrders mandalaWorkspace" aria-label="Заказы">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">□</div>
+        <div>
+          <p className="cabinetEyebrow">Заказы</p>
+          <h2>Заявки клиентов</h2>
+          <p>Ведите входящие заявки, ответ мастера и итоговое изображение в рабочем стиле мандальной мастерской.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{orders.length}</b> Заявки</span>
+          <span><b>{ordersStatus}</b> Статус</span>
+          <span><b>{orderPatch.id ? "open" : "idle"}</b> Выбор</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="workspaceMainColumns profileLiteLegacyColumns">
         <aside className="mandalaModeSidebar">
           <p className="cabinetEyebrow">Рабочий режим</p>

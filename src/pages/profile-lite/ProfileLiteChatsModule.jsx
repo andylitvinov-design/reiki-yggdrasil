@@ -7,6 +7,7 @@ export default function ProfileLiteChatsModule({
   chatsStatus,
   onChatDraftChange,
   onSendMessage,
+  shellChrome,
   onThreadSelect,
   selectedThreadId
 }) {
@@ -14,6 +15,20 @@ export default function ProfileLiteChatsModule({
 
   return (
     <section className="profileLiteModule profileLiteChats mandalaWorkspace" aria-label="Чаты">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">◈</div>
+        <div>
+          <p className="cabinetEyebrow">Чаты</p>
+          <h2>Чаты и рабочие заметки</h2>
+          <p>Сохраняйте диалоги по местам силы, фото клиентов, мистериям и материалам в едином кабинете.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{chatThreads.length}</b> Чаты</span>
+          <span><b>{chatsStatus}</b> Статус</span>
+          <span><b>{selectedThread ? "open" : "idle"}</b> Поток</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="workspaceMainColumns profileLiteLegacyColumns">
         <aside className="mandalaModeSidebar">
           <p className="cabinetEyebrow">Рабочий режим</p>

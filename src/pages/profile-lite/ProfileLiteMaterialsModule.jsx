@@ -11,10 +11,25 @@ export default function ProfileLiteMaterialsModule({
   onFieldChange,
   onFileChange,
   onSave,
+  shellChrome,
   stepOptions
 }) {
   return (
     <section className="profileLiteModule profileLiteMaterialsModule mandalaWorkspace" aria-label="Материалы">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">✦</div>
+        <div>
+          <p className="cabinetEyebrow">Материалы</p>
+          <h2>Алтарь материалов</h2>
+          <p>Собирайте мандалы, артефакты и практики вокруг ступени, настройки и рабочего образа.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{materials.length}</b> Записи</span>
+          <span><b>{MATERIAL_TYPES.length}</b> Типы</span>
+          <span><b>{materialsStatus}</b> Статус</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="workspaceMainColumns profileLiteLegacyColumns">
         <aside className="mandalaModeSidebar">
           <p className="cabinetEyebrow">Источники силы</p>

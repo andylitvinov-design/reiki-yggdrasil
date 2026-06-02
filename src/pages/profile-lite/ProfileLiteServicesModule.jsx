@@ -6,12 +6,27 @@ export default function ProfileLiteServicesModule({
   onPublish,
   onSave,
   serviceForm,
+  shellChrome,
   services,
   servicesError,
   servicesStatus
 }) {
   return (
     <section className="profileLiteModule profileLiteServices mandalaWorkspace" aria-label="Услуги">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">◇</div>
+        <div>
+          <p className="cabinetEyebrow">Услуги</p>
+          <h2>Каталог услуг</h2>
+          <p>Публикуйте мандалы и рабочие форматы как услуги мастера, сохраняя связь с местами силы.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{services.length}</b> Услуги</span>
+          <span><b>{servicesStatus}</b> Статус</span>
+          <span><b>Lite</b> Shell</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="workspaceMainColumns profileLiteLegacyColumns">
         <aside className="mandalaModeSidebar">
           <p className="cabinetEyebrow">Рабочий режим</p>

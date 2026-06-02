@@ -1,8 +1,22 @@
 import React from "react";
 
-export default function ProfileLiteDiagnosticsModule({ diagnostics, moduleStates }) {
+export default function ProfileLiteDiagnosticsModule({ diagnostics, moduleStates, shellChrome }) {
   return (
-    <section className="profileLiteModule profileLiteDiagnostics" aria-label="Диагностика">
+    <section className="profileLiteModule profileLiteDiagnostics mandalaWorkspace" aria-label="Диагностика">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">⌁</div>
+        <div>
+          <p className="cabinetEyebrow">Диагностика</p>
+          <h2>Safe debug</h2>
+          <p>Показывает только безопасные статусы модулей без env values, токенов и приватных серверных ключей.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{diagnostics.length}</b> Checks</span>
+          <span><b>{Object.keys(moduleStates).length}</b> Modules</span>
+          <span><b>safe</b> Debug</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="cabinetCard profileLiteDebug">
         <p className="cabinetEyebrow">Диагностика</p>
         <h2>Safe debug</h2>

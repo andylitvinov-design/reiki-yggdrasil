@@ -1,8 +1,22 @@
 import React from "react";
 
-export default function ProfileLiteSettingsModule({ onReset, profile }) {
+export default function ProfileLiteSettingsModule({ onReset, profile, shellChrome }) {
   return (
-    <section className="profileLiteModule profileLiteSettings" aria-label="Настройки">
+    <section className="profileLiteModule profileLiteSettings mandalaWorkspace" aria-label="Настройки">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">⚙</div>
+        <div>
+          <p className="cabinetEyebrow">Настройки</p>
+          <h2>Параметры кабинета</h2>
+          <p>План, reference routes и локальные действия кабинета остаются в безопасной публичной оболочке.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{profile?.account_plan || "start"}</b> План</span>
+          <span><b>old</b> Reference</span>
+          <span><b>Lite</b> Shell</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="cabinetCard">
         <p className="cabinetEyebrow">Настройки</p>
         <h2>Параметры кабинета</h2>
