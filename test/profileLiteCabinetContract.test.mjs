@@ -189,6 +189,7 @@ const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.j
 const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const libraryUploadSource = profileLitePageSource.match(/const handleLibraryClientPhotoUpload[\s\S]*?const handleDeleteClientPhoto/)?.[0] || "";
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const backgroundZoneControlsSource = readFileSync("public/profile-background-zone-controls.js", "utf8");
 const backgroundTabsRefineSource = readFileSync("public/profile-background-tabs-refine.js", "utf8");
@@ -207,7 +208,7 @@ for (const requiredPowerPlaceText of [
   "Мастерская мандал",
   "Место силы",
   "Мои мандалы",
-  "Добавить мандалу",
+  "Добавить фото",
   "Группа",
   "Категория",
   "Подкатегория / Ступень",
@@ -227,7 +228,7 @@ for (const requiredPowerPlaceText of [
   "Скачать PDF",
   "Печать",
   "Для цветной печати включите в окне печати: Background graphics / Фоновая графика.",
-  "Загрузить новое фото",
+  "Загрузить фото",
   "Удалить фото из базы?"
 ]) {
   assert.match(powerPlacePickerSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
@@ -238,6 +239,8 @@ assert.doesNotMatch(powerPlaceSource, /powerChooseBaseButton/, "Profile Lite lef
 assert.match(powerPlaceSource, /data-compact-photo-list="true"/, "Profile Lite left rail should expose a compact photo list marker");
 assert.match(powerPlaceSource, /aria-label="Компактный список фото"/, "Profile Lite left rail should label the compact photo list");
 assert.match(powerPlaceSource, /data-delete-photo-button="true"/, "Profile Lite left rail should expose a delete button marker for client photos");
+assert.match(powerPlaceSource, /openPicker\("library"\)/, "left rail upload should open explicit library upload mode");
+assert.doesNotMatch(powerPlaceSource, /openPicker\(selectedSlot \? "object" : "center"\)/, "left rail upload must not infer target upload from selected slot state");
 assert.match(powerPlaceSource, /value: "favorites"[\s\S]*label: "Избранные"/, "Profile Lite left filter should include favorites as a source group");
 assert.match(powerPlaceSource, /<option value="">Последние фото<\/option>/, "Profile Lite left filter should default to latest photos when no filter is selected");
 
@@ -441,6 +444,7 @@ assert.doesNotMatch(powerPlaceSource, /clientPhotoPickerBackdrop[\s\S]*Выбр�
 for (const requiredPickerProp of [
   "mode",
   "images",
+  "defaultLibraryTab",
   "selectedImageRef",
   "onSelect",
   "onUpload",
@@ -453,24 +457,38 @@ for (const requiredPickerProp of [
 }
 
 for (const requiredPickerText of [
-  "Сохранённые фото",
+  "Новые",
+  "Клиенты",
+  "Материалы",
+  "Загрузить фото",
   "signed URL не создан — проверьте Storage/RLS",
-  "Загрузить новое фото",
+  "needs verification",
   "Удалить фото из базы?"
 ]) {
   assert.match(imagePickerSource, new RegExp(requiredPickerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `ProfileLiteImagePicker should include ${requiredPickerText}`);
 }
 
+assert.match(imagePickerSource, /useState\("clients"\)/, "upload destination tabs should default to Клиенты");
+assert.match(imagePickerSource, /mode === "library"/, "picker should distinguish global library upload from slot upload");
+assert.match(imagePickerSource, /onUpload\(\{[\s\S]*destination:[\s\S]*file/, "picker upload should pass destination metadata to the parent upload flow");
 assert.match(imagePickerSource, /onSelect\(image\)/, "picker cards should select images directly");
-assert.match(imagePickerSource, /await onUpload\(file\)/, "picker upload should wait for the parent upload flow before closing");
+assert.match(imagePickerSource, /await onUpload\(/, "picker upload should wait for the parent upload flow before closing");
 assert.match(imagePickerSource, /mediaSigningError|signingError/, "picker should expose a safe signing diagnostic for storage refs without displaySrc");
 assert.doesNotMatch(imagePickerSource, /needsSignedUrl\s*\?\s*"Нужна signed URL"/, "storage refs without displaySrc must not look like a successful preview state");
 assert.doesNotMatch(imagePickerSource, /onChange=\{\(event\)[\s\S]*onClose\(\)/, "picker file input must not close the modal before upload success");
 
-assert.match(profileLitePageSource, /savedDisplayUrl\s*=\s*saved\?\.display_url\s*\|\|\s*saved\?\.signed_url\s*\|\|\s*uploaded\.signedUrl/, "central upload should keep saved display URL or uploaded signed URL fallback");
-assert.match(profileLitePageSource, /savedImageRef\s*=\s*saved\?\.image_ref\s*\|\|\s*uploaded\.ref/, "central upload should keep saved image ref or uploaded ref fallback");
+assert.match(profileLitePageSource, /handleLibraryClientPhotoUpload/, "Profile Lite page should have a library-only client photo upload handler");
+assert.match(libraryUploadSource, /setClientGoalPhotos\(\(current\) => \[savedPhoto,[\s\S]*current\]/, "library upload should add the saved photo to the left photo list");
+assert.doesNotMatch(libraryUploadSource, /central_photo_id/, "library upload must not set central_photo_id");
+assert.doesNotMatch(libraryUploadSource, /__center_image/, "library upload must not write object_refs.__center_image");
+assert.doesNotMatch(libraryUploadSource, /setCompositionObjectRef/, "library upload must not write object slot refs");
+assert.doesNotMatch(libraryUploadSource, /handleCompositionCoverSelect/, "library upload must not change cover_ref");
+assert.match(libraryUploadSource, /savedDisplayUrl\s*=\s*saved\?\.display_url\s*\|\|\s*saved\?\.signed_url\s*\|\|\s*uploaded\.signedUrl/, "library upload should keep saved display URL or uploaded signed URL fallback");
+assert.match(libraryUploadSource, /savedImageRef\s*=\s*saved\?\.image_ref\s*\|\|\s*uploaded\.ref/, "library upload should keep saved image ref or uploaded ref fallback");
 assert.match(profileLitePageSource, /__center_image:\s*savedImageRef/, "central upload should set __center_image to the durable ref");
 assert.match(profileLitePageSource, /\[savedImageRef\]:\s*savedDisplayUrl/, "central upload should populate object_ref_urls for the durable ref");
+assert.match(profileLitePageSource, /handleCompositionObjectFileUpload[\s\S]*setCompositionObjectRef\(slotId,\s*savedImageRef,\s*savedDisplayUrl\)/, "object upload should apply to the selected object slot");
+assert.match(profileLitePageSource, /handleCompositionCoverFileUpload[\s\S]*handleCompositionCoverSelect\(layer/, "cover upload should apply to the active cover layer");
 assert.match(profileLitePageSource, /throw new Error\("Сначала сохраните профиль мастера\."\)/, "upload handlers should reject missing profile/session so the picker modal stays open");
 assert.match(profileLitePageSource, /await listPowerPlaceCompositions\(profile\.id,\s*session\)/, "saving a Power Place should refresh saved compositions from Supabase");
 assert.match(profileLitePageSource, /setPowerPlaceCompositions\(freshCompositions/, "fresh Supabase composition list should drive the saved select/list after save");

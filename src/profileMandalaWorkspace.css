@@ -5010,6 +5010,60 @@
 .imagePickerModeBar {
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.imagePickerDestinationTabs {
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.profileLiteUploadPanel {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(147, 93, 22, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.profileLiteUploadFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profileLiteUploadFields label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  color: #5b3711;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profileLiteUploadFields input,
+.profileLiteUploadFields select,
+.profileLiteUploadFields textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 7px;
+  padding: 9px 10px;
+  background: #fffdf8;
+  color: #3b2610;
+  font: inherit;
+}
+
+.profileLiteUploadFields textarea,
+.profileLiteUploadFields .compactNotice {
+  grid-column: 1 / -1;
+}
+
+.profileLiteUploadFileButton {
+  justify-self: start;
 }
 
 .profileLiteImagePickerGrid {
@@ -5120,7 +5174,15 @@
 
   .imagePickerModeBar {
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileLiteUploadFields {
     grid-template-columns: 1fr;
+  }
+
+  .profileLiteUploadFileButton {
+    width: 100%;
   }
 
   .profileLiteImagePickerGrid {

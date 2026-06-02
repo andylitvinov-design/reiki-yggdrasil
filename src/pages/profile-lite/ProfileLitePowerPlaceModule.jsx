@@ -342,6 +342,7 @@ export default function ProfileLitePowerPlaceModule({
   onCompositionObjectRefsChange,
   onCoverFileUpload,
   onDownload,
+  onLibraryPhotoUpload,
   onObjectFileUpload,
   onPrint,
   onSave,
@@ -575,10 +576,18 @@ export default function ProfileLitePowerPlaceModule({
     setPickerUploadError("");
   };
 
-  const uploadPickerImage = async (file) => {
+  const uploadPickerImage = async (uploadRequest) => {
+    const file = uploadRequest?.file || uploadRequest;
     setPickerUploadStatus("loading");
     setPickerUploadError("");
     try {
+      if (uploadRequest?.destination === "materials") {
+        await onLibraryPhotoUpload(uploadRequest);
+        return;
+      }
+      if (pickerMode === "library") {
+        await onLibraryPhotoUpload(uploadRequest);
+      }
       if (pickerMode === "center") await onUploadedCentralPhoto(file);
       if (pickerMode === "cover") await onCoverFileUpload(coverLayerMode, file);
       if (pickerMode === "object" && selectedSlot) await onObjectFileUpload(selectedSlot.id, file);
@@ -706,8 +715,8 @@ export default function ProfileLitePowerPlaceModule({
           <p className="cabinetEyebrow">Источники силы</p>
           <h3>Фото</h3>
           <div className="powerLibraryPrimaryActions">
-            <button className="powerAddImageButton" type="button" onClick={() => openPicker(selectedSlot ? "object" : "center")}>
-              Добавить мандалу
+            <button className="powerAddImageButton" type="button" onClick={() => openPicker("library")}>
+              Добавить фото
             </button>
           </div>
           <div className="powerLibraryFilter">
@@ -1236,6 +1245,7 @@ export default function ProfileLitePowerPlaceModule({
         <ProfileLiteImagePicker
           mode={pickerMode}
           images={savedImages}
+          defaultLibraryTab="clients"
           selectedImageRef={pickerMode === "center" ? centralImageRef : pickerMode === "cover" ? visibleCover?.src || "" : selectedSlotImage}
           onSelect={chooseImage}
           onUpload={uploadPickerImage}
