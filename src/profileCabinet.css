@@ -435,6 +435,36 @@
   background: rgba(255, 255, 255, 0.58);
 }
 
+.profileLiteShell-mandalas .profileLiteTopbar {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.profileLiteShell-mandalas .profileLiteTabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 8px 12px;
+  border-radius: 0;
+}
+
+.profileLiteShell-mandalas .profileLiteTabs a {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.profileLiteShell-mandalas .profileLiteStatusRail {
+  min-height: 0;
+  padding: 8px 14px;
+}
+
+.profileLiteShell-mandalas .profileLiteStatusRail .cabinetActions {
+  margin-top: 0;
+}
+
+.profileLiteShell-mandalas .profileLiteWorkspace {
+  padding-top: 16px;
+}
+
 .profileLiteWorkspace,
 .profileLiteModule {
   display: grid;
@@ -590,6 +620,40 @@
 
   .profileLiteStatusRail .cabinetActions,
   .profileLiteTabs a {
+    width: 100%;
+  }
+
+  .profileLiteShell-mandalas .profileLiteTopbar {
+    gap: 10px;
+    padding: 16px 32px;
+  }
+
+  .profileLiteShell-mandalas .profileLiteTabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 7px;
+    padding: 8px 10px;
+    overflow-x: auto;
+  }
+
+  .profileLiteShell-mandalas .profileLiteTabs a {
+    width: auto;
+    min-height: 34px;
+    padding: 6px 13px;
+  }
+
+  .profileLiteShell-mandalas .profileLiteStatusRail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .profileLiteShell-mandalas .profileLiteStatusRail .cabinetActions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     width: 100%;
   }
 }

@@ -48,10 +48,19 @@ const FALLBACK_COVERS = [
 ];
 const SOURCE_GROUPS = [
   { value: "all", label: "Все источники" },
+  { value: "dao-ri", label: "ДАО РИ" },
+  { value: "mysteries", label: "Мистерии" },
+  { value: "channels", label: "Каналы" },
+  { value: "background", label: "Фон" },
+  { value: "shape", label: "Форма" },
+  { value: "talismans", label: "Талисманы" },
+  { value: "artifacts", label: "Артефакты" },
+  { value: "clients", label: "Клиенты" },
   { value: "client-photo", label: "Фото клиентов" },
   { value: "tradition-asset", label: "Традиции" },
   { value: "material", label: "Материалы" }
 ];
+const DATA_SOURCE_GROUPS = new Set(["client-photo", "tradition-asset", "material"]);
 const FIELD_LAYOUTS = [
   { value: "square", label: "Квадрат" },
   { value: "vertical", label: "Вертикальное" },
@@ -243,13 +252,13 @@ export default function ProfileLitePowerPlaceModule({
   ], [innerCover, outerCover, savedImages]);
   const sourceCategories = useMemo(() => {
     const categories = savedImages
-      .filter((item) => sourceGroup === "all" || item.kind === sourceGroup)
+      .filter((item) => sourceGroup === "all" || item.kind === sourceGroup || (!DATA_SOURCE_GROUPS.has(sourceGroup) && item.meta === sourceGroupLabel(sourceGroup)))
       .map((item) => item.meta || sourceGroupLabel(item.kind))
       .filter(Boolean);
     return ["all", ...Array.from(new Set(categories))];
   }, [savedImages, sourceGroup]);
   const filteredSavedImages = useMemo(() => savedImages.filter((item) => {
-    const groupMatches = sourceGroup === "all" || item.kind === sourceGroup;
+    const groupMatches = sourceGroup === "all" || item.kind === sourceGroup || (!DATA_SOURCE_GROUPS.has(sourceGroup) && item.meta === sourceGroupLabel(sourceGroup));
     const categoryMatches = sourceCategory === "all" || item.meta === sourceCategory;
     return groupMatches && categoryMatches;
   }), [savedImages, sourceCategory, sourceGroup]);
@@ -363,9 +372,14 @@ export default function ProfileLitePowerPlaceModule({
         <aside className="mandalaModeSidebar powerLibrarySidebar">
           <p className="cabinetEyebrow">Источники силы</p>
           <h3>Источники силы</h3>
-          <button className="powerAddImageButton" type="button" onClick={() => setWorkspaceTab("mandalas")}>
-            Добавить мандалу
-          </button>
+          <div className="powerLibraryPrimaryActions">
+            <button className="powerAddImageButton" type="button" onClick={() => openPicker(selectedSlot ? "object" : "center")}>
+              Добавить мандалу
+            </button>
+            <button className="powerChooseBaseButton" type="button" onClick={() => openPicker(selectedSlot ? "object" : "center")}>
+              Выбрать из базы
+            </button>
+          </div>
           <select value={compositionDraft.id || ""} onChange={(event) => {
             const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
             if (composition) onCompositionLoad(composition);
