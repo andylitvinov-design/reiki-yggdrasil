@@ -111,6 +111,15 @@ const EMPTY_COMPOSITION = {
   resource_without_mandala_comment: "",
   resource_with_mandala_comment: ""
 };
+const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const EMPTY_PROFILE_LITE_REPORT = {
+  mode: "with_report",
+  added: false,
+  situation: "",
+  mandala_effect: "",
+  extra_help: "",
+  master_note: ""
+};
 const EMPTY_ORDER_PATCH = {
   id: "",
   master_comment: "",
@@ -201,6 +210,19 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function normalizeProfileLiteReport(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    ...EMPTY_PROFILE_LITE_REPORT,
+    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    added: Boolean(source.added),
+    situation: String(source.situation || "").trim(),
+    mandala_effect: String(source.mandala_effect || "").trim(),
+    extra_help: String(source.extra_help || "").trim(),
+    master_note: ""
+  };
 }
 
 function safeFilename(value) {
@@ -758,6 +780,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleCompositionDraftChange = (field, value) => {
     setCompositionDraft((current) => {
+      if (field === PROFILE_LITE_REPORT_REF_KEY) {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [PROFILE_LITE_REPORT_REF_KEY]: normalizeProfileLiteReport(value)
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,
@@ -975,10 +1006,19 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleDownloadComposition = () => {
     const objectRows = Object.entries(compositionDraft.object_refs || {})
-      .filter(([key]) => key !== "__center_image")
+      .filter(([key]) => key !== "__center_image" && key !== PROFILE_LITE_REPORT_REF_KEY)
       .map(([key, value]) => `<li><b>${escapeHtml(key)}</b>: ${escapeHtml(value)}</li>`)
       .join("");
     const centerRef = compositionDraft.object_refs?.__center_image || compositionDraft.central_photo_id || "";
+    const report = normalizeProfileLiteReport(compositionDraft.object_refs?.[PROFILE_LITE_REPORT_REF_KEY]);
+    const reportHtml = report.mode === "with_report" && report.added
+      ? `<section>
+    <h2>Отчёт</h2>
+    ${report.situation ? `<h3>Анализ ситуации</h3><p>${escapeHtml(report.situation)}</p>` : ""}
+    ${report.mandala_effect ? `<h3>Что даёт мандала</h3><p>${escapeHtml(report.mandala_effect)}</p>` : ""}
+    ${report.extra_help ? `<h3>Что ещё поможет</h3><p>${escapeHtml(report.extra_help)}</p>` : ""}
+  </section>`
+      : "";
     const html = `<!doctype html>
 <html lang="ru">
 <head>
@@ -1000,6 +1040,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     <h2>Объекты</h2>
     <ul>${objectRows || "<li>Нет объектов</li>"}</ul>
   </section>
+  ${reportHtml}
   <section>
     <h2>Подложка</h2>
     <pre>${escapeHtml(JSON.stringify(compositionDraft.cover_ref || null, null, 2))}</pre>

@@ -24,6 +24,7 @@ const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
+const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -59,6 +60,18 @@ function cleanObjectRefs(value) {
       .map(([key, item]) => [cleanText(key), cleanText(item)])
       .filter(([key, item]) => key && isPersistableImageRef(item))
   );
+}
+
+function normalizeProfileLiteReport(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    added: Boolean(source.added),
+    situation: cleanText(source.situation),
+    mandala_effect: cleanText(source.mandala_effect),
+    extra_help: cleanText(source.extra_help),
+    master_note: ""
+  };
 }
 
 function requestSession(session) {
@@ -271,8 +284,12 @@ export function normalizePowerPlaceComposition(composition) {
   const chessVariant = cleanText(composition?.chess_variant);
   const slotScale = Number(composition?.slot_scale ?? composition?.object_refs?.__slot_scale);
   const objectRefs = cleanObjectRefs(composition?.object_refs);
+  const report = cleanJsonObject(composition?.object_refs)[PROFILE_LITE_REPORT_REF_KEY];
   if (Number.isFinite(slotScale)) {
     objectRefs.__slot_scale = String(Math.min(1.18, Math.max(0.7, slotScale)));
+  }
+  if (report && typeof report === "object" && !Array.isArray(report)) {
+    objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
 
   return {

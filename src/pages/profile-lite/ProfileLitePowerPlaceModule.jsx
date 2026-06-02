@@ -47,6 +47,15 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
   label: `Верхняя мандала ${index + 1}`,
   classPrefix: "chess-top"
 }));
+const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const EMPTY_PROFILE_LITE_REPORT = {
+  mode: "with_report",
+  added: false,
+  situation: "",
+  mandala_effect: "",
+  extra_help: "",
+  master_note: ""
+};
 const CHESS_SLOT_LAYOUTS = {
   "classic-14": [
     { id: "chess-1", row: 1, col: 1, label: "Шахматная ячейка 1" },
@@ -237,6 +246,19 @@ function cleanObjectRefs(refs) {
   return refs && typeof refs === "object" && !Array.isArray(refs) ? refs : {};
 }
 
+function normalizeReportDraft(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    ...EMPTY_PROFILE_LITE_REPORT,
+    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    added: Boolean(source.added),
+    situation: String(source.situation || ""),
+    mandala_effect: String(source.mandala_effect || ""),
+    extra_help: String(source.extra_help || ""),
+    master_note: ""
+  };
+}
+
 function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
 }
@@ -422,6 +444,67 @@ export default function ProfileLitePowerPlaceModule({
   const activeSourceCategoryData = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activeSourceCategory) || null;
   const activeSourceSubcategoryData = activeSourceCategoryData?.subcategories?.find((item) => item.value === activeSourceSubcategory) || activeSourceCategoryData?.subcategories?.[0] || null;
   const activeSourceThirdLevelData = activeSourceSubcategoryData?.thirdLevels?.find((item) => item.value === activeSourceThirdLevel) || activeSourceSubcategoryData?.thirdLevels?.[0] || null;
+  const reportDraft = normalizeReportDraft(objectRefs[PROFILE_LITE_REPORT_REF_KEY]);
+  const reportEnabled = reportDraft.mode === "with_report";
+  const reportAdded = reportEnabled && reportDraft.added;
+  const reportHasBody = Boolean(reportDraft.situation || reportDraft.mandala_effect || reportDraft.extra_help);
+
+  const updateReportDraft = (patch) => {
+    const nextReport = normalizeReportDraft({ ...reportDraft, ...patch });
+    onCompositionDraftChange(PROFILE_LITE_REPORT_REF_KEY, nextReport);
+  };
+
+  const renderReportModule = () => (
+    <div className="reportSettingsPanel">
+      <p className="cabinetEyebrow">Отчёт</p>
+      <div className="reportModeToggle" role="group" aria-label="Режим отчёта">
+        <button className={reportEnabled ? "active" : ""} type="button" onClick={() => updateReportDraft({ mode: "with_report" })}>С отчётом</button>
+        <button className={!reportEnabled ? "active" : ""} type="button" onClick={() => updateReportDraft({ mode: "without_report", added: false })}>Без отчёта</button>
+      </div>
+      <label className="reportField">
+        Анализ ситуации
+        <textarea
+          className="reportFieldInput"
+          disabled={!reportEnabled}
+          value={reportDraft.situation}
+          onChange={(event) => updateReportDraft({ situation: event.target.value })}
+          rows={3}
+        />
+      </label>
+      <label className="reportField">
+        Что даёт мандала
+        <textarea
+          className="reportFieldInput"
+          disabled={!reportEnabled}
+          value={reportDraft.mandala_effect}
+          onChange={(event) => updateReportDraft({ mandala_effect: event.target.value })}
+          rows={3}
+        />
+      </label>
+      <label className="reportField">
+        Что ещё поможет
+        <textarea
+          className="reportFieldInput"
+          disabled={!reportEnabled}
+          value={reportDraft.extra_help}
+          onChange={(event) => updateReportDraft({ extra_help: event.target.value })}
+          rows={3}
+        />
+      </label>
+      <label className="reportField disabled">
+        О Мастере
+        <textarea className="reportFieldInput" disabled value="Доступно в Pro формате." rows={2} readOnly />
+      </label>
+      <div className="reportActions">
+        <button className="cabinetPrimary" disabled={!reportEnabled} type="button" onClick={() => updateReportDraft({ added: true })}>
+          {reportDraft.added ? "Обновить" : "Добавить отчёт"}
+        </button>
+        <button className="cabinetSecondary" disabled={!reportDraft.added && !reportHasBody} type="button" onClick={() => updateReportDraft({ ...EMPTY_PROFILE_LITE_REPORT, mode: "without_report" })}>
+          Удалить отчёт
+        </button>
+      </div>
+    </div>
+  );
 
   const latestSavedImages = useMemo(() => [...savedImages].sort((a, b) => {
     const left = Date.parse(a.updatedAt || "");
@@ -993,6 +1076,31 @@ export default function ProfileLitePowerPlaceModule({
                   )}
                 </div>
               </div>
+
+              {reportAdded && (
+                <section className="powerReportOutput" aria-label="Отчёт по мандале">
+                  <p className="cabinetEyebrow">Отчёт</p>
+                  {reportDraft.situation && (
+                    <article>
+                      <h3>Анализ ситуации</h3>
+                      <p>{reportDraft.situation}</p>
+                    </article>
+                  )}
+                  {reportDraft.mandala_effect && (
+                    <article>
+                      <h3>Что даёт мандала</h3>
+                      <p>{reportDraft.mandala_effect}</p>
+                    </article>
+                  )}
+                  {reportDraft.extra_help && (
+                    <article>
+                      <h3>Что ещё поможет</h3>
+                      <p>{reportDraft.extra_help}</p>
+                    </article>
+                  )}
+                  {!reportHasBody && <p>Отчёт добавлен. Заполните поля справа, чтобы текст появился здесь.</p>}
+                </section>
+              )}
             </section>
           )}
         </div>
@@ -1017,6 +1125,8 @@ export default function ProfileLitePowerPlaceModule({
                 ))}
               </div>
             </div>
+
+            {renderReportModule()}
 
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>

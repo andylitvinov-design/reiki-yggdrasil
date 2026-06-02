@@ -140,7 +140,17 @@ assert.deepEqual(
     altar_center_ratio: "3",
     business_vertex_zone_count: 3,
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
-    object_refs: { "altar-top-3": "https://example.com/object.jpg" },
+    object_refs: {
+      "altar-top-3": "https://example.com/object.jpg",
+      __profile_lite_report: {
+        mode: "with_report",
+        added: true,
+        situation: " Клиент просит ясность ",
+        mandala_effect: " Мандала собирает фокус ",
+        extra_help: " Практика дыхания ",
+        master_note: " paid pro "
+      }
+    },
     central_photo_id: "photo-1",
     tradition_id: "greek",
     tradition_title: " Греческие мистерии ",
@@ -159,7 +169,17 @@ assert.deepEqual(
     star_variant: "closed",
     chess_variant: "classic-14",
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
-    object_refs: { "altar-top-3": "https://example.com/object.jpg" },
+    object_refs: {
+      "altar-top-3": "https://example.com/object.jpg",
+      __profile_lite_report: {
+        mode: "with_report",
+        added: true,
+        situation: "Клиент просит ясность",
+        mandala_effect: "Мандала собирает фокус",
+        extra_help: "Практика дыхания",
+        master_note: ""
+      }
+    },
     central_photo_id: "photo-1",
     tradition_id: "greek",
     tradition_title: "Греческие мистерии",

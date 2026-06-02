@@ -1,5 +1,48 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Reapply Profile Lite report module on current main
+
+- Branch: `codex/reapply-profile-lite-report-module-current-main`.
+- Starting point: fresh `origin/main` merge commit `22e4808`, after PR #206, PR #208, and PR #209.
+- Source idea: PR #207 `Add Profile Lite report module under formats`, reapplied manually without merging the PR branch.
+- Changed files:
+  - `public/profile-background-tabs-refine.js`
+  - `public/profile-background-zone-controls.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/lib/powerPlaceClient.js`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added a standalone right-rail `Отчёт` card directly after `Макет`;
+  - added `С отчётом` / `Без отчёта`, `Анализ ситуации`, `Что даёт мандала`, `Что ещё поможет`, disabled Pro placeholder `О Мастере`, and add/update/delete controls;
+  - renders the report block under the central mandala only after `Добавить отчёт`;
+  - persists report payload in `object_refs.__profile_lite_report`, avoiding a DB migration;
+  - download HTML includes the three working report sections and excludes the disabled Pro-only master note.
+  - legacy public background enhancer scripts now skip Profile Lite, so they do not move `Макет` / analysis controls back into the background card.
+- Not carried from PR #207:
+  - Supabase report columns / migration;
+  - older branch edits that would roll back PR #206 / #208 / #209 behavior.
+- Checks:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed.
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - standalone `npm run build` passed with existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Rendered QA:
+  - dev server ran at `http://localhost:4217/profile/mandalas` with fake public Supabase env, fake local session, and mocked REST/Storage responses only;
+  - right rail rendered in order: `Макет`, `Отчёт`, `Фон Места Силы`, `Анализ`, `Объекты композиции`;
+  - legacy public background enhancer scripts no longer created `powerBackgroundPanel` inside Profile Lite;
+  - report output was absent before add, appeared under the mandala after `Добавить отчёт`, stored text in `object_refs.__profile_lite_report`, and disappeared after `Удалить отчёт`;
+  - mocked Storage photo rendered in the compact left photo list, `Выбрать из базы` stayed absent, and the client-photo delete cross existed;
+  - chess `9 фото+` rendered 8 source slots plus center with 4 outer-square and 4 inner-square slots;
+  - desktop and mobile 390 had horizontal overflow `0`; mobile grid collapsed to one `358px` column with center/settings/actions/advanced/source order.
+
 ## 2026-06-02 — Fix Power Place mobile layouts, covers, global slot scale
 
 - Branch: `codex/fix-power-place-mobile-layout-covers-scale`.

@@ -71,6 +71,7 @@
 
   const updateTabState = () => {
     document.querySelectorAll(".coverSelector").forEach((coverSelector) => {
+      if (coverSelector.closest(".profileLitePowerPlace")) return;
       coverSelector.dataset.powerBackgroundTab = activeTab;
       coverSelector.querySelectorAll("[data-power-background-tab]").forEach((button) => {
         const isActive = button.dataset.powerBackgroundTab === activeTab;
@@ -234,6 +235,10 @@
   const ensureControls = () => {
     const coverSelector = document.querySelector(".coverSelector");
     if (!coverSelector) {
+      applyState();
+      return;
+    }
+    if (coverSelector.closest(".profileLitePowerPlace")) {
       applyState();
       return;
     }
