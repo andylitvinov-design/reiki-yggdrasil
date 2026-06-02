@@ -12,6 +12,40 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite Power Place deep parity audit follow-up
+
+- Branch: `codex/profile-lite-power-place-parity-deep-audit`, based on `origin/main` commit `6fbfdb9` after PR #194.
+- Scope: post-PR #191/#192/#194 parity audit and targeted Lite `/profile/mandalas` fix against `/profile-old`, without changing auth/bootstrap, `/profile-old`, `/`, `/masters`, or `/profile/admin`.
+- Design gaps found:
+  - live production cannot currently show either workspace without an authenticated session: `https://mentalica.vercel.app/profile/mandalas` opens the Lite auth/debug gate and `https://mentalica.vercel.app/profile-old` opens the heavy login gate;
+  - local authenticated rendered comparison showed the old reference hero starts directly below the heavy topbar, while Lite had tab/status chrome pushing the workspace down, especially on mobile where the tab rail consumed about 454px before the mandala hero;
+  - Lite left source rail had only technical source types and missed the old taxonomy groups (`ДАО РИ`, `Мистерии`, `Каналы`, `Фон`, `Форма`, `Талисманы`, `Артефакты`, `Клиенты`);
+  - `Добавить мандалу` switched to the saved-list tab instead of opening a selection/upload path, and there was no explicit working `Выбрать из базы` control in the left rail.
+- Fixed:
+  - added active-tab class hooks to `ProfileLiteShell` and mandalas-only compact shell styling, preserving route-backed tabs while making the mandala workspace appear much earlier;
+  - changed mobile mandala tab navigation from ten stacked full-width buttons to a horizontal route-backed strip;
+  - added the old source taxonomy groups to the left rail and kept source filters/saved-image cards compact;
+  - made `Добавить мандалу` and `Выбрать из базы` open the image picker for the selected object slot or center image instead of switching to an unrelated saved-list view;
+  - extended `test/profileLiteCabinetContract.test.mjs` to guard the base-selection label, old source taxonomy, and active-tab shell class hook.
+- Local rendered QA with fake public Supabase env and fake JWT only:
+  - `/profile/mandalas` desktop 1280: columns `260px 640px 320px`, no horizontal overflow, no framework overlay, no console warnings/errors; right rail and actions visible; mandala panel `560px`, mandala `362px`;
+  - `/profile/mandalas` mobile 390: single `358px` column, no horizontal overflow, no framework overlay, no console warnings/errors; mobile tabs reduced from the earlier stacked rail to a `56px` horizontal rail; mandala hero appears in the first viewport and center constructor follows before the left/right rails;
+  - `/profile-old` desktop 1280: reference route opens locally with the old workspace, no horizontal overflow, no framework overlay, no console warnings/errors;
+  - central image picker opens from `Фото клиента / цели` with `Сохранённые фото` and `Загрузить новое фото`; signed URL placeholder is absent when there is no storage ref to display;
+  - `Выбрать из базы` opens the image picker from the left rail and is not an inert button;
+  - after 10 seconds, every Profile Lite tab clicked successfully with the expected route/query, active tab, no overlay, and horizontal overflow `0`;
+  - guard routes `/`, `/masters`, and `/profile/admin` opened locally with no overlay or horizontal overflow; `/masters` and `/profile/admin` showed expected `Failed to fetch` from fake Supabase URL.
+- Verification:
+  - passed `npm run test:profile-lite` after an intentional RED failure for missing `Выбрать из базы`;
+  - passed `npm run test:profile-media`;
+  - passed `npm run test:power-place`;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05` plus existing Vite large-chunk warning;
+  - passed standalone `npm run build` with the existing Vite large-chunk warning.
+- Still needs authenticated production verification:
+  - real Supabase/RLS media upload/delete, signed URL hydration, saved composition save/update/load, service publishing, and old `/profile-old` authenticated visual comparison with a real user session;
+  - production/live verification after this branch is committed, merged, and deployed.
+
 ## 2026-06-02 — Profile Lite central image picker extraction
 
 - Branch: `profile-lite-central-image-picker-fix`.

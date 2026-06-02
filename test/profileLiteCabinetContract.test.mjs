@@ -194,6 +194,7 @@ for (const requiredPowerPlaceText of [
   "Мои мандалы",
   "Загрузить сохранённое место силы",
   "Добавить мандалу",
+  "Выбрать из базы",
   "Группа",
   "Категория",
   "Сохранённые изображения",
@@ -214,6 +215,10 @@ for (const requiredPowerPlaceText of [
   "Удалить фото из базы?"
 ]) {
   assert.match(powerPlacePickerSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include old workshop UX text: ${requiredPowerPlaceText}`);
+}
+
+for (const requiredSourceGroup of ["ДАО РИ", "Мистерии", "Каналы", "Фон", "Форма", "Талисманы", "Артефакты", "Клиенты"]) {
+  assert.match(powerPlaceSource, new RegExp(requiredSourceGroup), `Lite Power Place should expose old source taxonomy group: ${requiredSourceGroup}`);
 }
 
 for (const requiredFormat of ["2", "4", "6", "8", "8+", "12", "12+", "closed", "open", "classic-14", "classic-8", "plus-8", "client", "altar", "business", "dao"]) {
@@ -290,6 +295,7 @@ assert.match(
 );
 
 assert.match(shellSource, /href=\{tab\.href\}/, "ProfileLiteShell tabs should render route-backed hrefs");
+assert.match(shellSource, /profileLiteShell-\$\{activeTab\}/, "ProfileLiteShell should expose active-tab class hooks for compact mandalas parity styling");
 assert.match(shellSource, /event\.preventDefault\(\)/, "ProfileLiteShell should intercept tab links for SPA navigation");
 assert.match(
   shellSource,

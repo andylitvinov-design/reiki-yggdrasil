@@ -14,7 +14,7 @@ export default function ProfileLiteShell({
   user
 }) {
   return (
-    <div className="cabinetShell profileLiteShell profileLiteFullShell">
+    <div className={`cabinetShell profileLiteShell profileLiteFullShell profileLiteShell-${activeTab}`}>
       <header className="cabinetTopbar profileLiteTopbar">
         <button type="button" onClick={onNavigateHome}>На главную</button>
         <div>

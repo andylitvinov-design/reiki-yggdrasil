@@ -1,5 +1,59 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite Power Place deep parity audit follow-up
+
+- Branch: `codex/profile-lite-power-place-parity-deep-audit`.
+- Starting point: `origin/main` commit `6fbfdb9` after PR #194.
+- Compared:
+  - live `https://mentalica.vercel.app/profile/mandalas` and `https://mentalica.vercel.app/profile-old` without a stored browser session;
+  - local authenticated shell for `/profile/mandalas` and `/profile-old` using fake public Supabase env and fake JWT only.
+- Gaps found:
+  - live routes are auth-gated without a real signed-in session, so workspace-level live parity cannot be proven automatically from this browser state;
+  - Lite mobile stacked all top tabs as full-width buttons before the mandala workspace, pushing `Мастерская мандал` too far down;
+  - Lite source rail did not expose the old source taxonomy groups;
+  - `Добавить мандалу` switched to saved compositions instead of opening an add/select flow;
+  - explicit `Выбрать из базы` was missing from the left rail.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLiteShell.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileCabinet.css`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Fix:
+  - added `profileLiteShell-${activeTab}` hooks and mandalas-only compact shell styling;
+  - kept route-backed tabs, but changed the mandalas mobile tab rail to a horizontal scroll strip instead of a tall stack;
+  - added old source groups: `ДАО РИ`, `Мистерии`, `Каналы`, `Фон`, `Форма`, `Талисманы`, `Артефакты`, `Клиенты`;
+  - added working `Выбрать из базы`;
+  - made both `Добавить мандалу` and `Выбрать из базы` open the image picker for the selected object slot or central image.
+- Contract test:
+  - `npm run test:profile-lite` first failed on missing `Выбрать из базы`;
+  - after the JSX/CSS fix, `npm run test:profile-lite` passed.
+- Commands run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all commands exited `0`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05`.
+- Local rendered QA:
+  - `/profile/mandalas` desktop 1280: `260px 640px 320px`, mandala panel `560px`, mandala `362px`, right rail visible, horizontal overflow `0`, console warnings/errors `0`;
+  - `/profile/mandalas` mobile 390: single `358px` column, tab rail `56px`, no horizontal overflow, no framework overlay, console warnings/errors `0`;
+  - `/profile-old` desktop 1280: reference route opened with old workspace, no horizontal overflow, no framework overlay, console warnings/errors `0`;
+  - central image picker opened from `Фото клиента / цели` with `Сохранённые фото` and `Загрузить новое фото`;
+  - `Выбрать из базы` opened the image picker and was not inert;
+  - after 10 seconds, every Lite tab clicked through to the expected route/query with active tab preserved and overflow `0`;
+  - `/`, `/masters`, and `/profile/admin` had no overlay or horizontal overflow; fake Supabase URL caused expected `Failed to fetch` on Supabase-backed guard routes.
+- Still not verified:
+  - real authenticated production Supabase/RLS upload/delete/save/load/update flows;
+  - authenticated `/profile-old` visual comparison on live with a real user session;
+  - production deployment of this branch.
+
 ## 2026-06-02 — Profile Lite central image picker extraction
 
 - Branch: `profile-lite-central-image-picker-fix`.
