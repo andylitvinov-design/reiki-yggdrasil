@@ -1,5 +1,45 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Fix Profile Lite Power Place print, PDF, and save/list
+
+- Branch: `codex/fix-profile-lite-print-pdf-save-power-place`.
+- Changed files:
+  - `README.md`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - `Скачать` called an HTML export and saved `.html`;
+  - print color preservation was too generic for the current rendered mandala classes;
+  - `compact-5` was allowed by UI/client but not by the Supabase `chess_variant` constraint;
+  - Profile Lite did not refresh the saved composition list from Supabase immediately after save.
+- Changed:
+  - replaced HTML download with an isolated print/PDF view for `.powerPlacePrintArea`;
+  - renamed button to `Скачать PDF`;
+  - added the RU Background graphics hint next to actions;
+  - expanded `@media print` color/background preservation for mandala sheets, chess, covers, and image/background slots;
+  - reloads `listPowerPlaceCompositions(profile.id, session)` after create/update;
+  - added compact chess migration and allowlisted it in the local migration runner;
+  - updated README setup and contract tests.
+- Checks run:
+  - `npm run test:profile-lite` failed first on missing migration, then passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing video placeholder warnings and Vite large-chunk warning;
+  - `npm run build` passed with existing Vite large-chunk warning;
+  - `git diff --check` passed;
+  - local Playwright QA passed on `http://127.0.0.1:4217/profile/mandalas` with fake public Supabase env, fake session, and mocked Auth/REST responses.
+- Browser/live QA:
+  - desktop 1280x920: required buttons were visible, mock compact save/list/load worked, PDF popup contained `.powerPlacePrintArea` only, and no app console errors were captured;
+  - mobile 390x900: required buttons and Save as PDF / Background graphics hint were visible, horizontal overflow stayed `0`, and the saved list/empty-state path rendered;
+  - real authenticated Supabase save/reload, production migration application, merge/deploy, production QA, and legacy live QA were not performed in this local turn.
+
 ## 2026-06-02 — Fix Power Place mobile layouts, covers, global slot scale
 
 - Branch: `codex/fix-power-place-mobile-layout-covers-scale`.

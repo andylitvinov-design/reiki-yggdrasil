@@ -12,6 +12,41 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite Power Place print/PDF/save fix
+
+- Branch: `codex/fix-profile-lite-print-pdf-save-power-place`, created from clean `codex/fix-power-place-mobile-layout-covers-scale`.
+- Scope: `/profile/mandalas` Profile Lite Power Place actions only; public home page, `/profile-old`, `/profile`, `/masters`, `/profile/admin`, Vercel rewrites, auth redirects, and secrets were not changed.
+- Root causes:
+  - `handleDownloadComposition` exported a generated HTML document and downloaded `<title>.html`, so the action was not a PDF workflow and included site/export metadata instead of only the rendered mandala layout.
+  - print CSS had global `print-color-adjust`, but several rendered mandala/background/image classes were not explicitly covered, leaving browser print preview more likely to omit colors/backgrounds unless background graphics were enabled.
+  - Profile Lite allowed `compact-5` chess compositions in client normalization/UI while the Supabase `chess_variant` check allowed only `classic-14`, `classic-8`, and `plus-8`; this can reject live saves for the 6-photo chess format.
+  - after save, Profile Lite updated local state from the mutation response only; it did not re-list compositions from Supabase, so the select/list could drift from the persisted table.
+- Changed:
+  - replaced the `.html` download path with an isolated `Скачать PDF / Печать в PDF` window that clones only `.powerPlacePrintArea`, sets a `<safe-title>.pdf` document title, loads current styles, and opens browser print/save-as-PDF;
+  - renamed the action button to `Скачать PDF`;
+  - added the RU hint: `Для цветной печати включите в окне печати: Background graphics / Фоновая графика.`;
+  - expanded print color preservation for mandala panels, sheets, chess, source slots, center photo, covers, and background-image elements;
+  - after successful create/update, reloads `listPowerPlaceCompositions(profile.id, session)` and uses that fresh list for the saved select/list;
+  - added `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql` to allow `compact-5`, plus README and migration-runner allowlist entries;
+  - added contract coverage for no `.html` export, PDF/print view, print color classes, fresh post-save list reload, and compact chess migration.
+- Verification:
+  - `npm run test:profile-lite` failed first on the missing compact chess migration, then passed after the fix;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed;
+  - local Playwright QA passed on `http://127.0.0.1:4217/profile/mandalas` with fake public Supabase env, fake session, and mocked Auth/REST responses:
+    - desktop 1280x920: required buttons were visible, mock compact save/list/load worked, PDF popup contained `.powerPlacePrintArea` only, and no app console errors were captured;
+    - mobile 390x900: required buttons and Save as PDF / Background graphics hint were visible, horizontal overflow stayed `0`, and the saved list/empty-state path rendered.
+- Not verified:
+  - real authenticated Supabase save/reload on live;
+  - applying the new Supabase migration to production;
+  - production/legacy live QA after merge/deploy.
+- Risk:
+  - browser save-as-PDF still depends on the user's print dialog and browser support for background graphics; the UI now states the required Background graphics setting.
+
 ## 2026-06-02 — Profile Lite Power Place mobile layouts, covers, and global slot scale
 
 - Branch: `codex/fix-power-place-mobile-layout-covers-scale`, based on PR #205 merge commit `a12240fd9a516c0eeb0d45783ba9c517c1253e30`.
