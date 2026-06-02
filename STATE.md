@@ -12,6 +12,42 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite parity PR #196 merged, production deploy blocked
+
+- PR: #196 `Polish Profile Lite mandala parity`.
+- Merge commit: `bfb9000c99e298b6f276b46aebf24a8bc07c819d`, merged into `main` at `2026-06-02T00:08:01Z`.
+- Main CI:
+  - GitHub Actions `CI` run `26789917714` passed for merge SHA `bfb9000c99e298b6f276b46aebf24a8bc07c819d`.
+  - GitHub Pages run `26789917711` failed, but production profile-cabinet hosting is Vercel.
+- Vercel auto-deploy:
+  - commit status for the merge SHA is `failure`;
+  - reason: `Deployment rate limited — retry in 24 hours`;
+  - target URL: `https://vercel.com/super10?upgradeToPro=build-rate-limit`.
+- Fallback deploy:
+  - workflow: `.github/workflows/deploy-production.yml`;
+  - run: `26789944982`;
+  - target ref: `main`;
+  - expected SHA: `bfb9000c99e298b6f276b46aebf24a8bc07c819d`;
+  - SHA verification and project check passed;
+  - Vercel prebuilt deployment failed at `Deploy prebuilt to Vercel production`;
+  - failure reason from logs: `Resource is limited - try again in 24 hours (more than 100, code: "api-deployments-free-per-day")`.
+- Live route availability after deploy failure:
+  - `https://mentalica.vercel.app/profile/mandalas` responds with no framework overlay and horizontal overflow `0`, but opens the Lite auth/debug gate without a real browser session;
+  - `https://mentalica.vercel.app/profile-old` responds with no framework overlay and horizontal overflow `0`, but opens the heavy login gate without a real browser session;
+  - `https://reiki-yggdrasil.vercel.app/profile/mandalas` responds with no framework overlay and horizontal overflow `0`, but opens the Lite auth/debug gate and showed an expired stored-session notice in the test browser.
+- Live version check:
+  - Production URL: `https://mentalica.vercel.app/`;
+  - Legacy URL: `https://reiki-yggdrasil.vercel.app/`;
+  - Status/version URL: none confirmed in this project;
+  - Expected SHA: `bfb9000c99e298b6f276b46aebf24a8bc07c819d`;
+  - Live SHA/build marker: unknown;
+  - Match: unknown;
+  - Evidence source: GitHub commit status and fallback workflow logs show Vercel deployment was rate-limited before production alias verification.
+- Current deployment status:
+  - code is merged to `main`;
+  - production is not proven updated to PR #196;
+  - retry production deploy after the Vercel daily deployment limit resets.
+
 ## 2026-06-02 — Profile Lite Power Place deep parity audit follow-up
 
 - Branch: `codex/profile-lite-power-place-parity-deep-audit`, based on `origin/main` commit `6fbfdb9` after PR #194.
