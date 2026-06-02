@@ -100,6 +100,7 @@ const EMPTY_COMPOSITION = {
   business_vertex_zone_count: 1,
   star_variant: "closed",
   chess_variant: "classic-14",
+  chess_slot_scale: 1,
   cover_ref: null,
   object_refs: {},
   central_photo_id: "",

@@ -2760,6 +2760,18 @@
     repeating-conic-gradient(from 0deg, rgba(184, 121, 29, 0.08) 0 8deg, transparent 9deg 18deg);
 }
 
+.powerMandala.cover-mentalica,
+.altarMandalaSheet.cover-mentalica,
+.businessMandalaSheet.cover-mentalica,
+.zodiacMandalaSheet.cover-mentalica,
+.starMandalaSheet.cover-mentalica,
+.power-place-chess.cover-mentalica,
+.daoMandalaSheet.cover-mentalica {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255, 252, 239, 0.95) 0 16%, rgba(228, 192, 111, 0.28) 38%, rgba(99, 128, 118, 0.28) 72%, rgba(42, 53, 48, 0.42) 100%),
+    repeating-conic-gradient(from 18deg, rgba(183, 126, 34, 0.13) 0 7deg, rgba(45, 80, 73, 0.1) 8deg 16deg, transparent 17deg 27deg);
+}
+
 .powerCenterPhoto,
 .altarCenterPhoto,
 .businessCenterPhoto,
@@ -3580,6 +3592,13 @@
     repeating-radial-gradient(circle, rgba(212, 151, 47, 0.16) 0 1px, transparent 2px 18px),
     radial-gradient(circle, #fffdf6 0 22%, #f4e2bd 23% 70%, rgba(90, 123, 88, 0.18) 71% 100%) !important;
   color: #795019;
+}
+
+.coverPreview.tone-mentalica {
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255, 252, 239, 0.95) 0 18%, rgba(228, 192, 111, 0.28) 42%, rgba(99, 128, 118, 0.28) 76%, rgba(42, 53, 48, 0.42) 100%),
+    repeating-conic-gradient(from 18deg, rgba(183, 126, 34, 0.13) 0 7deg, rgba(45, 80, 73, 0.1) 8deg 16deg, transparent 17deg 27deg);
+  color: #27433d;
 }
 
 /* Preview for outer no-background should look white/light, not grey-dark. */
@@ -5307,7 +5326,11 @@
 }
 
 .power-place-chess {
-  width: min(100%, 420px);
+  --power-place-chess-slot-scale: 1;
+  --power-place-chess-card-aspect: 1 / 1.08;
+  --power-place-chess-board-max: 420px;
+  --power-place-chess-absolute-height: 390px;
+  width: min(100%, var(--power-place-chess-board-max));
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -5382,6 +5405,8 @@
 .power-place-chess__slot {
   min-height: 0;
   border-radius: 15px;
+  transform: scale(var(--power-place-chess-slot-scale));
+  transform-origin: center;
   background-image:
     radial-gradient(circle at 46% 30%, rgba(255, 244, 205, 0.95), rgba(195, 137, 43, 0.74) 58%, rgba(54, 34, 11, 0.86));
 }
@@ -5396,6 +5421,25 @@
   color: #2f1d0a;
   text-align: center;
   box-shadow: 0 0 0 5px rgba(255, 225, 156, 0.18), 0 14px 28px rgba(83, 51, 12, 0.16);
+}
+
+.field-layout-square .power-place-chess {
+  --power-place-chess-card-aspect: 1 / 1;
+  --power-place-chess-board-max: 410px;
+  --power-place-chess-absolute-height: 370px;
+}
+
+.field-layout-vertical .power-place-chess,
+.field-layout-rectangle .power-place-chess {
+  --power-place-chess-card-aspect: 1 / 1.32;
+  --power-place-chess-board-max: 430px;
+  --power-place-chess-absolute-height: 430px;
+}
+
+.field-layout-horizontal .power-place-chess {
+  --power-place-chess-card-aspect: 1.16 / 1;
+  --power-place-chess-board-max: 460px;
+  --power-place-chess-absolute-height: 360px;
 }
 
 .power-place-chess__top-slot.hasImage span,
@@ -5417,7 +5461,19 @@
 }
 
 .power-place-chess--classic-14 .power-place-chess__cell {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--power-place-chess-card-aspect);
+}
+
+.power-place-chess--classic-14,
+.field-layout-square .power-place-chess--classic-14 {
+  --power-place-chess-card-aspect: 1.34 / 1;
+  --power-place-chess-board-max: 380px;
+}
+
+.field-layout-rectangle .power-place-chess--classic-14,
+.field-layout-vertical .power-place-chess--classic-14 {
+  --power-place-chess-card-aspect: 1.08 / 1;
+  --power-place-chess-board-max: 370px;
 }
 
 .power-place-chess--classic-14 .power-place-chess__cell--center {
@@ -5426,7 +5482,7 @@
 }
 
 .power-place-chess--classic-8 .power-place-chess__cell {
-  aspect-ratio: 1 / 1.15;
+  aspect-ratio: var(--power-place-chess-card-aspect);
 }
 
 .power-place-chess--classic-8 .power-place-chess__cell--center {
@@ -5434,57 +5490,76 @@
   z-index: 2;
 }
 
-.power-place-chess--plus-8 .power-place-chess__board {
+.power-place-chess--plus-8 .power-place-chess__board,
+.power-place-chess--compact-5 .power-place-chess__board {
   position: relative;
-  min-height: 430px;
+  min-height: var(--power-place-chess-absolute-height);
 }
 
 .power-place-chess--plus-8 .power-place-chess__center,
-.power-place-chess--plus-8 .power-place-chess__slot {
+.power-place-chess--plus-8 .power-place-chess__slot,
+.power-place-chess--compact-5 .power-place-chess__center,
+.power-place-chess--compact-5 .power-place-chess__slot {
   position: absolute;
   transform: translate(-50%, -50%);
 }
 
-.power-place-chess--plus-8 .power-place-chess__center {
+.power-place-chess--plus-8 .power-place-chess__center,
+.power-place-chess--compact-5 .power-place-chess__center {
   left: 50%;
   top: 50%;
-  width: 34%;
+  width: 30%;
   aspect-ratio: 1 / 1;
 }
 
-.power-place-chess--plus-8 .power-place-chess__slot {
+.power-place-chess--plus-8 .power-place-chess__slot,
+.power-place-chess--compact-5 .power-place-chess__slot {
   aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%) scale(var(--power-place-chess-slot-scale));
 }
 
-.power-place-chess__slot--cross-top,
-.power-place-chess__slot--cross-right,
-.power-place-chess__slot--cross-bottom,
-.power-place-chess__slot--cross-left {
+.power-place-chess__slot--outer-square {
   width: 31%;
   border-radius: 18px;
 }
 
-.power-place-chess__slot--corner-top-left,
-.power-place-chess__slot--corner-top-right,
-.power-place-chess__slot--corner-bottom-left,
-.power-place-chess__slot--corner-bottom-right {
-  width: 20%;
+.power-place-chess__slot--inner-square {
+  width: 22%;
   border-radius: 14px;
 }
 
-.power-place-chess__slot--cross-top { left: 50%; top: 17%; }
-.power-place-chess__slot--cross-right { left: 83%; top: 50%; }
-.power-place-chess__slot--cross-bottom { left: 50%; top: 83%; }
-.power-place-chess__slot--cross-left { left: 17%; top: 50%; }
-.power-place-chess__slot--corner-top-left { left: 18%; top: 18%; }
-.power-place-chess__slot--corner-top-right { left: 82%; top: 18%; }
-.power-place-chess__slot--corner-bottom-left { left: 18%; top: 82%; }
-.power-place-chess__slot--corner-bottom-right { left: 82%; top: 82%; }
+.power-place-chess__slot--outer-top-left { left: 18%; top: 18%; }
+.power-place-chess__slot--outer-top-right { left: 82%; top: 18%; }
+.power-place-chess__slot--outer-bottom-left { left: 18%; top: 82%; }
+.power-place-chess__slot--outer-bottom-right { left: 82%; top: 82%; }
+.power-place-chess__slot--inner-top-left { left: 35%; top: 35%; }
+.power-place-chess__slot--inner-top-right { left: 65%; top: 35%; }
+.power-place-chess__slot--inner-bottom-left { left: 35%; top: 65%; }
+.power-place-chess__slot--inner-bottom-right { left: 65%; top: 65%; }
+
+.power-place-chess--compact-5 .power-place-chess__slot {
+  width: 25%;
+  border-radius: 16px;
+}
+
+.power-place-chess__slot--compact-top { left: 50%; top: 18%; }
+.power-place-chess__slot--compact-right { left: 80%; top: 46%; }
+.power-place-chess__slot--compact-bottom { left: 58%; top: 82%; }
+.power-place-chess__slot--compact-left { left: 20%; top: 55%; }
+.power-place-chess__slot--compact-orbit { left: 32%; top: 26%; }
 
 @media (max-width: 640px) {
   .power-place-chess {
     width: min(100%, 360px);
     padding: 10px;
+    --power-place-chess-board-max: 340px;
+    --power-place-chess-absolute-height: min(350px, calc(100vw - 58px));
+  }
+
+  .power-place-chess--classic-14,
+  .field-layout-square .power-place-chess--classic-14 {
+    --power-place-chess-card-aspect: 1.46 / 1;
+    --power-place-chess-board-max: 318px;
   }
 
   .power-place-chess__board {
@@ -5495,13 +5570,15 @@
     gap: 4px;
   }
 
-  .power-place-chess--plus-8 .power-place-chess__board {
-    min-height: min(430px, calc(100vw - 54px));
+  .power-place-chess--plus-8 .power-place-chess__board,
+  .power-place-chess--compact-5 .power-place-chess__board {
+    min-height: min(var(--power-place-chess-absolute-height), calc(100vw - 54px));
   }
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-square,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical,
+.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal {
   grid-template-columns: minmax(0, 1fr) !important;
   justify-items: center;
@@ -5510,9 +5587,11 @@
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
+.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-square,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal {
   width: min(100%, 560px) !important;
   height: auto !important;
@@ -5522,22 +5601,45 @@
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel .powerMandala,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel .powerMandala,
+.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel .powerMandala,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel .powerMandala,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-square .powerMandala,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle .powerMandala,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal .powerMandala {
   width: min(390px, 82%) !important;
   height: auto !important;
   aspect-ratio: 1 / 1 !important;
 }
 
+.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle {
+  aspect-ratio: 4 / 5 !important;
+  min-height: 560px !important;
+}
+
+.profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal {
+  aspect-ratio: 5 / 4 !important;
+  min-height: 460px !important;
+}
+
 @media (max-width: 1180px) {
   .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel,
   .profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
+  .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
   .profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,
   .profileLitePowerPlace .powerMandalaPanel.field-layout-square,
   .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
+  .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
   .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal {
     min-height: min(520px, calc(100vw - 48px)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
+  .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle {
+    min-height: min(470px, calc(100vw + 74px)) !important;
   }
 }

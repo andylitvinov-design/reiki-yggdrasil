@@ -12,6 +12,50 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite chess layout variants and sizing fix
+
+- Branch: `codex/fix-chess-layout-variants-size-mentalica`.
+- Scope: finalize the Profile Lite `/profile/mandalas` `Шахматы` constructor sizing/variant fix without changing auth, Supabase envs, saved object refs, `/profile-old`, `/`, `/masters`, `/profile/admin`, or Vercel rewrites.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - the Lite chess slot source list always prepended `CHESS_TOP_SLOTS`, so 8-photo and compact layouts inherited extra top-row source slots;
+  - chess card sizing was fixed in CSS and did not expose a persisted per-composition size control;
+  - the Mentalica cover option was missing from the CSS-only fallback cover set;
+  - square/rectangle field layout choices did not consistently adjust chess board/card proportions.
+- Fixed behavior:
+  - `classic-14` uses 14 source slots plus center;
+  - `classic-8` uses 8 source slots plus center;
+  - `plus-8` uses 8 source slots plus center, with 4 outer-square and 4 inner-square placements;
+  - `compact-5` uses 5 source slots around center;
+  - `CHESS_TOP_SLOTS` is preserved as a legacy definition but is not automatically added to 8 / 8+ / 5 source lists;
+  - `chess_slot_scale` is stored on the composition draft and applied through `--power-place-chess-slot-scale`;
+  - `cover-mentalica` works as a CSS-only fallback cover;
+  - square, rectangle/vertical, and horizontal layouts adjust chess aspect/board sizing.
+- Verification:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local rendered QA:
+  - dev server ran at `http://127.0.0.1:4217/profile/mandalas` with fake public Supabase env, a local fake JSON backend, and a fake JWT session; no real credentials were used;
+  - desktop 1280: `plus-8` rendered 8 slots with 4 `outer-square` and 4 `inner-square`, `compact-5` rendered 5 compact slots, columns measured `260px 620px 340px`, horizontal overflow `0`, no Vite overlay;
+  - mobile 390: columns collapsed to one `358px` track, `plus-8` rendered 8 slots with 4 outer/4 inner, `compact-5` rendered 5 compact slots, horizontal overflow `0`, no Vite overlay;
+  - browser console showed only Vite/React dev informational messages, no captured app errors/warnings.
+- Not verified until a real authenticated/live pass:
+  - real Supabase session;
+  - real saved composition reload;
+  - real upload/private signed URLs;
+  - production/live QA before deploy.
+
 ## 2026-06-02 — Profile Lite canonical shell tabs and outer cover fix
 
 - Branch: `codex/profile-lite-cover-tabs-canonical-shell`, based on fresh `origin/main` commit `b05b0c5`.
