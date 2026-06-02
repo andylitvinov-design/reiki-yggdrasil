@@ -62,6 +62,45 @@
   - real upload/private signed URLs;
   - production/legacy live QA after merge/deploy.
 
+## 2026-06-02 — Profile Lite compact left photo filter
+
+- Branch: `codex/refine-profile-lite-left-photo-filter`.
+- Starting point: fresh `origin/main` merge commit `169c854` after PR #206.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - removed the left-side `Выбрать из базы` button from `/profile/mandalas`;
+  - kept `Добавить мандалу` as the only primary left action;
+  - replaced the large left catalog with compact select filters: group, category, subcategory/step, plus `Избранные`;
+  - left list now shows latest photos by default and filtered photos when a filter is selected;
+  - compact photo rows use 56px thumbnails, title, meta label, and no large empty cards;
+  - client-photo rows expose the delete cross on hover/focus and still route through `onClientPhotoDelete`;
+  - Lite deletion now clears matching object refs, not only the selected center photo ref.
+- Preserved:
+  - `/profile-old`;
+  - `/`, `/profile`, `/masters`, `/profile/admin`;
+  - Supabase auth/bootstrap, signed URL hydration, durable `storage://` refs, upload/save/load media flow, Vercel rewrites, and env values.
+- Checks run:
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - all listed commands exited `0`;
+  - `npm run check` retained existing video placeholder warnings for `RY-L04-S04` and `RY-L04-S05`;
+  - `npm run check` and standalone `npm run build` retained the existing Vite large-chunk warning.
+- Not verified:
+  - real authenticated Supabase Storage photo display/delete with production RLS;
+  - live production/legacy QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite chess variants, sizing, and Mentalica cover
 
 - Branch: `codex/fix-chess-layout-variants-size-mentalica`.
