@@ -20,13 +20,11 @@ codex/restore-mandala-to-services-flow
 
 ## 0. Product decision record — confirmed by Andrey
 
-These product decisions are now canonical for this feature.
+These product decisions are canonical for the mandala services/shop/cart/order feature.
 
 ### 0.1. Public link timing
 
-Decision: **1A**.
-
-A public client link appears only after the service is published.
+Decision: public client link appears only after service publication.
 
 ```text
 Draft service:
@@ -68,18 +66,46 @@ profile_cabinet_power_place_compositions
 
 Client orders this template.
 
-For the client order, the system/master creates a **personal client mandala** based on the service template:
+For the client order, the system creates a **draft personal client mandala** in the master cabinet order workflow:
 
 ```text
 service template mandala
-→ insert client photo in the center
-→ save as personal client mandala/result
-→ keep inside master cabinet service/order workflow
+→ copy template composition
+→ insert / await client photo in the center
+→ save as personal client mandala/result draft
+→ attach result to order
 ```
 
-The service template remains reusable. Each client order should create its own order result/personal mandala, not overwrite the template.
+The service template remains reusable. Each client order creates its own personal result composition. Never overwrite the template composition.
 
-### 0.4. There are two service/shop surfaces
+### 0.4. There are two cabinet modes in one profile
+
+After Google authorization the user can switch between two cabinet modes:
+
+```text
+Кабинет Личный
+Кабинет Мастера
+```
+
+`Кабинет Личный` is for the user as a client.
+
+Required tab:
+
+```text
+Мои Заказы
+```
+
+`Кабинет Мастера` is for the user as a master.
+
+Required tab:
+
+```text
+Заявки
+```
+
+Same authenticated profile/session can access both modes if the UI supports them. Do not force separate accounts.
+
+### 0.5. Public shop and master services are different surfaces
 
 There are two different places:
 
@@ -91,17 +117,17 @@ There are two different places:
 → public site shop where all published services are visible
 ```
 
-The public shop page already exists on the site according to product context; Codex must verify the exact route/component before coding.
+The public shop page exists on the site according to product context; Codex must verify the exact route/component before coding.
 
-### 0.5. Publication is immediate
+### 0.6. Publication is immediate
 
 No moderation gate for this MVP.
 
 When the master clicks `Опубликовать как услугу` or publishes from `/profile/services`, the service becomes public immediately if Supabase/RLS allows it.
 
-### 0.6. Ordering goes through cart
+### 0.7. Ordering goes through cart
 
-Client ordering goes through the service cart flow, not a direct one-click order.
+Client ordering goes through a service cart flow. If no cart exists in the repo, create a simple cart MVP rather than a duplicate hidden order form.
 
 Target public flow:
 
@@ -110,25 +136,71 @@ public shop / service page
 → add service to cart
 → cart keeps selected service/template and format/details
 → checkout/order flow
-→ client order reaches master cabinet
+→ after checkout user is prompted to enter personal cabinet via Google auth for order confirmation
+→ client lands in Кабинет Личный / Мои Заказы
+→ if photo is missing, a modal asks: Загрузите своё фото, чтобы отправить заказ в работу мастеру
+→ order appears in Кабинет Мастера / Заявки
 ```
 
-If the existing cart has already been planned elsewhere, Codex must inspect and connect to it rather than inventing a second cart.
+### 0.8. Client photo upload timing
 
-### 0.7. Client result appears in master cabinet
+Client photo is not required before adding service to cart.
 
-The order/result should be visible in the master cabinet.
-
-Target master location:
+After checkout, the client is prompted to confirm the order in the personal cabinet via Google auth. In `Кабинет Личный → Мои Заказы`, if no photo is attached, show a modal/form:
 
 ```text
-/profile/orders
-or existing service-orders area in the master cabinet
+Загрузите своё фото, чтобы отправить заказ в работу Мастеру.
 ```
 
-The result is a personal client mandala created from the service template and client photo.
+After photo upload/submission, the order becomes ready for the master workflow.
 
-### 0.8. Pricing default
+### 0.9. Master order workflow
+
+When a client order is placed:
+
+1. Order appears in master cabinet tab `Заявки`.
+2. A draft personal mandala is generated in the master cabinet from the service template.
+3. If the client photo is already available, it is inserted into the center.
+4. If the photo is not available yet, the order waits for client photo upload from `Мои Заказы`.
+5. Master either:
+   - approves/sends the automatically generated draft result;
+   - or edits the mandala, adds comments, then sends it.
+
+### 0.10. Result delivery
+
+Client sees the final result in `Кабинет Личный → Мои Заказы`.
+
+Result card must show:
+
+```text
+готовое изображение / preview заказа
+статус
+комментарий мастера if present
+open action
+скачать action
+```
+
+The result should open as a client order result card/image and be downloadable.
+
+### 0.11. Delivery modes
+
+Formats:
+
+```text
+signature      → С подписью мастера
+no_signature   → Без подписи мастера
+both           → Две версии
+```
+
+Confirmed meaning:
+
+- `signature` = master-finished version: manual master refinement plus final uploaded/generated file/result.
+- `no_signature` = automatic template result: generated from template + client photo, can be sent after master approval.
+- `both` = both versions: automatic version plus master-finished version.
+
+Implementation may start with one `result_composition_id`, but final model should allow two result versions for `both`.
+
+### 0.12. Pricing default
 
 Default price is free unless the master fills other details.
 
@@ -142,6 +214,23 @@ public label = Бесплатно
 
 If a price is entered, show the entered price/currency.
 
+### 0.13. Public service route
+
+Use a normal public service route:
+
+```text
+/services/<service_id>
+```
+
+Add/verify Vercel rewrite when implemented:
+
+```json
+{
+  "source": "/services/:serviceId",
+  "destination": "/"
+}
+```
+
 ---
 
 ## 1. Executive summary
@@ -154,20 +243,24 @@ master mandala
 → published public shop service
 → public client link
 → cart
-→ order
-→ personal client mandala/result in master cabinet
+→ checkout
+→ personal cabinet confirmation/photo upload
+→ order in master cabinet
+→ draft personal mandala generated from template
+→ master approval/editing/comments
+→ final result visible/downloadable in client personal cabinet
 ```
 
 Main storage model:
 
-- Saved private mandalas live in `profile_cabinet_power_place_compositions`.
+- Saved private mandalas and generated result mandalas live in `profile_cabinet_power_place_compositions`.
 - Service drafts and published service templates live in `profile_cabinet_services`.
 - Service visibility is controlled by `profile_cabinet_services.status`:
   - `draft` = visible only to owner/master in the cabinet;
   - `published` = visible publicly in the shop and by public link;
   - `archived` = hidden from public, kept for history.
 - Client orders live in `profile_cabinet_service_orders`.
-- Personal client mandala/result should be attached to the order, not overwrite the service template.
+- Personal client mandala/result is attached to the order and must not overwrite the service template.
 
 Target product flow:
 
@@ -183,9 +276,13 @@ Target product flow:
 → public link appears only after publication
 → service appears in public shop
 → client adds service to cart
-→ client checkout/order flow
-→ order appears in master cabinet
-→ master/client workflow creates personal mandala with client photo in center
+→ checkout prompts Google authorization / personal cabinet confirmation
+→ client lands in Кабинет Личный / Мои Заказы
+→ photo upload modal appears if no client photo
+→ order appears in Кабинет Мастера / Заявки
+→ draft personal mandala result is generated from template
+→ master approves/sends or edits/comments/sends
+→ client sees result card in Мои Заказы and can open/download
 ```
 
 ---
@@ -332,8 +429,12 @@ Known limitations for the final target:
   - `goal_text`
   - `comment_text`
   - `attachment_refs`
-  - `result_composition_id`
-- `listOwnServiceOrders(profileId)` means incoming master orders by `master_profile_id`, not client-side `Мои заказы`.
+  - `template_composition_id`
+  - `draft_result_composition_id`
+  - `auto_result_composition_id`
+  - `master_result_composition_id`
+  - `final_result_composition_id`
+- `listOwnServiceOrders(profileId)` means incoming master orders by `master_profile_id`, not client-side `Мои Заказы`.
 
 ### 3.4. Existing Supabase migration
 
@@ -392,7 +493,7 @@ Needs verification:
 
 - Whether this migration is applied in live Supabase.
 - Whether RLS matches the future cart/authenticated checkout model.
-- Whether result personal mandala requires `result_composition_id` or a separate table.
+- Whether result personal mandala requires additional result composition fields or a separate table.
 
 ---
 
@@ -410,14 +511,14 @@ Purpose:
 
 - stores the master mandala constructor state;
 - owner-only object;
-- not directly public;
-- reusable source for creating service templates.
+- reusable source for creating service templates;
+- also can store personal client result compositions if linked to orders.
 
 Rule:
 
 ```text
 A master mandala becomes public only through a service row.
-The composition itself remains private/owner-scoped unless public rendering is explicitly designed.
+The template composition remains unchanged when orders are created.
 ```
 
 ### 4.2. Service templates
@@ -445,7 +546,7 @@ status = published  → public service in shop and public link
 status = archived   → hidden from public, kept for history
 ```
 
-Required default values:
+Default price:
 
 ```text
 price_amount = null or 0
@@ -453,7 +554,7 @@ price_currency = 'EUR'
 public price label = Бесплатно
 ```
 
-Recommended additional fields for clearer future implementation, if a migration is safe:
+Recommended additional service fields, if migration is safe:
 
 ```text
 public_slug text unique null
@@ -516,7 +617,7 @@ status = archived:
 
 ### 4.5. Cart
 
-Cart must hold selected service/template before order creation.
+If no cart exists in the repo, create a simple service cart MVP.
 
 Minimum cart item:
 
@@ -531,13 +632,19 @@ Minimum cart item:
 }
 ```
 
-Default price label:
+Suggested localStorage key for MVP:
 
 ```text
-Бесплатно
+reiki-yggdrasil-service-cart
 ```
 
-If an existing cart module/page already exists, use it. Do not create a duplicate cart without checking the existing site shop/cart implementation.
+Suggested pending checkout key:
+
+```text
+reiki-yggdrasil-pending-service-cart
+```
+
+Do not store secrets or private data in localStorage.
 
 ### 4.6. Orders
 
@@ -547,9 +654,9 @@ Current storage:
 public.profile_cabinet_service_orders
 ```
 
-Final order should represent a client request for a service template.
+Final order should represent a client request for a service template and personal result mandala.
 
-Recommended additional fields:
+Recommended order fields:
 
 ```text
 client_profile_id uuid null references public.profile_cabinet_profiles(id)
@@ -557,20 +664,30 @@ order_format text not null default 'signature' check (order_format in ('signatur
 goal_text text not null default ''
 comment_text text not null default ''
 attachment_refs jsonb not null default '[]'::jsonb
-result_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
+template_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
+draft_result_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
+auto_result_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
+master_result_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
+final_result_composition_id uuid null references public.profile_cabinet_power_place_compositions(id)
 submitted_at timestamptz null
+sent_at timestamptz null
 ```
 
-`result_composition_id` is important for Andrey's confirmed logic:
+For MVP, if adding all result fields is too much, use:
 
 ```text
-service template mandala
-→ client photo inserted in center
-→ saved as personal client mandala/result
-→ linked to order via result_composition_id
+client_profile_id
+order_format
+template_composition_id
+draft_result_composition_id
+final_result_composition_id
 ```
 
-If using the same `profile_cabinet_power_place_compositions` table for personal client mandalas, the result composition should be owned by the master profile and linked to the order. It must not overwrite the original service template composition.
+Result composition rule:
+
+```text
+service template composition ≠ draft/personal/final result composition
+```
 
 ---
 
@@ -625,7 +742,7 @@ Behavior:
 4. If yes: open existing service editor.
 5. If no: create service draft in profile_cabinet_services.
 6. status = 'draft'.
-7. price default = free.
+7. price default = Бесплатно.
 8. Navigate to /profile/services.
 9. Show: Мандала перенесена в услуги как черновик.
 ```
@@ -648,7 +765,7 @@ Behavior:
 4. If service exists: update it.
 5. If no service: create service row.
 6. status = 'published'.
-7. price default = free.
+7. price default = Бесплатно.
 8. Navigate to /profile/services.
 9. Show public link block.
 10. Service appears in public shop.
@@ -683,20 +800,9 @@ profile_cabinet_services
 Sections:
 
 ```text
-Черновики        -> status = draft
-Опубликованные   -> status = published
-Архив            -> status = archived
-```
-
-Minimum service card fields:
-
-```text
-title
-description preview
-price/currency or Бесплатно
-status
-composition_id indicator
-public link state
+Черновики        → status = draft
+Опубликованные   → status = published
+Архив            → status = archived
 ```
 
 Editor fields:
@@ -709,72 +815,21 @@ Editor fields:
 Изображение / preview
 Связанная мандала / composition_id readonly
 Статус
+Форматы: signature / no_signature / both
 ```
 
-Draft actions:
+### 5.6. Public shop and service page
 
-```text
-Сохранить черновик
-Опубликовать
-```
-
-Published actions:
-
-```text
-Сохранить изменения
-Скопировать публичную ссылку
-Снять с публикации / В архив later
-```
-
-### 5.6. Public shop
-
-Public site has a general shop page/tab for all services.
-
-Codex must verify exact route/component before coding. Possible routes:
-
-```text
-/shop
-existing Магазин page/tab
-existing public section in main site
-```
-
-Public shop data:
+Public shop displays:
 
 ```text
 profile_cabinet_services where status = 'published'
 ```
 
-Public shop card:
-
-```text
-preview
-title
-short description
-Бесплатно or price
-button: Подробнее / В корзину
-```
-
-### 5.7. Public service page
-
-Recommended route:
+Public service page:
 
 ```text
 /services/:serviceId
-```
-
-Vercel rewrite required if route is implemented:
-
-```json
-{
-  "source": "/services/:serviceId",
-  "destination": "/"
-}
-```
-
-Public page must only load:
-
-```text
-status = 'published'
 ```
 
 Public page content:
@@ -791,7 +846,7 @@ format selector:
 button: В корзину / Оформить через корзину
 ```
 
-### 5.8. Cart and checkout
+### 5.7. Cart and checkout
 
 Client flow:
 
@@ -800,10 +855,11 @@ public shop or service page
 → choose service
 → choose format/details
 → add to cart
-→ cart checkout
-→ if needed, Google login
-→ order is created/submitted
-→ master sees order in cabinet
+→ checkout
+→ prompt Google authorization / personal cabinet confirmation
+→ Кабинет Личный / Мои Заказы
+→ if no photo: modal asks to upload client photo
+→ submit/confirm order into master workflow
 ```
 
 Cart must preserve:
@@ -812,51 +868,150 @@ Cart must preserve:
 service_id
 format
 master_profile_id
-composition_id
+composition_id template reference
 ```
 
-If client is not authenticated at checkout, save pending cart/checkout safely before Google OAuth.
+### 5.8. Personal cabinet / My Orders
 
-Suggested localStorage key:
+Mode:
 
 ```text
-reiki-yggdrasil-pending-service-cart
+Кабинет Личный
 ```
 
-Do not store secrets or private data there.
-
-### 5.9. Master receives order and creates personal mandala
-
-Master cabinet:
+Required tab:
 
 ```text
-/profile/orders
+Мои Заказы
 ```
 
-Order points to:
+Responsibilities:
 
 ```text
-service_id
-service.composition_id = template mandala
-client photo / request / details
+show own orders as client
+show order status
+show request/service title
+show photo upload modal if order lacks client photo
+show master response/comment
+show result card when ready
+open result
+download result
 ```
 
-Personal result creation:
+Missing photo modal:
 
 ```text
-1. Open order.
-2. Load service template composition.
-3. Insert client photo in center.
-4. Save as new personal composition/result.
-5. Link result to order via result_composition_id or equivalent.
-6. Keep template unchanged.
+Загрузите своё фото, чтобы отправить заказ в работу Мастеру.
 ```
 
-This is the core distinction:
+### 5.9. Master cabinet / Requests
+
+Mode:
 
 ```text
-service template composition ≠ personal client result composition
+Кабинет Мастера
 ```
+
+Required tab:
+
+```text
+Заявки
+```
+
+Responsibilities:
+
+```text
+show incoming orders for own services
+show selected service/template
+show selected format
+show client photo status
+show generated draft personal mandala
+allow approve/send
+allow edit mandala
+allow add comments
+allow send final result
+```
+
+### 5.10. Draft personal mandala generation
+
+When order is created/confirmed:
+
+```text
+1. Load service template composition from service.composition_id.
+2. Copy template composition into a new result composition.
+3. If client photo exists, insert it into center.
+4. Save as draft personal result composition.
+5. Link to order via draft_result_composition_id.
+6. Do not modify service template composition.
+```
+
+If client photo is missing:
+
+```text
+1. Create order.
+2. Mark order as waiting_for_photo or draft/photo_required.
+3. Prompt client in Мои Заказы to upload photo.
+4. After photo upload, generate/update draft personal result composition.
+5. Master sees ready draft in Заявки.
+```
+
+Suggested order statuses:
+
+```text
+draft
+photo_required
+new
+in_progress
+ready_for_review
+sent
+closed
+```
+
+If status migration is too much for one pass, keep existing statuses and add minimal flags, but document compromise.
+
+### 5.11. Master approval / editing / sending
+
+For `no_signature`:
+
+```text
+automatic result is generated from template + client photo
+master approves and sends
+```
+
+For `signature`:
+
+```text
+master manually edits/refines/adds signature/comments/uploads or saves final version
+then sends
+```
+
+For `both`:
+
+```text
+automatic version + master-finished version
+MVP may store one final_result_composition_id first, but final model should support both auto_result_composition_id and master_result_composition_id
+```
+
+### 5.12. Client result delivery
+
+Client sees final result in:
+
+```text
+Кабинет Личный → Мои Заказы
+```
+
+Result card:
+
+```text
+preview image
+service title
+status
+master comment
+open result
+скачать
+```
+
+Download can use existing PDF/print/download flow if available. PNG/JPEG export remains needs verification unless implemented.
 
 ---
 
@@ -878,11 +1033,13 @@ Protected/current routes:
 /profile/admin
 ```
 
-Public shop/service routes to verify or add:
+Needed or to verify:
 
 ```text
 /shop or existing Магазин tab/page
 /services/:serviceId
+/profile/my-orders or Кабинет Личный / Мои Заказы inside Profile Lite
+/profile/orders or Кабинет Мастера / Заявки inside Profile Lite
 ```
 
 Do not show a fake public link if `/services/:serviceId` is not implemented.
@@ -986,18 +1143,19 @@ Requirements:
 [ ] Edit title.
 [ ] Edit description.
 [ ] Edit price/currency.
+[ ] Edit/enable formats signature/no_signature/both.
 [ ] Save draft.
 [ ] Publish.
 [ ] Copy public link for published only.
 [ ] Show linked mandala/template.
 ```
 
-### Phase 3 — Public shop and service route
+### Phase 3 — Public shop/service route/cart MVP
 
 Goal:
 
 ```text
-Published service templates appear in public shop and open by public link.
+Published service templates appear in public shop and can be added to cart.
 ```
 
 Requirements:
@@ -1009,41 +1167,47 @@ Requirements:
 [ ] Add Vercel rewrite if route added.
 [ ] Draft services are not public.
 [ ] Archived services are not public.
+[ ] Public service page has format selector.
 [ ] Public service page has add-to-cart action.
+[ ] Simple cart MVP exists if no cart exists.
 ```
 
-### Phase 4 — Cart and order flow
+### Phase 4 — Personal cabinet and master cabinet order split
 
 Goal:
 
 ```text
-Client orders service template through cart.
+Same profile can switch between Кабинет Личный and Кабинет Мастера.
 ```
 
 Requirements:
 
 ```text
-[ ] Cart stores service_id.
-[ ] Cart stores format.
-[ ] Cart stores master_profile_id.
-[ ] Cart stores composition_id template reference.
-[ ] Checkout creates service order.
-[ ] If login is needed, pending cart survives Google OAuth.
-[ ] Master sees order in cabinet.
+[ ] Кабинет Личный mode exists.
+[ ] Кабинет Мастера mode exists.
+[ ] Кабинет Личный has Мои Заказы.
+[ ] Кабинет Мастера has Заявки.
+[ ] Client checkout lands in Мои Заказы.
+[ ] Master incoming orders appear in Заявки.
+[ ] Missing client photo modal appears in Мои Заказы.
 ```
 
-### Phase 5 — Personal client mandala result
+### Phase 5 — Personal client mandala result workflow
 
 Goal:
 
 ```text
-Order creates/receives personal mandala based on template + client photo.
+Order creates draft personal mandala result from template, master sends final result, client opens/downloads it.
 ```
 
-Likely schema addition:
+Likely schema additions:
 
 ```text
-profile_cabinet_service_orders.result_composition_id
+template_composition_id
+draft_result_composition_id
+auto_result_composition_id
+master_result_composition_id
+final_result_composition_id
 ```
 
 Requirements:
@@ -1051,10 +1215,14 @@ Requirements:
 ```text
 [ ] Open order in master cabinet.
 [ ] Load service template composition.
-[ ] Insert client photo in center.
-[ ] Save as new personal composition.
-[ ] Link result composition to order.
-[ ] Template remains unchanged.
+[ ] Generate draft personal result composition.
+[ ] Insert client photo in center when available.
+[ ] Keep template unchanged.
+[ ] Master can approve/send automatic result.
+[ ] Master can edit/comment/send.
+[ ] Client sees result card in Мои Заказы.
+[ ] Client can open result.
+[ ] Client can download result.
 ```
 
 ---
@@ -1092,6 +1260,17 @@ Public QA if Phase 3 is implemented:
 /shop or existing Магазин route
 /services/<published_service_id>
 /services/<draft_service_id> should not be public
+cart add/remove/checkout
+```
+
+Personal/master cabinet QA if Phase 4+ is implemented:
+
+```text
+Кабинет Личный / Мои Заказы
+Кабинет Мастера / Заявки
+missing photo modal
+master generated draft result
+client result card open/download
 ```
 
 Viewport QA:
