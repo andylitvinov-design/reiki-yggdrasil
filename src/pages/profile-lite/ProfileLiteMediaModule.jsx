@@ -14,10 +14,25 @@ export default function ProfileLiteMediaModule({
   onTraditionAssetSave,
   traditionAssetForm,
   traditionAssets,
-  clientPhotoForm
+  clientPhotoForm,
+  shellChrome
 }) {
   return (
-    <section className="profileLiteModule profileLiteMediaModule" aria-label="Фото / Медиа">
+    <section className="profileLiteModule profileLiteMediaModule mandalaWorkspace" aria-label="Фото / Медиа">
+      <div className="mandalaHero">
+        <div className="mandalaHeroSeal">◌</div>
+        <div>
+          <p className="cabinetEyebrow">Фото / Медиа</p>
+          <h2>Медиа мастерской</h2>
+          <p>Загружайте фото клиентов, цели и образы традиций для мандал, алтаря и материалов.</p>
+        </div>
+        <div className="mandalaHeroStats">
+          <span><b>{clientGoalPhotos.length}</b> Фото</span>
+          <span><b>{traditionAssets.length}</b> Традиции</span>
+          <span><b>{mediaStatus}</b> Статус</span>
+        </div>
+      </div>
+      {shellChrome}
       <div className="cabinetCard">
         <div className="cabinetFormHeader">
           <div>

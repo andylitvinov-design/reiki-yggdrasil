@@ -188,11 +188,15 @@ const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
+const overviewModuleSource = readFileSync(join(moduleDir, "ProfileLiteOverview.jsx"), "utf8");
 const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
+const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 const materialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 const servicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
 const ordersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
 const chatsModuleSource = readFileSync(join(moduleDir, "ProfileLiteChatsModule.jsx"), "utf8");
+const settingsModuleSource = readFileSync(join(moduleDir, "ProfileLiteSettingsModule.jsx"), "utf8");
+const diagnosticsModuleSource = readFileSync(join(moduleDir, "ProfileLiteDiagnosticsModule.jsx"), "utf8");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -271,7 +275,10 @@ assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse ol
 assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
 assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
 assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
-assert.match(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must render hero/header before tabs");
+assert.doesNotMatch(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must not render cabinet tabs before the active module canonical hero");
+assert.match(shellSource, /const shellChrome = \(/, "Profile Lite shell should expose tabs/status as canonical shell chrome");
+assert.match(shellSource, /typeof children === "function"/, "ProfileLitePage/Shell integration should let modules place shell chrome below their canonical hero");
+assert.match(powerPlaceSource, /<div className="mandalaHero"[\s\S]*Мастерская мандал[\s\S]*\{shellChrome\}[\s\S]*<div className="workspaceSwitches"/, "Mandala hero must render before Profile Lite cabinet tabs/status chrome");
 assert.match(powerPlaceSource, /className: "plus-top"[\s\S]*className: "plus-right"[\s\S]*className: "plus-bottom"[\s\S]*className: "plus-left"/, "Lite zodiac 8+ should use old plus slot class names");
 assert.match(powerPlaceSource, /className: "plus-corner-tl"[\s\S]*className: "plus-corner-tr"[\s\S]*className: "plus-corner-bl"[\s\S]*className: "plus-corner-br"/, "Lite zodiac 12+ should use old plus corner class names");
 assert.match(powerPlaceSource, /<div className="altarTopRow"[\s\S]*altarTopSource main[\s\S]*altarMandalaBase[\s\S]*altarBottomSupports/, "Lite altar should render the old top row, center/base, and bottom support structure");
@@ -283,6 +290,29 @@ assert.match(profileMandalaCss, /-webkit-print-color-adjust:\s*exact/, "Print CS
 
 assert.match(profileModuleSource, /profileTabContent/, "Lite profile module should reuse old profileEditor profileTabContent wrapper");
 assert.match(profileModuleSource, /Как это будет выглядеть/, "Lite profile preview should use the old profile preview heading");
+
+assert.match(powerPlaceSource, /activeCover = visibleCover/, "cover active state should be computed from the visible layer only");
+assert.match(powerPlaceSource, /coverLayerMode === "inner"\s*\?\s*"cover_ref.inner"\s*:\s*"cover_ref.outer"/, "cover layer UI should carry explicit inner/outer save markers");
+assert.doesNotMatch(powerPlaceSource, /key=\{`\$\{coverLayerMode\}-\$\{cover\.id\}`\}/, "cover layer switching must not remount the full cover option list");
+assert.match(powerPlaceSource, /item\.display_url \|\| item\.signed_url \|\| item\.image_url/, "material cover options should use signed URL hydration like other media rows");
+assert.match(profileLitePageSource, /inner:\s*layer === "inner" \? nextLayer : inner/, "inner cover selection should save only into cover_ref.inner");
+assert.match(profileLitePageSource, /outer:\s*layer === "outer" \? nextLayer : outer/, "outer cover selection should save only into cover_ref.outer");
+
+for (const [source, label] of [
+  [overviewModuleSource, "overview"],
+  [profileModuleSource, "profile"],
+  [mediaModuleSource, "media"],
+  [materialsModuleSource, "materials"],
+  [servicesModuleSource, "services"],
+  [ordersModuleSource, "orders"],
+  [chatsModuleSource, "chats"],
+  [settingsModuleSource, "settings"],
+  [diagnosticsModuleSource, "diagnostics"]
+]) {
+  assert.match(source, /mandalaHero/, `Lite ${label} module should render the canonical mandala-style hero`);
+  assert.match(source, /shellChrome/, `Lite ${label} module should place cabinet tabs below its canonical hero`);
+  assert.match(source, /mandalaWorkspace/, `Lite ${label} module should share the canonical mandala workspace surface`);
+}
 
 for (const [source, label] of [
   [materialsModuleSource, "materials"],

@@ -399,6 +399,13 @@
   align-items: center;
 }
 
+.profileLiteShellChrome {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
 .profileLiteTabs {
   padding: 10px;
   border: 1px solid rgba(184, 121, 29, 0.16);
@@ -462,7 +469,7 @@
 }
 
 .profileLiteShell-mandalas .profileLiteWorkspace {
-  padding-top: 16px;
+  padding-top: 0;
 }
 
 .profileLiteWorkspace,

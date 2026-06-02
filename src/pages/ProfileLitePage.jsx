@@ -778,9 +778,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       return {
         ...current,
         cover_ref: {
-          ...(layer === "outer" ? inner : nextLayer),
-          id: layer === "outer" ? inner.id : nextLayer.id,
-          inner: layer === "outer" ? inner : nextLayer,
+          id: layer === "inner" ? nextLayer.id : inner.id,
+          label: layer === "inner" ? nextLayer.label : inner.label,
+          type: layer === "inner" ? nextLayer.type : inner.type,
+          tone: layer === "inner" ? nextLayer.tone : inner.tone,
+          src: layer === "inner" ? nextLayer.src : inner.src,
+          display_src: layer === "inner" ? nextLayer.display_src : inner.display_src,
+          inner: layer === "inner" ? nextLayer : inner,
           outer: layer === "outer" ? nextLayer : outer
         }
       };
@@ -1200,6 +1204,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     diagnostics: <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
   }[activeTab] || <ProfileLiteOverview {...moduleProps} />;
   const activeTabMeta = getProfileLiteTabById(activeTab);
+  const renderModuleWithShellChrome = (shellChrome) => (
+    <ProfileLiteModuleErrorBoundary boundaryKey={activeTab} moduleLabel={activeTabMeta.label}>
+      {React.isValidElement(renderedModule) ? React.cloneElement(renderedModule, { shellChrome }) : renderedModule}
+    </ProfileLiteModuleErrorBoundary>
+  );
 
   return (
     <ProfileLiteShell
@@ -1213,9 +1222,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       profile={profile}
       user={user}
     >
-      <ProfileLiteModuleErrorBoundary boundaryKey={activeTab} moduleLabel={activeTabMeta.label}>
-        {renderedModule}
-      </ProfileLiteModuleErrorBoundary>
+      {renderModuleWithShellChrome}
     </ProfileLiteShell>
   );
 }

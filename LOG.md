@@ -1,5 +1,34 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-02 — Profile Lite canonical shell tabs and outer cover fix
+
+- Branch: `codex/profile-lite-cover-tabs-canonical-shell`.
+- Starting point: fresh `origin/main` commit `b05b0c5` after PR #202.
+- Changed:
+  - moved Profile Lite route tabs/status into a reusable shell chrome slot so each module renders its canonical hero before cabinet tabs;
+  - added mandala-style hero + shell chrome placement to Overview, Profile, Media, Materials, Services, Orders, Chats, Settings, and Diagnostics;
+  - kept existing route-backed tab hrefs for `/profile`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/profile/chats`, and `/profile/settings`;
+  - fixed cover layer behavior so `Фон внутри` saves to `cover_ref.inner`, `Фон снаружи` saves to `cover_ref.outer`, active state is read from the visible layer, and cover option keys no longer include `coverLayerMode`;
+  - included material `signed_url` in saved image display hydration for cover options.
+- Contract coverage:
+  - `test/profileLiteCabinetContract.test.mjs` now rejects shell tabs before module hero;
+  - guards cover inner/outer save targets, stable cover option keys, material signed URL hydration, and canonical hero markers across Profile Lite modules.
+- Verification:
+  - `npm run test:profile-lite` failed first on the old tabs-before-hero contract, then passed after the fix;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed after `npm install`, with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` passed with the existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local browser QA:
+  - dev server with fake public Supabase env and local mock API opened `/profile/mandalas` with a fake local session;
+  - DOM check confirmed topbar before `mandalaHero`, `mandalaHero` before `profileLiteTabs`, route-backed tab hrefs intact, and horizontal overflow `0`;
+  - a later DevTools route sweep timed out and a stale HMR DOM fragment was not used as evidence for cover behavior.
+- Not verified:
+  - real authenticated Supabase Storage/RLS upload, signed URL creation, cover selection persistence after reload, and live production QA on `https://mentalica.vercel.app/profile/mandalas`;
+  - PR merge/deploy/live verification.
+
 ## 2026-06-02 — Profile Lite media upload signed URL hydration fix
 
 - Branch: `codex/profile-lite-media-upload-signed-url-fix`.

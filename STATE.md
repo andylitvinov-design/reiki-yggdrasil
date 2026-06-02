@@ -12,6 +12,38 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite canonical shell tabs and outer cover fix
+
+- Branch: `codex/profile-lite-cover-tabs-canonical-shell`, based on fresh `origin/main` commit `b05b0c5`.
+- Scope: Profile Lite shell/module visual order and Power Place cover layer selection only.
+- Root cause found:
+  - PR #201 guard checked `cabinetTopbar` before `profileLiteTabs`, but the actual canonical visual requirement is module hero/header before tabs;
+  - `ProfileLiteShell` rendered tabs/status before the active module, so `Мастерская мандал` could not appear before cabinet tabs;
+  - cover option buttons used `${coverLayerMode}-${cover.id}`, remounting the list on inner/outer switches;
+  - material-backed saved images did not include `signed_url` in `displaySrc`, unlike client/tradition media.
+- Fixed:
+  - moved tabs/status into `shellChrome` and lets modules place it under their canonical hero;
+  - added `mandalaHero` + shell chrome placement to every Profile Lite tab module;
+  - kept route-backed tabs and existing module business logic;
+  - made cover option keys stable by cover id, active state layer-specific, and inner/outer save targets explicit;
+  - added material signed URL fallback for cover/saved image options.
+- Verification:
+  - `npm run test:profile-lite` passed after intentional RED failure on old tabs-before-hero contract;
+  - `npm run test:profile-media` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-loading-recovery` passed;
+  - `npm run check` passed after `npm install`, with existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - `npm run build` passed with existing Vite large-chunk warning;
+  - `git diff --check` passed.
+- Local browser QA:
+  - `/profile/mandalas` opened locally with fake public Supabase env, mock API, and fake local session;
+  - DOM evidence confirmed topbar -> `mandalaHero` -> `profileLiteTabs`, route-backed tab hrefs intact, and horizontal overflow `0`;
+  - DevTools route sweep timed out, so it is not counted as verified.
+- Not verified:
+  - real authenticated live Supabase upload/sign/select/delete;
+  - `cover_ref.inner` / `cover_ref.outer` persistence after production reload with a real session;
+  - production/legacy live QA after merge/deploy.
+
 ## 2026-06-02 — Profile Lite media upload signed URL hydration fix
 
 - Branch: `codex/profile-lite-media-upload-signed-url-fix`, based on fresh `origin/main` commit `ef8c287`.
