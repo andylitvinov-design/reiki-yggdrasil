@@ -100,20 +100,16 @@ const ZODIAC_SIGNS = [
 ];
 const ZODIAC_PLUS_SLOT_LAYOUT = {
   8: [
-    { id: "zodiac-plus-top", className: "zodiac-plus-top", label: "Топ", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-right", className: "zodiac-plus-right", label: "Правая точка", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-bottom", className: "zodiac-plus-bottom", label: "Низ", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-left", className: "zodiac-plus-left", label: "Лево", classPrefix: "zodiac-plus" }
+    { id: "zodiac-plus-top", className: "plus-top", label: "Топ", classPrefix: "plus" },
+    { id: "zodiac-plus-right", className: "plus-right", label: "Право", classPrefix: "plus" },
+    { id: "zodiac-plus-bottom", className: "plus-bottom", label: "Низ", classPrefix: "plus" },
+    { id: "zodiac-plus-left", className: "plus-left", label: "Лево", classPrefix: "plus" }
   ],
   12: [
-    { id: "zodiac-plus-top", className: "zodiac-plus-top", label: "Топ", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-right", className: "zodiac-plus-right", label: "Правая точка", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-bottom", className: "zodiac-plus-bottom", label: "Низ", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-left", className: "zodiac-plus-left", label: "Лево", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-corner-tl", className: "zodiac-plus-corner-tl", label: "Угол верх-лев", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-corner-tr", className: "zodiac-plus-corner-tr", label: "Угол верх-прав", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-corner-bl", className: "zodiac-plus-corner-bl", label: "Угол низ-лев", classPrefix: "zodiac-plus" },
-    { id: "zodiac-plus-corner-br", className: "zodiac-plus-corner-br", label: "Угол низ-прав", classPrefix: "zodiac-plus" }
+    { id: "zodiac-plus-corner-tl", className: "plus-corner-tl", label: "Угол верх-лев", classPrefix: "plus" },
+    { id: "zodiac-plus-corner-tr", className: "plus-corner-tr", label: "Угол верх-прав", classPrefix: "plus" },
+    { id: "zodiac-plus-corner-bl", className: "plus-corner-bl", label: "Угол низ-лев", classPrefix: "plus" },
+    { id: "zodiac-plus-corner-br", className: "plus-corner-br", label: "Угол низ-прав", classPrefix: "plus" }
   ]
 };
 const CHANNELS_SUBCATEGORIES = [
@@ -509,6 +505,22 @@ export default function ProfileLitePowerPlaceModule({
     ""
   );
 
+  const renderPowerPlaceActions = () => (
+    <div className="profileLitePowerPlaceActions">
+      <label className="compositionTitleField">
+        Название мандалы
+        <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
+      </label>
+      <div className="powerPlaceActions">
+        <button className="cabinetPrimary" type="button" onClick={onSave}>{compositionDraft.id ? "Обновить место силы" : "Сохранить место силы"}</button>
+        <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
+        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать</button>
+        <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
+        <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
+      </div>
+    </div>
+  );
+
   return (
     <section className="profileLiteModule profileLitePowerPlace mandalaWorkspace" aria-label="Мои мандалы">
       <div className="mandalaHero">
@@ -751,9 +763,20 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
                     <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
-                      {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(slot, index, `altarObject altarObject-${index + 1}`))}
+                      <div className="altarTopRow" aria-label="Верхние источники алтаря">
+                        {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
+                          slot,
+                          index,
+                          `${index === 2 ? "altarTopSource main" : "altarTopSource"}`
+                        ))}
+                      </div>
                       {renderCenterPhotoWithMode("altarCenterPhoto")}
-                      {slots.slice(5).map((slot, index) => renderObjectImageButton(slot, index, `altarSupport altarSupport-${index + 1}`))}
+                      <div className="altarMandalaBase">
+                        <span>мандала места силы</span>
+                      </div>
+                      <div className="altarBottomSupports" aria-label="Нижние опоры алтаря">
+                        {slots.slice(5).map((slot, index) => renderObjectImageButton(slot, index, "altarSupportSource"))}
+                      </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
                     <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
@@ -936,6 +959,7 @@ export default function ProfileLitePowerPlaceModule({
               </details>
             </section>
           )}
+          {workspaceTab === "power-place" && renderPowerPlaceActions()}
         </div>
 
         <div className="workspaceRightColumn">
@@ -1048,20 +1072,6 @@ export default function ProfileLitePowerPlaceModule({
               </div>
             </div>
           </aside>
-        </div>
-      </div>
-
-      <div className="profileLitePowerPlaceActions">
-        <label className="compositionTitleField">
-          Название мандалы
-          <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
-        </label>
-        <div className="powerPlaceActions">
-          <button className="cabinetPrimary" type="button" onClick={onSave}>{compositionDraft.id ? "Обновить место силы" : "Сохранить место силы"}</button>
-          <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
-          <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать</button>
-          <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
-          <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
         </div>
       </div>
 

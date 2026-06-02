@@ -12,6 +12,38 @@ Last updated: 2026-06-02
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-02 — Profile Lite follow-up layout/print parity fix
+
+- Branch: `codex/profile-lite-followup-layout-print-parity`, based on fresh `origin/main` commit `abd47d2`.
+- Scope: targeted Profile Lite regression/parity fix against `/profile-old` for Power Place layouts, tab shell order, right-rail proportions, save/actions placement, color print handling, and materials tab structure.
+- Changed so far:
+  - restored old zodiac plus slot class names for `8+` and `12+`;
+  - restored old altar DOM/class structure: `altarTopRow`, `altarTopSource main`, `altarMandalaBase`, `altarBottomSupports`;
+  - moved `Сохранить место силы` actions into the center workspace under the mandala constructor;
+  - widened the Lite Power Place right rail to the old thicker `minmax(320px, 340px)` proportion while preserving mobile single-column fallback;
+  - added print color preservation with `print-color-adjust: exact` and `-webkit-print-color-adjust: exact`;
+  - restored the materials tab as old-style left/center/right composition with sources/saved images, central altar/work area, and right material creation.
+- Contract coverage:
+  - `test/profileLiteCabinetContract.test.mjs` now guards hero-before-tabs order, old zodiac plus/altar markers, right column width class structure, center save/action placement, materials old layout markers, and print color markers.
+- Verification status:
+  - passed `npm run test:profile-lite` after an intentional RED failure on missing old zodiac plus class names.
+- Verification:
+  - passed `npm run test:profile-lite` after an intentional RED failure on missing old zodiac plus class names;
+  - passed `npm run test:profile-media`;
+  - passed `npm run test:power-place`;
+  - passed `npm run test:profile-loading-recovery`;
+  - passed `npm run check` with existing `validate:videos` warnings for `RY-L04-S04` and `RY-L04-S05` plus existing Vite large-chunk warning;
+  - passed standalone `npm run build` with the existing Vite large-chunk warning.
+- Local rendered QA:
+  - Browser plugin path was attempted on `http://localhost:4189` with fake public Supabase env values and fake JWT/hash only;
+  - unauthenticated gate routes opened with horizontal overflow `0`, no console warnings/errors, and no app console errors beyond fake Supabase being unreachable;
+  - authenticated workspace-level DOM QA could not be completed because the Browser wrapper in this context did not allow seeding/reading page storage or passing evaluate args, and the app stayed on the Lite auth gate.
+- Still pending in this entry:
+  - authenticated `/profile/mandalas` versus `/profile-old` rendered workspace comparison on desktop 1280+ and mobile 390;
+  - real print preview/result from an authenticated workspace;
+  - real Supabase save/load/upload/delete flows;
+  - PR, merge, deploy, and production/legacy live QA.
+
 ## 2026-06-02 — Profile Lite remaining old-profile parity gaps
 
 - Branch: `codex/profile-lite-old-profile-gap-fix`, based on fresh `origin/main` commit `e484b7a`.

@@ -187,6 +187,7 @@ const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.j
 const powerPlacePickerSource = `${powerPlaceSource}\n${imagePickerSource}`;
 const shellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
 const profileModuleSource = readFileSync(join(moduleDir, "ProfileLiteProfileModule.jsx"), "utf8");
 const materialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 const servicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
@@ -270,6 +271,15 @@ assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse ol
 assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
 assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
 assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
+assert.match(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must render hero/header before tabs");
+assert.match(powerPlaceSource, /className: "plus-top"[\s\S]*className: "plus-right"[\s\S]*className: "plus-bottom"[\s\S]*className: "plus-left"/, "Lite zodiac 8+ should use old plus slot class names");
+assert.match(powerPlaceSource, /className: "plus-corner-tl"[\s\S]*className: "plus-corner-tr"[\s\S]*className: "plus-corner-bl"[\s\S]*className: "plus-corner-br"/, "Lite zodiac 12+ should use old plus corner class names");
+assert.match(powerPlaceSource, /<div className="altarTopRow"[\s\S]*altarTopSource main[\s\S]*altarMandalaBase[\s\S]*altarBottomSupports/, "Lite altar should render the old top row, center/base, and bottom support structure");
+assert.doesNotMatch(powerPlaceSource, /altarObject altarObject-|altarSupport altarSupport-/, "Lite altar must not use non-reference altar object class names");
+assert.match(powerPlaceSource, /<div className="workspaceCenterColumn"[\s\S]*powerPlaceConstructor[\s\S]*workspaceTab === "power-place" && renderPowerPlaceActions\(\)[\s\S]*<div className="workspaceRightColumn"/, "Save/actions block should live in the center workspace before the right rail");
+assert.match(profileMandalaCss, /profileLitePowerPlaceColumns[\s\S]*minmax\(320px, 340px\)/, "Lite Power Place right rail should keep old thicker right-column proportions");
+assert.match(profileMandalaCss, /print-color-adjust:\s*exact/, "Print CSS should preserve color backgrounds");
+assert.match(profileMandalaCss, /-webkit-print-color-adjust:\s*exact/, "Print CSS should preserve WebKit color backgrounds");
 
 assert.match(profileModuleSource, /profileTabContent/, "Lite profile module should reuse old profileEditor profileTabContent wrapper");
 assert.match(profileModuleSource, /Как это будет выглядеть/, "Lite profile preview should use the old profile preview heading");
@@ -287,6 +297,9 @@ for (const [source, label] of [
 
 assert.match(materialsModuleSource, /mandalaGallery/, "Lite materials should reuse old mandalaGallery surface for saved materials");
 assert.match(materialsModuleSource, /mandalaCardsGrid/, "Lite materials should reuse old mandalaCardsGrid cards");
+assert.match(materialsModuleSource, /Источники силы[\s\S]*Сохранённые изображения/, "Lite materials left rail should restore old sources and saved image structure");
+assert.match(materialsModuleSource, /Алтарь материалов[\s\S]*Основная рабочая зона/, "Lite materials center should restore old altar/list work area");
+assert.match(materialsModuleSource, /profileLiteMaterialForm[\s\S]*Создание материала/, "Lite materials right rail should keep material creation actions");
 
 for (const [source, label] of [
   [servicesModuleSource, "services"],
