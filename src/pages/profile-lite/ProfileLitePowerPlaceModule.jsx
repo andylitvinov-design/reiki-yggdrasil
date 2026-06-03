@@ -9,6 +9,7 @@ const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 
 function coverOffsetValue(value) {
   const parsed = Number(value);
@@ -16,7 +17,13 @@ function coverOffsetValue(value) {
   return Math.min(80, Math.max(20, parsed));
 }
 
-function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY) {
+function innerFieldScaleValue(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 78;
+  return Math.min(92, Math.max(48, parsed));
+}
+
+function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale) {
   return `
 .profileLitePowerPlace .powerCenterPhoto.hasImage,
 .profileLitePowerPlace .altarCenterPhoto.hasImage,
@@ -137,6 +144,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .powerMandalaPanel[style],
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
   position: relative;
+  align-content: start !important;
   padding: clamp(34px, 8vw, 58px) !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
@@ -149,7 +157,12 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 }
 .profileLitePowerPlace .powerMandalaPanel[style] .powerPrintMeta,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] .powerPrintMeta {
+  order: -1;
+  position: relative !important;
+  z-index: 2 !important;
   width: min(500px, 92%) !important;
+  margin: 0 auto 12px !important;
+  padding: 0 !important;
 }
 .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
 .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
@@ -167,7 +180,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
   position: relative;
   z-index: 1;
-  max-width: min(440px, 92%) !important;
+  width: min(440px, ${innerFieldScale}%) !important;
+  max-width: min(440px, ${innerFieldScale}%) !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
 .powerPlacePdfOnlyArea .power-place-chess__slot,
@@ -235,26 +249,41 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
+.profileLitePowerPlace .innerFieldScaleControl {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(120px, 260px) auto;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+  color: #3a2715;
+  font-size: 15px;
+  font-weight: 900;
+}
+.profileLitePowerPlace .innerFieldScaleControl input {
+  width: 100%;
+}
+.profileLitePowerPlace .innerFieldScaleControl small {
+  color: #704812;
+  font-size: 12px;
+}
+.powerPlacePdfOnlyArea .coverOffsetOverlay,
+body.printMandalaOnly .coverOffsetOverlay {
+  display: none !important;
+}
+@media print {
+  .coverOffsetOverlay,
+  .innerFieldScaleControl {
+    display: none !important;
+  }
+}
 @media (max-width: 560px) {
   .profileLitePowerPlace .powerMandalaPanel[style],
   .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
     padding: clamp(28px, 9vw, 44px) !important;
   }
-  .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .altarMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .power-place-chess,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerMandala,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .altarMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .businessMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
-    max-width: min(360px, 90%) !important;
+  .profileLitePowerPlace .innerFieldScaleControl {
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 240px) auto;
   }
 }
 `;
@@ -314,23 +343,26 @@ function normalizeLayeredCoverRef(coverRef) {
 
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
+  const [constructorControlsNode, setConstructorControlsNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
   const innerCoverOffsetY = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_Y_REF_KEY]);
   const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
   const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
+  const innerFieldScale = innerFieldScaleValue(objectRefs[INNER_FIELD_SCALE_REF_KEY]);
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
   const fitStyleText = useMemo(
-    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY),
-    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY]
+    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale),
+    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale]
   );
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
+      setConstructorControlsNode(document.querySelector(".profileLitePowerPlace .constructorControls") || null);
     };
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
@@ -347,6 +379,10 @@ export default function ProfileLitePowerPlaceModule(props) {
       : (axis === "y" ? INNER_COVER_OFFSET_Y_REF_KEY : INNER_COVER_OFFSET_X_REF_KEY);
     const current = coverOffsetValue(objectRefs[key]);
     writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
+  }, [objectRefs, writeObjectRefs]);
+
+  const setInnerFieldScaleValue = useCallback((nextValue) => {
+    writeObjectRefs({ ...objectRefs, [INNER_FIELD_SCALE_REF_KEY]: String(innerFieldScaleValue(nextValue)) });
   }, [objectRefs, writeObjectRefs]);
 
   const writeTemplateId = useCallback((templateId) => {
@@ -395,7 +431,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   }, [activeTemplate, isClientMandala, props.compositionDraft]);
 
   const coverOffsetOverlay = (
-    <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото">
+    <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото" data-print-hidden="true">
       <div className="coverOffsetCornerGroup inner" aria-label="Смещение внутреннего фона">
         <button type="button" onClick={() => shiftCoverOffset("inner", "x", -5)} aria-label="Сдвинуть внутренний фон влево">←</button>
         <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">→</button>
@@ -411,10 +447,26 @@ export default function ProfileLitePowerPlaceModule(props) {
     </div>
   );
 
+  const innerFieldScaleControl = (
+    <div className="innerFieldScaleControl" aria-label="Размер центра">
+      <span>Размер центра</span>
+      <input
+        type="range"
+        min="48"
+        max="92"
+        step="1"
+        value={innerFieldScale}
+        onChange={(event) => setInnerFieldScaleValue(event.target.value)}
+      />
+      <small>{innerFieldScale}%</small>
+    </div>
+  );
+
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
+      {constructorControlsNode ? createPortal(innerFieldScaleControl, constructorControlsNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
