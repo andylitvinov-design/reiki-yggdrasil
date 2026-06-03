@@ -4,7 +4,17 @@ import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.j
 import "../../profileMandalaTemplatePilot.css";
 
 const MANDALA_TEMPLATE_REF_KEY = "__mandala_template_id";
-const PROFILE_LITE_FIT_FIX_STYLES = `
+const INNER_COVER_OFFSET_REF_KEY = "__inner_cover_offset_x";
+const OUTER_COVER_OFFSET_REF_KEY = "__outer_cover_offset_x";
+
+function coverOffsetValue(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 50;
+  return Math.min(80, Math.max(20, parsed));
+}
+
+function profileLiteFitFixStyles(innerOffset, outerOffset) {
+  return `
 .powerCenterPhoto.hasImage,
 .altarCenterPhoto.hasImage,
 .businessCenterPhoto.hasImage,
@@ -22,16 +32,57 @@ const PROFILE_LITE_FIT_FIX_STYLES = `
 .zodiacMandalaSheet[style],
 .starMandalaSheet[style],
 .daoMandalaSheet[style],
-.power-place-chess[style],
+.power-place-chess[style] {
+  background-size: auto 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: ${innerOffset}% center !important;
+}
 .powerMandalaPanel[style] {
   background-size: auto 100% !important;
   background-repeat: no-repeat !important;
-  background-position: center !important;
-}
-.powerMandalaPanel[style] {
+  background-position: ${outerOffset}% center !important;
   background-color: #fffaf0;
 }
+.coverOffsetPanel {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 20px;
+  padding: 10px;
+  background: rgba(255, 250, 238, 0.76);
+}
+.coverOffsetPanel p {
+  margin: 0;
+  color: #704812;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.coverOffsetRow {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+}
+.coverOffsetRow span {
+  color: #5d3c12;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+.coverOffsetRow button {
+  min-width: 44px;
+  height: 34px;
+  border: 1px solid rgba(184, 121, 29, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #704812;
+  font-size: 12px;
+  font-weight: 900;
+}
 `;
+}
 
 function cleanRefs(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -64,8 +115,21 @@ function templateCover(template, currentCover) {
 export default function ProfileLitePowerPlaceModule(props) {
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
+  const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_REF_KEY]);
+  const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_REF_KEY]);
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
+  const fitStyleText = useMemo(() => profileLiteFitFixStyles(innerCoverOffsetX, outerCoverOffsetX), [innerCoverOffsetX, outerCoverOffsetX]);
+
+  const writeObjectRefs = useCallback((nextRefs) => {
+    props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
+  }, [props]);
+
+  const shiftCoverOffset = useCallback((layer, delta) => {
+    const key = layer === "outer" ? OUTER_COVER_OFFSET_REF_KEY : INNER_COVER_OFFSET_REF_KEY;
+    const current = coverOffsetValue(objectRefs[key]);
+    writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
+  }, [objectRefs, writeObjectRefs]);
 
   const writeTemplateId = useCallback((templateId) => {
     const nextRefs = { ...objectRefs };
@@ -74,8 +138,8 @@ export default function ProfileLitePowerPlaceModule(props) {
     } else {
       delete nextRefs[MANDALA_TEMPLATE_REF_KEY];
     }
-    props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
-  }, [objectRefs, props]);
+    writeObjectRefs(nextRefs);
+  }, [objectRefs, writeObjectRefs]);
 
   const handleTemplateSelect = useCallback((templateId) => {
     writeTemplateId(templateId);
@@ -109,8 +173,21 @@ export default function ProfileLitePowerPlaceModule(props) {
 
   const templatePanel = (
     <>
-      <style data-profile-lite-fit-fixes>{PROFILE_LITE_FIT_FIX_STYLES}</style>
+      <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {props.shellChrome}
+      <div className="coverOffsetPanel" aria-label="Смещение фоновых фото">
+        <p>Смещение фона</p>
+        <div className="coverOffsetRow" aria-label="Верхняя группа — фон внутри">
+          <button type="button" onClick={() => shiftCoverOffset("inner", -5)} aria-label="Сдвинуть внутренний фон влево">L</button>
+          <span>Фон внутри · {innerCoverOffsetX}%</span>
+          <button type="button" onClick={() => shiftCoverOffset("inner", 5)} aria-label="Сдвинуть внутренний фон вправо">R</button>
+        </div>
+        <div className="coverOffsetRow" aria-label="Нижняя группа — фон снаружи">
+          <button type="button" onClick={() => shiftCoverOffset("outer", -5)} aria-label="Сдвинуть внешний фон влево">L</button>
+          <span>Фон снаружи · {outerCoverOffsetX}%</span>
+          <button type="button" onClick={() => shiftCoverOffset("outer", 5)} aria-label="Сдвинуть внешний фон вправо">R</button>
+        </div>
+      </div>
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
           <p className="cabinetEyebrow">Макеты мандалы</p>
