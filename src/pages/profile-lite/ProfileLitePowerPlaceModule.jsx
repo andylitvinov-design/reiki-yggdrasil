@@ -97,23 +97,51 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   right: 9px;
   bottom: 9px;
 }
-.coverOffsetCornerGroup button {
-  width: 22px;
-  min-width: 22px;
-  height: 22px;
+.coverOffsetCornerGroup button,
+.explicitCoverUploadGrid label {
   border: 1px solid rgba(184, 121, 29, 0.32);
   border-radius: 999px;
   padding: 0;
   background: rgba(255, 250, 238, 0.82);
   color: #704812;
-  font-size: 11px;
   font-weight: 900;
   line-height: 1;
   box-shadow: 0 8px 18px rgba(80, 52, 14, 0.12);
+}
+.coverOffsetCornerGroup button {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  font-size: 11px;
   pointer-events: auto;
 }
-.coverOffsetCornerGroup button:active {
+.coverOffsetCornerGroup button:active,
+.explicitCoverUploadGrid label:active {
   transform: scale(0.96);
+}
+.profileLitePowerPlace .coverUploadButton {
+  display: none !important;
+}
+.explicitCoverUploadGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.explicitCoverUploadGrid label {
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 8px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.explicitCoverUploadGrid input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 `;
 }
@@ -164,6 +192,7 @@ function coverRefWithOuterFallback(coverRef) {
 
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
+  const [coverPanelNode, setCoverPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
@@ -179,11 +208,12 @@ export default function ProfileLitePowerPlaceModule(props) {
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
-    const refreshPanelNode = () => {
+    const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
+      setCoverPanelNode(document.querySelector(".profileLitePowerPlace .coverPickerPanel") || null);
     };
-    refreshPanelNode();
-    const timeoutId = window.setTimeout(refreshPanelNode, 0);
+    refreshNodes();
+    const timeoutId = window.setTimeout(refreshNodes, 0);
     return () => window.clearTimeout(timeoutId);
   }, [props.compositionDraft?.constructor_type, props.compositionDraft?.chess_variant, props.compositionDraft?.field_layout, props.compositionDraft?.cover_ref]);
 
@@ -198,6 +228,12 @@ export default function ProfileLitePowerPlaceModule(props) {
     const current = coverOffsetValue(objectRefs[key]);
     writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
   }, [objectRefs, writeObjectRefs]);
+
+  const handleExplicitCoverUpload = useCallback((layer, event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) props.onCoverFileUpload?.(layer, file);
+  }, [props]);
 
   const writeTemplateId = useCallback((templateId) => {
     const nextRefs = { ...objectRefs };
@@ -261,10 +297,24 @@ export default function ProfileLitePowerPlaceModule(props) {
     </div>
   );
 
+  const explicitCoverUploadControls = (
+    <div className="explicitCoverUploadGrid" aria-label="Загрузить свой фон">
+      <label>
+        Своё внутри
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleExplicitCoverUpload("inner", event)} />
+      </label>
+      <label>
+        Своё снаружи
+        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleExplicitCoverUpload("outer", event)} />
+      </label>
+    </div>
+  );
+
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
+      {coverPanelNode ? createPortal(explicitCoverUploadControls, coverPanelNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
@@ -273,21 +323,9 @@ export default function ProfileLitePowerPlaceModule(props) {
           <small>Пилот: макет 1 включает 9 зон для загрузки мини-мандал.</small>
         </div>
         <div className="mandalaTemplatePilotButtons" role="group" aria-label="Выбор макета мандалы">
-          <button
-            className={!activeTemplateId ? "active" : ""}
-            type="button"
-            onClick={handleTemplateClear}
-          >
-            Без макета
-          </button>
+          <button className={!activeTemplateId ? "active" : ""} type="button" onClick={handleTemplateClear}>Без макета</button>
           {placePowerMandalaTemplates.map((template) => (
-            <button
-              className={activeTemplateId === template.id ? "active" : ""}
-              key={template.id}
-              type="button"
-              onClick={() => handleTemplateSelect(template.id)}
-              title={template.title}
-            >
+            <button className={activeTemplateId === template.id ? "active" : ""} key={template.id} type="button" onClick={() => handleTemplateSelect(template.id)} title={template.title}>
               {template.label}
             </button>
           ))}
