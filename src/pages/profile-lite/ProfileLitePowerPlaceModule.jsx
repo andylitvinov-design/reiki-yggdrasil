@@ -16,89 +16,104 @@ function coverOffsetValue(value) {
   return Math.min(80, Math.max(20, parsed));
 }
 
-function hasImageCover(cover) {
-  return Boolean(cover?.type === "image" && (cover.src || cover.display_src || cover.displaySrc));
-}
-
 function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY) {
   return `
-.powerCenterPhoto.hasImage,
-.altarCenterPhoto.hasImage,
-.businessCenterPhoto.hasImage,
-.zodiacCenterPhoto.hasImage,
-.starCenterPhoto.hasImage,
-.daoCenterPhoto.hasImage {
+.profileLitePowerPlace .powerCenterPhoto.hasImage,
+.profileLitePowerPlace .altarCenterPhoto.hasImage,
+.profileLitePowerPlace .businessCenterPhoto.hasImage,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage,
+.profileLitePowerPlace .starCenterPhoto.hasImage,
+.profileLitePowerPlace .daoCenterPhoto.hasImage {
   background-size: contain !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
-.power-place-chess__center.hasImage,
-.power-place-chess__slot.hasImage,
-.powerSource.hasImage,
-.altarTopSource.hasImage,
-.altarSupportSource.hasImage,
-.businessVertexZone.hasImage,
-.zodiacPositionImage[style],
-.zodiacFieldPlusPositionImage[style],
-.starPositionImage[style],
-.daoElementImage.hasImage {
+.profileLitePowerPlace .power-place-chess__center.hasImage,
+.profileLitePowerPlace .power-place-chess__slot.hasImage,
+.profileLitePowerPlace .powerSource.hasImage,
+.profileLitePowerPlace .altarTopSource.hasImage,
+.profileLitePowerPlace .altarSupportSource.hasImage,
+.profileLitePowerPlace .businessVertexZone.hasImage,
+.profileLitePowerPlace .zodiacPositionImage[style],
+.profileLitePowerPlace .zodiacFieldPlusPositionImage[style],
+.profileLitePowerPlace .starPositionImage[style],
+.profileLitePowerPlace .daoElementImage.hasImage {
   background-size: auto 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-color: transparent !important;
 }
-.power-place-chess__slot.hasImage::after,
-.powerSource.hasImage::after,
-.altarTopSource.hasImage::after,
-.altarSupportSource.hasImage::after,
-.businessVertexZone.hasImage::after,
-.daoElementImage.hasImage::after {
+.profileLitePowerPlace .power-place-chess__slot.hasImage::after,
+.profileLitePowerPlace .powerSource.hasImage::after,
+.profileLitePowerPlace .altarTopSource.hasImage::after,
+.profileLitePowerPlace .altarSupportSource.hasImage::after,
+.profileLitePowerPlace .businessVertexZone.hasImage::after,
+.profileLitePowerPlace .daoElementImage.hasImage::after {
   display: none !important;
   content: none !important;
   box-shadow: none !important;
   background: transparent !important;
 }
-.powerMandala[style],
-.altarMandalaSheet[style],
-.businessMandalaSheet[style],
-.zodiacMandalaSheet[style],
-.starMandalaSheet[style],
-.daoMandalaSheet[style],
-.power-place-chess[style] {
+.profileLitePowerPlace .powerMandala[style],
+.profileLitePowerPlace .altarMandalaSheet[style],
+.profileLitePowerPlace .businessMandalaSheet[style],
+.profileLitePowerPlace .zodiacMandalaSheet[style],
+.profileLitePowerPlace .starMandalaSheet[style],
+.profileLitePowerPlace .daoMandalaSheet[style],
+.profileLitePowerPlace .power-place-chess[style] {
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: ${innerOffsetX}% ${innerOffsetY}% !important;
 }
-.powerMandalaPanel[style] {
+.profileLitePowerPlace .powerMandalaPanel[style] {
   position: relative;
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: ${outerOffsetX}% ${outerOffsetY}% !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
   background-color: #fffaf0;
 }
-.coverOffsetOverlay {
+.profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
+.profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel[style] > .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet {
+  position: relative;
+  z-index: 1;
+}
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(3),
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(5),
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+11) {
+  display: none;
+}
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button.active {
+  display: inline-flex;
+}
+.profileLitePowerPlace .coverOffsetOverlay {
   position: absolute;
   inset: 0;
   z-index: 45;
   pointer-events: none;
 }
-.coverOffsetCornerGroup {
+.profileLitePowerPlace .coverOffsetCornerGroup {
   position: absolute;
   display: grid;
   grid-template-columns: repeat(2, 22px);
   gap: 4px;
   pointer-events: none;
 }
-.coverOffsetCornerGroup.inner {
+.profileLitePowerPlace .coverOffsetCornerGroup.inner {
   top: 9px;
   left: 9px;
 }
-.coverOffsetCornerGroup.outer {
+.profileLitePowerPlace .coverOffsetCornerGroup.outer {
   right: 9px;
   bottom: 9px;
 }
-.coverOffsetCornerGroup button,
-.explicitCoverUploadGrid label {
+.profileLitePowerPlace .coverOffsetCornerGroup button {
   border: 1px solid rgba(184, 121, 29, 0.32);
   border-radius: 999px;
   padding: 0;
@@ -107,41 +122,17 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   font-weight: 900;
   line-height: 1;
   box-shadow: 0 8px 18px rgba(80, 52, 14, 0.12);
-}
-.coverOffsetCornerGroup button {
   width: 22px;
   min-width: 22px;
   height: 22px;
   font-size: 11px;
   pointer-events: auto;
 }
-.coverOffsetCornerGroup button:active,
-.explicitCoverUploadGrid label:active {
+.profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
 .profileLitePowerPlace .coverUploadButton {
   display: none !important;
-}
-.explicitCoverUploadGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-.explicitCoverUploadGrid label {
-  min-height: 36px;
-  display: grid;
-  place-items: center;
-  padding: 8px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.explicitCoverUploadGrid input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
 }
 `;
 }
@@ -150,9 +141,13 @@ function cleanRefs(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+function emptyOuterCover() {
+  return { id: "no-cover", label: "Без фона", type: "none", tone: "none", src: "", display_src: "" };
+}
+
 function templateCover(template, currentCover) {
   const current = currentCover && typeof currentCover === "object" && !Array.isArray(currentCover) ? currentCover : {};
-  const outer = current.outer || { id: "no-cover", label: "Без фона", type: "none", tone: "none", src: "", display_src: "" };
+  const outer = current.outer || emptyOuterCover();
   const inner = {
     id: template.id,
     label: template.title,
@@ -174,25 +169,28 @@ function templateCover(template, currentCover) {
   };
 }
 
-function coverRefWithOuterFallback(coverRef) {
+function normalizeLayeredCoverRef(coverRef) {
   const cover = cleanRefs(coverRef);
-  const inner = cleanRefs(cover.inner || cover);
-  const outer = cleanRefs(cover.outer);
-  if (hasImageCover(outer) || !hasImageCover(inner)) return coverRef;
+  const hasNestedLayers = Boolean(cover.inner || cover.outer);
+  const legacyInner = hasNestedLayers ? {} : cover;
+  const inner = cleanRefs(cover.inner || legacyInner);
+  const outer = cleanRefs(cover.outer || emptyOuterCover());
+
   return {
     ...cover,
-    outer: {
-      ...inner,
-      id: "custom-outer-cover-fallback",
-      label: inner.label || "Фон снаружи",
-      type: "image"
-    }
+    id: inner.id || cover.id || "no-cover",
+    label: inner.label || cover.label || "Без фона",
+    type: inner.type || cover.type || "none",
+    tone: inner.tone || cover.tone || "none",
+    src: inner.src || cover.src || "",
+    display_src: inner.display_src || inner.displaySrc || cover.display_src || cover.displaySrc || cover.src || "",
+    inner: Object.keys(inner).length ? inner : emptyOuterCover(),
+    outer: Object.keys(outer).length ? outer : emptyOuterCover()
   };
 }
 
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
-  const [coverPanelNode, setCoverPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
@@ -210,7 +208,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     if (typeof document === "undefined") return undefined;
     const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
-      setCoverPanelNode(document.querySelector(".profileLitePowerPlace .coverPickerPanel") || null);
     };
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
@@ -228,12 +225,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     const current = coverOffsetValue(objectRefs[key]);
     writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
   }, [objectRefs, writeObjectRefs]);
-
-  const handleExplicitCoverUpload = useCallback((layer, event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (file) props.onCoverFileUpload?.(layer, file);
-  }, [props]);
 
   const writeTemplateId = useCallback((templateId) => {
     const nextRefs = { ...objectRefs };
@@ -276,7 +267,7 @@ export default function ProfileLitePowerPlaceModule(props) {
       : props.compositionDraft;
     return {
       ...baseDraft,
-      cover_ref: coverRefWithOuterFallback(baseDraft?.cover_ref)
+      cover_ref: normalizeLayeredCoverRef(baseDraft?.cover_ref)
     };
   }, [activeTemplate, isClientMandala, props.compositionDraft]);
 
@@ -297,24 +288,10 @@ export default function ProfileLitePowerPlaceModule(props) {
     </div>
   );
 
-  const explicitCoverUploadControls = (
-    <div className="explicitCoverUploadGrid" aria-label="Загрузить свой фон">
-      <label>
-        Своё внутри
-        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleExplicitCoverUpload("inner", event)} />
-      </label>
-      <label>
-        Своё снаружи
-        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleExplicitCoverUpload("outer", event)} />
-      </label>
-    </div>
-  );
-
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
-      {coverPanelNode ? createPortal(explicitCoverUploadControls, coverPanelNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
