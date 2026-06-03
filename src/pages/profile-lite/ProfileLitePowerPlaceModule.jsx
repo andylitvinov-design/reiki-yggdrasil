@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { placePowerMandalaTemplates } from "../../data/placePowerMandalaTemplates.js";
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
 import "../../profileMandalaTemplatePilot.css";
@@ -20,9 +21,13 @@ function profileLiteFitFixStyles(innerOffset, outerOffset) {
 .businessCenterPhoto.hasImage,
 .zodiacCenterPhoto.hasImage,
 .starCenterPhoto.hasImage,
-.daoCenterPhoto.hasImage,
-.power-place-chess__center.hasImage {
+.daoCenterPhoto.hasImage {
   background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+.power-place-chess__center.hasImage {
+  background-size: auto 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
@@ -38,48 +43,52 @@ function profileLiteFitFixStyles(innerOffset, outerOffset) {
   background-position: ${innerOffset}% center !important;
 }
 .powerMandalaPanel[style] {
+  position: relative;
   background-size: auto 100% !important;
   background-repeat: no-repeat !important;
   background-position: ${outerOffset}% center !important;
   background-color: #fffaf0;
 }
-.coverOffsetPanel {
-  display: grid;
-  gap: 8px;
-  border: 1px solid rgba(184, 121, 29, 0.2);
-  border-radius: 20px;
-  padding: 10px;
-  background: rgba(255, 250, 238, 0.76);
+.coverOffsetOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
 }
-.coverOffsetPanel p {
-  margin: 0;
-  color: #704812;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.coverOffsetRow {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px;
-  gap: 8px;
+.coverOffsetSideGroup {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  pointer-events: none;
 }
-.coverOffsetRow span {
-  color: #5d3c12;
-  font-size: 12px;
-  font-weight: 900;
-  text-align: center;
+.coverOffsetSideGroup.inner {
+  top: 0;
+  height: 50%;
 }
-.coverOffsetRow button {
-  min-width: 44px;
-  height: 34px;
-  border: 1px solid rgba(184, 121, 29, 0.34);
+.coverOffsetSideGroup.outer {
+  top: 50%;
+  bottom: 0;
+}
+.coverOffsetSideGroup button {
+  width: 22px;
+  min-width: 22px;
+  height: min(128px, 68%);
+  border: 1px solid rgba(184, 121, 29, 0.32);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.78);
+  padding: 0;
+  background: rgba(255, 250, 238, 0.76);
   color: #704812;
   font-size: 12px;
   font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 10px 24px rgba(80, 52, 14, 0.12);
+  pointer-events: auto;
+}
+.coverOffsetSideGroup button:active {
+  transform: scale(0.96);
 }
 `;
 }
@@ -113,6 +122,7 @@ function templateCover(template, currentCover) {
 }
 
 export default function ProfileLitePowerPlaceModule(props) {
+  const [powerPanelNode, setPowerPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_REF_KEY]);
@@ -120,6 +130,16 @@ export default function ProfileLitePowerPlaceModule(props) {
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
   const fitStyleText = useMemo(() => profileLiteFitFixStyles(innerCoverOffsetX, outerCoverOffsetX), [innerCoverOffsetX, outerCoverOffsetX]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const refreshPanelNode = () => {
+      setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
+    };
+    refreshPanelNode();
+    const timeoutId = window.setTimeout(refreshPanelNode, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [props.compositionDraft?.constructor_type, props.compositionDraft?.chess_variant, props.compositionDraft?.field_layout, props.compositionDraft?.cover_ref]);
 
   const writeObjectRefs = useCallback((nextRefs) => {
     props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
@@ -171,23 +191,24 @@ export default function ProfileLitePowerPlaceModule(props) {
     };
   }, [activeTemplate, isClientMandala, props.compositionDraft]);
 
+  const coverOffsetOverlay = (
+    <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото">
+      <div className="coverOffsetSideGroup inner" aria-label="Смещение внутреннего фона">
+        <button type="button" onClick={() => shiftCoverOffset("inner", -5)} aria-label="Сдвинуть внутренний фон влево">L</button>
+        <button type="button" onClick={() => shiftCoverOffset("inner", 5)} aria-label="Сдвинуть внутренний фон вправо">R</button>
+      </div>
+      <div className="coverOffsetSideGroup outer" aria-label="Смещение внешнего фона">
+        <button type="button" onClick={() => shiftCoverOffset("outer", -5)} aria-label="Сдвинуть внешний фон влево">L</button>
+        <button type="button" onClick={() => shiftCoverOffset("outer", 5)} aria-label="Сдвинуть внешний фон вправо">R</button>
+      </div>
+    </div>
+  );
+
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
+      {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
       {props.shellChrome}
-      <div className="coverOffsetPanel" aria-label="Смещение фоновых фото">
-        <p>Смещение фона</p>
-        <div className="coverOffsetRow" aria-label="Верхняя группа — фон внутри">
-          <button type="button" onClick={() => shiftCoverOffset("inner", -5)} aria-label="Сдвинуть внутренний фон влево">L</button>
-          <span>Фон внутри · {innerCoverOffsetX}%</span>
-          <button type="button" onClick={() => shiftCoverOffset("inner", 5)} aria-label="Сдвинуть внутренний фон вправо">R</button>
-        </div>
-        <div className="coverOffsetRow" aria-label="Нижняя группа — фон снаружи">
-          <button type="button" onClick={() => shiftCoverOffset("outer", -5)} aria-label="Сдвинуть внешний фон влево">L</button>
-          <span>Фон снаружи · {outerCoverOffsetX}%</span>
-          <button type="button" onClick={() => shiftCoverOffset("outer", 5)} aria-label="Сдвинуть внешний фон вправо">R</button>
-        </div>
-      </div>
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
           <p className="cabinetEyebrow">Макеты мандалы</p>
