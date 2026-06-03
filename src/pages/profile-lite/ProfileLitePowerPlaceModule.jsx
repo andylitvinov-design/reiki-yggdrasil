@@ -24,7 +24,7 @@ const PROFILE_LITE_FIT_FIX_STYLES = `
 .daoMandalaSheet[style],
 .power-place-chess[style],
 .powerMandalaPanel[style] {
-  background-size: contain !important;
+  background-size: auto 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
