@@ -24,7 +24,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacCenterPhoto.hasImage,
 .profileLitePowerPlace .starCenterPhoto.hasImage,
 .profileLitePowerPlace .daoCenterPhoto.hasImage {
-  background-size: contain !important;
+  background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
@@ -38,21 +38,41 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style],
 .profileLitePowerPlace .starPositionImage[style],
 .profileLitePowerPlace .daoElementImage.hasImage {
-  background-size: auto 100% !important;
+  background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-color: transparent !important;
 }
+.profileLitePowerPlace .power-place-chess__slot.hasImage::before,
 .profileLitePowerPlace .power-place-chess__slot.hasImage::after,
+.profileLitePowerPlace .powerSource.hasImage::before,
 .profileLitePowerPlace .powerSource.hasImage::after,
+.profileLitePowerPlace .altarTopSource.hasImage::before,
 .profileLitePowerPlace .altarTopSource.hasImage::after,
+.profileLitePowerPlace .altarSupportSource.hasImage::before,
 .profileLitePowerPlace .altarSupportSource.hasImage::after,
+.profileLitePowerPlace .businessVertexZone.hasImage::before,
 .profileLitePowerPlace .businessVertexZone.hasImage::after,
-.profileLitePowerPlace .daoElementImage.hasImage::after {
+.profileLitePowerPlace .daoElementImage.hasImage::before,
+.profileLitePowerPlace .daoElementImage.hasImage::after,
+.profileLitePowerPlace .zodiacPositionImage[style]::before,
+.profileLitePowerPlace .zodiacPositionImage[style]::after,
+.profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::before,
+.profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::after,
+.profileLitePowerPlace .starPositionImage[style]::before,
+.profileLitePowerPlace .starPositionImage[style]::after {
   display: none !important;
   content: none !important;
   box-shadow: none !important;
   background: transparent !important;
+}
+.profileLitePowerPlace .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
+.profileLitePowerPlace .zodiacPosition.hasImage,
+.profileLitePowerPlace .zodiacFieldPlusPosition.hasImage,
+.profileLitePowerPlace .starPosition.hasImage {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
 }
 .profileLitePowerPlace .powerMandala[style],
 .profileLitePowerPlace .altarMandalaSheet[style],
@@ -67,12 +87,16 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 }
 .profileLitePowerPlace .powerMandalaPanel[style] {
   position: relative;
+  padding: clamp(34px, 8vw, 58px) !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: ${outerOffsetX}% ${outerOffsetY}% !important;
   background-origin: border-box !important;
   background-clip: border-box !important;
   background-color: #fffaf0;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] .powerPrintMeta {
+  width: min(500px, 92%) !important;
 }
 .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
 .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
@@ -83,6 +107,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet {
   position: relative;
   z-index: 1;
+  max-width: min(440px, 92%) !important;
+  box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(3),
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(5),
@@ -133,6 +159,20 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 }
 .profileLitePowerPlace .coverUploadButton {
   display: none !important;
+}
+@media (max-width: 560px) {
+  .profileLitePowerPlace .powerMandalaPanel[style] {
+    padding: clamp(28px, 9vw, 44px) !important;
+  }
+  .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .altarMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet {
+    max-width: min(360px, 90%) !important;
+  }
 }
 `;
 }
