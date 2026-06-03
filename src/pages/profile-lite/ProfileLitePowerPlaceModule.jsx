@@ -65,13 +65,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .starMandalaSheet[style],
 .daoMandalaSheet[style],
 .power-place-chess[style] {
-  background-size: 100% auto !important;
+  background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: ${innerOffsetX}% ${innerOffsetY}% !important;
 }
 .powerMandalaPanel[style] {
   position: relative;
-  background-size: 100% auto !important;
+  background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: ${outerOffsetX}% ${outerOffsetY}% !important;
   background-color: #fffaf0;
