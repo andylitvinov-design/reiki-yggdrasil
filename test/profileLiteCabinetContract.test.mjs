@@ -16,7 +16,7 @@ import {
 const expectedTabs = [
   ["overview", "Обзор"],
   ["profile", "Профиль"],
-  ["mandalas", "Мои мандалы"],
+  ["mandalas", "Место силы"],
   ["media", "Фото / Медиа"],
   ["materials", "Материалы"],
   ["services", "Услуги"],
@@ -51,6 +51,7 @@ assert.deepEqual(
 
 assert.equal(getProfileLiteTabById("missing").id, "overview");
 assert.equal(getProfileLiteTabById("orders").label, "Заказы");
+assert.equal(getProfileLiteTabById("mandalas").label, "Место силы");
 assert.equal(getProfileLiteRouteByTabId("mandalas"), "/profile/mandalas");
 assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
 assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
@@ -212,7 +213,6 @@ const diagnosticsModuleSource = readFileSync(join(moduleDir, "ProfileLiteDiagnos
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
   "Место силы",
-  "Мои мандалы",
   "Добавить фото",
   "Группа",
   "Категория",
@@ -220,12 +220,13 @@ for (const requiredPowerPlaceText of [
   "Избранные",
   "Последние фото",
   "Фото клиента / цели",
-  "Фон места силы",
+  "Фон Места Силы",
   "Фон внутри",
   "Фон снаружи",
   "Без фона",
   "Макет",
-  "Анализ",
+  "Размер внутреннего поля",
+  "Отчёт и анализ",
   "Ресурс без мандалы",
   "Ресурс с мандалой",
   "Объекты композиции",
@@ -308,6 +309,10 @@ assert.match(powerPlaceSource, /--power-source-slot-scale/, "Lite Power Place sh
 assert.match(powerPlaceSource, /--power-place-chess-slot-scale/, "Lite chess should expose slot size via a CSS variable");
 assert.match(powerPlaceSource, /Размер фото/, "Lite chess should render a visible photo size control");
 assert.doesNotMatch(powerPlaceSource, /compositionDraft\.constructor_type === "chess" && \(\s*<div className="chessSizeControl"/, "Размер фото control should not be gated to chess only");
+assert.match(powerPlaceSource, /powerPlaceFormatTitle[\s\S]*Формат:/, "format title should render above the mandala visual field");
+assert.doesNotMatch(powerPlaceSource, /powerMandalaPanel[\s\S]*powerPrintMeta[\s\S]*Формат:/, "format title should not render inside the visual mandala field");
+assert.match(powerPlaceSource, /renderCenterPhotoWithMode[\s\S]*Mentalica/, "all constructor center photos should share the Mentalica watermark helper");
+assert.match(profileMandalaCss, /powerCenterWatermark[\s\S]*Mentalica|powerCenterWatermark/, "Mentalica watermark should have a CSS hook");
 for (const scaledClass of [
   "powerSource",
   "zodiacPositionImage",
@@ -323,11 +328,21 @@ for (const scaledClass of [
 assert.match(powerPlaceSource, /cover-mentalica[\s\S]*label: "Mentalica"/, "Lite fallback covers should include Mentalica");
 assert.match(profileMandalaCss, /\.power-place-chess\.cover-mentalica/, "Chess CSS should render a Mentalica fallback cover tone");
 assert.match(profileMandalaCss, /field-layout-square[\s\S]*--power-place-chess-card-aspect/, "Square field layout should affect chess card aspect");
-assert.match(profileMandalaCss, /field-layout-(?:vertical|rectangle)[\s\S]*--power-place-chess-card-aspect/, "Rectangle/vertical field layout should affect chess card aspect");
+assert.match(profileMandalaCss, /field-layout-vertical[\s\S]*--power-place-chess-card-aspect/, "Vertical field layout should affect chess card aspect");
+assert.match(profileMandalaCss, /field-layout-horizontal[\s\S]*--power-place-chess-card-aspect/, "Horizontal field layout should affect chess card aspect");
 assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-square[\s\S]*--power-field-aspect/, "field layout should expose panel aspect CSS variables");
 assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-vertical[\s\S]*--power-field-aspect/, "vertical field layout should expose panel aspect CSS variables");
 assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-horizontal[\s\S]*--power-field-aspect/, "horizontal field layout should expose panel aspect CSS variables");
-assert.match(profileMandalaCss, /\.powerMandalaPanel\.field-layout-rectangle[\s\S]*--power-field-aspect/, "rectangle field layout should expose panel aspect CSS variables");
+assert.doesNotMatch(powerPlaceBaseSource, /value:\s*"rectangle"/, "Lite layout controls should expose only square, vertical, and horizontal");
+assert.doesNotMatch(powerPlaceBaseSource, /field-layout-rectangle|layout === "rectangle"|field_layout:\s*"rectangle"/, "Lite Power Place should not keep the old rectangle layout key");
+assert.match(powerPlaceBaseSource, /const FIELD_LAYOUTS = \[[\s\S]*value: "square"[\s\S]*value: "vertical"[\s\S]*value: "horizontal"[\s\S]*\];/, "Lite layout controls should define exactly three layout choices");
+assert.match(powerPlaceBaseSource, /INNER_FIELD_SHAPES[\s\S]*value: "circle"[\s\S]*Круг[\s\S]*value: "square"[\s\S]*Квадрат/, "Lite layout controls should include inner field circle/square shape");
+assert.match(powerPlaceBaseSource, /__inner_field_shape/, "inner field shape should persist through object_refs");
+assert.match(powerPlaceBaseSource, /__inner_field_size/, "inner field size should persist through object_refs");
+assert.match(powerPlaceBaseSource, /type="range"[\s\S]*min="60"[\s\S]*max="100"[\s\S]*step="1"/, "inner field size should be a 60-100 slider");
+assert.match(profileMandalaCss, /--power-place-inner-field-size/, "inner field size should be exposed through a CSS variable");
+assert.match(profileMandalaCss, /inner-field-shape-circle[\s\S]*border-radius:\s*50%/, "circle inner field should render round");
+assert.match(profileMandalaCss, /inner-field-shape-square[\s\S]*border-radius:\s*0/, "square inner field should not render circular");
 assert.match(powerPlaceSource, /BUSINESS_VERTICES[\s\S]*className: "top"[\s\S]*className: "left"[\s\S]*className: "right"/, "Lite Power Place should copy old three-vertex business layout");
 assert.match(powerPlaceSource, /DAO_ELEMENTS[\s\S]*"water"[\s\S]*"wood"[\s\S]*"fire"[\s\S]*"earth"[\s\S]*"metal"/, "Lite Power Place should copy old DAO element order");
 assert.match(powerPlaceSource, /powerCommandRail/, "Lite right rail should reuse old powerCommandRail shell");
@@ -336,22 +351,29 @@ assert.match(powerPlaceSource, /coverSelector/, "Lite right rail should reuse ol
 assert.match(powerPlaceSource, /coverLayerTabs/, "Lite right rail should reuse old cover layer tabs");
 assert.match(powerPlaceSource, /coverPreviewWrap/, "Lite right rail should reuse old cover preview structure");
 assert.match(powerPlaceSource, /coverVariantList/, "Lite right rail should reuse old cover variant list");
-assert.match(powerPlaceSource, /mandalaFieldLayoutSwitch[\s\S]*\{renderReportModule\(\)\}[\s\S]*coverSelector/, "Lite right rail should place Report after layout and before Power Place background");
-assert.match(powerPlaceSource, /reportSettingsPanel/, "Report module should render as its own right-rail card");
+assert.match(powerPlaceSource, /coverSelector[\s\S]*mandalaFieldLayoutSwitch/, "Lite right rail should place layout controls inside the Power Place background module");
+assert.doesNotMatch(powerPlaceSource, /<section className="mandalaFieldLayoutSwitch">/, "Макет should not remain a standalone right-rail card");
+assert.match(powerPlaceSource, /reportAnalysisPanel/, "Report and analysis should render as one compact right-rail card");
 assert.match(powerPlaceSource, /С отчётом[\s\S]*Без отчёта/, "Report module should expose with/without report toggle");
-for (const reportLabel of ["Анализ ситуации", "Что даёт мандала", "Что ещё поможет", "О Мастере"]) {
+for (const reportLabel of ["Анализ ситуации", "Что даёт мандала", "Что ещё поможет", "Ресурс без мандалы", "Ресурс с мандалой"]) {
   assert.match(powerPlaceSource, new RegExp(reportLabel), `Report module should include ${reportLabel}`);
 }
-assert.match(powerPlaceSource, /Доступно в Pro формате\./, "Master report field should be visibly disabled as a Pro-only placeholder");
+assert.doesNotMatch(powerPlaceSource, /Доступно в Pro формате\.|О Мастере/, "Compact report should not keep the bulky disabled master note");
 for (const reportAction of ["Добавить отчёт", "Обновить", "Удалить отчёт"]) {
   assert.match(powerPlaceSource, new RegExp(reportAction), `Report module should expose ${reportAction}`);
 }
-assert.match(powerPlaceSource, /reportAdded[\s\S]*powerReportOutput/, "Report output should render under the mandala only after the report is added");
+assert.match(powerPlaceSource, /reportEnabled[\s\S]*reportAdded[\s\S]*powerReportOutput/, "Report output should render under the mandala only when report mode is enabled and report is added");
+assert.match(powerPlaceSource, /reportEnabled[\s\S]*resourceComparison/, "resource analysis fields should be gated by the report-enabled body");
 assert.match(powerPlaceSource, /__profile_lite_report/, "Report payload should persist through object_refs without a DB migration");
 assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
+assert.match(profileLitePageSource, /__field_layout/, "Profile Lite page should save layout through object_refs.__field_layout");
+assert.match(profileLitePageSource, /__inner_field_shape/, "Profile Lite page should save inner field shape through object_refs.__inner_field_shape");
+assert.match(profileLitePageSource, /__inner_field_size/, "Profile Lite page should save inner field size through object_refs.__inner_field_size");
 assert.match(powerPlaceSource, /powerPlacePrintArea[\s\S]*powerReportOutput[\s\S]*Анализ ситуации[\s\S]*Что даёт мандала[\s\S]*Что ещё поможет/, "print/PDF area should include the working report sections");
 assert.doesNotMatch(profileLitePageSource, /handleDownloadComposition[\s\S]*О Мастере/, "PDF flow must not rebuild the disabled Pro master note as export HTML");
 assert.match(powerPlaceClientSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*normalizeProfileLiteReport/, "Power Place API normalization should preserve the nested report object");
+assert.match(powerPlaceClientSource, /INNER_FIELD_SHAPE_REF_KEY[\s\S]*normalizeInnerFieldShape/, "Power Place API normalization should preserve inner field shape object_ref");
+assert.match(powerPlaceClientSource, /INNER_FIELD_SIZE_REF_KEY[\s\S]*normalizeInnerFieldSize/, "Power Place API normalization should preserve inner field size object_ref");
 assert.match(backgroundZoneControlsSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background zone enhancer should explicitly skip Profile Lite");
 assert.match(backgroundTabsRefineSource, /closest\("\.profileLitePowerPlace"\)/, "legacy background tabs enhancer should explicitly skip Profile Lite");
 assert.doesNotMatch(shellSource, /<header[\s\S]*<\/header>\s*<nav className="profileLiteTabs"/, "Profile Lite shell must not render cabinet tabs before the active module canonical hero");
@@ -410,7 +432,7 @@ assert.match(powerPlaceSource, /function coverLayer[\s\S]*layer === "inner"[\s\S
 assert.match(profileLitePageSource, /inner:\s*layer === "inner" \? nextLayer : inner/, "inner cover selection should save only into cover_ref.inner");
 assert.match(profileLitePageSource, /outer:\s*layer === "outer" \? nextLayer : outer/, "outer cover selection should save only into cover_ref.outer");
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.workspaceCenterColumn[\s\S]*order:\s*1[\s\S]*\.workspaceRightColumn[\s\S]*order:\s*2[\s\S]*\.mandalaModeSidebar[\s\S]*order:\s*3/, "mobile order should keep the Power Place settings rail immediately after the visual constructor");
-assert.match(profileMandalaCss, /@media \(max-width: 1180px\)[\s\S]*\.profileLitePowerPlace \.workspaceCenterColumn[\s\S]*order:\s*1[\s\S]*\.profileLitePowerPlace \.workspaceRightColumn[\s\S]*order:\s*2[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions[\s\S]*order:\s*3[\s\S]*\.profileLitePowerPlace \.profileLiteAdvancedJson[\s\S]*order:\s*4[\s\S]*\.profileLitePowerPlace \.mandalaModeSidebar[\s\S]*order:\s*5/, "Profile Lite mobile order should place settings immediately after the constructor and move actions/advanced/source rail below");
+assert.match(profileMandalaCss, /@media \(max-width: 1180px\)[\s\S]*\.profileLitePowerPlace \.workspaceCenterColumn[\s\S]*order:\s*1[\s\S]*\.profileLitePowerPlace \.coverSelector[\s\S]*order:\s*1[\s\S]*\.profileLitePowerPlace \.reportAnalysisPanel[\s\S]*order:\s*2[\s\S]*\.profileLitePowerPlace \.objectCompositionPanel[\s\S]*order:\s*3[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions[\s\S]*order:\s*3[\s\S]*\.profileLitePowerPlace \.profileLiteAdvancedJson[\s\S]*order:\s*4[\s\S]*\.profileLitePowerPlace \.mandalaModeSidebar[\s\S]*order:\s*5/, "Profile Lite mobile order should be preview, background/layout, report+analysis, objects, then actions/advanced/source");
 
 for (const [source, label] of [
   [overviewModuleSource, "overview"],

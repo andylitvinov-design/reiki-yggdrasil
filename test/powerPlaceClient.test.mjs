@@ -17,6 +17,11 @@ const storageRefs = {
   innerCover: "storage://profile-cabinet-media/profile-1/underlays/inner.png",
   outerCover: "storage://profile-cabinet-media/profile-1/underlays/outer.png"
 };
+const DEFAULT_LAYOUT_REFS = {
+  __field_layout: "square",
+  __inner_field_shape: "circle",
+  __inner_field_size: "100"
+};
 
 const compositionRefs = __testPowerPlaceClient.collectCompositionStorageRefs({
   object_refs: {
@@ -213,6 +218,9 @@ assert.deepEqual(
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: {
       "altar-top-3": "https://example.com/object.jpg",
+      __field_layout: "vertical",
+      __inner_field_shape: "square",
+      __inner_field_size: "60",
       __profile_lite_report: {
         mode: "with_report",
         added: true,
@@ -242,6 +250,9 @@ assert.deepEqual(
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: {
       "altar-top-3": "https://example.com/object.jpg",
+      __field_layout: "vertical",
+      __inner_field_shape: "square",
+      __inner_field_size: "60",
       __profile_lite_report: {
         mode: "with_report",
         added: true,
@@ -258,6 +269,27 @@ assert.deepEqual(
     resource_without_mandala_comment: "До: мало сил",
     resource_with_mandala_comment: "После: яснее цель"
   }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Layout refs",
+    constructor_type: "zodiac",
+    object_refs: {
+      __field_layout: "rectangle",
+      __inner_field_shape: "triangle",
+      __inner_field_size: "125",
+      "zodiac-1": "https://example.com/zodiac.jpg"
+    }
+  }).object_refs,
+  {
+    "zodiac-1": "https://example.com/zodiac.jpg",
+    __field_layout: "square",
+    __inner_field_shape: "circle",
+    __inner_field_size: "100"
+  },
+  "Power Place normalization should clamp layout refs without a Supabase migration"
 );
 
 assert.deepEqual(
@@ -282,7 +314,11 @@ assert.deepEqual(
     star_variant: "closed",
     chess_variant: "classic-14",
     cover_ref: null,
-    object_refs: {},
+    object_refs: {
+      __field_layout: "square",
+      __inner_field_shape: "circle",
+      __inner_field_size: "100"
+    },
     central_photo_id: "photo-2",
     tradition_id: "",
     tradition_title: "",
@@ -325,7 +361,10 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "business-goal-1": "https://example.com/goal.jpg",
-      "business-structure-3": "https://example.com/structure.jpg"
+      "business-structure-3": "https://example.com/structure.jpg",
+      __field_layout: "square",
+      __inner_field_shape: "circle",
+      __inner_field_size: "100"
     },
     central_photo_id: "photo-3",
     tradition_id: "",
@@ -365,7 +404,8 @@ assert.deepEqual(
     object_refs: {
       "dao-water": "https://example.com/water.jpg",
       "dao-fire": "https://example.com/fire.jpg",
-      "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png"
+      "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: "photo-4",
     tradition_id: "",
@@ -405,7 +445,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "zodiac-1": "https://example.com/aries.jpg",
-      "source-1": "https://example.com/old-source.jpg"
+      "source-1": "https://example.com/old-source.jpg",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: "photo-5",
     tradition_id: "",
@@ -439,7 +480,8 @@ assert.deepEqual(
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
-      "zodiac-12": "https://example.com/fish.jpg"
+      "zodiac-12": "https://example.com/fish.jpg",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: "photo-6",
     tradition_id: "",
@@ -480,7 +522,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "star-1": "https://example.com/star-top.jpg",
-      "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png"
+      "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: "photo-7",
     tradition_id: "",
@@ -514,7 +557,8 @@ assert.deepEqual(
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
-      "star-3": "https://example.com/star-left.jpg"
+      "star-3": "https://example.com/star-left.jpg",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: "photo-8",
     tradition_id: "",
@@ -550,7 +594,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "__center_image": "storage://profile-cabinet-media/profile-1/materials/uuid-center.webp",
-      "source-1": "https://example.com/source.jpg"
+      "source-1": "https://example.com/source.jpg",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: null,
     tradition_id: "",
@@ -589,7 +634,8 @@ assert.deepEqual(
     object_refs: {
       "chess-top-1": "https://example.com/top-1.jpg",
       "chess-1": "https://example.com/cross-top.jpg",
-      "chess-8": "storage://profile-cabinet-media/profile-1/power-place/draft/chess-8.png"
+      "chess-8": "storage://profile-cabinet-media/profile-1/power-place/draft/chess-8.png",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: "photo-9",
     tradition_id: "",
@@ -628,7 +674,8 @@ assert.deepEqual(
     object_refs: {
       __mandala_template_id: "stone-mosaic-01",
       "client-1": "https://example.com/client-1.jpg",
-      "client-9": "storage://profile-cabinet-media/profile-1/power-place/draft/client-9.webp"
+      "client-9": "storage://profile-cabinet-media/profile-1/power-place/draft/client-9.webp",
+      ...DEFAULT_LAYOUT_REFS
     },
     central_photo_id: null,
     tradition_id: "",

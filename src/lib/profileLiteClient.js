@@ -4,7 +4,7 @@ export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "err
 export const PROFILE_LITE_TABS = [
   { id: "overview", label: "Обзор", href: "/profile" },
   { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
-  { id: "mandalas", label: "Мои мандалы", href: "/profile/mandalas" },
+  { id: "mandalas", label: "Место силы", href: "/profile/mandalas" },
   { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
   { id: "materials", label: "Материалы", href: "/profile?tab=materials" },
   { id: "services", label: "Услуги", href: "/profile/services" },
@@ -49,7 +49,7 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
 
   if (pathname === "/profile" || pathname === "/profile-lite") {
     const queryTab = new URLSearchParams(search).get("tab");
-    return getProfileLiteTabById(queryTab).id;
+    return queryTab ? getProfileLiteTabById(queryTab).id : "mandalas";
   }
 
   return "overview";

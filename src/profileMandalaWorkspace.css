@@ -5462,6 +5462,7 @@
 .profileLitePowerPlace .powerLayoutPanel,
 .profileLitePowerPlace .objectImageEditor,
 .profileLitePowerPlace .reportSettingsPanel,
+.profileLitePowerPlace .reportAnalysisPanel,
 .profileLitePowerPlace .resourceComparisonPanel {
   min-width: 0;
   display: grid;
@@ -5472,7 +5473,8 @@
 
 .profileLitePowerPlace .coverPickerPanel,
 .profileLitePowerPlace .powerLayoutPanel,
-.profileLitePowerPlace .reportSettingsPanel {
+.profileLitePowerPlace .reportSettingsPanel,
+.profileLitePowerPlace .reportAnalysisPanel {
   border: 1px solid rgba(203, 152, 64, 0.24);
   border-radius: 18px;
   padding: 12px;
@@ -5480,18 +5482,24 @@
 }
 
 .profileLitePowerPlace .reportModeToggle,
-.profileLitePowerPlace .reportActions {
+.profileLitePowerPlace .reportActions,
+.profileLitePowerPlace .resourceModeToggle,
+.profileLitePowerPlace .innerFieldShapeSwitch {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
 }
 
 .profileLitePowerPlace .reportModeToggle button,
-.profileLitePowerPlace .reportActions button {
+.profileLitePowerPlace .reportActions button,
+.profileLitePowerPlace .resourceModeToggle button,
+.profileLitePowerPlace .innerFieldShapeSwitch button {
   min-width: 0;
 }
 
-.profileLitePowerPlace .reportModeToggle button {
+.profileLitePowerPlace .reportModeToggle button,
+.profileLitePowerPlace .resourceModeToggle button,
+.profileLitePowerPlace .innerFieldShapeSwitch button {
   border: 1px solid rgba(179, 126, 36, 0.28);
   border-radius: 999px;
   padding: 7px 10px;
@@ -5501,13 +5509,24 @@
   font-weight: 900;
 }
 
-.profileLitePowerPlace .reportModeToggle button.active {
+.profileLitePowerPlace .reportModeToggle button.active,
+.profileLitePowerPlace .resourceModeToggle button.active,
+.profileLitePowerPlace .innerFieldShapeSwitch button.active {
   border-color: rgba(154, 101, 23, 0.62);
   background: rgba(245, 198, 106, 0.32);
   color: #2f2418;
 }
 
-.profileLitePowerPlace .reportField {
+.profileLitePowerPlace .reportAnalysisBody,
+.profileLitePowerPlace .resourceComparison {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLitePowerPlace .reportField,
+.profileLitePowerPlace .resourceField,
+.profileLitePowerPlace .innerFieldSizeControl {
   display: grid;
   gap: 5px;
   min-width: 0;
@@ -5521,7 +5540,8 @@
   opacity: 0.72;
 }
 
-.profileLitePowerPlace .reportFieldInput {
+.profileLitePowerPlace .reportFieldInput,
+.profileLitePowerPlace .resourceFieldInput {
   min-width: 0;
   width: 100%;
   resize: vertical;
@@ -5535,7 +5555,8 @@
   font-size: 12px;
 }
 
-.profileLitePowerPlace .reportFieldInput:disabled {
+.profileLitePowerPlace .reportFieldInput:disabled,
+.profileLitePowerPlace .resourceFieldInput:disabled {
   cursor: not-allowed;
   background: rgba(238, 228, 212, 0.62);
   color: #7a6b5a;
@@ -5558,6 +5579,45 @@
 .profileLitePowerPlace .powerReportOutput h3,
 .profileLitePowerPlace .powerReportOutput p {
   margin: 0;
+}
+
+.profileLitePowerPlace .innerFieldSizeControl {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.profileLitePowerPlace .innerFieldSizeControl input {
+  grid-column: 1 / -1;
+}
+
+.profileLitePowerPlace .powerPlaceFormatTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  color: #5f3e12;
+}
+
+.profileLitePowerPlace .powerPlaceFormatTitle h3,
+.profileLitePowerPlace .powerPlaceFormatTitle p {
+  margin: 0;
+}
+
+.profileLitePowerPlace .powerCenterWatermark {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  transform: translateX(-50%);
+  max-width: 86%;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 250, 238, 0.58);
+  color: rgba(67, 43, 12, 0.58);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0;
+  pointer-events: none;
 }
 
 .profileLitePowerPlace .powerReportOutput h3 {
@@ -5654,6 +5714,18 @@
 
   .profileLitePowerPlace .workspaceRightColumn {
     order: 2;
+  }
+
+  .profileLitePowerPlace .coverSelector {
+    order: 1;
+  }
+
+  .profileLitePowerPlace .reportAnalysisPanel {
+    order: 2;
+  }
+
+  .profileLitePowerPlace .objectCompositionPanel {
+    order: 3;
   }
 
   .profileLitePowerPlace .profileLitePowerPlaceActions {
@@ -5987,6 +6059,35 @@
   aspect-ratio: var(--power-field-aspect, 1 / 1) !important;
 }
 
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle {
+  --power-place-inner-field-radius: 50%;
+  border-radius: 50%;
+}
+
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square {
+  --power-place-inner-field-radius: 0;
+  border-radius: 0;
+}
+
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .daoMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-circle .power-place-chess,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .daoMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.inner-field-shape-square .power-place-chess {
+  width: min(var(--power-place-inner-field-size, 100%), 100%) !important;
+  border-radius: var(--power-place-inner-field-radius, 50%);
+  overflow: hidden;
+}
+
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel .powerMandala,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel .powerMandala,
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel .powerMandala,
@@ -5999,6 +6100,16 @@
   height: auto !important;
   aspect-ratio: var(--power-card-aspect, 1 / 1) !important;
   max-height: calc(390px * var(--power-card-height-factor, 1));
+}
+
+.profileLitePowerPlace .powerCenterPhoto,
+.profileLitePowerPlace .altarCenterPhoto,
+.profileLitePowerPlace .businessCenterPhoto,
+.profileLitePowerPlace .zodiacCenterPhoto,
+.profileLitePowerPlace .starCenterPhoto,
+.profileLitePowerPlace .daoCenterPhoto,
+.profileLitePowerPlace .power-place-chess__center {
+  position: relative;
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
