@@ -157,9 +157,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
-.profileLitePowerPlace .coverUploadButton {
-  display: none !important;
-}
 @media (max-width: 560px) {
   .profileLitePowerPlace .powerMandalaPanel[style] {
     padding: clamp(28px, 9vw, 44px) !important;
