@@ -25,6 +25,9 @@ const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const INNER_FIELD_SHAPE_REF_KEY = "__inner_field_shape";
+const INNER_FIELD_SIZE_REF_KEY = "__inner_field_size";
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -55,11 +58,35 @@ function isPersistableImageRef(value) {
 }
 
 function cleanObjectRefs(value) {
+  const specialKeys = new Set([
+    PROFILE_LITE_REPORT_REF_KEY,
+    FIELD_LAYOUT_REF_KEY,
+    INNER_FIELD_SHAPE_REF_KEY,
+    INNER_FIELD_SIZE_REF_KEY,
+    "__slot_scale"
+  ]);
+
   return Object.fromEntries(
     Object.entries(cleanJsonObject(value))
+      .filter(([key]) => !specialKeys.has(cleanText(key)))
       .map(([key, item]) => [cleanText(key), cleanText(item)])
       .filter(([key, item]) => key && isPersistableImageRef(item))
   );
+}
+
+function normalizeFieldLayout(value) {
+  const layout = cleanText(value);
+  return ["square", "vertical", "horizontal"].includes(layout) ? layout : "square";
+}
+
+function normalizeInnerFieldShape(value) {
+  return cleanText(value) === "square" ? "square" : "circle";
+}
+
+function normalizeInnerFieldSize(value) {
+  const size = Number(value);
+  if (!Number.isFinite(size)) return 100;
+  return Math.min(100, Math.max(60, Math.round(size)));
 }
 
 function normalizeProfileLiteReport(value) {
@@ -309,8 +336,12 @@ export function normalizePowerPlaceComposition(composition) {
   const starVariant = cleanText(composition?.star_variant);
   const chessVariant = cleanText(composition?.chess_variant);
   const slotScale = Number(composition?.slot_scale ?? composition?.object_refs?.__slot_scale);
+  const rawObjectRefs = cleanJsonObject(composition?.object_refs);
   const objectRefs = cleanObjectRefs(composition?.object_refs);
-  const report = cleanJsonObject(composition?.object_refs)[PROFILE_LITE_REPORT_REF_KEY];
+  const report = rawObjectRefs[PROFILE_LITE_REPORT_REF_KEY];
+  objectRefs[FIELD_LAYOUT_REF_KEY] = normalizeFieldLayout(composition?.field_layout ?? rawObjectRefs[FIELD_LAYOUT_REF_KEY]);
+  objectRefs[INNER_FIELD_SHAPE_REF_KEY] = normalizeInnerFieldShape(composition?.inner_field_shape ?? rawObjectRefs[INNER_FIELD_SHAPE_REF_KEY]);
+  objectRefs[INNER_FIELD_SIZE_REF_KEY] = String(normalizeInnerFieldSize(composition?.inner_field_size ?? rawObjectRefs[INNER_FIELD_SIZE_REF_KEY]));
   if (Number.isFinite(slotScale)) {
     objectRefs.__slot_scale = String(Math.min(1.18, Math.max(0.7, slotScale)));
   }

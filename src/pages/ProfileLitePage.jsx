@@ -93,6 +93,9 @@ const EMPTY_COMPOSITION = {
   id: "",
   title: "",
   constructor_type: "zodiac",
+  field_layout: "square",
+  inner_field_shape: "circle",
+  inner_field_size: 100,
   geometry: 4,
   zodiac_variant: "classic-12",
   zodiac_visible_count: 12,
@@ -103,7 +106,11 @@ const EMPTY_COMPOSITION = {
   chess_slot_scale: 1,
   slot_scale: 1,
   cover_ref: null,
-  object_refs: {},
+  object_refs: {
+    __field_layout: "square",
+    __inner_field_shape: "circle",
+    __inner_field_size: "100"
+  },
   central_photo_id: "",
   tradition_id: "",
   tradition_title: "",
@@ -112,6 +119,9 @@ const EMPTY_COMPOSITION = {
   resource_with_mandala_comment: ""
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const INNER_FIELD_SHAPE_REF_KEY = "__inner_field_shape";
+const INNER_FIELD_SIZE_REF_KEY = "__inner_field_size";
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "with_report",
   added: false,
@@ -223,6 +233,20 @@ function normalizeProfileLiteReport(value) {
     extra_help: String(source.extra_help || "").trim(),
     master_note: ""
   };
+}
+
+function normalizeFieldLayout(value) {
+  return ["square", "vertical", "horizontal"].includes(value) ? value : "square";
+}
+
+function normalizeInnerFieldShape(value) {
+  return value === "square" ? "square" : "circle";
+}
+
+function normalizeInnerFieldSize(value) {
+  const size = Number(value);
+  if (!Number.isFinite(size)) return 100;
+  return Math.min(100, Math.max(60, Math.round(size)));
 }
 
 function safeFilename(value) {
@@ -870,6 +894,39 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (field === "field_layout" || field === FIELD_LAYOUT_REF_KEY) {
+        const layout = normalizeFieldLayout(value);
+        return {
+          ...current,
+          field_layout: layout,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [FIELD_LAYOUT_REF_KEY]: layout
+          }
+        };
+      }
+      if (field === "inner_field_shape" || field === INNER_FIELD_SHAPE_REF_KEY) {
+        const shape = normalizeInnerFieldShape(value);
+        return {
+          ...current,
+          inner_field_shape: shape,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [INNER_FIELD_SHAPE_REF_KEY]: shape
+          }
+        };
+      }
+      if (field === "inner_field_size" || field === INNER_FIELD_SIZE_REF_KEY) {
+        const size = normalizeInnerFieldSize(value);
+        return {
+          ...current,
+          inner_field_size: size,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [INNER_FIELD_SIZE_REF_KEY]: String(size)
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,
@@ -996,11 +1053,23 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionLoad = (composition) => {
+    const objectRefs = composition.object_refs || {};
+    const fieldLayout = normalizeFieldLayout(composition.field_layout || objectRefs[FIELD_LAYOUT_REF_KEY]);
+    const innerFieldShape = normalizeInnerFieldShape(composition.inner_field_shape || objectRefs[INNER_FIELD_SHAPE_REF_KEY]);
+    const innerFieldSize = normalizeInnerFieldSize(composition.inner_field_size || objectRefs[INNER_FIELD_SIZE_REF_KEY]);
     setCompositionDraft({
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
-      object_refs: composition.object_refs || {},
+      field_layout: fieldLayout,
+      inner_field_shape: innerFieldShape,
+      inner_field_size: innerFieldSize,
+      object_refs: {
+        ...objectRefs,
+        [FIELD_LAYOUT_REF_KEY]: fieldLayout,
+        [INNER_FIELD_SHAPE_REF_KEY]: innerFieldShape,
+        [INNER_FIELD_SIZE_REF_KEY]: String(innerFieldSize)
+      },
       object_ref_urls: composition.object_ref_urls || {}
     });
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
@@ -1023,7 +1092,24 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         ? freshCompositions
         : [saved].filter(Boolean)
       );
-      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
+      const freshObjectRefs = freshSaved?.object_refs || {};
+      const fieldLayout = normalizeFieldLayout(freshSaved?.field_layout || freshObjectRefs[FIELD_LAYOUT_REF_KEY]);
+      const innerFieldShape = normalizeInnerFieldShape(freshSaved?.inner_field_shape || freshObjectRefs[INNER_FIELD_SHAPE_REF_KEY]);
+      const innerFieldSize = normalizeInnerFieldSize(freshSaved?.inner_field_size || freshObjectRefs[INNER_FIELD_SIZE_REF_KEY]);
+      setCompositionDraft({
+        ...EMPTY_COMPOSITION,
+        ...freshSaved,
+        id: freshSaved?.id || "",
+        field_layout: fieldLayout,
+        inner_field_shape: innerFieldShape,
+        inner_field_size: innerFieldSize,
+        object_refs: {
+          ...freshObjectRefs,
+          [FIELD_LAYOUT_REF_KEY]: fieldLayout,
+          [INNER_FIELD_SHAPE_REF_KEY]: innerFieldShape,
+          [INNER_FIELD_SIZE_REF_KEY]: String(innerFieldSize)
+        }
+      });
       setCompositionMessage(compositionDraft.id ? "Место силы обновлено." : "Место силы сохранено.");
       setMandalasStatus("success");
       setMandalasError("");

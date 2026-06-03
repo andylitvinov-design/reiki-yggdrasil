@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-02
+Last updated: 2026-06-03
 
 ## Current verified repo state
 
@@ -11,6 +11,37 @@ Last updated: 2026-06-02
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-06-03 — Issue #213 reapplied to current Profile Lite Power Place Base
+
+- Branch: `codex/rebase-issue213-profile-lite-power-place-ui`, based on fresh `origin/main` commit `deb0c2b`.
+- Scope: `/profile` and `/profile/mandalas` Profile Lite / Power Place UI only; Supabase auth/session/bootstrap, env values/secrets, Vercel rewrites, public home page, `/profile-old`, `/masters`, and `/profile/admin` were not changed.
+- Current structure note: `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx` is a wrapper around `ProfileLitePowerPlaceModuleBase.jsx`; issue #213 behavior was manually moved into the Base component instead of applying the older big-component patch.
+- Changed:
+  - renamed Profile Lite tab `Мои мандалы` to `Место силы`;
+  - made `/profile` without query default to `mandalas`, while explicit `?tab=` routes remain supported;
+  - moved `Макет` controls inside `Фон Места Силы`;
+  - limited layout controls to `square`, `vertical`, and `horizontal`;
+  - added inner field `circle` / `square` and size `60`-`100` controls persisted through `object_refs.__inner_field_shape` and `object_refs.__inner_field_size`;
+  - persists/normalizes layout through `object_refs.__field_layout` without adding a Supabase migration;
+  - moved the format title above the mandala visual field;
+  - added a shared `Mentalica` watermark under the central photo helper for all constructor types;
+  - merged `Отчёт` and resource analysis into compact `Отчёт и анализ`;
+  - `Без отчёта` hides report fields, resource analysis fields, actions, and central report output;
+  - mobile order is preview, background/layout, report+analysis, objects, then actions/advanced/source rail.
+- Verification so far:
+  - `npm run test:profile-lite` passed;
+  - `npm run test:power-place` passed;
+  - `npm run test:profile-media` passed;
+  - `npm run test:profile-loading-recovery` passed.
+- Still to run:
+  - `npm run check`;
+  - `npm run build`;
+  - `git diff --check`;
+  - local browser QA if time allows.
+- Not verified:
+  - real authenticated Supabase save/load;
+  - production/legacy live QA after merge/deploy.
 
 ## 2026-06-02 — Profile Lite chess center and cover hydration fix
 
