@@ -23,7 +23,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .businessCenterPhoto.hasImage,
 .profileLitePowerPlace .zodiacCenterPhoto.hasImage,
 .profileLitePowerPlace .starCenterPhoto.hasImage,
-.profileLitePowerPlace .daoCenterPhoto.hasImage {
+.profileLitePowerPlace .daoCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .powerCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .altarCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .businessCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .starCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .daoCenterPhoto.hasImage {
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
@@ -37,11 +43,23 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacPositionImage[style],
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style],
 .profileLitePowerPlace .starPositionImage[style],
-.profileLitePowerPlace .daoElementImage.hasImage {
+.profileLitePowerPlace .daoElementImage.hasImage,
+.powerPlacePdfOnlyArea .power-place-chess__center.hasImage,
+.powerPlacePdfOnlyArea .power-place-chess__slot.hasImage,
+.powerPlacePdfOnlyArea .powerSource.hasImage,
+.powerPlacePdfOnlyArea .altarTopSource.hasImage,
+.powerPlacePdfOnlyArea .altarSupportSource.hasImage,
+.powerPlacePdfOnlyArea .businessVertexZone.hasImage,
+.powerPlacePdfOnlyArea .zodiacPositionImage[style],
+.powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style],
+.powerPlacePdfOnlyArea .starPositionImage[style],
+.powerPlacePdfOnlyArea .daoElementImage.hasImage {
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-color: transparent !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
 }
 .profileLitePowerPlace .power-place-chess__slot.hasImage::before,
 .profileLitePowerPlace .power-place-chess__slot.hasImage::after,
@@ -60,7 +78,25 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::before,
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::after,
 .profileLitePowerPlace .starPositionImage[style]::before,
-.profileLitePowerPlace .starPositionImage[style]::after {
+.profileLitePowerPlace .starPositionImage[style]::after,
+.powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::before,
+.powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::after,
+.powerPlacePdfOnlyArea .powerSource.hasImage::before,
+.powerPlacePdfOnlyArea .powerSource.hasImage::after,
+.powerPlacePdfOnlyArea .altarTopSource.hasImage::before,
+.powerPlacePdfOnlyArea .altarTopSource.hasImage::after,
+.powerPlacePdfOnlyArea .altarSupportSource.hasImage::before,
+.powerPlacePdfOnlyArea .altarSupportSource.hasImage::after,
+.powerPlacePdfOnlyArea .businessVertexZone.hasImage::before,
+.powerPlacePdfOnlyArea .businessVertexZone.hasImage::after,
+.powerPlacePdfOnlyArea .daoElementImage.hasImage::before,
+.powerPlacePdfOnlyArea .daoElementImage.hasImage::after,
+.powerPlacePdfOnlyArea .zodiacPositionImage[style]::before,
+.powerPlacePdfOnlyArea .zodiacPositionImage[style]::after,
+.powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style]::before,
+.powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style]::after,
+.powerPlacePdfOnlyArea .starPositionImage[style]::before,
+.powerPlacePdfOnlyArea .starPositionImage[style]::after {
   display: none !important;
   content: none !important;
   box-shadow: none !important;
@@ -69,7 +105,11 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
 .profileLitePowerPlace .zodiacPosition.hasImage,
 .profileLitePowerPlace .zodiacFieldPlusPosition.hasImage,
-.profileLitePowerPlace .starPosition.hasImage {
+.profileLitePowerPlace .starPosition.hasImage,
+.powerPlacePdfOnlyArea .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
+.powerPlacePdfOnlyArea .zodiacPosition.hasImage,
+.powerPlacePdfOnlyArea .zodiacFieldPlusPosition.hasImage,
+.powerPlacePdfOnlyArea .starPosition.hasImage {
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -80,12 +120,22 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacMandalaSheet[style],
 .profileLitePowerPlace .starMandalaSheet[style],
 .profileLitePowerPlace .daoMandalaSheet[style],
-.profileLitePowerPlace .power-place-chess[style] {
+.profileLitePowerPlace .power-place-chess[style],
+.powerPlacePdfOnlyArea .powerMandala[style],
+.powerPlacePdfOnlyArea .altarMandalaSheet[style],
+.powerPlacePdfOnlyArea .businessMandalaSheet[style],
+.powerPlacePdfOnlyArea .zodiacMandalaSheet[style],
+.powerPlacePdfOnlyArea .starMandalaSheet[style],
+.powerPlacePdfOnlyArea .daoMandalaSheet[style],
+.powerPlacePdfOnlyArea .power-place-chess[style] {
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: ${innerOffsetX}% ${innerOffsetY}% !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
 }
-.profileLitePowerPlace .powerMandalaPanel[style] {
+.profileLitePowerPlace .powerMandalaPanel[style],
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] {
   position: relative;
   padding: clamp(34px, 8vw, 58px) !important;
   background-size: cover !important;
@@ -94,8 +144,11 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   background-origin: border-box !important;
   background-clip: border-box !important;
   background-color: #fffaf0;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
 }
-.profileLitePowerPlace .powerMandalaPanel[style] .powerPrintMeta {
+.profileLitePowerPlace .powerMandalaPanel[style] .powerPrintMeta,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] .powerPrintMeta {
   width: min(500px, 92%) !important;
 }
 .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
@@ -104,11 +157,36 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
-.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet {
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .power-place-chess,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerMandala,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .altarMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .businessMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
   position: relative;
   z-index: 1;
   max-width: min(440px, 92%) !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
+}
+.powerPlacePdfOnlyArea .power-place-chess__slot,
+.powerPlacePdfOnlyArea .power-place-chess__center,
+.powerPlacePdfOnlyArea .powerSource,
+.powerPlacePdfOnlyArea .zodiacPositionImage,
+.powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage,
+.powerPlacePdfOnlyArea .starPositionImage {
+  border: 1px solid rgba(255, 213, 117, 0.74) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+.powerPlacePdfOnlyArea .power-place-chess__slot.selected,
+.powerPlacePdfOnlyArea .powerSource.selected,
+.powerPlacePdfOnlyArea .zodiacPositionImage.selected,
+.powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage.selected,
+.powerPlacePdfOnlyArea .starPositionImage.selected {
+  border-color: #fff6d7 !important;
+  box-shadow: 0 0 0 3px rgba(255, 246, 215, 0.48), 0 0 26px rgba(245, 198, 86, 0.52) !important;
 }
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(3),
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(5),
@@ -157,11 +235,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
-.profileLitePowerPlace .coverUploadButton {
-  display: none !important;
-}
 @media (max-width: 560px) {
-  .profileLitePowerPlace .powerMandalaPanel[style] {
+  .profileLitePowerPlace .powerMandalaPanel[style],
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
     padding: clamp(28px, 9vw, 44px) !important;
   }
   .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
@@ -170,7 +246,14 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
   .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
   .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet {
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .power-place-chess,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerMandala,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .altarMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .businessMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
     max-width: min(360px, 90%) !important;
   }
 }
