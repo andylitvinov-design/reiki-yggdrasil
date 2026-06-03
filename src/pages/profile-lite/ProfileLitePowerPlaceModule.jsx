@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { placePowerMandalaTemplates } from "../../data/placePowerMandalaTemplates.js";
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
 import "../../profileMandalaTemplatePilot.css";
+import "../../profileMandalaFitFixes.css";
 
 const MANDALA_TEMPLATE_REF_KEY = "__mandala_template_id";
 
