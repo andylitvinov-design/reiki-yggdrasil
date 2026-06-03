@@ -2,9 +2,36 @@ import React, { useCallback, useMemo } from "react";
 import { placePowerMandalaTemplates } from "../../data/placePowerMandalaTemplates.js";
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
 import "../../profileMandalaTemplatePilot.css";
-import "../../profileMandalaFitFixes.css";
 
 const MANDALA_TEMPLATE_REF_KEY = "__mandala_template_id";
+const PROFILE_LITE_FIT_FIX_STYLES = `
+.powerCenterPhoto.hasImage,
+.altarCenterPhoto.hasImage,
+.businessCenterPhoto.hasImage,
+.zodiacCenterPhoto.hasImage,
+.starCenterPhoto.hasImage,
+.daoCenterPhoto.hasImage,
+.power-place-chess__center.hasImage {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+.powerMandala[style],
+.altarMandalaSheet[style],
+.businessMandalaSheet[style],
+.zodiacMandalaSheet[style],
+.starMandalaSheet[style],
+.daoMandalaSheet[style],
+.power-place-chess[style],
+.powerMandalaPanel[style] {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+.powerMandalaPanel[style] {
+  background-color: #fffaf0;
+}
+`;
 
 function cleanRefs(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -82,6 +109,7 @@ export default function ProfileLitePowerPlaceModule(props) {
 
   const templatePanel = (
     <>
+      <style data-profile-lite-fit-fixes>{PROFILE_LITE_FIT_FIX_STYLES}</style>
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
