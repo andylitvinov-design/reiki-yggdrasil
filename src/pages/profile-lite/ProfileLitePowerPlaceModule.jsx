@@ -5,8 +5,10 @@ import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.j
 import "../../profileMandalaTemplatePilot.css";
 
 const MANDALA_TEMPLATE_REF_KEY = "__mandala_template_id";
-const INNER_COVER_OFFSET_REF_KEY = "__inner_cover_offset_x";
-const OUTER_COVER_OFFSET_REF_KEY = "__outer_cover_offset_x";
+const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
+const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
+const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
+const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 
 function coverOffsetValue(value) {
   const parsed = Number(value);
@@ -14,7 +16,7 @@ function coverOffsetValue(value) {
   return Math.min(80, Math.max(20, parsed));
 }
 
-function profileLiteFitFixStyles(innerOffset, outerOffset) {
+function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY) {
   return `
 .powerCenterPhoto.hasImage,
 .altarCenterPhoto.hasImage,
@@ -38,15 +40,15 @@ function profileLiteFitFixStyles(innerOffset, outerOffset) {
 .starMandalaSheet[style],
 .daoMandalaSheet[style],
 .power-place-chess[style] {
-  background-size: auto 100% !important;
+  background-size: 100% auto !important;
   background-repeat: no-repeat !important;
-  background-position: ${innerOffset}% center !important;
+  background-position: ${innerOffsetX}% ${innerOffsetY}% !important;
 }
 .powerMandalaPanel[style] {
   position: relative;
-  background-size: auto 100% !important;
+  background-size: 100% auto !important;
   background-repeat: no-repeat !important;
-  background-position: ${outerOffset}% center !important;
+  background-position: ${outerOffsetX}% ${outerOffsetY}% !important;
   background-color: #fffaf0;
 }
 .coverOffsetOverlay {
@@ -57,8 +59,8 @@ function profileLiteFitFixStyles(innerOffset, outerOffset) {
 }
 .coverOffsetSideGroup {
   position: absolute;
-  left: 5px;
-  right: 5px;
+  left: 6px;
+  right: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -72,22 +74,46 @@ function profileLiteFitFixStyles(innerOffset, outerOffset) {
   top: 50%;
   bottom: 0;
 }
-.coverOffsetSideGroup button {
-  width: 22px;
-  min-width: 22px;
-  height: min(128px, 68%);
+.coverOffsetVerticalGroup {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.coverOffsetVerticalGroup.inner {
+  top: 7px;
+}
+.coverOffsetVerticalGroup.outer {
+  bottom: 7px;
+}
+.coverOffsetSideGroup button,
+.coverOffsetVerticalGroup button {
   border: 1px solid rgba(184, 121, 29, 0.32);
   border-radius: 999px;
   padding: 0;
-  background: rgba(255, 250, 238, 0.76);
+  background: rgba(255, 250, 238, 0.78);
   color: #704812;
-  font-size: 12px;
   font-weight: 900;
   line-height: 1;
   box-shadow: 0 10px 24px rgba(80, 52, 14, 0.12);
   pointer-events: auto;
 }
-.coverOffsetSideGroup button:active {
+.coverOffsetSideGroup button {
+  width: 20px;
+  min-width: 20px;
+  height: min(124px, 64%);
+  font-size: 11px;
+}
+.coverOffsetVerticalGroup button {
+  width: 34px;
+  min-width: 34px;
+  height: 22px;
+  font-size: 10px;
+}
+.coverOffsetSideGroup button:active,
+.coverOffsetVerticalGroup button:active {
   transform: scale(0.96);
 }
 `;
@@ -125,11 +151,16 @@ export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
-  const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_REF_KEY]);
-  const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_REF_KEY]);
+  const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
+  const innerCoverOffsetY = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_Y_REF_KEY]);
+  const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
+  const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
-  const fitStyleText = useMemo(() => profileLiteFitFixStyles(innerCoverOffsetX, outerCoverOffsetX), [innerCoverOffsetX, outerCoverOffsetX]);
+  const fitStyleText = useMemo(
+    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY),
+    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY]
+  );
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -145,8 +176,10 @@ export default function ProfileLitePowerPlaceModule(props) {
     props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
   }, [props]);
 
-  const shiftCoverOffset = useCallback((layer, delta) => {
-    const key = layer === "outer" ? OUTER_COVER_OFFSET_REF_KEY : INNER_COVER_OFFSET_REF_KEY;
+  const shiftCoverOffset = useCallback((layer, axis, delta) => {
+    const key = layer === "outer"
+      ? (axis === "y" ? OUTER_COVER_OFFSET_Y_REF_KEY : OUTER_COVER_OFFSET_X_REF_KEY)
+      : (axis === "y" ? INNER_COVER_OFFSET_Y_REF_KEY : INNER_COVER_OFFSET_X_REF_KEY);
     const current = coverOffsetValue(objectRefs[key]);
     writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
   }, [objectRefs, writeObjectRefs]);
@@ -193,13 +226,21 @@ export default function ProfileLitePowerPlaceModule(props) {
 
   const coverOffsetOverlay = (
     <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото">
-      <div className="coverOffsetSideGroup inner" aria-label="Смещение внутреннего фона">
-        <button type="button" onClick={() => shiftCoverOffset("inner", -5)} aria-label="Сдвинуть внутренний фон влево">L</button>
-        <button type="button" onClick={() => shiftCoverOffset("inner", 5)} aria-label="Сдвинуть внутренний фон вправо">R</button>
+      <div className="coverOffsetSideGroup inner" aria-label="Смещение внутреннего фона по горизонтали">
+        <button type="button" onClick={() => shiftCoverOffset("inner", "x", -5)} aria-label="Сдвинуть внутренний фон влево">L</button>
+        <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">R</button>
       </div>
-      <div className="coverOffsetSideGroup outer" aria-label="Смещение внешнего фона">
-        <button type="button" onClick={() => shiftCoverOffset("outer", -5)} aria-label="Сдвинуть внешний фон влево">L</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", 5)} aria-label="Сдвинуть внешний фон вправо">R</button>
+      <div className="coverOffsetVerticalGroup inner" aria-label="Смещение внутреннего фона по вертикали">
+        <button type="button" onClick={() => shiftCoverOffset("inner", "y", -5)} aria-label="Сдвинуть внутренний фон вверх">U</button>
+        <button type="button" onClick={() => shiftCoverOffset("inner", "y", 5)} aria-label="Сдвинуть внутренний фон вниз">D</button>
+      </div>
+      <div className="coverOffsetSideGroup outer" aria-label="Смещение внешнего фона по горизонтали">
+        <button type="button" onClick={() => shiftCoverOffset("outer", "x", -5)} aria-label="Сдвинуть внешний фон влево">L</button>
+        <button type="button" onClick={() => shiftCoverOffset("outer", "x", 5)} aria-label="Сдвинуть внешний фон вправо">R</button>
+      </div>
+      <div className="coverOffsetVerticalGroup outer" aria-label="Смещение внешнего фона по вертикали">
+        <button type="button" onClick={() => shiftCoverOffset("outer", "y", -5)} aria-label="Сдвинуть внешний фон вверх">U</button>
+        <button type="button" onClick={() => shiftCoverOffset("outer", "y", 5)} aria-label="Сдвинуть внешний фон вниз">D</button>
       </div>
     </div>
   );
