@@ -10,6 +10,17 @@ const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
+const CENTER_SHAPE_REF_KEY = "__center_shape";
+
+const CONSTRUCTOR_LABELS = {
+  zodiac: "Зодиак",
+  star: "Звезда",
+  chess: "Шахматы",
+  client: "Мандала",
+  altar: "Алтарь",
+  business: "Бизнес",
+  dao: "ДАО"
+};
 
 function coverOffsetValue(value) {
   const parsed = Number(value);
@@ -23,7 +34,12 @@ function innerFieldScaleValue(value) {
   return Math.min(92, Math.max(48, parsed));
 }
 
-function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale) {
+function centerShapeValue(value) {
+  return value === "circle" ? "circle" : "square";
+}
+
+function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerShape) {
+  const centerRadius = centerShape === "circle" ? "50%" : "24px";
   return `
 .profileLitePowerPlace .powerCenterPhoto.hasImage,
 .profileLitePowerPlace .altarCenterPhoto.hasImage,
@@ -141,9 +157,39 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
+.profileLitePowerPlace .powerPlaceExternalTitle,
+.powerPlacePdfOnlyArea .powerPlaceExternalTitle {
+  order: -3;
+  width: min(520px, 94%);
+  margin: 0 auto 8px;
+  text-align: center;
+  pointer-events: none;
+}
+.profileLitePowerPlace .powerPlaceExternalTitle p,
+.powerPlacePdfOnlyArea .powerPlaceExternalTitle p {
+  margin: 0 0 2px;
+  color: #8a5308;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.profileLitePowerPlace .powerPlaceExternalTitle h3,
+.powerPlacePdfOnlyArea .powerPlaceExternalTitle h3 {
+  margin: 0;
+  color: #5b3b12;
+  font-size: clamp(24px, 5vw, 38px);
+  line-height: 1;
+  text-shadow: 0 1px 10px rgba(255, 246, 215, 0.72);
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .powerPrintMeta,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerPrintMeta {
+  display: none !important;
+}
 .profileLitePowerPlace .powerMandalaPanel[style],
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
   position: relative;
+  justify-items: center !important;
   align-content: start !important;
   padding: clamp(34px, 8vw, 58px) !important;
   background-size: cover !important;
@@ -155,14 +201,24 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
-.profileLitePowerPlace .powerMandalaPanel[style] .powerPrintMeta,
-.powerPlacePdfOnlyArea .powerMandalaPanel[style] .powerPrintMeta {
-  order: -1;
-  position: relative !important;
-  z-index: 2 !important;
-  width: min(500px, 92%) !important;
-  margin: 0 auto 12px !important;
-  padding: 0 !important;
+.profileLitePowerPlace .powerMandalaPanel.field-layout-square,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-square {
+  aspect-ratio: 1 / 1 !important;
+  width: min(620px, 100%) !important;
+}
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle {
+  aspect-ratio: 9 / 16 !important;
+  width: min(430px, 100%) !important;
+  min-height: auto !important;
+}
+.profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
+  aspect-ratio: 16 / 9 !important;
+  width: min(760px, 100%) !important;
+  min-height: auto !important;
 }
 .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
 .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
@@ -180,8 +236,12 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
   position: relative;
   z-index: 1;
+  justify-self: center !important;
   width: min(440px, ${innerFieldScale}%) !important;
   max-width: min(440px, ${innerFieldScale}%) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: ${centerRadius} !important;
+  overflow: hidden !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
 .powerPlacePdfOnlyArea .power-place-chess__slot,
@@ -204,12 +264,68 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 }
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(3),
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(5),
-.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+11) {
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+11),
+.profileLitePowerPlace .mandalaFieldLayoutButtons button:nth-child(3) {
   display: none;
 }
 .profileLitePowerPlace .coverVariantList.coverVariantsGrid button.active {
   display: inline-flex;
 }
+.profileLitePowerPlace .mandalaFieldLayoutButtons button:nth-child(4) { order: -3; }
+.profileLitePowerPlace .mandalaFieldLayoutButtons button:nth-child(1) { order: -2; }
+.profileLitePowerPlace .mandalaFieldLayoutButtons button:nth-child(2) { order: -1; }
+.profileLitePowerPlace .mandalaFieldLayoutSwitch {
+  gap: 12px !important;
+}
+.profileLitePowerPlace .mandalaFieldLayoutSwitch > span {
+  font-size: 0 !important;
+}
+.profileLitePowerPlace .mandalaFieldLayoutSwitch > span::before {
+  content: "Фон";
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 900;
+}
+.profileLitePowerPlace .centerShapeControl {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid rgba(184, 121, 29, 0.18);
+  padding-top: 10px;
+}
+.profileLitePowerPlace .centerShapeControl > span {
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 900;
+}
+.profileLitePowerPlace .centerShapeButtons {
+  display: flex;
+  gap: 7px;
+}
+.profileLitePowerPlace .centerShapeButtons button {
+  width: 38px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #744c17;
+  cursor: pointer;
+}
+.profileLitePowerPlace .centerShapeButtons button.active {
+  border-color: rgba(245, 198, 106, 0.72);
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+  box-shadow: 0 8px 20px rgba(127, 78, 14, 0.16);
+}
+.profileLitePowerPlace .centerShapeIcon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  border: 2px solid currentColor;
+}
+.profileLitePowerPlace .centerShapeIcon.square { border-radius: 3px; }
+.profileLitePowerPlace .centerShapeIcon.circle { border-radius: 50%; }
 .profileLitePowerPlace .coverOffsetOverlay {
   position: absolute;
   inset: 0;
@@ -273,7 +389,8 @@ body.printMandalaOnly .coverOffsetOverlay {
 }
 @media print {
   .coverOffsetOverlay,
-  .innerFieldScaleControl {
+  .innerFieldScaleControl,
+  .centerShapeControl {
     display: none !important;
   }
 }
@@ -343,7 +460,9 @@ function normalizeLayeredCoverRef(coverRef) {
 
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
+  const [printAreaNode, setPrintAreaNode] = useState(null);
   const [constructorControlsNode, setConstructorControlsNode] = useState(null);
+  const [layoutPanelNode, setLayoutPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
@@ -351,18 +470,22 @@ export default function ProfileLitePowerPlaceModule(props) {
   const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
   const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
   const innerFieldScale = innerFieldScaleValue(objectRefs[INNER_FIELD_SCALE_REF_KEY]);
+  const centerShape = centerShapeValue(objectRefs[CENTER_SHAPE_REF_KEY]);
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
+  const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
-    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale),
-    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale]
+    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerShape),
+    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerShape]
   );
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
+      setPrintAreaNode(document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || null);
       setConstructorControlsNode(document.querySelector(".profileLitePowerPlace .constructorControls") || null);
+      setLayoutPanelNode(document.querySelector(".profileLitePowerPlace .mandalaFieldLayoutSwitch") || null);
     };
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
@@ -383,6 +506,10 @@ export default function ProfileLitePowerPlaceModule(props) {
 
   const setInnerFieldScaleValue = useCallback((nextValue) => {
     writeObjectRefs({ ...objectRefs, [INNER_FIELD_SCALE_REF_KEY]: String(innerFieldScaleValue(nextValue)) });
+  }, [objectRefs, writeObjectRefs]);
+
+  const setCenterShape = useCallback((nextShape) => {
+    writeObjectRefs({ ...objectRefs, [CENTER_SHAPE_REF_KEY]: centerShapeValue(nextShape) });
   }, [objectRefs, writeObjectRefs]);
 
   const writeTemplateId = useCallback((templateId) => {
@@ -430,6 +557,13 @@ export default function ProfileLitePowerPlaceModule(props) {
     };
   }, [activeTemplate, isClientMandala, props.compositionDraft]);
 
+  const externalTitle = (
+    <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
+      <p>Формат</p>
+      <h3>{formatLabel}</h3>
+    </div>
+  );
+
   const coverOffsetOverlay = (
     <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото" data-print-hidden="true">
       <div className="coverOffsetCornerGroup inner" aria-label="Смещение внутреннего фона">
@@ -462,11 +596,27 @@ export default function ProfileLitePowerPlaceModule(props) {
     </div>
   );
 
+  const centerShapeControl = (
+    <div className="centerShapeControl" aria-label="Форма центра">
+      <span>Центр</span>
+      <div className="centerShapeButtons" role="group" aria-label="Форма центра">
+        <button className={centerShape === "square" ? "active" : ""} type="button" onClick={() => setCenterShape("square")} aria-label="Центр квадрат" title="Квадрат">
+          <i className="centerShapeIcon square" aria-hidden="true" />
+        </button>
+        <button className={centerShape === "circle" ? "active" : ""} type="button" onClick={() => setCenterShape("circle")} aria-label="Центр круг" title="Круг">
+          <i className="centerShapeIcon circle" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
+  );
+
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
+      {printAreaNode ? createPortal(externalTitle, printAreaNode) : null}
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
       {constructorControlsNode ? createPortal(innerFieldScaleControl, constructorControlsNode) : null}
+      {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
