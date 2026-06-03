@@ -84,6 +84,14 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   position: relative;
   z-index: 1;
 }
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(3),
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(5),
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+11) {
+  display: none;
+}
+.profileLitePowerPlace .coverVariantList.coverVariantsGrid button.active {
+  display: inline-flex;
+}
 .profileLitePowerPlace .coverOffsetOverlay {
   position: absolute;
   inset: 0;
@@ -105,8 +113,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   right: 9px;
   bottom: 9px;
 }
-.profileLitePowerPlace .coverOffsetCornerGroup button,
-.profileLitePowerPlace .explicitCoverUploadGrid label {
+.profileLitePowerPlace .coverOffsetCornerGroup button {
   border: 1px solid rgba(184, 121, 29, 0.32);
   border-radius: 999px;
   padding: 0;
@@ -115,41 +122,17 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   font-weight: 900;
   line-height: 1;
   box-shadow: 0 8px 18px rgba(80, 52, 14, 0.12);
-}
-.profileLitePowerPlace .coverOffsetCornerGroup button {
   width: 22px;
   min-width: 22px;
   height: 22px;
   font-size: 11px;
   pointer-events: auto;
 }
-.profileLitePowerPlace .coverOffsetCornerGroup button:active,
-.profileLitePowerPlace .explicitCoverUploadGrid label:active {
+.profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
 .profileLitePowerPlace .coverUploadButton {
   display: none !important;
-}
-.profileLitePowerPlace .explicitCoverUploadGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-}
-.profileLitePowerPlace .explicitCoverUploadGrid label {
-  min-height: 36px;
-  display: grid;
-  place-items: center;
-  padding: 8px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.profileLitePowerPlace .explicitCoverUploadGrid input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
 }
 `;
 }
@@ -208,7 +191,6 @@ function normalizeLayeredCoverRef(coverRef) {
 
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
-  const [coverPanelNode, setCoverPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
@@ -226,7 +208,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     if (typeof document === "undefined") return undefined;
     const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
-      setCoverPanelNode(document.querySelector(".profileLitePowerPlace .coverPickerPanel") || null);
     };
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
@@ -244,12 +225,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     const current = coverOffsetValue(objectRefs[key]);
     writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
   }, [objectRefs, writeObjectRefs]);
-
-  const handleExplicitCoverUpload = useCallback((layer, event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (file) props.onCoverFileUpload?.(layer, file);
-  }, [props]);
 
   const writeTemplateId = useCallback((templateId) => {
     const nextRefs = { ...objectRefs };
@@ -313,24 +288,10 @@ export default function ProfileLitePowerPlaceModule(props) {
     </div>
   );
 
-  const explicitCoverUploadControls = (
-    <div className="explicitCoverUploadGrid" aria-label="Загрузить свой фон">
-      <label>
-        Своё внутри
-        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleExplicitCoverUpload("inner", event)} />
-      </label>
-      <label>
-        Своё снаружи
-        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => handleExplicitCoverUpload("outer", event)} />
-      </label>
-    </div>
-  );
-
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
-      {coverPanelNode ? createPortal(explicitCoverUploadControls, coverPanelNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
         <div>
