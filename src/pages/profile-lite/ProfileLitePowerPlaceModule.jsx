@@ -16,6 +16,10 @@ function coverOffsetValue(value) {
   return Math.min(80, Math.max(20, parsed));
 }
 
+function hasImageCover(cover) {
+  return Boolean(cover?.type === "image" && (cover.src || cover.display_src || cover.displaySrc));
+}
+
 function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY) {
   return `
 .powerCenterPhoto.hasImage,
@@ -28,10 +32,31 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
-.power-place-chess__center.hasImage {
+.power-place-chess__center.hasImage,
+.power-place-chess__slot.hasImage,
+.powerSource.hasImage,
+.altarTopSource.hasImage,
+.altarSupportSource.hasImage,
+.businessVertexZone.hasImage,
+.zodiacPositionImage[style],
+.zodiacFieldPlusPositionImage[style],
+.starPositionImage[style],
+.daoElementImage.hasImage {
   background-size: auto 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
+  background-color: transparent !important;
+}
+.power-place-chess__slot.hasImage::after,
+.powerSource.hasImage::after,
+.altarTopSource.hasImage::after,
+.altarSupportSource.hasImage::after,
+.businessVertexZone.hasImage::after,
+.daoElementImage.hasImage::after {
+  display: none !important;
+  content: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 .powerMandala[style],
 .altarMandalaSheet[style],
@@ -57,63 +82,37 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   z-index: 45;
   pointer-events: none;
 }
-.coverOffsetSideGroup {
+.coverOffsetCornerGroup {
   position: absolute;
-  left: 6px;
-  right: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, 22px);
+  gap: 4px;
   pointer-events: none;
 }
-.coverOffsetSideGroup.inner {
-  top: 0;
-  height: 50%;
+.coverOffsetCornerGroup.inner {
+  top: 9px;
+  left: 9px;
 }
-.coverOffsetSideGroup.outer {
-  top: 50%;
-  bottom: 0;
+.coverOffsetCornerGroup.outer {
+  right: 9px;
+  bottom: 9px;
 }
-.coverOffsetVerticalGroup {
-  position: absolute;
-  left: 50%;
-  display: flex;
-  gap: 8px;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-.coverOffsetVerticalGroup.inner {
-  top: 7px;
-}
-.coverOffsetVerticalGroup.outer {
-  bottom: 7px;
-}
-.coverOffsetSideGroup button,
-.coverOffsetVerticalGroup button {
+.coverOffsetCornerGroup button {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
   border: 1px solid rgba(184, 121, 29, 0.32);
   border-radius: 999px;
   padding: 0;
-  background: rgba(255, 250, 238, 0.78);
+  background: rgba(255, 250, 238, 0.82);
   color: #704812;
+  font-size: 11px;
   font-weight: 900;
   line-height: 1;
-  box-shadow: 0 10px 24px rgba(80, 52, 14, 0.12);
+  box-shadow: 0 8px 18px rgba(80, 52, 14, 0.12);
   pointer-events: auto;
 }
-.coverOffsetSideGroup button {
-  width: 20px;
-  min-width: 20px;
-  height: min(124px, 64%);
-  font-size: 11px;
-}
-.coverOffsetVerticalGroup button {
-  width: 34px;
-  min-width: 34px;
-  height: 22px;
-  font-size: 10px;
-}
-.coverOffsetSideGroup button:active,
-.coverOffsetVerticalGroup button:active {
+.coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
 `;
@@ -144,6 +143,22 @@ function templateCover(template, currentCover) {
     display_src: inner.display_src,
     inner,
     outer
+  };
+}
+
+function coverRefWithOuterFallback(coverRef) {
+  const cover = cleanRefs(coverRef);
+  const inner = cleanRefs(cover.inner || cover);
+  const outer = cleanRefs(cover.outer);
+  if (hasImageCover(outer) || !hasImageCover(inner)) return coverRef;
+  return {
+    ...cover,
+    outer: {
+      ...inner,
+      id: "custom-outer-cover-fallback",
+      label: inner.label || "Фон снаружи",
+      type: "image"
+    }
   };
 }
 
@@ -216,31 +231,32 @@ export default function ProfileLitePowerPlaceModule(props) {
   }, [activeTemplateId, props, writeTemplateId]);
 
   const enhancedDraft = useMemo(() => {
-    if (!activeTemplate || !isClientMandala) return props.compositionDraft;
+    const baseDraft = activeTemplate && isClientMandala
+      ? {
+        ...props.compositionDraft,
+        geometry: 9,
+        cover_ref: templateCover(activeTemplate, props.compositionDraft?.cover_ref)
+      }
+      : props.compositionDraft;
     return {
-      ...props.compositionDraft,
-      geometry: 9,
-      cover_ref: templateCover(activeTemplate, props.compositionDraft?.cover_ref)
+      ...baseDraft,
+      cover_ref: coverRefWithOuterFallback(baseDraft?.cover_ref)
     };
   }, [activeTemplate, isClientMandala, props.compositionDraft]);
 
   const coverOffsetOverlay = (
     <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото">
-      <div className="coverOffsetSideGroup inner" aria-label="Смещение внутреннего фона по горизонтали">
-        <button type="button" onClick={() => shiftCoverOffset("inner", "x", -5)} aria-label="Сдвинуть внутренний фон влево">L</button>
-        <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">R</button>
+      <div className="coverOffsetCornerGroup inner" aria-label="Смещение внутреннего фона">
+        <button type="button" onClick={() => shiftCoverOffset("inner", "x", -5)} aria-label="Сдвинуть внутренний фон влево">←</button>
+        <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">→</button>
+        <button type="button" onClick={() => shiftCoverOffset("inner", "y", -5)} aria-label="Сдвинуть внутренний фон вверх">↑</button>
+        <button type="button" onClick={() => shiftCoverOffset("inner", "y", 5)} aria-label="Сдвинуть внутренний фон вниз">↓</button>
       </div>
-      <div className="coverOffsetVerticalGroup inner" aria-label="Смещение внутреннего фона по вертикали">
-        <button type="button" onClick={() => shiftCoverOffset("inner", "y", -5)} aria-label="Сдвинуть внутренний фон вверх">U</button>
-        <button type="button" onClick={() => shiftCoverOffset("inner", "y", 5)} aria-label="Сдвинуть внутренний фон вниз">D</button>
-      </div>
-      <div className="coverOffsetSideGroup outer" aria-label="Смещение внешнего фона по горизонтали">
-        <button type="button" onClick={() => shiftCoverOffset("outer", "x", -5)} aria-label="Сдвинуть внешний фон влево">L</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "x", 5)} aria-label="Сдвинуть внешний фон вправо">R</button>
-      </div>
-      <div className="coverOffsetVerticalGroup outer" aria-label="Смещение внешнего фона по вертикали">
-        <button type="button" onClick={() => shiftCoverOffset("outer", "y", -5)} aria-label="Сдвинуть внешний фон вверх">U</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "y", 5)} aria-label="Сдвинуть внешний фон вниз">D</button>
+      <div className="coverOffsetCornerGroup outer" aria-label="Смещение внешнего фона">
+        <button type="button" onClick={() => shiftCoverOffset("outer", "x", -5)} aria-label="Сдвинуть внешний фон влево">←</button>
+        <button type="button" onClick={() => shiftCoverOffset("outer", "x", 5)} aria-label="Сдвинуть внешний фон вправо">→</button>
+        <button type="button" onClick={() => shiftCoverOffset("outer", "y", -5)} aria-label="Сдвинуть внешний фон вверх">↑</button>
+        <button type="button" onClick={() => shiftCoverOffset("outer", "y", 5)} aria-label="Сдвинуть внешний фон вниз">↓</button>
       </div>
     </div>
   );
