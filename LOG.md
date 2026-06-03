@@ -1,44 +1,29 @@
 # Reiki Yggdrasil — LOG
 
-## 2026-06-03 — Rebase issue #213 Profile Lite Power Place UI onto current Base component
+## 2026-06-03 — Emergency rollback for issue #213 Profile Lite loading regression
 
-- Branch: `codex/rebase-issue213-profile-lite-power-place-ui`.
-- Starting point: fresh `origin/main` commit `deb0c2b`.
-- Changed files:
-  - `src/lib/profileLiteClient.js`
-  - `src/lib/powerPlaceClient.js`
-  - `src/pages/ProfileLitePage.jsx`
-  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
-  - `src/profileMandalaWorkspace.css`
-  - `test/profileLiteCabinetContract.test.mjs`
-  - `test/profileLiteRoute.test.mjs`
-  - `test/powerPlaceClient.test.mjs`
-  - `STATE.md`
-  - `LOG.md`
-- Changed:
-  - moved issue #213 behavior into the current `ProfileLitePowerPlaceModuleBase.jsx` structure, keeping the wrapper component intact;
-  - renamed `Мои мандалы` to `Место силы`;
-  - made `/profile` without query open `mandalas`;
-  - nested `Макет` inside `Фон Места Силы`;
-  - kept only `square`, `vertical`, `horizontal` layout options;
-  - added inner field shape and size controls through namespaced `object_refs`;
-  - moved format title above the visual field;
-  - added shared `Mentalica` center watermark;
-  - combined report and analysis into compact `Отчёт и анализ`;
-  - hid all lower report/analysis UI and output in `Без отчёта`;
-  - updated mobile order contracts.
-- Checks run:
-  - `npm run test:profile-lite` passed;
-  - `npm run test:power-place` passed;
-  - `npm run test:profile-media` passed;
-  - `npm run test:profile-loading-recovery` passed.
-- Pending checks:
-  - `npm run check`;
-  - `npm run build`;
-  - `git diff --check`.
-- Not verified:
-  - real authenticated Supabase save/load;
-  - production/legacy live QA after merge/deploy.
+- Branch: `codex/revert-issue213-loading-regression`.
+- Reverted commit: `21207d3b6707b044e9c7391e50bd981e5aceb78c` (`Rebase issue 213 power place UI`).
+- Reason:
+  - production `mentalica.vercel.app` was reported stuck on `loading` after today's issue #213 rebase changes;
+  - rollback was requested before any broad bug hunt.
+- Affected routes:
+  - `/profile`
+  - `/profile/mandalas`
+- Restored:
+  - the Profile Lite Power Place route/default-tab and UI contract that existed before issue #213 rebase;
+  - the previous Power Place client/test behavior by Git-generated revert;
+  - production recovery path without rewriting `main` history.
+- Not changed:
+  - Supabase env names/values;
+  - auth redirects;
+  - Vercel rewrites;
+  - public home page;
+  - RU-default interface;
+  - route inventory for `/`, `/profile`, `/profile/mandalas`, `/masters`, `/profile/admin`.
+- Re-implementation recommendation:
+  - reintroduce issue #213 in smaller PRs, separating route/bootstrap logic, visual layout, persistence normalization, and tests;
+  - require `test:profile-loading-recovery` plus mobile `/profile/mandalas` QA before merging any route/default-tab change.
 
 ## 2026-06-02 — Fix Profile Lite chess center and cover hydration
 

@@ -200,17 +200,11 @@ const SOURCE_LIBRARY_CATEGORIES = [
   { value: "client-goals", label: "Клиенты", subcategories: [{ value: "client-goals", label: "Фото клиентов" }] }
 ];
 const FIELD_LAYOUTS = [
-  { value: "square", label: "Квадрат" },
-  { value: "vertical", label: "Прямоугольник вверх" },
-  { value: "horizontal", label: "Прямоугольник вниз" }
-];
-const INNER_FIELD_SHAPES = [
-  { value: "circle", label: "Круг" },
+  { value: "vertical", label: "Вертикальное" },
+  { value: "horizontal", label: "Горизонтальное" },
+  { value: "rectangle", label: "Прямоугольник" },
   { value: "square", label: "Квадрат" }
 ];
-const FIELD_LAYOUT_REF_KEY = "__field_layout";
-const INNER_FIELD_SHAPE_REF_KEY = "__inner_field_shape";
-const INNER_FIELD_SIZE_REF_KEY = "__inner_field_size";
 
 function objectRefText(value) {
   try {
@@ -232,20 +226,6 @@ function slotScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
   return Math.min(1.18, Math.max(0.7, scale));
-}
-
-function fieldLayoutValue(value) {
-  return ["square", "vertical", "horizontal"].includes(value) ? value : "square";
-}
-
-function innerFieldShapeValue(value) {
-  return value === "square" ? "square" : "circle";
-}
-
-function innerFieldSizeValue(value) {
-  const size = Number(value);
-  if (!Number.isFinite(size)) return 100;
-  return Math.min(100, Math.max(60, Math.round(size)));
 }
 
 function chessSlotScaleValue(value) {
@@ -469,93 +449,61 @@ export default function ProfileLitePowerPlaceModule({
   const reportEnabled = reportDraft.mode === "with_report";
   const reportAdded = reportEnabled && reportDraft.added;
   const reportHasBody = Boolean(reportDraft.situation || reportDraft.mandala_effect || reportDraft.extra_help);
-  const fieldLayout = fieldLayoutValue(compositionDraft.field_layout || objectRefs[FIELD_LAYOUT_REF_KEY]);
-  const innerFieldShape = innerFieldShapeValue(compositionDraft.inner_field_shape || objectRefs[INNER_FIELD_SHAPE_REF_KEY]);
-  const innerFieldSize = innerFieldSizeValue(compositionDraft.inner_field_size || objectRefs[INNER_FIELD_SIZE_REF_KEY]);
-  const fieldStyle = {
-    ...sourceSlotScaleStyle,
-    "--power-place-inner-field-size": `${innerFieldSize}%`
-  };
 
   const updateReportDraft = (patch) => {
     const nextReport = normalizeReportDraft({ ...reportDraft, ...patch });
     onCompositionDraftChange(PROFILE_LITE_REPORT_REF_KEY, nextReport);
   };
 
-  const updateObjectRefSetting = (field, value) => {
-    onCompositionDraftChange(field, value);
-  };
-
   const renderReportModule = () => (
-    <div className="reportAnalysisPanel reportSettingsPanel">
-      <p className="cabinetEyebrow">Отчёт и анализ</p>
+    <div className="reportSettingsPanel">
+      <p className="cabinetEyebrow">Отчёт</p>
       <div className="reportModeToggle" role="group" aria-label="Режим отчёта">
         <button className={reportEnabled ? "active" : ""} type="button" onClick={() => updateReportDraft({ mode: "with_report" })}>С отчётом</button>
         <button className={!reportEnabled ? "active" : ""} type="button" onClick={() => updateReportDraft({ mode: "without_report", added: false })}>Без отчёта</button>
       </div>
-      {reportEnabled && (
-        <div className="reportAnalysisBody">
-          <label className="reportField">
-            Анализ ситуации
-            <textarea
-              className="reportFieldInput"
-              value={reportDraft.situation}
-              onChange={(event) => updateReportDraft({ situation: event.target.value })}
-              rows={2}
-            />
-          </label>
-          <label className="reportField">
-            Что даёт мандала
-            <textarea
-              className="reportFieldInput"
-              value={reportDraft.mandala_effect}
-              onChange={(event) => updateReportDraft({ mandala_effect: event.target.value })}
-              rows={2}
-            />
-          </label>
-          <label className="reportField">
-            Что ещё поможет
-            <textarea
-              className="reportFieldInput"
-              value={reportDraft.extra_help}
-              onChange={(event) => updateReportDraft({ extra_help: event.target.value })}
-              rows={2}
-            />
-          </label>
-          <div className="resourceComparison" aria-label="Сравнение ресурса">
-            <div className="resourceModeToggle">
-              <button className={compositionDraft.resource_comparison_mode === "client_photo" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "client_photo")}>Фото цели</button>
-              <button className={compositionDraft.resource_comparison_mode === "photo_mandala" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "photo_mandala")}>Цель + мандала</button>
-            </div>
-            <label className="resourceField">
-              Ресурс без мандалы
-              <textarea
-                className="resourceFieldInput"
-                value={compositionDraft.resource_without_mandala_comment || ""}
-                onChange={(event) => onCompositionDraftChange("resource_without_mandala_comment", event.target.value)}
-                rows={2}
-              />
-            </label>
-            <label className="resourceField">
-              Ресурс с мандалой
-              <textarea
-                className="resourceFieldInput"
-                value={compositionDraft.resource_with_mandala_comment || ""}
-                onChange={(event) => onCompositionDraftChange("resource_with_mandala_comment", event.target.value)}
-                rows={2}
-              />
-            </label>
-          </div>
-          <div className="reportActions">
-            <button className="cabinetPrimary" type="button" onClick={() => updateReportDraft({ added: true })}>
-              {reportDraft.added ? "Обновить" : "Добавить отчёт"}
-            </button>
-            <button className="cabinetSecondary" disabled={!reportDraft.added && !reportHasBody} type="button" onClick={() => updateReportDraft({ ...EMPTY_PROFILE_LITE_REPORT, mode: "without_report" })}>
-              Удалить отчёт
-            </button>
-          </div>
-        </div>
-      )}
+      <label className="reportField">
+        Анализ ситуации
+        <textarea
+          className="reportFieldInput"
+          disabled={!reportEnabled}
+          value={reportDraft.situation}
+          onChange={(event) => updateReportDraft({ situation: event.target.value })}
+          rows={3}
+        />
+      </label>
+      <label className="reportField">
+        Что даёт мандала
+        <textarea
+          className="reportFieldInput"
+          disabled={!reportEnabled}
+          value={reportDraft.mandala_effect}
+          onChange={(event) => updateReportDraft({ mandala_effect: event.target.value })}
+          rows={3}
+        />
+      </label>
+      <label className="reportField">
+        Что ещё поможет
+        <textarea
+          className="reportFieldInput"
+          disabled={!reportEnabled}
+          value={reportDraft.extra_help}
+          onChange={(event) => updateReportDraft({ extra_help: event.target.value })}
+          rows={3}
+        />
+      </label>
+      <label className="reportField disabled">
+        О Мастере
+        <textarea className="reportFieldInput" disabled value="Доступно в Pro формате." rows={2} readOnly />
+      </label>
+      <div className="reportActions">
+        <button className="cabinetPrimary" disabled={!reportEnabled} type="button" onClick={() => updateReportDraft({ added: true })}>
+          {reportDraft.added ? "Обновить" : "Добавить отчёт"}
+        </button>
+        <button className="cabinetSecondary" disabled={!reportDraft.added && !reportHasBody} type="button" onClick={() => updateReportDraft({ ...EMPTY_PROFILE_LITE_REPORT, mode: "without_report" })}>
+          Удалить отчёт
+        </button>
+      </div>
     </div>
   );
 
@@ -681,7 +629,6 @@ export default function ProfileLitePowerPlaceModule({
   const renderCenterPhotoWithMode = (className) => (
     <button className={`${className}${centralImage ? " hasImage" : ""}`} style={imageStyle(centralImage)} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
       {!centralImage && <span>Фото клиента / цели</span>}
-      <b className="powerCenterWatermark">Mentalica</b>
     </button>
   );
 
@@ -943,13 +890,12 @@ export default function ProfileLitePowerPlaceModule({
                 )}
               </div>
 
-              <div className="powerPlaceFormatTitle">
-                <p className="cabinetEyebrow">Формат:</p>
-                <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
-              </div>
-
-              <div className={`powerPlacePrintArea field-layout-${fieldLayout}`} style={fieldStyle}>
-                <div className={`powerMandalaPanel field-layout-${fieldLayout} inner-field-shape-${innerFieldShape} outer-cover-${outerCover?.tone || "none"}`} style={{ ...(imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src) || {}), ...fieldStyle }}>
+              <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "none"}`} style={{ ...(imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src) || {}), ...sourceSlotScaleStyle }}>
+                  <div className="powerPrintMeta">
+                    <p className="cabinetEyebrow">Формат</p>
+                    <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
+                  </div>
                   {compositionDraft.constructor_type === "client" ? (
                     <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
@@ -1171,49 +1117,29 @@ export default function ProfileLitePowerPlaceModule({
 
         <div className="workspaceRightColumn">
           <aside className="powerCommandRail powerPlaceSettings">
+            <div className="mandalaFieldLayoutSwitch powerLayoutPanel" aria-label="Расположение поля мандалы">
+              <p className="cabinetEyebrow">Макет</p>
+              <span>Расположение поля мандалы</span>
+              <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
+                {FIELD_LAYOUTS.map((layout) => (
+                  <button
+                    className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
+                    key={layout.value}
+                    onClick={() => onCompositionDraftChange("field_layout", layout.value)}
+                    type="button"
+                    title={layout.label}
+                    aria-label={layout.label}
+                  >
+                    <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {renderReportModule()}
+
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
-              <div className="mandalaFieldLayoutSwitch powerLayoutPanel" aria-label="Расположение поля мандалы">
-                <b>Макет</b>
-                <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
-                  {FIELD_LAYOUTS.map((layout) => (
-                    <button
-                      className={fieldLayout === layout.value ? "active" : ""}
-                      key={layout.value}
-                      onClick={() => updateObjectRefSetting("field_layout", layout.value)}
-                      type="button"
-                      title={layout.label}
-                      aria-label={layout.label}
-                    >
-                      <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
-                    </button>
-                  ))}
-                </div>
-                <div className="innerFieldShapeSwitch" role="group" aria-label="Форма внутреннего поля">
-                  {INNER_FIELD_SHAPES.map((shape) => (
-                    <button
-                      className={innerFieldShape === shape.value ? "active" : ""}
-                      key={shape.value}
-                      onClick={() => updateObjectRefSetting("inner_field_shape", shape.value)}
-                      type="button"
-                    >
-                      {shape.label}
-                    </button>
-                  ))}
-                </div>
-                <label className="innerFieldSizeControl">
-                  Размер внутреннего поля
-                  <input
-                    type="range"
-                    min="60"
-                    max="100"
-                    step="1"
-                    value={innerFieldSize}
-                    onChange={(event) => updateObjectRefSetting("inner_field_size", Number(event.target.value))}
-                  />
-                  <span>{innerFieldSize}%</span>
-                </label>
-              </div>
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
                 <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
@@ -1244,9 +1170,33 @@ export default function ProfileLitePowerPlaceModule({
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
 
-            {renderReportModule()}
+            <div className="resourceComparisonPanel">
+              <p className="cabinetEyebrow">Анализ</p>
+              <div className="resourceModeToggle" aria-label="Сравнение ресурса">
+                <button className={compositionDraft.resource_comparison_mode === "client_photo" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "client_photo")}>Фото цели</button>
+                <button className={compositionDraft.resource_comparison_mode === "photo_mandala" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "photo_mandala")}>Цель + мандала</button>
+              </div>
+              <label className="resourceField">
+                Ресурс без мандалы
+                <textarea
+                  className="resourceFieldInput"
+                  value={compositionDraft.resource_without_mandala_comment || ""}
+                  onChange={(event) => onCompositionDraftChange("resource_without_mandala_comment", event.target.value)}
+                  rows={3}
+                />
+              </label>
+              <label className="resourceField">
+                Ресурс с мандалой
+                <textarea
+                  className="resourceFieldInput"
+                  value={compositionDraft.resource_with_mandala_comment || ""}
+                  onChange={(event) => onCompositionDraftChange("resource_with_mandala_comment", event.target.value)}
+                  rows={3}
+                />
+              </label>
+            </div>
 
-            <div className="objectCompositionPanel objectImageEditor">
+            <div className="objectImageEditor">
               <p className="cabinetEyebrow">Объекты композиции</p>
               <div className="selectedObjectControl">
                 <div className={selectedSlotImage ? "selectedObjectPreview hasImage" : "selectedObjectPreview"} style={imageStyle(objectRefUrls[selectedSlotImage] || selectedSlotImage)}>
