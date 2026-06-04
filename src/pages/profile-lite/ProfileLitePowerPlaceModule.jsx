@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { placePowerMandalaTemplates } from "../../data/placePowerMandalaTemplates.js";
+import { innerFieldWidthDesktop, innerFieldWidthMobile } from "../../lib/powerPlaceStyleContract.js";
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
 import "../../profileMandalaTemplatePilot.css";
 
@@ -47,6 +48,8 @@ function centerShapeValue(value) {
 
 function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerShape) {
   const centerRadius = centerShape === "circle" ? "50%" : "24px";
+  const innerW = innerFieldWidthDesktop(innerFieldScale);
+  const innerWMobile = innerFieldWidthMobile(innerFieldScale);
   return `
 .profileLitePowerPlace .powerCenterPhoto.hasImage,
 .profileLitePowerPlace .altarCenterPhoto.hasImage,
@@ -248,8 +251,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   position: relative;
   z-index: 1;
   justify-self: center !important;
-  width: var(--power-field-scale, ${innerFieldScale}%) !important;
-  max-width: var(--power-field-scale, ${innerFieldScale}%) !important;
+  width: ${innerW} !important;
+  max-width: ${innerW} !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: ${centerRadius} !important;
   overflow: hidden !important;
@@ -417,6 +420,23 @@ body.printMandalaOnly .coverOffsetOverlay {
   .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerImageScaleControl {
     grid-template-columns: minmax(0, 1fr) minmax(110px, 240px) auto;
+  }
+  .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .altarMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .power-place-chess,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerMandala,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .altarMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .businessMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
+    width: ${innerWMobile} !important;
+    max-width: ${innerWMobile} !important;
   }
 }
 `;
