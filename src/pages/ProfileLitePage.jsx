@@ -920,6 +920,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       const inner = normalizeLayer(currentCover.inner || currentCover, "no-cover");
       const outer = normalizeLayer(currentCover.outer || { id: "no-cover", label: "Без фона", type: "none" }, "no-cover");
       const nextLayer = normalizeLayer(cover, layer === "outer" ? "custom-outer-cover" : "custom-cover");
+      const nextObjectRefUrls = (nextLayer.src && nextLayer.display_src && nextLayer.display_src !== nextLayer.src)
+        ? { ...(current.object_ref_urls || {}), [nextLayer.src]: nextLayer.display_src }
+        : current.object_ref_urls;
       return {
         ...current,
         cover_ref: {
@@ -931,7 +934,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           display_src: layer === "inner" ? nextLayer.display_src : inner.display_src,
           inner: layer === "inner" ? nextLayer : inner,
           outer: layer === "outer" ? nextLayer : outer
-        }
+        },
+        object_ref_urls: nextObjectRefUrls
       };
     });
   };
