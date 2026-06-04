@@ -19,3 +19,130 @@
 .powerPlacePdfOnlyArea .powerMandalaPanel > .profileLiteCustomInnerCover::before {
   opacity: 0.12;
 }
+
+/* Profile Lite mobile controls scale — 2026-06-04
+   Keep the existing mandala constructor pills as the visual reference and tighten
+   the larger cabinet/media/save/report actions on small screens only. */
+@media (max-width: 760px) {
+  .profileLiteShell .profileLiteTabs,
+  .profileLitePowerPlace .workspaceTabs,
+  .profileLitePowerPlace .reportActions,
+  .profileLitePowerPlace .powerPlaceActions,
+  .clientPhotoPickerModal .imagePickerCategoryTabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .profileLiteShell .profileLiteTabs a,
+  .profileLitePowerPlace .workspaceTabs button,
+  .profileLitePowerPlace .reportActions button,
+  .profileLitePowerPlace .powerPlaceActions button,
+  .clientPhotoPickerModal .imagePickerCategoryTabs button,
+  .profileLitePowerPlace .powerLibraryPrimaryActions .powerAddImageButton,
+  .clientPhotoPickerModal .mediaUploadButton {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 42px !important;
+    border-radius: 999px !important;
+    padding: 9px 15px !important;
+    font-size: clamp(17px, 4.6vw, 21px) !important;
+    font-weight: 800 !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+
+  .profileLiteShell .profileLiteTabs a {
+    flex: 0 1 auto !important;
+    box-shadow: 0 8px 18px rgba(122, 78, 22, 0.07) !important;
+  }
+
+  .profileLiteShell .profileLiteTabs a.active,
+  .profileLitePowerPlace .workspaceTabs button.active,
+  .clientPhotoPickerModal .imagePickerCategoryTabs button.active {
+    box-shadow: 0 10px 22px rgba(127, 78, 14, 0.16) !important;
+  }
+
+  .profileLiteShell .profileLiteStatusRail .cabinetActions,
+  .profileLiteTopbar,
+  .profileLiteTopbar > button {
+    gap: 8px !important;
+  }
+
+  .profileLiteShell .profileLiteStatusRail .cabinetActions button,
+  .profileLiteTopbar > button {
+    min-height: 38px !important;
+    border-radius: 999px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.1 !important;
+    white-space: nowrap !important;
+  }
+
+  .clientPhotoPickerModal {
+    width: min(680px, calc(100vw - 22px)) !important;
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .clientPhotoPickerModal .imagePickerCategoryTabs button,
+  .profileLitePowerPlace .powerLibraryPrimaryActions .powerAddImageButton,
+  .clientPhotoPickerModal .mediaUploadButton {
+    min-height: 40px !important;
+    padding: 8px 14px !important;
+    font-size: clamp(16px, 4.3vw, 20px) !important;
+  }
+
+  .clientPhotoPickerModal .mediaUploadButton {
+    display: inline-flex !important;
+    flex: 0 1 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .profileLitePowerPlace .reportActions button,
+  .profileLitePowerPlace .powerPlaceActions button {
+    flex: 0 1 auto !important;
+    min-height: 43px !important;
+    padding: 9px 16px !important;
+    font-size: clamp(18px, 4.8vw, 22px) !important;
+  }
+
+  .profileLitePowerPlace .powerPlaceActions .cabinetPrimary,
+  .profileLitePowerPlace .powerPlaceActions .cabinetSecondary,
+  .profileLitePowerPlace .reportActions .cabinetPrimary,
+  .profileLitePowerPlace .reportActions .cabinetSecondary {
+    margin: 0 !important;
+  }
+
+  .profileLitePowerPlace .powerPlaceActions span {
+    flex: 1 0 100% !important;
+    margin-top: 2px !important;
+    color: #6f5f4f !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  .profileLitePowerPlace .profileLitePowerPlaceActions,
+  .profileLitePowerPlace .reportSettingsPanel {
+    gap: 12px !important;
+  }
+}
+
+/* Make the default mini-mandala/photo windows in chess formats feel 25% larger.
+   This keeps the existing slider active because the slider still controls
+   --power-place-chess-slot-scale; the visual base is multiplied here. */
+.profileLitePowerPlace .power-place-chess__slot {
+  --profile-lite-chess-slot-base-scale: 1.25;
+  transform: scale(calc(var(--power-place-chess-slot-scale, 1) * var(--profile-lite-chess-slot-base-scale))) !important;
+}
+
+.profileLitePowerPlace .power-place-chess--plus-8 .power-place-chess__slot,
+.profileLitePowerPlace .power-place-chess--compact-5 .power-place-chess__slot {
+  transform: translate(-50%, -50%) scale(calc(var(--power-place-chess-slot-scale, 1) * var(--profile-lite-chess-slot-base-scale))) !important;
+}
