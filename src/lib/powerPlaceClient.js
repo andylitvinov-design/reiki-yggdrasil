@@ -218,7 +218,7 @@ export function normalizeAccountPlan(plan) {
 export function getPlanLimits(plan) {
   return normalizeAccountPlan(plan) === "pro"
     ? { compositions: 20, clientPhotos: 30 }
-    : { compositions: 7, clientPhotos: 10 };
+    : { compositions: 7, clientPhotos: 25 };
 }
 
 export function normalizeClientGoalPhoto(photo) {
