@@ -233,6 +233,10 @@ assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace 
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
 assert.match(powerPlaceSource, /has-custom-outer-cover/, "outer custom covers should be rendered through React-owned classes");
 assert.match(powerPlaceSource, /coverLayerMode === "outer" \? "custom-outer-cover" : "custom-cover"/, "saved cover photos should use stable custom inner/outer cover ids");
+assert.match(powerPlaceSource, /outerCover\?\.type === "image" \? "image" : outerCover\?\.tone \|\| "none"/, "image outer cover must produce class outer-cover-image, not outer-cover-none");
+assert.doesNotMatch(powerPlaceSource, /outer-cover-\$\{outerCover\?\.tone \|\| "none"\}/, "outer cover class must not use tone directly — image type would silently become outer-cover-none");
+assert.match(powerPlaceSource, /--power-outer-cover-image.*coverDisplaySrc\(outerCover\)/, "image outer cover must set --power-outer-cover-image CSS variable for the CSS rule to use");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.outer-cover-image[\s\S]*--power-outer-cover-image/, "CSS must render outer image cover via --power-outer-cover-image variable");
 assert.match(profileLitePageSource, /\[nextLayer\.src\]: nextLayer\.display_src/, "cover signed URLs should be stored by durable storage ref");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.has-custom-inner-cover/, "custom inner cover styling should be scoped to Profile Lite");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaPanel\.has-custom-outer-cover/, "custom outer cover styling should be scoped to the outer panel");
