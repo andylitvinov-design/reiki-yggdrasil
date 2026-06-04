@@ -244,3 +244,90 @@
     overflow: hidden !important;
   }
 }
+
+/* 2026-06-04: safe mobile button polish after rollback.
+   Button-only scope: no cover/background logic, no panel or mandala aspect changes. */
+@media (max-width: 760px) {
+  .profileLitePowerPlace .workspaceTabs,
+  .profileLitePowerPlace .reportActions,
+  .profileLitePowerPlace .powerPlaceActions,
+  .clientPhotoPickerModal .imagePickerCategoryTabs {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  .profileLiteShell .profileLiteShellChrome .profileLiteTabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .profileLiteShell .profileLiteShellChrome .profileLiteTabs a,
+  .profileLitePowerPlace .workspaceTabs button,
+  .profileLitePowerPlace .reportActions .cabinetPrimary,
+  .profileLitePowerPlace .reportActions .cabinetSecondary,
+  .profileLitePowerPlace .powerPlaceActions .cabinetPrimary,
+  .profileLitePowerPlace .powerPlaceActions .cabinetSecondary,
+  .profileLitePowerPlace .powerLibraryPrimaryActions .powerAddImageButton,
+  .profileLitePowerPlace .powerLibraryPrimaryActions .powerChooseBaseButton,
+  .profileLitePowerPlace .mediaUploadButton,
+  .clientPhotoPickerModal .mediaUploadButton,
+  .clientPhotoPickerModal .imagePickerCategoryTabs button {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 34px !important;
+    border-radius: 999px !important;
+    padding: 7px 12px !important;
+    font-size: clamp(14px, 3.8vw, 16px) !important;
+    font-weight: 800 !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+  }
+
+  .profileLiteShell .profileLiteShellChrome .profileLiteTabs a {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+  }
+
+  .profileLitePowerPlace .powerPlaceActions .cabinetPrimary,
+  .profileLitePowerPlace .powerPlaceActions .cabinetSecondary {
+    flex: 1 1 calc(50% - 8px) !important;
+  }
+
+  .profileLitePowerPlace .reportActions .cabinetPrimary,
+  .profileLitePowerPlace .reportActions .cabinetSecondary {
+    flex: 1 1 auto !important;
+  }
+
+  .profileLitePowerPlace .powerPlaceActions span {
+    flex: 1 0 100% !important;
+    margin-top: 2px !important;
+    color: #6f5f4f !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  .profileLitePowerPlace .powerLibraryPrimaryActions {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .profileLitePowerPlace .powerLibraryPrimaryActions .powerAddImageButton,
+  .profileLitePowerPlace .powerLibraryPrimaryActions .powerChooseBaseButton,
+  .clientPhotoPickerModal .mediaUploadButton {
+    display: inline-flex !important;
+    flex: 0 1 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
