@@ -135,6 +135,27 @@ const EMPTY_ORDER_PATCH = {
 };
 const POWER_PLACE_START_LIMIT_MESSAGE = "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
 const ROUTE_CHANGE_EVENT = "reiki-route-change";
+const POWER_PLACE_SAVE_STAGE_MESSAGES = {
+  clicked: "Нажали сохранить…",
+  profile: "Проверяем профиль…",
+  limit: "Проверяем лимит…",
+  countRows: "Проверяем лимит…",
+  POST: "Отправляем в Supabase…",
+  insertReturned: "Supabase вернул запись…",
+  hydrate: "Supabase вернул запись…",
+  refresh: "Обновляем список…",
+  success: "Сохранено."
+};
+const POWER_PLACE_SAVE_STAGE_LABELS = {
+  profile: "Проверяем профиль",
+  limit: "Проверяем лимит",
+  countRows: "Проверяем лимит",
+  POST: "Отправляем в Supabase",
+  insertReturned: "Supabase вернул запись",
+  hydrate: "Подготовка изображений",
+  refresh: "Обновляем список",
+  response: "Ответ Supabase"
+};
 
 class ProfileLiteModuleErrorBoundary extends React.Component {
   constructor(props) {
@@ -179,6 +200,16 @@ function settingsForStep(stepId) {
 
 function moduleError(error, fallback) {
   return safeProfileLiteError(error, fallback);
+}
+
+function powerPlaceSaveStageLabel(stage) {
+  return POWER_PLACE_SAVE_STAGE_LABELS[stage] || String(stage || "Сохранение");
+}
+
+function powerPlaceSaveFailureMessage(stage, error, fallback) {
+  const stageLabel = powerPlaceSaveStageLabel(stage);
+  const safeMessage = moduleError(error, fallback);
+  return `Не сохранилось на этапе: ${stageLabel}. ${safeMessage}`;
 }
 
 function buildMaterialPayload(form, profileId, nextStatus) {
@@ -1164,24 +1195,27 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionSaveNew = async () => {
+    setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.clicked);
+    await Promise.resolve();
+    setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.profile);
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       const message = "Сначала сохраните профиль мастера.";
       setMandalasError(message);
-      setCompositionMessage(message);
+      setCompositionMessage(powerPlaceSaveFailureMessage("profile", { message }, message));
       setMandalasStatus("needs-verification");
       return;
     }
+    setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.limit);
     const currentSavedCompositionCount = powerPlaceCompositions.length;
     const currentCompositionLimit = planLimits.compositions || getPlanLimits(accountPlan).compositions;
     if (currentSavedCompositionCount >= currentCompositionLimit) {
       setMandalasStatus("needs-verification");
       setMandalasError(POWER_PLACE_START_LIMIT_MESSAGE);
-      setCompositionMessage(POWER_PLACE_START_LIMIT_MESSAGE);
+      setCompositionMessage(powerPlaceSaveFailureMessage("limit", { message: POWER_PLACE_START_LIMIT_MESSAGE }, POWER_PLACE_START_LIMIT_MESSAGE));
       return;
     }
     setMandalasError("");
     setMandalasStatus("loading");
-    setCompositionMessage("Сохраняем место силы...");
     let saved = null;
     try {
       const createPayload = {
@@ -1191,11 +1225,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         profile_id: profile.id
       };
       delete createPayload.id;
-      saved = await createPowerPlaceComposition(createPayload, accountPlan, session);
+      saved = await createPowerPlaceComposition(createPayload, accountPlan, session, {
+        onStage: (stage) => {
+          setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES[stage] || `Сохраняем: ${powerPlaceSaveStageLabel(stage)}…`);
+        }
+      });
       if (!saved?.id) {
+        const message = "сервер не вернул запись. Проверьте Supabase RLS/migration.";
         setMandalasStatus("needs-verification");
-        setMandalasError("Место силы не сохранилось: сервер не вернул запись. Проверьте Supabase RLS/migration.");
+        setMandalasError("Место силы не сохранилось: " + message);
+        setCompositionMessage(powerPlaceSaveFailureMessage("response", { message }, message));
         return;
+      }
+      if (saved.__hydration_warning) {
+        setCompositionMessage("Supabase вернул запись, изображения догрузятся после обновления списка.");
       }
       setPowerPlaceCompositions((current) => {
         const without = current.filter((item) => item.id !== saved.id);
@@ -1209,15 +1252,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         object_refs: saved.object_refs || current.object_refs || {},
         object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
       }));
-      setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы.");
+      setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы. " + POWER_PLACE_SAVE_STAGE_MESSAGES.success);
       setMandalasStatus("success");
     } catch (error) {
+      const failedStage = error?.details?.stage || "POST";
+      const failureMessage = powerPlaceSaveFailureMessage(failedStage, error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied");
       setMandalasStatus("needs-verification");
       setMandalasError("Место силы не сохранилось: " + moduleError(error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied"));
+      setCompositionMessage(failureMessage);
       return;
     }
     try {
+      setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.refresh);
       await refreshSavedCompositions(saved);
+      setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы. " + POWER_PLACE_SAVE_STAGE_MESSAGES.success);
     } catch {
       setCompositionMessage("Мандала сохранена, но список не обновился. Обновите кабинет, если она не появилась в списке.");
     }

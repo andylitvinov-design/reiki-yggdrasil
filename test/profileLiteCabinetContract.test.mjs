@@ -261,10 +261,10 @@ assert.doesNotMatch(powerPlaceBaseSource, /<div className="powerPlaceActions">[\
 assert.match(powerPlaceBaseSource, /<p className="powerPlaceActionsMeta"[\s\S]*\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "saved-count text should render as a dedicated meta block below action buttons");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions button:disabled[\s\S]*cursor: not-allowed[\s\S]*opacity:/, "Power Place disabled action buttons should have obvious scoped disabled styling");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActionsMeta[\s\S]*width: 100%[\s\S]*pointer-events: none/, "Power Place saved-count meta should not be able to cover or intercept action buttons");
-assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActions \{[\s\S]*order: 2 !important;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActionsMeta \{[\s\S]*order: 3;/, "Profile Lite action card should force buttons before saved-count meta even when public mobile hotfixes assign action order");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActions \{[\s\S]*order: 2 !important;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.profileLitePowerPlaceActionFeedback \{[\s\S]*order: 3;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActionsMeta \{[\s\S]*order: 4;/, "Profile Lite action card should force buttons, stage feedback, then saved-count meta even when public mobile hotfixes assign action order");
 assert.match(powerPlaceBaseSource, /powerPlacePrintArea[\s\S]*renderPowerPlaceActions\(\)[\s\S]*reportAdded/, "Power Place actions should render in the central mandala area before report output");
 assert.match(profileLitePageSource, /handleCompositionSaveNew/, "Profile Lite page should split composition create into handleCompositionSaveNew");
-assert.match(profileLitePageSource, /const message = "Сначала сохраните профиль мастера\.";[\s\S]*setMandalasError\(message\);[\s\S]*setCompositionMessage\(message\);/, "Save preflight failure should render near the Power Place action controls as a visible composition message");
+assert.match(profileLitePageSource, /const message = "Сначала сохраните профиль мастера\.";[\s\S]*setMandalasError\(message\);[\s\S]*setCompositionMessage\(powerPlaceSaveFailureMessage\("profile", \{ message \}, message\)\);/, "Save preflight failure should render near the Power Place action controls as a visible staged composition message");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting/, "Profile Lite page should split composition update into handleCompositionUpdateExisting");
 assert.match(profileLitePageSource, /createPowerPlaceComposition\(\s*\{\s*\.\.\.createPayload\s*,\s*id:\s*undefined\s*\}|delete createPayload\.id/, "Save should create a new composition without preserving draft id");
 assert.match(profileLitePageSource, /копия/, "Duplicate saved mandala titles should be saved as copy titles");
@@ -362,11 +362,27 @@ assert.match(profileLitePageSource, /setTimeout\(res,/, "raf2 must fall back to 
 assert.match(profileLitePageSource, /saved\?\.id[\s\S]*Место силы не сохранилось|Место силы не сохранилось[\s\S]*saved\?\.id/, "save should validate that the server returned a row with an id before showing success");
 assert.match(profileLitePageSource, /Место силы не сохранилось:/, "save error message should use the required Russian error prefix");
 assert.match(profileLitePageSource, /Место силы сохранено и добавлено в Мои мандалы/, "save success message should mention Мои мандалы");
+for (const stageText of [
+  "Нажали сохранить…",
+  "Проверяем профиль…",
+  "Проверяем лимит…",
+  "Отправляем в Supabase…",
+  "Supabase вернул запись…",
+  "Обновляем список…",
+  "Сохранено."
+]) {
+  assert.match(profileLitePageSource, new RegExp(stageText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `save flow should include visible stage text: ${stageText}`);
+}
+assert.match(profileLitePageSource, /Не сохранилось на этапе: \$\{stageLabel\}\. \$\{safeMessage\}/, "save failures should include the failed stage and a safe error");
+assert.match(profileLitePageSource, /onStage:\s*\(stage\)[\s\S]*setCompositionMessage/, "save flow should set stage messages from createPowerPlaceComposition before internal async stages");
 assert.match(profileLitePageSource, /setPowerPlaceCompositions[\s\S]*saved[\s\S]*without|setPowerPlaceCompositions\(\(current\)/, "after successful save the new composition should be optimistically added to the list before list refresh");
 assert.match(profileLitePageSource, /setCompositionDraft[\s\S]*EMPTY_COMPOSITION[\s\S]*saved[\s\S]*id: saved\.id|setCompositionDraft\(\(current\) => \{[\s\S]*saved\.id/, "after save compositionDraft.id should be updated to the new saved id");
 assert.match(powerPlaceClientSource, /Не удалось проверить лимит сохранённых мандал[\s\S]*countRows/, "create should expose a clear safe count-stage error before insert");
-assert.match(powerPlaceClientSource, /Не удалось сохранить мандалу в Supabase[\s\S]*method: "POST"/, "create should expose a clear safe POST-stage error");
+assert.match(powerPlaceClientSource, /Не удалось сохранить мандалу в Supabase/, "create should expose a clear safe POST-stage error");
+assert.match(powerPlaceClientSource, /method: "POST"[\s\S]*COMPOSITIONS_TABLE|COMPOSITIONS_TABLE[\s\S]*method: "POST"/, "create should still POST to the compositions table");
+assert.match(powerPlaceClientSource, /__hydration_warning[\s\S]*hydration/, "create should return the raw inserted row with a hydration warning if signed URL hydration fails");
 assert.match(profileLitePageSource, /refreshSavedCompositions\(saved\)[\s\S]*catch[\s\S]*setCompositionMessage[\s\S]*Мандала сохранена[\s\S]*список не обновился/, "refresh failure after create should keep the optimistic row and show a visible safe message");
+assert.match(powerPlaceBaseSource, /profileLitePowerPlaceActionFeedback[\s\S]*compositionMessage/, "action-area feedback should render near the Power Place Save button");
 
 // --- C: Мои услуги in Мои мандалы tab ---
 assert.match(powerPlaceBaseSource, /onAddCompositionToServices/, "ProfileLitePowerPlaceModuleBase should accept onAddCompositionToServices prop");

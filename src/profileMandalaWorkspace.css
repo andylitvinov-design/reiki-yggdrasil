@@ -2409,12 +2409,17 @@
   order: 2 !important;
 }
 
-.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPlaceActionsMeta {
+.profileLitePowerPlace .profileLitePowerPlaceActions > .profileLitePowerPlaceActionFeedback {
   order: 3;
+  margin: 0;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPlaceActionsMeta {
+  order: 4;
 }
 
 .profileLitePowerPlace .profileLitePowerPlaceActions > .powerPrintColorHint {
-  order: 4;
+  order: 5;
 }
 
 .powerPlanNote {

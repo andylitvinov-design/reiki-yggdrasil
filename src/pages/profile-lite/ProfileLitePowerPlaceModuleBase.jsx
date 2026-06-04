@@ -759,6 +759,7 @@ export default function ProfileLitePowerPlaceModule({
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
       </div>
+      {compositionMessage && <div className="cabinetSuccess compactNotice profileLitePowerPlaceActionFeedback">{compositionMessage}</div>}
       <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
