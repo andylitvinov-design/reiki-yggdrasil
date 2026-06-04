@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from "react";
+import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
+import { sourcedStepSettings } from "../../data/reikiStepSettings.js";
 
 function isDisplayUrl(value) {
   return Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("data:image/")));
@@ -26,6 +28,29 @@ function modeEyebrow(mode) {
   return "Объект мандалы";
 }
 
+const materialStepOptions = reikiLevels.flatMap((level) =>
+  level.steps.map((step) => ({
+    id: step.id,
+    title: step.title,
+    levelName: level.name,
+    label: `${level.id}. ${level.name} · ${level.stepLabel} ${step.number}: ${step.title}`,
+    settings: sourcedStepSettings[step.id] || step.settings || []
+  }))
+);
+
+const firstMaterialStep = materialStepOptions[0] || null;
+const MATERIAL_GROUPS = [
+  { value: "dao-ri", label: "ДАО РИ" },
+  { value: "god-channels", label: "Мистерии" },
+  { value: "channels", label: "Каналы" },
+  { value: "form", label: "Форма" }
+];
+const MATERIAL_TYPES = [
+  { value: "mandala", label: "Мандала" },
+  { value: "artifact", label: "Артефакт" },
+  { value: "practice", label: "Практика" }
+];
+
 export default function ProfileLiteImagePicker({
   mode = "center",
   images = [],
@@ -39,13 +64,13 @@ export default function ProfileLiteImagePicker({
   uploadError = ""
 }) {
   const [activeTab, setActiveTab] = useState(mode === "library" ? "upload" : "new");
-  const [uploadDestination, setUploadDestination] = useState("clients");
-  const [uploadTitle, setUploadTitle] = useState("");
-  const [uploadNotes, setUploadNotes] = useState("");
+  const [uploadDestination, setUploadDestination] = useState(defaultLibraryTab === "materials" ? "materials" : "clients");
   const [materialGroup, setMaterialGroup] = useState("dao-ri");
-  const [materialCategory, setMaterialCategory] = useState("");
-  const [materialSubcategory, setMaterialSubcategory] = useState("");
-  const [materialStep, setMaterialStep] = useState("");
+  const [materialType, setMaterialType] = useState("mandala");
+  const [materialStepId, setMaterialStepId] = useState(firstMaterialStep?.id || "");
+  const activeMaterialStep = materialStepOptions.find((step) => step.id === materialStepId) || firstMaterialStep;
+  const [materialSettingTitle, setMaterialSettingTitle] = useState(activeMaterialStep?.settings?.[0]?.title || "");
+  const activeSetting = activeMaterialStep?.settings?.find((setting) => setting.title === materialSettingTitle) || activeMaterialStep?.settings?.[0] || null;
   const [localUploadStatus, setLocalUploadStatus] = useState("idle");
   const [localUploadError, setLocalUploadError] = useState("");
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
@@ -82,14 +107,17 @@ export default function ProfileLiteImagePicker({
       await onUpload({
         destination: uploadDestination || defaultLibraryTab,
         file,
-        title: uploadTitle || file.name || "",
-        notes: uploadNotes,
+        title: file.name || "",
+        notes: "",
         material: {
           group: materialGroup,
-          category: materialCategory,
-          subcategory: materialSubcategory,
-          step: materialStep,
-          description: uploadNotes
+          type: materialType,
+          step_id: activeMaterialStep?.id || "",
+          step_title: activeMaterialStep?.title || "",
+          setting_title: activeSetting?.title || "",
+          setting_index: activeSetting ? activeMaterialStep.settings.indexOf(activeSetting) + 1 : null,
+          category: activeMaterialStep?.levelName || "",
+          subcategory: activeSetting?.title || ""
         }
       });
       setLocalUploadStatus("success");
@@ -138,48 +166,35 @@ export default function ProfileLiteImagePicker({
               <button className={uploadDestination === "materials" ? "active" : ""} type="button" onClick={() => setUploadDestination("materials")}>Материалы</button>
             </div>
 
-            {uploadDestination === "clients" ? (
-              <div className="profileLiteUploadFields">
-                <label>
-                  Название
-                  <input value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} placeholder="По умолчанию имя файла" />
-                </label>
-                <label>
-                  Заметки
-                  <textarea value={uploadNotes} onChange={(event) => setUploadNotes(event.target.value)} rows={3} placeholder="meta / notes" />
-                </label>
-              </div>
-            ) : (
-              <div className="profileLiteUploadFields">
-                <div className="cabinetNotice compactNotice">Материалы: needs verification — image material creation без миграции не включён.</div>
+            {uploadDestination === "materials" && (
+              <div className="profileLiteUploadFields profileLiteUploadMaterialFields">
                 <label>
                   Группа
                   <select value={materialGroup} onChange={(event) => setMaterialGroup(event.target.value)}>
-                    <option value="dao-ri">ДАО РИ</option>
-                    <option value="god-channels">Мистерии</option>
-                    <option value="channels">Каналы</option>
-                    <option value="form">Форма</option>
+                    {MATERIAL_GROUPS.map((group) => <option key={group.value} value={group.value}>{group.label}</option>)}
                   </select>
                 </label>
                 <label>
-                  Категория
-                  <input value={materialCategory} onChange={(event) => setMaterialCategory(event.target.value)} placeholder="category" />
+                  Тип материала
+                  <select value={materialType} onChange={(event) => setMaterialType(event.target.value)}>
+                    {MATERIAL_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                  </select>
+                </label>
+                <label>
+                  Категория / ступень
+                  <select value={materialStepId} onChange={(event) => {
+                    const nextStep = materialStepOptions.find((step) => step.id === event.target.value) || firstMaterialStep;
+                    setMaterialStepId(nextStep?.id || "");
+                    setMaterialSettingTitle(nextStep?.settings?.[0]?.title || "");
+                  }}>
+                    {materialStepOptions.map((step) => <option key={step.id} value={step.id}>{step.label}</option>)}
+                  </select>
                 </label>
                 <label>
                   Подкатегория
-                  <input value={materialSubcategory} onChange={(event) => setMaterialSubcategory(event.target.value)} placeholder="subcategory" />
-                </label>
-                <label>
-                  Ступень
-                  <input value={materialStep} onChange={(event) => setMaterialStep(event.target.value)} placeholder="RY-L01-S01" />
-                </label>
-                <label>
-                  Название
-                  <input value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} placeholder="Название материала" />
-                </label>
-                <label>
-                  Описание
-                  <textarea value={uploadNotes} onChange={(event) => setUploadNotes(event.target.value)} rows={3} placeholder="notes / description" />
+                  <select value={materialSettingTitle} onChange={(event) => setMaterialSettingTitle(event.target.value)}>
+                    {(activeMaterialStep?.settings || []).map((setting) => <option key={setting.title} value={setting.title}>{setting.title}</option>)}
+                  </select>
                 </label>
               </div>
             )}
