@@ -362,6 +362,7 @@ export default function ProfileLitePowerPlaceModule({
   materials,
   mediaError,
   mediaStatus,
+  onAddCompositionToServices,
   onClientPhotoDelete,
   onCompositionCoverSelect,
   onCompositionDraftChange,
@@ -379,6 +380,7 @@ export default function ProfileLitePowerPlaceModule({
   onUploadedCentralPhoto,
   planLimits,
   powerPlaceCompositions,
+  services,
   shellChrome,
   traditionAssets
 }) {
@@ -910,16 +912,55 @@ export default function ProfileLitePowerPlaceModule({
                 <span className="cabinetStatus">{mandalasStatus}</span>
               </div>
               <div className="profileLiteCompositionList">
-                {powerPlaceCompositions.map((composition) => (
-                  <button key={composition.id} type="button" onClick={() => {
-                    onCompositionLoad(composition);
-                    setWorkspaceTab("power-place");
-                  }}>
-                    <b>{composition.title || "Место силы"}</b>
-                    <span>{formatLabel(composition.constructor_type)} · {composition.updated_at || composition.created_at || "needs verification"}</span>
-                  </button>
-                ))}
+                {powerPlaceCompositions.map((composition) => {
+                  const alreadyInServices = Array.isArray(services) && services.some((service) => service.composition_id && String(service.composition_id) === String(composition.id));
+                  return (
+                    <div key={composition.id} className="profileLiteCompositionItem">
+                      <button type="button" className="profileLiteCompositionCard" onClick={() => {
+                        onCompositionLoad(composition);
+                        setWorkspaceTab("power-place");
+                      }}>
+                        <b>{composition.title || "Место силы"}</b>
+                        <span>{formatLabel(composition.constructor_type)} · {composition.updated_at || composition.created_at || "needs verification"}</span>
+                      </button>
+                      {onAddCompositionToServices && (
+                        <button
+                          type="button"
+                          className="cabinetGhost profileLiteAddToServicesButton"
+                          disabled={alreadyInServices}
+                          title={alreadyInServices ? "Эта мандала уже есть в Моих услугах" : "Добавить в мои услуги"}
+                          onClick={() => onAddCompositionToServices(composition)}
+                        >
+                          {alreadyInServices ? "В услугах ✓" : "Добавить в мои услуги"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+              {powerPlaceCompositions.length === 0 && (
+                <p className="cabinetMuted">Сохранённые места силы появятся здесь после первого сохранения.</p>
+              )}
+              {compositionMessage && <div className="cabinetSuccess compactNotice profileLiteCompositionTabMessage">{compositionMessage}</div>}
+
+              <section className="profileLiteMyServicesSection" aria-label="Мои услуги">
+                <div className="cabinetFormHeader">
+                  <p className="cabinetEyebrow">Мои услуги</p>
+                </div>
+                {Array.isArray(services) && services.filter((service) => service.composition_id).length > 0 ? (
+                  <div className="profileLiteServicesList">
+                    {services.filter((service) => service.composition_id).map((service) => (
+                      <div key={service.id} className="profileLiteServicesItem">
+                        <b>{service.title || "Услуга"}</b>
+                        <span>{service.status === "published" ? "Опубликовано" : service.status === "archived" ? "Архив" : "Черновик"}</span>
+                        <small>{service.updated_at || service.created_at || ""}</small>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="cabinetMuted">Выбранные мандалы появятся здесь после добавления в услуги.</p>
+                )}
+              </section>
             </section>
           ) : (
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
