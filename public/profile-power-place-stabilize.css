@@ -160,3 +160,170 @@
 .powerMandalaPanel > .resourcePrintNotes {
   display: none !important;
 }
+
+/* === 2026-06-04 follow-up: mobile/print power-place composition sizing ===
+   Keep the old recovery selectors, but make the final overrides explicit:
+   - inner field scale 100% means the inner mandala reaches the outer panel box;
+   - chess background and cells use the same box in screen and print;
+   - mobile cover controls are moved directly under the mandala preview. */
+.profileLitePowerPlace .powerMandalaPanel,
+.powerPlacePdfOnlyArea .powerMandalaPanel {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.profileLitePowerPlace .powerMandalaPanel > .power-place-chess,
+.profileLitePowerPlace .powerMandalaPanel > .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel > .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .daoMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .power-place-chess,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .powerMandala,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .altarMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .businessMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .zodiacMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .starMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .daoMandalaSheet {
+  width: var(--profile-lite-inner-field-scale, 78%) !important;
+  max-width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  justify-self: center !important;
+  align-self: center !important;
+}
+
+.profileLitePowerPlace .powerMandalaPanel > .power-place-chess,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .power-place-chess {
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+.profileLitePowerPlace .powerMandalaPanel.field-layout-square,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-square {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical {
+  aspect-ratio: 9 / 16 !important;
+}
+
+.profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
+  aspect-ratio: 16 / 9 !important;
+}
+
+@media (max-width: 980px) {
+  .profileLitePowerPlace .workspaceMainColumns {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .profileLitePowerPlace .workspaceCenterColumn {
+    display: contents !important;
+  }
+
+  .profileLitePowerPlace .workspaceRightColumn {
+    display: contents !important;
+  }
+
+  .profileLitePowerPlace .powerPlaceConstructor {
+    order: 10 !important;
+  }
+
+  .profileLitePowerPlace .powerPlaceSettings {
+    display: contents !important;
+  }
+
+  .profileLitePowerPlace .coverPickerPanel {
+    order: 11 !important;
+  }
+
+  .profileLitePowerPlace .powerLayoutPanel {
+    order: 12 !important;
+  }
+
+  .profileLitePowerPlace .powerReportPanel,
+  .profileLitePowerPlace .resourceComparisonPanel,
+  .profileLitePowerPlace .objectImageEditor {
+    order: 13 !important;
+  }
+
+  .profileLitePowerPlace .profileLiteAdvancedJson,
+  .profileLitePowerPlace .powerPlaceActions {
+    order: 14 !important;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel,
+  .powerPlacePdfOnlyArea .powerMandalaPanel {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    place-items: center !important;
+  }
+
+  .profileLitePowerPlace .powerPrintMeta {
+    margin: 0 0 10px !important;
+  }
+}
+
+@media print {
+  body.printMandalaOnly .powerPlacePdfOnlyArea {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    justify-items: center !important;
+    align-items: start !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel {
+    width: min(92vw, 88vh) !important;
+    max-width: 100% !important;
+    max-height: 88vh !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical {
+    width: min(90vw, 49vh) !important;
+    aspect-ratio: 9 / 16 !important;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
+    width: min(92vw, 88vh) !important;
+    aspect-ratio: 16 / 9 !important;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .power-place-chess,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .powerMandala,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .altarMandalaSheet,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .businessMandalaSheet,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .zodiacMandalaSheet,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .starMandalaSheet,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel > .daoMandalaSheet {
+    width: var(--profile-lite-inner-field-scale, 78%) !important;
+    max-width: 100% !important;
+    aspect-ratio: 1 / 1 !important;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+  }
+}
