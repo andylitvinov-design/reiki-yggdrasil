@@ -975,7 +975,7 @@ export default function ProfileLitePowerPlaceModule({
                   </div>
                 )}
                 {renderScaleControl({ className: "chessSizeControl", label: "Размер фото", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
-                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "92", step: "1", field: "field_scale" })}
+                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
                 {renderScaleControl({ className: "centerImageScaleControl", label: "Размер центра", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">

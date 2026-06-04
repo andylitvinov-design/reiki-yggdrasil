@@ -32,7 +32,7 @@ function coverOffsetValue(value) {
 function innerFieldScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 78;
-  return Math.min(92, Math.max(48, parsed));
+  return Math.min(96, Math.max(48, parsed));
 }
 
 function centerImageScaleValue(value) {
@@ -248,8 +248,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   position: relative;
   z-index: 1;
   justify-self: center !important;
-  width: min(440px, var(--power-field-scale, ${innerFieldScale}%)) !important;
-  max-width: min(440px, var(--power-field-scale, ${innerFieldScale}%)) !important;
+  width: var(--power-field-scale, ${innerFieldScale}%) !important;
+  max-width: var(--power-field-scale, ${innerFieldScale}%) !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: ${centerRadius} !important;
   overflow: hidden !important;

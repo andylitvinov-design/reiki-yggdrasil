@@ -5537,8 +5537,8 @@
 .profileLitePowerPlace .powerMandalaPanel > .zodiacMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel > .starMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel > .daoMandalaSheet {
-  width: min(440px, var(--power-field-scale, 78%));
-  max-width: min(440px, var(--power-field-scale, 78%));
+  width: var(--power-field-scale, 78%);
+  max-width: var(--power-field-scale, 78%);
 }
 
 .profileLitePowerPlace .powerSource,
