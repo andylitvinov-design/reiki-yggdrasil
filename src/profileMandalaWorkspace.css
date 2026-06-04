@@ -1314,19 +1314,9 @@
 .starCenterPhoto.hasImage,
 .daoCenterPhoto.hasImage,
 .power-place-chess__center.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) auto;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1));
   background-repeat: no-repeat;
   background-position: center;
-}
-
-.powerCenterPhoto,
-.altarCenterPhoto,
-.businessCenterPhoto,
-.zodiacCenterPhoto,
-.starCenterPhoto,
-.daoCenterPhoto,
-.power-place-chess__center {
-  scale: var(--power-center-window-scale, 1);
 }
 
 .powerCenterPhoto span,
@@ -6302,21 +6292,8 @@
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle {
-  aspect-ratio: 9 / 19.5 !important;
+  aspect-ratio: var(--power-field-aspect, 4 / 5) !important;
   min-height: 560px !important;
-}
-
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel,
-.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical {
-  aspect-ratio: 9 / 19.5 !important;
-  min-height: 560px !important;
-}
-
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel .powerMandala,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel .powerMandala,
-.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical .powerMandala,
-.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle .powerMandala {
-  aspect-ratio: 9 / 19.5 !important;
 }
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-horizontal .powerMandalaPanel,

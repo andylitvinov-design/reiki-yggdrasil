@@ -253,12 +253,6 @@ function centerImageScaleValue(value) {
   return Math.min(1.45, Math.max(0.65, scale));
 }
 
-function centerWindowScaleValue(value) {
-  const scale = Number(value);
-  if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.45, Math.max(0.65, scale));
-}
-
 function uniqueImageSources(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -439,20 +433,13 @@ export default function ProfileLitePowerPlaceModule({
     "--power-field-scale": `${fieldScale}%`
   };
   const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
-  const centerWindowScale = centerWindowScaleValue(compositionDraft.__center_window_scale ?? objectRefs.__center_window_scale);
-  const powerPlaceScaleStyle = {
-    ...sourceSlotScaleStyle,
-    "--power-center-image-scale": centerImageScale,
-    "--power-center-window-scale": centerWindowScale
-  };
   const centerImageStyle = {
     ...(imageStyle(centralImage) || {}),
-    "--power-center-image-scale": centerImageScale,
-    "--power-center-window-scale": centerWindowScale
+    "--power-center-image-scale": centerImageScale
   };
   const chessCoverStyle = {
     ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
-    ...powerPlaceScaleStyle
+    ...sourceSlotScaleStyle
   };
 
   const savedImages = useMemo(() => uniqueImageSources([
@@ -1045,9 +1032,9 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {renderScaleControl({ className: "chessSizeControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
+                {renderScaleControl({ className: "chessSizeControl", label: "Размер фото", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
-                {renderScaleControl({ className: "centerImageScaleControl", label: "Размер центра", value: centerWindowScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_window_scale" })}
+                {renderScaleControl({ className: "centerImageScaleControl", label: "Размер центра", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>
@@ -1058,8 +1045,8 @@ export default function ProfileLitePowerPlaceModule({
                 )}
               </div>
 
-              <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={powerPlaceScaleStyle}>
-                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...powerPlaceScaleStyle }}>
+              <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>

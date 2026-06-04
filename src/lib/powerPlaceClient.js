@@ -27,7 +27,6 @@ const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
-const CENTER_WINDOW_SCALE_REF_KEY = "__center_window_scale";
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -321,7 +320,6 @@ export function normalizePowerPlaceComposition(composition) {
   const slotScale = Number(composition?.slot_scale ?? composition?.object_refs?.__slot_scale);
   const fieldScale = composition?.field_scale ?? composition?.object_refs?.[INNER_FIELD_SCALE_REF_KEY];
   const centerImageScale = composition?.__center_image_scale ?? composition?.object_refs?.[CENTER_IMAGE_SCALE_REF_KEY];
-  const centerWindowScale = composition?.__center_window_scale ?? composition?.object_refs?.[CENTER_WINDOW_SCALE_REF_KEY];
   const objectRefs = cleanObjectRefs(composition?.object_refs);
   const report = cleanJsonObject(composition?.object_refs)[PROFILE_LITE_REPORT_REF_KEY];
   if (Number.isFinite(slotScale)) {
@@ -329,10 +327,8 @@ export function normalizePowerPlaceComposition(composition) {
   }
   const normalizedFieldScale = clampNumericRef(fieldScale, 48, 92);
   const normalizedCenterImageScale = clampNumericRef(centerImageScale, 0.65, 1.45);
-  const normalizedCenterWindowScale = clampNumericRef(centerWindowScale, 0.65, 1.45);
   if (normalizedFieldScale) objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizedFieldScale;
   if (normalizedCenterImageScale) objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizedCenterImageScale;
-  if (normalizedCenterWindowScale) objectRefs[CENTER_WINDOW_SCALE_REF_KEY] = normalizedCenterWindowScale;
   if (report && typeof report === "object" && !Array.isArray(report)) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
