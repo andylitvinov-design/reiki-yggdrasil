@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { extractCssUrls } from "../lib/printUtils.js";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
@@ -93,6 +94,9 @@ const EMPTY_COMPOSITION = {
   id: "",
   title: "",
   constructor_type: "zodiac",
+  field_layout: "square",
+  inner_field_shape: "circle",
+  inner_field_size: 100,
   geometry: 4,
   zodiac_variant: "classic-12",
   zodiac_visible_count: 12,
@@ -103,7 +107,11 @@ const EMPTY_COMPOSITION = {
   chess_slot_scale: 1,
   slot_scale: 1,
   cover_ref: null,
-  object_refs: {},
+  object_refs: {
+    __field_layout: "square",
+    __inner_field_shape: "circle",
+    __inner_field_size: "100"
+  },
   central_photo_id: "",
   tradition_id: "",
   tradition_title: "",
@@ -112,6 +120,9 @@ const EMPTY_COMPOSITION = {
   resource_with_mandala_comment: ""
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const INNER_FIELD_SHAPE_REF_KEY = "__inner_field_shape";
+const INNER_FIELD_SIZE_REF_KEY = "__inner_field_size";
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "with_report",
   added: false,
@@ -225,6 +236,20 @@ function normalizeProfileLiteReport(value) {
   };
 }
 
+function normalizeFieldLayout(value) {
+  return ["square", "vertical", "horizontal"].includes(value) ? value : "square";
+}
+
+function normalizeInnerFieldShape(value) {
+  return value === "square" ? "square" : "circle";
+}
+
+function normalizeInnerFieldSize(value) {
+  const size = Number(value);
+  if (!Number.isFinite(size)) return 100;
+  return Math.min(100, Math.max(60, Math.round(size)));
+}
+
 function safeFilename(value) {
   const safe = String(value || "power-place")
     .toLowerCase()
@@ -246,13 +271,38 @@ function collectPrintableStyles() {
   }).join("\n");
 }
 
+
+function preloadImages(urls, timeout = 5500) {
+  if (!urls.length) return Promise.resolve();
+  return new Promise((resolve) => {
+    let remaining = urls.length;
+    const done = () => { if (--remaining <= 0) resolve(); };
+    const timer = setTimeout(resolve, timeout);
+    urls.forEach((src) => {
+      const img = new Image();
+      img.onload = img.onerror = () => { done(); };
+      img.src = src;
+    });
+    // clear timer early if all loaded
+    const origResolve = resolve;
+    resolve = () => { clearTimeout(timer); origResolve(); };
+  });
+}
+
+function raf2(win) {
+  return new Promise((res) => win.requestAnimationFrame(() => win.requestAnimationFrame(res)));
+}
+
 function openPowerPlacePdfPrintView(title) {
   const printArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
   if (!printArea) throw new Error("Макет мандалы не найден.");
 
   const filename = `${safeFilename(title || "power-place")}.pdf`;
+  // window.open must be synchronous (on the click event stack)
   const printWindow = window.open("", "_blank", "width=980,height=900");
   if (!printWindow) throw new Error("Разрешите всплывающее окно для печати в PDF.");
+
+  const imageUrls = extractCssUrls(printArea);
 
   const clonedArea = printArea.cloneNode(true);
   clonedArea.classList.add("powerPlacePdfOnlyArea");
@@ -267,18 +317,28 @@ function openPowerPlacePdfPrintView(title) {
     body{margin:0;background:#fffaf0;color:#2f2418}
     body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:100vh!important}
     @page{size:auto;margin:10mm}
+    #pdfStatus{position:fixed;top:0;left:0;right:0;padding:12px;background:#f5f0e8;text-align:center;font-family:sans-serif;font-size:14px;color:#5a4030;z-index:9999}
   </style>
 </head>
 <body class="printMandalaOnly">
+  <div id="pdfStatus">Подготовка PDF: загружаем изображения…</div>
   <main aria-label="Скачать PDF / Печать в PDF"></main>
 </body>
 </html>`);
   printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
   printWindow.document.close();
-  printWindow.setTimeout(() => {
-    printWindow.focus();
-    printWindow.print();
-  }, 250);
+
+  Promise.all([
+    preloadImages(imageUrls),
+    printWindow.document.fonts?.ready ?? Promise.resolve(),
+  ])
+    .then(() => raf2(printWindow))
+    .then(() => {
+      const status = printWindow.document.getElementById("pdfStatus");
+      if (status) status.style.display = "none";
+      printWindow.focus();
+      printWindow.print();
+    });
 }
 
 export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
@@ -770,52 +830,6 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
-  const handleLibraryClientPhotoUpload = async ({
-    file,
-    title = "",
-    notes = "",
-    destination = "clients"
-  }) => {
-    if (destination === "materials") {
-      const error = new Error("Материалы: needs verification — создание image material без миграции пока не подтверждено.");
-      setMaterialsStatus("needs-verification");
-      setMaterialsError(error.message);
-      throw error;
-    }
-
-    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
-      setMediaError("Сначала сохраните профиль мастера.");
-      setMediaStatus("needs-verification");
-      throw new Error("Сначала сохраните профиль мастера.");
-    }
-
-    try {
-      validateProfileMediaFile(file);
-      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "client-goal" }, session);
-      const saved = await createClientGoalPhoto({
-        profile_id: profile.id,
-        title: title || file.name || "Фото клиента / цели",
-        image_url: "",
-        image_bucket: uploaded.bucket,
-        image_path: uploaded.path,
-        mime_type: uploaded.metadata.mimeType,
-        file_size_bytes: uploaded.metadata.size,
-        notes
-      }, accountPlan, session);
-      const savedImageRef = saved?.image_ref || uploaded.ref;
-      const savedDisplayUrl = saved?.display_url || saved?.signed_url || uploaded.signedUrl;
-      const savedPhoto = saved ? { ...saved, image_ref: savedImageRef, display_url: savedDisplayUrl } : null;
-      setClientGoalPhotos((current) => [savedPhoto, ...current].filter(Boolean));
-      setMediaStatus("success");
-      setMediaError("");
-      return savedPhoto;
-    } catch (error) {
-      setMediaStatus("needs-verification");
-      setMediaError(moduleError(error, "profile_cabinet_client_goal_photos upload failed or Storage/RLS not applied"));
-      throw error;
-    }
-  };
-
   const handleDeleteClientPhoto = async (photo) => {
     if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) return;
     const confirmed = window.confirm("Удалить фото из базы?");
@@ -867,6 +881,39 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           object_refs: {
             ...(current.object_refs || {}),
             [PROFILE_LITE_REPORT_REF_KEY]: normalizeProfileLiteReport(value)
+          }
+        };
+      }
+      if (field === "field_layout") {
+        const nextLayout = normalizeFieldLayout(value);
+        return {
+          ...current,
+          field_layout: nextLayout,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [FIELD_LAYOUT_REF_KEY]: nextLayout
+          }
+        };
+      }
+      if (field === "inner_field_shape") {
+        const nextShape = normalizeInnerFieldShape(value);
+        return {
+          ...current,
+          inner_field_shape: nextShape,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [INNER_FIELD_SHAPE_REF_KEY]: nextShape
+          }
+        };
+      }
+      if (field === "inner_field_size") {
+        const nextSize = normalizeInnerFieldSize(value);
+        return {
+          ...current,
+          inner_field_size: nextSize,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [INNER_FIELD_SIZE_REF_KEY]: String(nextSize)
           }
         };
       }
@@ -937,13 +984,32 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleUploadedCentralPhoto = async (file) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      throw new Error("Сначала сохраните профиль мастера.");
+    }
+
     try {
-      const savedPhoto = await handleLibraryClientPhotoUpload({ file, notes: "Центр мандалы" });
-      const savedImageRef = savedPhoto?.image_ref || savedPhoto?.image_url || "";
-      const savedDisplayUrl = savedPhoto?.display_url || savedPhoto?.signed_url || savedPhoto?.image_url || savedImageRef;
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "client-goal" }, session);
+      const saved = await createClientGoalPhoto({
+        profile_id: profile.id,
+        title: file.name || "Фото клиента / цели",
+        image_url: "",
+        image_bucket: uploaded.bucket,
+        image_path: uploaded.path,
+        mime_type: uploaded.metadata.mimeType,
+        file_size_bytes: uploaded.metadata.size,
+        notes: "Центр мандалы"
+      }, accountPlan, session);
+      const savedImageRef = saved?.image_ref || uploaded.ref;
+      const savedDisplayUrl = saved?.display_url || saved?.signed_url || uploaded.signedUrl;
+      const savedPhoto = saved ? { ...saved, image_ref: savedImageRef, display_url: savedDisplayUrl } : null;
+      setClientGoalPhotos((current) => [savedPhoto, ...current].filter(Boolean));
       setCompositionDraft((current) => ({
         ...current,
-        central_photo_id: savedPhoto?.id || "",
+        central_photo_id: saved?.id || "",
         object_refs: { ...(current.object_refs || {}), __center_image: savedImageRef },
         object_ref_urls: { ...(current.object_ref_urls || {}), [savedImageRef]: savedDisplayUrl }
       }));
@@ -958,14 +1024,24 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionObjectFileUpload = async (slotId, file) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      throw new Error("Сначала сохраните профиль мастера.");
+    }
+
     try {
-      const savedPhoto = await handleLibraryClientPhotoUpload({ file, notes: `Объект мандалы: ${slotId}` });
-      const savedImageRef = savedPhoto?.image_ref || savedPhoto?.image_url || "";
-      const savedDisplayUrl = savedPhoto?.display_url || savedPhoto?.signed_url || savedPhoto?.image_url || savedImageRef;
-      setCompositionObjectRef(slotId, savedImageRef, savedDisplayUrl);
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, {
+        profileId: profile.id,
+        kind: "power-place",
+        compositionId: compositionDraft.id || "draft",
+        slotId
+      }, session);
+      setCompositionObjectRef(slotId, uploaded.ref, uploaded.signedUrl);
       setMandalasStatus("success");
       setMandalasError("");
-      return savedPhoto;
+      return uploaded;
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "power place object upload failed or Storage/RLS not applied"));
@@ -974,20 +1050,25 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionCoverFileUpload = async (layer, file) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      throw new Error("Сначала сохраните профиль мастера.");
+    }
+
     try {
-      const savedPhoto = await handleLibraryClientPhotoUpload({ file, notes: `Фон мандалы: ${layer}` });
-      const savedImageRef = savedPhoto?.image_ref || savedPhoto?.image_url || "";
-      const savedDisplayUrl = savedPhoto?.display_url || savedPhoto?.signed_url || savedPhoto?.image_url || savedImageRef;
+      validateProfileMediaFile(file);
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "underlay" }, session);
       handleCompositionCoverSelect(layer, {
         id: layer === "outer" ? "custom-outer-cover" : "custom-cover",
         label: "Своё изображение",
         type: "image",
-        src: savedImageRef,
-        display_src: savedDisplayUrl
+        src: uploaded.ref,
+        display_src: uploaded.signedUrl
       });
       setMandalasStatus("success");
       setMandalasError("");
-      return savedPhoto;
+      return uploaded;
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "power place cover upload failed or Storage/RLS not applied"));
@@ -996,11 +1077,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionLoad = (composition) => {
+    const objectRefs = composition.object_refs || {};
     setCompositionDraft({
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
-      object_refs: composition.object_refs || {},
+      field_layout: normalizeFieldLayout(composition.field_layout || objectRefs[FIELD_LAYOUT_REF_KEY]),
+      inner_field_shape: normalizeInnerFieldShape(composition.inner_field_shape || objectRefs[INNER_FIELD_SHAPE_REF_KEY]),
+      inner_field_size: normalizeInnerFieldSize(composition.inner_field_size ?? objectRefs[INNER_FIELD_SIZE_REF_KEY]),
+      object_refs: {
+        ...objectRefs,
+        [FIELD_LAYOUT_REF_KEY]: normalizeFieldLayout(composition.field_layout || objectRefs[FIELD_LAYOUT_REF_KEY]),
+        [INNER_FIELD_SHAPE_REF_KEY]: normalizeInnerFieldShape(composition.inner_field_shape || objectRefs[INNER_FIELD_SHAPE_REF_KEY]),
+        [INNER_FIELD_SIZE_REF_KEY]: String(normalizeInnerFieldSize(composition.inner_field_size ?? objectRefs[INNER_FIELD_SIZE_REF_KEY]))
+      },
       object_ref_urls: composition.object_ref_urls || {}
     });
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
@@ -1228,7 +1318,6 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
         onCoverFileUpload={handleCompositionCoverFileUpload}
         onDownload={handleDownloadComposition}
-        onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
         onSave={handleCompositionSave}
