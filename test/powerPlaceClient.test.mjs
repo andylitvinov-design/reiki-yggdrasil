@@ -765,6 +765,87 @@ assert.equal(
   "object_refs.__field_layout should be preserved when loading/saving"
 );
 
+const normalizedServiceRefsComposition = normalizePowerPlaceComposition({
+  profile_id: "profile-1",
+  title: "Служебные настройки",
+  constructor_type: "client",
+  geometry: 4,
+  field_layout: "vertical",
+  object_refs: {
+    "__center_image": storageRefs.center,
+    "__center_frame_scale": "1.24",
+    "__center_image_scale": "1.18",
+    "__center_shape": "circle",
+    "__inner_cover_offset_x": "35",
+    "__inner_cover_offset_y": "64",
+    "__outer_cover_offset_x": "44",
+    "__outer_cover_offset_y": "57",
+    "client-1": "data:image/png;base64,local-slot",
+    "client-2": "https://example.com/client-2.jpg"
+  },
+  central_photo_id: ""
+});
+
+assert.deepEqual(
+  normalizedServiceRefsComposition.object_refs,
+  {
+    "__center_image": storageRefs.center,
+    "__center_frame_scale": "1.24",
+    "__center_image_scale": "1.18",
+    "__center_shape": "circle",
+    "__inner_cover_offset_x": "35",
+    "__inner_cover_offset_y": "64",
+    "__outer_cover_offset_x": "44",
+    "__outer_cover_offset_y": "57",
+    "client-2": "https://example.com/client-2.jpg",
+    __field_layout: "vertical"
+  },
+  "safe service refs should persist while data:image image slot refs are stripped"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Центр из enhanced draft",
+    constructor_type: "client",
+    geometry: 4,
+    __center_frame_scale: 1.16,
+    object_refs: {}
+  }).object_refs.__center_frame_scale,
+  "1.16",
+  "top-level __center_frame_scale should be persisted into object_refs for save/load"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Неверные служебные настройки",
+    constructor_type: "client",
+    geometry: 4,
+    object_refs: {
+      "__center_frame_scale": "9",
+      "__center_image_scale": "bad",
+      "__center_shape": "triangle",
+      "__inner_cover_offset_x": "-20",
+      "__inner_cover_offset_y": "120",
+      "__outer_cover_offset_x": "bad",
+      "__outer_cover_offset_y": "50"
+    },
+    central_photo_id: ""
+  }).object_refs,
+  {
+    "__center_frame_scale": "1.4",
+    "__center_image_scale": "1",
+    "__center_shape": "square",
+    "__inner_cover_offset_x": "20",
+    "__inner_cover_offset_y": "80",
+    "__outer_cover_offset_x": "50",
+    "__outer_cover_offset_y": "50",
+    __field_layout: "square"
+  },
+  "invalid numeric service refs should clamp or fall back safely"
+);
+
 const compactChessComposition = normalizePowerPlaceComposition({
   profile_id: "profile-1",
   title: " Компактные шахматы ",
