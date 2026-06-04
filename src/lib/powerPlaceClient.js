@@ -25,9 +25,16 @@ const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const SLOT_SCALE_REF_KEY = "__slot_scale";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
+const CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale";
+const CENTER_SHAPE_REF_KEY = "__center_shape";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
+const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
+const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
+const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 
 export const ACCOUNT_PLANS = [
@@ -70,6 +77,14 @@ function clampNumericRef(value, min, max) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
   return String(Math.min(max, Math.max(min, parsed)));
+}
+
+function normalizeNumericRef(value, min, max, fallback) {
+  return clampNumericRef(value, min, max) ?? String(fallback);
+}
+
+function normalizeCenterShape(value) {
+  return cleanText(value) === "circle" ? "circle" : "square";
 }
 
 function normalizeFieldLayout(value) {
@@ -324,19 +339,32 @@ export function normalizePowerPlaceComposition(composition) {
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
   const chessVariant = cleanText(composition?.chess_variant);
-  const slotScale = Number(composition?.slot_scale ?? composition?.object_refs?.__slot_scale);
-  const fieldScale = composition?.field_scale ?? composition?.object_refs?.[INNER_FIELD_SCALE_REF_KEY];
-  const centerImageScale = composition?.__center_image_scale ?? composition?.object_refs?.[CENTER_IMAGE_SCALE_REF_KEY];
-  const objectRefs = cleanObjectRefs(composition?.object_refs);
-  const fieldLayout = normalizeFieldLayout(composition?.field_layout ?? composition?.object_refs?.[FIELD_LAYOUT_REF_KEY]);
-  const report = cleanJsonObject(composition?.object_refs)[PROFILE_LITE_REPORT_REF_KEY];
-  if (Number.isFinite(slotScale)) {
-    objectRefs.__slot_scale = String(Math.min(1.18, Math.max(0.7, slotScale)));
+  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
+  const slotScale = composition?.slot_scale ?? sourceObjectRefs[SLOT_SCALE_REF_KEY];
+  const fieldScale = composition?.field_scale ?? sourceObjectRefs[INNER_FIELD_SCALE_REF_KEY];
+  const centerImageScale = composition?.__center_image_scale ?? sourceObjectRefs[CENTER_IMAGE_SCALE_REF_KEY];
+  const centerFrameScale = composition?.__center_frame_scale ?? sourceObjectRefs[CENTER_FRAME_SCALE_REF_KEY];
+  const objectRefs = cleanObjectRefs(sourceObjectRefs);
+  const fieldLayout = normalizeFieldLayout(composition?.field_layout ?? sourceObjectRefs[FIELD_LAYOUT_REF_KEY]);
+  const report = sourceObjectRefs[PROFILE_LITE_REPORT_REF_KEY];
+  if (slotScale !== undefined || Object.hasOwn(sourceObjectRefs, SLOT_SCALE_REF_KEY)) {
+    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, 0.7, 1.18, 1);
   }
-  const normalizedFieldScale = clampNumericRef(fieldScale, 48, 92);
-  const normalizedCenterImageScale = clampNumericRef(centerImageScale, 0.65, 1.45);
-  if (normalizedFieldScale) objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizedFieldScale;
-  if (normalizedCenterImageScale) objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizedCenterImageScale;
+  if (fieldScale !== undefined || Object.hasOwn(sourceObjectRefs, INNER_FIELD_SCALE_REF_KEY)) {
+    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, 48, 92, 78);
+  }
+  if (centerImageScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_SCALE_REF_KEY)) {
+    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, 0.65, 1.45, 1);
+  }
+  if (centerFrameScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_FRAME_SCALE_REF_KEY)) {
+    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, 0.72, 1.4, 1);
+  }
+  if (Object.hasOwn(sourceObjectRefs, CENTER_SHAPE_REF_KEY)) {
+    objectRefs[CENTER_SHAPE_REF_KEY] = normalizeCenterShape(sourceObjectRefs[CENTER_SHAPE_REF_KEY]);
+  }
+  for (const key of [INNER_COVER_OFFSET_X_REF_KEY, INNER_COVER_OFFSET_Y_REF_KEY, OUTER_COVER_OFFSET_X_REF_KEY, OUTER_COVER_OFFSET_Y_REF_KEY]) {
+    if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
+  }
   objectRefs[FIELD_LAYOUT_REF_KEY] = fieldLayout;
   if (report && typeof report === "object" && !Array.isArray(report)) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
