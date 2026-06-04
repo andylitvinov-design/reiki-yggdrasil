@@ -1303,8 +1303,20 @@
 .zodiacCenterPhoto,
 .starCenterPhoto,
 .daoCenterPhoto {
-  transform: translate(-50%, -50%) scale(var(--power-center-image-scale, 1));
+  transform: translate(-50%, -50%);
   transform-origin: center;
+}
+
+.powerCenterPhoto.hasImage,
+.altarCenterPhoto.hasImage,
+.businessCenterPhoto.hasImage,
+.zodiacCenterPhoto.hasImage,
+.starCenterPhoto.hasImage,
+.daoCenterPhoto.hasImage,
+.power-place-chess__center.hasImage {
+  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1));
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .powerCenterPhoto span,
@@ -5518,6 +5530,17 @@
   width: min(390px, 88%) !important;
 }
 
+.profileLitePowerPlace .powerMandalaPanel > .power-place-chess,
+.profileLitePowerPlace .powerMandalaPanel > .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel > .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel > .daoMandalaSheet {
+  width: var(--power-field-scale, 78%);
+  max-width: var(--power-field-scale, 78%);
+}
+
 .profileLitePowerPlace .powerSource,
 .profileLitePowerPlace .altarObjectSlot,
 .profileLitePowerPlace .businessObjectSlot,
@@ -5572,6 +5595,28 @@
   background: rgba(255, 253, 248, 0.66);
 }
 
+.profileLitePowerPlace .compactFieldLayoutSwitch {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 8px;
+  align-items: stretch;
+  padding: 8px;
+}
+
+.profileLitePowerPlace .layoutCenterCell,
+.profileLitePowerPlace .layoutBackgroundCell {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  align-content: start;
+}
+
+.profileLitePowerPlace .layoutBackgroundCell > span {
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .profileLitePowerPlace .reportModeToggle,
 .profileLitePowerPlace .reportActions {
   display: flex;
@@ -5602,7 +5647,7 @@
 
 .profileLitePowerPlace .reportField {
   display: grid;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
   margin: 0;
   color: #5f3e12;
@@ -5618,10 +5663,10 @@
   min-width: 0;
   width: 100%;
   resize: vertical;
-  min-height: 58px;
+  min-height: 42px;
   border: 1px solid rgba(179, 126, 36, 0.32);
   border-radius: 12px;
-  padding: 8px 10px;
+  padding: 6px 8px;
   background: rgba(255, 251, 243, 0.92);
   color: #3c2a18;
   font: inherit;
@@ -5925,7 +5970,7 @@
   color: #2f1d0a;
   text-align: center;
   box-shadow: 0 0 0 5px rgba(255, 225, 156, 0.18), 0 14px 28px rgba(83, 51, 12, 0.16);
-  transform: scale(var(--power-center-image-scale, 1));
+  transform: none;
   transform-origin: center;
 }
 
@@ -6020,7 +6065,7 @@
   width: 28%;
   height: auto;
   aspect-ratio: 1 / 1;
-  transform: translate(-50%, -50%) scale(var(--power-center-image-scale, 1));
+  transform: translate(-50%, -50%);
 }
 
 .power-place-chess--plus-8 .power-place-chess__slot,

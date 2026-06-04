@@ -1,5 +1,54 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-04 — Fix Profile Lite Power Place controls, save/update, and mobile report layout
+
+- Branch: `codex/profile-lite-power-place-controls-save-update`.
+- Base: fresh `origin/main` at merge commit `19410c1`.
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - reordered constructor sliders to `Размер фото`, `Размер поля`, `Размер центра`;
+  - moved field/center scale controls into the React-owned base constructor flow and removed the duplicate portal-injected slider controls;
+  - persisted field scale via `field_scale` / `__inner_field_scale` and center scale via `__center_image_scale`;
+  - applied `--power-center-image-scale` without replacing positioning transforms for center photos;
+  - split composition persistence into create-new and update-existing handlers;
+  - made `Сохранить` always POST a new copy without id and duplicate titles as `копия`, `копия 2`, etc.;
+  - made `Обновить` PATCH the opened composition and show `Сначала откройте сохранённую мандалу.` when no saved id is active;
+  - kept the saved mandala select at the top of `Магическая мандала`;
+  - compacted the layout/report panels and hid report body/actions in `Без отчёта`;
+  - kept mobile order as constructor, background, actions, report, then sources.
+- Checks run:
+  - `npm install`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Local browser QA:
+  - URL: `http://127.0.0.1:4327/profile/mandalas`;
+  - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - mobile 390x900 and desktop 1280x920 had horizontal overflow `0` and no console errors;
+  - confirmed slider order, separate `Сохранить` / `Обновить`, saved mandala select, `Без отчёта` body hiding, and side-by-side `Центр` / `Фон`;
+  - cycled Зодиак, Звезда, Шахматы, Мандала, Алтарь, Бизнес, ДАО;
+  - center-scale control click propagated `--power-center-image-scale` to all checked constructors;
+  - mocked persistence confirmed create POST title `Тест копия` with no id and update PATCH to `composition-1` with title `Тест обновлён`.
+- Not verified:
+  - real authenticated Supabase save/update/reload in production data;
+  - Vercel preview, merge, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-04 — Remaining Profile Lite Power Place polish after PR #233
 
 - Branch: `codex/profile-lite-remaining-polish-after-233`.

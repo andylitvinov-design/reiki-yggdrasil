@@ -232,6 +232,18 @@ function chessSlotScaleValue(value) {
   return slotScaleValue(value);
 }
 
+function fieldScaleValue(value) {
+  const scale = Number(value);
+  if (!Number.isFinite(scale)) return 78;
+  return Math.min(92, Math.max(48, scale));
+}
+
+function centerImageScaleValue(value) {
+  const scale = Number(value);
+  if (!Number.isFinite(scale)) return 1;
+  return Math.min(1.45, Math.max(0.65, scale));
+}
+
 function uniqueImageSources(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -351,8 +363,9 @@ export default function ProfileLitePowerPlaceModule({
   onLibraryPhotoUpload,
   onObjectFileUpload,
   onPrint,
-  onSave,
+  onSaveNew,
   onSendToServices,
+  onUpdateExisting,
   onUploadedCentralPhoto,
   planLimits,
   powerPlaceCompositions,
@@ -392,15 +405,15 @@ export default function ProfileLitePowerPlaceModule({
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
   const sourceSlotScale = slotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
+  const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const chessSlotScale = chessSlotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const sourceSlotScaleStyle = {
     "--power-source-slot-scale": sourceSlotScale,
-    "--power-place-chess-slot-scale": chessSlotScale
+    "--power-place-chess-slot-scale": chessSlotScale,
+    "--power-field-scale": `${fieldScale}%`
   };
-  const centerImageScale = Number.isFinite(Number(compositionDraft.__center_image_scale))
-    ? Number(compositionDraft.__center_image_scale)
-    : 1;
+  const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
   const centerImageStyle = {
     ...(imageStyle(centralImage) || {}),
     "--power-center-image-scale": centerImageScale
@@ -500,48 +513,49 @@ export default function ProfileLitePowerPlaceModule({
         <button className={reportEnabled ? "active" : ""} type="button" onClick={() => updateReportDraft({ mode: "with_report" })}>С отчётом</button>
         <button className={!reportEnabled ? "active" : ""} type="button" onClick={() => updateReportDraft({ mode: "without_report", added: false })}>Без отчёта</button>
       </div>
-      <label className="reportField">
-        Анализ ситуации
-        <textarea
-          className="reportFieldInput"
-          disabled={!reportEnabled}
-          value={reportDraft.situation}
-          onChange={(event) => updateReportDraft({ situation: event.target.value })}
-          rows={3}
-        />
-      </label>
-      <label className="reportField">
-        Что даёт мандала
-        <textarea
-          className="reportFieldInput"
-          disabled={!reportEnabled}
-          value={reportDraft.mandala_effect}
-          onChange={(event) => updateReportDraft({ mandala_effect: event.target.value })}
-          rows={3}
-        />
-      </label>
-      <label className="reportField">
-        Что ещё поможет
-        <textarea
-          className="reportFieldInput"
-          disabled={!reportEnabled}
-          value={reportDraft.extra_help}
-          onChange={(event) => updateReportDraft({ extra_help: event.target.value })}
-          rows={3}
-        />
-      </label>
-      <label className="reportField disabled">
-        О Мастере
-        <textarea className="reportFieldInput" disabled value="Доступно в Pro формате." rows={2} readOnly />
-      </label>
-      <div className="reportActions">
-        <button className="cabinetPrimary" disabled={!reportEnabled} type="button" onClick={() => updateReportDraft({ added: true })}>
-          {reportDraft.added ? "Обновить" : "Добавить отчёт"}
-        </button>
-        <button className="cabinetSecondary" disabled={!reportDraft.added && !reportHasBody} type="button" onClick={() => updateReportDraft({ ...EMPTY_PROFILE_LITE_REPORT, mode: "without_report" })}>
-          Удалить отчёт
-        </button>
-      </div>
+      {!reportEnabled ? null : (
+        <>
+          <label className="reportField">
+            Анализ ситуации
+            <textarea
+              className="reportFieldInput"
+              value={reportDraft.situation}
+              onChange={(event) => updateReportDraft({ situation: event.target.value })}
+              rows={2}
+            />
+          </label>
+          <label className="reportField">
+            Что даёт мандала
+            <textarea
+              className="reportFieldInput"
+              value={reportDraft.mandala_effect}
+              onChange={(event) => updateReportDraft({ mandala_effect: event.target.value })}
+              rows={2}
+            />
+          </label>
+          <label className="reportField">
+            Что ещё поможет
+            <textarea
+              className="reportFieldInput"
+              value={reportDraft.extra_help}
+              onChange={(event) => updateReportDraft({ extra_help: event.target.value })}
+              rows={2}
+            />
+          </label>
+          <label className="reportField disabled">
+            О Мастере
+            <textarea className="reportFieldInput" disabled value="Доступно в Pro формате." rows={2} readOnly />
+          </label>
+          <div className="reportActions">
+            <button className="cabinetPrimary" type="button" onClick={() => updateReportDraft({ added: true })}>
+              {reportDraft.added ? "Обновить" : "Добавить отчёт"}
+            </button>
+            <button className="cabinetSecondary" disabled={!reportDraft.added && !reportHasBody} type="button" onClick={() => updateReportDraft({ ...EMPTY_PROFILE_LITE_REPORT, mode: "without_report" })}>
+              Удалить отчёт
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -707,7 +721,8 @@ export default function ProfileLitePowerPlaceModule({
         <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
       </label>
       <div className="powerPlaceActions">
-        <button className="cabinetPrimary" type="button" onClick={onSave}>{compositionDraft.id ? "Обновить место силы" : "Сохранить место силы"}</button>
+        <button className="cabinetPrimary" type="button" onClick={onSaveNew}>Сохранить</button>
+        <button className="cabinetPrimary" type="button" onClick={onUpdateExisting} disabled={!compositionDraft.id}>Обновить</button>
         <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
@@ -717,21 +732,41 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
+  const renderScaleControl = ({ className, label, value, min, max, step, field }) => (
+    <div className={className} aria-label={label}>
+      <span>{label}</span>
+      <button type="button" onClick={() => onCompositionDraftChange(field, Number((Number(value) - Number(step)).toFixed(2)))} aria-label={`Уменьшить ${label.toLowerCase()}`}>-</button>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onCompositionDraftChange(field, Number(event.target.value))}
+      />
+      <button type="button" onClick={() => onCompositionDraftChange(field, Number((Number(value) + Number(step)).toFixed(2)))} aria-label={`Увеличить ${label.toLowerCase()}`}>+</button>
+    </div>
+  );
+
   const renderFieldLayoutSelector = () => (
     <div className="mandalaFieldLayoutSwitch powerLayoutPanel compactFieldLayoutSwitch" aria-label="Расположение поля мандалы">
-      <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
-        {FIELD_LAYOUTS.map((layout) => (
-          <button
-            className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
-            key={layout.value}
-            onClick={() => onCompositionDraftChange("field_layout", layout.value)}
-            type="button"
-            title={layout.label}
-            aria-label={layout.label}
-          >
-            <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
-          </button>
-        ))}
+      <div className="layoutCenterCell" data-layout-cell="center" />
+      <div className="layoutBackgroundCell" data-layout-cell="background">
+        <span>Фон</span>
+        <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
+          {FIELD_LAYOUTS.map((layout) => (
+            <button
+              className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
+              key={layout.value}
+              onClick={() => onCompositionDraftChange("field_layout", layout.value)}
+              type="button"
+              title={layout.label}
+              aria-label={layout.label}
+            >
+              <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -763,7 +798,6 @@ export default function ProfileLitePowerPlaceModule({
 
       {mandalasError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {mandalasError}</div>}
       {mediaError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {mediaError}</div>}
-      {compositionMessage && <div className="cabinetSuccess compactNotice">{compositionMessage}</div>}
 
       <div className="workspaceMainColumns profileLitePowerPlaceColumns">
         <aside className="mandalaModeSidebar powerLibrarySidebar">
@@ -888,9 +922,7 @@ export default function ProfileLitePowerPlaceModule({
                   }}
                   aria-label="Сохранённые мандалы"
                 >
-                  <option value="">
-                    {powerPlaceCompositions.length ? "Сохранённые мандалы" : "Нет сохранённых мандал"}
-                  </option>
+                  <option value="">Сохранённые мандалы</option>
                   {powerPlaceCompositions.map((composition) => (
                     <option key={composition.id} value={composition.id}>
                       {composition.title || "Место силы"}
@@ -898,6 +930,7 @@ export default function ProfileLitePowerPlaceModule({
                   ))}
                 </select>
               </div>
+              {compositionMessage && <div className="cabinetSuccess compactNotice">{compositionMessage}</div>}
 
               <div className="constructorControls">
                 <div className="constructorTypeSelector" aria-label="Тип конструктора">
@@ -941,19 +974,9 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                <div className="chessSizeControl" aria-label="Размер фото">
-                  <span>Размер фото</span>
-                  <button type="button" onClick={() => onCompositionDraftChange("slot_scale", Number((sourceSlotScale - 0.08).toFixed(2)))} aria-label="Уменьшить размер фото">-</button>
-                  <input
-                    type="range"
-                    min="0.7"
-                    max="1.18"
-                    step="0.01"
-                    value={sourceSlotScale}
-                    onChange={(event) => onCompositionDraftChange("slot_scale", Number(event.target.value))}
-                  />
-                  <button type="button" onClick={() => onCompositionDraftChange("slot_scale", Number((sourceSlotScale + 0.08).toFixed(2)))} aria-label="Увеличить размер фото">+</button>
-                </div>
+                {renderScaleControl({ className: "chessSizeControl", label: "Размер фото", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
+                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
+                {renderScaleControl({ className: "centerImageScaleControl", label: "Размер центра", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>

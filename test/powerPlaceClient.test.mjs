@@ -19,13 +19,15 @@ const storageRefs = {
 };
 
 const compositionRefs = __testPowerPlaceClient.collectCompositionStorageRefs({
-  object_refs: {
-    "chess-1": storageRefs.slot,
-    __center_image: storageRefs.center,
-    __profile_lite_report: { added: true },
-    __slot_scale: "1.08",
-    "chess-2": "https://example.com/public.jpg"
-  },
+    object_refs: {
+      "chess-1": storageRefs.slot,
+      __center_image: storageRefs.center,
+      __profile_lite_report: { added: true },
+      __slot_scale: "1.08",
+      __inner_field_scale: "82",
+      __center_image_scale: "1.22",
+      "chess-2": "https://example.com/public.jpg"
+    },
   cover_ref: {
     id: "custom-cover",
     type: "image",
@@ -213,6 +215,8 @@ assert.deepEqual(
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: {
       "altar-top-3": "https://example.com/object.jpg",
+      __inner_field_scale: "82",
+      __center_image_scale: "1.22",
       __profile_lite_report: {
         mode: "with_report",
         added: true,
@@ -242,6 +246,8 @@ assert.deepEqual(
     cover_ref: { id: "cover-gold", label: "Заставка места силы", type: "placeholder", tone: "", src: "" },
     object_refs: {
       "altar-top-3": "https://example.com/object.jpg",
+      __inner_field_scale: "82",
+      __center_image_scale: "1.22",
       __profile_lite_report: {
         mode: "with_report",
         added: true,

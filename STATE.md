@@ -12,6 +12,35 @@ Last updated: 2026-06-04
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-04 — Profile Lite Power Place controls/save-update/mobile report
+
+- Branch: `codex/profile-lite-power-place-controls-save-update`, based on fresh `origin/main` merge commit `19410c1`.
+- Scope: `/profile/mandalas` React/CSS/client/test/docs only; public home page, route inventory, Supabase env values, Vercel rewrites, public runtime patch files, and MutationObserver usage were not changed.
+- Changed:
+  - constructor sliders are ordered `Размер фото` / `Размер поля` / `Размер центра`;
+  - `Размер поля` persists through `field_scale` / `__inner_field_scale`;
+  - center image scale persists through `__center_image_scale` and uses `--power-center-image-scale` across Мандала, Зодиак, Звезда, Алтарь, Бизнес, ДАО, and Шахматы;
+  - save/update UX split into `Сохранить` and `Обновить`;
+  - `Сохранить` always creates a new composition copy without id and uses `копия`, `копия 2`, etc. for duplicate titles;
+  - `Обновить` PATCHes an opened saved composition and keeps the edited title;
+  - saved mandala select is at the top of the `Магическая мандала` block with placeholder `Сохранённые мандалы`;
+  - `Центр` and `Фон` layout cells are compact and side-by-side;
+  - `Без отчёта` hides the report body/actions, leaving only the top report mode panel;
+  - mobile CSS order keeps constructor, background, actions, report, then sources.
+- Verification:
+  - `npm install`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4327/profile/mandalas`;
+  - mocked public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - mobile 390x900 and desktop 1280x920: horizontal overflow `0`, control order passed, saved select visible, `Сохранить` / `Обновить` visible, `Без отчёта` hid report body, `Центр` and `Фон` stayed side-by-side, and console errors were `[]`;
+  - constructors checked locally: Зодиак, Звезда, Шахматы, Мандала, Алтарь, Бизнес, ДАО;
+  - center-scale variable propagated after control click to all checked constructors;
+  - mocked save/update probe confirmed POST title `Тест копия` without id and PATCH to `composition-1` with edited title `Тест обновлён`.
+- Not verified:
+  - real authenticated Supabase save/update/reload against production data;
+  - Vercel preview, merge, deploy, production/legacy live rendering, and Google OAuth.
+
 ## 2026-06-04 — Remaining Profile Lite Power Place polish after PR #233
 
 - Branch: `codex/profile-lite-remaining-polish-after-233`, based on `origin/main` at PR #233 merge commit `35c17686c5f0631941c92b2346e9d7e3c4e1d576`.

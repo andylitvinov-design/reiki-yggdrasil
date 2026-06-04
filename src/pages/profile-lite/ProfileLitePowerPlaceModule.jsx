@@ -60,11 +60,16 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage,
 .powerPlacePdfOnlyArea .starCenterPhoto.hasImage,
 .powerPlacePdfOnlyArea .daoCenterPhoto.hasImage {
-  background-size: cover !important;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
 .profileLitePowerPlace .power-place-chess__center.hasImage,
+.powerPlacePdfOnlyArea .power-place-chess__center.hasImage {
+  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
 .profileLitePowerPlace .power-place-chess__slot.hasImage,
 .profileLitePowerPlace .powerSource.hasImage,
 .profileLitePowerPlace .altarTopSource.hasImage,
@@ -74,7 +79,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style],
 .profileLitePowerPlace .starPositionImage[style],
 .profileLitePowerPlace .daoElementImage.hasImage,
-.powerPlacePdfOnlyArea .power-place-chess__center.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage,
 .powerPlacePdfOnlyArea .powerSource.hasImage,
 .powerPlacePdfOnlyArea .altarTopSource.hasImage,
@@ -244,8 +248,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   position: relative;
   z-index: 1;
   justify-self: center !important;
-  width: ${innerFieldScale}% !important;
-  max-width: ${innerFieldScale}% !important;
+  width: var(--power-field-scale, ${innerFieldScale}%) !important;
+  max-width: var(--power-field-scale, ${innerFieldScale}%) !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: ${centerRadius} !important;
   overflow: hidden !important;
@@ -473,7 +477,6 @@ function normalizeLayeredCoverRef(coverRef) {
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
   const [printAreaNode, setPrintAreaNode] = useState(null);
-  const [constructorControlsNode, setConstructorControlsNode] = useState(null);
   const [layoutPanelNode, setLayoutPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
@@ -497,8 +500,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
       setPrintAreaNode(document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || null);
-      setConstructorControlsNode(document.querySelector(".profileLitePowerPlace .constructorControls") || null);
-      setLayoutPanelNode(document.querySelector(".profileLitePowerPlace .mandalaFieldLayoutSwitch") || null);
+      setLayoutPanelNode(document.querySelector(".profileLitePowerPlace .layoutCenterCell") || null);
     };
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
@@ -515,14 +517,6 @@ export default function ProfileLitePowerPlaceModule(props) {
       : (axis === "y" ? INNER_COVER_OFFSET_Y_REF_KEY : INNER_COVER_OFFSET_X_REF_KEY);
     const current = coverOffsetValue(objectRefs[key]);
     writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
-  }, [objectRefs, writeObjectRefs]);
-
-  const setInnerFieldScaleValue = useCallback((nextValue) => {
-    writeObjectRefs({ ...objectRefs, [INNER_FIELD_SCALE_REF_KEY]: String(innerFieldScaleValue(nextValue)) });
-  }, [objectRefs, writeObjectRefs]);
-
-  const setCenterImageScaleValue = useCallback((nextValue) => {
-    writeObjectRefs({ ...objectRefs, [CENTER_IMAGE_SCALE_REF_KEY]: String(centerImageScaleValue(nextValue)) });
   }, [objectRefs, writeObjectRefs]);
 
   const setCenterShape = useCallback((nextShape) => {
@@ -570,10 +564,11 @@ export default function ProfileLitePowerPlaceModule(props) {
       : props.compositionDraft;
     return {
       ...baseDraft,
+      field_scale: innerFieldScale,
       __center_image_scale: centerImageScale,
       cover_ref: normalizeLayeredCoverRef(baseDraft?.cover_ref)
     };
-  }, [activeTemplate, centerImageScale, isClientMandala, props.compositionDraft]);
+  }, [activeTemplate, centerImageScale, innerFieldScale, isClientMandala, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
@@ -599,36 +594,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     </div>
   );
 
-  const innerFieldScaleControl = (
-    <div className="innerFieldScaleControl" aria-label="Размер поля">
-      <span>Размер поля</span>
-      <input
-        type="range"
-        min="48"
-        max="96"
-        step="1"
-        value={innerFieldScale}
-        onChange={(event) => setInnerFieldScaleValue(event.target.value)}
-      />
-      <small>{innerFieldScale}%</small>
-    </div>
-  );
-
-  const centerImageScaleControl = (
-    <div className="centerImageScaleControl" aria-label="Размер центра">
-      <span>Размер центра</span>
-      <input
-        type="range"
-        min="0.65"
-        max="1.45"
-        step="0.01"
-        value={centerImageScale}
-        onChange={(event) => setCenterImageScaleValue(event.target.value)}
-      />
-      <small>{Math.round(centerImageScale * 100)}%</small>
-    </div>
-  );
-
   const centerShapeControl = (
     <div className="centerShapeControl" aria-label="Форма центра">
       <span>Центр</span>
@@ -648,7 +613,6 @@ export default function ProfileLitePowerPlaceModule(props) {
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {printAreaNode ? createPortal(externalTitle, printAreaNode) : null}
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
-      {constructorControlsNode ? createPortal(<>{innerFieldScaleControl}{centerImageScaleControl}</>, constructorControlsNode) : null}
       {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">

@@ -102,6 +102,7 @@ const EMPTY_COMPOSITION = {
   chess_variant: "classic-14",
   chess_slot_scale: 1,
   slot_scale: 1,
+  field_scale: 78,
   cover_ref: null,
   object_refs: {},
   central_photo_id: "",
@@ -223,6 +224,18 @@ function normalizeProfileLiteReport(value) {
     extra_help: String(source.extra_help || "").trim(),
     master_note: ""
   };
+}
+
+function uniqueCompositionCopyTitle(title, compositions) {
+  const baseTitle = String(title || "").trim() || "Место силы";
+  const copyBase = `${baseTitle} копия`;
+  const existingTitles = new Set((compositions || []).map((item) => String(item?.title || "").trim()).filter(Boolean));
+  if (!existingTitles.has(baseTitle)) return baseTitle;
+  if (!existingTitles.has(copyBase)) return copyBase;
+
+  let index = 2;
+  while (existingTitles.has(`${copyBase} ${index}`)) index += 1;
+  return `${copyBase} ${index}`;
 }
 
 function safeFilename(value) {
@@ -897,6 +910,26 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (field === "field_scale") {
+        return {
+          ...current,
+          field_scale: value,
+          object_refs: {
+            ...(current.object_refs || {}),
+            __inner_field_scale: String(value)
+          }
+        };
+      }
+      if (field === "__center_image_scale") {
+        return {
+          ...current,
+          __center_image_scale: value,
+          object_refs: {
+            ...(current.object_refs || {}),
+            __center_image_scale: String(value)
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,
@@ -1040,30 +1073,64 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
   };
 
-  const handleCompositionSave = async () => {
+  const refreshSavedCompositions = async (saved) => {
+    const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
+    const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
+    setPowerPlaceCompositions(freshCompositions.length
+      ? freshCompositions
+      : [saved].filter(Boolean)
+    );
+    if (freshSaved) {
+      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
+    }
+    return freshSaved;
+  };
+
+  const handleCompositionSaveNew = async () => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMandalasError("Сначала сохраните профиль мастера.");
       setMandalasStatus("needs-verification");
       return;
     }
     try {
-      const payload = { ...compositionDraft, profile_id: profile.id };
-      const saved = compositionDraft.id
-        ? await updatePowerPlaceComposition(compositionDraft.id, payload, session)
-        : await createPowerPlaceComposition(payload, accountPlan, session);
-      const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
-      const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
-      setPowerPlaceCompositions(freshCompositions.length
-        ? freshCompositions
-        : [saved].filter(Boolean)
-      );
-      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
-      setCompositionMessage(compositionDraft.id ? "Место силы обновлено." : "Место силы сохранено.");
+      const createPayload = {
+        ...compositionDraft,
+        id: undefined,
+        title: uniqueCompositionCopyTitle(compositionDraft.title, powerPlaceCompositions),
+        profile_id: profile.id
+      };
+      delete createPayload.id;
+      const saved = await createPowerPlaceComposition(createPayload, accountPlan, session);
+      await refreshSavedCompositions(saved);
+      setCompositionMessage("Место силы сохранено.");
       setMandalasStatus("success");
       setMandalasError("");
     } catch (error) {
       setMandalasStatus("needs-verification");
-      setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions save failed or migration/RLS not applied"));
+      setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleCompositionUpdateExisting = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      return;
+    }
+    if (!compositionDraft.id) {
+      setCompositionMessage("Сначала откройте сохранённую мандалу.");
+      return;
+    }
+    try {
+      const payload = { ...compositionDraft, profile_id: profile.id };
+      const saved = await updatePowerPlaceComposition(compositionDraft.id, payload, session);
+      await refreshSavedCompositions(saved);
+      setCompositionMessage("Место силы обновлено.");
+      setMandalasStatus("success");
+      setMandalasError("");
+    } catch (error) {
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions update failed or migration/RLS not applied"));
     }
   };
 
@@ -1265,8 +1332,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
-        onSave={handleCompositionSave}
+        onSaveNew={handleCompositionSaveNew}
         onSendToServices={handleSendCompositionToServices}
+        onUpdateExisting={handleCompositionUpdateExisting}
         onUploadedCentralPhoto={handleUploadedCentralPhoto}
       />
     ),
