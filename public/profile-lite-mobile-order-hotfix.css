@@ -1,2 +1,39 @@
-/* Profile Lite mobile order hotfix */
+/* Profile Lite mobile order hotfix — scoped, no data-flow changes. */
 .profileLiteTabs a[href="/profile"]{display:none!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.outer{display:none!important;}
+.profileLitePowerPlace .coverOffsetOverlay{pointer-events:none!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.inner{inset:0!important;display:block!important;pointer-events:none!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.inner button{position:absolute!important;width:44px!important;min-width:44px!important;height:44px!important;border-radius:16px!important;border:1px solid rgba(126,79,16,.35)!important;background:rgba(255,250,238,.88)!important;color:#5e3c10!important;font-size:21px!important;line-height:1!important;display:grid!important;place-items:center!important;box-shadow:0 10px 24px rgba(80,52,14,.16)!important;backdrop-filter:blur(6px)!important;pointer-events:auto!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.inner button:nth-child(1){top:8px!important;left:8px!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.inner button:nth-child(2){top:8px!important;right:8px!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.inner button:nth-child(3){bottom:8px!important;left:8px!important;}
+.profileLitePowerPlace .coverOffsetCornerGroup.inner button:nth-child(4){right:8px!important;bottom:8px!important;}
+.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis{gap:8px!important;padding:12px!important;}
+.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis .reportField,.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis .resourceField{gap:4px!important;font-size:12px!important;}
+.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis textarea,.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis .reportFieldInput,.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis .resourceFieldInput{min-height:42px!important;height:42px!important;padding:7px 9px!important;font-size:12px!important;line-height:1.25!important;}
+.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis .reportField.disabled{display:none!important;}
+.profileLitePowerPlace .reportSettingsPanel.isMergedReportAnalysis .mergedResourceComparison{display:grid!important;gap:7px!important;margin-top:2px!important;padding-top:8px!important;border-top:1px solid rgba(184,121,29,.18)!important;background:transparent!important;box-shadow:none!important;}
+@media (max-width:760px){
+.profileLiteWorkspace .profileLitePowerPlace.mandalaWorkspace{display:flex!important;flex-direction:column!important;gap:10px!important;}
+.profileLitePowerPlace .workspaceMainColumns.profileLitePowerPlaceColumns{order:1!important;display:flex!important;flex-direction:column!important;gap:10px!important;}
+.profileLitePowerPlace .workspaceCenterColumn{order:1!important;display:flex!important;flex-direction:column!important;gap:10px!important;}
+.profileLitePowerPlace .powerPlaceConstructor{order:1!important;margin-top:0!important;}
+.profileLitePowerPlace .workspaceRightColumn{order:2!important;}
+.profileLitePowerPlace .powerCommandRail.powerPlaceSettings{display:flex!important;flex-direction:column!important;gap:10px!important;}
+.profileLitePowerPlace .coverPickerPanel{order:1!important;}
+.profileLitePowerPlace .mandalaFieldLayoutSwitch{order:2!important;}
+.profileLitePowerPlace .objectImageEditor{order:3!important;}
+.profileLitePowerPlace .reportSettingsPanel{order:8!important;margin-top:8px!important;}
+.profileLitePowerPlace .profileLitePowerPlaceActions{order:3!important;}
+.profileLitePowerPlace .profileLiteAdvancedJson{order:4!important;}
+.profileLitePowerPlace .powerLibrarySidebar{order:99!important;position:static!important;max-height:none!important;grid-template-rows:auto!important;}
+.profileLitePowerPlace .powerLibraryGroups,.profileLitePowerPlace .powerSavedImageList{max-height:none!important;}
+.profileLitePowerPlace .mandalaHero{order:20!important;padding:12px!important;}
+.profileLitePowerPlace .profileLiteShellChrome{order:21!important;}
+.profileLitePowerPlace .workspaceSwitches{order:22!important;}
+.profileLitePowerPlace .cabinetNotice,.profileLitePowerPlace .compactNotice{order:23!important;}
+.profileLitePowerPlace .constructorControls{gap:7px!important;}
+.profileLitePowerPlace .powerPlaceHeader{margin-bottom:4px!important;}
+.profileLitePowerPlace .powerPlaceHeader h2{font-size:20px!important;}
+.profileLitePowerPlace .coverPickerPanel .coverVariantList,.profileLitePowerPlace .coverPickerPanel .coverVariantsGrid{max-height:128px!important;overflow:auto!important;}
+}
