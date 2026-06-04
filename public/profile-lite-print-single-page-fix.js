@@ -6,6 +6,16 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
+      .profileLitePowerPlace .powerMandalaPanel,
+      .powerPlacePdfOnlyArea .powerMandalaPanel {
+        --profile-lite-panel-padding: clamp(28px, 9vw, 44px);
+        display: grid !important;
+        place-items: center !important;
+        justify-items: center !important;
+        align-items: center !important;
+        align-content: center !important;
+        padding: var(--profile-lite-panel-padding) !important;
+      }
       .profileLitePowerPlace .powerMandalaPanel > .power-place-chess,
       .profileLitePowerPlace .powerMandalaPanel > .powerMandala,
       .profileLitePowerPlace .powerMandalaPanel > .altarMandalaSheet,
@@ -26,11 +36,6 @@
         justify-self: center !important;
         align-self: center !important;
       }
-      .profileLitePowerPlace .powerMandalaPanel,
-      .powerPlacePdfOnlyArea .powerMandalaPanel {
-        display: grid !important;
-        place-items: center !important;
-      }
       @media print {
         @page { margin: 0 !important; size: auto; }
         html,
@@ -45,6 +50,10 @@
           overflow: visible !important;
           background: #fffaf0 !important;
         }
+        body.printMandalaOnly main {
+          display: grid !important;
+          place-items: start center !important;
+        }
         body.printMandalaOnly .powerPlacePdfOnlyArea {
           width: 100% !important;
           height: auto !important;
@@ -54,6 +63,7 @@
           display: grid !important;
           justify-items: center !important;
           align-items: start !important;
+          gap: 0 !important;
           break-after: avoid !important;
           page-break-after: avoid !important;
           break-inside: avoid !important;
@@ -64,28 +74,29 @@
           display: none !important;
         }
         body.printMandalaOnly .powerPlacePdfOnlyArea .powerPlaceExternalTitle {
-          margin: 0 auto 4mm !important;
+          margin: 0 auto 3mm !important;
           padding: 0 !important;
           break-after: avoid !important;
           page-break-after: avoid !important;
         }
         body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel {
-          width: min(92vw, 92vh) !important;
+          width: min(92vw, 88vh) !important;
           max-width: 100% !important;
-          max-height: 92vh !important;
+          max-height: 88vh !important;
           margin: 0 auto !important;
           break-inside: avoid !important;
           page-break-inside: avoid !important;
           break-after: avoid !important;
           page-break-after: avoid !important;
+          overflow: visible !important;
         }
         body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical,
         body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle {
-          width: min(92vw, 52vh) !important;
+          width: min(90vw, 49vh) !important;
           aspect-ratio: 9 / 16 !important;
         }
         body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
-          width: min(92vw, 92vh) !important;
+          width: min(92vw, 88vh) !important;
           aspect-ratio: 16 / 9 !important;
         }
         .coverOffsetOverlay,
@@ -101,22 +112,28 @@
     document.head.appendChild(style);
   }
 
+  function readScale() {
+    const textarea = document.querySelector('.profileLiteAdvancedJson textarea');
+    if (!textarea) return 78;
+    try {
+      const refs = JSON.parse(textarea.value || '{}') || {};
+      const raw = Number(refs.__inner_field_scale);
+      if (Number.isFinite(raw)) return Math.min(100, Math.max(48, raw));
+    } catch {}
+    return 78;
+  }
+
   function applyScale() {
     injectStyle();
-    const textarea = document.querySelector('.profileLiteAdvancedJson textarea');
-    let scale = 78;
-    if (textarea) {
-      try {
-        const refs = JSON.parse(textarea.value || '{}') || {};
-        const raw = Number(refs.__inner_field_scale);
-        if (Number.isFinite(raw)) scale = Math.min(100, Math.max(48, raw));
-      } catch {}
-    }
+    const scale = readScale();
+    const panelPadding = Math.max(0, Math.round(44 * ((100 - scale) / 52)));
     document.querySelectorAll('.profileLitePowerPlace .powerMandalaPanel, .powerPlacePdfOnlyArea .powerMandalaPanel').forEach((panel) => {
       panel.style.setProperty('--profile-lite-inner-field-scale', `${scale}%`);
+      panel.style.setProperty('--profile-lite-panel-padding', `${panelPadding}px`);
     });
     document.querySelectorAll('.innerFieldScaleControl input[type="range"]').forEach((input) => {
       input.max = '100';
+      if (Number(input.value) > 100) input.value = '100';
     });
   }
 
