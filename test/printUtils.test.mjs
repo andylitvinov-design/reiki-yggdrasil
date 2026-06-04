@@ -70,4 +70,14 @@ const gcs = (node) => node._cs ?? { backgroundImage: "none", getPropertyValue: (
   console.log("PASS: deduplication");
 }
 
+// does not throw when getComputedStyle throws
+{
+  const throwing = () => { throw new Error("permission denied"); };
+  const el = makeEl('background-image: url("/safe.jpg")', "none", {});
+  let result;
+  assert.doesNotThrow(() => { result = extractCssUrls(el, throwing); }, "must not throw when gcs throws");
+  assert.ok(Array.isArray(result), "must still return an array when gcs throws");
+  console.log("PASS: does not throw when getComputedStyle throws");
+}
+
 console.log("\nAll printUtils tests passed.");

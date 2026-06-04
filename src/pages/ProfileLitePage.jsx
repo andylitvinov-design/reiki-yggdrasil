@@ -261,24 +261,32 @@ function collectPrintableStyles() {
   }).join("\n");
 }
 
-function preloadImages(urls, timeout = 5500) {
+function preloadImagesForPrint(urls, timeoutMs = 2500) {
   if (!urls.length) return Promise.resolve();
+  if (typeof Image === "undefined") return Promise.resolve();
   return new Promise((resolve) => {
     let remaining = urls.length;
     let settled = false;
     const finish = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
     const decrement = () => { if (--remaining <= 0) finish(); };
-    const timer = setTimeout(finish, timeout);
+    const timer = setTimeout(finish, timeoutMs);
     urls.forEach((src) => {
-      const img = new Image();
-      img.onload = img.onerror = decrement;
-      img.src = src;
+      try {
+        const img = new Image();
+        img.onload = img.onerror = decrement;
+        img.src = src;
+      } catch (_) {
+        decrement();
+      }
     });
   });
 }
 
 function raf2(win) {
-  return new Promise((res) => win.requestAnimationFrame(() => win.requestAnimationFrame(res)));
+  if (typeof win.requestAnimationFrame === "function") {
+    return new Promise((res) => win.requestAnimationFrame(() => win.requestAnimationFrame(res)));
+  }
+  return new Promise((res) => setTimeout(res, 32));
 }
 
 function openPowerPlacePdfPrintView(title) {
@@ -317,7 +325,7 @@ function openPowerPlacePdfPrintView(title) {
   printWindow.document.close();
 
   Promise.all([
-    preloadImages(imageUrls),
+    preloadImagesForPrint(imageUrls),
     printWindow.document.fonts?.ready ?? Promise.resolve(),
   ])
     .then(() => raf2(printWindow))
