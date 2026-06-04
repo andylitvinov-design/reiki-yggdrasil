@@ -153,11 +153,34 @@ assert.ok(
   "Base module must not use imageStyle() directly for inner surface elements (use innerCoverImageStyle instead)"
 );
 
-// ─── Chess cover-none remains neutral (no gold flow) ──────────────────────────
+// ─── Chess cover-none is fully transparent (outer background shows through) ────
 
 assert.ok(
-  chessNoneBlock.includes("rgba(244, 241, 235"),
-  "chess cover-none must use neutral warm background, not gold gradient"
+  chessNoneBlock.includes("transparent"),
+  "chess cover-none must be transparent so the outer panel background shows through"
+);
+
+assert.ok(
+  !chessNoneBlock.includes("rgba(244, 241, 235"),
+  "chess cover-none must not use the old warm neutral fill — must be transparent"
+);
+
+// chess cells should also be transparent in cover-none
+assert.ok(
+  cssSource.includes(".power-place-chess.cover-none .power-place-chess__board"),
+  "chess cover-none must set the board itself to transparent"
+);
+
+// ─── Dynamic style: zodiacClockFace / daoUsinCore follow centerShape ──────────
+
+assert.ok(
+  moduleSource.includes(".zodiacClockFace") && moduleSource.includes("border-radius: ${centerRadius}"),
+  "dynamic style must apply centerRadius to zodiacClockFace so square mode removes the clock-face circle"
+);
+
+assert.ok(
+  moduleSource.includes(".daoUsinCore") && moduleSource.includes("border-radius: ${centerRadius}"),
+  "dynamic style must apply centerRadius to daoUsinCore so square mode removes the DAO core circle"
 );
 
 console.log("powerPlaceStyleContract: all assertions passed");
