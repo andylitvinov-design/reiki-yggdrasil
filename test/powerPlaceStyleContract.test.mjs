@@ -183,4 +183,56 @@ assert.ok(
   "dynamic style must apply centerRadius to daoUsinCore so square mode removes the DAO core circle"
 );
 
+// ─── Issue #244: vertical format and photo controls ─────────────────────────
+
+assert.ok(
+  moduleSource.includes('const CENTER_WINDOW_SCALE_REF_KEY = "__center_window_scale"'),
+  "dynamic module must define __center_window_scale for backward-compatible center window sizing"
+);
+
+assert.ok(
+  moduleSource.includes("--power-center-window-scale"),
+  "dynamic module must expose --power-center-window-scale for center frame/window sizing"
+);
+
+assert.ok(
+  baseSource.includes('label: "Размер центра"') && baseSource.includes('field: "__center_window_scale"'),
+  "Размер центра must map to __center_window_scale, not image scale"
+);
+
+assert.ok(
+  baseSource.includes('label: "Размер фоток"') && baseSource.includes('field: "__center_image_scale"'),
+  "Размер фоток must map to __center_image_scale for image content scaling"
+);
+
+assert.ok(
+  !moduleSource.includes('className="coverOffsetCornerGroup outer"'),
+  "outer cover movement arrows must not be rendered"
+);
+
+assert.ok(
+  !moduleSource.includes('shiftCoverOffset("outer"'),
+  "UI must not call shiftCoverOffset for the outer layer"
+);
+
+assert.ok(
+  !moduleSource.includes("calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1))"),
+  "center image background-size must not force two axes because vertical photos stretch"
+);
+
+assert.ok(
+  moduleSource.includes("background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important"),
+  "center image background-size must scale proportionally"
+);
+
+assert.ok(
+  moduleSource.includes("aspect-ratio: 9 / 19.5 !important"),
+  "dynamic vertical/rectangle outer and inner surfaces must use 9 / 19.5"
+);
+
+assert.ok(
+  cssSource.includes("aspect-ratio: 9 / 19.5 !important"),
+  "static Profile Lite CSS must include 9 / 19.5 vertical/rectangle fallback"
+);
+
 console.log("powerPlaceStyleContract: all assertions passed");

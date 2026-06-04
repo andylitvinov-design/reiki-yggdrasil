@@ -974,6 +974,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (field === "__center_window_scale") {
+        return {
+          ...current,
+          __center_window_scale: value,
+          object_refs: {
+            ...(current.object_refs || {}),
+            __center_window_scale: String(value)
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,

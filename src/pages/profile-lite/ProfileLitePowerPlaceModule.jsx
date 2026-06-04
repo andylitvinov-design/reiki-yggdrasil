@@ -12,6 +12,7 @@ const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
+const CENTER_WINDOW_SCALE_REF_KEY = "__center_window_scale";
 const CENTER_SHAPE_REF_KEY = "__center_shape";
 
 const CONSTRUCTOR_LABELS = {
@@ -42,6 +43,12 @@ function centerImageScaleValue(value) {
   return Math.min(1.45, Math.max(0.65, parsed));
 }
 
+function centerWindowScaleValue(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(1.45, Math.max(0.65, parsed));
+}
+
 function centerShapeValue(value) {
   return value === "circle" ? "circle" : "square";
 }
@@ -62,13 +69,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage,
 .powerPlacePdfOnlyArea .starCenterPhoto.hasImage,
 .powerPlacePdfOnlyArea .daoCenterPhoto.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
 .profileLitePowerPlace .power-place-chess__center.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__center.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
@@ -90,7 +97,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style],
 .powerPlacePdfOnlyArea .starPositionImage[style],
 .powerPlacePdfOnlyArea .daoElementImage.hasImage {
-  background-size: cover !important;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   background-color: transparent !important;
@@ -231,7 +238,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle {
-  aspect-ratio: 9 / 16 !important;
+  aspect-ratio: 9 / 19.5 !important;
   width: min(430px, 100%) !important;
   min-height: auto !important;
 }
@@ -266,6 +273,52 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   border-radius: ${centerRadius} !important;
   overflow: hidden !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
+}
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .power-place-chess,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .power-place-chess,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .powerMandala,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .altarMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .businessMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .starMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .power-place-chess,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .powerMandala,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .altarMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .businessMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .zodiacMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .starMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .power-place-chess,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .powerMandala,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .altarMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .businessMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .zodiacMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .starMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet {
+  aspect-ratio: 9 / 19.5 !important;
+}
+.profileLitePowerPlace .powerCenterPhoto,
+.profileLitePowerPlace .altarCenterPhoto,
+.profileLitePowerPlace .businessCenterPhoto,
+.profileLitePowerPlace .zodiacCenterPhoto,
+.profileLitePowerPlace .starCenterPhoto,
+.profileLitePowerPlace .daoCenterPhoto,
+.profileLitePowerPlace .power-place-chess__center,
+.powerPlacePdfOnlyArea .powerCenterPhoto,
+.powerPlacePdfOnlyArea .altarCenterPhoto,
+.powerPlacePdfOnlyArea .businessCenterPhoto,
+.powerPlacePdfOnlyArea .zodiacCenterPhoto,
+.powerPlacePdfOnlyArea .starCenterPhoto,
+.powerPlacePdfOnlyArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .power-place-chess__center {
+  scale: var(--power-center-window-scale, 1) !important;
 }
 .profileLitePowerPlace .powerMandalaPanel[style] .zodiacClockFace,
 .profileLitePowerPlace .powerMandalaPanel[style] .daoUsinCore,
@@ -508,6 +561,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
   const innerFieldScale = innerFieldScaleValue(objectRefs[INNER_FIELD_SCALE_REF_KEY]);
   const centerImageScale = centerImageScaleValue(objectRefs[CENTER_IMAGE_SCALE_REF_KEY]);
+  const centerWindowScale = centerWindowScaleValue(objectRefs[CENTER_WINDOW_SCALE_REF_KEY]);
   const centerShape = centerShapeValue(objectRefs[CENTER_SHAPE_REF_KEY]);
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
@@ -588,9 +642,10 @@ export default function ProfileLitePowerPlaceModule(props) {
       ...baseDraft,
       field_scale: innerFieldScale,
       __center_image_scale: centerImageScale,
+      __center_window_scale: centerWindowScale,
       cover_ref: normalizeLayeredCoverRef(baseDraft?.cover_ref)
     };
-  }, [activeTemplate, centerImageScale, innerFieldScale, isClientMandala, props.compositionDraft]);
+  }, [activeTemplate, centerImageScale, centerWindowScale, innerFieldScale, isClientMandala, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
@@ -606,12 +661,6 @@ export default function ProfileLitePowerPlaceModule(props) {
         <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">→</button>
         <button type="button" onClick={() => shiftCoverOffset("inner", "y", -5)} aria-label="Сдвинуть внутренний фон вверх">↑</button>
         <button type="button" onClick={() => shiftCoverOffset("inner", "y", 5)} aria-label="Сдвинуть внутренний фон вниз">↓</button>
-      </div>
-      <div className="coverOffsetCornerGroup outer" aria-label="Смещение внешнего фона">
-        <button type="button" onClick={() => shiftCoverOffset("outer", "x", -5)} aria-label="Сдвинуть внешний фон влево">←</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "x", 5)} aria-label="Сдвинуть внешний фон вправо">→</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "y", -5)} aria-label="Сдвинуть внешний фон вверх">↑</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "y", 5)} aria-label="Сдвинуть внешний фон вниз">↓</button>
       </div>
     </div>
   );
