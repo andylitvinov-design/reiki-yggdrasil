@@ -93,6 +93,7 @@ const EMPTY_TRADITION_ASSET = {
 const EMPTY_COMPOSITION = {
   id: "",
   title: "",
+  field_layout: "square",
   constructor_type: "zodiac",
   geometry: 4,
   zodiac_variant: "classic-12",
@@ -114,6 +115,8 @@ const EMPTY_COMPOSITION = {
   resource_with_mandala_comment: ""
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -227,6 +230,15 @@ function normalizeProfileLiteReport(value) {
     extra_help: String(source.extra_help || "").trim(),
     master_note: ""
   };
+}
+
+function normalizeFieldLayout(value) {
+  const layout = String(value || "").trim();
+  return VALID_FIELD_LAYOUTS.includes(layout) ? layout : "square";
+}
+
+function fieldLayoutFromComposition(composition) {
+  return normalizeFieldLayout(composition?.field_layout ?? composition?.object_refs?.[FIELD_LAYOUT_REF_KEY]);
 }
 
 function uniqueCompositionCopyTitle(title, compositions) {
@@ -954,6 +966,17 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (field === "field_layout") {
+        const fieldLayout = normalizeFieldLayout(value);
+        return {
+          ...current,
+          field_layout: fieldLayout,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [FIELD_LAYOUT_REF_KEY]: fieldLayout
+          }
+        };
+      }
       if (field === "field_scale") {
         return {
           ...current,
@@ -989,7 +1012,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const handleCompositionObjectRefsChange = (value) => {
     try {
       const refs = value.trim() ? JSON.parse(value) : {};
-      setCompositionDraft((current) => ({ ...current, object_refs: refs }));
+      setCompositionDraft((current) => ({
+        ...current,
+        field_layout: fieldLayoutFromComposition({ ...current, object_refs: refs }),
+        object_refs: refs
+      }));
       setCompositionMessage("");
     } catch {
       setCompositionMessage("Object refs JSON: needs verification, исправьте формат JSON.");
@@ -1111,6 +1138,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
+      field_layout: fieldLayoutFromComposition(composition),
       object_refs: composition.object_refs || {},
       object_ref_urls: composition.object_ref_urls || {}
     });
@@ -1125,7 +1153,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       : [saved].filter(Boolean)
     );
     if (freshSaved) {
-      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
+      setCompositionDraft({
+        ...EMPTY_COMPOSITION,
+        ...freshSaved,
+        id: freshSaved?.id || "",
+        field_layout: fieldLayoutFromComposition(freshSaved)
+      });
     }
     return freshSaved;
   };
@@ -1164,7 +1197,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         const without = current.filter((item) => item.id !== saved.id);
         return [saved, ...without];
       });
-      setCompositionDraft((current) => ({ ...EMPTY_COMPOSITION, ...saved, id: saved.id, object_refs: saved.object_refs || current.object_refs || {}, object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {} }));
+      setCompositionDraft((current) => ({
+        ...EMPTY_COMPOSITION,
+        ...saved,
+        id: saved.id,
+        field_layout: fieldLayoutFromComposition(saved),
+        object_refs: saved.object_refs || current.object_refs || {},
+        object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
+      }));
       setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы.");
       setMandalasStatus("success");
     } catch (error) {
