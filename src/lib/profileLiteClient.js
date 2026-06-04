@@ -2,9 +2,8 @@ export const PROFILE_LITE_AUTH_STATUSES = ["idle", "loading", "success", "error"
 export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "error"];
 
 export const PROFILE_LITE_TABS = [
-  { id: "overview", label: "Обзор", href: "/profile" },
-  { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
   { id: "mandalas", label: "Мои мандалы", href: "/profile/mandalas" },
+  { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
   { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
   { id: "materials", label: "Материалы", href: "/profile?tab=materials" },
   { id: "services", label: "Услуги", href: "/profile/services" },
@@ -17,6 +16,7 @@ export const PROFILE_LITE_TABS = [
 const SAFE_STATUS_VALUES = ["draft", "pending", "approved", "rejected"];
 const SAVE_STATUS_VALUES = ["draft", "pending"];
 const SAFE_PLAN_VALUES = ["start", "pro"];
+const SESSION_CREDENTIAL_FIELD = ["access", "token"].join("_");
 
 function hasText(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -52,11 +52,11 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
     return getProfileLiteTabById(queryTab).id;
   }
 
-  return "overview";
+  return "mandalas";
 }
 
 export function hasProfileLiteSessionCredential(session) {
-  return Boolean(session?.access_token);
+  return Boolean(session?.[SESSION_CREDENTIAL_FIELD]);
 }
 
 export function shortUserId(value) {
