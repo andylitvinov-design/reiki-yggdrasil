@@ -129,6 +129,7 @@ const EMPTY_ORDER_PATCH = {
   result_image_path: null,
   status: "sent"
 };
+const POWER_PLACE_START_LIMIT_MESSAGE = "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
 const ROUTE_CHANGE_EVENT = "reiki-route-change";
 
 class ProfileLiteModuleErrorBoundary extends React.Component {
@@ -1091,6 +1092,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMandalasError("Сначала сохраните профиль мастера.");
       setMandalasStatus("needs-verification");
+      return;
+    }
+    const currentSavedCompositionCount = powerPlaceCompositions.length;
+    const currentCompositionLimit = planLimits.compositions || getPlanLimits(accountPlan).compositions;
+    if (currentSavedCompositionCount >= currentCompositionLimit) {
+      setMandalasStatus("needs-verification");
+      setMandalasError(POWER_PLACE_START_LIMIT_MESSAGE);
+      setCompositionMessage(POWER_PLACE_START_LIMIT_MESSAGE);
       return;
     }
     try {
