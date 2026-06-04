@@ -139,7 +139,9 @@ const diagnosticText = JSON.stringify(createProfileLiteDiagnostics({
   authStatus: "success"
 }));
 
-assert.doesNotMatch(diagnosticText, /present/);
+assert.doesNotMatch(diagnosticText, new RegExp(`"${credentialField}"\\\\s*:`), "diagnostics must not expose credential field names");
+assert.doesNotMatch(diagnosticText, /fake|token|secret|Bearer/i, "diagnostics must not expose credential values");
+assert.match(diagnosticText, /user id present/, "diagnostics may include safe presence labels");
 assert.equal(safeProfileLiteError(new Error("failed https://project.example/path")), "failed [url hidden]");
 
 const moduleDir = "src/pages/profile-lite";
@@ -220,14 +222,27 @@ for (const requiredClass of [
   "objectImageEditor",
   "clientPhotoPickerModal"
 ]) {
-  assert.match(powerPlaceSource, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
+  assert.match(`${powerPlaceSource}\n${profileMandalaCss}`, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
 }
 
 assert.match(powerPlaceSource, /<aside className="mandalaModeSidebar powerLibrarySidebar"[\s\S]*<div className="workspaceCenterColumn"[\s\S]*<div className="workspaceRightColumn"/, "Lite Power Place should preserve desktop left / center / right source order");
 assert.match(powerPlaceSource, /data-compact-photo-list="true"/, "Profile Lite source rail should expose a compact photo list marker");
-assert.match(powerPlaceSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
+assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
 assert.match(profileLitePageSource, /slot_scale:\s*1/, "Profile Lite empty composition should include the shared slot_scale field");
 assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace CSS should include shared source slot scaling");
+assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
+assert.match(powerPlaceSource, /has-custom-outer-cover/, "outer custom covers should be rendered through React-owned classes");
+assert.match(powerPlaceSource, /coverLayerMode === "outer" \? "custom-outer-cover" : "custom-cover"/, "saved cover photos should use stable custom inner/outer cover ids");
+assert.match(profileLitePageSource, /\[nextLayer\.src\]: nextLayer\.display_src/, "cover signed URLs should be stored by durable storage ref");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.has-custom-inner-cover/, "custom inner cover styling should be scoped to Profile Lite");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaPanel\.has-custom-outer-cover/, "custom outer cover styling should be scoped to the outer panel");
+
+const publicFiles = readdirSync("public");
+assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
+assert.equal(publicFiles.includes("profile-lite-custom-inner-cover-fix.js"), false, "new public inner cover runtime patch must not be present");
+assert.equal(publicFiles.includes("profile-lite-custom-inner-cover-fix.css"), false, "new public inner cover CSS patch must not be present");
+assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
+assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
 
 assert.match(mobileOrderCss, /profile-lite-mobile order hotfix|Profile Lite mobile order hotfix/i, "mobile order CSS should be present");
 assert.match(mobileOrderCss, /profileLiteTabs a\[href="\/profile"\]/, "mobile order CSS should hide the Overview tab link");

@@ -1,5 +1,54 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-04 — Rebuild Profile Lite Power Place polish safely
+
+- Branch: `codex/rebuild-profile-lite-power-place-polish`.
+- Base: fresh `origin/main` at rollback commit `ed9b166`.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause / rollback context:
+  - PR #232 reverted the accumulated PR #227-#231 public CSS/JS patch layers because they caused mobile Power Place regressions: crossed card borders, collapsed Zodiac, text overlap, and weak lower-module boundaries.
+- Changed:
+  - rebuilt button polish in scoped Profile Lite CSS instead of public runtime patches;
+  - enlarged mini slots through chess/source slot selectors only;
+  - restored mobile source rail readability with scoped card/list sizing;
+  - limited saved cover shortcuts to valid saved image refs;
+  - normalized saved photo cover selection to `custom-cover` / `custom-outer-cover`;
+  - rendered custom inner/outer covers through React-owned classes and existing signed URL hydration.
+- Intentionally not restored:
+  - `profile-power-place-cover-polish.js`;
+  - `profile-lite-custom-inner-cover-fix.js`;
+  - new `MutationObserver` or new public runtime CSS injection.
+- Checks run:
+  - `npm install`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all commands exited `0`;
+  - existing warnings remained: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4317/profile/mandalas`;
+  - viewport: 390x900;
+  - mocked public Supabase env/session and REST/Storage responses only;
+  - baseline before edits had horizontal overflow `0`, stable cards, and non-collapsed formats;
+  - after edits: horizontal overflow stayed `0`; Zodiac, Mandala, Chess, Star, Altar, Business, and DAO remained usable; source rail measured full mobile width; saved cover shortcuts were visible; custom inner and outer cover backgrounds rendered from signed URLs; save/reopen preserved rendered covers through hydrated `cover_ref`.
+- Not verified:
+  - real authenticated Supabase upload/save/reload;
+  - Vercel preview;
+  - merge/deploy;
+  - live target and legacy URLs.
+
 ## 2026-06-03 — Emergency rollback for issue #213 Profile Lite loading regression
 
 - Branch: `codex/revert-issue213-loading-regression`.
