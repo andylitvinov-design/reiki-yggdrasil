@@ -98,3 +98,22 @@ assert.equal(order.service.title, "Услуга");
 assert.equal(order.service.price_amount, 90);
 assert.equal(serviceStatusText("published"), "Размещено");
 assert.equal(orderStatusText("in_progress"), "В работе");
+
+// composition_id is normalized through normalizeServiceForm
+const withComposition = normalizeServiceForm({ profile_id: "p1", composition_id: " comp-abc ", title: "Т" }, "draft");
+assert.equal(withComposition.composition_id, "comp-abc", "normalizeServiceForm should trim and pass composition_id");
+
+const withoutComposition = normalizeServiceForm({ profile_id: "p1" }, "draft");
+assert.equal(withoutComposition.composition_id, null, "normalizeServiceForm should convert empty composition_id to null");
+
+// duplicate guard: services filtered by composition_id
+const servicesList = [
+  normalizeServiceRow({ id: "s1", profile_id: "p1", composition_id: "comp-1", title: "Услуга 1", status: "draft" }),
+  normalizeServiceRow({ id: "s2", profile_id: "p1", composition_id: null, title: "Услуга 2", status: "draft" })
+];
+const duplicate = servicesList.find((s) => s.composition_id && String(s.composition_id) === String("comp-1"));
+assert.ok(duplicate, "duplicate guard should find an existing service by composition_id");
+const noDuplicate = servicesList.find((s) => s.composition_id && String(s.composition_id) === String("comp-2"));
+assert.equal(noDuplicate, undefined, "duplicate guard should not find a service for a different composition_id");
+
+console.log("profileServicesClient: all assertions passed.");

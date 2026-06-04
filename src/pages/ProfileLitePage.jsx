@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { extractCssUrls } from "../lib/printUtils.js";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
@@ -261,13 +262,44 @@ function collectPrintableStyles() {
   }).join("\n");
 }
 
+function preloadImagesForPrint(urls, timeoutMs = 2500) {
+  if (!urls.length) return Promise.resolve();
+  if (typeof Image === "undefined") return Promise.resolve();
+  return new Promise((resolve) => {
+    let remaining = urls.length;
+    let settled = false;
+    const finish = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
+    const decrement = () => { if (--remaining <= 0) finish(); };
+    const timer = setTimeout(finish, timeoutMs);
+    urls.forEach((src) => {
+      try {
+        const img = new Image();
+        img.onload = img.onerror = decrement;
+        img.src = src;
+      } catch (_) {
+        decrement();
+      }
+    });
+  });
+}
+
+function raf2(win) {
+  if (typeof win.requestAnimationFrame === "function") {
+    return new Promise((res) => win.requestAnimationFrame(() => win.requestAnimationFrame(res)));
+  }
+  return new Promise((res) => setTimeout(res, 32));
+}
+
 function openPowerPlacePdfPrintView(title) {
   const printArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
   if (!printArea) throw new Error("Макет мандалы не найден.");
 
   const filename = `${safeFilename(title || "power-place")}.pdf`;
+  // window.open must stay synchronous on the click event stack
   const printWindow = window.open("", "_blank", "width=980,height=900");
   if (!printWindow) throw new Error("Разрешите всплывающее окно для печати в PDF.");
+
+  const imageUrls = extractCssUrls(printArea);
 
   const clonedArea = printArea.cloneNode(true);
   clonedArea.classList.add("powerPlacePdfOnlyArea");
@@ -282,18 +314,28 @@ function openPowerPlacePdfPrintView(title) {
     body{margin:0;background:#fffaf0;color:#2f2418}
     body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:100vh!important}
     @page{size:auto;margin:10mm}
+    #pdfStatus{position:fixed;top:0;left:0;right:0;padding:12px;background:#f5f0e8;text-align:center;font-family:sans-serif;font-size:14px;color:#5a4030;z-index:9999}
   </style>
 </head>
 <body class="printMandalaOnly">
+  <div id="pdfStatus">Подготовка PDF: загружаем изображения…</div>
   <main aria-label="Скачать PDF / Печать в PDF"></main>
 </body>
 </html>`);
   printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
   printWindow.document.close();
-  printWindow.setTimeout(() => {
-    printWindow.focus();
-    printWindow.print();
-  }, 250);
+
+  Promise.all([
+    preloadImagesForPrint(imageUrls),
+    printWindow.document.fonts?.ready ?? Promise.resolve(),
+  ])
+    .then(() => raf2(printWindow))
+    .then(() => {
+      const status = printWindow.document.getElementById("pdfStatus");
+      if (status) status.style.display = "none";
+      printWindow.focus();
+      printWindow.print();
+    });
 }
 
 export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
@@ -1102,6 +1144,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setCompositionMessage(POWER_PLACE_START_LIMIT_MESSAGE);
       return;
     }
+    setMandalasError("");
+    let saved = null;
     try {
       const createPayload = {
         ...compositionDraft,
@@ -1110,14 +1154,28 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         profile_id: profile.id
       };
       delete createPayload.id;
-      const saved = await createPowerPlaceComposition(createPayload, accountPlan, session);
-      await refreshSavedCompositions(saved);
-      setCompositionMessage("Место силы сохранено.");
+      saved = await createPowerPlaceComposition(createPayload, accountPlan, session);
+      if (!saved?.id) {
+        setMandalasStatus("needs-verification");
+        setMandalasError("Место силы не сохранилось: сервер не вернул запись. Проверьте Supabase RLS/migration.");
+        return;
+      }
+      setPowerPlaceCompositions((current) => {
+        const without = current.filter((item) => item.id !== saved.id);
+        return [saved, ...without];
+      });
+      setCompositionDraft((current) => ({ ...EMPTY_COMPOSITION, ...saved, id: saved.id, object_refs: saved.object_refs || current.object_refs || {}, object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {} }));
+      setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы.");
       setMandalasStatus("success");
-      setMandalasError("");
     } catch (error) {
       setMandalasStatus("needs-verification");
-      setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied"));
+      setMandalasError("Место силы не сохранилось: " + moduleError(error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied"));
+      return;
+    }
+    try {
+      await refreshSavedCompositions(saved);
+    } catch {
+      // refresh failed but composition was created — keep the optimistic state
     }
   };
 
@@ -1141,6 +1199,44 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     } catch (error) {
       setMandalasStatus("needs-verification");
       setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions update failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleAddCompositionToServices = async (composition) => {
+    if (!composition?.id) {
+      setCompositionMessage("Сначала сохраните мандалу.");
+      return;
+    }
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    const duplicate = services.find((service) => service.composition_id && String(service.composition_id) === String(composition.id));
+    if (duplicate) {
+      setCompositionMessage("Эта мандала уже есть в Моих услугах.");
+      return;
+    }
+    const imageUrl = (composition.cover_ref?.inner?.src || composition.cover_ref?.src) || "";
+    try {
+      const saved = await createOwnService({
+        profile_id: profile.id,
+        composition_id: composition.id,
+        title: composition.title || "Мандала Места Силы",
+        description: "Услуга подготовлена из сохранённой мандалы.",
+        image_url: imageUrl,
+        status: "draft"
+      }, session);
+      if (saved) {
+        setServices((current) => [saved, ...current.filter((item) => item.id !== saved.id)].filter(Boolean));
+        setServicesStatus("success");
+        setServicesError("");
+      }
+      setCompositionMessage("Мандала добавлена в Мои услуги.");
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServicesError(moduleError(error, "profile_cabinet_services create failed or migration/RLS not applied"));
+      setCompositionMessage("Не удалось добавить в Мои услуги: " + moduleError(error, "profile_cabinet_services request failed"));
     }
   };
 
@@ -1338,6 +1434,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onCompositionObjectRefSelect={setCompositionObjectRef}
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
         onCoverFileUpload={handleCompositionCoverFileUpload}
+        onAddCompositionToServices={handleAddCompositionToServices}
         onDownload={handleDownloadComposition}
         onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
