@@ -305,3 +305,25 @@ assert.match(layoutFinalFix, /Отчёт и анализ/, "layout fix should me
 assert.match(layoutFinalFix, /mergedResourceComparison/, "layout fix should move resource comparison into the report card");
 assert.match(layoutFinalFix, /__inner_cover_offset_x[\s\S]*__inner_cover_offset_y/, "diagonal arrows should update only inner cover offsets");
 assert.doesNotMatch(layoutFinalFix, /__outer_cover_offset_x|__outer_cover_offset_y/, "diagonal arrows must not update outer cover offsets");
+
+// --- A: Composition save chain fixes ---
+assert.match(profileLitePageSource, /saved\?\.id[\s\S]*Место силы не сохранилось|Место силы не сохранилось[\s\S]*saved\?\.id/, "save should validate that the server returned a row with an id before showing success");
+assert.match(profileLitePageSource, /Место силы не сохранилось:/, "save error message should use the required Russian error prefix");
+assert.match(profileLitePageSource, /Место силы сохранено и добавлено в Мои мандалы/, "save success message should mention Мои мандалы");
+assert.match(profileLitePageSource, /setPowerPlaceCompositions[\s\S]*saved[\s\S]*without|setPowerPlaceCompositions\(\(current\)/, "after successful save the new composition should be optimistically added to the list before list refresh");
+assert.match(profileLitePageSource, /setCompositionDraft[\s\S]*EMPTY_COMPOSITION[\s\S]*saved[\s\S]*id: saved\.id|setCompositionDraft\(\(current\) => \{[\s\S]*saved\.id/, "after save compositionDraft.id should be updated to the new saved id");
+
+// --- C: Мои услуги in Мои мандалы tab ---
+assert.match(powerPlaceBaseSource, /onAddCompositionToServices/, "ProfileLitePowerPlaceModuleBase should accept onAddCompositionToServices prop");
+assert.match(powerPlaceBaseSource, /Добавить в мои услуги/, "composition cards in Мои мандалы should expose the add-to-services button");
+assert.match(powerPlaceBaseSource, /Эта мандала уже есть в Моих услугах/, "add-to-services button should be disabled with the required message when already in services");
+assert.match(powerPlaceBaseSource, /profileLiteMyServicesSection/, "Мои мандалы tab should contain the services section wrapper class");
+assert.match(powerPlaceBaseSource, /Выбранные мандалы появятся здесь после добавления в услуги/, "empty Мои услуги section should show the required placeholder text");
+assert.match(powerPlaceBaseSource, /services\.filter[\s\S]*composition_id/, "Мои услуги section should filter services by composition_id");
+assert.match(profileLitePageSource, /handleAddCompositionToServices/, "ProfileLitePage should expose handleAddCompositionToServices");
+assert.match(profileLitePageSource, /Сначала сохраните мандалу/, "add-to-services without a saved id should show the required message");
+assert.match(profileLitePageSource, /Эта мандала уже есть в Моих услугах/, "add-to-services duplicate guard should show the required message");
+assert.match(profileLitePageSource, /Мандала добавлена в Мои услуги/, "successful add-to-services should show the required confirmation message");
+assert.match(profileLitePageSource, /composition_id: composition\.id/, "add-to-services should pass composition_id to createOwnService");
+
+console.log("Profile Lite cabinet contract: all assertions passed.");
