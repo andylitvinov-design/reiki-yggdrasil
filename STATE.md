@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 ## Current verified repo state
 
@@ -11,6 +11,24 @@ Last updated: 2026-06-04
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-06-05 — Power Place save flow and action order
+
+- Branch: `fix/power-place-save-flow-and-action-order`, based on fresh `origin/main` at `c328798` after PR #262.
+- Scope: Profile Lite Power Place save flow, mobile/source action-order contract, and focused tests/docs only; Supabase schema, env values, Vercel rewrites, PDF/print logic, outer arrows, central photo proportions, and public home page were not changed.
+- Changed:
+  - split create-time failure messages for the pre-insert saved-count check and the Supabase POST stage;
+  - kept the optimistic saved composition visible if the post-create list refresh fails, with a visible RU status telling the user the list did not refresh;
+  - preserved the server-returned-id guard before showing success;
+  - added a DOM/CSS contract that keeps `Название мандалы` before the action buttons and prevents CSS reordering of the button group above the title.
+- Verification:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing count-stage error, then passed after the fix;
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-services`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Not verified:
+  - real authenticated Supabase save/update/reload in production data;
+  - browser visual QA, because the Playwright MCP transport closed and Chrome DevTools MCP could not attach to its locked browser profile in this session;
+  - Vercel preview, merge/deploy, production/legacy live rendering, and Google OAuth.
 
 ## 2026-06-04 — Profile Lite Power Place graphic layout final
 

@@ -253,6 +253,8 @@ assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLite
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
 assert.match(powerPlaceSource, />Сохранить<\/button>[\s\S]*>Обновить<\/button>/, "Power Place actions should expose separate Save and Update buttons");
+assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
+assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[\s\S]*?order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
 assert.match(powerPlaceBaseSource, /powerPlacePrintArea[\s\S]*renderPowerPlaceActions\(\)[\s\S]*reportAdded/, "Power Place actions should render in the central mandala area before report output");
 assert.match(profileLitePageSource, /handleCompositionSaveNew/, "Profile Lite page should split composition create into handleCompositionSaveNew");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting/, "Profile Lite page should split composition update into handleCompositionUpdateExisting");
@@ -354,6 +356,9 @@ assert.match(profileLitePageSource, /Место силы не сохранило
 assert.match(profileLitePageSource, /Место силы сохранено и добавлено в Мои мандалы/, "save success message should mention Мои мандалы");
 assert.match(profileLitePageSource, /setPowerPlaceCompositions[\s\S]*saved[\s\S]*without|setPowerPlaceCompositions\(\(current\)/, "after successful save the new composition should be optimistically added to the list before list refresh");
 assert.match(profileLitePageSource, /setCompositionDraft[\s\S]*EMPTY_COMPOSITION[\s\S]*saved[\s\S]*id: saved\.id|setCompositionDraft\(\(current\) => \{[\s\S]*saved\.id/, "after save compositionDraft.id should be updated to the new saved id");
+assert.match(powerPlaceClientSource, /Не удалось проверить лимит сохранённых мандал[\s\S]*countRows/, "create should expose a clear safe count-stage error before insert");
+assert.match(powerPlaceClientSource, /Не удалось сохранить мандалу в Supabase[\s\S]*method: "POST"/, "create should expose a clear safe POST-stage error");
+assert.match(profileLitePageSource, /refreshSavedCompositions\(saved\)[\s\S]*catch[\s\S]*setCompositionMessage[\s\S]*Мандала сохранена[\s\S]*список не обновился/, "refresh failure after create should keep the optimistic row and show a visible safe message");
 
 // --- C: Мои услуги in Мои мандалы tab ---
 assert.match(powerPlaceBaseSource, /onAddCompositionToServices/, "ProfileLitePowerPlaceModuleBase should accept onAddCompositionToServices prop");
