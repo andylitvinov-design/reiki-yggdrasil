@@ -418,6 +418,13 @@ export default function ProfileLitePowerPlaceModule({
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const chessSlotScale = chessSlotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
+  const savedCompositionCount = powerPlaceCompositions.length;
+  const savedCompositionLimit = planLimits.compositions;
+  const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft.id;
+  const saveNewTitle = saveNewDisabled
+    ? "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу."
+    : "Сохранить новую мандалу";
+  const saveNewAriaLabel = saveNewDisabled ? `Сохранить: ${saveNewTitle}` : saveNewTitle;
   const sourceSlotScaleStyle = {
     "--power-source-slot-scale": sourceSlotScale,
     "--power-place-chess-slot-scale": chessSlotScale,
@@ -731,12 +738,12 @@ export default function ProfileLitePowerPlaceModule({
         <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
       </label>
       <div className="powerPlaceActions">
-        <button className="cabinetPrimary" type="button" onClick={onSaveNew}>Сохранить</button>
+        <button className="cabinetPrimary" type="button" onClick={onSaveNew} disabled={saveNewDisabled} title={saveNewTitle} aria-label={saveNewAriaLabel}>Сохранить</button>
         <button className="cabinetPrimary" type="button" onClick={onUpdateExisting} disabled={!compositionDraft.id}>Обновить</button>
         <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
-        <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
+        <span>{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
       </div>
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
