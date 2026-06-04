@@ -368,6 +368,13 @@ export default function ProfileLitePowerPlaceModule({
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
   const selectedSlotImage = selectedSlot ? objectRefs[selectedSlot.id] || "" : "";
   const objectRefUrls = cleanObjectRefs(compositionDraft.object_ref_urls);
+  const coverDisplaySrc = (cover) =>
+    objectRefUrls[cover?.src] ||
+    objectRefUrls[cover?.display_src] ||
+    cover?.display_src ||
+    cover?.displaySrc ||
+    cover?.src ||
+    "";
   const centralPhoto = clientGoalPhotos.find((item) => item.id === compositionDraft.central_photo_id) || null;
   const centralImageRef = objectRefs.__center_image || "";
   const centralDisplayCandidate = objectRefUrls[centralImageRef] || objectRefUrls.__center_image || centralPhoto?.display_url || centralPhoto?.signed_url || centralPhoto?.image_url || centralImageRef;
@@ -383,7 +390,7 @@ export default function ProfileLitePowerPlaceModule({
     "--power-place-chess-slot-scale": chessSlotScale
   };
   const chessCoverStyle = {
-    ...(imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src) || {}),
+    ...(imageStyle(coverDisplaySrc(innerCover)) || {}),
     ...sourceSlotScaleStyle
   };
 
@@ -891,18 +898,18 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "none"}`} style={{ ...(imageStyle(outerCover?.display_src || outerCover?.displaySrc || outerCover?.src) || {}), ...sourceSlotScaleStyle }}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "none"}`} style={{ ...(imageStyle(coverDisplaySrc(outerCover)) || {}), ...sourceSlotScaleStyle }}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client`} style={imageStyle(coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
                           slot,
@@ -919,7 +926,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
-                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
@@ -936,7 +943,7 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
-                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
                         {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                         <div className="zodiacClockFace" aria-hidden="true">
                           <span>ЗОДИАК</span>
@@ -982,7 +989,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -1057,7 +1064,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"}`} style={imageStyle(innerCover?.display_src || innerCover?.displaySrc || innerCover?.src)}>
+                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("daoCenterPhoto")}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>
@@ -1147,7 +1154,7 @@ export default function ProfileLitePowerPlaceModule({
               <div className="coverPreviewWrap">
                 <div
                   className={`coverPreview ${visibleCover?.type === "image" ? "hasImage" : `tone-${visibleCover?.tone || "none"}`}`}
-                  style={visibleCover?.type === "image" ? imageStyle(visibleCover.display_src || visibleCover.displaySrc || visibleCover.src) : undefined}
+                  style={visibleCover?.type === "image" ? imageStyle(coverDisplaySrc(visibleCover)) : undefined}
                 >
                   <span>{visibleCover?.label || "Без фона"}</span>
                 </div>

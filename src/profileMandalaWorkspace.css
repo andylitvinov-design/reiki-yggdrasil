@@ -3333,6 +3333,52 @@
   body.printMandalaOnly .resourceComparisonPanel {
     display: none !important;
   }
+
+  /* PDF popup window: powerPlacePdfOnlyArea is a cloned powerPlacePrintArea
+     opened in a separate window for single-page PDF/print */
+  body.printMandalaOnly .powerPlacePdfOnlyArea {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin: 0 auto;
+    padding: 0;
+    display: grid;
+    justify-items: center;
+    align-items: start;
+    gap: 0;
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    overflow: visible;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea > *:not(.powerMandalaPanel) {
+    display: none !important;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel {
+    width: min(92vw, 88vh);
+    max-width: 100%;
+    max-height: 88vh;
+    margin: 0 auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+    page-break-after: avoid;
+    overflow: visible;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical,
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle {
+    width: min(90vw, 49vh);
+    aspect-ratio: 9 / 16;
+  }
+
+  body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
+    width: min(92vw, 88vh);
+    aspect-ratio: 16 / 9;
+  }
 }
 
 .resourceComparisonModeRail {
@@ -4456,20 +4502,32 @@
   padding: 58px !important;
 }
 
-/* INNER MANDALA NEVER STRETCHES */
+/* INNER MANDALA: circular formats stay square; rectangular field layouts may grow */
 .powerPlacePrintArea .powerMandala,
 .powerPlacePrintArea .zodiacMandalaSheet,
 .powerPlacePrintArea .daoMandalaSheet {
-  width: min(460px, 100%) !important;
-  aspect-ratio: 1 / 1 !important;
-  margin: 0 auto !important;
+  width: min(460px, 100%);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+}
+
+.powerPlacePrintArea.field-layout-vertical .powerMandala,
+.powerPlacePrintArea.field-layout-vertical .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-vertical .daoMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .powerMandala,
+.powerPlacePrintArea.field-layout-horizontal .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-horizontal .daoMandalaSheet,
+.powerPlacePrintArea.field-layout-rectangle .powerMandala,
+.powerPlacePrintArea.field-layout-rectangle .zodiacMandalaSheet,
+.powerPlacePrintArea.field-layout-rectangle .daoMandalaSheet {
+  width: min(500px, 100%);
 }
 
 .powerPlacePrintArea .altarMandalaSheet,
 .powerPlacePrintArea .businessMandalaSheet {
-  width: min(500px, 100%) !important;
-  aspect-ratio: 1 / 1 !important;
-  margin: 0 auto !important;
+  width: min(500px, 100%);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
 }
 
 .powerPlacePrintArea .starMandalaSheet.star-open {
@@ -5703,10 +5761,10 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  padding: 0;
   border: 1px solid rgba(184, 121, 29, 0.28);
   border-radius: 24px;
+  overflow: hidden;
   background:
     radial-gradient(circle at 50% 34%, rgba(255, 238, 184, 0.28), transparent 42%),
     rgba(255, 249, 236, 0.72);
@@ -5827,6 +5885,7 @@
 .power-place-chess--classic-14 .power-place-chess__board,
 .power-place-chess--classic-8 .power-place-chess__board {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 12px;
 }
 
 .power-place-chess--classic-14 .power-place-chess__cell {
@@ -5863,6 +5922,7 @@
 .power-place-chess--compact-5 .power-place-chess__board {
   position: relative;
   min-height: var(--power-place-chess-absolute-height);
+  padding: 0;
   overflow: visible;
 }
 
