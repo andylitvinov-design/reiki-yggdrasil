@@ -27,6 +27,10 @@
       .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical {
         aspect-ratio: 9 / 19.5 !important;
       }
+
+      /* Only the OUTER panel should become iPhone-like vertical/rectangular.
+         Inner constructor formats must stay square/own-ratio, otherwise zodiac,
+         mandala, star, altar, business and dao collapse into a narrow column. */
       .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .power-place-chess,
       .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .powerMandala,
       .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .altarMandalaSheet,
@@ -55,8 +59,17 @@
       .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .zodiacMandalaSheet,
       .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .starMandalaSheet,
       .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .daoMandalaSheet {
-        aspect-ratio: 9 / 19.5 !important;
+        aspect-ratio: 1 / 1 !important;
+        min-height: 0 !important;
       }
+
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .starMandalaSheet.star-open,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .starMandalaSheet.star-open,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .starMandalaSheet.star-open,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .starMandalaSheet.star-open {
+        aspect-ratio: 3 / 4 !important;
+      }
+
       .profileLitePowerPlace .zodiacFieldPlusPosition,
       .powerPlacePdfOnlyArea .zodiacFieldPlusPosition {
         display: none !important;
