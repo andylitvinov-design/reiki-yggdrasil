@@ -269,6 +269,53 @@ assert.deepEqual(
 assert.deepEqual(
   normalizePowerPlaceComposition({
     profile_id: "profile-1",
+    title: " Новый черновик ",
+    constructor_type: "client",
+    geometry: "4",
+    object_refs: {
+      __profile_lite_report: {}
+    },
+    central_photo_id: "photo-new"
+  }).object_refs.__profile_lite_report,
+  {
+    mode: "without_report",
+    added: false,
+    situation: "",
+    mandala_effect: "",
+    extra_help: "",
+    master_note: ""
+  },
+  "empty Profile Lite report refs should normalize to Без отчёта for new drafts"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: " Сохранённый отчёт ",
+    constructor_type: "client",
+    geometry: "4",
+    object_refs: {
+      __profile_lite_report: {
+        added: true,
+        situation: " Есть описание "
+      }
+    },
+    central_photo_id: "photo-existing"
+  }).object_refs.__profile_lite_report,
+  {
+    mode: "with_report",
+    added: true,
+    situation: "Есть описание",
+    mandala_effect: "",
+    extra_help: "",
+    master_note: ""
+  },
+  "saved report bodies without an explicit mode should remain report-enabled"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
     title: "",
     constructor_type: "client",
     geometry: "12",

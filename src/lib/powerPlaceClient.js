@@ -72,8 +72,9 @@ function clampNumericRef(value, min, max) {
 
 function normalizeProfileLiteReport(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const hasReportBody = Boolean(source.added || source.situation || source.mandala_effect || source.extra_help);
   return {
-    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    mode: source.mode === "with_report" || (!source.mode && hasReportBody) ? "with_report" : "without_report",
     added: Boolean(source.added),
     situation: cleanText(source.situation),
     mandala_effect: cleanText(source.mandala_effect),

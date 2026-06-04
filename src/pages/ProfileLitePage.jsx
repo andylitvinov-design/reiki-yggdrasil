@@ -114,7 +114,7 @@ const EMPTY_COMPOSITION = {
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const EMPTY_PROFILE_LITE_REPORT = {
-  mode: "with_report",
+  mode: "without_report",
   added: false,
   situation: "",
   mandala_effect: "",
@@ -215,9 +215,10 @@ function escapeHtml(value) {
 
 function normalizeProfileLiteReport(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const hasReportBody = Boolean(source.added || source.situation || source.mandala_effect || source.extra_help);
   return {
     ...EMPTY_PROFILE_LITE_REPORT,
-    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    mode: source.mode === "with_report" || (!source.mode && hasReportBody) ? "with_report" : "without_report",
     added: Boolean(source.added),
     situation: String(source.situation || "").trim(),
     mandala_effect: String(source.mandala_effect || "").trim(),

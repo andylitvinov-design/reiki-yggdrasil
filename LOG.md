@@ -1,5 +1,52 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-04 — Profile Lite Power Place graphic layout final
+
+- Branch: `codex/profile-lite-graphic-layout-final`.
+- Base: fresh `origin/main` at merge commit `216dac3`.
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - moved `Центр` / `Фон` compact layout controls above `Фон Места Силы`;
+  - kept the two layout cells equal-height and side-by-side;
+  - removed visible `Макет` wording from the Profile Lite Power Place UI source;
+  - moved `Отчёт` below the background module and defaulted new empty drafts to `Без отчёта`;
+  - preserved saved report-enabled compositions when mode/body content is present;
+  - kept report body fields/actions hidden for `Без отчёта`;
+  - aligned `Размер фото`, `Размер поля`, and `Размер центра` using one shared desktop/mobile grid rule;
+  - moved save/update/service/PDF/print actions directly under the central mandala.
+- Checks run:
+  - `npm install` attempted; failed with `ENOSPC` at about 124 MiB free disk;
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - removed only the generated partial worktree `node_modules` and symlinked to the existing canonical repo dependency install before running build/check;
+  - all test/build/check/diff-check commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Local browser QA:
+  - URL: `http://localhost:4330/profile/mandalas`;
+  - fake public Supabase env/session and mocked local Auth/REST/Storage responses only;
+  - desktop 1280x920: layout above background, background above report, equal-height `Центр` / `Фон` cells, `Без отчёта` active, report body hidden, save/actions directly under mandala, slider order/count/grid correct, visible `Макет` count `0`, horizontal overflow `0`, console errors `0`;
+  - mobile 390x900: layout visually above background after source CSS override, background above report, equal-height cells, save/actions under mandala, mobile slider grid correct, horizontal overflow `0`, console errors `0`.
+- Not verified:
+  - real authenticated Supabase save/update/reload;
+  - Vercel preview, merge, production/legacy live QA, and Google OAuth.
+- Risks:
+  - CSS ordering in Profile Lite remains sensitive due to older static stylesheets, existing public CSS hotfixes, and injected scoped styles; no new runtime patch was added.
+
 ## 2026-06-04 — Fix Profile Lite Power Place controls, save/update, and mobile report layout
 
 - Branch: `codex/profile-lite-power-place-controls-save-update`.
