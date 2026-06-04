@@ -267,6 +267,12 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   overflow: hidden !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
+.profileLitePowerPlace .powerMandalaPanel[style] .zodiacClockFace,
+.profileLitePowerPlace .powerMandalaPanel[style] .daoUsinCore,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] .zodiacClockFace,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] .daoUsinCore {
+  border-radius: ${centerRadius} !important;
+}
 .powerPlacePdfOnlyArea .power-place-chess__slot,
 .powerPlacePdfOnlyArea .power-place-chess__center,
 .powerPlacePdfOnlyArea .powerSource,

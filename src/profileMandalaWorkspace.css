@@ -3695,18 +3695,22 @@
 }
 
 .power-place-chess.cover-none {
-  background: rgba(244, 241, 235, 0.94) !important;
+  background: transparent !important;
   box-shadow: none !important;
+}
+
+.power-place-chess.cover-none .power-place-chess__board {
+  background: transparent !important;
 }
 
 .power-place-chess.cover-none .power-place-chess__cell.is-dark,
 .power-place-chess.cover-none .power-place-chess__slot.is-dark {
-  background-color: rgba(70, 55, 35, 0.07) !important;
+  background-color: transparent !important;
 }
 
 .power-place-chess.cover-none .power-place-chess__cell.is-light,
 .power-place-chess.cover-none .power-place-chess__slot.is-light {
-  background-color: rgba(218, 214, 206, 0.38) !important;
+  background-color: transparent !important;
 }
 
 /* Keep central empty/photo circles readable when the inside has no background. */
