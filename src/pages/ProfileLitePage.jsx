@@ -93,6 +93,7 @@ const EMPTY_TRADITION_ASSET = {
 const EMPTY_COMPOSITION = {
   id: "",
   title: "",
+  field_layout: "square",
   constructor_type: "zodiac",
   geometry: 4,
   zodiac_variant: "classic-12",
@@ -114,6 +115,7 @@ const EMPTY_COMPOSITION = {
   resource_with_mandala_comment: ""
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const FIELD_LAYOUT_REF_KEY = "__field_layout";
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -954,6 +956,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (field === "field_layout") {
+        return {
+          ...current,
+          field_layout: value,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [FIELD_LAYOUT_REF_KEY]: value
+          }
+        };
+      }
       if (field === "field_scale") {
         return {
           ...current,
@@ -1111,6 +1123,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
+      field_layout: composition.field_layout || composition.object_refs?.[FIELD_LAYOUT_REF_KEY] || "square",
       object_refs: composition.object_refs || {},
       object_ref_urls: composition.object_ref_urls || {}
     });
@@ -1125,7 +1138,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       : [saved].filter(Boolean)
     );
     if (freshSaved) {
-      setCompositionDraft({ ...EMPTY_COMPOSITION, ...freshSaved, id: freshSaved?.id || "" });
+      setCompositionDraft({
+        ...EMPTY_COMPOSITION,
+        ...freshSaved,
+        id: freshSaved?.id || "",
+        field_layout: freshSaved.field_layout || freshSaved.object_refs?.[FIELD_LAYOUT_REF_KEY] || "square"
+      });
     }
     return freshSaved;
   };

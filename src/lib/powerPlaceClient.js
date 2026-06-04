@@ -27,6 +27,8 @@ const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
+const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -329,6 +331,10 @@ export function normalizePowerPlaceComposition(composition) {
   const normalizedCenterImageScale = clampNumericRef(centerImageScale, 0.65, 1.45);
   if (normalizedFieldScale) objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizedFieldScale;
   if (normalizedCenterImageScale) objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizedCenterImageScale;
+  const rawFieldLayout = cleanText(composition?.field_layout ?? composition?.object_refs?.[FIELD_LAYOUT_REF_KEY]);
+  if (rawFieldLayout) {
+    objectRefs[FIELD_LAYOUT_REF_KEY] = VALID_FIELD_LAYOUTS.includes(rawFieldLayout) ? rawFieldLayout : "square";
+  }
   if (report && typeof report === "object" && !Array.isArray(report)) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }

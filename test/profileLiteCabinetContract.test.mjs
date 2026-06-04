@@ -367,4 +367,16 @@ assert.match(profileLitePageSource, /Эта мандала уже есть в М
 assert.match(profileLitePageSource, /Мандала добавлена в Мои услуги/, "successful add-to-services should show the required confirmation message");
 assert.match(profileLitePageSource, /composition_id: composition\.id/, "add-to-services should pass composition_id to createOwnService");
 
+// ── Field layout persistence contract ────────────────────────────────────────
+assert.match(profileLitePageSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout"/, "ProfileLitePage should define FIELD_LAYOUT_REF_KEY = \"__field_layout\"");
+assert.match(profileLitePageSource, /field_layout:\s*"square"/, "EMPTY_COMPOSITION should include field_layout: \"square\"");
+assert.match(profileLitePageSource, /field === "field_layout"[\s\S]*object_refs[\s\S]*FIELD_LAYOUT_REF_KEY/, "handleCompositionDraftChange should persist field_layout into object_refs via FIELD_LAYOUT_REF_KEY");
+assert.match(profileLitePageSource, /handleCompositionLoad[\s\S]*field_layout:[\s\S]*object_refs\?\.\[FIELD_LAYOUT_REF_KEY\][\s\S]*"square"/, "handleCompositionLoad should restore field_layout from object_refs.__field_layout with square fallback");
+assert.match(profileLitePageSource, /refreshSavedCompositions[\s\S]*field_layout:[\s\S]*object_refs\?\.\[FIELD_LAYOUT_REF_KEY\]/, "refreshSavedCompositions should restore field_layout from object_refs.__field_layout");
+
+const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
+assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout"/, "powerPlaceClient.js should define FIELD_LAYOUT_REF_KEY = \"__field_layout\"");
+assert.match(powerPlaceClientSource, /VALID_FIELD_LAYOUTS\s*=\s*\[[\s\S]*"square"[\s\S]*"vertical"[\s\S]*"horizontal"[\s\S]*"rectangle"[\s\S]*\]/, "powerPlaceClient.js should define VALID_FIELD_LAYOUTS with all four layouts");
+assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAYOUTS\.includes/, "normalizePowerPlaceComposition should validate and persist __field_layout");
+
 console.log("Profile Lite cabinet contract: all assertions passed.");

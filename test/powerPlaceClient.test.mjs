@@ -698,6 +698,47 @@ assert.equal(
   "classic-14"
 );
 
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Вертикальный макет",
+    constructor_type: "client",
+    geometry: 4,
+    field_layout: "vertical",
+    object_refs: {},
+    central_photo_id: "photo-layout"
+  }).object_refs.__field_layout,
+  "vertical",
+  "valid field_layout should be persisted into object_refs.__field_layout"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Неверный макет",
+    constructor_type: "client",
+    geometry: 4,
+    field_layout: "invalid-layout",
+    object_refs: {},
+    central_photo_id: "photo-layout-invalid"
+  }).object_refs.__field_layout,
+  "square",
+  "invalid field_layout should fall back to square"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Макет из object_refs",
+    constructor_type: "client",
+    geometry: 4,
+    object_refs: { __field_layout: "horizontal" },
+    central_photo_id: "photo-layout-ref"
+  }).object_refs.__field_layout,
+  "horizontal",
+  "object_refs.__field_layout should be preserved when loading/saving"
+);
+
 const compactChessComposition = normalizePowerPlaceComposition({
   profile_id: "profile-1",
   title: " Компактные шахматы ",
