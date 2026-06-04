@@ -1095,6 +1095,18 @@
   margin-bottom: 14px;
 }
 
+.powerSavedMandalaSelect {
+  width: 100%;
+  border: 1px solid rgba(184, 121, 29, 0.3);
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: rgba(255, 251, 243, 0.92);
+  color: #4b3218;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .powerPlaceHeader h2 {
   margin: 0;
   font-size: clamp(24px, 3vw, 38px);
@@ -1283,6 +1295,16 @@
   color: #9f6614;
   font-size: 44px;
   box-shadow: 0 14px 32px rgba(103, 66, 16, 0.16);
+}
+
+.powerCenterPhoto,
+.altarCenterPhoto,
+.businessCenterPhoto,
+.zodiacCenterPhoto,
+.starCenterPhoto,
+.daoCenterPhoto {
+  transform: translate(-50%, -50%) scale(var(--power-center-image-scale, 1));
+  transform-origin: center;
 }
 
 .powerCenterPhoto span,
@@ -3770,6 +3792,19 @@
   background: rgba(255, 253, 248, 0.78);
 }
 
+.compactFieldLayoutSwitch {
+  justify-content: flex-start;
+  padding: 8px;
+}
+
+.compactFieldLayoutSwitch .mandalaFieldLayoutButtons {
+  flex-wrap: nowrap;
+}
+
+.compactFieldLayoutSwitch .centerShapeControl {
+  margin-left: auto;
+}
+
 .mandalaFieldLayoutSwitch > span {
   color: #6d5436;
   font-size: 11px;
@@ -5740,6 +5775,48 @@
 
   .profileLitePowerPlace .profileLitePowerPlaceColumns {
     order: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLitePowerPlace .workspaceCenterColumn {
+    order: 1;
+  }
+
+  .profileLitePowerPlace .powerPlaceConstructor {
+    order: 1 !important;
+  }
+
+  .profileLitePowerPlace .workspaceRightColumn,
+  .profileLitePowerPlace .powerCommandRail {
+    display: contents;
+  }
+
+  .profileLitePowerPlace .coverPickerPanel {
+    order: 2 !important;
+  }
+
+  .profileLitePowerPlace .profileLitePowerPlaceActions {
+    order: 3 !important;
+    grid-column: 1;
+  }
+
+  .profileLitePowerPlace .reportSettingsPanel {
+    order: 4 !important;
+  }
+
+  .profileLitePowerPlace .mandalaModeSidebar {
+    order: 5 !important;
+    position: static;
+  }
+
+  .profileLitePowerPlace .objectImageEditor {
+    order: 6 !important;
+  }
+
+  .profileLitePowerPlace .profileLiteAdvancedJson {
+    order: 7 !important;
+    grid-column: 1;
   }
 
   .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
@@ -5848,6 +5925,8 @@
   color: #2f1d0a;
   text-align: center;
   box-shadow: 0 0 0 5px rgba(255, 225, 156, 0.18), 0 14px 28px rgba(83, 51, 12, 0.16);
+  transform: scale(var(--power-center-image-scale, 1));
+  transform-origin: center;
 }
 
 .field-layout-square .power-place-chess {
@@ -5941,6 +6020,7 @@
   width: 28%;
   height: auto;
   aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%) scale(var(--power-center-image-scale, 1));
 }
 
 .power-place-chess--plus-8 .power-place-chess__slot,

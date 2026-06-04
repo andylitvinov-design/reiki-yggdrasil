@@ -398,6 +398,13 @@ export default function ProfileLitePowerPlaceModule({
     "--power-source-slot-scale": sourceSlotScale,
     "--power-place-chess-slot-scale": chessSlotScale
   };
+  const centerImageScale = Number.isFinite(Number(compositionDraft.__center_image_scale))
+    ? Number(compositionDraft.__center_image_scale)
+    : 1;
+  const centerImageStyle = {
+    ...(imageStyle(centralImage) || {}),
+    "--power-center-image-scale": centerImageScale
+  };
   const chessCoverStyle = {
     ...(imageStyle(coverDisplaySrc(innerCover)) || {}),
     ...sourceSlotScaleStyle
@@ -656,7 +663,7 @@ export default function ProfileLitePowerPlaceModule({
   };
 
   const renderCenterPhotoWithMode = (className) => (
-    <button className={`${className}${centralImage ? " hasImage" : ""}`} style={imageStyle(centralImage)} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
+    <button className={`${className}${centralImage ? " hasImage" : ""}`} style={centerImageStyle} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
       {!centralImage && <span>Фото клиента / цели</span>}
     </button>
   );
@@ -707,6 +714,25 @@ export default function ProfileLitePowerPlaceModule({
         <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
       </div>
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
+    </div>
+  );
+
+  const renderFieldLayoutSelector = () => (
+    <div className="mandalaFieldLayoutSwitch powerLayoutPanel compactFieldLayoutSwitch" aria-label="Расположение поля мандалы">
+      <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
+        {FIELD_LAYOUTS.map((layout) => (
+          <button
+            className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
+            key={layout.value}
+            onClick={() => onCompositionDraftChange("field_layout", layout.value)}
+            type="button"
+            title={layout.label}
+            aria-label={layout.label}
+          >
+            <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
+          </button>
+        ))}
+      </div>
     </div>
   );
 
@@ -851,7 +877,26 @@ export default function ProfileLitePowerPlaceModule({
                   <p className="cabinetEyebrow">Места силы</p>
                   <h2>Магическая мандала</h2>
                 </div>
-                <span className="cabinetStatus">{mediaStatus}</span>
+                <select
+                  className="powerSavedMandalaSelect"
+                  value={compositionDraft.id || ""}
+                  onChange={(event) => {
+                    const nextId = event.target.value;
+                    if (!nextId) return;
+                    const nextComposition = powerPlaceCompositions.find((item) => String(item.id) === String(nextId));
+                    if (nextComposition) onCompositionLoad(nextComposition);
+                  }}
+                  aria-label="Сохранённые мандалы"
+                >
+                  <option value="">
+                    {powerPlaceCompositions.length ? "Сохранённые мандалы" : "Нет сохранённых мандал"}
+                  </option>
+                  {powerPlaceCompositions.map((composition) => (
+                    <option key={composition.id} value={composition.id}>
+                      {composition.title || "Место силы"}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="constructorControls">
@@ -1146,25 +1191,6 @@ export default function ProfileLitePowerPlaceModule({
 
         <div className="workspaceRightColumn">
           <aside className="powerCommandRail powerPlaceSettings">
-            <div className="mandalaFieldLayoutSwitch powerLayoutPanel" aria-label="Расположение поля мандалы">
-              <p className="cabinetEyebrow">Макет</p>
-              <span>Расположение поля мандалы</span>
-              <div className="mandalaFieldLayoutButtons" role="group" aria-label="Расположение поля мандалы">
-                {FIELD_LAYOUTS.map((layout) => (
-                  <button
-                    className={(compositionDraft.field_layout || "square") === layout.value ? "active" : ""}
-                    key={layout.value}
-                    onClick={() => onCompositionDraftChange("field_layout", layout.value)}
-                    type="button"
-                    title={layout.label}
-                    aria-label={layout.label}
-                  >
-                    <i aria-hidden="true" className={`fieldLayoutIcon ${layout.value}`} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {renderReportModule()}
 
             <div className="coverSelector coverPickerPanel">
@@ -1173,6 +1199,7 @@ export default function ProfileLitePowerPlaceModule({
                 <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
               </div>
+              {renderFieldLayoutSelector()}
               <div className="coverPreviewWrap">
                 <button
                   type="button"
@@ -1203,32 +1230,6 @@ export default function ProfileLitePowerPlaceModule({
                 ))}
               </div>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
-            </div>
-
-            <div className="resourceComparisonPanel">
-              <p className="cabinetEyebrow">Анализ</p>
-              <div className="resourceModeToggle" aria-label="Сравнение ресурса">
-                <button className={compositionDraft.resource_comparison_mode === "client_photo" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "client_photo")}>Фото цели</button>
-                <button className={compositionDraft.resource_comparison_mode === "photo_mandala" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("resource_comparison_mode", "photo_mandala")}>Цель + мандала</button>
-              </div>
-              <label className="resourceField">
-                Ресурс без мандалы
-                <textarea
-                  className="resourceFieldInput"
-                  value={compositionDraft.resource_without_mandala_comment || ""}
-                  onChange={(event) => onCompositionDraftChange("resource_without_mandala_comment", event.target.value)}
-                  rows={3}
-                />
-              </label>
-              <label className="resourceField">
-                Ресурс с мандалой
-                <textarea
-                  className="resourceFieldInput"
-                  value={compositionDraft.resource_with_mandala_comment || ""}
-                  onChange={(event) => onCompositionDraftChange("resource_with_mandala_comment", event.target.value)}
-                  rows={3}
-                />
-              </label>
             </div>
 
             <div className="objectImageEditor">
