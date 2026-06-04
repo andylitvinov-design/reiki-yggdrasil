@@ -36,6 +36,7 @@ const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
+const HYDRATION_TIMEOUT_MS = 8000;
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -46,6 +47,21 @@ function powerPlaceError(message, details = null) {
   const error = new Error(message);
   error.details = details;
   return error;
+}
+
+function safeErrorText(error) {
+  return cleanText(error?.message || error?.details?.message || error?.details?.msg) || "Ошибка Supabase запроса.";
+}
+
+function withTimeout(promise, timeoutMs, message, details = null) {
+  let timeoutId = null;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = globalThis.setTimeout(() => reject(powerPlaceError(message, details)), timeoutMs);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timeoutId) globalThis.clearTimeout(timeoutId);
+  });
 }
 
 function cleanText(value) {
@@ -173,7 +189,12 @@ async function resolveStorageRefs(refs, session) {
   const entries = await Promise.all(
     [...new Set(refs.filter((ref) => isStorageRef(ref)))].map(async (ref) => {
       try {
-        return [ref, await resolveStorageRef(ref, session)];
+        return [ref, await withTimeout(
+          resolveStorageRef(ref, session),
+          HYDRATION_TIMEOUT_MS,
+          "Подписание изображения места силы заняло слишком много времени.",
+          { stage: "hydrate", timeout: true }
+        )];
       } catch {
         return [ref, ""];
       }
@@ -467,17 +488,35 @@ export async function listPowerPlaceCompositions(profileId, session = getStoredS
   return hydrateCompositionRows(rows, session);
 }
 
-export async function createPowerPlaceComposition(composition, plan, session = getStoredSession()) {
+export async function createPowerPlaceComposition(composition, plan, session = getStoredSession(), options = {}) {
+  return createPowerPlaceCompositionWithDependencies(composition, plan, session, {
+    onStage: options.onStage,
+    countRows: (profileId) => countRows(COMPOSITIONS_TABLE, profileId, session),
+    insertRows: (payload) => request(`/rest/v1/${COMPOSITIONS_TABLE}`, {
+      method: "POST",
+      session,
+      prefer: "return=representation",
+      body: payload
+    }),
+    hydrateRows: (rows) => hydrateCompositionRows(rows, session)
+  });
+}
+
+export async function createPowerPlaceCompositionWithDependencies(composition, plan, session = getStoredSession(), dependencies = {}) {
   requireSession(session);
   const payload = normalizePowerPlaceComposition(composition);
   const countRowsFailureMessage = "Не удалось проверить лимит сохранённых мандал перед сохранением. Проверьте подключение к Supabase и попробуйте снова.";
   const postFailureMessage = "Не удалось сохранить мандалу в Supabase. Проверьте доступ к таблице и попробуйте снова.";
+  const hydrationFailureMessage = "Supabase вернул запись, но изображения мандалы не успели подготовиться. Запись добавлена без подписанных ссылок.";
+  const onStage = typeof dependencies.onStage === "function" ? dependencies.onStage : () => {};
   let count = 0;
   try {
-    count = await countRows(COMPOSITIONS_TABLE, payload.profile_id, session);
+    onStage("countRows");
+    count = await dependencies.countRows(payload.profile_id, session, payload);
   } catch (error) {
     throw powerPlaceError(countRowsFailureMessage, {
-      stage: "countRows"
+      stage: "countRows",
+      error: safeErrorText(error)
     });
   }
   const limits = getPlanLimits(plan);
@@ -487,20 +526,40 @@ export async function createPowerPlaceComposition(composition, plan, session = g
 
   let rows = null;
   try {
-    rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}`, {
-      method: "POST",
-      session,
-      prefer: "return=representation",
-      body: payload
-    });
+    onStage("POST");
+    rows = await dependencies.insertRows(payload, session);
+    onStage("insertReturned");
   } catch (error) {
     throw powerPlaceError(postFailureMessage, {
-      stage: "POST"
+      stage: "POST",
+      error: safeErrorText(error)
     });
   }
 
-  const hydrated = await hydrateCompositionRows(rows, session);
-  return hydrated?.[0] || null;
+  try {
+    onStage("hydrate");
+    const hydrated = await withTimeout(
+      dependencies.hydrateRows(rows, session),
+      HYDRATION_TIMEOUT_MS,
+      hydrationFailureMessage,
+      { stage: "hydrate", timeout: true }
+    );
+    return hydrated?.[0] || rows?.[0] || null;
+  } catch (error) {
+    const rawRow = Array.isArray(rows) ? rows[0] : null;
+    if (rawRow?.id) {
+      return {
+        ...rawRow,
+        __hydration_warning: true,
+        __hydration_error: safeErrorText(error)
+      };
+    }
+
+    throw powerPlaceError(hydrationFailureMessage, {
+      stage: "hydrate",
+      error: safeErrorText(error)
+    });
+  }
 }
 
 export async function updatePowerPlaceComposition(compositionId, composition, session = getStoredSession()) {

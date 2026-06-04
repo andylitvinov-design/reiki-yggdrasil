@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   __testPowerPlaceClient,
+  createPowerPlaceCompositionWithDependencies,
   getPlanLimits,
   normalizeAccountPlan,
   normalizeClientGoalPhoto,
@@ -81,6 +82,79 @@ assert.deepEqual(
 assert.equal(hydratedComposition.cover_ref.display_src, "https://signed.example/legacy.png");
 assert.equal(hydratedComposition.cover_ref.inner.display_src, "https://signed.example/inner.png");
 assert.equal(hydratedComposition.cover_ref.outer.display_src, "https://signed.example/outer.png");
+
+const createBasePayload = {
+  profile_id: "profile-1",
+  title: "Место силы",
+  constructor_type: "client",
+  geometry: 4,
+  object_refs: {}
+};
+const testSession = { access_token: "test-token" };
+
+await assert.rejects(
+  () => createPowerPlaceCompositionWithDependencies(
+    createBasePayload,
+    "start",
+    testSession,
+    {
+      countRows: async () => {
+        throw new Error("count network down");
+      },
+      insertRows: async () => [{ id: "should-not-insert" }],
+      hydrateRows: async (rows) => rows
+    }
+  ),
+  (error) => {
+    assert.equal(error.details?.stage, "countRows");
+    assert.match(error.message, /Не удалось проверить лимит сохранённых мандал/);
+    return true;
+  },
+  "countRows failure should be surfaced as the count stage, before POST"
+);
+
+await assert.rejects(
+  () => createPowerPlaceCompositionWithDependencies(
+    createBasePayload,
+    "start",
+    testSession,
+    {
+      countRows: async () => 0,
+      insertRows: async () => {
+        throw new Error("insert blocked");
+      },
+      hydrateRows: async (rows) => rows
+    }
+  ),
+  (error) => {
+    assert.equal(error.details?.stage, "POST");
+    assert.match(error.message, /Не удалось сохранить мандалу в Supabase/);
+    return true;
+  },
+  "POST failure should be surfaced distinctly from countRows failure"
+);
+
+{
+  const stages = [];
+  const created = await createPowerPlaceCompositionWithDependencies(
+    createBasePayload,
+    "start",
+    testSession,
+    {
+      countRows: async () => 0,
+      insertRows: async () => [{ id: "composition-raw-1", title: "Raw row" }],
+      hydrateRows: async () => {
+        throw new Error("signed URL service stalled");
+      },
+      onStage: (stage) => stages.push(stage)
+    }
+  );
+
+  assert.deepEqual(stages, ["countRows", "POST", "insertReturned", "hydrate"]);
+  assert.equal(created.id, "composition-raw-1");
+  assert.equal(created.__hydration_warning, true);
+  assert.match(created.__hydration_error, /signed URL service stalled/);
+}
 
 assert.equal(normalizeAccountPlan("pro"), "pro");
 assert.equal(normalizeAccountPlan("unknown"), "start");
