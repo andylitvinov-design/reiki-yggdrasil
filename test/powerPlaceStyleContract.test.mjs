@@ -142,8 +142,33 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes("background-size: contain !important") || moduleSource.includes("background-size: cover !important"),
-  "center photos must use proportional background-size"
+  moduleSource.includes("background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important"),
+  "center photos must use proportional single-axis background-size"
+);
+
+assert.ok(
+  moduleSource.includes("CENTER_FRAME_SCALE_REF_KEY = \"__center_frame_scale\""),
+  "center frame scale must use a dedicated object_refs key"
+);
+
+assert.ok(
+  moduleSource.includes("--power-center-frame-scale"),
+  "dynamic style must expose a center frame scale CSS variable"
+);
+
+assert.ok(
+  moduleSource.includes("width: calc(34% * var(--power-center-frame-scale, 1)) !important"),
+  "center frame scale must resize the regular center window width, not only the photo background"
+);
+
+assert.ok(
+  moduleSource.includes("aspect-ratio: 9 / 19.5 !important"),
+  "vertical and rectangle outer fields should use the safe 9 / 19.5 ratio"
+);
+
+assert.ok(
+  cssSource.includes("background-size: calc(100% * var(--power-center-image-scale, 1)) auto"),
+  "photo scale should resize background image content proportionally with a single-axis size"
 );
 
 // ─── Base module: inner surface JSX uses CSS variable for image covers ─────────

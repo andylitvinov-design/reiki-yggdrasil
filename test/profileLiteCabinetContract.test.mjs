@@ -196,6 +196,7 @@ for (const requiredPowerPlaceText of [
   "Фон снаружи",
   "Отчёт",
   "Анализ",
+  "Размер фоток",
   "Размер поля",
   "Размер центра",
   "Сохранённые мандалы",
@@ -239,12 +240,14 @@ assert.match(powerPlaceSource, /CENTER_IMAGE_SCALE_REF_KEY = "__center_image_sca
 assert.match(powerPlaceSource, /__center_image_scale: centerImageScale/, "center photo scale should be passed through enhanced draft only");
 assert.match(powerPlaceSource, /style=\{centerImageStyle\}/, "center photo renderer should receive the independent center image scale style");
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
-assert.match(powerPlaceSource, /Размер фото[\s\S]*Размер поля[\s\S]*Размер центра/, "Power Place constructor controls should show photo, field, and center sliders in the required order");
-assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "chessSizeControl"/g) || []).length, 1, "Размер фото slider should render once from the base module");
+assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
+assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
+assert.match(powerPlaceSource, /Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Размер фоток[\s\S]*field: "__center_image_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"/, "Power Place constructor controls should map center, photo-content, and field sliders to distinct fields");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Размер фоток slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
-assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerImageScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
-assert.match(profileMandalaCss, /\.profileLitePowerPlace \.chessSizeControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerImageScaleControl \{[\s\S]*grid-template-columns: minmax\(170px, 220px\) 28px minmax\(240px, 1fr\) 28px;/, "all three size sliders should share the requested desktop grid");
-assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.chessSizeControl,[\s\S]*grid-template-columns: minmax\(0, 120px\) 24px minmax\(0, 1fr\) 24px;/, "all three size sliders should share the requested mobile grid");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl \{[\s\S]*grid-template-columns: minmax\(170px, 220px\) 28px minmax\(240px, 1fr\) 28px;/, "all three size sliders should share the requested desktop grid");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*grid-template-columns: minmax\(0, 120px\) 24px minmax\(0, 1fr\) 24px;/, "all three size sliders should share the requested mobile grid");
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
