@@ -1,23 +1,35 @@
-/* Profile Lite custom inner cover fix — 2026-06-04
-   Legacy background-zone CSS uses background: transparent !important on non-chess
-   inner sheets. React signed-photo covers arrive as inline backgroundImage, which
-   loses to that !important shorthand. This scoped layer restores the signed-photo
-   image through a CSS variable written by profile-lite-custom-inner-cover-fix.js. */
+/* Profile Lite custom cover fix — 2026-06-04
+   Legacy/public CSS layers can erase React inline signed-photo backgrounds.
+   This scoped bridge restores user-uploaded signed-photo covers without changing
+   Supabase, Storage, routing, or the React data model. */
 
 .profileLitePowerPlace .powerMandalaPanel > .profileLiteCustomInnerCover,
 .powerPlacePdfOnlyArea .powerMandalaPanel > .profileLiteCustomInnerCover {
-  background: var(--profile-lite-inner-cover-image) center / cover no-repeat !important;
+  background: var(--profile-lite-inner-cover-image) center / contain no-repeat !important;
   background-image: var(--profile-lite-inner-cover-image) !important;
-  background-size: cover !important;
+  background-size: contain !important;
   background-position: center !important;
   background-repeat: no-repeat !important;
+  background-color: rgba(255, 248, 232, 0.92) !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
 
 .profileLitePowerPlace .powerMandalaPanel > .profileLiteCustomInnerCover::before,
 .powerPlacePdfOnlyArea .powerMandalaPanel > .profileLiteCustomInnerCover::before {
-  opacity: 0.12;
+  opacity: 0.08;
+}
+
+.profileLitePowerPlace .profileLiteCustomOuterCover,
+.powerPlacePdfOnlyArea.profileLiteCustomOuterCover,
+.powerPlacePdfOnlyArea .profileLiteCustomOuterCover {
+  background: var(--profile-lite-outer-cover-image) center / cover no-repeat !important;
+  background-image: var(--profile-lite-outer-cover-image) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
 }
 
 /* Profile Lite mobile controls scale — 2026-06-04
