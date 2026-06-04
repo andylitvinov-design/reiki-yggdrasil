@@ -222,6 +222,15 @@ function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
 }
 
+// For inner cover images, use a CSS variable so the dynamic style rule can override
+// cover-none/cover-gold's !important background declarations without a specificity war.
+function innerCoverImageStyle(cover, displaySrc) {
+  if (cover?.type === "image" && isImagePreview(displaySrc)) {
+    return { "--power-inner-cover-image": `url(${displaySrc})` };
+  }
+  return imageStyle(displaySrc);
+}
+
 function slotScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
@@ -419,7 +428,7 @@ export default function ProfileLitePowerPlaceModule({
     "--power-center-image-scale": centerImageScale
   };
   const chessCoverStyle = {
-    ...(imageStyle(coverDisplaySrc(innerCover)) || {}),
+    ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
     ...sourceSlotScaleStyle
   };
 
@@ -994,12 +1003,12 @@ export default function ProfileLitePowerPlaceModule({
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
                           slot,
@@ -1016,7 +1025,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
-                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
@@ -1033,7 +1042,7 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
-                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
+                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                         {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                         <div className="zodiacClockFace" aria-hidden="true">
                           <span>ЗОДИАК</span>
@@ -1079,7 +1088,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -1154,7 +1163,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("daoCenterPhoto")}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>
