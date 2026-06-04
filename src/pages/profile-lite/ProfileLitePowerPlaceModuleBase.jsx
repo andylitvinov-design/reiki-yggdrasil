@@ -253,6 +253,12 @@ function centerImageScaleValue(value) {
   return Math.min(1.45, Math.max(0.65, scale));
 }
 
+function centerFrameScaleValue(value) {
+  const scale = Number(value);
+  if (!Number.isFinite(scale)) return 1;
+  return Math.min(1.4, Math.max(0.72, scale));
+}
+
 function uniqueImageSources(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -418,6 +424,8 @@ export default function ProfileLitePowerPlaceModule({
   const outerCoverClass = coverKindClass(outerCover, "outer");
   const sourceSlotScale = slotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
+  const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
+  const centerFrameScale = centerFrameScaleValue(compositionDraft.__center_frame_scale ?? objectRefs.__center_frame_scale);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const chessSlotScale = chessSlotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
@@ -430,9 +438,10 @@ export default function ProfileLitePowerPlaceModule({
   const sourceSlotScaleStyle = {
     "--power-source-slot-scale": sourceSlotScale,
     "--power-place-chess-slot-scale": chessSlotScale,
-    "--power-field-scale": `${fieldScale}%`
+    "--power-field-scale": `${fieldScale}%`,
+    "--power-center-image-scale": centerImageScale,
+    "--power-center-frame-scale": centerFrameScale
   };
-  const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
   const centerImageStyle = {
     ...(imageStyle(centralImage) || {}),
     "--power-center-image-scale": centerImageScale
@@ -1032,9 +1041,9 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {renderScaleControl({ className: "chessSizeControl", label: "Размер фото", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
+                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.4", step: "0.01", field: "__center_frame_scale" })}
+                {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
-                {renderScaleControl({ className: "centerImageScaleControl", label: "Размер центра", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>

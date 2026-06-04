@@ -1314,7 +1314,7 @@
 .starCenterPhoto.hasImage,
 .daoCenterPhoto.hasImage,
 .power-place-chess__center.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1));
+  background-size: calc(100% * var(--power-center-image-scale, 1)) auto;
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -3928,10 +3928,10 @@
 }
 
 .powerMandalaPanel.field-layout-vertical {
-  --power-field-aspect: 3 / 4;
+  --power-field-aspect: 9 / 19.5;
   --power-board-max-width: 520px;
-  --power-card-aspect: 1 / 1.08;
-  --power-card-height-factor: 1.08;
+  --power-card-aspect: 9 / 19.5;
+  --power-card-height-factor: 2.1667;
 }
 
 .powerMandalaPanel.field-layout-horizontal {
@@ -3942,10 +3942,10 @@
 }
 
 .powerMandalaPanel.field-layout-rectangle {
-  --power-field-aspect: 4 / 5;
+  --power-field-aspect: 9 / 19.5;
   --power-board-max-width: 540px;
-  --power-card-aspect: 1 / 1.06;
-  --power-card-height-factor: 1.04;
+  --power-card-aspect: 9 / 19.5;
+  --power-card-height-factor: 2.1667;
 }
 
 .powerMandalaPanel.field-layout-vertical,
@@ -3957,7 +3957,7 @@
 
 .powerMandalaPanel.field-layout-vertical {
   min-height: min(760px, 82vh);
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 9 / 19.5;
   width: min(560px, 100%);
   margin-inline: auto;
 }
@@ -3977,7 +3977,7 @@
 
 .powerMandalaPanel.field-layout-rectangle {
   min-height: 560px;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 9 / 19.5;
   width: min(640px, 100%);
   margin-inline: auto;
 }
@@ -5670,9 +5670,9 @@
   overflow: hidden;
 }
 
-.profileLitePowerPlace .chessSizeControl,
-.profileLitePowerPlace .innerFieldScaleControl,
-.profileLitePowerPlace .centerImageScaleControl {
+.profileLitePowerPlace .centerFrameScaleControl,
+.profileLitePowerPlace .photoScaleControl,
+.profileLitePowerPlace .innerFieldScaleControl {
   width: 100%;
   display: grid;
   grid-template-columns: minmax(170px, 220px) 28px minmax(240px, 1fr) 28px;
@@ -5680,23 +5680,23 @@
   align-items: center;
 }
 
-.profileLitePowerPlace .chessSizeControl span,
-.profileLitePowerPlace .innerFieldScaleControl span,
-.profileLitePowerPlace .centerImageScaleControl span {
+.profileLitePowerPlace .centerFrameScaleControl span,
+.profileLitePowerPlace .photoScaleControl span,
+.profileLitePowerPlace .innerFieldScaleControl span {
   min-width: 0;
   white-space: nowrap;
 }
 
-.profileLitePowerPlace .chessSizeControl input,
-.profileLitePowerPlace .innerFieldScaleControl input,
-.profileLitePowerPlace .centerImageScaleControl input {
+.profileLitePowerPlace .centerFrameScaleControl input,
+.profileLitePowerPlace .photoScaleControl input,
+.profileLitePowerPlace .innerFieldScaleControl input {
   width: 100%;
   min-width: 0;
 }
 
-.profileLitePowerPlace .chessSizeControl button,
-.profileLitePowerPlace .innerFieldScaleControl button,
-.profileLitePowerPlace .centerImageScaleControl button {
+.profileLitePowerPlace .centerFrameScaleControl button,
+.profileLitePowerPlace .photoScaleControl button,
+.profileLitePowerPlace .innerFieldScaleControl button {
   width: 28px;
   min-width: 28px;
   height: 28px;
@@ -5940,15 +5940,15 @@
     order: 4 !important;
   }
 
-  .profileLitePowerPlace .chessSizeControl,
-  .profileLitePowerPlace .innerFieldScaleControl,
-  .profileLitePowerPlace .centerImageScaleControl {
+  .profileLitePowerPlace .centerFrameScaleControl,
+  .profileLitePowerPlace .photoScaleControl,
+  .profileLitePowerPlace .innerFieldScaleControl {
     grid-template-columns: minmax(0, 120px) 24px minmax(0, 1fr) 24px;
   }
 
-  .profileLitePowerPlace .chessSizeControl button,
-  .profileLitePowerPlace .innerFieldScaleControl button,
-  .profileLitePowerPlace .centerImageScaleControl button {
+  .profileLitePowerPlace .centerFrameScaleControl button,
+  .profileLitePowerPlace .photoScaleControl button,
+  .profileLitePowerPlace .innerFieldScaleControl button {
     width: 24px;
     min-width: 24px;
     height: 24px;
@@ -6292,7 +6292,7 @@
 
 .profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle {
-  aspect-ratio: var(--power-field-aspect, 4 / 5) !important;
+  aspect-ratio: var(--power-field-aspect, 9 / 19.5) !important;
   min-height: 560px !important;
 }
 
