@@ -1,5 +1,6 @@
 (() => {
   const HIDDEN_COVERS_KEY = "reiki-power-place-hidden-cover-shortcuts";
+  const STYLE_ID = "profile-power-place-cover-polish-style";
 
   function readHiddenCovers() {
     try {
@@ -13,6 +14,58 @@
     try {
       window.localStorage.setItem(HIDDEN_COVERS_KEY, JSON.stringify([...hidden]));
     } catch {}
+  }
+
+  function ensureLateStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = `
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical {
+        aspect-ratio: 9 / 19.5 !important;
+      }
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .power-place-chess,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .powerMandala,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .altarMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .businessMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .zodiacMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .starMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle > .daoMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .power-place-chess,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .powerMandala,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .altarMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .businessMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .zodiacMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .starMandalaSheet,
+      .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical > .daoMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .power-place-chess,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .powerMandala,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .altarMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .businessMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .zodiacMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .starMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .daoMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .power-place-chess,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .powerMandala,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .altarMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .businessMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .zodiacMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .starMandalaSheet,
+      .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .daoMandalaSheet {
+        aspect-ratio: 9 / 19.5 !important;
+      }
+      .profileLitePowerPlace .zodiacFieldPlusPosition,
+      .powerPlacePdfOnlyArea .zodiacFieldPlusPosition {
+        display: none !important;
+      }
+      .profileLitePowerPlace .coverUploadButton {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   function buttonKey(button) {
@@ -29,6 +82,12 @@
         button.hidden = true;
         button.setAttribute("data-cover-shortcut-hidden", "true");
       }
+    });
+  }
+
+  function normalizeControls(root = document) {
+    root.querySelectorAll?.(".profileLitePowerPlace .innerFieldScaleControl input[type='range']").forEach((input) => {
+      input.max = "100";
     });
   }
 
@@ -72,6 +131,8 @@
   }
 
   function refresh() {
+    ensureLateStyles();
+    normalizeControls(document);
     applyHiddenCoverShortcuts(document);
   }
 
