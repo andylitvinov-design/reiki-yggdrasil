@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { placePowerMandalaTemplates } from "../../data/placePowerMandalaTemplates.js";
-import { innerFieldWidthDesktop, innerFieldWidthMobile } from "../../lib/powerPlaceStyleContract.js";
+import { innerFieldWidthDesktop, innerFieldWidthMobile } from "../../lib/powerPlaceStyleContract.js"; // kept for backward compat; absolute centering uses % directly
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
 import "../../profileMandalaTemplatePilot.css";
 
@@ -48,8 +48,7 @@ function centerShapeValue(value) {
 
 function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerShape) {
   const centerRadius = centerShape === "circle" ? "50%" : "24px";
-  const innerW = innerFieldWidthDesktop(innerFieldScale);
-  const innerWMobile = innerFieldWidthMobile(innerFieldScale);
+  // innerFieldWidthDesktop / innerFieldWidthMobile kept for tests; absolute centering uses % directly.
   return `
 .profileLitePowerPlace .powerCenterPhoto.hasImage,
 .profileLitePowerPlace .altarCenterPhoto.hasImage,
@@ -200,6 +199,14 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerPrintMeta {
   display: none !important;
 }
+.profileLitePowerPlace .has-custom-inner-cover,
+.powerPlacePdfOnlyArea .has-custom-inner-cover {
+  background-image: var(--power-inner-cover-image, none) !important;
+  background-color: transparent !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  background-position: ${innerOffsetX}% ${innerOffsetY}% !important;
+}
 .profileLitePowerPlace .powerMandalaPanel[style],
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
   position: relative;
@@ -248,11 +255,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
-  position: relative;
+  position: absolute !important;
   z-index: 1;
-  justify-self: center !important;
-  width: ${innerW} !important;
-  max-width: ${innerW} !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: ${innerFieldScale}% !important;
+  max-width: ${innerFieldScale}% !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: ${centerRadius} !important;
   overflow: hidden !important;
@@ -420,23 +429,6 @@ body.printMandalaOnly .coverOffsetOverlay {
   .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerImageScaleControl {
     grid-template-columns: minmax(0, 1fr) minmax(110px, 240px) auto;
-  }
-  .profileLitePowerPlace .powerMandalaPanel[style] > .power-place-chess,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .powerMandala,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .altarMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
-  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .power-place-chess,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerMandala,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .altarMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .businessMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
-  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
-    width: ${innerWMobile} !important;
-    max-width: ${innerWMobile} !important;
   }
 }
 `;

@@ -101,4 +101,63 @@ assert.ok(
   "has-custom-inner-cover must set cover sizing and repeat"
 );
 
+// ─── Dynamic style: inner field uses absolute centering (no top/left bias) ────
+// The dynamic CSS in ProfileLitePowerPlaceModule must use position:absolute +
+// translate(-50%,-50%) so the inner surface expands symmetrically from center.
+
+const moduleSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx"), "utf8");
+
+assert.ok(
+  moduleSource.includes("position: absolute !important") && moduleSource.includes("translate(-50%, -50%)"),
+  "inner field must use position:absolute with translate(-50%,-50%) for symmetric centering"
+);
+
+assert.ok(
+  !moduleSource.includes("justify-self: center !important"),
+  "inner field must not use justify-self:center (causes left-bias when overflowing content-box)"
+);
+
+// ─── Dynamic style: inner image uses CSS variable so !important cover-none can be overridden ──
+
+assert.ok(
+  moduleSource.includes("--power-inner-cover-image"),
+  "dynamic style must define --power-inner-cover-image CSS variable"
+);
+
+assert.ok(
+  moduleSource.includes("background-image: var(--power-inner-cover-image, none) !important"),
+  "dynamic style must apply CSS variable as background-image with !important to override cover-none"
+);
+
+assert.ok(
+  moduleSource.includes(".powerPlacePdfOnlyArea .has-custom-inner-cover"),
+  "print area must also receive has-custom-inner-cover CSS variable override"
+);
+
+// ─── Base module: inner surface JSX uses CSS variable for image covers ─────────
+
+const baseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+
+assert.ok(
+  baseSource.includes("innerCoverImageStyle"),
+  "Base module must define innerCoverImageStyle helper for CSS variable approach"
+);
+
+assert.ok(
+  baseSource.includes('"--power-inner-cover-image"'),
+  "Base module innerCoverImageStyle must set --power-inner-cover-image CSS variable"
+);
+
+assert.ok(
+  !baseSource.includes("style={imageStyle(coverDisplaySrc(innerCover))}"),
+  "Base module must not use imageStyle() directly for inner surface elements (use innerCoverImageStyle instead)"
+);
+
+// ─── Chess cover-none remains neutral (no gold flow) ──────────────────────────
+
+assert.ok(
+  chessNoneBlock.includes("rgba(244, 241, 235"),
+  "chess cover-none must use neutral warm background, not gold gradient"
+);
+
 console.log("powerPlaceStyleContract: all assertions passed");
