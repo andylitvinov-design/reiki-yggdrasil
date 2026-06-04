@@ -10,6 +10,7 @@ const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
+const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
 const CENTER_SHAPE_REF_KEY = "__center_shape";
 
 const CONSTRUCTOR_LABELS = {
@@ -32,6 +33,12 @@ function innerFieldScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 78;
   return Math.min(92, Math.max(48, parsed));
+}
+
+function centerImageScaleValue(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(1.45, Math.max(0.65, parsed));
 }
 
 function centerShapeValue(value) {
@@ -365,7 +372,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
-.profileLitePowerPlace .innerFieldScaleControl {
+.profileLitePowerPlace .innerFieldScaleControl,
+.profileLitePowerPlace .centerImageScaleControl {
   width: 100%;
   display: grid;
   grid-template-columns: auto minmax(120px, 260px) auto;
@@ -376,10 +384,12 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   font-size: 15px;
   font-weight: 900;
 }
-.profileLitePowerPlace .innerFieldScaleControl input {
+.profileLitePowerPlace .innerFieldScaleControl input,
+.profileLitePowerPlace .centerImageScaleControl input {
   width: 100%;
 }
-.profileLitePowerPlace .innerFieldScaleControl small {
+.profileLitePowerPlace .innerFieldScaleControl small,
+.profileLitePowerPlace .centerImageScaleControl small {
   color: #704812;
   font-size: 12px;
 }
@@ -390,6 +400,7 @@ body.printMandalaOnly .coverOffsetOverlay {
 @media print {
   .coverOffsetOverlay,
   .innerFieldScaleControl,
+  .centerImageScaleControl,
   .centerShapeControl {
     display: none !important;
   }
@@ -399,7 +410,8 @@ body.printMandalaOnly .coverOffsetOverlay {
   .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
     padding: clamp(28px, 9vw, 44px) !important;
   }
-  .profileLitePowerPlace .innerFieldScaleControl {
+  .profileLitePowerPlace .innerFieldScaleControl,
+  .profileLitePowerPlace .centerImageScaleControl {
     grid-template-columns: minmax(0, 1fr) minmax(110px, 240px) auto;
   }
 }
@@ -470,6 +482,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
   const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
   const innerFieldScale = innerFieldScaleValue(objectRefs[INNER_FIELD_SCALE_REF_KEY]);
+  const centerImageScale = centerImageScaleValue(objectRefs[CENTER_IMAGE_SCALE_REF_KEY]);
   const centerShape = centerShapeValue(objectRefs[CENTER_SHAPE_REF_KEY]);
   const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
@@ -506,6 +519,10 @@ export default function ProfileLitePowerPlaceModule(props) {
 
   const setInnerFieldScaleValue = useCallback((nextValue) => {
     writeObjectRefs({ ...objectRefs, [INNER_FIELD_SCALE_REF_KEY]: String(innerFieldScaleValue(nextValue)) });
+  }, [objectRefs, writeObjectRefs]);
+
+  const setCenterImageScaleValue = useCallback((nextValue) => {
+    writeObjectRefs({ ...objectRefs, [CENTER_IMAGE_SCALE_REF_KEY]: String(centerImageScaleValue(nextValue)) });
   }, [objectRefs, writeObjectRefs]);
 
   const setCenterShape = useCallback((nextShape) => {
@@ -553,9 +570,10 @@ export default function ProfileLitePowerPlaceModule(props) {
       : props.compositionDraft;
     return {
       ...baseDraft,
+      __center_image_scale: centerImageScale,
       cover_ref: normalizeLayeredCoverRef(baseDraft?.cover_ref)
     };
-  }, [activeTemplate, isClientMandala, props.compositionDraft]);
+  }, [activeTemplate, centerImageScale, isClientMandala, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
@@ -582,8 +600,8 @@ export default function ProfileLitePowerPlaceModule(props) {
   );
 
   const innerFieldScaleControl = (
-    <div className="innerFieldScaleControl" aria-label="Размер центра">
-      <span>Размер центра</span>
+    <div className="innerFieldScaleControl" aria-label="Размер поля">
+      <span>Размер поля</span>
       <input
         type="range"
         min="48"
@@ -593,6 +611,21 @@ export default function ProfileLitePowerPlaceModule(props) {
         onChange={(event) => setInnerFieldScaleValue(event.target.value)}
       />
       <small>{innerFieldScale}%</small>
+    </div>
+  );
+
+  const centerImageScaleControl = (
+    <div className="centerImageScaleControl" aria-label="Размер центра">
+      <span>Размер центра</span>
+      <input
+        type="range"
+        min="0.65"
+        max="1.45"
+        step="0.01"
+        value={centerImageScale}
+        onChange={(event) => setCenterImageScaleValue(event.target.value)}
+      />
+      <small>{Math.round(centerImageScale * 100)}%</small>
     </div>
   );
 
@@ -615,7 +648,7 @@ export default function ProfileLitePowerPlaceModule(props) {
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {printAreaNode ? createPortal(externalTitle, printAreaNode) : null}
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
-      {constructorControlsNode ? createPortal(innerFieldScaleControl, constructorControlsNode) : null}
+      {constructorControlsNode ? createPortal(<>{innerFieldScaleControl}{centerImageScaleControl}</>, constructorControlsNode) : null}
       {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
       <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">

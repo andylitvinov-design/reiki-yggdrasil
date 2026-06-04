@@ -122,3 +122,16 @@
     font-size: 11px;
   }
 }
+
+.profileLitePowerPlace .compactFieldLayoutSwitch {
+  justify-content: flex-start;
+}
+
+.profileLitePowerPlace .compactFieldLayoutSwitch .centerShapeControl {
+  order: 1;
+  margin-left: 0;
+}
+
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons {
+  order: 2;
+}
