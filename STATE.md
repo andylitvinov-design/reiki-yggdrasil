@@ -12,6 +12,27 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Power Place mobile save clickability
+
+- Branch: `fix/power-place-save-button-clickability`, based on fresh `origin/main` at `5379004` after PR #264.
+- Scope: Profile Lite Power Place action panel React/CSS/contracts only; Supabase schema/env, route config, public home page, print/PDF logic, and mandala geometry were not changed.
+- Root cause:
+  - Save was only disabled by the saved-count limit for unsaved drafts, but the disabled state had no scoped visual styling.
+  - The saved-count hint rendered as a raw inline `span` inside the same flex row as the action buttons, so on mobile it could wrap/overflow in the clickable action area and visually interfere with Save.
+  - Save delegated directly to `onSaveNew`, so there was no local guarded click path or immediate visible “save started” status.
+- Changed:
+  - added an explicit guarded Save click handler that calls `onSaveNew` only when Save is enabled;
+  - added immediate `Сохраняем место силы...` status before the create request starts and routes missing-profile preflight into the visible composition notice;
+  - moved the saved-count hint to `.powerPlaceActionsMeta` below the button row;
+  - added scoped disabled styling, explicit action-card ordering, and pointer/layout rules so the hint cannot cover or intercept action buttons.
+- Verification:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing explicit click wrapper, then passed after the fix;
+  - `npm run build`, `npm run check`, `npm run test:profile-lite`, `npm run test:power-place`, and `git diff --check` exited `0`;
+  - retained existing warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large-chunk warning.
+- Not verified:
+  - real mobile tap QA against authenticated production Supabase data;
+  - Vercel preview rendering, production/legacy live rendering, and Google OAuth.
+
 ## 2026-06-05 — Power Place save flow and action order
 
 - Branch: `fix/power-place-save-flow-and-action-order`, based on fresh `origin/main` at `c328798` after PR #262.

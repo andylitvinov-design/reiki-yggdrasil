@@ -435,6 +435,10 @@ export default function ProfileLitePowerPlaceModule({
     ? "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу."
     : "Сохранить новую мандалу";
   const saveNewAriaLabel = saveNewDisabled ? `Сохранить: ${saveNewTitle}` : saveNewTitle;
+  const handleSaveNewClick = () => {
+    if (saveNewDisabled) return;
+    onSaveNew();
+  };
   const sourceSlotScaleStyle = {
     "--power-source-slot-scale": sourceSlotScale,
     "--power-place-chess-slot-scale": chessSlotScale,
@@ -749,13 +753,13 @@ export default function ProfileLitePowerPlaceModule({
         <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
       </label>
       <div className="powerPlaceActions">
-        <button className="cabinetPrimary" type="button" onClick={onSaveNew} disabled={saveNewDisabled} title={saveNewTitle} aria-label={saveNewAriaLabel}>Сохранить</button>
+        <button className="cabinetPrimary powerPlaceSaveButton" type="button" onClick={handleSaveNewClick} disabled={saveNewDisabled} title={saveNewTitle} aria-label={saveNewAriaLabel}>Сохранить</button>
         <button className="cabinetPrimary" type="button" onClick={onUpdateExisting} disabled={!compositionDraft.id}>Обновить</button>
         <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
-        <span>{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
       </div>
+      <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
   );

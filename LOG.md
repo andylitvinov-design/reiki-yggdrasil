@@ -1,5 +1,40 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Fix Power Place mobile save clickability
+
+- Branch: `fix/power-place-save-button-clickability`.
+- Base: fresh `origin/main` at `5379004` (PR #264, `Fix Power Place save flow and action order`).
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - Save disabled only at the saved-count limit for unsaved drafts, but the disabled state lacked obvious scoped styling.
+  - The saved-count text was a raw inline `span` in `.powerPlaceActions`, sharing the mobile flex row with buttons and able to overflow in the action area.
+  - Save had no local guarded click wrapper or immediate visible save-start status.
+- Changed:
+  - added `handleSaveNewClick` to make enabled Save explicitly call `onSaveNew` and disabled Save return locally;
+  - added immediate `Сохраняем место силы...` composition message before create and shows the missing-profile preflight message in the same visible action-area notice;
+  - moved saved-count text to `.powerPlaceActionsMeta` below the action buttons;
+  - added scoped disabled button styling, explicit action-card ordering, and pointer/layout safeguards for the actions meta block.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing explicit click wrapper, then passed;
+  - `npm install`
+  - `npm run build`
+  - `npm run check`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large-chunk warning.
+- Not verified:
+  - authenticated live Supabase save/reload;
+  - Vercel preview, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-05 — Fix Power Place save flow and action order
 
 - Branch: `fix/power-place-save-flow-and-action-order`.
