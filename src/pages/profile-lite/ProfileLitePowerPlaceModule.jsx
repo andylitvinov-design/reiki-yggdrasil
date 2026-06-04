@@ -62,13 +62,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage,
 .powerPlacePdfOnlyArea .starCenterPhoto.hasImage,
 .powerPlacePdfOnlyArea .daoCenterPhoto.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important;
+  background-size: contain !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
 .profileLitePowerPlace .power-place-chess__center.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__center.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important;
+  background-size: contain !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
 }
@@ -606,12 +606,6 @@ export default function ProfileLitePowerPlaceModule(props) {
         <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">→</button>
         <button type="button" onClick={() => shiftCoverOffset("inner", "y", -5)} aria-label="Сдвинуть внутренний фон вверх">↑</button>
         <button type="button" onClick={() => shiftCoverOffset("inner", "y", 5)} aria-label="Сдвинуть внутренний фон вниз">↓</button>
-      </div>
-      <div className="coverOffsetCornerGroup outer" aria-label="Смещение внешнего фона">
-        <button type="button" onClick={() => shiftCoverOffset("outer", "x", -5)} aria-label="Сдвинуть внешний фон влево">←</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "x", 5)} aria-label="Сдвинуть внешний фон вправо">→</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "y", -5)} aria-label="Сдвинуть внешний фон вверх">↑</button>
-        <button type="button" onClick={() => shiftCoverOffset("outer", "y", 5)} aria-label="Сдвинуть внешний фон вниз">↓</button>
       </div>
     </div>
   );

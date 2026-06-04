@@ -134,9 +134,38 @@ assert.ok(
   "print area must also receive has-custom-inner-cover CSS variable override"
 );
 
+// ─── Dynamic style: center photos preserve source proportions ────────────────
+
+assert.ok(
+  !moduleSource.includes("background-size: calc(100% * var(--power-center-image-scale, 1)) calc(100% * var(--power-center-image-scale, 1)) !important"),
+  "center photos must not force both background-size axes because that stretches client images"
+);
+
+assert.ok(
+  moduleSource.includes("background-size: contain !important") || moduleSource.includes("background-size: cover !important"),
+  "center photos must use proportional background-size"
+);
+
 // ─── Base module: inner surface JSX uses CSS variable for image covers ─────────
 
 const baseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+
+// ─── Dynamic UI: only inner background arrows are rendered ───────────────────
+
+assert.ok(
+  moduleSource.includes("coverOffsetCornerGroup inner"),
+  "inner background arrows must remain available"
+);
+
+assert.ok(
+  !moduleSource.includes("coverOffsetCornerGroup outer"),
+  "outer background arrow group must not be rendered in the Profile Lite UI"
+);
+
+assert.ok(
+  !moduleSource.includes('shiftCoverOffset("outer"'),
+  "remaining arrow buttons must not move the outer background layer"
+);
 
 assert.ok(
   baseSource.includes("innerCoverImageStyle"),
