@@ -470,18 +470,34 @@ export async function listPowerPlaceCompositions(profileId, session = getStoredS
 export async function createPowerPlaceComposition(composition, plan, session = getStoredSession()) {
   requireSession(session);
   const payload = normalizePowerPlaceComposition(composition);
-  const count = await countRows(COMPOSITIONS_TABLE, payload.profile_id, session);
+  const countRowsFailureMessage = "Не удалось проверить лимит сохранённых мандал перед сохранением. Проверьте подключение к Supabase и попробуйте снова.";
+  const postFailureMessage = "Не удалось сохранить мандалу в Supabase. Проверьте доступ к таблице и попробуйте снова.";
+  let count = 0;
+  try {
+    count = await countRows(COMPOSITIONS_TABLE, payload.profile_id, session);
+  } catch (error) {
+    throw powerPlaceError(countRowsFailureMessage, {
+      stage: "countRows"
+    });
+  }
   const limits = getPlanLimits(plan);
   if (count >= limits.compositions) {
     throw powerPlaceError(`Лимит ${limits.compositions} сохранённых мест силы для плана ${normalizeAccountPlan(plan) === "pro" ? "Pro" : "Start"} достигнут.`);
   }
 
-  const rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}`, {
-    method: "POST",
-    session,
-    prefer: "return=representation",
-    body: payload
-  });
+  let rows = null;
+  try {
+    rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}`, {
+      method: "POST",
+      session,
+      prefer: "return=representation",
+      body: payload
+    });
+  } catch (error) {
+    throw powerPlaceError(postFailureMessage, {
+      stage: "POST"
+    });
+  }
 
   const hydrated = await hydrateCompositionRows(rows, session);
   return hydrated?.[0] || null;

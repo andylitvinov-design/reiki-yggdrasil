@@ -1215,7 +1215,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     try {
       await refreshSavedCompositions(saved);
     } catch {
-      // refresh failed but composition was created — keep the optimistic state
+      setCompositionMessage("Мандала сохранена, но список не обновился. Обновите кабинет, если она не появилась в списке.");
     }
   };
 

@@ -1,5 +1,40 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Fix Power Place save flow and action order
+
+- Branch: `fix/power-place-save-flow-and-action-order`.
+- Base: fresh `origin/main` at `c328798` (`Fix Power Place save object refs persistence (#262)`).
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - `createPowerPlaceComposition` reported the pre-insert saved-count request and the POST insert through one generic save failure surface, so live failures could not tell whether the count check or insert failed.
+  - Post-create refresh failure was swallowed silently; the optimistic row already existed, but the user had no visible explanation if the list refresh failed.
+  - The mobile title/button order depended on a fragile layout area, so a focused DOM/CSS contract now protects `Название мандалы` above the action buttons and prevents CSS from reordering the button group above it.
+- Changed:
+  - added clear safe RU errors for count-stage and POST-stage create failures;
+  - preserved optimistic saved composition state when refresh after create fails and shows a visible refresh warning;
+  - kept the server-returned-id guard before success;
+  - added source/DOM/CSS contract coverage for title-before-buttons and save limit behavior.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing count-stage error, then passed;
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Not verified:
+  - real authenticated Supabase save/update/reload;
+  - browser visual QA, because Playwright MCP returned `Transport closed` and Chrome DevTools MCP could not attach to the locked browser profile;
+  - Vercel preview, merge/deploy, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-04 — Profile Lite Power Place graphic layout final
 
 - Branch: `codex/profile-lite-graphic-layout-final`.
