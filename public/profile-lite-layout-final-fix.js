@@ -101,6 +101,15 @@
     document.head.appendChild(style);
   }
 
+  function preferMandalasRoute() {
+    const search = new URLSearchParams(window.location.search);
+    const tab = search.get("tab");
+    if (window.location.pathname !== "/profile" && window.location.pathname !== "/profile-lite") return;
+    if (tab && tab !== "overview") return;
+    window.history.replaceState({}, "", "/profile/mandalas");
+    window.dispatchEvent(new Event("reiki-route-change"));
+  }
+
   function parseObjectRefs() {
     const textarea = document.querySelector('.profileLiteAdvancedJson textarea');
     if (!textarea) return {};
@@ -113,7 +122,7 @@
 
   function updateObjectRefs(patch) {
     const textarea = document.querySelector('.profileLiteAdvancedJson textarea');
-    if (!textarea) return;
+    if (!textarea) return false;
     const next = { ...parseObjectRefs(), ...patch };
     const value = JSON.stringify(next, null, 2);
     const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
@@ -121,10 +130,70 @@
     else textarea.value = value;
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }
+
+  function clampCoverOffset(value) {
+    const next = Number(value);
+    if (!Number.isFinite(next)) return 50;
+    return Math.min(80, Math.max(20, next));
+  }
+
+  function nudgeInnerCover(dx, dy) {
+    const refs = parseObjectRefs();
+    const x = clampCoverOffset(refs.__inner_cover_offset_x);
+    const y = clampCoverOffset(refs.__inner_cover_offset_y);
+    return updateObjectRefs({
+      __inner_cover_offset_x: String(clampCoverOffset(x + dx)),
+      __inner_cover_offset_y: String(clampCoverOffset(y + dy))
+    });
+  }
+
+  function mergeReportAndAnalysis() {
+    const root = document.querySelector('.profileLitePowerPlace');
+    if (!root) return;
+    const report = root.querySelector('.reportSettingsPanel');
+    const analysis = root.querySelector('.resourceComparisonPanel');
+    if (!report || !analysis || analysis.closest('.reportSettingsPanel')) return;
+    report.classList.add('isMergedReportAnalysis');
+    const reportTitle = report.querySelector(':scope > .cabinetEyebrow');
+    const analysisTitle = analysis.querySelector(':scope > .cabinetEyebrow');
+    if (reportTitle) reportTitle.textContent = 'Отчёт и анализ';
+    if (analysisTitle) analysisTitle.textContent = 'Ресурс';
+    analysis.classList.add('mergedResourceComparison');
+    report.appendChild(analysis);
+  }
+
+  function tuneInnerCoverArrows() {
+    const group = document.querySelector('.profileLitePowerPlace .coverOffsetCornerGroup.inner');
+    if (!group || group.dataset.diagonalOnly === 'true') return;
+    const buttons = Array.from(group.querySelectorAll('button'));
+    if (buttons.length < 4) return;
+    const arrows = [
+      { text: '↖', label: 'Сдвинуть внутренний фон вверх и влево', dx: -5, dy: -5 },
+      { text: '↗', label: 'Сдвинуть внутренний фон вверх и вправо', dx: 5, dy: -5 },
+      { text: '↙', label: 'Сдвинуть внутренний фон вниз и влево', dx: -5, dy: 5 },
+      { text: '↘', label: 'Сдвинуть внутренний фон вниз и вправо', dx: 5, dy: 5 }
+    ];
+    group.dataset.diagonalOnly = 'true';
+    buttons.slice(0, 4).forEach((button, index) => {
+      const arrow = arrows[index];
+      button.textContent = arrow.text;
+      button.setAttribute('aria-label', arrow.label);
+      button.setAttribute('title', arrow.label);
+      button.addEventListener('click', (event) => {
+        if (!nudgeInnerCover(arrow.dx, arrow.dy)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        requestAnimationFrame(applyState);
+      }, true);
+    });
   }
 
   function applyState() {
     injectStyle();
+    mergeReportAndAnalysis();
+    tuneInnerCoverArrows();
     const refs = parseObjectRefs();
     const scaleRaw = Number(refs.__inner_field_scale);
     const scale = Number.isFinite(scaleRaw) ? Math.min(100, Math.max(48, scaleRaw)) : 78;
@@ -165,6 +234,7 @@
   }
 
   function start() {
+    preferMandalasRoute();
     injectStyle();
     wireControls();
     applyState();
