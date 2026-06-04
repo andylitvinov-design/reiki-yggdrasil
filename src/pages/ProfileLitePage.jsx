@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { extractCssUrls } from "../lib/printUtils.js";
 import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
@@ -261,13 +262,44 @@ function collectPrintableStyles() {
   }).join("\n");
 }
 
+function preloadImagesForPrint(urls, timeoutMs = 2500) {
+  if (!urls.length) return Promise.resolve();
+  if (typeof Image === "undefined") return Promise.resolve();
+  return new Promise((resolve) => {
+    let remaining = urls.length;
+    let settled = false;
+    const finish = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
+    const decrement = () => { if (--remaining <= 0) finish(); };
+    const timer = setTimeout(finish, timeoutMs);
+    urls.forEach((src) => {
+      try {
+        const img = new Image();
+        img.onload = img.onerror = decrement;
+        img.src = src;
+      } catch (_) {
+        decrement();
+      }
+    });
+  });
+}
+
+function raf2(win) {
+  if (typeof win.requestAnimationFrame === "function") {
+    return new Promise((res) => win.requestAnimationFrame(() => win.requestAnimationFrame(res)));
+  }
+  return new Promise((res) => setTimeout(res, 32));
+}
+
 function openPowerPlacePdfPrintView(title) {
   const printArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
   if (!printArea) throw new Error("Макет мандалы не найден.");
 
   const filename = `${safeFilename(title || "power-place")}.pdf`;
+  // window.open must stay synchronous on the click event stack
   const printWindow = window.open("", "_blank", "width=980,height=900");
   if (!printWindow) throw new Error("Разрешите всплывающее окно для печати в PDF.");
+
+  const imageUrls = extractCssUrls(printArea);
 
   const clonedArea = printArea.cloneNode(true);
   clonedArea.classList.add("powerPlacePdfOnlyArea");
@@ -282,18 +314,28 @@ function openPowerPlacePdfPrintView(title) {
     body{margin:0;background:#fffaf0;color:#2f2418}
     body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:100vh!important}
     @page{size:auto;margin:10mm}
+    #pdfStatus{position:fixed;top:0;left:0;right:0;padding:12px;background:#f5f0e8;text-align:center;font-family:sans-serif;font-size:14px;color:#5a4030;z-index:9999}
   </style>
 </head>
 <body class="printMandalaOnly">
+  <div id="pdfStatus">Подготовка PDF: загружаем изображения…</div>
   <main aria-label="Скачать PDF / Печать в PDF"></main>
 </body>
 </html>`);
   printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
   printWindow.document.close();
-  printWindow.setTimeout(() => {
-    printWindow.focus();
-    printWindow.print();
-  }, 250);
+
+  Promise.all([
+    preloadImagesForPrint(imageUrls),
+    printWindow.document.fonts?.ready ?? Promise.resolve(),
+  ])
+    .then(() => raf2(printWindow))
+    .then(() => {
+      const status = printWindow.document.getElementById("pdfStatus");
+      if (status) status.style.display = "none";
+      printWindow.focus();
+      printWindow.print();
+    });
 }
 
 export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
