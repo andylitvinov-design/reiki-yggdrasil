@@ -1165,7 +1165,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleCompositionSaveNew = async () => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
-      setMandalasError("Сначала сохраните профиль мастера.");
+      const message = "Сначала сохраните профиль мастера.";
+      setMandalasError(message);
+      setCompositionMessage(message);
       setMandalasStatus("needs-verification");
       return;
     }
@@ -1178,6 +1180,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       return;
     }
     setMandalasError("");
+    setMandalasStatus("loading");
+    setCompositionMessage("Сохраняем место силы...");
     let saved = null;
     try {
       const createPayload = {

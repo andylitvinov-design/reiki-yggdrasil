@@ -2172,7 +2172,7 @@
 }
 
 .powerPlaceHint,
-.powerPlaceActions span,
+.powerPlaceActionsMeta,
 .coverNotice {
   margin: 0;
   color: #77644d;
@@ -2379,6 +2379,42 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
+  position: relative;
+}
+
+.profileLitePowerPlace .powerPlaceActions button {
+  pointer-events: auto;
+}
+
+.profileLitePowerPlace .powerPlaceActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  filter: grayscale(0.35);
+  box-shadow: none;
+}
+
+.profileLitePowerPlace .powerPlaceActionsMeta {
+  width: 100%;
+  min-width: 0;
+  margin: -4px 0 0;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .compositionTitleField {
+  order: 1;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPlaceActions {
+  order: 2 !important;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPlaceActionsMeta {
+  order: 3;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPrintColorHint {
+  order: 4;
 }
 
 .powerPlanNote {
@@ -6493,8 +6529,9 @@
     max-height: 42px;
   }
 
-  .profileLitePowerPlace .powerPlaceActions span,
+  .profileLitePowerPlace .powerPlaceActionsMeta,
   .profileLitePowerPlace .powerPrintColorHint {
+    width: 100%;
     flex-basis: 100%;
     font-size: 11px;
   }
