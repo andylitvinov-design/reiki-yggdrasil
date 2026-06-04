@@ -388,11 +388,12 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .coverOffsetCornerGroup button:active {
   transform: scale(0.96);
 }
+.profileLitePowerPlace .chessSizeControl,
 .profileLitePowerPlace .innerFieldScaleControl,
 .profileLitePowerPlace .centerImageScaleControl {
   width: 100%;
   display: grid;
-  grid-template-columns: auto minmax(120px, 260px) auto;
+  grid-template-columns: minmax(170px, 220px) 28px minmax(240px, 1fr) 28px;
   gap: 6px;
   align-items: center;
   margin-top: 4px;
@@ -400,6 +401,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   font-size: 15px;
   font-weight: 900;
 }
+.profileLitePowerPlace .chessSizeControl input,
 .profileLitePowerPlace .innerFieldScaleControl input,
 .profileLitePowerPlace .centerImageScaleControl input {
   width: 100%;
@@ -415,6 +417,7 @@ body.printMandalaOnly .coverOffsetOverlay {
 }
 @media print {
   .coverOffsetOverlay,
+  .chessSizeControl,
   .innerFieldScaleControl,
   .centerImageScaleControl,
   .centerShapeControl {
@@ -426,9 +429,10 @@ body.printMandalaOnly .coverOffsetOverlay {
   .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
     padding: clamp(28px, 9vw, 44px) !important;
   }
+  .profileLitePowerPlace .chessSizeControl,
   .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerImageScaleControl {
-    grid-template-columns: minmax(0, 1fr) minmax(110px, 240px) auto;
+    grid-template-columns: minmax(0, 120px) 24px minmax(0, 1fr) 24px;
   }
 }
 `;
@@ -627,14 +631,14 @@ export default function ProfileLitePowerPlaceModule(props) {
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
       {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
-      <div className="mandalaTemplatePilotPanel" aria-label="Макеты мандалы">
+      <div className="mandalaTemplatePilotPanel" aria-label="Сетки мандалы">
         <div>
-          <p className="cabinetEyebrow">Макеты мандалы</p>
-          <b>Фото-макет для формата «Мандала»</b>
-          <small>Пилот: макет 1 включает 9 зон для загрузки мини-мандал.</small>
+          <p className="cabinetEyebrow">Сетка мандалы</p>
+          <b>Фото-сетка для формата «Мандала»</b>
+          <small>Пилот: сетка 1 включает 9 зон для загрузки мини-мандал.</small>
         </div>
-        <div className="mandalaTemplatePilotButtons" role="group" aria-label="Выбор макета мандалы">
-          <button className={!activeTemplateId ? "active" : ""} type="button" onClick={handleTemplateClear}>Без макета</button>
+        <div className="mandalaTemplatePilotButtons" role="group" aria-label="Выбор сетки мандалы">
+          <button className={!activeTemplateId ? "active" : ""} type="button" onClick={handleTemplateClear}>Без сетки</button>
           {placePowerMandalaTemplates.map((template) => (
             <button className={activeTemplateId === template.id ? "active" : ""} key={template.id} type="button" onClick={() => handleTemplateSelect(template.id)} title={template.title}>
               {template.label}

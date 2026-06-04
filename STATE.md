@@ -12,6 +12,34 @@ Last updated: 2026-06-04
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-04 — Profile Lite Power Place graphic layout final
+
+- Branch: `codex/profile-lite-graphic-layout-final`, based on fresh `origin/main` merge commit `216dac3`.
+- Scope: `/profile/mandalas` source-owned React/CSS/client/test/docs only; public home page, route inventory, Supabase env values, Vercel rewrites, public runtime patch files, and MutationObserver usage were not changed.
+- Changed:
+  - moved compact `Центр` / `Фон` layout controls above `Фон Места Силы`;
+  - kept `Центр` and `Фон` as equal-height side-by-side cells and removed visible `Макет` wording from the Power Place UI source;
+  - moved `Отчёт` below `Фон Места Силы`;
+  - changed new empty report drafts to default to `Без отчёта` / `without_report` while preserving explicit or body-filled saved reports as `with_report`;
+  - kept report body fields/actions hidden while `Без отчёта` is selected;
+  - aligned `Размер фото`, `Размер поля`, and `Размер центра` with the shared `[label] [-] [range] [+]` grid on desktop and mobile;
+  - moved the save/action card into the center column directly under the mandala print area.
+- Verification:
+  - `npm install` was attempted but failed with `ENOSPC` because the disk had about 124 MiB free;
+  - removed only the generated partial worktree `node_modules` and symlinked to the existing canonical repo dependency install;
+  - `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4330/profile/mandalas`;
+  - mock Supabase server: `http://127.0.0.1:4329`;
+  - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - desktop 1280x920: compact layout rendered above `Фон Места Силы`, `Фон Места Силы` rendered above `Отчёт`, `Центр` / `Фон` cells were equal-height, `Без отчёта` was active, report body fields were hidden, save/actions followed the mandala, slider grids matched 220px / 28px / 288px / 28px, duplicate slider counts were `1`, visible `Макет` count was `0`, horizontal overflow was `0`, and console errors were `0`;
+  - mobile 390x900: compact layout visually rendered above `Фон Места Силы`, `Отчёт` rendered below it, `Центр` / `Фон` cells were equal-height, save/actions followed the mandala, slider grids matched 120px / 24px / 138px / 24px, horizontal overflow was `0`, and console errors were `0`.
+- Not verified:
+  - real authenticated Supabase save/update/reload, Vercel preview, merge/deploy, production/legacy live rendering, and Google OAuth.
+- Risks:
+  - Profile Lite still has layered static CSS, existing public CSS hotfixes, and injected scoped CSS; this pass aligned/overrode the affected source rules, but CSS ordering remains sensitive.
+
 ## 2026-06-04 — Profile Lite Power Place controls/save-update/mobile report
 
 - Branch: `codex/profile-lite-power-place-controls-save-update`, based on fresh `origin/main` merge commit `19410c1`.

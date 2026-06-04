@@ -229,6 +229,8 @@ for (const requiredClass of [
 assert.match(powerPlaceSource, /<aside className="mandalaModeSidebar powerLibrarySidebar"[\s\S]*<div className="workspaceCenterColumn"[\s\S]*<div className="workspaceRightColumn"/, "Lite Power Place should preserve desktop left / center / right source order");
 assert.match(powerPlaceSource, /data-compact-photo-list="true"/, "Profile Lite source rail should expose a compact photo list marker");
 assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
+assert.match(profileLitePageSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite drafts should default to Без отчёта in the page state");
+assert.match(powerPlaceBaseSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite report UI drafts should default to Без отчёта");
 assert.match(profileLitePageSource, /slot_scale:\s*1/, "Profile Lite empty composition should include the shared slot_scale field");
 assert.match(profileLitePageSource, /field_scale:\s*78/, "Profile Lite empty composition should include the persisted field_scale control");
 assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace CSS should include shared source slot scaling");
@@ -238,9 +240,16 @@ assert.match(powerPlaceSource, /__center_image_scale: centerImageScale/, "center
 assert.match(powerPlaceSource, /style=\{centerImageStyle\}/, "center photo renderer should receive the independent center image scale style");
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /Размер фото[\s\S]*Размер поля[\s\S]*Размер центра/, "Power Place constructor controls should show photo, field, and center sliders in the required order");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "chessSizeControl"/g) || []).length, 1, "Размер фото slider should render once from the base module");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerImageScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.chessSizeControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerImageScaleControl \{[\s\S]*grid-template-columns: minmax\(170px, 220px\) 28px minmax\(240px, 1fr\) 28px;/, "all three size sliders should share the requested desktop grid");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.chessSizeControl,[\s\S]*grid-template-columns: minmax\(0, 120px\) 24px minmax\(0, 1fr\) 24px;/, "all three size sliders should share the requested mobile grid");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
 assert.match(powerPlaceSource, />Сохранить<\/button>[\s\S]*>Обновить<\/button>/, "Power Place actions should expose separate Save and Update buttons");
+assert.match(powerPlaceBaseSource, /powerPlacePrintArea[\s\S]*renderPowerPlaceActions\(\)[\s\S]*reportAdded/, "Power Place actions should render in the central mandala area before report output");
 assert.match(profileLitePageSource, /handleCompositionSaveNew/, "Profile Lite page should split composition create into handleCompositionSaveNew");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting/, "Profile Lite page should split composition update into handleCompositionUpdateExisting");
 assert.match(profileLitePageSource, /createPowerPlaceComposition\(\s*\{\s*\.\.\.createPayload\s*,\s*id:\s*undefined\s*\}|delete createPayload\.id/, "Save should create a new composition without preserving draft id");
@@ -248,6 +257,8 @@ assert.match(profileLitePageSource, /копия/, "Duplicate saved mandala title
 assert.match(profileLitePageSource, /Сначала откройте сохранённую мандалу/, "Update without an existing composition should show the required message");
 assert.match(profileLitePageSource, /updatePowerPlaceComposition\(compositionDraft\.id/, "Update should call updatePowerPlaceComposition for the current saved composition");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
+assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
+assert.doesNotMatch(powerPlaceSource, /Макет|макет/, "Profile Lite Power Place UI should not show the word Макет");
 assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "resource comparison mini-block should not be visible in the React report/settings UI");
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");

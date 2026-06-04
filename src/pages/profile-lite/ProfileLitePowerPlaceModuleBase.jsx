@@ -49,7 +49,7 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
 }));
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const EMPTY_PROFILE_LITE_REPORT = {
-  mode: "with_report",
+  mode: "without_report",
   added: false,
   situation: "",
   mandala_effect: "",
@@ -269,9 +269,10 @@ function cleanObjectRefs(refs) {
 
 function normalizeReportDraft(value) {
   const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const hasReportBody = Boolean(source.added || source.situation || source.mandala_effect || source.extra_help);
   return {
     ...EMPTY_PROFILE_LITE_REPORT,
-    mode: source.mode === "without_report" ? "without_report" : "with_report",
+    mode: source.mode === "with_report" || (!source.mode && hasReportBody) ? "with_report" : "without_report",
     added: Boolean(source.added),
     situation: String(source.situation || ""),
     mandala_effect: String(source.mandala_effect || ""),
@@ -1193,6 +1194,8 @@ export default function ProfileLitePowerPlaceModule({
                 </div>
               </div>
 
+              {workspaceTab === "power-place" && renderPowerPlaceActions()}
+
               {reportAdded && (
                 <section className="powerReportOutput" aria-label="Отчёт по мандале">
                   <p className="cabinetEyebrow">Отчёт</p>
@@ -1223,7 +1226,7 @@ export default function ProfileLitePowerPlaceModule({
 
         <div className="workspaceRightColumn">
           <aside className="powerCommandRail powerPlaceSettings">
-            {renderReportModule()}
+            {renderFieldLayoutSelector()}
 
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
@@ -1231,7 +1234,6 @@ export default function ProfileLitePowerPlaceModule({
                 <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
               </div>
-              {renderFieldLayoutSelector()}
               <div className="coverPreviewWrap">
                 <button
                   type="button"
@@ -1263,6 +1265,8 @@ export default function ProfileLitePowerPlaceModule({
               </div>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
+
+            {renderReportModule()}
 
             <div className="objectImageEditor">
               <p className="cabinetEyebrow">Объекты композиции</p>
@@ -1297,7 +1301,6 @@ export default function ProfileLitePowerPlaceModule({
           </aside>
         </div>
 
-        {workspaceTab === "power-place" && renderPowerPlaceActions()}
         {workspaceTab === "power-place" && (
           <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
             <summary>Диагностика / advanced object refs JSON</summary>
