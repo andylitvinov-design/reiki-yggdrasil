@@ -102,10 +102,8 @@
   }
 
   function preferMandalasRoute() {
-    const search = new URLSearchParams(window.location.search);
-    const tab = search.get("tab");
     if (window.location.pathname !== "/profile" && window.location.pathname !== "/profile-lite") return;
-    if (tab && tab !== "overview") return;
+    if (window.location.search || window.location.hash) return;
     window.history.replaceState({}, "", "/profile/mandalas");
     window.dispatchEvent(new Event("reiki-route-change"));
   }
