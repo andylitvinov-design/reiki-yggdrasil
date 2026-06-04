@@ -133,131 +133,16 @@
   aspect-ratio: 1 / 1 !important;
 }
 
-.profileLitePowerPlace .powerPlacePrintArea .powerMandalaPanel.field-layout-rectangle,
-.profileLitePowerPlace .powerPlacePrintArea .powerMandalaPanel.field-layout-vertical,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical {
-  aspect-ratio: 9 / 19.5 !important;
-}
-
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .power-place-chess,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .powerMandala,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .altarMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .businessMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .zodiacMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .starMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-rectangle .powerMandalaPanel > .daoMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .power-place-chess,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .powerMandala,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .altarMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .businessMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .zodiacMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .starMandalaSheet,
-.profileLitePowerPlace .powerPlacePrintArea.field-layout-vertical .powerMandalaPanel > .daoMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .power-place-chess,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .powerMandala,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .altarMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .businessMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .zodiacMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .starMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle > .daoMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .power-place-chess,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .powerMandala,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .altarMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .businessMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .zodiacMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .starMandalaSheet,
-.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical > .daoMandalaSheet {
-  aspect-ratio: 9 / 19.5 !important;
+  aspect-ratio: 9 / 16 !important;
 }
 
 .profileLitePowerPlace .powerMandalaPanel.field-layout-horizontal,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
   aspect-ratio: 16 / 9 !important;
-}
-
-.profileLitePowerPlace .zodiacFieldPlusPosition,
-.powerPlacePdfOnlyArea .zodiacFieldPlusPosition {
-  display: none !important;
-}
-
-.profileLitePowerPlace .coverUploadButton {
-  display: none !important;
-}
-
-.profileLitePowerPlace .coverVariantList.coverVariantsGrid {
-  display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-}
-
-.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+7):nth-child(-n+12) {
-  position: relative !important;
-  display: inline-flex !important;
-  padding-right: 24px !important;
-}
-
-.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+7):nth-child(-n+12)::after {
-  content: "×";
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  width: 17px;
-  height: 17px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(59, 32, 9, 0.86);
-  color: #fff5dc;
-  font-size: 12px;
-  line-height: 1;
-  box-shadow: 0 4px 10px rgba(50, 28, 8, 0.18);
-}
-
-.profileLitePowerPlace .coverVariantList.coverVariantsGrid button:nth-child(n+13):not(.active) {
-  display: none !important;
-}
-
-.profileLitePowerPlace .chessSizeControl,
-.profileLitePowerPlace .innerFieldScaleControl {
-  width: 100% !important;
-  display: grid !important;
-  grid-template-columns: minmax(118px, 1fr) minmax(160px, 260px) auto !important;
-  gap: 8px !important;
-  align-items: center !important;
-}
-
-.profileLitePowerPlace .chessSizeControl input,
-.profileLitePowerPlace .innerFieldScaleControl input {
-  width: 100% !important;
-  min-width: 0 !important;
-}
-
-.profileLitePowerPlace .mandalaFieldLayoutSwitch.powerLayoutPanel {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-  gap: 10px 12px !important;
-}
-
-.profileLitePowerPlace .mandalaFieldLayoutSwitch.powerLayoutPanel > .cabinetEyebrow {
-  grid-column: 1 / -1 !important;
-}
-
-.profileLitePowerPlace .mandalaFieldLayoutSwitch.powerLayoutPanel .centerShapeControl {
-  grid-column: 1 !important;
-  grid-row: 2 / span 2 !important;
-  border-top: 0 !important;
-  padding-top: 0 !important;
-}
-
-.profileLitePowerPlace .mandalaFieldLayoutSwitch.powerLayoutPanel > span {
-  grid-column: 2 !important;
-  grid-row: 2 !important;
-}
-
-.profileLitePowerPlace .mandalaFieldLayoutSwitch.powerLayoutPanel .mandalaFieldLayoutButtons {
-  grid-column: 2 !important;
-  grid-row: 3 !important;
 }
 
 @media (max-width: 980px) {
@@ -303,10 +188,6 @@
   .profileLitePowerPlace .powerPrintMeta {
     margin: 0 0 10px !important;
   }
-
-  .profileLitePowerPlace .coverVariantList.coverVariantsGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
 }
 
 @media print {
@@ -340,8 +221,8 @@
 
   body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle,
   body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical {
-    width: min(90vw, 41vh) !important;
-    aspect-ratio: 9 / 19.5 !important;
+    width: min(90vw, 49vh) !important;
+    aspect-ratio: 9 / 16 !important;
   }
 
   body.printMandalaOnly .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-horizontal {
