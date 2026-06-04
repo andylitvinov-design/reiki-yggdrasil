@@ -919,7 +919,10 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       const currentCover = current.cover_ref || {};
       const inner = normalizeLayer(currentCover.inner || currentCover, "no-cover");
       const outer = normalizeLayer(currentCover.outer || { id: "no-cover", label: "Без фона", type: "none" }, "no-cover");
-      const nextLayer = normalizeLayer(cover, layer === "outer" ? "custom-outer-cover" : "custom-cover");
+      const nextLayerBase = normalizeLayer(cover, layer === "outer" ? "custom-outer-cover" : "custom-cover");
+      const nextLayer = nextLayerBase.type === "image"
+        ? { ...nextLayerBase, id: layer === "outer" ? "custom-outer-cover" : "custom-cover" }
+        : nextLayerBase;
       const nextObjectRefUrls = (nextLayer.src && nextLayer.display_src && nextLayer.display_src !== nextLayer.src)
         ? { ...(current.object_ref_urls || {}), [nextLayer.src]: nextLayer.display_src }
         : current.object_ref_urls;

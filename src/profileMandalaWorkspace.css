@@ -6092,3 +6092,175 @@
     min-height: min(470px, calc(100vw + 74px)) !important;
   }
 }
+
+.profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profileLitePowerPlace .has-custom-inner-cover {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profileLitePowerPlace .coverPickerPanel {
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 253, 247, 0.72);
+}
+
+.profileLitePowerPlace .coverLayerTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.profileLitePowerPlace .coverLayerTabs button,
+.profileLitePowerPlace .coverPickerButton,
+.profileLitePowerPlace .coverUploadButton,
+.profileLitePowerPlace .reportActions button,
+.profileLitePowerPlace .selectedObjectActions button,
+.profileLitePowerPlace .selectedObjectActions label {
+  min-width: 0;
+  min-height: 34px;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+.profileLitePowerPlace .coverVariantsGrid {
+  max-height: 168px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.profileLitePowerPlace .powerLibrarySidebar {
+  min-width: 0;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 253, 248, 0.74);
+}
+
+.profileLitePowerPlace .powerLibraryGrid,
+.profileLitePowerPlace .powerSavedImageList,
+.profileLitePowerPlace .compactPhotoList {
+  min-width: 0;
+}
+
+.profileLitePowerPlace .powerSavedImageList {
+  gap: 8px;
+}
+
+.profileLitePowerPlace .powerSavedImageItem {
+  position: relative;
+  min-width: 0;
+  border-radius: 14px;
+}
+
+.profileLitePowerPlace .powerSavedImageCard {
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 36px 8px 8px;
+  border-radius: 14px;
+}
+
+.profileLitePowerPlace .powerSavedImageDeleteButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+}
+
+.profileLitePowerPlace .power-place-chess__slot--outer-square {
+  width: 27%;
+}
+
+.profileLitePowerPlace .power-place-chess__slot--inner-square {
+  width: 21%;
+}
+
+.profileLitePowerPlace .power-place-chess--compact-5 .power-place-chess__slot {
+  width: 27%;
+}
+
+@media (max-width: 760px) {
+  .profileLiteShell .profileLiteTabs a,
+  .profileLiteShell .profileLiteShellChrome .profileLiteTabs a,
+  .profileLitePowerPlace .workspaceTabs button,
+  .profileLitePowerPlace .powerPlaceActions button,
+  .profileLitePowerPlace .reportActions button,
+  .profileLitePowerPlace .powerAddImageButton,
+  .profileLitePowerPlace .coverLayerTabs button,
+  .profileLitePowerPlace .coverVariantsGrid button,
+  .profileLitePowerPlace .coverPickerButton,
+  .profileLitePowerPlace .coverUploadButton,
+  .clientPhotoPickerModal .imagePickerCategoryTabs button,
+  .clientPhotoPickerModal .clientPhotoPickerUpload label,
+  .clientPhotoPickerModal .clientPhotoPickerUpload button {
+    min-height: 34px !important;
+    padding: 7px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+  }
+
+  .profileLitePowerPlace .workspaceTabs,
+  .profileLitePowerPlace .powerPlaceActions,
+  .profileLitePowerPlace .reportActions,
+  .profileLitePowerPlace .selectedObjectActions,
+  .clientPhotoPickerModal .imagePickerCategoryTabs {
+    gap: 6px;
+  }
+
+  .profileLitePowerPlace .powerPlaceActions {
+    align-items: stretch;
+  }
+
+  .profileLitePowerPlace .powerPlaceActions button {
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .profileLitePowerPlace .powerPlaceActions span,
+  .profileLitePowerPlace .powerPrintColorHint {
+    flex-basis: 100%;
+    font-size: 11px;
+  }
+
+  .profileLitePowerPlace .coverPreview {
+    min-height: 84px;
+  }
+
+  .profileLitePowerPlace .powerLibrarySidebar {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px;
+  }
+
+  .profileLitePowerPlace .powerSavedImageCard {
+    grid-template-columns: 44px minmax(0, 1fr);
+    min-height: 58px;
+  }
+
+  .profileLitePowerPlace .powerSavedImageThumb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .profileLitePowerPlace .power-place-chess__slot--outer-square {
+    width: 25%;
+  }
+
+  .profileLitePowerPlace .power-place-chess__slot--inner-square {
+    width: 20%;
+  }
+
+  .profileLitePowerPlace .power-place-chess--compact-5 .power-place-chess__slot {
+    width: 25%;
+  }
+}

@@ -83,9 +83,9 @@ assert.equal(hydratedComposition.cover_ref.outer.display_src, "https://signed.ex
 assert.equal(normalizeAccountPlan("pro"), "pro");
 assert.equal(normalizeAccountPlan("unknown"), "start");
 
-assert.deepEqual(getPlanLimits("start"), { compositions: 7, clientPhotos: 10 });
+assert.deepEqual(getPlanLimits("start"), { compositions: 7, clientPhotos: 25 });
 assert.deepEqual(getPlanLimits("pro"), { compositions: 20, clientPhotos: 30 });
-assert.deepEqual(getPlanLimits("enterprise"), { compositions: 7, clientPhotos: 10 });
+assert.deepEqual(getPlanLimits("enterprise"), { compositions: 7, clientPhotos: 25 });
 
 assert.deepEqual(
   normalizeCoverRef({

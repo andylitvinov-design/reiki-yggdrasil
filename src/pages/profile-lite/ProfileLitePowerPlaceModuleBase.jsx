@@ -325,6 +325,11 @@ function coverLayer(coverRef, layer) {
   return coverRef.outer || FALLBACK_COVERS[0];
 }
 
+function coverKindClass(cover, layer) {
+  if (cover?.type === "image") return layer === "outer" ? "has-custom-outer-cover" : "has-custom-inner-cover";
+  return "";
+}
+
 export default function ProfileLitePowerPlaceModule({
   clientGoalPhotos,
   compositionDraft,
@@ -382,6 +387,8 @@ export default function ProfileLitePowerPlaceModule({
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
+  const innerCoverClass = coverKindClass(innerCover, "inner");
+  const outerCoverClass = coverKindClass(outerCover, "outer");
   const sourceSlotScale = slotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const chessSlotScale = chessSlotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
@@ -434,19 +441,29 @@ export default function ProfileLitePowerPlaceModule({
     }))
   ]), [clientGoalPhotos, materials, traditionAssets]);
 
+  const latestSavedImages = useMemo(() => [...savedImages].sort((a, b) => {
+    const left = Date.parse(a.updatedAt || "");
+    const right = Date.parse(b.updatedAt || "");
+    if (Number.isNaN(left) && Number.isNaN(right)) return 0;
+    if (Number.isNaN(left)) return 1;
+    if (Number.isNaN(right)) return -1;
+    return right - left;
+  }), [savedImages]);
+
+  const savedCoverOptions = useMemo(() => latestSavedImages.filter((item) => item.src).slice(0, 8).map((item) => ({
+    id: `saved-cover-${item.id}`,
+    label: item.label,
+    type: "image",
+    src: item.src,
+    display_src: item.displaySrc,
+    displaySrc: item.displaySrc
+  })), [latestSavedImages]);
   const coverOptions = useMemo(() => [
     ...FALLBACK_COVERS,
-    ...savedImages.map((item) => ({
-      id: `saved-cover-${item.id}`,
-      label: item.label,
-      type: "image",
-      src: item.src,
-      display_src: item.displaySrc,
-      displaySrc: item.displaySrc
-    })),
+    ...savedCoverOptions,
     ...(innerCover?.id === "custom-cover" ? [innerCover] : []),
     ...(outerCover?.id === "custom-outer-cover" ? [outerCover] : [])
-  ], [innerCover, outerCover, savedImages]);
+  ], [innerCover, outerCover, savedCoverOptions]);
   const activeCover = visibleCover;
   const coverLayerSaveTarget = coverLayerMode === "inner" ? "cover_ref.inner" : "cover_ref.outer";
   const activeSourceCategoryData = SOURCE_LIBRARY_CATEGORIES.find((item) => item.value === activeSourceCategory) || null;
@@ -514,15 +531,6 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
-  const latestSavedImages = useMemo(() => [...savedImages].sort((a, b) => {
-    const left = Date.parse(a.updatedAt || "");
-    const right = Date.parse(b.updatedAt || "");
-    if (Number.isNaN(left) && Number.isNaN(right)) return 0;
-    if (Number.isNaN(left)) return 1;
-    if (Number.isNaN(right)) return -1;
-    return right - left;
-  }), [savedImages]);
-
   const filteredSavedImages = useMemo(() => {
     if (!activeSourceCategory) return latestSavedImages;
     return savedImages.filter((item) => {
@@ -554,7 +562,7 @@ export default function ProfileLitePowerPlaceModule({
       onCompositionObjectRefSelect("__center_image", item.src || "", item.displaySrc || item.src || "");
     } else if (pickerMode === "cover") {
       onCompositionCoverSelect(coverLayerMode, {
-        id: item.id,
+        id: coverLayerMode === "outer" ? "custom-outer-cover" : "custom-cover",
         label: item.label,
         type: "image",
         src: item.src,
@@ -898,18 +906,18 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "none"}`} style={{ ...(imageStyle(coverDisplaySrc(outerCover)) || {}), ...sourceSlotScaleStyle }}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(imageStyle(coverDisplaySrc(outerCover)) || {}), ...sourceSlotScaleStyle }}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client`} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
                           slot,
@@ -926,7 +934,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
-                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
@@ -943,7 +951,7 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
-                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
+                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
                         {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                         <div className="zodiacClockFace" aria-hidden="true">
                           <span>ЗОДИАК</span>
@@ -989,7 +997,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -1031,7 +1039,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </div>
                   ) : compositionDraft.constructor_type === "chess" ? (
-                    <div className={`power-place-chess power-place-chess--${chessVariant} cover-${innerCover?.tone || "gold"}`} style={chessCoverStyle}>
+                    <div className={`power-place-chess power-place-chess--${chessVariant} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={chessCoverStyle}>
                       <div className="power-place-chess__board" aria-label="Шахматная раскладка">
                         {chessVariant === "plus-8" || chessVariant === "compact-5" ? (
                           <>
@@ -1064,7 +1072,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"}`} style={imageStyle(coverDisplaySrc(innerCover))}>
+                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={imageStyle(coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("daoCenterPhoto")}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>

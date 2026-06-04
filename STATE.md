@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 ## Current verified repo state
 
@@ -11,6 +11,28 @@ Last updated: 2026-06-03
 - build command: `npm run build`
 - output directory: `dist`
 - framework: `vite`
+
+## 2026-06-04 — Safe rebuild of Profile Lite Power Place polish
+
+- Branch: `codex/rebuild-profile-lite-power-place-polish`, based on rollback baseline `ed9b166` (`Merge PR #232: Rollback Profile Lite cover polish regressions`).
+- Scope: `/profile/mandalas` Profile Lite Power Place React/CSS only; public home page, Supabase env names, Vercel rewrites, route map, and public runtime patch hooks were not changed.
+- Rebuilt:
+  - scoped mobile button polish for Profile Lite tabs/actions/report/media/cover-picker controls;
+  - slot-level mini-photo sizing for chess/source slots without changing mandala panel or inner sheet aspect ratios;
+  - source rail/card readability on mobile;
+  - React-owned cover picker shortcuts for saved images;
+  - custom inner and outer photo cover selection through `cover_ref.inner` / `cover_ref.outer`, durable storage refs, and hydrated signed display URLs.
+- Not restored:
+  - reverted public runtime cover patch files;
+  - new `MutationObserver` logic;
+  - new global injected CSS or public JS bridges.
+- Verification:
+  - `npm install`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - local mocked browser QA at 390x900 on `http://127.0.0.1:4317/profile/mandalas` confirmed horizontal overflow `0`, non-collapsed Zodiac/Mandala/Star/Altar/Business/DAO, usable Chess, full-width source rail, visible saved cover shortcuts, custom inner and outer signed backgrounds, and save/reopen rendering through hydrated covers.
+- Not verified:
+  - real authenticated Supabase upload/save/reload in production data;
+  - Vercel preview, merge, production deployment, and live target/legacy URL QA.
 
 ## 2026-06-03 — Emergency rollback for Profile Lite loading regression
 
