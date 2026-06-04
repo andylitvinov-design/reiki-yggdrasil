@@ -255,7 +255,8 @@ assert.deepEqual(
         mandala_effect: "Мандала собирает фокус",
         extra_help: "Практика дыхания",
         master_note: ""
-      }
+      },
+      __field_layout: "square"
     },
     central_photo_id: "photo-1",
     tradition_id: "greek",
@@ -335,7 +336,9 @@ assert.deepEqual(
     star_variant: "closed",
     chess_variant: "classic-14",
     cover_ref: null,
-    object_refs: {},
+    object_refs: {
+      __field_layout: "square"
+    },
     central_photo_id: "photo-2",
     tradition_id: "",
     tradition_title: "",
@@ -378,7 +381,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "business-goal-1": "https://example.com/goal.jpg",
-      "business-structure-3": "https://example.com/structure.jpg"
+      "business-structure-3": "https://example.com/structure.jpg",
+      __field_layout: "square"
     },
     central_photo_id: "photo-3",
     tradition_id: "",
@@ -418,7 +422,8 @@ assert.deepEqual(
     object_refs: {
       "dao-water": "https://example.com/water.jpg",
       "dao-fire": "https://example.com/fire.jpg",
-      "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png"
+      "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
+      __field_layout: "square"
     },
     central_photo_id: "photo-4",
     tradition_id: "",
@@ -458,7 +463,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "zodiac-1": "https://example.com/aries.jpg",
-      "source-1": "https://example.com/old-source.jpg"
+      "source-1": "https://example.com/old-source.jpg",
+      __field_layout: "square"
     },
     central_photo_id: "photo-5",
     tradition_id: "",
@@ -492,7 +498,8 @@ assert.deepEqual(
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
-      "zodiac-12": "https://example.com/fish.jpg"
+      "zodiac-12": "https://example.com/fish.jpg",
+      __field_layout: "square"
     },
     central_photo_id: "photo-6",
     tradition_id: "",
@@ -533,7 +540,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "star-1": "https://example.com/star-top.jpg",
-      "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png"
+      "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png",
+      __field_layout: "square"
     },
     central_photo_id: "photo-7",
     tradition_id: "",
@@ -567,7 +575,8 @@ assert.deepEqual(
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
-      "star-3": "https://example.com/star-left.jpg"
+      "star-3": "https://example.com/star-left.jpg",
+      __field_layout: "square"
     },
     central_photo_id: "photo-8",
     tradition_id: "",
@@ -586,7 +595,8 @@ assert.deepEqual(
     geometry: 4,
     object_refs: {
       "__center_image": "storage://profile-cabinet-media/profile-1/materials/uuid-center.webp",
-      "source-1": "https://example.com/source.jpg"
+      "source-1": "https://example.com/source.jpg",
+      __field_layout: "square"
     },
     central_photo_id: ""
   }),
@@ -603,7 +613,8 @@ assert.deepEqual(
     cover_ref: null,
     object_refs: {
       "__center_image": "storage://profile-cabinet-media/profile-1/materials/uuid-center.webp",
-      "source-1": "https://example.com/source.jpg"
+      "source-1": "https://example.com/source.jpg",
+      __field_layout: "square"
     },
     central_photo_id: null,
     tradition_id: "",
@@ -642,7 +653,8 @@ assert.deepEqual(
     object_refs: {
       "chess-top-1": "https://example.com/top-1.jpg",
       "chess-1": "https://example.com/cross-top.jpg",
-      "chess-8": "storage://profile-cabinet-media/profile-1/power-place/draft/chess-8.png"
+      "chess-8": "storage://profile-cabinet-media/profile-1/power-place/draft/chess-8.png",
+      __field_layout: "square"
     },
     central_photo_id: "photo-9",
     tradition_id: "",
@@ -681,7 +693,8 @@ assert.deepEqual(
     object_refs: {
       __mandala_template_id: "stone-mosaic-01",
       "client-1": "https://example.com/client-1.jpg",
-      "client-9": "storage://profile-cabinet-media/profile-1/power-place/draft/client-9.webp"
+      "client-9": "storage://profile-cabinet-media/profile-1/power-place/draft/client-9.webp",
+      __field_layout: "square"
     },
     central_photo_id: null,
     tradition_id: "",
@@ -696,6 +709,60 @@ assert.deepEqual(
 assert.equal(
   normalizePowerPlaceComposition({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
   "classic-14"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Вертикальный макет",
+    constructor_type: "client",
+    geometry: 4,
+    field_layout: "vertical",
+    object_refs: {},
+    central_photo_id: "photo-layout"
+  }).object_refs.__field_layout,
+  "vertical",
+  "valid field_layout should be persisted into object_refs.__field_layout"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Неверный макет",
+    constructor_type: "client",
+    geometry: 4,
+    field_layout: "invalid-layout",
+    object_refs: {},
+    central_photo_id: "photo-layout-invalid"
+  }).object_refs.__field_layout,
+  "square",
+  "invalid field_layout should fall back to square"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Макет по умолчанию",
+    constructor_type: "client",
+    geometry: 4,
+    object_refs: {},
+    central_photo_id: "photo-layout-default"
+  }).object_refs.__field_layout,
+  "square",
+  "missing field_layout should persist the square fallback"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Макет из object_refs",
+    constructor_type: "client",
+    geometry: 4,
+    object_refs: { __field_layout: "horizontal" },
+    central_photo_id: "photo-layout-ref"
+  }).object_refs.__field_layout,
+  "horizontal",
+  "object_refs.__field_layout should be preserved when loading/saving"
 );
 
 const compactChessComposition = normalizePowerPlaceComposition({

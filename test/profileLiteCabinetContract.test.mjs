@@ -171,6 +171,7 @@ const moduleSource = readdirSync(moduleDir)
   .map((file) => readFileSync(join(moduleDir, file), "utf8"))
   .join("\n");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
@@ -366,5 +367,17 @@ assert.match(profileLitePageSource, /Сначала сохраните манд�
 assert.match(profileLitePageSource, /Эта мандала уже есть в Моих услугах/, "add-to-services duplicate guard should show the required message");
 assert.match(profileLitePageSource, /Мандала добавлена в Мои услуги/, "successful add-to-services should show the required confirmation message");
 assert.match(profileLitePageSource, /composition_id: composition\.id/, "add-to-services should pass composition_id to createOwnService");
+
+// --- D: Field layout persistence ---
+assert.match(profileLitePageSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout"/, "ProfileLitePage should define FIELD_LAYOUT_REF_KEY = \"__field_layout\"");
+assert.match(profileLitePageSource, /field_layout:\s*"square"/, "EMPTY_COMPOSITION should include field_layout: \"square\"");
+assert.match(profileLitePageSource, /field === "field_layout"[\s\S]*object_refs[\s\S]*FIELD_LAYOUT_REF_KEY/, "handleCompositionDraftChange should persist field_layout into object_refs via FIELD_LAYOUT_REF_KEY");
+assert.match(profileLitePageSource, /function normalizeFieldLayout[\s\S]*"square"/, "normalizeFieldLayout should fall back to square");
+assert.match(profileLitePageSource, /function fieldLayoutFromComposition[\s\S]*object_refs\?\.\[FIELD_LAYOUT_REF_KEY\]/, "fieldLayoutFromComposition should restore field_layout from object_refs.__field_layout");
+assert.match(profileLitePageSource, /handleCompositionLoad[\s\S]*field_layout:\s*fieldLayoutFromComposition\(composition\)/, "handleCompositionLoad should restore field_layout through fieldLayoutFromComposition");
+assert.match(profileLitePageSource, /refreshSavedCompositions[\s\S]*field_layout:\s*fieldLayoutFromComposition\(freshSaved\)/, "refreshSavedCompositions should restore field_layout through fieldLayoutFromComposition");
+assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout"/, "powerPlaceClient.js should define FIELD_LAYOUT_REF_KEY = \"__field_layout\"");
+assert.match(powerPlaceClientSource, /VALID_FIELD_LAYOUTS\s*=\s*\[[\s\S]*"square"[\s\S]*"vertical"[\s\S]*"horizontal"[\s\S]*"rectangle"[\s\S]*\]/, "powerPlaceClient.js should define VALID_FIELD_LAYOUTS with all four layouts");
+assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAYOUTS\.includes/, "normalizePowerPlaceComposition should validate and persist __field_layout");
 
 console.log("Profile Lite cabinet contract: all assertions passed.");
