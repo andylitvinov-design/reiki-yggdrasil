@@ -3689,10 +3689,24 @@
 .businessMandalaSheet.cover-none,
 .zodiacMandalaSheet.cover-none,
 .daoMandalaSheet.cover-none,
-.power-place-chess.cover-none,
 .starMandalaSheet.cover-none {
   background: rgba(255, 255, 255, 0.18) !important;
   box-shadow: none !important;
+}
+
+.power-place-chess.cover-none {
+  background: rgba(244, 241, 235, 0.94) !important;
+  box-shadow: none !important;
+}
+
+.power-place-chess.cover-none .power-place-chess__cell.is-dark,
+.power-place-chess.cover-none .power-place-chess__slot.is-dark {
+  background-color: rgba(70, 55, 35, 0.07) !important;
+}
+
+.power-place-chess.cover-none .power-place-chess__cell.is-light,
+.power-place-chess.cover-none .power-place-chess__slot.is-light {
+  background-color: rgba(218, 214, 206, 0.38) !important;
 }
 
 /* Keep central empty/photo circles readable when the inside has no background. */
