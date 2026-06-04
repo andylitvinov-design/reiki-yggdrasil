@@ -283,6 +283,7 @@ function buildSlotList(draft) {
     }));
 
     if (!isPlusVariant) return signSlots;
+    if (visibleCount === 8) return signSlots;
     return [...signSlots, ...(ZODIAC_PLUS_SLOT_LAYOUT[visibleCount] || ZODIAC_PLUS_SLOT_LAYOUT[8])];
   }
   if (type === "star") {
@@ -368,6 +369,7 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceCategory, setActiveSourceCategory] = useState("");
   const [activeSourceSubcategory, setActiveSourceSubcategory] = useState("");
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
+  const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -450,14 +452,19 @@ export default function ProfileLitePowerPlaceModule({
     return right - left;
   }), [savedImages]);
 
-  const savedCoverOptions = useMemo(() => latestSavedImages.filter((item) => item.src).slice(0, 8).map((item) => ({
+  const hiddenCoverShortcutIdSet = useMemo(() => new Set(hiddenCoverShortcutIds), [hiddenCoverShortcutIds]);
+  const savedCoverOptions = useMemo(() => latestSavedImages
+    .filter((item) => item.src && !hiddenCoverShortcutIdSet.has(item.id))
+    .slice(0, 6)
+    .map((item) => ({
     id: `saved-cover-${item.id}`,
+    shortcutId: item.id,
     label: item.label,
     type: "image",
     src: item.src,
     display_src: item.displaySrc,
     displaySrc: item.displaySrc
-  })), [latestSavedImages]);
+  })), [hiddenCoverShortcutIdSet, latestSavedImages]);
   const coverOptions = useMemo(() => [
     ...FALLBACK_COVERS,
     ...savedCoverOptions,
@@ -583,6 +590,13 @@ export default function ProfileLitePowerPlaceModule({
     setPickerUploadStatus("idle");
     setPickerUploadError("");
     setPickerMode(mode);
+  };
+
+  const hideCoverShortcut = (cover, event) => {
+    event.stopPropagation();
+    const shortcutId = cover?.shortcutId || cover?.id;
+    if (!shortcutId) return;
+    setHiddenCoverShortcutIds((current) => current.includes(shortcutId) ? current : [...current, shortcutId]);
   };
 
   const closePicker = () => {
@@ -1160,28 +1174,34 @@ export default function ProfileLitePowerPlaceModule({
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
               </div>
               <div className="coverPreviewWrap">
-                <div
+                <button
+                  type="button"
                   className={`coverPreview ${visibleCover?.type === "image" ? "hasImage" : `tone-${visibleCover?.tone || "none"}`}`}
+                  onClick={() => {
+                    if (!visibleCover?.src) openPicker("cover");
+                  }}
                   style={visibleCover?.type === "image" ? imageStyle(coverDisplaySrc(visibleCover)) : undefined}
+                  aria-label={visibleCover?.src ? visibleCover.label || "Фон" : "Выбрать фото для пустого фона"}
                 >
                   <span>{visibleCover?.label || "Без фона"}</span>
-                </div>
+                </button>
               </div>
               <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона" data-cover-layer-target={coverLayerSaveTarget}>
-                {coverOptions.map((cover) => (
+                {coverOptions.map((cover) => cover.shortcutId ? (
+                  <span className="coverVariantShortcut" key={cover.id}>
+                    <button className={activeCover?.src === cover.src ? "active" : ""} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
+                      {cover.label}
+                    </button>
+                    <button className="coverShortcutHideButton" type="button" onClick={(event) => hideCoverShortcut(cover, event)} aria-label={`Скрыть ${cover.label}`}>
+                      ×
+                    </button>
+                  </span>
+                ) : (
                   <button className={activeCover?.id === cover.id ? "active" : ""} key={cover.id} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
                     {cover.label}
                   </button>
                 ))}
               </div>
-              <label className="coverUploadButton">
-                <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) onCoverFileUpload(coverLayerMode, file);
-                  event.target.value = "";
-                }} />
-                Своё изображение
-              </label>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
 
