@@ -1,5 +1,65 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-04 — Remaining Profile Lite Power Place polish after PR #233
+
+- Branch: `codex/profile-lite-remaining-polish-after-233`.
+- Base: fresh `origin/main` at PR #233 merge commit `35c17686c5f0631941c92b2346e9d7e3c4e1d576`.
+- PRs audited:
+  - PR #227, PR #228, PR #229, PR #230, PR #231, PR #232, PR #233.
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Already present from PR #233:
+  - scoped Profile Lite mobile/button/source rail polish;
+  - saved cover shortcut rendering;
+  - React-owned `custom-cover` / `custom-outer-cover`;
+  - `cover_ref.inner` / `cover_ref.outer` hydration through durable signed URL maps;
+  - no restored public cover patch files, no MutationObserver, and no public CSS injection bridge.
+- Implemented:
+  - cap saved cover shortcuts to 6 and add local-only `×` hide badges;
+  - remove the redundant cover-module `Своё изображение` direct upload label;
+  - make empty cover preview open the image picker;
+  - remove the extra 4 square slots from Zodiac `8+`;
+  - route image picker material uploads through existing material publication + Storage ref save flow;
+  - keep mobile save/service/PDF/print buttons compact by preventing flex-line stretch.
+- Intentionally skipped:
+  - iPhone-like `9 / 19.5` ratio, because prior PR #231 isolated that change as the inner-surface collapse cause and this pass did not find a safe source-owned reapplication;
+  - `Макет` center-shape/background-control reorder, because the observed center-shape controls come from existing rollback-baseline public layout JS, and expanding public patch files is disallowed for this pass.
+- Checks run:
+  - `npm install`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Local browser QA:
+  - URL: `http://127.0.0.1:4319/profile/mandalas`;
+  - viewport: 390x900;
+  - fake public Supabase env, fake local session, mocked Auth/REST/Storage responses only;
+  - horizontal overflow `0`;
+  - Zodiac, Mandala, Chess, Star, Altar, Business, and DAO checked;
+  - Zodiac `8+`: 8 zodiac slots, 0 plus slots;
+  - saved photo applied as center, `Фон внутри`, and `Фон снаружи`;
+  - cover shortcuts had local `×` badges and no cover-module direct upload label;
+  - material upload picker showed group/type/step/subcategory dropdowns and no title/notes fields;
+  - mobile action buttons measured 34-42px high.
+- Live availability:
+  - `https://mentalica.vercel.app/profile/mandalas` returned HTTP `200`;
+  - `https://reiki-yggdrasil.vercel.app/profile/mandalas` returned HTTP `200`.
+- Not verified:
+  - real Supabase authenticated upload/save/reload;
+  - production rendering of this branch before merge/deploy;
+  - commit-level live version proof, because no status/build-info endpoint exists.
+
 ## 2026-06-04 — Rebuild Profile Lite Power Place polish safely
 
 - Branch: `codex/rebuild-profile-lite-power-place-polish`.

@@ -774,13 +774,40 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     file,
     title = "",
     notes = "",
-    destination = "clients"
+    destination = "clients",
+    material = null
   }) => {
     if (destination === "materials") {
-      const error = new Error("Материалы: needs verification — создание image material без миграции пока не подтверждено.");
-      setMaterialsStatus("needs-verification");
-      setMaterialsError(error.message);
-      throw error;
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+        setMaterialsError("Сначала сохраните профиль мастера.");
+        setMaterialsStatus("needs-verification");
+        throw new Error("Сначала сохраните профиль мастера.");
+      }
+
+      try {
+        validateProfileMediaFile(file);
+        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+        const materialPayload = buildMaterialPayload({
+          ...EMPTY_MATERIAL,
+          type: material?.type || "mandala",
+          title: title || file.name || "Материал",
+          description: [material?.group, material?.category, material?.subcategory].filter(Boolean).join(" · "),
+          image_url: uploaded.ref,
+          step_id: material?.step_id || "",
+          step_title: material?.step_title || "",
+          setting_title: material?.setting_title || "",
+          setting_index: material?.setting_index ?? null
+        }, profile.id, "draft");
+        const saved = await createOwnMaterial(materialPayload, session);
+        setMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+        setMaterialsStatus("success");
+        setMaterialsError("");
+        return saved;
+      } catch (error) {
+        setMaterialsStatus("needs-verification");
+        setMaterialsError(moduleError(error, "profile_cabinet_publications material upload failed or Storage/RLS not applied"));
+        throw error;
+      }
     }
 
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
