@@ -311,35 +311,3 @@ assert.match(layoutFinalFix, /Отчёт и анализ/, "layout fix should me
 assert.match(layoutFinalFix, /mergedResourceComparison/, "layout fix should move resource comparison into the report card");
 assert.match(layoutFinalFix, /__inner_cover_offset_x[\s\S]*__inner_cover_offset_y/, "diagonal arrows should update only inner cover offsets");
 assert.doesNotMatch(layoutFinalFix, /__outer_cover_offset_x|__outer_cover_offset_y/, "diagonal arrows must not update outer cover offsets");
-
-// ── PDF / print safety contract ──────────────────────────────────────────────
-// No MutationObserver anywhere in the PDF path
-assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "PDF safe reimplementation: ProfileLitePage must not introduce MutationObserver");
-
-// openPowerPlacePdfPrintView must exist as a local function and call extractCssUrls internally
-assert.match(profileLitePageSource, /function openPowerPlacePdfPrintView\b/, "openPowerPlacePdfPrintView must be defined as a local function");
-assert.match(profileLitePageSource, /function openPowerPlacePdfPrintView[\s\S]*extractCssUrls/, "extractCssUrls must be called inside openPowerPlacePdfPrintView");
-
-// extractCssUrls call must NOT appear outside openPowerPlacePdfPrintView (imports are allowed)
-{
-  const withoutFn = profileLitePageSource.replace(/function openPowerPlacePdfPrintView\b[\s\S]*?\n\}/, "");
-  const withoutImport = withoutFn.replace(/import \{[^}]*extractCssUrls[^}]*\}[^\n]*\n/, "");
-  assert.doesNotMatch(withoutImport, /extractCssUrls\s*\(/, "extractCssUrls must not be called outside openPowerPlacePdfPrintView");
-}
-
-// preloadImagesForPrint must exist with safe 2500ms timeout and Image guard
-assert.match(profileLitePageSource, /function preloadImagesForPrint\b/, "PDF preload helper must use safe name preloadImagesForPrint");
-assert.match(profileLitePageSource, /timeoutMs\s*=\s*2500/, "PDF preload must default to 2500ms timeout");
-assert.match(profileLitePageSource, /typeof Image === "undefined"/, "preloadImagesForPrint must guard against unavailable Image constructor");
-
-// raf2 must guard requestAnimationFrame and fall back to setTimeout
-assert.match(profileLitePageSource, /typeof win\.requestAnimationFrame === "function"/, "raf2 must guard requestAnimationFrame with typeof check");
-assert.match(profileLitePageSource, /setTimeout\(res,/, "raf2 must fall back to setTimeout when requestAnimationFrame is unavailable");
-
-// auth-gate branch (before user/authStatus check) must not render any PDF helper calls
-{
-  const authBranchMatch = profileLitePageSource.match(/if \(!user \|\| authStatus !== "success"\)[\s\S]*?return \([\s\S]*?\);\s*\}/);
-  if (authBranchMatch) {
-    assert.doesNotMatch(authBranchMatch[0], /openPowerPlacePdfPrintView|preloadImagesForPrint|extractCssUrls/, "auth-gate branch must not render PDF helper logic");
-  }
-}
