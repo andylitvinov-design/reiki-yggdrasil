@@ -1,0 +1,21 @@
+/* Profile Lite custom inner cover fix — 2026-06-04
+   Legacy background-zone CSS uses background: transparent !important on non-chess
+   inner sheets. React signed-photo covers arrive as inline backgroundImage, which
+   loses to that !important shorthand. This scoped layer restores the signed-photo
+   image through a CSS variable written by profile-lite-custom-inner-cover-fix.js. */
+
+.profileLitePowerPlace .powerMandalaPanel > .profileLiteCustomInnerCover,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .profileLiteCustomInnerCover {
+  background: var(--profile-lite-inner-cover-image) center / cover no-repeat !important;
+  background-image: var(--profile-lite-inner-cover-image) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+.profileLitePowerPlace .powerMandalaPanel > .profileLiteCustomInnerCover::before,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .profileLiteCustomInnerCover::before {
+  opacity: 0.12;
+}
