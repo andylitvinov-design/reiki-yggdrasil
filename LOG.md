@@ -1,5 +1,50 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Implement mandala to services Phase 1 bridge
+
+- Branch: `codex/mandala-services-phase1`.
+- Base: fresh `origin/main` at `5a19379`.
+- Changed files:
+  - `src/lib/profileServicesClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/profileServicesClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added service helpers for `Бесплатно`, status grouping, lookup by `profile_id + composition_id`, and composition-service upsert;
+  - changed Power Place actions to the Phase 1 labels `Сохранить мандалу`, `Перенести в услуги`, and `Опубликовать как услугу`;
+  - made transfer/publish save or update the composition before service upsert;
+  - opened `/profile/services` after transfer/publish;
+  - grouped `/profile/services` into `Черновики`, `Опубликованные`, and `Архив`;
+  - kept published-service public link copy disabled with `needs verification: публичный маршрут ещё не реализован` because `/services/:serviceId` is out of Phase 1.
+- Checks run:
+  - `npm run test:profile-services` failed first on missing `formatServicePrice`;
+  - `npm run test:profile-lite` failed first on missing `handlePublishCompositionAsService`;
+  - `npm run test:profile-lite`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4342/`;
+  - HTTP smoke: `/`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin` returned `200 OK`;
+  - headless Chrome CDP desktop 1280px: same routes rendered with console errors `0` and horizontal overflow `0`;
+  - headless Chrome CDP mobile 390px: `/profile/mandalas` and `/profile/services` rendered with console errors `0` and horizontal overflow `0`;
+  - Playwright Browser MCP was attempted but returned `Transport closed`.
+- Not verified:
+  - real authenticated Supabase save/update/upsert;
+  - `/services/:serviceId`, public shop, cart, orders, personal photos, personal result generation;
+  - Vercel preview, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-05 — Rebase PR #272 workshop tabs onto current Power Place controls
 
 - Branch: `fix/profile-lite-mandala-cards-services-tab`.

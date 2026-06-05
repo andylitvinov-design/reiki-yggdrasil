@@ -20,7 +20,8 @@ import {
   listOwnServiceOrders,
   listOwnServices,
   publishOwnService,
-  updateServiceOrder
+  updateServiceOrder,
+  upsertOwnServiceForComposition
 } from "../lib/profileServicesClient.js";
 import {
   clearStoredSession,
@@ -1408,43 +1409,91 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
-  const handleSendCompositionToServices = async (composition = compositionDraft) => {
+  const saveCompositionForServiceAction = async (composition = compositionDraft) => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
-      setServicesError("Сначала сохраните профиль мастера.");
-      setServicesStatus("needs-verification");
+      const message = "Сначала сохраните профиль мастера.";
+      setMandalasError(message);
+      setCompositionMessage(message);
+      setMandalasStatus("needs-verification");
       return null;
     }
-    if (!composition?.id) {
-      setCompositionMessage("Сначала сохраните или откройте мандалу.");
-      return null;
-    }
-
-    const existing = services.find((service) => String(service.composition_id || "") === String(composition.id));
-    if (existing) {
-      setCompositionMessage("Мандала уже добавлена в услуги.");
-      return existing;
-    }
-
-    const serviceDraft = {
-      ...createEmptyServiceForm(),
-      profile_id: profile.id,
-      composition_id: composition.id,
-      title: composition.title || "Мандала Места Силы",
-      description: "Услуга подготовлена из сохранённой мандалы.",
-      image_url: composition.cover_ref?.inner?.display_src || composition.cover_ref?.inner?.displaySrc || composition.cover_ref?.inner?.src || composition.cover_ref?.display_src || composition.cover_ref?.src || "",
-      status: "draft"
-    };
 
     try {
-      const saved = await createOwnService(serviceDraft, session);
+      if (composition?.id) {
+        const saved = await updatePowerPlaceComposition(composition.id, { ...composition, profile_id: profile.id }, session);
+        await refreshSavedCompositions(saved);
+        return saved;
+      }
+
+      const createPayload = {
+        ...composition,
+        id: undefined,
+        title: uniqueCompositionCopyTitle(composition?.title, powerPlaceCompositions),
+        profile_id: profile.id
+      };
+      delete createPayload.id;
+      const saved = await createPowerPlaceComposition(createPayload, accountPlan, session);
+      if (!saved?.id) throw new Error("сервер не вернул сохранённую мандалу.");
+      await refreshSavedCompositions(saved);
+      return saved;
+    } catch (error) {
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "profile_cabinet_power_place_compositions save failed or migration/RLS not applied"));
+      setCompositionMessage(moduleError(error, "Мандала не сохранилась перед переносом в услуги."));
+      return null;
+    }
+  };
+
+  const openServicesTab = () => {
+    setActiveTab("services");
+    if (typeof window !== "undefined" && window.location.pathname !== "/profile/services") {
+      window.history.pushState({}, "", "/profile/services");
+      window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleSendCompositionToServices = async (composition = compositionDraft) => {
+    const savedComposition = await saveCompositionForServiceAction(composition);
+    if (!savedComposition?.id) return null;
+    try {
+      const existing = services.find((service) => String(service.composition_id || "") === String(savedComposition.id));
+      const saved = await upsertOwnServiceForComposition({
+        profileId: profile.id,
+        composition: savedComposition,
+        status: existing?.status || "draft"
+      }, session);
       setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
       setServicesStatus("success");
       setServicesError("");
-      setCompositionMessage("Мандала добавлена в услуги.");
+      setCompositionMessage(existing ? "Мандала уже добавлена в услуги." : "Мандала добавлена в услуги.");
+      openServicesTab();
       return saved;
     } catch (error) {
       setServicesStatus("needs-verification");
       setServicesError(moduleError(error, "profile_cabinet_services request failed or migration/RLS not applied"));
+      return null;
+    }
+  };
+
+  const handlePublishCompositionAsService = async (composition = compositionDraft) => {
+    const savedComposition = await saveCompositionForServiceAction(composition);
+    if (!savedComposition?.id) return null;
+    try {
+      const saved = await upsertOwnServiceForComposition({
+        profileId: profile.id,
+        composition: savedComposition,
+        status: "published"
+      }, session);
+      setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setServicesStatus("success");
+      setServicesError("");
+      setCompositionMessage("Мандала опубликована как услуга. Публичный маршрут needs verification.");
+      openServicesTab();
+      return saved;
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServicesError(moduleError(error, "profile_cabinet_services publish failed or migration/RLS not applied"));
       return null;
     }
   };
@@ -1636,6 +1685,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
+        onPublishAsService={handlePublishCompositionAsService}
         onSaveNew={handleCompositionSaveNew}
         onSendToServices={handleSendCompositionToServices}
         services={services}

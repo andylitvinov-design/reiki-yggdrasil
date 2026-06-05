@@ -174,6 +174,7 @@ const moduleSource = readdirSync(moduleDir)
   .join("\n");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
+const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
@@ -209,8 +210,9 @@ for (const requiredPowerPlaceText of [
   "Размер центра",
   "Сохранённые мандалы",
   "Объекты композиции",
-  "Сохранить",
-  "Обновить",
+  "Сохранить мандалу",
+  "Перенести в услуги",
+  "Опубликовать как услугу",
   "Скачать PDF",
   "Печать"
 ]) {
@@ -289,11 +291,11 @@ assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLite
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
-assert.match(powerPlaceSource, />Сохранить<\/button>[\s\S]*>Обновить<\/button>/, "Power Place actions should expose separate Save and Update buttons");
-assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
+assert.match(powerPlaceSource, />Сохранить мандалу<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose the three Phase 1 mandala-service buttons");
+assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить мандалу<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
 assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[\s\S]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
 assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(saveNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Save button should use an explicit click wrapper that calls onSaveNew only when enabled");
-assert.match(powerPlaceBaseSource, /<button className="cabinetPrimary powerPlaceSaveButton"[\s\S]*onClick=\{handleSaveNewClick\}[\s\S]*disabled=\{saveNewDisabled\}[\s\S]*title=\{saveNewTitle\}[\s\S]*aria-label=\{saveNewAriaLabel\}[\s\S]*>Сохранить<\/button>/, "Save button should expose explicit clickability, disabled title, and aria label");
+assert.match(powerPlaceBaseSource, /<button className="cabinetPrimary powerPlaceSaveButton"[\s\S]*onClick=\{handleSaveCompositionClick\}[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should create new drafts or update the opened composition");
 assert.doesNotMatch(powerPlaceBaseSource, /<div className="powerPlaceActions">[\s\S]*<span>[\s\S]*сохранённых мест силы[\s\S]*<\/span>[\s\S]*<\/div>/, "saved-count text must not be a raw inline span inside the clickable actions row");
 assert.match(powerPlaceBaseSource, /<p className="powerPlaceActionsMeta"[\s\S]*\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "saved-count text should render as a dedicated meta block below action buttons");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions button:disabled[\s\S]*cursor: not-allowed[\s\S]*opacity:/, "Power Place disabled action buttons should have obvious scoped disabled styling");
@@ -311,7 +313,7 @@ assert.match(profileLitePageSource, /Лимит 7 сохранённых ман�
 assert.match(profileLitePageSource, /currentSavedCompositionCount[\s\S]*powerPlaceCompositions\.length[\s\S]*currentCompositionLimit[\s\S]*planLimits\.compositions[\s\S]*currentSavedCompositionCount >= currentCompositionLimit[\s\S]*return;[\s\S]*createPowerPlaceComposition/, "Save-new should return before createPowerPlaceComposition when saved mandalas reach the current plan limit");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting[\s\S]*updatePowerPlaceComposition\(compositionDraft\.id/, "Update existing should keep using updatePowerPlaceComposition even when the save-new limit guard exists");
 assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft\.id/, "Power Place UI should compute the saved-count limit and disable save-new only for unsaved drafts at the limit");
-assert.match(powerPlaceBaseSource, /saveNewAriaLabel[\s\S]*disabled=\{saveNewDisabled\}[\s\S]*aria-label=\{saveNewAriaLabel\}[\s\S]*>Сохранить<\/button>/, "Save button should remain visible but disabled with an explanatory label at the 7/7 limit");
+assert.match(powerPlaceBaseSource, /saveNewAriaLabel[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*aria-label=\{compositionDraft\.id \? "Сохранить мандалу" : saveNewAriaLabel\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should remain visible but disabled with an explanatory label at the 7/7 limit for unsaved drafts");
 assert.match(powerPlaceSource, /\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "Power Place UI should show count text like 7/7 сохранённых мест силы");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
 assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
@@ -325,8 +327,8 @@ assert.match(powerPlaceSource, /services \|\| \[\]\)\.filter\(\(service\) => Str
 assert.match(powerPlaceSource, /serviceByCompositionId\.get\(String\(composition\.id\)\)/, "saved mandala cards should detect services linked by composition_id");
 assert.match(powerPlaceSource, /profileLiteCompositionCard profileLiteCompositionCard--horizontal/, "saved mandala cards should use horizontal card class");
 assert.match(powerPlaceSource, /profileLiteCompositionPreview/, "saved mandala and service cards should render a preview or placeholder");
-assert.match(profileLitePageSource, /const existing = services\.find\(\(service\) => String\(service\.composition_id \|\| ""\) === String\(composition\.id\)\)/, "Add to services handler should guard duplicate composition services");
-assert.match(profileLitePageSource, /createOwnService\(serviceDraft, session\)/, "Add to services should create a draft service through the existing services client");
+assert.match(profileServicesClientSource, /findOwnServiceByComposition\(profileId, compositionId, session\)/, "Add to services handler should guard duplicate composition services through the shared client");
+assert.match(profileLitePageSource, /upsertOwnServiceForComposition\(\{[\s\S]*status: existing\?\.status \|\| "draft"/, "Transfer to services should create or reuse a draft service through the shared upsert client");
 assert.match(powerPlaceSource, /coverLayerMode === "outer" \? "custom-outer-cover" : "custom-cover"/, "saved cover photos should use stable custom inner/outer cover ids");
 assert.match(powerPlaceSource, /outerCover\?\.type === "image" \? "image" : outerCover\?\.tone \|\| "none"/, "image outer cover must produce class outer-cover-image, not outer-cover-none");
 assert.doesNotMatch(powerPlaceSource, /outer-cover-\$\{outerCover\?\.tone \|\| "none"\}/, "outer cover class must not use tone directly — image type would silently become outer-cover-none");
@@ -438,10 +440,27 @@ assert.match(powerPlaceBaseSource, /workspaceTab === "services" \? renderService
 assert.match(powerPlaceBaseSource, /Пока нет мандал, добавленных в услуги/, "empty Услуги tab should show the required placeholder text");
 assert.match(powerPlaceBaseSource, /\(services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "Услуги tab should filter services by composition_id");
 assert.match(profileLitePageSource, /handleSendCompositionToServices/, "ProfileLitePage should expose handleSendCompositionToServices");
-assert.match(profileLitePageSource, /Сначала сохраните или откройте мандалу/, "add-to-services without a saved id should show the required message");
+assert.match(profileLitePageSource, /handlePublishCompositionAsService/, "ProfileLitePage should expose handlePublishCompositionAsService");
+assert.match(profileLitePageSource, /saveCompositionForServiceAction/, "service actions should save or update the composition before creating a service");
+assert.match(profileLitePageSource, /upsertOwnServiceForComposition/, "service actions should reuse the service for profile_id + composition_id");
+assert.match(profileLitePageSource, /setActiveTab\("services"\)/, "service transfer/publish actions should open the /profile/services tab");
 assert.match(profileLitePageSource, /Мандала уже добавлена в услуги/, "add-to-services duplicate guard should show the required message");
 assert.match(profileLitePageSource, /Мандала добавлена в услуги/, "successful add-to-services should show the required confirmation message");
-assert.match(profileLitePageSource, /composition_id: composition\.id/, "add-to-services should pass composition_id to createOwnService");
+assert.match(profileServicesClientSource, /composition_id: compositionId/, "add-to-services should pass composition_id through the shared upsert helper");
+assert.match(powerPlaceBaseSource, /Сохранить мандалу/, "Power Place actions should expose explicit save-only button text");
+assert.match(powerPlaceBaseSource, /Перенести в услуги/, "Power Place actions should expose explicit transfer-to-services button text");
+assert.match(powerPlaceBaseSource, /Опубликовать как услугу/, "Power Place actions should expose explicit publish-as-service button text");
+assert.match(powerPlaceBaseSource, /onPublishAsService/, "Power Place module should accept a dedicated publish-as-service handler");
+
+// --- C2: Services manager Phase 1 grouping and public-link honesty ---
+const servicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
+assert.match(servicesModuleSource, /Черновики/, "Services module should group drafts under Черновики");
+assert.match(servicesModuleSource, /Опубликованные/, "Services module should group published services under Опубликованные");
+assert.match(servicesModuleSource, /Архив/, "Services module should group archived services under Архив");
+assert.match(servicesModuleSource, /Ссылка появится после публикации/, "Draft services should not show an active public link");
+assert.match(servicesModuleSource, /needs verification: публичный маршрут ещё не реализован/, "Published services should not show a fake public link before /services/:serviceId exists");
+assert.doesNotMatch(servicesModuleSource, /Скопировать ссылку/, "Phase 1 should not expose copy link before the public service route exists");
+assert.match(servicesModuleSource, /formatServicePrice/, "Services module should use the shared free-price formatter");
 
 // --- D: Field layout persistence ---
 assert.match(profileLitePageSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout"/, "ProfileLitePage should define FIELD_LAYOUT_REF_KEY = \"__field_layout\"");

@@ -442,6 +442,7 @@ export default function ProfileLitePowerPlaceModule({
   onLibraryPhotoUpload,
   onObjectFileUpload,
   onPrint,
+  onPublishAsService,
   onSaveNew,
   onSendToServices,
   onUpdateExisting,
@@ -501,6 +502,14 @@ export default function ProfileLitePowerPlaceModule({
   const handleSaveNewClick = () => {
     if (saveNewDisabled) return;
     onSaveNew();
+  };
+
+  const handleSaveCompositionClick = () => {
+    if (compositionDraft.id) {
+      onUpdateExisting();
+      return;
+    }
+    handleSaveNewClick();
   };
   const sourceSlotScaleStyle = {
     "--power-source-slot-scale": sourceSlotScale,
@@ -982,9 +991,9 @@ export default function ProfileLitePowerPlaceModule({
         <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
       </label>
       <div className="powerPlaceActions">
-        <button className="cabinetPrimary powerPlaceSaveButton" type="button" onClick={handleSaveNewClick} disabled={saveNewDisabled} title={saveNewTitle} aria-label={saveNewAriaLabel}>Сохранить</button>
-        <button className="cabinetPrimary" type="button" onClick={onUpdateExisting} disabled={!compositionDraft.id}>Обновить</button>
-        <button className="cabinetSecondary" type="button" onClick={onSendToServices}>В услуги</button>
+        <button className="cabinetPrimary powerPlaceSaveButton" type="button" onClick={handleSaveCompositionClick} disabled={!compositionDraft.id && saveNewDisabled} title={compositionDraft.id ? "Обновить сохранённую мандалу" : saveNewTitle} aria-label={compositionDraft.id ? "Сохранить мандалу" : saveNewAriaLabel}>Сохранить мандалу</button>
+        <button className="cabinetSecondary" type="button" onClick={onSendToServices}>Перенести в услуги</button>
+        <button className="cabinetSecondary" type="button" onClick={onPublishAsService}>Опубликовать как услугу</button>
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
       </div>

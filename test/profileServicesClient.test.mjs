@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 
 import {
+  buildCompositionServicePayload,
   createEmptyServiceForm,
+  formatServicePrice,
+  groupServicesByStatus,
   normalizeServiceForm,
   normalizeServiceOrder,
   normalizeServiceRow,
@@ -98,6 +101,10 @@ assert.equal(order.service.title, "Услуга");
 assert.equal(order.service.price_amount, 90);
 assert.equal(serviceStatusText("published"), "Размещено");
 assert.equal(orderStatusText("in_progress"), "В работе");
+assert.equal(formatServicePrice({ price_amount: null, price_currency: "EUR" }), "Бесплатно");
+assert.equal(formatServicePrice({ price_amount: "", price_currency: "EUR" }), "Бесплатно");
+assert.equal(formatServicePrice({ price_amount: 0, price_currency: "EUR" }), "Бесплатно");
+assert.equal(formatServicePrice({ price_amount: "25", price_currency: "EUR" }), "25 EUR");
 
 // composition_id is normalized through normalizeServiceForm
 const withComposition = normalizeServiceForm({ profile_id: "p1", composition_id: " comp-abc ", title: "Т" }, "draft");
@@ -115,5 +122,42 @@ const duplicate = servicesList.find((s) => s.composition_id && String(s.composit
 assert.ok(duplicate, "duplicate guard should find an existing service by composition_id");
 const noDuplicate = servicesList.find((s) => s.composition_id && String(s.composition_id) === String("comp-2"));
 assert.equal(noDuplicate, undefined, "duplicate guard should not find a service for a different composition_id");
+
+const groupedServices = groupServicesByStatus([
+  normalizeServiceRow({ id: "draft-1", status: "draft", title: "Черновик" }),
+  normalizeServiceRow({ id: "published-1", status: "published", title: "Опубликовано" }),
+  normalizeServiceRow({ id: "archived-1", status: "archived", title: "Архив" }),
+  normalizeServiceRow({ id: "draft-2", status: "bad-status", title: "Fallback draft" })
+]);
+assert.deepEqual(groupedServices.draft.map((item) => item.id), ["draft-1", "draft-2"]);
+assert.deepEqual(groupedServices.published.map((item) => item.id), ["published-1"]);
+assert.deepEqual(groupedServices.archived.map((item) => item.id), ["archived-1"]);
+
+const preserved = buildCompositionServicePayload({
+  profileId: "profile-1",
+  composition: { id: "composition-1", title: "New mandala title" },
+  status: "published",
+  existing: normalizeServiceRow({
+    id: "service-existing",
+    profile_id: "profile-1",
+    composition_id: "composition-1",
+    title: "Edited service title",
+    description: "Edited description",
+    image_url: "stored-image-ref",
+    image_bucket: "media-bucket",
+    image_path: "service-image-path",
+    price_amount: 77,
+    price_currency: "CAD",
+    status: "draft"
+  })
+});
+assert.equal(preserved.title, "Edited service title");
+assert.equal(preserved.description, "Edited description");
+assert.equal(preserved.image_url, "stored-image-ref");
+assert.equal(preserved.image_bucket, "media-bucket");
+assert.equal(preserved.image_path, "service-image-path");
+assert.equal(preserved.price_amount, 77);
+assert.equal(preserved.price_currency, "CAD");
+assert.equal(preserved.status, "published");
 
 console.log("profileServicesClient: all assertions passed.");

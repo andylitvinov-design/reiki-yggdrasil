@@ -12,6 +12,36 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Mandala to services Phase 1 bridge
+
+- Branch: `codex/mandala-services-phase1`, clean worktree from `origin/main` at `5a19379`.
+- Scope: Phase 1 only for `/profile/mandalas`, `/profile/services`, `profile_cabinet_services` client helpers, and focused tests/docs. Cart, checkout, orders, public `/services/:serviceId`, public shop, client photo order flow, and personal result generation were not implemented.
+- Changed:
+  - Power Place actions are now `Сохранить мандалу`, `Перенести в услуги`, and `Опубликовать как услугу`, with PDF/print actions kept separate;
+  - service actions save or update the composition first, then upsert the service by `profile_id + composition_id`;
+  - transfer opens `/profile/services` and creates/reuses a draft service;
+  - publish opens `/profile/services` and creates/reuses a published service;
+  - service image payload for composition-derived services is kept empty to avoid persisting `data:image` or leaking private refs;
+  - `/profile/services` groups services by `Черновики`, `Опубликованные`, and `Архив`;
+  - default/free prices render as `Бесплатно`;
+  - draft services show `Ссылка появится после публикации`;
+  - published services show `needs verification: публичный маршрут ещё не реализован`, with no copy-link button until `/services/:serviceId` exists.
+- Verification:
+  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run check`, and `npm run build` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4342/`;
+  - HTTP smoke returned `200 OK` for `/`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin`;
+  - headless Chrome CDP at 1280px confirmed all same routes render with console errors `0` and horizontal overflow `0`;
+  - headless Chrome CDP at 390px confirmed `/profile/mandalas` and `/profile/services` render with console errors `0` and horizontal overflow `0`;
+  - Playwright Browser MCP was attempted but unavailable in this session with `Transport closed`, so QA used local Chrome CDP.
+- Not verified:
+  - real authenticated Supabase save/update/upsert against live data;
+  - Vercel preview, merge/deploy, production/legacy live rendering, Google OAuth, and public `/services/:serviceId` route.
+- Risks:
+  - Phase 1 published rows can become public through existing RLS once real Supabase data/env are configured, but the frontend deliberately does not expose a fake public copy link until the route exists;
+  - service idempotency depends on existing `profile_cabinet_services` rows having stable `composition_id` values.
+
 ## 2026-06-05 — PR #272 workshop tabs rebased onto current Power Place controls
 
 - Branch: `fix/profile-lite-mandala-cards-services-tab`, rebased onto `origin/main` at `29253fe`.
