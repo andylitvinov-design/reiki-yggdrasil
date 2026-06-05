@@ -272,6 +272,10 @@ function fieldLayoutFromComposition(composition) {
   return normalizeFieldLayout(composition?.field_layout ?? composition?.object_refs?.[FIELD_LAYOUT_REF_KEY]);
 }
 
+function slotScaleFromComposition(composition) {
+  return composition?.slot_scale ?? composition?.object_refs?.__slot_scale ?? composition?.chess_slot_scale ?? EMPTY_COMPOSITION.slot_scale;
+}
+
 function uniqueCompositionCopyTitle(title, compositions) {
   const baseTitle = String(title || "").trim() || "Место силы";
   const copyBase = `${baseTitle} копия`;
@@ -1169,6 +1173,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
+      slot_scale: slotScaleFromComposition(composition),
       field_layout: fieldLayoutFromComposition(composition),
       object_refs: composition.object_refs || {},
       object_ref_urls: composition.object_ref_urls || {}
@@ -1188,6 +1193,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         ...EMPTY_COMPOSITION,
         ...freshSaved,
         id: freshSaved?.id || "",
+        slot_scale: slotScaleFromComposition(freshSaved),
         field_layout: fieldLayoutFromComposition(freshSaved)
       });
     }

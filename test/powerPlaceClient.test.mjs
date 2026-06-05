@@ -937,6 +937,30 @@ assert.equal(compactChessComposition.object_refs.__slot_scale, "1.14", "shared s
 
 assert.equal(
   normalizePowerPlaceComposition({
+    constructor_type: "zodiac",
+    slot_scale: "0.83",
+    object_refs: {
+      "zodiac-1": "https://example.com/zodiac-1.jpg"
+    }
+  }).object_refs.__slot_scale,
+  "0.83",
+  "shared slot scale should survive save normalization from the top-level slot_scale field"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    constructor_type: "star",
+    object_refs: {
+      __slot_scale: "1.12",
+      "star-1": "https://example.com/star-1.jpg"
+    }
+  }).object_refs.__slot_scale,
+  "1.12",
+  "shared slot scale should survive load/update normalization from object_refs"
+);
+
+assert.equal(
+  normalizePowerPlaceComposition({
     constructor_type: "chess",
     chess_variant: "plus-8",
     object_refs: { __slot_scale: "9" }

@@ -12,6 +12,34 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Power Place window-size slider restore
+
+- Branch: `fix/power-place-window-size-slider`, based on fresh `origin/main` at `8062178`.
+- Scope: Profile Lite Power Place React/CSS/client contracts only; public home page, route rewrites, Supabase env values, OAuth redirect logic, and print/PDF behavior were not changed.
+- Root cause:
+  - `slot_scale`, `object_refs.__slot_scale`, `sourceSlotScale`, and the CSS variables for mini-source slots already existed, but the visible constructor controls on `main` only rendered three sliders.
+  - Saved rows that returned only `object_refs.__slot_scale` could be masked by the empty draft default `slot_scale: 1` during load/refresh.
+- Changed:
+  - restored the fourth constructor slider as `Размер окон` in the order `Размер окон` / `Размер поля` / `Размер центра` / `Размер фоток`;
+  - bound `Размер окон` to `slot_scale` with range `0.7` to `1.18` and step `0.01`;
+  - kept slot scale flowing through `object_refs.__slot_scale` and made saved-composition load/refresh restore the value when the top-level field is absent;
+  - added the fourth slider to the shared desktop/mobile grid contract.
+- Verification:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing `Размер окон`, then failed on missing saved `slot_scale` restoration, then passed after the fixes;
+  - `npm install` was attempted but failed with `ENOSPC`; removed only the generated partial worktree `node_modules` and symlinked to the existing canonical repo dependency install;
+  - `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4338/profile/mandalas`;
+  - mock Supabase server: `http://127.0.0.1:5443`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop 1280x920: four sliders visible in order; `Размер окон` changed source slot size and `--power-source-slot-scale` / `--power-place-chess-slot-scale` without changing center frame, center image, or field variables; all seven constructors rendered scaled slots without horizontal overflow;
+  - mobile 390x900: four sliders visible with grid `120px / 24px / 138px / 24px`, horizontal overflow `0`, and console errors `0`;
+  - mocked save/reopen preserved `Размер окон` through the saved dropdown.
+- Not verified:
+  - real authenticated Supabase save/update/reload against production data;
+  - Vercel preview, merge/deploy, production/legacy live rendering, and Google OAuth.
+
 ## 2026-06-05 — Power Place mobile save clickability
 
 - Branch: `fix/power-place-save-button-clickability`, based on fresh `origin/main` at `5379004` after PR #264.

@@ -422,12 +422,12 @@ export default function ProfileLitePowerPlaceModule({
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
-  const sourceSlotScale = slotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
+  const sourceSlotScale = slotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
   const centerFrameScale = centerFrameScaleValue(compositionDraft.__center_frame_scale ?? objectRefs.__center_frame_scale);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
-  const chessSlotScale = chessSlotScaleValue(compositionDraft.slot_scale ?? objectRefs.__slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
+  const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
   const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft.id;
@@ -1046,9 +1046,10 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
+                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
+                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
                 {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.4", step: "0.01", field: "__center_frame_scale" })}
                 {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
-                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>

@@ -5711,9 +5711,10 @@
   overflow: hidden;
 }
 
+.profileLitePowerPlace .sourceSlotScaleControl,
+.profileLitePowerPlace .innerFieldScaleControl,
 .profileLitePowerPlace .centerFrameScaleControl,
-.profileLitePowerPlace .photoScaleControl,
-.profileLitePowerPlace .innerFieldScaleControl {
+.profileLitePowerPlace .photoScaleControl {
   width: 100%;
   display: grid;
   grid-template-columns: minmax(170px, 220px) 28px minmax(240px, 1fr) 28px;
@@ -5721,23 +5722,26 @@
   align-items: center;
 }
 
+.profileLitePowerPlace .sourceSlotScaleControl span,
+.profileLitePowerPlace .innerFieldScaleControl span,
 .profileLitePowerPlace .centerFrameScaleControl span,
-.profileLitePowerPlace .photoScaleControl span,
-.profileLitePowerPlace .innerFieldScaleControl span {
+.profileLitePowerPlace .photoScaleControl span {
   min-width: 0;
   white-space: nowrap;
 }
 
+.profileLitePowerPlace .sourceSlotScaleControl input,
+.profileLitePowerPlace .innerFieldScaleControl input,
 .profileLitePowerPlace .centerFrameScaleControl input,
-.profileLitePowerPlace .photoScaleControl input,
-.profileLitePowerPlace .innerFieldScaleControl input {
+.profileLitePowerPlace .photoScaleControl input {
   width: 100%;
   min-width: 0;
 }
 
+.profileLitePowerPlace .sourceSlotScaleControl button,
+.profileLitePowerPlace .innerFieldScaleControl button,
 .profileLitePowerPlace .centerFrameScaleControl button,
-.profileLitePowerPlace .photoScaleControl button,
-.profileLitePowerPlace .innerFieldScaleControl button {
+.profileLitePowerPlace .photoScaleControl button {
   width: 28px;
   min-width: 28px;
   height: 28px;
@@ -5981,15 +5985,17 @@
     order: 4 !important;
   }
 
+  .profileLitePowerPlace .sourceSlotScaleControl,
+  .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerFrameScaleControl,
-  .profileLitePowerPlace .photoScaleControl,
-  .profileLitePowerPlace .innerFieldScaleControl {
+  .profileLitePowerPlace .photoScaleControl {
     grid-template-columns: minmax(0, 120px) 24px minmax(0, 1fr) 24px;
   }
 
+  .profileLitePowerPlace .sourceSlotScaleControl button,
+  .profileLitePowerPlace .innerFieldScaleControl button,
   .profileLitePowerPlace .centerFrameScaleControl button,
-  .profileLitePowerPlace .photoScaleControl button,
-  .profileLitePowerPlace .innerFieldScaleControl button {
+  .profileLitePowerPlace .photoScaleControl button {
     width: 24px;
     min-width: 24px;
     height: 24px;

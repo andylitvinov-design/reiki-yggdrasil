@@ -1,5 +1,46 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Restore Power Place window-size slider
+
+- Branch: `fix/power-place-window-size-slider`.
+- Base: fresh `origin/main` at `8062178` (`Diagnose Power Place save stuck stage (#267)`).
+- Changed files:
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - The technical mini-slot scale path already existed (`slot_scale`, `object_refs.__slot_scale`, `sourceSlotScale`, `--power-source-slot-scale`, `--power-place-chess-slot-scale`), but the visible constructor UI rendered only three size sliders.
+  - Load/refresh could mask an object-ref-only saved slot scale with `EMPTY_COMPOSITION.slot_scale: 1`.
+- Changed:
+  - added the fourth slider `Размер окон` bound to `slot_scale`, min `0.7`, max `1.18`, step `0.01`;
+  - ordered sliders as `Размер окон`, `Размер поля`, `Размер центра`, `Размер фоток`;
+  - restored saved slot scale from `slot_scale`, `object_refs.__slot_scale`, or legacy `chess_slot_scale`;
+  - included the fourth slider in the shared desktop/mobile CSS grid contracts.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing `Размер окон`, then failed on missing `slotScaleFromComposition`, then passed;
+  - `node test/powerPlaceClient.test.mjs`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - `npm install` failed with `ENOSPC`; removed only the partial worktree `node_modules` and symlinked to the existing canonical repo dependency install for verification;
+  - all final commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Local browser QA:
+  - desktop and mobile checked on `http://localhost:4338/profile/mandalas` with fake public Supabase env/session and a local mock API;
+  - confirmed four visible sliders, no 390px horizontal overflow, no console errors, all seven constructors using the shared slot-scale variables, and mocked save/reopen persistence.
+- Not verified:
+  - real authenticated Supabase save/update/reload;
+  - Vercel preview, merge/deploy, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-05 — Fix Power Place mobile save clickability
 
 - Branch: `fix/power-place-save-button-clickability`.
