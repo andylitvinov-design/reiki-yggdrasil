@@ -290,7 +290,7 @@ assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Со
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
 assert.match(powerPlaceSource, />Сохранить мандалу<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose the three Phase 1 mandala-service buttons");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить мандалу<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
-assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[\s\S]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
+assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
 assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(saveNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Save button should use an explicit click wrapper that calls onSaveNew only when enabled");
 assert.match(powerPlaceBaseSource, /<button className="cabinetPrimary powerPlaceSaveButton"[\s\S]*onClick=\{handleSaveCompositionClick\}[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should create new drafts or update the opened composition");
 assert.doesNotMatch(powerPlaceBaseSource, /<div className="powerPlaceActions">[\s\S]*<span>[\s\S]*сохранённых мест силы[\s\S]*<\/span>[\s\S]*<\/div>/, "saved-count text must not be a raw inline span inside the clickable actions row");
@@ -473,10 +473,21 @@ assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAY
 const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 
 assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");
+assert.match(grimoireModuleSource, /Соберите фото, статьи, практики, аудио и документы\. Сначала загрузите всё без структуры, потом разложите по категориям\./, "Grimoire hero should explain the collect-first workflow");
+assert.match(grimoireModuleSource, /Без категории[\s\S]*Готово к работе/, "Grimoire hero should expose uncategorized and ready-to-work stats");
 assert.match(grimoireModuleSource, /Фильтр гримуара/, "Grimoire left column should say 'Фильтр гримуара'");
 assert.match(grimoireModuleSource, /Записи гримуара/, "Grimoire center column should say 'Записи гримуара'");
 assert.match(grimoireModuleSource, /Загрузить в гримуар/, "Grimoire right column should say 'Загрузить в гримуар'");
 assert.match(grimoireModuleSource, /type="file"[\s\S]*multiple/, "Grimoire uploader should be a multi-file input");
+assert.match(grimoireModuleSource, /Перетащите файлы сюда или выберите с телефона/, "Grimoire uploader should expose a clear drop-zone instruction");
+assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should keep selected files before upload");
+assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
+assert.match(grimoireModuleSource, /Разберите позже/, "Uncategorized records should be treated as the main working state");
+assert.match(grimoireModuleSource, /Гримуар пуст/, "Empty grimoire should use the dedicated empty state title");
+assert.match(grimoireModuleSource, /Загрузите первые фото, статьи или документы — их можно разобрать позже\./, "Empty grimoire should explain first upload flow");
+assert.match(grimoireModuleSource, /Редактировать запись гримуара/, "Edit panel should use the grimoire-specific title");
+assert.match(grimoireModuleSource, /Ступень/, "Edit panel should include step field");
+assert.match(grimoireModuleSource, /Настройка/, "Edit panel should include setting field");
 assert.match(grimoireModuleSource, /Редактировать/, "Grimoire record cards should expose an edit action");
 assert.match(grimoireModuleSource, /Удалить/, "Grimoire record cards should expose a delete action");
 assert.match(grimoireModuleSource, /GRIMOIRE_CATEGORIES/, "Grimoire left column should use GRIMOIRE_CATEGORIES for filters");
@@ -630,5 +641,9 @@ assert.match(
   /\.profileLitePowerPlace \.mandalaStyleSelector/,
   "CSS must include compact pill button styles for the mandala style selector"
 );
+
+assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireUploaderColumn\s*\{[\s\S]*order: 1/, "mobile grimoire should show uploader first");
+assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 2/, "mobile grimoire should show filters second");
+assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 3/, "mobile grimoire should show records third");
 
 console.log("Profile Lite cabinet contract: all assertions passed.");
