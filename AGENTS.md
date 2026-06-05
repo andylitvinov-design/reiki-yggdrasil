@@ -17,13 +17,15 @@ Before changing this repo, read:
 3. `STATE.md`
 4. `LOG.md`
 5. `docs/release-workflow.md`
-6. `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
-7. `src/data/reikiKnowledgeBase.js`
-8. `src/main.jsx`
-9. `src/index.css`
-10. `package.json`
-11. `vercel.json`
-12. `docs/deploy-fallback.md`
+6. `docs/deploy-fallback.md`
+7. `.github/workflows/deploy-production.yml`
+8. `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
+9. `src/data/reikiKnowledgeBase.js`
+10. `src/main.jsx`
+11. `src/index.css`
+12. `package.json`
+13. `vercel.json`
+14. `src/lib/supabaseClient.js`
 
 If a file is missing, report `not found`.
 
@@ -116,7 +118,13 @@ Codex rules for this workflow:
   - `VITE_ADMIN_EMAIL`
 - If a release-blocking fix is made in `release/*`, merge that fix back into `main` after release.
 
-Full concept and checklist: `docs/release-workflow.md`.
+Implementation status:
+
+- This is the target operating model.
+- Vercel project `2mentalica`, the URL `https://2mentalica.vercel.app`, branch `production`, client-project production branch switch, and staging Supabase remain `needs verification` until checked in dashboards.
+- Do not claim the model is active until those items are verified.
+
+Full concept, migration phases, Vercel/Supabase checklists, QA checklist, and rollback: `docs/release-workflow.md`.
 
 ## GitHub Actions Deploy Fallback
 
@@ -126,7 +134,16 @@ This repo has a production fallback workflow:
 .github/workflows/deploy-production.yml
 ```
 
-Use it when Vercel auto-deploy does not trigger, production remains stale after push/merge, or the user reports that live does not show completed changes.
+Release-workflow rule:
+
+```text
+main       = draft/test branch
+production = clean/client live branch
+```
+
+Therefore fallback production deploy normally uses `production`, not `main`.
+
+Use fallback deploy when Vercel auto-deploy does not trigger, production remains stale after push/merge, or the user reports that live does not show an approved release.
 
 Do not ask Andrey to run a local terminal deploy until this fallback path has been attempted and diagnosed.
 
@@ -134,21 +151,32 @@ Before fallback deploy, always prove:
 
 ```text
 Repo: andylitvinov-design/reiki-yggdrasil
-Target ref: normally main
-Expected SHA: known commit SHA
+Target ref: normally production
+Expected SHA: known production commit SHA
 Changes: committed and pushed/merged
+Release approval: yes / needs verification
 Production URL: https://mentalica.vercel.app/
 Legacy URL: https://reiki-yggdrasil.vercel.app/
 ```
 
-Default command:
+Default command after production-branch migration:
+
+```bash
+gh workflow run deploy-production.yml \
+  --ref production \
+  -f ref=production \
+  -f expected_sha=<expected_production_commit_sha> \
+  -f reason="fallback deploy after stale production release"
+```
+
+Temporary legacy command only before production-branch migration is implemented, or with explicit owner approval:
 
 ```bash
 gh workflow run deploy-production.yml \
   --ref main \
   -f ref=main \
-  -f expected_sha=<expected_commit_sha> \
-  -f reason="fallback deploy after stale production"
+  -f expected_sha=<expected_main_commit_sha> \
+  -f reason="temporary legacy fallback deploy from main"
 ```
 
 Hard order:
@@ -159,7 +187,7 @@ fallback deploy second
 production verification third
 ```
 
-Never deploy uncommitted or unpushed changes. Never deploy an unknown ref. Never claim production is updated without checking production after deploy.
+Never deploy uncommitted or unpushed changes. Never deploy an unknown ref. Never claim production is updated without checking production after deploy. Never deploy `main` to production unless explicitly approved or the production-branch migration is not implemented yet.
 
 During the domain migration window, verify both:
 
@@ -173,14 +201,19 @@ Cross-project standard: `andylitvinov-design/active-projects-ops` docs.
 
 ## Data and env safety
 
-Current repo state has no confirmed Supabase implementation in `main`.
-Known env names from project memory only, values must never be committed:
+The profile cabinet uses Supabase public REST/auth through `src/lib/supabaseClient.js` when these frontend env names are configured. Values must never be committed:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_ADMIN_EMAIL`
 
-If Supabase/profile/master/admin flows are added or restored, verify exact code and migrations first.
+Rules:
+
+- Use staging/test values for `2mentalica`.
+- Use production values only for the client live project.
+- Do not paste env values into chat, docs, logs, commits, or test fixtures.
+- Do not use production data for destructive testing.
+- If Supabase/profile/master/admin flows are changed, verify exact code, migrations, storage buckets, RLS policies, and OAuth redirect URLs first.
 
 ## Verification
 
