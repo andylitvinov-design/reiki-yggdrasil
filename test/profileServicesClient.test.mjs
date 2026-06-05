@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  buildCompositionServicePayload,
   createEmptyServiceForm,
   formatServicePrice,
   groupServicesByStatus,
@@ -131,5 +132,32 @@ const groupedServices = groupServicesByStatus([
 assert.deepEqual(groupedServices.draft.map((item) => item.id), ["draft-1", "draft-2"]);
 assert.deepEqual(groupedServices.published.map((item) => item.id), ["published-1"]);
 assert.deepEqual(groupedServices.archived.map((item) => item.id), ["archived-1"]);
+
+const preserved = buildCompositionServicePayload({
+  profileId: "profile-1",
+  composition: { id: "composition-1", title: "New mandala title" },
+  status: "published",
+  existing: normalizeServiceRow({
+    id: "service-existing",
+    profile_id: "profile-1",
+    composition_id: "composition-1",
+    title: "Edited service title",
+    description: "Edited description",
+    image_url: "stored-image-ref",
+    image_bucket: "media-bucket",
+    image_path: "service-image-path",
+    price_amount: 77,
+    price_currency: "CAD",
+    status: "draft"
+  })
+});
+assert.equal(preserved.title, "Edited service title");
+assert.equal(preserved.description, "Edited description");
+assert.equal(preserved.image_url, "stored-image-ref");
+assert.equal(preserved.image_bucket, "media-bucket");
+assert.equal(preserved.image_path, "service-image-path");
+assert.equal(preserved.price_amount, 77);
+assert.equal(preserved.price_currency, "CAD");
+assert.equal(preserved.status, "published");
 
 console.log("profileServicesClient: all assertions passed.");
