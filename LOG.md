@@ -95,6 +95,82 @@
   - `/feed` will be empty until approved `visibility='public_feed'` rows exist;
   - applying the migration depends on the existing `profile_cabinet_is_admin()` helper already being present.
 
+## 2026-06-05 — Add mandala services Phase 3-4 shop cart and orders
+
+- Branch: `codex/mandala-services-phase3-4-shop-cart-orders`.
+- Base: rebased onto `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50`.
+- Docs/source read:
+  - `AGENTS.md`, `README.md`, `STATE.md`, `LOG.md`, `docs/release-workflow.md`, `docs/deploy-fallback.md`, `.github/workflows/deploy-production.yml`, `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`, `src/data/reikiKnowledgeBase.js`, `src/main.jsx`, `src/index.css`, `package.json`, `vercel.json`, `src/lib/supabaseClient.js`;
+  - `src/lib/profileServicesClient.js`, `src/lib/profileMediaClient.js`, `src/lib/powerPlaceClient.js`, `src/pages/ProfileLitePage.jsx`, `src/pages/profile-lite/ProfileLiteServicesModule.jsx`, `test/profileServicesClient.test.mjs`, `test/profileLiteCabinetContract.test.mjs`;
+  - `docs/mandala-to-services-all-in-one.md`, `docs/mandala-to-services-implementation-program.md`, `docs/mandala-to-services-professional-spec.md`, `docs/mandala-to-services-engineering-guardrails.md`, `docs/mandala-to-services-goal.md`.
+- Shop audit:
+  - searched `shop`, `магазин`, `services`, `service`, `publicService`, `shopItems`, `Артефакты`, `предложения`, `услуги`;
+  - no existing real shop route was found, only unrelated public-materials keyword text, so `/shop` was added.
+- Changed files:
+  - `src/lib/profileServicesClient.js`
+  - `src/pages/PublicServicesPage.jsx`
+  - `src/main.jsx`
+  - `src/index.css`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteOrdersModule.jsx`
+  - `vercel.json`
+  - `supabase/migrations/20260605153000_service_orders_client_phase4.sql`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `README.md`
+  - `test/profileServicesClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Routes/rewrites:
+  - added `/shop`;
+  - added `/services/:serviceId`;
+  - added Vercel rewrites for both routes to `/`.
+- Cart keys:
+  - active cart: `reiki-yggdrasil-service-cart`;
+  - pending checkout cart: `reiki-yggdrasil-pending-service-cart`.
+- Order/photo flow:
+  - checkout saves pending cart and navigates to `/profile/orders`;
+  - unauthenticated users see Google login prompt and pending cart is kept up to 24h;
+  - after auth, Profile Lite creates a `photo_required` order draft after re-fetching the published service;
+  - client chooses one saved photo or uploads a new one, max 4 visible in UI;
+  - order becomes `new` only after explicit `Отправить заказ мастеру`.
+- RLS/migration notes:
+  - additive migration adds client ownership/order format/photo fields, `draft` and `photo_required` statuses, indexes, authenticated client policies, and a trigger preventing post-draft changes to service/client/master identity fields;
+  - live migration application is not verified.
+- Rebase notes:
+  - conflicts were resolved in `README.md` and `LOG.md`;
+  - retained main's release-model, grimoire/media, cover/mandala controls, and Profile Lite fixes while preserving Phase 3/4 shop/cart/orders.
+- Checks run:
+  - `node test/profileServicesClient.test.mjs` failed first on missing Phase 3-4 exports;
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing public-link/order UI contracts;
+  - `npm install`
+  - `npm run test:profile-services`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Browser QA:
+  - local preview: `http://localhost:4359/`;
+  - Browser/Chrome DevTools plugin was blocked by existing `chrome-profile` lock, so isolated headless Chrome/CDP was used;
+  - routes checked: `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, `/profile/admin`;
+  - viewports checked: `1280x920`, `1366x900`, `390x900`;
+  - every route/viewport combination had console errors `0` and horizontal overflow `0`.
+- Not implemented:
+  - Phase 5 result generation, master edit/send result, final result download, payments, multi-item cart, email/Telegram, destructive migrations, production deploy.
+- Not verified:
+  - real live Supabase reads/writes/RLS, migration application, Google OAuth, Vercel preview, production/legacy live URLs.
+- Risks:
+  - public draft/archive detail distinction is safe but depends on RLS visibility; private details are not exposed;
+  - order flow requires the new migration to be applied before real authenticated Phase 4 use.
+
 ## 2026-06-05 — Complete mandala services Phase 2 manager
 
 - Branch: `codex/mandala-services-phase2-manager`.

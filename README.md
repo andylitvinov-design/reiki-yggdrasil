@@ -62,17 +62,18 @@ Supabase setup steps:
 11. Apply `supabase/migrations/20260531090000_power_place_chess_format.sql`.
 12. Apply `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql`.
 13. Apply `supabase/migrations/20260605120000_grimoire_publication_types.sql`.
-14. Add these auth redirect URLs in Supabase for the target domain:
+14. Apply `supabase/migrations/20260605153000_service_orders_client_phase4.sql`.
+15. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-15. Keep these legacy auth redirect URLs until the migration is fully verified:
+16. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-16. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
+17. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
     - `https://2mentalica.vercel.app/profile`
     - `https://2mentalica.vercel.app/profile/admin`
-17. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
-18. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+18. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
+19. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -130,6 +131,7 @@ Power Place persistence setup:
 - `20260527143000_power_place_star_format.sql` extends saved compositions for `Звезда` with `star_variant` values `closed` / `open` and `star-*` object refs in the existing `object_refs` JSON payload.
 - `20260531090000_power_place_chess_format.sql` extends saved compositions for `Шахматы` with `chess_variant` values `classic-14` / `classic-8` / `plus-8` and allows `constructor_type='chess'`.
 - `20260602120000_power_place_chess_compact_variant.sql` allows the Profile Lite `compact-5` chess variant used by the 6-photo UI format.
+- `20260605153000_service_orders_client_phase4.sql` extends service orders for authenticated client drafts, `photo_required`, order format, selected client photo, and client/master RLS.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.

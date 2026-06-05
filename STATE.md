@@ -69,6 +69,48 @@ Last updated: 2026-06-05
   - live `/feed` will show the configured/empty/error state until the migration is applied and approved `public_feed` rows exist;
   - public visibility still depends on applying this migration after the existing admin helper migration.
 
+## 2026-06-05 — Mandala services Phase 3-4 shop/cart/orders
+
+- Branch: `codex/mandala-services-phase3-4-shop-cart-orders`, rebased onto `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50`.
+- Scope: Phase 3 and Phase 4 together. Phase 5 result generation, master edit/send result, final result download, payments, multi-item cart, email/Telegram, and production deploy were not implemented.
+- Shop audit:
+  - existing search found only the unrelated public materials mini keyword `МАГАЗИН` surface, not a real services shop route;
+  - added a minimal `/shop` public route and `/services/:serviceId` detail route.
+- Changed:
+  - public shop lists only `profile_cabinet_services` rows with `status=published`;
+  - service detail fetches by id with `status=published`;
+  - public service page shows title, description, `Бесплатно` for null/0 price, safe public preview only, and format selector `signature` / `no_signature` / `both`;
+  - one-service cart uses `reiki-yggdrasil-service-cart` and pending checkout uses `reiki-yggdrasil-pending-service-cart`;
+  - cart item stores only `service_id`, `composition_id`, `master_profile_id`, `format`, `price_amount`, `price_currency`, and `created_at`;
+  - `/profile/services` now shows active public link/copy button for published services only;
+  - `/profile/orders` separates `Кабинет Личный / Мои Заказы / Мои Фото` from `Кабинет Мастера / Заявки`;
+  - unauthenticated checkout preserves pending cart and sends users to Google login prompt on `/profile/orders`;
+  - authenticated Profile Lite restores pending cart if fresh, creates an order draft after re-fetching the published service, and requires explicit `Отправить заказ мастеру`;
+  - client photos are capped in the order UI at 4 with the required copy.
+- Data/RLS:
+  - added additive migration `supabase/migrations/20260605153000_service_orders_client_phase4.sql`;
+  - migration adds `client_profile_id`, `template_composition_id`, `order_format`, `client_photo_id`, `draft` / `photo_required` statuses, indexes, authenticated client order RLS, and a trigger preventing post-draft order identity changes;
+  - migration runner allowlist and README migration list were updated;
+  - live migration application is not verified.
+- Rebase notes:
+  - conflicts were resolved in `README.md` and `LOG.md`;
+  - retained main's release-model, grimoire/media, cover/mandala controls, and Profile Lite fixes while preserving Phase 3/4 shop/cart/orders.
+- Verification:
+  - `npm install`, `npm run test:profile-services`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run test:power-place`, `npm run test:profile-loading-recovery`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4359/`;
+  - Chrome DevTools MCP Browser was attempted but blocked by an existing `chrome-profile` lock, so QA used isolated headless Chrome/CDP;
+  - checked `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, and `/profile/admin`;
+  - viewports: `1280x920`, `1366x900`, and `390x900`;
+  - all route/viewport combinations rendered with console errors `0` and horizontal overflow `0`.
+- Not verified:
+  - real Supabase public-service reads against live data, authenticated order draft/submit, photo upload, migration application, Vercel preview, production/legacy live rendering, and Google OAuth.
+- Risks:
+  - draft/archive distinction on public detail depends on RLS visibility; safe fallback does not expose details;
+  - order draft/submit requires the new migration and RLS to be applied;
+  - `/services/test` showed safe unavailable catalog text locally because Supabase env was not configured.
+
 ## 2026-06-05 — Mandala services Phase 2 manager
 
 - Branch: `codex/mandala-services-phase2-manager`, clean worktree from `origin/main` at `c2cfb8e`.

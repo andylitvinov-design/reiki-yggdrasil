@@ -36,6 +36,14 @@
       "destination": "/"
     },
     {
+      "source": "/shop",
+      "destination": "/"
+    },
+    {
+      "source": "/services/:serviceId",
+      "destination": "/"
+    },
+    {
       "source": "/masters",
       "destination": "/"
     },
