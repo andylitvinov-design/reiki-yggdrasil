@@ -1,39 +1,68 @@
 import React, { useMemo, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
-import { sourcedStepSettings } from "../../data/reikiStepSettings.js";
+import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 
-const MATERIAL_GROUPS = [
-  { value: "", label: "Все группы" },
-  { value: "dao-ri", label: "ДАО РИ" },
-  { value: "god-channels", label: "Мистерии" },
-  { value: "channels", label: "Каналы" },
-  { value: "form", label: "Форма" }
+/* ── Library categories: same structure as SOURCE_LIBRARY_CATEGORIES
+   in ProfileLitePowerPlaceModuleBase.jsx ─────────────────────────── */
+
+const CHANNELS_SUBCATEGORIES = [
+  { value: "sefirot", label: "Сефирот" },
+  { value: "runes", label: "Руны" },
+  { value: "planets", label: "Планеты" },
+  { value: "money", label: "Деньги" },
+  { value: "life", label: "Жизнь" }
 ];
 
-const MATERIAL_GROUPS_UPLOAD = [
-  { value: "dao-ri", label: "ДАО РИ" },
-  { value: "god-channels", label: "Мистерии" },
-  { value: "channels", label: "Каналы" },
-  { value: "form", label: "Форма" }
+const SOURCE_LIBRARY_CATEGORIES = [
+  {
+    value: "dao-ri",
+    label: "ДАО РИ",
+    subcategories: reikiLevels.map((level) => ({
+      value: `level-${level.id}`,
+      label: `${level.id}. ${level.name}`,
+      thirdLevels: level.steps.map((step) => ({
+        value: step.id,
+        label: `${level.stepLabel} ${step.number}: ${step.title}`
+      }))
+    }))
+  },
+  {
+    value: "god-channels",
+    label: "Мистерии",
+    subcategories: mysteryTraditions.map((t) => ({
+      value: t.id,
+      label: t.title
+    }))
+  },
+  {
+    value: "channels",
+    label: "Каналы",
+    subcategories: CHANNELS_SUBCATEGORIES
+  },
+  {
+    value: "covers",
+    label: "Фон",
+    subcategories: [{ value: "cover", label: "Фон" }]
+  },
+  {
+    value: "form",
+    label: "Форма",
+    subcategories: [
+      { value: "zashchitnye", label: "Защитные" },
+      { value: "tselyebnye", label: "Целебные" },
+      { value: "business", label: "Бизнес" },
+      { value: "other", label: "Другие" }
+    ]
+  },
+  { value: "talismans", label: "Талисманы", subcategories: [] },
+  { value: "artifacts", label: "Артефакты", subcategories: [] },
+  { value: "favorites", label: "Избранные", subcategories: [] },
+  {
+    value: "client-goals",
+    label: "Клиенты",
+    subcategories: [{ value: "client-goals", label: "Фото клиентов" }]
+  }
 ];
-
-const MATERIAL_TYPES = [
-  { value: "mandala", label: "Мандала" },
-  { value: "artifact", label: "Артефакт" },
-  { value: "practice", label: "Практика" }
-];
-
-const materialStepOptions = reikiLevels.flatMap((level) =>
-  level.steps.map((step) => ({
-    id: step.id,
-    title: step.title,
-    levelName: level.name,
-    label: `${level.id}. ${level.name} · ${level.stepLabel} ${step.number}: ${step.title}`,
-    settings: sourcedStepSettings[step.id] || step.settings || []
-  }))
-);
-
-const firstMaterialStep = materialStepOptions[0] || null;
 
 export default function ProfileLiteMediaModule({
   clientGoalPhotos,
@@ -51,37 +80,51 @@ export default function ProfileLiteMediaModule({
   clientPhotoForm,
   shellChrome
 }) {
+  /* ── Filter state ──────────────────────────────────────────────── */
   const [filterGroup, setFilterGroup] = useState("");
-  const [filterStepId, setFilterStepId] = useState("");
-  const [filterSettingTitle, setFilterSettingTitle] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterSubcategory, setFilterSubcategory] = useState("");
 
+  const activeFilterLibraryGroup = useMemo(
+    () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === filterGroup) || null,
+    [filterGroup]
+  );
+  const filterCategoryOptions = activeFilterLibraryGroup?.subcategories || [];
+  const activeFilterCategoryEntry = useMemo(
+    () => filterCategoryOptions.find((c) => c.value === filterCategory) || null,
+    [filterCategoryOptions, filterCategory]
+  );
+  const filterSubcategoryOptions = activeFilterCategoryEntry?.thirdLevels || [];
+
+  /* ── Upload state ──────────────────────────────────────────────── */
   const [uploadDestination, setUploadDestination] = useState("clients");
-  const [materialGroup, setMaterialGroup] = useState("dao-ri");
-  const [materialType, setMaterialType] = useState("mandala");
-  const [materialStepId, setMaterialStepId] = useState(firstMaterialStep?.id || "");
-  const activeMaterialStep = materialStepOptions.find((s) => s.id === materialStepId) || firstMaterialStep;
-  const [materialSettingTitle, setMaterialSettingTitle] = useState(
-    activeMaterialStep?.settings?.[0]?.title || ""
-  );
+  const [uploadGroup, setUploadGroup] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.value || "");
+  const [uploadCategory, setUploadCategory] = useState("");
+  const [uploadSubcategory, setUploadSubcategory] = useState("");
 
-  const activeFilterStep = useMemo(
-    () => materialStepOptions.find((s) => s.id === filterStepId) || null,
-    [filterStepId]
+  const activeUploadLibraryGroup = useMemo(
+    () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === uploadGroup) || null,
+    [uploadGroup]
   );
-  const filterSettings = activeFilterStep?.settings || [];
+  const uploadCategoryOptions = activeUploadLibraryGroup?.subcategories || [];
+  const activeUploadCategoryEntry = useMemo(
+    () => uploadCategoryOptions.find((c) => c.value === uploadCategory) || null,
+    [uploadCategoryOptions, uploadCategory]
+  );
+  const uploadSubcategoryOptions = activeUploadCategoryEntry?.thirdLevels || [];
 
+  /* ── Filtered photo list ─────────────────────────────────────── */
   const filteredPhotos = useMemo(() => {
-    if (!filterGroup && !filterStepId && !filterSettingTitle) return clientGoalPhotos;
+    if (!filterGroup && !filterCategory && !filterSubcategory) return clientGoalPhotos;
     return clientGoalPhotos.filter((photo) => {
       if (filterGroup && photo.material_group && photo.material_group !== filterGroup) return false;
-      if (filterStepId && photo.step_id && photo.step_id !== filterStepId) return false;
-      if (filterSettingTitle && photo.setting_title && photo.setting_title !== filterSettingTitle) return false;
+      if (filterCategory && photo.step_id && photo.step_id !== filterCategory) return false;
+      if (filterSubcategory && photo.setting_title && photo.setting_title !== filterSubcategory) return false;
       return true;
     });
-  }, [clientGoalPhotos, filterGroup, filterStepId, filterSettingTitle]);
+  }, [clientGoalPhotos, filterGroup, filterCategory, filterSubcategory]);
 
   const formError = mediaStatus === "needs-verification" ? mediaError : "";
-
   const totalCount = clientGoalPhotos.length + traditionAssets.length;
 
   return (
@@ -110,42 +153,46 @@ export default function ProfileLiteMediaModule({
                 value={filterGroup}
                 onChange={(event) => {
                   setFilterGroup(event.target.value);
-                  setFilterStepId("");
-                  setFilterSettingTitle("");
+                  setFilterCategory("");
+                  setFilterSubcategory("");
                 }}
               >
-                {MATERIAL_GROUPS.map((g) => (
+                <option value="">Все группы</option>
+                {SOURCE_LIBRARY_CATEGORIES.map((g) => (
                   <option key={g.value} value={g.value}>{g.label}</option>
                 ))}
               </select>
             </div>
+
             <div className="profileLiteMediaFilterField">
-              <label htmlFor="mediaFilterStep">Категория</label>
+              <label htmlFor="mediaFilterCategory">Категория</label>
               <select
-                id="mediaFilterStep"
-                value={filterStepId}
+                id="mediaFilterCategory"
+                value={filterCategory}
+                disabled={!filterGroup || filterCategoryOptions.length === 0}
                 onChange={(event) => {
-                  setFilterStepId(event.target.value);
-                  setFilterSettingTitle("");
+                  setFilterCategory(event.target.value);
+                  setFilterSubcategory("");
                 }}
               >
                 <option value="">Все</option>
-                {materialStepOptions.map((s) => (
-                  <option key={s.id} value={s.id}>{s.label}</option>
+                {filterCategoryOptions.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
             </div>
+
             <div className="profileLiteMediaFilterField">
-              <label htmlFor="mediaFilterSetting">Подкатегория</label>
+              <label htmlFor="mediaFilterSubcategory">Ступень</label>
               <select
-                id="mediaFilterSetting"
-                value={filterSettingTitle}
-                onChange={(event) => setFilterSettingTitle(event.target.value)}
-                disabled={!filterStepId}
+                id="mediaFilterSubcategory"
+                value={filterSubcategory}
+                disabled={!filterCategory || filterSubcategoryOptions.length === 0}
+                onChange={(event) => setFilterSubcategory(event.target.value)}
               >
                 <option value="">Все</option>
-                {filterSettings.map((s) => (
-                  <option key={s.title} value={s.title}>{s.title}</option>
+                {filterSubcategoryOptions.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
                 ))}
               </select>
             </div>
@@ -276,6 +323,8 @@ export default function ProfileLiteMediaModule({
                 </button>
               </form>
             ) : (
+              /* Materials mode — group/category/subcategory stored as UI state.
+                 DB persistence of these metadata fields: needs verification. */
               <form
                 className="profileLiteMediaUploadForm"
                 onSubmit={(event) => {
@@ -286,65 +335,74 @@ export default function ProfileLiteMediaModule({
                 <label>
                   Группа
                   <select
-                    value={materialGroup}
-                    onChange={(event) => setMaterialGroup(event.target.value)}
+                    value={uploadGroup}
+                    onChange={(event) => {
+                      setUploadGroup(event.target.value);
+                      setUploadCategory("");
+                      setUploadSubcategory("");
+                    }}
                   >
-                    {MATERIAL_GROUPS_UPLOAD.map((g) => (
+                    {SOURCE_LIBRARY_CATEGORIES.map((g) => (
                       <option key={g.value} value={g.value}>{g.label}</option>
                     ))}
                   </select>
                 </label>
-                <label>
-                  Тип материала
-                  <select
-                    value={materialType}
-                    onChange={(event) => setMaterialType(event.target.value)}
-                  >
-                    {MATERIAL_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Категория / ступень
-                  <select
-                    value={materialStepId}
-                    onChange={(event) => {
-                      const next = materialStepOptions.find((s) => s.id === event.target.value) || firstMaterialStep;
-                      setMaterialStepId(next?.id || "");
-                      setMaterialSettingTitle(next?.settings?.[0]?.title || "");
-                    }}
-                  >
-                    {materialStepOptions.map((s) => (
-                      <option key={s.id} value={s.id}>{s.label}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Подкатегория
-                  <select
-                    value={materialSettingTitle}
-                    onChange={(event) => setMaterialSettingTitle(event.target.value)}
-                  >
-                    {(activeMaterialStep?.settings || []).map((s) => (
-                      <option key={s.title} value={s.title}>{s.title}</option>
-                    ))}
-                  </select>
-                </label>
+
+                {uploadCategoryOptions.length > 0 && (
+                  <label>
+                    Категория
+                    <select
+                      value={uploadCategory}
+                      onChange={(event) => {
+                        setUploadCategory(event.target.value);
+                        setUploadSubcategory("");
+                      }}
+                    >
+                      <option value="">Выбрать</option>
+                      {uploadCategoryOptions.map((c) => (
+                        <option key={c.value} value={c.value}>{c.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
+                {uploadSubcategoryOptions.length > 0 && (
+                  <label>
+                    Ступень / подкатегория
+                    <select
+                      value={uploadSubcategory}
+                      onChange={(event) => setUploadSubcategory(event.target.value)}
+                    >
+                      <option value="">Выбрать</option>
+                      {uploadSubcategoryOptions.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
                 <label>
                   Название
                   <input
                     value={traditionAssetForm.title}
                     onChange={(event) => onTraditionAssetFieldChange("title", event.target.value)}
-                    placeholder="Образ традиции"
+                    placeholder="Образ / название материала"
                   />
                 </label>
                 <label>
-                  URL
+                  URL изображения
                   <input
                     value={traditionAssetForm.image_url}
                     onChange={(event) => onTraditionAssetFieldChange("image_url", event.target.value)}
                     placeholder="https://..."
+                  />
+                </label>
+                <label>
+                  Заметка
+                  <textarea
+                    value={traditionAssetForm.notes || ""}
+                    onChange={(event) => onTraditionAssetFieldChange("notes", event.target.value)}
+                    rows={2}
                   />
                 </label>
                 <label className="profileLiteFileInput">
@@ -355,8 +413,11 @@ export default function ProfileLiteMediaModule({
                   />
                   {traditionAssetForm.file ? `Выбрано: ${traditionAssetForm.file.name}` : "Загрузить файл"}
                 </label>
+                <p className="profileLiteMediaFormHint">
+                  Файл и URL — взаимоисключающие: выберите одно из двух.
+                </p>
                 <button className="cabinetPrimary" type="submit">
-                  Сохранить материал
+                  Сохранить фото материала
                 </button>
               </form>
             )}
