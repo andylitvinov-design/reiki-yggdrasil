@@ -25,13 +25,14 @@ import {
   createServiceCartStore,
   createServiceOrderDraft,
   createOwnService,
+  generateDraftResultComposition,
   listClientServiceOrders,
   listOwnServiceOrders,
   listOwnServices,
   publishOwnService,
+  sendOrderResultToClient,
   submitServiceOrderToMaster,
   updateOwnService,
-  updateServiceOrder,
   upsertOwnServiceForComposition
 } from "../lib/profileServicesClient.js";
 import {
@@ -51,6 +52,7 @@ import {
   createTraditionAsset,
   deleteClientGoalPhoto,
   getPlanLimits,
+  getPowerPlaceCompositionById,
   listClientGoalPhotos,
   listPowerPlaceCompositions,
   listTraditionAssets,
@@ -1380,6 +1382,28 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
   };
 
+
+  const openCompositionInMandalas = async (compositionId, fallbackMessage = "Мандала заказа открыта в конструкторе.") => {
+    if (!compositionId || !hasProfileLiteSessionCredential(session)) return null;
+    let composition = powerPlaceCompositions.find((item) => item.id === compositionId) || null;
+    if (!composition) {
+      composition = await getPowerPlaceCompositionById(compositionId, session);
+      if (composition) {
+        setPowerPlaceCompositions((current) => [composition, ...current.filter((item) => item.id !== composition.id)]);
+      }
+    }
+    if (!composition) throw new Error("Мандала результата не найдена или недоступна.");
+    handleCompositionLoad(composition);
+    setCompositionMessage(fallbackMessage);
+    setActiveTab("mandalas");
+    if (typeof window !== "undefined" && window.location.pathname !== "/profile/mandalas") {
+      window.history.pushState({}, "", "/profile/mandalas");
+      window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    return composition;
+  };
+
   const refreshSavedCompositions = async (saved) => {
     const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
     const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
@@ -1792,7 +1816,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         photo: selectedPhoto,
         requestText: orderConfirmation.requestText
       }, session);
-      setClientOrders((current) => current.map((item) => item.id === saved.id ? saved : item));
+      setClientOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
       setOrderConfirmation(EMPTY_ORDER_CONFIRMATION);
       setOrdersStatus("success");
       setOrdersError("");
@@ -1808,17 +1832,62 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
-  const handleOrderUpdate = async () => {
-    if (!orderPatch.id || !hasProfileLiteSessionCredential(session)) return;
+  const handleGenerateDraftResultComposition = async (order) => {
+    if (!order?.id || !hasProfileLiteSessionCredential(session)) return;
     try {
-      const saved = await updateServiceOrder(orderPatch.id, orderPatch, session);
-      setOrders((current) => current.map((item) => item.id === saved.id ? saved : item));
+      const saved = await generateDraftResultComposition(order.id, session);
+      setOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
+      setOrdersStatus("success");
+      setOrdersError("");
+      if (saved.draft_result_composition_id) {
+        await openCompositionInMandalas(saved.draft_result_composition_id, "Черновик мандалы заказа создан и открыт в конструкторе.");
+      }
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "Не удалось создать мандалу заказа. Проверьте template composition, фото клиента и RLS."));
+    }
+  };
+
+  const handleOpenOrderResult = async (order, mode = "draft") => {
+    const compositionId = mode === "final" ? order?.final_result_composition_id : order?.draft_result_composition_id;
+    try {
+      await openCompositionInMandalas(compositionId, mode === "final" ? "Финальный результат заказа открыт в конструкторе." : "Черновик мандалы заказа открыт в конструкторе.");
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "Мандала результата не открылась."));
+    }
+  };
+
+  const handleDownloadOrderResult = async (order) => {
+    try {
+      const composition = await openCompositionInMandalas(order?.final_result_composition_id, "Результат открыт. Скачать PDF / Печать в PDF доступна в конструкторе.");
+      window.setTimeout(() => {
+        try {
+          openPowerPlacePdfPrintView(composition?.title || order?.service?.title || "power-place");
+        } catch (error) {
+          setCompositionMessage(moduleError(error, "PDF preview failed"));
+        }
+      }, 100);
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "Результат для скачивания не открылся."));
+    }
+  };
+
+  const handleSendOrderResultToClient = async (order) => {
+    if (!order?.id || !hasProfileLiteSessionCredential(session)) return;
+    const patch = orderPatch.id === order.id ? orderPatch : { ...EMPTY_ORDER_PATCH, id: order.id };
+    const resultCompositionId = patch.resultCompositionId || order.draft_result_composition_id || compositionDraft.id;
+    try {
+      const saved = await sendOrderResultToClient(order.id, resultCompositionId, patch.master_comment || order.master_comment || "", session);
+      setOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
+      setClientOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
       setOrderPatch(EMPTY_ORDER_PATCH);
       setOrdersStatus("success");
       setOrdersError("");
     } catch (error) {
       setOrdersStatus("needs-verification");
-      setOrdersError(moduleError(error, "profile_cabinet_service_orders update failed or migration/RLS not applied"));
+      setOrdersError(moduleError(error, "profile_cabinet_service_orders result send failed or migration/RLS not applied"));
     }
   };
 
@@ -2001,15 +2070,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onClientPhotoFileChange={(event) => setClientPhotoForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
         onClientPhotoSave={handleClientPhotoSave}
         onOrderConfirmationChange={(patch) => setOrderConfirmation((current) => ({ ...current, ...patch }))}
-        onOrderPatchChange={(patch) => setOrderPatch({
-          id: patch.id || "",
-          master_comment: patch.master_comment || "",
-          result_image_url: patch.result_image_url || "",
-          result_image_bucket: patch.result_image_bucket || null,
-          result_image_path: patch.result_image_path || null,
-          status: patch.status || "sent"
-        })}
-        onOrderUpdate={handleOrderUpdate}
+        onGenerateDraftResult={handleGenerateDraftResultComposition}
+        onOpenOrderResult={handleOpenOrderResult}
+        onDownloadOrderResult={handleDownloadOrderResult}
+        onOrderPatchChange={(patch) => setOrderPatch((current) => ({ ...current, ...patch }))}
+        onSendOrderResult={handleSendOrderResultToClient}
         onSubmitOrderToMaster={handleSubmitServiceOrderToMaster}
       />
     ),
