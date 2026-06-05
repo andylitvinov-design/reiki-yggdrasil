@@ -1,5 +1,5 @@
 import React from "react";
-import { formatServicePrice, orderStatusText } from "../../lib/profileServicesClient.js";
+import { formatServicePrice, orderHasClientVisibleResult, orderStatusText } from "../../lib/profileServicesClient.js";
 
 const PHOTO_LIMIT_MESSAGE = "Можно хранить до 4 фото. Удалите старое фото или выберите одно из существующих.";
 const PHOTO_REQUIRED_MESSAGE = "Загрузите своё фото, чтобы отправить заказ в работу Мастеру.";
@@ -15,9 +15,15 @@ export default function ProfileLiteOrdersModule({
   onClientPhotoFieldChange,
   onClientPhotoFileChange,
   onClientPhotoSave,
+  onDownloadOrderResult,
+  onGenerateDraftResult,
+  onOpenOrderResult,
   onOrderConfirmationChange,
+  onOrderPatchChange,
+  onSendOrderResult,
   onSubmitOrderToMaster,
   orderConfirmation = {},
+  orderPatch = {},
   orders = [],
   ordersError,
   ordersStatus,
@@ -73,7 +79,17 @@ export default function ProfileLiteOrdersModule({
                     <h3>{order.service?.title || "Услуга"}</h3>
                     <p>{order.request_text || "Подготовьте фото и отправьте заказ мастеру."}</p>
                     <small>{formatServicePrice(order.service || {})} · {orderStatusText(order.status)} · {order.order_format}</small>
-                    {order.status !== "new" && order.status !== "in_progress" && order.status !== "sent" && (
+                    {orderHasClientVisibleResult(order) && (
+                      <div className="cabinetCardInline">
+                        <p className="cabinetEyebrow">Результат отправлен</p>
+                        {order.master_comment && <p>{order.master_comment}</p>}
+                        <div className="cabinetActions">
+                          <button className="cabinetSecondary" onClick={() => onOpenOrderResult(order, "final")} type="button">Открыть результат</button>
+                          <button className="cabinetSecondary" onClick={() => onDownloadOrderResult(order)} type="button">Скачать результат</button>
+                        </div>
+                      </div>
+                    )}
+                    {order.status !== "new" && order.status !== "ready_for_review" && order.status !== "in_progress" && order.status !== "sent" && (
                       <div className="cabinetCardInline">
                         <p className="cabinetEyebrow">Фото для заказа</p>
                         {clientGoalPhotos.length === 0 && <p>{PHOTO_REQUIRED_MESSAGE}</p>}
@@ -151,6 +167,30 @@ export default function ProfileLiteOrdersModule({
                   <p>{order.request_text || "Запрос клиента не заполнен."}</p>
                   <small>{orderStatusText(order.status)} · {order.order_format}</small>
                   <p className="cabinetMuted">{order.client_photo_id ? "Фото клиента выбрано" : "Фото клиента не выбрано"}</p>
+                  <p className="cabinetMuted">{order.client_photo_path ? `Выбранное фото: ${order.client_photo_path.split("/").pop()}` : "Выбранное фото: needs verification"}</p>
+                  <div className="cabinetCardInline">
+                    <button className="cabinetSecondary" onClick={() => onGenerateDraftResult(order)} type="button">Создать мандалу заказа</button>
+                    {order.draft_result_composition_id && (
+                      <button className="cabinetSecondary" onClick={() => onOpenOrderResult(order, "draft")} type="button">Открыть мандалу заказа</button>
+                    )}
+                    <label>
+                      Комментарий мастера
+                      <textarea
+                        onChange={(event) => onOrderPatchChange({ id: order.id, master_comment: event.target.value })}
+                        rows={3}
+                        value={orderPatch.id === order.id ? orderPatch.master_comment || "" : order.master_comment || ""}
+                      />
+                    </label>
+                    {!order.draft_result_composition_id && <p className="cabinetSecondaryDataWarning">Сначала создайте или выберите результат мандалы заказа.</p>}
+                    <button
+                      className="cabinetPrimary"
+                      disabled={!order.draft_result_composition_id}
+                      onClick={() => onSendOrderResult(order)}
+                      type="button"
+                    >
+                      Отправить клиенту
+                    </button>
+                  </div>
                 </div>
               </article>
             ))}

@@ -1,3 +1,4 @@
+import { clonePowerPlaceCompositionForOrder } from "./powerPlaceClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
@@ -8,7 +9,7 @@ const PUBLIC_SERVICE_FIELDS = "id,profile_id,composition_id,title,description,im
 const PENDING_CART_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 export const SERVICE_STATUSES = ["draft", "published", "archived"];
-export const ORDER_STATUSES = ["draft", "photo_required", "new", "in_progress", "sent", "closed"];
+export const ORDER_STATUSES = ["draft", "photo_required", "new", "ready_for_review", "in_progress", "sent", "closed"];
 export const SERVICE_FORMAT_OPTIONS = [
   { value: "signature", label: "С подписью мастера" },
   { value: "no_signature", label: "Без подписи мастера" },
@@ -75,6 +76,7 @@ export function orderStatusText(status) {
     draft: "Черновик",
     photo_required: "Нужно фото",
     new: "Новая",
+    ready_for_review: "Готово к проверке",
     in_progress: "В работе",
     sent: "Отправлено",
     closed: "Закрыта"
@@ -191,6 +193,8 @@ export function normalizeServiceOrder(row = {}) {
     master_profile_id: text(row.master_profile_id),
     client_profile_id: text(row.client_profile_id),
     template_composition_id: text(row.template_composition_id),
+    draft_result_composition_id: text(row.draft_result_composition_id),
+    final_result_composition_id: text(row.final_result_composition_id),
     order_format: normalizeServiceFormat(row.order_format),
     client_photo_id: text(row.client_photo_id),
     client_name: text(row.client_name),
@@ -203,6 +207,7 @@ export function normalizeServiceOrder(row = {}) {
     result_image_bucket: text(row.result_image_bucket) || null,
     result_image_path: text(row.result_image_path) || null,
     status: orderStatus(row.status),
+    sent_at: row.sent_at || null,
     created_at: row.created_at || null,
     updated_at: row.updated_at || null,
     service: service ? normalizeServiceRow(service) : null
@@ -326,6 +331,107 @@ export function buildServiceOrderSubmitPayload({ orderId, clientProfileId, photo
     request_text: text(requestText),
     status: "new"
   };
+}
+
+
+export function orderHasClientVisibleResult(order = {}) {
+  return orderStatus(order.status) === "sent" && Boolean(text(order.final_result_composition_id));
+}
+
+export function buildSendOrderResultPayload({ orderId, resultCompositionId, comment = "" } = {}) {
+  if (!orderId) throw makeError("Missing service order id.");
+  if (!resultCompositionId) throw makeError("Сначала создайте или выберите результат мандалы заказа.");
+  return {
+    id: text(orderId),
+    final_result_composition_id: text(resultCompositionId),
+    master_comment: text(comment),
+    status: "sent"
+  };
+}
+
+function mediaRowFromOrderPhoto(order = {}) {
+  return {
+    id: text(order.client_photo_id),
+    title: text(order.client_name) || text(order.client_photo_id) || "клиент",
+    image_url: text(order.client_photo_url),
+    image_bucket: text(order.client_photo_bucket) || null,
+    image_path: text(order.client_photo_path),
+    image_ref: text(order.client_photo_url)
+  };
+}
+
+async function getOwnOrderForResult(orderId, session = getStoredSession()) {
+  if (!orderId) throw makeError("Missing service order id.");
+  const select = "*,profile_cabinet_services(id,profile_id,composition_id,title,description,image_url,image_bucket,image_path,price_amount,price_currency,status)";
+  const rows = await request(`/rest/v1/${ORDERS_TABLE}?id=eq.${encodeURIComponent(orderId)}&select=${select}&limit=1`, { session });
+  return rows?.[0] ? normalizeServiceOrder(rows[0]) : null;
+}
+
+async function getCompositionRow(compositionId, session = getStoredSession()) {
+  if (!compositionId) throw makeError("Не найден шаблон мандалы услуги.");
+  const rows = await request(`/rest/v1/profile_cabinet_power_place_compositions?id=eq.${encodeURIComponent(compositionId)}&select=*&limit=1`, { session });
+  return rows?.[0] || null;
+}
+
+async function insertCompositionRow(composition, session = getStoredSession()) {
+  const { id: _id, object_ref_urls: _objectRefUrls, ...body } = composition || {};
+  const rows = await request(`/rest/v1/profile_cabinet_power_place_compositions`, {
+    method: "POST",
+    session,
+    prefer: "return=representation",
+    body
+  });
+  return rows?.[0] || null;
+}
+
+export async function generateDraftResultComposition(orderId, session = getStoredSession()) {
+  if (!session?.access_token) throw makeError("Auth required.");
+  const order = await getOwnOrderForResult(orderId, session);
+  if (!order?.id) throw makeError("Заявка не найдена.");
+  if (order.draft_result_composition_id) return order;
+  if (!text(order.client_photo_id) && !text(order.client_photo_path) && !text(order.client_photo_url)) {
+    throw makeError("Фото клиента не выбрано для результата заказа.");
+  }
+
+  const templateId = text(order.template_composition_id || order.service?.composition_id);
+  const template = await getCompositionRow(templateId, session);
+  const clonePayload = clonePowerPlaceCompositionForOrder({
+    template,
+    masterProfileId: order.master_profile_id,
+    serviceTitle: order.service?.title || "Услуга",
+    clientLabel: order.client_name || order.client_photo_id || "клиент",
+    clientPhoto: mediaRowFromOrderPhoto(order)
+  });
+  const clone = await insertCompositionRow(clonePayload, session);
+  if (!clone?.id) throw makeError("Supabase не вернул мандалу результата заказа.");
+
+  const rows = await request(`/rest/v1/${ORDERS_TABLE}?id=eq.${encodeURIComponent(order.id)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: {
+      draft_result_composition_id: clone.id,
+      status: "ready_for_review"
+    }
+  });
+  return rows?.[0] ? normalizeServiceOrder(rows[0]) : { ...order, draft_result_composition_id: clone.id, status: "ready_for_review" };
+}
+
+export async function sendOrderResultToClient(orderId, resultCompositionId, comment = "", session = getStoredSession()) {
+  if (!session?.access_token) throw makeError("Auth required.");
+  const payload = buildSendOrderResultPayload({ orderId, resultCompositionId, comment });
+  const rows = await request(`/rest/v1/${ORDERS_TABLE}?id=eq.${encodeURIComponent(payload.id)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: {
+      final_result_composition_id: payload.final_result_composition_id,
+      master_comment: payload.master_comment,
+      status: payload.status,
+      sent_at: new Date().toISOString()
+    }
+  });
+  return rows?.[0] ? normalizeServiceOrder(rows[0]) : null;
 }
 
 export function buildCompositionServicePayload({ profileId, composition, status = "draft", existing = null } = {}) {

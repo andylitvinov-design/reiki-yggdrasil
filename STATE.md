@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-05
 
+## 2026-06-05 — Mandala services Phase 5 result generation and delivery
+
+- Branch: `codex/mandala-services-phase5-result-delivery`, based on `origin/main` at `c0cd3ba`.
+- Scope: Phase 5 only: generated personal order result compositions, master open/comment/send flow, client final result card, and result open/download through the existing Power Place constructor/PDF flow. Payments, multi-cart, email/Telegram delivery, service-role/env/auth changes, and production deploy were not implemented.
+- Changed:
+  - added additive migration `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`;
+  - added `draft_result_composition_id`, `final_result_composition_id`, `sent_at`, and `ready_for_review`;
+  - added a final-result-only client composition read policy for sent orders;
+  - added template clone helpers that never mutate `service.composition_id`;
+  - generated clones are owned by `master_profile_id`, titled `Заказ: <service title> / <client label>`, and receive the selected client photo in `__center_image`;
+  - master requests now show selected-photo state, create/open result, master comment, and send-to-client controls;
+  - client orders show `Результат отправлен`, `Открыть результат`, and `Скачать результат` only for `status='sent'` with a final composition id.
+- Verification:
+  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - local preview `http://127.0.0.1:4361/` rendered `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, and `/profile/admin`;
+  - Playwright QA at `1280x920`, `1366x900`, and `390x900` reported console errors `0` and horizontal overflow `0` for all checked routes.
+- Not verified:
+  - live Supabase migration application, real authenticated clone/send RLS against live data, Google OAuth, Vercel preview, production/legacy live URLs, and PNG/JPEG export.
+- Risks:
+  - real result open/download depends on applying the Phase 5 migration plus existing private media signing policies;
+  - PDF download uses the existing print/PDF flow, not a new binary export.
+
 ## 2026-06-05 — Draft/clean release model verification
 
 - Branch: `codex/release-model-verification-20260605`, based on `origin/main` at `1c90788403540b5479d05cf82d8bb1669d55dfd2`.

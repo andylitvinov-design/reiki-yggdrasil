@@ -412,6 +412,35 @@ export function normalizePowerPlaceComposition(composition) {
   };
 }
 
+
+export function buildStorageRefFromMediaRow(row = {}) {
+  const path = cleanText(row.image_path);
+  const bucket = cleanText(row.image_bucket) || PROFILE_MEDIA_BUCKET;
+  if (path) return `storage://${bucket}/${path}`;
+  const imageUrl = cleanText(row.image_url || row.image_ref);
+  return isPersistableImageRef(imageUrl) ? imageUrl : "";
+}
+
+export function clonePowerPlaceCompositionForOrder({ template, masterProfileId, serviceTitle, clientLabel, clientPhoto } = {}) {
+  if (!template?.id) throw powerPlaceError("Не найден шаблон мандалы услуги.");
+  if (!masterProfileId) throw powerPlaceError("Не найден профиль мастера для результата заказа.");
+  const centerRef = buildStorageRefFromMediaRow(clientPhoto);
+  if (!centerRef) throw powerPlaceError("Фото клиента не выбрано для результата заказа.");
+
+  const objectRefs = { ...cleanJsonObject(template.object_refs) };
+  objectRefs.__center_image = centerRef;
+
+  return {
+    ...template,
+    id: undefined,
+    profile_id: cleanText(masterProfileId),
+    title: `Заказ: ${cleanText(serviceTitle) || "Услуга"} / ${cleanText(clientLabel) || "клиент"}`,
+    object_refs: objectRefs,
+    object_ref_urls: { ...cleanJsonObject(template.object_ref_urls), ...(clientPhoto?.display_url ? { [centerRef]: clientPhoto.display_url } : {}) },
+    central_photo_id: cleanText(clientPhoto?.id) || null
+  };
+}
+
 export async function listClientGoalPhotos(profileId, session = getStoredSession()) {
   if (!profileId || !session?.access_token) return [];
 
@@ -486,6 +515,16 @@ export async function listPowerPlaceCompositions(profileId, session = getStoredS
     session
   });
   return hydrateCompositionRows(rows, session);
+}
+
+
+export async function getPowerPlaceCompositionById(compositionId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanId = cleanText(compositionId);
+  if (!cleanId) throw powerPlaceError("Не удалось определить мандалу.");
+  const rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}?id=eq.${encodeURIComponent(cleanId)}&select=*&limit=1`, { session });
+  const hydrated = await hydrateCompositionRows(rows, session);
+  return hydrated?.[0] || null;
 }
 
 export async function createPowerPlaceComposition(composition, plan, session = getStoredSession(), options = {}) {

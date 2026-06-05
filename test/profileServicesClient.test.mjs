@@ -7,6 +7,7 @@ import {
   buildServicePublicUrl,
   buildServiceQueryParams,
   buildServiceOrderDraftPayload,
+  buildSendOrderResultPayload,
   buildServiceOrderSubmitPayload,
   createEmptyServiceForm,
   createServiceCartStore,
@@ -23,6 +24,7 @@ import {
   normalizeServiceForm,
   normalizeServiceOrder,
   normalizeServiceRow,
+  orderHasClientVisibleResult,
   orderStatusText,
   resolvePublicServiceState,
   serviceStatusText
@@ -125,6 +127,8 @@ assert.equal(order.id, "order-1");
 assert.equal(order.status, "sent");
 assert.equal(order.service.title, "Услуга");
 assert.equal(order.service.price_amount, 90);
+assert.equal(order.draft_result_composition_id, "", "missing draft result should normalize to empty string");
+assert.equal(order.final_result_composition_id, "", "missing final result should normalize to empty string");
 assert.equal(serviceStatusText("published"), "Размещено");
 assert.equal(orderStatusText("in_progress"), "В работе");
 assert.equal(formatServicePrice({ price_amount: null, price_currency: "EUR" }), "Бесплатно");
@@ -321,6 +325,51 @@ assert.deepEqual(
   "explicit submit should lock selected photo and move status to new"
 );
 
+const draftResultOrder = normalizeServiceOrder({
+  id: "order-draft-result",
+  service_id: "service-1",
+  status: "ready_for_review",
+  draft_result_composition_id: "draft-composition-1",
+  final_result_composition_id: "",
+  master_comment: "Черновик готов"
+});
+assert.equal(draftResultOrder.status, "ready_for_review");
+assert.equal(draftResultOrder.draft_result_composition_id, "draft-composition-1");
+assert.equal(orderHasClientVisibleResult(draftResultOrder), false, "client must not see a draft result before sent");
+
+const sentResultOrder = normalizeServiceOrder({
+  id: "order-sent",
+  service_id: "service-1",
+  status: "sent",
+  draft_result_composition_id: "draft-composition-1",
+  final_result_composition_id: "final-composition-1",
+  sent_at: "2026-06-05T17:30:00.000Z",
+  master_comment: "Готово"
+});
+assert.equal(sentResultOrder.final_result_composition_id, "final-composition-1");
+assert.equal(sentResultOrder.sent_at, "2026-06-05T17:30:00.000Z");
+assert.equal(orderHasClientVisibleResult(sentResultOrder), true, "sent order should expose the final result to client UI");
+
+assert.deepEqual(
+  buildSendOrderResultPayload({
+    orderId: "order-1",
+    resultCompositionId: "result-1",
+    comment: " Мандала готова "
+  }),
+  {
+    id: "order-1",
+    final_result_composition_id: "result-1",
+    master_comment: "Мандала готова",
+    status: "sent"
+  },
+  "send result should set final composition and sent status without exposing draft fields"
+);
+assert.throws(
+  () => buildSendOrderResultPayload({ orderId: "order-1", resultCompositionId: "", comment: "" }),
+  /Сначала создайте или выберите результат мандалы заказа/,
+  "send result must require an existing result composition"
+);
+
 const phase4Migration = readFileSync(new URL("../supabase/migrations/20260605153000_service_orders_client_phase4.sql", import.meta.url), "utf8");
 assert.match(
   phase4Migration,
@@ -330,5 +379,14 @@ assert.match(
 assert.match(phase4Migration, /old\.service_id is distinct from new\.service_id/);
 assert.match(phase4Migration, /old\.master_profile_id is distinct from new\.master_profile_id/);
 assert.match(phase4Migration, /old\.client_profile_id is distinct from new\.client_profile_id/);
+
+
+const phase5Migration = readFileSync(new URL("../supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql", import.meta.url), "utf8");
+assert.match(phase5Migration, /draft_result_composition_id/, "Phase 5 migration should add draft result composition id");
+assert.match(phase5Migration, /final_result_composition_id/, "Phase 5 migration should add final result composition id");
+assert.match(phase5Migration, /ready_for_review/, "Phase 5 migration should allow ready_for_review status");
+assert.match(phase5Migration, /sent_at/, "Phase 5 migration should add sent_at");
+assert.match(phase5Migration, /client reads own sent final result compositions/, "RLS assumptions should document client final-only visibility");
+assert.doesNotMatch(phase5Migration, /drop table|drop column|alter column .* type/i, "Phase 5 migration must stay additive");
 
 console.log("profileServicesClient: all assertions passed.");

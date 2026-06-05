@@ -353,7 +353,21 @@ assert.match(profileOrdersModuleSource, /Можно хранить до 4 фот
 assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
 assert.match(profileOrdersModuleSource, /Отправить заказ мастеру/, "orders module should require explicit submit button");
 assert.doesNotMatch(profileOrdersModuleSource, /onSubmit=\{\(event\) => \{ event\.preventDefault\(\); onOrderUpdate\(\); \}\}/, "orders module should not silently submit via generic form update");
-assert.doesNotMatch(profileOrdersModuleSource, /draft_result_composition|final_result_composition|result_image_url|Сохранить ответ/, "Phase 4 must not expose Phase 5 result generation or master result send UI");
+for (const phase5OrderText of [
+  "Создать мандалу заказа",
+  "Открыть мандалу заказа",
+  "Комментарий мастера",
+  "Отправить клиенту",
+  "Сначала создайте или выберите результат мандалы заказа.",
+  "Результат отправлен",
+  "Открыть результат",
+  "Скачать результат"
+]) {
+  assert.match(profileOrdersModuleSource, new RegExp(phase5OrderText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Phase 5 orders module should include ${phase5OrderText}`);
+}
+assert.match(profileLitePageSource, /generateDraftResultComposition/, "Profile Lite page should call Phase 5 draft generation helper");
+assert.match(profileLitePageSource, /sendOrderResultToClient/, "Profile Lite page should call Phase 5 send result helper");
+assert.doesNotMatch(profileOrdersModuleSource, /draft_result_composition_id[^]*Кабинет Личный/, "client UI must not expose draft_result_composition_id before sent");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
