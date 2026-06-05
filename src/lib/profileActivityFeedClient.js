@@ -6,7 +6,6 @@ const ACTIVITY_EVENTS_TABLE = "profile_cabinet_activity_events";
 const PUBLIC_ACTIVITY_FIELDS = [
   "id",
   "profile_id",
-  "actor_user_id",
   "activity_type",
   "target_table",
   "target_id",
@@ -132,7 +131,6 @@ export function normalizeActivityEvent(row = {}) {
   return {
     id: text(row.id),
     profileId: text(row.profile_id),
-    actorUserId: text(row.actor_user_id),
     activityType: cleanActivityType(row.activity_type),
     targetTable: text(row.target_table),
     targetId: text(row.target_id),
