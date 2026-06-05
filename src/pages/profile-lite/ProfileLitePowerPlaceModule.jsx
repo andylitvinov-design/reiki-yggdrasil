@@ -10,6 +10,8 @@ const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
 const CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale";
@@ -53,7 +55,7 @@ function centerShapeValue(value) {
   return value === "circle" ? "circle" : "square";
 }
 
-function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape) {
+function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, centerOffsetX, centerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape) {
   const centerRadius = centerShape === "circle" ? "50%" : "24px";
   // innerFieldWidthDesktop / innerFieldWidthMobile kept for tests; absolute centering uses % directly.
   return `
@@ -71,13 +73,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .daoCenterPhoto.hasImage {
   background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
-  background-position: center !important;
+  background-position: ${centerOffsetX}% ${centerOffsetY}% !important;
 }
 .profileLitePowerPlace .power-place-chess__center.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__center.hasImage {
   background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
-  background-position: center !important;
+  background-position: ${centerOffsetX}% ${centerOffsetY}% !important;
 }
 .profileLitePowerPlace .power-place-chess__slot.hasImage,
 .profileLitePowerPlace .powerSource.hasImage,
@@ -181,6 +183,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
   --power-center-image-scale: ${centerImageScale};
   --power-center-frame-scale: ${centerFrameScale};
+  --power-center-image-position: ${centerOffsetX}% ${centerOffsetY}%;
+  --power-inner-cover-position: ${innerOffsetX}% ${innerOffsetY}%;
+  --power-outer-cover-position: ${outerOffsetX}% ${outerOffsetY}%;
 }
 .profileLitePowerPlace .powerPlaceExternalTitle,
 .powerPlacePdfOnlyArea .powerPlaceExternalTitle {
@@ -584,6 +589,8 @@ export default function ProfileLitePowerPlaceModule(props) {
   const innerCoverOffsetY = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_Y_REF_KEY]);
   const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
   const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
+  const centerImageOffsetX = coverOffsetValue(objectRefs[CENTER_IMAGE_OFFSET_X_REF_KEY]);
+  const centerImageOffsetY = coverOffsetValue(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
   const innerFieldScale = innerFieldScaleValue(objectRefs[INNER_FIELD_SCALE_REF_KEY]);
   const centerImageScale = centerImageScaleValue(objectRefs[CENTER_IMAGE_SCALE_REF_KEY]);
   const centerFrameScale = centerFrameScaleValue(objectRefs[CENTER_FRAME_SCALE_REF_KEY]);
@@ -592,8 +599,8 @@ export default function ProfileLitePowerPlaceModule(props) {
   const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
-    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape),
-    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape]
+    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, centerImageOffsetX, centerImageOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape),
+    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, centerImageOffsetX, centerImageOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape]
   );
 
   useEffect(() => {
@@ -673,9 +680,14 @@ export default function ProfileLitePowerPlaceModule(props) {
       field_scale: innerFieldScale,
       __center_image_scale: centerImageScale,
       __center_frame_scale: centerFrameScale,
+      object_refs: {
+        ...(baseDraft?.object_refs || {}),
+        [CENTER_IMAGE_OFFSET_X_REF_KEY]: String(centerImageOffsetX),
+        [CENTER_IMAGE_OFFSET_Y_REF_KEY]: String(centerImageOffsetY)
+      },
       cover_ref: normalizeLayeredCoverRef(baseDraft?.cover_ref)
     };
-  }, [activeTemplate, centerFrameScale, centerImageScale, innerFieldScale, isClientMandala, props.compositionDraft]);
+  }, [activeTemplate, centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, innerFieldScale, isClientMandala, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">

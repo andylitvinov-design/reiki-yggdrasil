@@ -116,6 +116,20 @@ const EMPTY_COMPOSITION = {
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
+const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
+const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
+const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
+const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const IMAGE_OFFSET_REF_KEYS = [
+  CENTER_IMAGE_OFFSET_X_REF_KEY,
+  CENTER_IMAGE_OFFSET_Y_REF_KEY,
+  INNER_COVER_OFFSET_X_REF_KEY,
+  INNER_COVER_OFFSET_Y_REF_KEY,
+  OUTER_COVER_OFFSET_X_REF_KEY,
+  OUTER_COVER_OFFSET_Y_REF_KEY
+];
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
@@ -1029,6 +1043,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           object_refs: {
             ...(current.object_refs || {}),
             __center_image_scale: String(value)
+          }
+        };
+      }
+      if (IMAGE_OFFSET_REF_KEYS.includes(field)) {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [field]: String(value)
           }
         };
       }

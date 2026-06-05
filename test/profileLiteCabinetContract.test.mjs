@@ -240,8 +240,22 @@ assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid
 assert.match(powerPlaceSource, /onDragStart=\{\(event\) => handleSavedImageDragStart\(event, item\)\}/, "Saved source cards should write the compact payload on drag start");
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("__center_image"\)/, "Center slot should accept dropped saved images through the shared assignment path");
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\(slot\.id\)/, "Layout image slots should accept dropped saved images through the shared assignment path");
+assert.match(powerPlaceBaseSource, /function clampImageOffset\(/, "Image repositioning should clamp pointer-derived offsets");
+assert.match(powerPlaceBaseSource, /function imageOffsetStyle\(/, "Image repositioning should expose shared offset background-position styles");
+assert.match(powerPlaceBaseSource, /const startImageReposition = \(event, targetKey\) => \{/, "Image repositioning should start from a shared helper");
+assert.match(powerPlaceBaseSource, /const getImageRepositionPointerHandlers = \(targetKey\) => \(\{[\s\S]*onPointerDown:[\s\S]*onPointerMove:[\s\S]*onPointerUp:[\s\S]*onPointerCancel:/, "Image repositioning should use pointer events, not HTML draggable");
+assert.match(powerPlaceBaseSource, /getImageRepositionPointerHandlers\("__center_image"\)/, "Central image should have a pointer reposition handler");
+assert.match(powerPlaceBaseSource, /getImageRepositionPointerHandlers\(slotKey\)/, "Inner and outer cover drop zones should have pointer reposition handlers");
+assert.match(powerPlaceBaseSource, /targetKey === "__center_image"[\s\S]*__center_image_offset_x[\s\S]*__center_image_offset_y/, "Center repositioning should write center image offset keys");
+assert.match(powerPlaceBaseSource, /targetKey === "cover_ref\.inner"[\s\S]*__inner_cover_offset_x[\s\S]*__inner_cover_offset_y/, "Inner cover repositioning should write inner cover offset keys");
+assert.match(powerPlaceBaseSource, /targetKey === "cover_ref\.outer"[\s\S]*__outer_cover_offset_x[\s\S]*__outer_cover_offset_y/, "Outer cover repositioning should write outer cover offset keys");
+assert.match(powerPlaceSource, /onPointerDown:/, "Image repositioning should be pointer-event based");
+assert.match(powerPlaceSource, /CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x"/, "Power Place wrapper should preserve center image x-offset in the fit layer");
+assert.match(powerPlaceSource, /CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y"/, "Power Place wrapper should preserve center image y-offset in the fit layer");
+assert.match(powerPlaceSource, /background-position: \$\{centerOffsetX\}% \$\{centerOffsetY\}% !important;/, "Power Place wrapper should not force repositioned center photos back to center");
+assert.doesNotMatch(powerPlaceSource, /draggable=\{[^}]*reposition|startImageReposition[\s\S]{0,200}draggable=/, "Image repositioning must not introduce HTML draggable");
 assert.match(powerPlaceBaseSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\);[\s\S]*openPicker\("cover"\);[\s\S]*\};/, "Cover drop-zone clicks should select the layer and open the cover picker");
-assert.match(powerPlaceBaseSource, /const renderCoverDropZone = \(layer, cover\) => \{[\s\S]*const slotKey = layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner";[\s\S]*onClick=\{\(\) => openCoverPickerForLayer\(layer\)\}[\s\S]*getPowerPlaceSlotDropHandlers\(slotKey\)/, "Explicit cover drop zones should reuse shared slot drop handlers");
+assert.match(powerPlaceBaseSource, /const renderCoverDropZone = \(layer, cover\) => \{[\s\S]*const slotKey = layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner";[\s\S]*onClick=\{\(\) => \{[\s\S]*openCoverPickerForLayer\(layer\);[\s\S]*\}\}[\s\S]*getPowerPlaceSlotDropHandlers\(slotKey\)/, "Explicit cover drop zones should reuse shared slot drop handlers");
 assert.match(powerPlaceBaseSource, /dragOverSlotId === slotKey \? " power-place-slot--drag-over" : ""/, "Explicit cover drop zones should reuse the shared drag-over class");
 assert.match(powerPlaceBaseSource, /renderCoverDropZone\("inner", innerCover\)[\s\S]*renderCoverDropZone\("outer", outerCover\)/, "Cover selector should render inner and outer cover drop zones at the same time");
 assert.match(powerPlaceBaseSource, /const label = layer === "outer" \? "Фон снаружи" : "Фон внутри"/, "Explicit cover drop-zone helper should include both RU layer labels");
@@ -254,6 +268,8 @@ assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZone\b/, "Pr
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZone\.hasImage/, "Profile Lite CSS should style image-backed cover drop zones");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZoneLabel/, "Profile Lite CSS should style cover drop-zone labels");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZoneHint/, "Profile Lite CSS should style cover drop-zone hints");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.imageRepositionTarget/, "Profile Lite CSS should mark image reposition targets");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.imageRepositionTarget\.is-repositioning/, "Profile Lite CSS should expose a grabbing state while repositioning");
 assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
 assert.match(profileLitePageSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite drafts should default to Без отчёта in the page state");
 assert.match(powerPlaceBaseSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite report UI drafts should default to Без отчёта");
@@ -261,6 +277,14 @@ assert.match(profileLitePageSource, /slot_scale:\s*1/, "Profile Lite empty compo
 assert.match(profileLitePageSource, /field_scale:\s*78/, "Profile Lite empty composition should include the persisted field_scale control");
 assert.match(profileLitePageSource, /slotScaleFromComposition\(composition\)/, "handleCompositionLoad should restore slot_scale from either slot_scale or object_refs.__slot_scale");
 assert.match(profileLitePageSource, /slotScaleFromComposition\(freshSaved\)/, "refreshSavedCompositions should restore slot_scale from either slot_scale or object_refs.__slot_scale");
+assert.match(profileLitePageSource, /__center_image_offset_x|CENTER_IMAGE_OFFSET_X_REF_KEY/, "Profile Lite page should preserve center image x-offset through object_refs");
+assert.match(profileLitePageSource, /__center_image_offset_y|CENTER_IMAGE_OFFSET_Y_REF_KEY/, "Profile Lite page should preserve center image y-offset through object_refs");
+assert.match(powerPlaceSource, /__center_image_offset_x/, "Power Place source should include the center image x-offset key");
+assert.match(powerPlaceSource, /__center_image_offset_y/, "Power Place source should include the center image y-offset key");
+assert.match(powerPlaceSource, /__inner_cover_offset_x/, "Power Place source should include the inner cover x-offset key");
+assert.match(powerPlaceSource, /__inner_cover_offset_y/, "Power Place source should include the inner cover y-offset key");
+assert.match(powerPlaceSource, /__outer_cover_offset_x/, "Power Place source should include the outer cover x-offset key");
+assert.match(powerPlaceSource, /__outer_cover_offset_y/, "Power Place source should include the outer cover y-offset key");
 assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace CSS should include shared source slot scaling");
 assert.match(profileMandalaCss, /--power-field-scale/, "Mandala workspace CSS should include independent inner field scaling");
 assert.match(powerPlaceSource, /CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale"/, "center photo scale should persist through object_refs");
@@ -323,7 +347,7 @@ assert.match(powerPlaceSource, /\.slice\(0,\s*6\)/, "cover picker should show 6 
 assert.match(powerPlaceSource, /coverShortcutHideButton/, "saved cover shortcuts should expose a local hide badge");
 assert.doesNotMatch(powerPlaceSource, /className="coverUploadButton"[\s\S]*Своё изображение/, "cover module should not show the old direct custom image upload button");
 assert.match(powerPlaceSource, /if \(visibleCount === 8\) return signSlots/, "Zodiac 8+ should render only the 8 round zodiac slots");
-assert.match(powerPlaceSource, /className={`coverDropZone[\s\S]*onClick=\{\(\) => openCoverPickerForLayer\(layer\)\}/, "explicit cover drop zones should open the React image picker for their own layer");
+assert.match(powerPlaceSource, /className={`coverDropZone[\s\S]*onClick=\{\(\) => \{[\s\S]*openCoverPickerForLayer\(layer\);[\s\S]*\}\}/, "explicit cover drop zones should open the React image picker for their own layer");
 assert.doesNotMatch(powerPlaceSource, /zodiac-plus-\$\{compositionDraft\.zodiac_visible_count \|\| 12\}[\s\S]*visibleCount === 8[\s\S]*ZODIAC_PLUS_SLOT_LAYOUT\[8\]/, "Zodiac 8+ must not append the old four plus slots");
 
 assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwnMaterial/, "image picker material uploads should use the existing material publication save flow");

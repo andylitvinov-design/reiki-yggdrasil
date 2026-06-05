@@ -29,6 +29,8 @@ const SLOT_SCALE_REF_KEY = "__slot_scale";
 const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
 const CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_SHAPE_REF_KEY = "__center_shape";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
 const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
@@ -383,7 +385,7 @@ export function normalizePowerPlaceComposition(composition) {
   if (Object.hasOwn(sourceObjectRefs, CENTER_SHAPE_REF_KEY)) {
     objectRefs[CENTER_SHAPE_REF_KEY] = normalizeCenterShape(sourceObjectRefs[CENTER_SHAPE_REF_KEY]);
   }
-  for (const key of [INNER_COVER_OFFSET_X_REF_KEY, INNER_COVER_OFFSET_Y_REF_KEY, OUTER_COVER_OFFSET_X_REF_KEY, OUTER_COVER_OFFSET_Y_REF_KEY]) {
+  for (const key of [CENTER_IMAGE_OFFSET_X_REF_KEY, CENTER_IMAGE_OFFSET_Y_REF_KEY, INNER_COVER_OFFSET_X_REF_KEY, INNER_COVER_OFFSET_Y_REF_KEY, OUTER_COVER_OFFSET_X_REF_KEY, OUTER_COVER_OFFSET_Y_REF_KEY]) {
     if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
   }
   objectRefs[FIELD_LAYOUT_REF_KEY] = fieldLayout;

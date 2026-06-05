@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
@@ -48,6 +48,12 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
   classPrefix: "chess-top"
 }));
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
+const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
+const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
+const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
+const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -221,6 +227,22 @@ function isImagePreview(value) {
 
 function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
+}
+
+function clampImageOffset(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 50;
+  return Math.min(80, Math.max(20, parsed));
+}
+
+function imageOffsetStyle(x, y, variablePrefix = "--power-image") {
+  const position = `${clampImageOffset(x)}% ${clampImageOffset(y)}%`;
+  return {
+    backgroundPosition: position,
+    [`${variablePrefix}-position`]: position,
+    [`${variablePrefix}-offset-x`]: `${clampImageOffset(x)}%`,
+    [`${variablePrefix}-offset-y`]: `${clampImageOffset(y)}%`
+  };
 }
 
 function buildPowerPlaceDragPayload(item) {
@@ -441,6 +463,9 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const [dragOverSlotId, setDragOverSlotId] = useState("");
+  const [imageRepositionTargetKey, setImageRepositionTargetKey] = useState("");
+  const imageRepositionRef = useRef(null);
+  const suppressImagePickerClickRef = useRef(false);
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -466,6 +491,12 @@ export default function ProfileLitePowerPlaceModule({
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
   const centerFrameScale = centerFrameScaleValue(compositionDraft.__center_frame_scale ?? objectRefs.__center_frame_scale);
+  const centerImageOffsetX = clampImageOffset(objectRefs[CENTER_IMAGE_OFFSET_X_REF_KEY]);
+  const centerImageOffsetY = clampImageOffset(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
+  const innerCoverOffsetX = clampImageOffset(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
+  const innerCoverOffsetY = clampImageOffset(objectRefs[INNER_COVER_OFFSET_Y_REF_KEY]);
+  const outerCoverOffsetX = clampImageOffset(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
+  const outerCoverOffsetY = clampImageOffset(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
@@ -488,10 +519,19 @@ export default function ProfileLitePowerPlaceModule({
   };
   const centerImageStyle = {
     ...(imageStyle(centralImage) || {}),
-    "--power-center-image-scale": centerImageScale
+    "--power-center-image-scale": centerImageScale,
+    ...imageOffsetStyle(centerImageOffsetX, centerImageOffsetY, "--power-center-image")
+  };
+  const innerCoverStyle = {
+    ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
+    ...imageOffsetStyle(innerCoverOffsetX, innerCoverOffsetY, "--power-inner-cover")
+  };
+  const outerCoverStyle = {
+    ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}),
+    ...imageOffsetStyle(outerCoverOffsetX, outerCoverOffsetY, "--power-outer-cover")
   };
   const chessCoverStyle = {
-    ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
+    ...innerCoverStyle,
     ...sourceSlotScaleStyle
   };
 
@@ -678,6 +718,102 @@ export default function ProfileLitePowerPlaceModule({
     openPicker("object");
   };
 
+  const imageOffsetKeysForTarget = (targetKey) => {
+    if (targetKey === "__center_image") {
+      return { xKey: "__center_image_offset_x", yKey: "__center_image_offset_y" };
+    }
+    if (targetKey === "cover_ref.inner") {
+      return { xKey: "__inner_cover_offset_x", yKey: "__inner_cover_offset_y" };
+    }
+    if (targetKey === "cover_ref.outer") {
+      return { xKey: "__outer_cover_offset_x", yKey: "__outer_cover_offset_y" };
+    }
+    return null;
+  };
+
+  const hasRepositionableImage = (targetKey) => {
+    if (targetKey === "__center_image") return Boolean(centralImage);
+    if (targetKey === "cover_ref.inner") return innerCover?.type === "image" && isImagePreview(coverDisplaySrc(innerCover));
+    if (targetKey === "cover_ref.outer") return outerCover?.type === "image" && isImagePreview(coverDisplaySrc(outerCover));
+    return false;
+  };
+
+  const startImageReposition = (event, targetKey) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    if (event.isPrimary === false) return;
+    if (!hasRepositionableImage(targetKey)) return;
+
+    const keys = imageOffsetKeysForTarget(targetKey);
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (!keys || rect.width <= 0 || rect.height <= 0) return;
+
+    try {
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Synthetic or interrupted pointers may not be capturable.
+    }
+    imageRepositionRef.current = {
+      pointerId: event.pointerId,
+      targetKey,
+      xKey: keys.xKey,
+      yKey: keys.yKey,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startOffsetX: clampImageOffset(objectRefs[keys.xKey]),
+      startOffsetY: clampImageOffset(objectRefs[keys.yKey]),
+      width: rect.width,
+      height: rect.height,
+      moved: false,
+      previousUserSelect: typeof document === "undefined" ? "" : document.body.style.userSelect
+    };
+    if (typeof document !== "undefined") document.body.style.userSelect = "none";
+    setImageRepositionTargetKey(targetKey);
+  };
+
+  const moveImageReposition = (event) => {
+    const state = imageRepositionRef.current;
+    if (!state || state.pointerId !== event.pointerId) return;
+
+    const nextOffsetX = clampImageOffset(state.startOffsetX + (event.clientX - state.startClientX) / state.width * 100);
+    const nextOffsetY = clampImageOffset(state.startOffsetY + (event.clientY - state.startClientY) / state.height * 100);
+    const moved = Math.abs(event.clientX - state.startClientX) > 3 || Math.abs(event.clientY - state.startClientY) > 3;
+    if (moved) {
+      state.moved = true;
+      suppressImagePickerClickRef.current = true;
+    }
+
+    event.preventDefault();
+    onCompositionDraftChange(state.xKey, Number(nextOffsetX.toFixed(2)));
+    onCompositionDraftChange(state.yKey, Number(nextOffsetY.toFixed(2)));
+  };
+
+  const stopImageReposition = (event) => {
+    const state = imageRepositionRef.current;
+    if (!state || state.pointerId !== event.pointerId) return;
+    try {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    } catch {
+      // Pointer capture may already be gone after cancellation or synthetic QA events.
+    }
+    if (typeof document !== "undefined") document.body.style.userSelect = state.previousUserSelect || "";
+    imageRepositionRef.current = null;
+    setImageRepositionTargetKey("");
+    if (state.moved) suppressImagePickerClickRef.current = true;
+  };
+
+  const getImageRepositionPointerHandlers = (targetKey) => ({
+    onPointerDown: (event) => startImageReposition(event, targetKey),
+    onPointerMove: moveImageReposition,
+    onPointerUp: stopImageReposition,
+    onPointerCancel: stopImageReposition
+  });
+
+  const shouldSuppressImagePickerClick = () => {
+    if (!suppressImagePickerClickRef.current) return false;
+    suppressImagePickerClickRef.current = false;
+    return true;
+  };
+
   const assignPowerPlaceSlotImage = (slotKey, selectedRef, displayUrl = "", item = null) => {
     const ref = String(selectedRef || "");
     const displaySrc = String(displayUrl || ref);
@@ -772,14 +908,21 @@ export default function ProfileLitePowerPlaceModule({
     const label = layer === "outer" ? "Фон снаружи" : "Фон внутри";
     const displaySrc = coverDisplaySrc(cover);
     const hasImage = cover?.type === "image" && isImagePreview(displaySrc);
+    const offsetStyle = layer === "outer"
+      ? imageOffsetStyle(outerCoverOffsetX, outerCoverOffsetY, "--power-outer-cover")
+      : imageOffsetStyle(innerCoverOffsetX, innerCoverOffsetY, "--power-inner-cover");
 
     return (
       <button
         type="button"
-        className={`coverDropZone coverDropZone-${layer}${hasImage ? " hasImage" : ""}${coverLayerMode === layer ? " active" : ""}${dragOverSlotId === slotKey ? " power-place-slot--drag-over" : ""}`}
-        onClick={() => openCoverPickerForLayer(layer)}
-        style={hasImage ? imageStyle(displaySrc) : undefined}
+        className={`coverDropZone coverDropZone-${layer}${hasImage ? " hasImage imageRepositionTarget" : ""}${imageRepositionTargetKey === slotKey ? " is-repositioning" : ""}${coverLayerMode === layer ? " active" : ""}${dragOverSlotId === slotKey ? " power-place-slot--drag-over" : ""}`}
+        onClick={() => {
+          if (shouldSuppressImagePickerClick()) return;
+          openCoverPickerForLayer(layer);
+        }}
+        style={hasImage ? { ...(imageStyle(displaySrc) || {}), ...offsetStyle } : undefined}
         aria-label={`${label}: выбрать или перетащить фото`}
+        {...getImageRepositionPointerHandlers(slotKey)}
         {...getPowerPlaceSlotDropHandlers(slotKey)}
       >
         <span className="coverDropZoneLabel">{label}</span>
@@ -856,12 +999,16 @@ export default function ProfileLitePowerPlaceModule({
 
   const renderCenterPhotoWithMode = (className) => (
     <button
-      className={`${className}${centralImage ? " hasImage" : ""}${dragOverSlotId === "__center_image" ? " power-place-slot--drag-over" : ""}`}
+      className={`${className}${centralImage ? " hasImage imageRepositionTarget" : ""}${imageRepositionTargetKey === "__center_image" ? " is-repositioning" : ""}${dragOverSlotId === "__center_image" ? " power-place-slot--drag-over" : ""}`}
       style={centerImageStyle}
-      onClick={() => openPicker("center")}
+      onClick={() => {
+        if (shouldSuppressImagePickerClick()) return;
+        openPicker("center");
+      }}
       title="Фото клиента / цели"
       type="button"
       aria-label="Фото клиента / цели"
+      {...getImageRepositionPointerHandlers("__center_image")}
       {...getPowerPlaceSlotDropHandlers("__center_image")}
     >
       {!centralImage && <span>Фото клиента / цели</span>}
@@ -1222,18 +1369,18 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
+                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...outerCoverStyle, ...sourceSlotScaleStyle }}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client ${innerCoverClass}`.trim()} style={innerCoverStyle}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverStyle}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
                           slot,
@@ -1250,7 +1397,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
-                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverStyle}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
@@ -1267,7 +1414,7 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
-                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverStyle}>
                         {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                         <div className="zodiacClockFace" aria-hidden="true">
                           <span>ЗОДИАК</span>
@@ -1315,7 +1462,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverStyle}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -1391,7 +1538,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverStyle}>
                       {renderCenterPhotoWithMode("daoCenterPhoto")}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>
@@ -1466,7 +1613,7 @@ export default function ProfileLitePowerPlaceModule({
                 {renderCoverDropZone("inner", innerCover)}
                 {renderCoverDropZone("outer", outerCover)}
               </div>
-              <p className="coverLayerHint">Варианты ниже применяются к выбранному слою</p>
+              <p className="coverLayerHint">Варианты ниже применяются к выбранному слою. Зажмите и двигайте фото внутри окна.</p>
               <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона" data-cover-layer-target={coverLayerSaveTarget}>
                 {coverOptions.map((cover) => cover.shortcutId ? (
                   <span className="coverVariantShortcut" key={cover.id}>

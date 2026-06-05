@@ -1,5 +1,51 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Add Profile Lite pointer image repositioning
+
+- Branch: `feature/profile-lite-explicit-cover-drop-zones`.
+- PR: #271.
+- Scope: small extension over the existing Profile Lite Power Place drag/drop architecture; no second drag/drop system.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/lib/powerPlaceClient.js`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `clampImageOffset(...)`, `imageOffsetStyle(...)`, `startImageReposition(...)`, and `getImageRepositionPointerHandlers(...)`;
+  - added pointer drag repositioning for central photo, `cover_ref.inner`, and `cover_ref.outer`;
+  - persisted offsets through `object_refs.__center_image_offset_x/y`, `object_refs.__inner_cover_offset_x/y`, and `object_refs.__outer_cover_offset_x/y`;
+  - kept assignment drops on the existing `POWER_PLACE_DRAG_PAYLOAD_TYPE` / `getPowerPlaceSlotDropHandlers(...)` path;
+  - updated the Profile Lite wrapper style layer so center offsets survive the existing fit fixes;
+  - added scoped `.imageRepositionTarget` / `.is-repositioning` CSS.
+- Checks run:
+  - `git diff --check`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-bootstrap`
+  - `npm run build`
+  - `npm run check`
+- Check notes:
+  - all commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning.
+- Local browser QA:
+  - URL: `http://localhost:4342/profile/mandalas`;
+  - fake public Supabase env/session and a local mock REST server at `http://127.0.0.1:4343`;
+  - desktop 1280px: compact DnD assigned center, inner cover, outer cover, and object slot; object dropdown fallback changed the selected slot; pointer drag shifted center only, inner only, and outer only;
+  - mocked save/reload/open saved mandala hydrated center, object slot, inner cover, outer cover, and the three offset pairs;
+  - mobile 390px: cover zones stacked, document width stayed 390px, horizontal overflow `0`, and picker fallback opened from a cover-zone click.
+- Not verified:
+  - real authenticated Supabase save/update/reload;
+  - real human mobile touch-drag;
+  - Vercel preview, production/legacy live QA, and Google OAuth.
+- Risks:
+  - mocked QA confirms UI and persistence shape, but production Storage signing/RLS still needs live authenticated confirmation.
+
 ## 2026-06-05 — Add explicit Profile Lite inner/outer cover drop zones
 
 - Branch: `feature/profile-lite-explicit-cover-drop-zones`.

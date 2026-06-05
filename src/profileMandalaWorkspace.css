@@ -1316,7 +1316,7 @@
 .power-place-chess__center.hasImage {
   background-size: calc(100% * var(--power-center-image-scale, 1)) auto;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: var(--power-center-image-position, center);
 }
 
 .powerCenterPhoto span,
@@ -3601,7 +3601,7 @@
 .powerMandalaPanel.outer-cover-image {
   background:
     linear-gradient(rgba(33, 16, 4, 0.58), rgba(33, 16, 4, 0.66)),
-    var(--power-outer-cover-image) center / cover no-repeat,
+    var(--power-outer-cover-image) var(--power-outer-cover-position, center) / cover no-repeat,
     linear-gradient(180deg, #211004, #351a05);
 }
 
@@ -3720,7 +3720,7 @@
 .powerMandalaPanel.outer-cover-image {
   background:
     linear-gradient(rgba(255, 250, 238, 0.24), rgba(255, 250, 238, 0.28)),
-    var(--power-outer-cover-image) center / cover no-repeat,
+    var(--power-outer-cover-image) var(--power-outer-cover-position, center) / cover no-repeat,
     linear-gradient(180deg, #fffaf0, #f2dfbd) !important;
 }
 
@@ -6391,8 +6391,17 @@
 
 .profileLitePowerPlace .has-custom-inner-cover {
   background-size: cover;
-  background-position: center;
+  background-position: var(--power-inner-cover-position, center);
   background-repeat: no-repeat;
+}
+
+.profileLitePowerPlace .imageRepositionTarget {
+  cursor: grab;
+  touch-action: none;
+}
+
+.profileLitePowerPlace .imageRepositionTarget.is-repositioning {
+  cursor: grabbing;
 }
 
 .profileLitePowerPlace .coverPickerPanel {
