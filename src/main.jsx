@@ -18,6 +18,7 @@ import ProfileLitePage from "./pages/ProfileLitePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import FeedPage from "./pages/FeedPage.jsx";
+import PublicServicesPage from "./pages/PublicServicesPage.jsx";
 import "./index.css";
 import "./degreeSettings.css";
 import "./stepSettings.css";
@@ -174,6 +175,15 @@ function RootRouter() {
 
   if (path === "/profile/admin") {
     return <AdminPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/shop") {
+    return <PublicServicesPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+  }
+
+  if (path.startsWith("/services/")) {
+    const serviceId = decodeURIComponent(path.replace(/^\/services\//, "").split("/")[0] || "");
+    return <PublicServicesPage serviceId={serviceId} onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
   }
 
   if (path === "/profile-lite") {

@@ -18,7 +18,8 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260527143000_power_place_star_format.sql",
   "supabase/migrations/20260531090000_power_place_chess_format.sql",
   "supabase/migrations/20260602120000_power_place_chess_compact_variant.sql",
-  "supabase/migrations/20260529090000_master_services_orders_mvp.sql"
+  "supabase/migrations/20260529090000_master_services_orders_mvp.sql",
+  "supabase/migrations/20260605153000_service_orders_client_phase4.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,

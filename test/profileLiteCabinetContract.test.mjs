@@ -176,6 +176,7 @@ const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
 const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
+const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
 const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
@@ -331,12 +332,28 @@ for (const servicesManagerText of [
   "Без подписи мастера",
   "Две версии",
   "Ссылка появится после публикации",
-  "Публичная ссылка будет доступна после подключения маршрута /services/:serviceId",
+  "Публичная ссылка для клиентов",
+  "Скопировать ссылку",
   "Услуга в архиве. Публичная ссылка отключена."
 ]) {
   assert.match(profileServicesManagerSource, new RegExp(servicesManagerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `/profile/services should include ${servicesManagerText}`);
 }
 assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
+assert.match(profileLitePageSource, /restoreFreshPendingServiceCart/, "Profile Lite should restore a fresh pending cart after auth");
+assert.match(profileLitePageSource, /createServiceOrderDraft/, "checkout should create an order draft after auth, not a public new order");
+assert.match(profileLitePageSource, /submitServiceOrderToMaster/, "order flow should require explicit submit to master");
+assert.match(profileLitePageSource, /listClientServiceOrders\(profile\.id/, "client cabinet should load own client orders");
+assert.match(profileLitePageSource, /listOwnServiceOrders\(profile\.id/, "master cabinet should load incoming orders for own services");
+assert.match(profileOrdersModuleSource, /Кабинет Личный/, "orders module should expose personal cabinet mode");
+assert.match(profileOrdersModuleSource, /Мои Заказы/, "orders module should expose client orders");
+assert.match(profileOrdersModuleSource, /Мои Фото/, "orders module should expose client photos");
+assert.match(profileOrdersModuleSource, /Кабинет Мастера/, "orders module should expose master cabinet mode");
+assert.match(profileOrdersModuleSource, /Заявки/, "orders module should expose master requests");
+assert.match(profileOrdersModuleSource, /Можно хранить до 4 фото\. Удалите старое фото или выберите одно из существующих\./, "orders module should show exact 4-photo limit message");
+assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
+assert.match(profileOrdersModuleSource, /Отправить заказ мастеру/, "orders module should require explicit submit button");
+assert.doesNotMatch(profileOrdersModuleSource, /onSubmit=\{\(event\) => \{ event\.preventDefault\(\); onOrderUpdate\(\); \}\}/, "orders module should not silently submit via generic form update");
+assert.doesNotMatch(profileOrdersModuleSource, /draft_result_composition|final_result_composition|result_image_url|Сохранить ответ/, "Phase 4 must not expose Phase 5 result generation or master result send UI");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
@@ -496,8 +513,9 @@ assert.match(servicesModuleSource, /Черновики/, "Services module should
 assert.match(servicesModuleSource, /Опубликованные/, "Services module should group published services under Опубликованные");
 assert.match(servicesModuleSource, /Архив/, "Services module should group archived services under Архив");
 assert.match(profileServicesManagerSource, /Ссылка появится после публикации/, "Draft services should not show an active public link");
-assert.match(profileServicesManagerSource, /Публичная ссылка будет доступна после подключения маршрута \/services\/:serviceId/, "Published services should not show a fake public link before /services/:serviceId exists");
-assert.doesNotMatch(servicesModuleSource, /Скопировать ссылку/, "Phase 1 should not expose copy link before the public service route exists");
+assert.match(profileServicesManagerSource, /Публичная ссылка для клиентов/, "Published services should show a real public link after /services/:serviceId exists");
+assert.match(profileServicesManagerSource, /Скопировать ссылку/, "Published services should expose a copy link button");
+assert.match(servicesModuleSource, /Скопировать ссылку/, "Phase 3 should expose copy link after the public service route exists");
 assert.match(servicesModuleSource, /formatServicePrice/, "Services module should use the shared free-price formatter");
 
 // --- D: Field layout persistence ---

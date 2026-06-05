@@ -22,10 +22,14 @@ import {
 import { validateGrimoireFile } from "../lib/profileMediaClient.js";
 import {
   createEmptyServiceForm,
+  createServiceCartStore,
+  createServiceOrderDraft,
   createOwnService,
+  listClientServiceOrders,
   listOwnServiceOrders,
   listOwnServices,
   publishOwnService,
+  submitServiceOrderToMaster,
   updateOwnService,
   updateServiceOrder,
   upsertOwnServiceForComposition
@@ -145,6 +149,13 @@ const EMPTY_ORDER_PATCH = {
   result_image_bucket: null,
   result_image_path: null,
   status: "sent"
+};
+const EMPTY_ORDER_CONFIRMATION = {
+  orderId: "",
+  photoId: "",
+  requestText: "",
+  status: "idle",
+  message: ""
 };
 const POWER_PLACE_START_LIMIT_MESSAGE = "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
 const ROUTE_CHANGE_EVENT = "reiki-route-change";
@@ -443,6 +454,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [ordersStatus, setOrdersStatus] = useState("idle");
   const [ordersError, setOrdersError] = useState("");
   const [orders, setOrders] = useState([]);
+  const [clientOrders, setClientOrders] = useState([]);
+  const [pendingCartMessage, setPendingCartMessage] = useState("");
+  const [orderConfirmation, setOrderConfirmation] = useState(EMPTY_ORDER_CONFIRMATION);
   const [orderPatch, setOrderPatch] = useState(EMPTY_ORDER_PATCH);
 
   const [chatsStatus, setChatsStatus] = useState("idle");
@@ -475,12 +489,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     media: { status: mediaStatus, count: clientGoalPhotos.length + traditionAssets.length, error: mediaError },
     mandalas: { status: mandalasStatus, count: powerPlaceCompositions.length, error: mandalasError },
     services: { status: servicesStatus, count: services.length, error: servicesError },
-    orders: { status: ordersStatus, count: orders.length, error: ordersError },
+    orders: { status: ordersStatus, count: orders.length + clientOrders.length, error: ordersError },
     chats: { status: chatsStatus, count: chatThreads.length, error: chatsError }
   }), [
     chatThreads.length,
     chatsError,
     chatsStatus,
+    clientOrders.length,
     clientGoalPhotos.length,
     materials.length,
     materialsError,
@@ -531,8 +546,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setServiceActionStatus("idle");
     setServiceMessage("");
     setOrders([]);
+    setClientOrders([]);
     setOrdersStatus("idle");
     setOrdersError("");
+    setPendingCartMessage("");
+    setOrderConfirmation(EMPTY_ORDER_CONFIRMATION);
     setChatThreads([]);
     setChatsStatus("idle");
     setChatsError("");
@@ -696,6 +714,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
         setServices([]);
         setOrders([]);
+        setClientOrders([]);
         setChatThreads([]);
         setServicesStatus("idle");
         setOrdersStatus("idle");
@@ -705,8 +724,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setServicesStatus("loading");
       setOrdersStatus("loading");
       setChatsStatus("loading");
-      const [servicesResult, ordersResult, chatsResult] = await Promise.allSettled([
+      const [servicesResult, clientOrdersResult, masterOrdersResult, chatsResult] = await Promise.allSettled([
         listOwnServices(profile.id, session),
+        listClientServiceOrders(profile.id, session),
         listOwnServiceOrders(profile.id, session),
         listOwnChatThreads(profile.id, session)
       ]);
@@ -720,14 +740,19 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         setServicesStatus("needs-verification");
         setServicesError(moduleError(servicesResult.reason, "profile_cabinet_services request failed or migration/RLS not applied"));
       }
-      if (ordersResult.status === "fulfilled") {
-        setOrders(ordersResult.value || []);
+      if (clientOrdersResult.status === "fulfilled" || masterOrdersResult.status === "fulfilled") {
+        setClientOrders(clientOrdersResult.status === "fulfilled" ? clientOrdersResult.value || [] : []);
+        setOrders(masterOrdersResult.status === "fulfilled" ? masterOrdersResult.value || [] : []);
         setOrdersStatus("success");
-        setOrdersError("");
+        setOrdersError([
+          clientOrdersResult.status === "rejected" ? moduleError(clientOrdersResult.reason, "client orders request failed or migration/RLS not applied") : "",
+          masterOrdersResult.status === "rejected" ? moduleError(masterOrdersResult.reason, "master orders request failed or migration/RLS not applied") : ""
+        ].filter(Boolean).join(" · "));
       } else {
+        setClientOrders([]);
         setOrders([]);
         setOrdersStatus("needs-verification");
-        setOrdersError(moduleError(ordersResult.reason, "profile_cabinet_service_orders request failed or migration/RLS not applied"));
+        setOrdersError(moduleError(clientOrdersResult.reason || masterOrdersResult.reason, "profile_cabinet_service_orders request failed or migration/RLS not applied"));
       }
       if (chatsResult.status === "fulfilled") {
         const threads = (chatsResult.value || []).map((thread) => ({ ...thread, ownerProfileId: profile.id }));
@@ -747,10 +772,43 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     };
   }, [profile?.id, session]);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function restoreFreshPendingServiceCart() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) return;
+      const cartStore = createServiceCartStore();
+      const pendingCart = cartStore.restoreFreshPending();
+      if (!pendingCart) return;
+      setPendingCartMessage("Восстановили заказ из корзины. Проверьте фото и отправьте заказ мастеру.");
+      setOrdersStatus("loading");
+      try {
+        const draft = await createServiceOrderDraft({ cartItem: pendingCart, clientProfileId: profile.id }, session);
+        if (cancelled) return;
+        cartStore.clearPending();
+        cartStore.clear();
+        setClientOrders((current) => [draft, ...current.filter((item) => item.id !== draft?.id)].filter(Boolean));
+        setOrderConfirmation((current) => ({ ...current, orderId: draft?.id || current.orderId }));
+        setOrdersStatus("success");
+        setOrdersError("");
+      } catch (error) {
+        if (cancelled) return;
+        setOrdersStatus("needs-verification");
+        setOrdersError(moduleError(error, "Не удалось создать черновик заказа. Проверьте публикацию услуги и RLS."));
+      }
+    }
+    void restoreFreshPendingServiceCart();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
   const handleGoogleLogin = async () => {
     setAuthError("");
     try {
-      await signInWithGoogle(window.location.pathname === "/profile-lite" ? "/profile-lite" : "/profile");
+      const redirectPath = ["/profile-lite", "/profile/orders"].includes(window.location.pathname)
+        ? window.location.pathname
+        : "/profile";
+      await signInWithGoogle(redirectPath);
     } catch (error) {
       setAuthStatus("error");
       setAuthError(safeProfileLiteError(error, "Не удалось начать вход через Google."));
@@ -1715,6 +1773,41 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleSubmitServiceOrderToMaster = async (order) => {
+    if (!profile?.id || !order?.id || !hasProfileLiteSessionCredential(session)) return;
+    const selectedPhoto = clientGoalPhotos.find((photo) => photo.id === orderConfirmation.photoId);
+    if (!selectedPhoto) {
+      setOrderConfirmation((current) => ({
+        ...current,
+        orderId: order.id,
+        status: "error",
+        message: "Загрузите своё фото, чтобы отправить заказ в работу Мастеру."
+      }));
+      return;
+    }
+    setOrderConfirmation((current) => ({ ...current, orderId: order.id, status: "loading", message: "" }));
+    try {
+      const saved = await submitServiceOrderToMaster(order.id, {
+        clientProfileId: profile.id,
+        photo: selectedPhoto,
+        requestText: orderConfirmation.requestText
+      }, session);
+      setClientOrders((current) => current.map((item) => item.id === saved.id ? saved : item));
+      setOrderConfirmation(EMPTY_ORDER_CONFIRMATION);
+      setOrdersStatus("success");
+      setOrdersError("");
+    } catch (error) {
+      setOrderConfirmation((current) => ({
+        ...current,
+        orderId: order.id,
+        status: "error",
+        message: moduleError(error, "Не удалось отправить заказ мастеру.")
+      }));
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "profile_cabinet_service_orders submit failed or migration/RLS not applied"));
+    }
+  };
+
   const handleOrderUpdate = async () => {
     if (!orderPatch.id || !hasProfileLiteSessionCredential(session)) return;
     try {
@@ -1760,6 +1853,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           <section className="cabinetCard profileLitePanel">
             <p className="cabinetEyebrow">Auth flow</p>
             <h2>Вход в кабинет</h2>
+            {window.location.pathname === "/profile/orders" && (
+              <div className="cabinetNotice compactNotice">Войдите через Google, чтобы открыть Кабинет Личный / Мои Заказы. Корзина заказа сохранена на 24 часа.</div>
+            )}
             {!supabaseEnv.isConfigured && <div className="cabinetNotice compactNotice">Supabase не настроен. Кабинет не зависает и ждёт настройки окружения.</div>}
             {authStatus === "loading" && <div className="cabinetNotice compactNotice">Сессия найдена, открываю оболочку...</div>}
             {authError && <div className="cabinetError">{authError}</div>}
@@ -1783,6 +1879,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     chatsError,
     chatsStatus,
     clientGoalPhotos,
+    clientOrders,
     clientPhotoForm,
     compositionDraft,
     compositionMessage,
@@ -1796,10 +1893,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     mediaError,
     mediaStatus,
     moduleStates,
+    orderConfirmation,
     orderPatch,
     orders,
     ordersError,
     ordersStatus,
+    pendingCartMessage,
     planLimits,
     powerPlaceFeedForm,
     powerPlaceFeedStatus,
@@ -1898,6 +1997,10 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     orders: (
       <ProfileLiteOrdersModule
         {...moduleProps}
+        onClientPhotoFieldChange={(field, value) => setClientPhotoForm((current) => ({ ...current, [field]: value }))}
+        onClientPhotoFileChange={(event) => setClientPhotoForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
+        onClientPhotoSave={handleClientPhotoSave}
+        onOrderConfirmationChange={(patch) => setOrderConfirmation((current) => ({ ...current, ...patch }))}
         onOrderPatchChange={(patch) => setOrderPatch({
           id: patch.id || "",
           master_comment: patch.master_comment || "",
@@ -1907,6 +2010,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           status: patch.status || "sent"
         })}
         onOrderUpdate={handleOrderUpdate}
+        onSubmitOrderToMaster={handleSubmitServiceOrderToMaster}
       />
     ),
     chats: (
