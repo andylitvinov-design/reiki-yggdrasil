@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 
-/* ── Library categories: same structure as SOURCE_LIBRARY_CATEGORIES
+/* ── Library categories matching SOURCE_LIBRARY_CATEGORIES
    in ProfileLitePowerPlaceModuleBase.jsx ─────────────────────────── */
 
 const CHANNELS_SUBCATEGORIES = [
@@ -22,7 +22,9 @@ const SOURCE_LIBRARY_CATEGORIES = [
       label: `${level.id}. ${level.name}`,
       thirdLevels: level.steps.map((step) => ({
         value: step.id,
-        label: `${level.stepLabel} ${step.number}: ${step.title}`
+        label: `${level.stepLabel} ${step.number}: ${step.title}`,
+        step_id: step.id,
+        step_title: step.title
       }))
     }))
   },
@@ -72,48 +74,56 @@ export default function ProfileLiteMediaModule({
   onClientPhotoFieldChange,
   onClientPhotoFileChange,
   onClientPhotoSave,
-  onTraditionAssetFieldChange,
-  onTraditionAssetFileChange,
-  onTraditionAssetSave,
-  traditionAssetForm,
-  traditionAssets,
+  onLibraryPhotoUpload,
   clientPhotoForm,
   shellChrome
 }) {
-  /* ── Filter state ──────────────────────────────────────────────── */
+  /* ── Filter state ───────────────────────────────────────────────── */
   const [filterGroup, setFilterGroup] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterSubcategory, setFilterSubcategory] = useState("");
 
-  const activeFilterLibraryGroup = useMemo(
+  const activeFilterGroup = useMemo(
     () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === filterGroup) || null,
     [filterGroup]
   );
-  const filterCategoryOptions = activeFilterLibraryGroup?.subcategories || [];
-  const activeFilterCategoryEntry = useMemo(
+  const filterCategoryOptions = activeFilterGroup?.subcategories || [];
+  const activeFilterCategory = useMemo(
     () => filterCategoryOptions.find((c) => c.value === filterCategory) || null,
     [filterCategoryOptions, filterCategory]
   );
-  const filterSubcategoryOptions = activeFilterCategoryEntry?.thirdLevels || [];
+  const filterSubcategoryOptions = activeFilterCategory?.thirdLevels || [];
 
-  /* ── Upload state ──────────────────────────────────────────────── */
+  /* ── Upload destination tabs ───────────────────────────────────── */
   const [uploadDestination, setUploadDestination] = useState("clients");
+
+  /* ── Materials upload local state ─────────────────────────────── */
   const [uploadGroup, setUploadGroup] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.value || "");
   const [uploadCategory, setUploadCategory] = useState("");
   const [uploadSubcategory, setUploadSubcategory] = useState("");
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [uploadNotes, setUploadNotes] = useState("");
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState("idle");
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef(null);
 
-  const activeUploadLibraryGroup = useMemo(
+  const activeUploadGroup = useMemo(
     () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === uploadGroup) || null,
     [uploadGroup]
   );
-  const uploadCategoryOptions = activeUploadLibraryGroup?.subcategories || [];
-  const activeUploadCategoryEntry = useMemo(
+  const uploadCategoryOptions = activeUploadGroup?.subcategories || [];
+  const activeUploadCategory = useMemo(
     () => uploadCategoryOptions.find((c) => c.value === uploadCategory) || null,
     [uploadCategoryOptions, uploadCategory]
   );
-  const uploadSubcategoryOptions = activeUploadCategoryEntry?.thirdLevels || [];
+  const uploadSubcategoryOptions = activeUploadCategory?.thirdLevels || [];
+  const activeUploadSubcategory = useMemo(
+    () => uploadSubcategoryOptions.find((s) => s.value === uploadSubcategory) || null,
+    [uploadSubcategoryOptions, uploadSubcategory]
+  );
 
-  /* ── Filtered photo list ─────────────────────────────────────── */
+  /* ── Filtered photo list ────────────────────────────────────────── */
   const filteredPhotos = useMemo(() => {
     if (!filterGroup && !filterCategory && !filterSubcategory) return clientGoalPhotos;
     return clientGoalPhotos.filter((photo) => {
@@ -124,8 +134,47 @@ export default function ProfileLiteMediaModule({
     });
   }, [clientGoalPhotos, filterGroup, filterCategory, filterSubcategory]);
 
-  const formError = mediaStatus === "needs-verification" ? mediaError : "";
-  const totalCount = clientGoalPhotos.length + traditionAssets.length;
+  const clientsFormError = mediaStatus === "needs-verification" ? mediaError : "";
+  const isUploading = uploadStatus === "loading";
+
+  /* ── Materials upload handler ───────────────────────────────────── */
+  const handleMaterialsUpload = async (event) => {
+    event.preventDefault();
+    if (!uploadFile) {
+      setUploadError("Выберите файл для загрузки.");
+      return;
+    }
+    setUploadStatus("loading");
+    setUploadError("");
+    try {
+      await onLibraryPhotoUpload({
+        destination: "materials",
+        file: uploadFile,
+        title: uploadTitle || uploadFile.name || "Материал",
+        notes: uploadNotes,
+        material: {
+          group: uploadGroup,
+          category: uploadCategory,
+          subcategory: activeUploadSubcategory?.label || uploadSubcategory,
+          step_id: activeUploadSubcategory?.step_id || uploadSubcategory,
+          step_title: activeUploadSubcategory?.step_title || activeUploadSubcategory?.label || "",
+          setting_title: activeUploadSubcategory?.label || "",
+          setting_index: uploadSubcategoryOptions.indexOf(activeUploadSubcategory) >= 0
+            ? uploadSubcategoryOptions.indexOf(activeUploadSubcategory) + 1
+            : null,
+          type: "mandala"
+        }
+      });
+      setUploadStatus("success");
+      setUploadFile(null);
+      setUploadTitle("");
+      setUploadNotes("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      setUploadStatus("error");
+      setUploadError(error?.message || "Загрузка не завершилась.");
+    }
+  };
 
   return (
     <section className="profileLiteModule profileLiteMediaModule mandalaWorkspace" aria-label="Фото / Медиа">
@@ -137,7 +186,7 @@ export default function ProfileLiteMediaModule({
           <p>Загружайте фото клиентов и образы материалов для мандал, алтаря и материалов.</p>
         </div>
         <div className="mandalaHeroStats">
-          <span><b>{totalCount}</b> Фото</span>
+          <span><b>{clientGoalPhotos.length}</b> Фото</span>
         </div>
       </div>
       {shellChrome}
@@ -260,20 +309,11 @@ export default function ProfileLiteMediaModule({
                 type="button"
                 role="tab"
                 aria-selected={uploadDestination === "materials"}
-                onClick={() => setUploadDestination("materials")}
+                onClick={() => { setUploadDestination("materials"); setUploadStatus("idle"); setUploadError(""); }}
               >
                 Материалы
               </button>
             </div>
-
-            {formError && (
-              <div
-                className="cabinetNotice cabinetSecondaryDataWarning profileLiteMediaFormError"
-                role="alert"
-              >
-                {formError}
-              </div>
-            )}
 
             {uploadDestination === "clients" ? (
               <form
@@ -283,6 +323,11 @@ export default function ProfileLiteMediaModule({
                   onClientPhotoSave();
                 }}
               >
+                {clientsFormError && (
+                  <div className="cabinetNotice cabinetSecondaryDataWarning profileLiteMediaFormError" role="alert">
+                    {clientsFormError}
+                  </div>
+                )}
                 <label>
                   Название
                   <input
@@ -323,19 +368,26 @@ export default function ProfileLiteMediaModule({
                 </button>
               </form>
             ) : (
-              /* Materials mode — group/category/subcategory stored as UI state.
-                 DB persistence of these metadata fields: needs verification. */
               <form
                 className="profileLiteMediaUploadForm"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  onTraditionAssetSave();
-                }}
+                onSubmit={handleMaterialsUpload}
               >
+                {uploadError && (
+                  <div className="cabinetNotice cabinetSecondaryDataWarning profileLiteMediaFormError" role="alert">
+                    {uploadError}
+                  </div>
+                )}
+                {uploadStatus === "success" && (
+                  <div className="cabinetNotice profileLiteMediaFormHint" role="status">
+                    Материал сохранён.
+                  </div>
+                )}
+
                 <label>
                   Группа
                   <select
                     value={uploadGroup}
+                    disabled={isUploading}
                     onChange={(event) => {
                       setUploadGroup(event.target.value);
                       setUploadCategory("");
@@ -353,6 +405,7 @@ export default function ProfileLiteMediaModule({
                     Категория
                     <select
                       value={uploadCategory}
+                      disabled={isUploading}
                       onChange={(event) => {
                         setUploadCategory(event.target.value);
                         setUploadSubcategory("");
@@ -371,6 +424,7 @@ export default function ProfileLiteMediaModule({
                     Ступень / подкатегория
                     <select
                       value={uploadSubcategory}
+                      disabled={isUploading}
                       onChange={(event) => setUploadSubcategory(event.target.value)}
                     >
                       <option value="">Выбрать</option>
@@ -384,40 +438,40 @@ export default function ProfileLiteMediaModule({
                 <label>
                   Название
                   <input
-                    value={traditionAssetForm.title}
-                    onChange={(event) => onTraditionAssetFieldChange("title", event.target.value)}
-                    placeholder="Образ / название материала"
-                  />
-                </label>
-                <label>
-                  URL изображения
-                  <input
-                    value={traditionAssetForm.image_url}
-                    onChange={(event) => onTraditionAssetFieldChange("image_url", event.target.value)}
-                    placeholder="https://..."
+                    value={uploadTitle}
+                    disabled={isUploading}
+                    onChange={(event) => setUploadTitle(event.target.value)}
+                    placeholder="Название материала (необязательно)"
                   />
                 </label>
                 <label>
                   Заметка
                   <textarea
-                    value={traditionAssetForm.notes || ""}
-                    onChange={(event) => onTraditionAssetFieldChange("notes", event.target.value)}
+                    value={uploadNotes}
+                    disabled={isUploading}
+                    onChange={(event) => setUploadNotes(event.target.value)}
                     rows={2}
                   />
                 </label>
+
                 <label className="profileLiteFileInput">
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif"
-                    onChange={onTraditionAssetFileChange}
+                    disabled={isUploading}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      setUploadFile(file);
+                      setUploadStatus("idle");
+                      setUploadError("");
+                    }}
                   />
-                  {traditionAssetForm.file ? `Выбрано: ${traditionAssetForm.file.name}` : "Загрузить файл"}
+                  {uploadFile ? `Выбрано: ${uploadFile.name}` : "Выбрать файл"}
                 </label>
-                <p className="profileLiteMediaFormHint">
-                  Файл и URL — взаимоисключающие: выберите одно из двух.
-                </p>
-                <button className="cabinetPrimary" type="submit">
-                  Сохранить фото материала
+
+                <button className="cabinetPrimary" type="submit" disabled={isUploading || !uploadFile}>
+                  {isUploading ? "Загружаю..." : "Сохранить фото"}
                 </button>
               </form>
             )}

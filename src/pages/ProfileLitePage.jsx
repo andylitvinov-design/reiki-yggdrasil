@@ -1542,9 +1542,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onClientPhotoFieldChange={(field, value) => setClientPhotoForm((current) => ({ ...current, [field]: value }))}
         onClientPhotoFileChange={(event) => setClientPhotoForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
         onClientPhotoSave={handleClientPhotoSave}
-        onTraditionAssetFieldChange={(field, value) => setTraditionAssetForm((current) => ({ ...current, [field]: value }))}
-        onTraditionAssetFileChange={(event) => setTraditionAssetForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
-        onTraditionAssetSave={handleTraditionAssetSave}
+        onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
       />
     ),
     materials: (
