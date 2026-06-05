@@ -2,51 +2,73 @@
 
 Last updated: 2026-06-05
 
-## 1. Purpose
+## 1. Executive summary
 
 Reiki Yggdrasil / Mentalica should evolve from a personal cabinet and learning site into a living community of masters and students.
 
-The core community mechanism should be a **filtered news/activity feed**. It should show public-safe community updates:
+The key product mechanism is a **filtered community activity feed** at `/feed`.
+
+The feed should show public-safe community updates:
 
 - master news posts;
 - approved mandalas/materials;
-- published Power Place compositions;
+- public projections of Power Place compositions;
 - public-safe photo albums, not raw private uploads;
 - services created or updated by masters;
-- practices/course notes/ritual notes;
+- practices, rituals, course notes, and announcements;
 - admin announcements and featured items.
 
-The product metaphor is not a direct Instagram clone. The goal is a ritual, educational, and community-based stream where public mandalas, services, practices, albums, and master updates become visible as a shared field of work.
+The feed should not be a noisy Instagram clone. It should feel like a calm ritual/art/community newspaper where users can discover:
 
-## 2. Current code architecture summary
+- who is active;
+- what masters are creating;
+- which mandalas and services are available;
+- which practices or traditions are being explored;
+- what is new in the school/community.
 
-This concept is based on current repo analysis, not only on abstract product ideas.
+## 2. Current repo/code architecture constraints
+
+This concept is based on actual repo analysis.
 
 ### 2.1 Repo / deployment boundary
 
-Canonical repo: `andylitvinov-design/reiki-yggdrasil`.
+Canonical repo:
+
+```text
+andylitvinov-design/reiki-yggdrasil
+```
 
 Framework/hosting:
 
-- Vite + React;
-- Vercel;
-- build command: `npm run build`;
-- output: `dist`.
+```text
+Vite + React
+Vercel
+npm run build
+output: dist
+```
 
-Domains:
+Domains/workflow:
 
-- target production: `https://mentalica.vercel.app`;
-- current/legacy until migration is verified: `https://reiki-yggdrasil.vercel.app`;
-- owner QA/test concept: `main` → `https://2mentalica.vercel.app` — needs verification in Vercel;
-- client live concept: `production` branch.
+```text
+main       → owner QA/test site, expected https://2mentalica.vercel.app — needs verification
+production → client live site
+release/*  → frozen release branches after owner QA
+```
 
-Normal feature work should target `main`, not `production`.
+Public/live URLs:
 
-### 2.2 Route architecture
+```text
+https://mentalica.vercel.app
+https://reiki-yggdrasil.vercel.app — legacy/current until migration is verified
+```
 
-Current routing is manual in `src/main.jsx`, through `RootRouter()` and pathname checks.
+Normal feature work targets `main`, not `production`.
 
-Existing important routes:
+### 2.2 Routing
+
+Routing is manual in `src/main.jsx` inside `RootRouter()`.
+
+Current important routes:
 
 ```text
 /
@@ -64,17 +86,22 @@ Existing important routes:
 
 For `/feed`, implementation should:
 
-- add `FeedPage.jsx` or equivalent;
+- add `src/pages/FeedPage.jsx`;
 - import it in `src/main.jsx`;
-- add an `if (path === "/feed")` branch in `RootRouter()`;
-- add a matching Vercel rewrite in `vercel.json`;
-- preserve all existing routes.
+- add a branch before the fallback `<App />`:
 
-### 2.3 Current Supabase client architecture
+```jsx
+if (path === "/feed") {
+  return <FeedPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} onNavigateProfile={() => navigateTo("/profile")} />;
+}
+```
 
-The app does not use the Supabase JS SDK in these modules. It uses direct `fetch` calls against Supabase REST/Auth/Storage.
+- add `/feed` to `vercel.json` rewrites;
+- keep all existing rewrites unchanged.
 
-Key client files:
+### 2.3 Supabase client pattern
+
+The current frontend uses direct `fetch` REST/Auth/Storage calls, not Supabase JS SDK, in files such as:
 
 ```text
 src/lib/supabaseClient.js
@@ -82,280 +109,517 @@ src/lib/profileMaterialsClient.js
 src/lib/profileServicesClient.js
 src/lib/profileMediaClient.js
 src/lib/powerPlaceClient.js
-src/lib/profileBootstrapClient.js
-src/lib/profileLiteClient.js
 ```
 
-Therefore the feed should also use a small dedicated REST client helper, for example:
+Feed implementation should follow the same style and add:
 
 ```text
 src/lib/profileActivityFeedClient.js
 ```
 
-Do not introduce a second Supabase client pattern unless the project intentionally migrates all clients later.
+Do not introduce Supabase JS SDK just for this task.
 
-### 2.4 Existing tables already relevant to feed
+### 2.4 Existing tables relevant to feed
 
-Current migrations already define several feed-related entities.
-
-Existing profile table:
+Current relevant tables:
 
 ```text
 profile_cabinet_profiles
-```
-
-Important fields:
-
-```text
-id
-user_id
-display_name
-bio
-city
-country
-telegram
-website
-avatar_url
-status: draft | pending | approved | rejected
-```
-
-Existing material/publication table:
-
-```text
 profile_cabinet_publications
-```
-
-Important current fields:
-
-```text
-id
-profile_id
-type: practice | mandala | artifact
-title
-description
-image_url
-status: draft | pending | approved | rejected
-step_id
-step_title
-setting_title
-setting_index
-created_at
-updated_at
-```
-
-Existing services table:
-
-```text
 profile_cabinet_services
-```
-
-Important current fields:
-
-```text
-id
-profile_id
-composition_id
-title
-description
-image_url
-image_bucket
-image_path
-price_amount
-price_currency
-status: draft | published | archived
-created_at
-updated_at
-```
-
-Existing Power Place compositions table:
-
-```text
+profile_cabinet_service_orders
 profile_cabinet_power_place_compositions
-```
-
-Important current fields:
-
-```text
-id
-profile_id
-title
-constructor_type
-geometry
-cover_ref jsonb
-object_refs jsonb
-central_photo_id
-tradition_id
-tradition_title
-created_at
-updated_at
-```
-
-Existing private media tables:
-
-```text
 profile_cabinet_client_goal_photos
 profile_cabinet_tradition_assets
+profile_cabinet_admins
 ```
 
-These are owner/admin-managed and should not be exposed publicly by default.
+Existing `profile_cabinet_publications` already represents materials:
 
-### 2.5 Existing public/private policies
+```text
+type: practice | mandala | artifact
+status: draft | pending | approved | rejected
+```
 
-Current `profile_cabinet_publications` already allows public read of `status = 'approved'` only when the profile is also approved.
+Existing `profile_cabinet_services` already represents services:
 
-Current `profile_cabinet_services` already allows public read of `status = 'published'` only when the profile is approved.
+```text
+status: draft | published | archived
+```
 
-Current `profile_cabinet_client_goal_photos`, `profile_cabinet_tradition_assets`, and `profile_cabinet_power_place_compositions` are owner/admin-managed, not public.
+Existing `profile_cabinet_power_place_compositions` is private source data and must not be public.
 
-Therefore the feed should not directly query private media/composition tables for anonymous users.
+Existing `profile_cabinet_client_goal_photos` and `profile_cabinet_tradition_assets` are private/owner/admin media rows and must not be public by default.
 
-### 2.6 Current media boundary
+### 2.5 Media boundary
 
-Current media bucket:
+Current known bucket:
 
 ```text
 profile-cabinet-media
 ```
 
-Current frontend behavior:
+Rules:
 
-- files upload through authenticated session;
-- frontend stores durable refs like `storage://profile-cabinet-media/...` or bucket/path columns;
-- private signed URLs are created only for display;
-- local `data:image` previews are filtered from saved Power Place payloads;
-- public pages must not expose private storage refs or temporary signed URLs.
+- bucket is private;
+- frontend stores durable refs such as `storage://profile-cabinet-media/...` internally;
+- signed URLs are temporary display-only URLs;
+- public feed must not expose private storage refs, paths, signed URLs, raw `object_refs`, private reports, client photos, or private notes.
 
-This is the most important feed privacy boundary.
+## 3. Product definition
 
-## 3. Core product idea
+The feed is a **public activity stream**, not a raw log of all private actions.
 
-The feed should show **public activity events**, not raw private cabinet actions.
+### 3.1 Good feed events
 
-Examples of public feed items:
+Examples:
 
 ```text
-Мастер Андрей опубликовал новую мандалу
-Мастер София добавила публичный фотоальбом “Алтарь Рун”
-Мастер Михаил обновил услугу “Мандала места силы”
-Опубликована новая практика по ДАО
-Администрация опубликовала новость курса
+Мастер опубликовал новую мандалу
+Мастер добавил новость
+Мастер обновил услугу
+Появилась новая практика
+Опубликован публичный фотоальбом
+Администрация добавила объявление
 ```
 
-Examples of private events that should not appear publicly by default:
+### 3.2 Bad feed events
+
+These should not appear publicly by default:
 
 ```text
 Пользователь загрузил фото клиента
-Пользователь сохранил черновик мандалы
-Пользователь обновил object_refs композиции
+Пользователь сохранил черновик композиции
+Пользователь обновил object_refs
 Пользователь получил signed URL
-Пользователь добавил отчёт или личные заметки
+Пользователь добавил приватный отчёт
+Пользователь создал черновик услуги
 ```
 
-The implementation should separate three layers:
+### 3.3 Three-layer model
 
-1. **Private source item** — current private row, for example Power Place composition or uploaded photo.
-2. **Public object** — approved material/service/public album/master update.
-3. **Feed event** — public activity record that announces the object in `/feed`.
+The feed should separate:
 
-## 4. Recommended technical strategy
+1. **Private source item** — original private row, for example saved Power Place composition or uploaded photo.
+2. **Public object** — curated, public-safe representation: material, service, public album, master post.
+3. **Activity event** — feed record announcing the public object.
 
-Do not replace current data model. Extend it.
+This avoids exposing private source data and keeps feed filtering simple.
 
-### 4.1 Use existing `profile_cabinet_publications`
+## 4. Main user scenarios
 
-For existing material posts, continue using:
+### 4.1 Visitor reads the community feed
+
+Scenario:
 
 ```text
-profile_cabinet_publications
+Visitor opens /feed
+↓
+Sees feed header and tabs
+↓
+Selects “Мандалы” or “Услуги”
+↓
+Sees only approved public events
+↓
+Opens item or goes to master profile/catalog
 ```
 
-Current supported types:
+Expected result:
+
+- no login required;
+- no private records exposed;
+- empty state if there are no approved events;
+- clear CTA to `/masters` and `/profile`.
+
+### 4.2 Master publishes a material/mandala
+
+Current code already supports material creation through `profile_cabinet_publications`.
+
+Desired flow:
 
 ```text
-practice
-mandala
-artifact
+Master creates material in cabinet
+↓
+Saves draft or sends to moderation
+↓
+Admin approves material
+↓
+System creates or approves feed event
+↓
+Material appears in /feed under Мандалы/Практики/Все
 ```
 
-Recommended extension later:
+MVP can start with manual event creation/moderation instead of automatic event generation.
+
+### 4.3 Master publishes a service
+
+Current code already supports services in `profile_cabinet_services`.
+
+Desired flow:
+
+```text
+Master creates/updates service
+↓
+Service status becomes published
+↓
+System creates feed event service_created or service_updated
+↓
+Event appears in /feed under Услуги
+```
+
+MVP can show service-related events only if explicitly created.
+
+### 4.4 Master publishes Power Place composition
+
+Power Place composition is private source data.
+
+Desired flow:
+
+```text
+Master opens saved composition
+↓
+Clicks “Опубликовать в ленту”
+↓
+Frontend opens public projection form
+↓
+Master writes public title/description/category/tags
+↓
+System creates safe public projection/event
+↓
+Admin approves
+↓
+Feed shows a fallback or public-safe cover
+```
+
+Important:
+
+The original `profile_cabinet_power_place_compositions` row remains private.
+
+### 4.5 Master posts a news update
+
+Desired future flow:
+
+```text
+Master opens “Мои новости”
+↓
+Writes title/body/category
+↓
+Submits to moderation
+↓
+Admin approves
+↓
+Event appears under Новости
+```
+
+This can be standalone `profile_cabinet_activity_events` without a target object.
+
+### 4.6 Public photo album
+
+Desired future flow:
+
+```text
+Master uploads private photos
+↓
+Selects specific photos for a public album
+↓
+Creates album title/description/category
+↓
+System stores only public-safe album representation
+↓
+Admin approves
+↓
+Feed shows photo album card
+```
+
+MVP should not publish raw uploaded photos.
+
+## 5. Feed information architecture
+
+### 5.1 Top navigation
+
+Public page `/feed` should have:
+
+```text
+← На главную
+Лента сообщества
+Каталог мастеров
+Мой кабинет
+```
+
+### 5.2 Main tabs
+
+MVP tabs:
+
+```text
+Все
+Новости
+Мандалы
+Фото
+Услуги
+Практики
+```
+
+Mapping:
+
+```text
+Все      → no tab filter
+Новости  → master_update, admin_announcement, featured_item
+Мандалы  → mandala_published, power_place_published, artifact_published
+Фото     → photo_album_published
+Услуги   → service_created, service_updated
+Практики → practice_published
+```
+
+### 5.3 Advanced filters later
+
+Later filter drawer:
+
+```text
+Тип события
+Категория
+Мастер
+Период
+Только избранное — future
+Мои подписки — future
+```
+
+URL query examples:
+
+```text
+/feed?tab=mandalas
+/feed?tab=services
+/feed?type=service_created
+/feed?category=dao
+/feed?profile=<profile_id>
+```
+
+### 5.4 Categories
+
+Suggested machine values:
+
+```text
+reiki
+runes
+dao
+sephirot
+egyptian_mysteries
+greek_mysteries
+tarot
+alchemy
+tantra
+business
+love
+protection
+health
+money
+education
+```
+
+Russian labels:
+
+```text
+Рейки
+Руны
+ДАО
+Сефирот
+Египетские мистерии
+Греческие мистерии
+Таро
+Алхимия
+Тантра
+Бизнес
+Любовь
+Защита
+Здоровье
+Деньги
+Обучение
+```
+
+## 6. Feed card UX
+
+### 6.1 Common card fields
+
+Every feed card should have:
+
+```text
+event label
+title
+short body/description
+author/master name if available
+date
+category/tags
+image/fallback
+CTA buttons
+```
+
+CTA examples:
+
+```text
+Открыть
+К мастеру
+Подробнее
+Смотреть
+```
+
+### 6.2 Master update card
+
+For:
 
 ```text
 master_update
-photo_album
-power_place
-admin_post
 ```
 
-But MVP can avoid expanding this table immediately if activity events can point to existing publication rows.
-
-### 4.2 Use existing `profile_cabinet_services`
-
-Services already have their own table and public status:
+UI:
 
 ```text
-status = published
+[avatar/fallback]
+Новость мастера
+Title
+Body preview
+Master name
+Date
+Button: К мастеру
 ```
 
-A feed event should be created when a service becomes published or gets a meaningful public update.
+### 6.3 Mandala/material card
 
-### 4.3 Do not make `profile_cabinet_power_place_compositions` public
-
-Saved Power Place compositions contain private layout/data refs:
+For:
 
 ```text
-cover_ref
+mandala_published
+artifact_published
+practice_published
+```
+
+Target can be `profile_cabinet_publications`.
+
+UI:
+
+```text
+[image/fallback]
+Мандала / Артефакт / Практика
+Title
+Description
+Step/setting if present
+Master name
+Button: Открыть / К мастеру
+```
+
+### 6.4 Power Place card
+
+For:
+
+```text
+power_place_published
+```
+
+UI:
+
+```text
+[fallback or public-safe cover]
+Место силы
+Title
+Public description
+Category/tags
+Master name
+Button: К мастеру
+```
+
+Forbidden in public card:
+
+```text
 object_refs
-central_photo_id
-resource comparison comments
-report data in object_refs
-private storage refs
+cover_ref raw json
+central_photo_id private display
+resource comments if private
+report body
+signed_url
+storage://...
 ```
 
-Do not expose this table to anon.
+### 6.5 Service card
 
-Instead, add a **public projection** when user chooses to publish:
+For:
 
-Option A, lower risk:
+```text
+service_created
+service_updated
+```
 
-- create a `profile_cabinet_publications` row with type `mandala` or future `power_place`;
-- copy only safe title/description/public-safe cover/fallback data;
-- store source reference fields via migration only if needed.
+Target can be `profile_cabinet_services`.
 
-Option B, clearer long-term:
+UI:
 
-- add `source_type` and `source_id` to `profile_cabinet_publications`;
-- store `source_type = 'power_place_composition'` and `source_id = composition.id`;
-- still do not expose source object data publicly.
+```text
+[image/fallback]
+Услуга
+Title
+Description
+Price if public-safe
+Master name
+Button: Подробнее / К мастеру
+```
 
-Recommended MVP: Option A or minimal source fields, but no public query to compositions table.
+### 6.6 Photo album card
 
-### 4.4 Add a dedicated activity table
+For:
 
-Add a new table:
+```text
+photo_album_published
+```
+
+UI:
+
+```text
+[album cover/fallback]
+Фотоальбом
+Title
+Description
+Photo count later
+Master name
+Button: Смотреть
+```
+
+MVP may show only placeholder/fallback until public albums are implemented.
+
+### 6.7 Admin announcement card
+
+For:
+
+```text
+admin_announcement
+featured_item
+```
+
+UI:
+
+```text
+Объявление
+Title
+Body preview
+Date
+Optional CTA
+```
+
+## 7. Data model: add activity events, do not replace current tables
+
+### 7.1 Why add an events table
+
+Current tables store different business objects:
+
+- profiles;
+- materials/publications;
+- services;
+- private compositions;
+- private media.
+
+The feed needs one unified stream with one filtering model. Therefore add:
 
 ```text
 profile_cabinet_activity_events
 ```
 
-This table should power `/feed`.
-
-Why this is needed:
-
-- one feed can include materials, services, photo albums, master updates, admin announcements;
-- event text can be normalized;
-- filters are easier;
-- feed can be public without exposing private source tables;
-- updates can create new events without duplicating all object data.
-
-## 5. Proposed activity event schema
-
-Create a migration, for example:
-
-```text
-supabase/migrations/YYYYMMDD_profile_cabinet_activity_feed.sql
-```
-
-Possible table:
+### 7.2 Proposed table
 
 ```sql
 create table if not exists public.profile_cabinet_activity_events (
@@ -407,7 +671,7 @@ create table if not exists public.profile_cabinet_activity_events (
 );
 ```
 
-Recommended indexes:
+### 7.3 Indexes
 
 ```sql
 create index if not exists profile_cabinet_activity_events_feed_idx
@@ -421,421 +685,161 @@ create index if not exists profile_cabinet_activity_events_type_idx
 
 create index if not exists profile_cabinet_activity_events_category_idx
   on public.profile_cabinet_activity_events (category, event_at desc);
+
+create index if not exists profile_cabinet_activity_events_target_idx
+  on public.profile_cabinet_activity_events (target_table, target_id);
 ```
 
-Status names should align with current material/profile moderation model:
+### 7.4 Trigger
 
-```text
-draft
-pending
-approved
-rejected
-archived
-```
-
-Use `approved`, not `published`, for activity events if following current `profile_cabinet_publications` conventions.
-
-## 6. RLS rules for activity events
-
-Public read:
+Use existing `profile_cabinet_touch_updated_at()` if present:
 
 ```sql
-status = 'approved'
-visibility = 'public_feed'
-profile is approved or profile_id is null for admin announcements
+drop trigger if exists profile_cabinet_activity_events_updated_at on public.profile_cabinet_activity_events;
+create trigger profile_cabinet_activity_events_updated_at
+before update on public.profile_cabinet_activity_events
+for each row execute function public.profile_cabinet_touch_updated_at();
 ```
 
-Owner management:
+## 8. RLS matrix
 
-- authenticated owner can create/read/update own draft/pending/rejected events;
-- owner cannot approve own events unless they are admin.
+### 8.1 Public read
 
-Admin management:
+Anon/authenticated can read only:
 
-- admin can read/update all events;
-- admin can approve/reject/archive.
+```text
+status = approved
+visibility = public_feed
+profile approved OR profile_id is null
+```
 
-Important:
+Admin announcements can use `profile_id = null`.
 
-Do not loosen RLS on private media/composition tables to make the feed work.
+### 8.2 Owner read/write
 
-## 7. Public image strategy
+Owner can:
 
-Current private Storage refs cannot be used directly in public feed cards.
+- create own draft/pending events;
+- read own draft/pending/rejected/approved events;
+- update own draft/pending/rejected events;
+- archive own event if allowed later.
 
-### 7.1 MVP image behavior
+Owner cannot:
 
-MVP should support three safe image cases:
+- approve own event unless admin;
+- create public event for another profile;
+- create event pointing to another user's target object.
 
-1. `image_url` is already a public HTTPS URL → show it.
-2. image is private or storage ref → do not show it to public; show designed fallback.
-3. service/material has no image → show designed fallback by type/category.
+### 8.3 Admin
 
-### 7.2 Later public media projection
+Admin can:
 
-Later, add a safe public cover workflow:
+- read all events;
+- approve/reject/archive;
+- feature/unfeature;
+- create admin announcements.
+
+### 8.4 Forbidden RLS shortcut
+
+Do not make these tables public for feed convenience:
+
+```text
+profile_cabinet_power_place_compositions
+profile_cabinet_client_goal_photos
+profile_cabinet_tradition_assets
+storage.objects for profile-cabinet-media
+```
+
+## 9. Event creation and duplication rules
+
+### 9.1 Manual first, automatic later
+
+MVP should begin with manual or explicit event creation. Automatic event creation can be Phase 3.
+
+Reason: automatic creation from every save/update can spam the feed.
+
+### 9.2 Deduplication
+
+When automatic creation is added, prevent duplicates.
+
+Recommended rule:
+
+```text
+one active approved/pending event per target_table + target_id + activity_type
+```
+
+If service is updated many times, either:
+
+- update the existing event body/date; or
+- create a new event only when user clicks “Опубликовать обновление в ленту”.
+
+### 9.3 Event timing
+
+Use:
+
+```text
+event_at
+```
+
+for display ordering. This allows admin approval date or original publication date depending on product decision.
+
+MVP recommendation:
+
+- when admin approves: set `event_at = now()`;
+- when just saving draft: keep original created date.
+
+## 10. Public image strategy
+
+### 10.1 MVP rule
+
+Show image only when it is public-safe.
+
+Safe:
+
+```text
+https://...
+```
+
+Unsafe:
+
+```text
+storage://profile-cabinet-media/...
+signed URL from Supabase
+private bucket path
+local data:image
+raw object_refs image refs
+```
+
+### 10.2 Fallback design
+
+If image is unsafe or missing, show a beautiful fallback based on type:
+
+```text
+Мандала → golden mandala glyph / radial pattern
+Место силы → circle/field symbol
+Услуга → service card symbol
+Фото → album placeholder
+Практика → text/practice symbol
+Новость → master/news symbol
+```
+
+### 10.3 Later public cover workflow
+
+Future workflow:
 
 ```text
 private upload
 ↓
-user chooses public cover
+user selects public cover
 ↓
-system creates public-safe copy or stores approved public URL
+system creates public-safe copy or stores public-safe URL
 ↓
-feed uses only public-safe copy/URL
+admin approves
+↓
+feed uses public cover only
 ```
 
-Do not store temporary signed URLs in public activity records.
-
-## 8. Feed filters
-
-### 8.1 Main tabs
-
-MVP top tabs:
-
-```text
-Все
-Новости
-Мандалы
-Фото
-Услуги
-Практики
-```
-
-Mapping:
-
-```text
-Все → no activity_type filter
-Новости → master_update, admin_announcement, featured_item
-Мандалы → mandala_published, power_place_published, artifact_published
-Фото → photo_album_published
-Услуги → service_created, service_updated
-Практики → practice_published
-```
-
-### 8.2 Advanced filters
-
-Later filter drawer:
-
-```text
-Тип события
-Категория
-Мастер
-Период
-Только избранное — future
-Мои подписки — future
-```
-
-URL query examples:
-
-```text
-/feed?tab=mandalas
-/feed?type=service_created
-/feed?category=dao
-/feed?profile=<profile_id>
-```
-
-### 8.3 Categories
-
-Initial category values can be plain text:
-
-```text
-reiki
-runes
-dao
-sephirot
-egyptian_mysteries
-greek_mysteries
-tarot
-alchemy
-tantra
-business
-love
-protection
-health
-money
-education
-```
-
-UI labels in Russian:
-
-```text
-Рейки
-Руны
-ДАО
-Сефирот
-Египетские мистерии
-Греческие мистерии
-Таро
-Алхимия
-Тантра
-Бизнес
-Любовь
-Защита
-Здоровье
-Деньги
-Обучение
-```
-
-## 9. Feed page UX
-
-Route:
-
-```text
-/feed
-```
-
-Page title:
-
-```text
-Лента сообщества
-```
-
-Subtitle:
-
-```text
-Новые мандалы, услуги, практики и новости мастеров Reiki Yggdrasil.
-```
-
-Topbar buttons:
-
-```text
-← На главную
-Каталог мастеров
-Мой кабинет
-```
-
-States:
-
-```text
-Загружаем ленту...
-Пока нет публикаций в этой категории.
-Не удалось загрузить ленту. Попробуйте обновить страницу.
-```
-
-Desktop:
-
-- 2–3 column grid for visual cards;
-- optional compact sidebar later;
-- do not affect existing public home layout.
-
-Mobile:
-
-- one-column cards;
-- horizontal scroll filter chips or wrapped chips;
-- no horizontal overflow;
-- large tap targets but not oversized buttons.
-
-## 10. Feed card types
-
-### 10.1 Master update card
-
-For `master_update`.
-
-Fields:
-
-- author name/avatar if profile exists;
-- label: `Новость мастера`;
-- title;
-- body preview;
-- optional public-safe image;
-- category/tags;
-- event date;
-- CTA: `К мастеру`.
-
-### 10.2 Mandala/material card
-
-For `mandala_published`, `artifact_published`, `practice_published` when target is `profile_cabinet_publications`.
-
-Fields:
-
-- image/fallback;
-- material type label;
-- title;
-- author;
-- description;
-- step/setting if present;
-- category/tags;
-- CTA: `Открыть`, `К мастеру`.
-
-### 10.3 Power Place card
-
-For `power_place_published`.
-
-Fields:
-
-- public-safe cover or fallback;
-- label: `Место силы`;
-- title;
-- author;
-- public description;
-- category/tags;
-- CTA: `Открыть`, `К мастеру`.
-
-Do not render raw `object_refs`, report content, private cover refs, or signed URLs.
-
-### 10.4 Photo album card
-
-For `photo_album_published`.
-
-MVP can be placeholder-only if photo album model does not exist yet.
-
-Important:
-
-- do not publish raw client/goal photo uploads;
-- do not expose `profile_cabinet_client_goal_photos` publicly;
-- photo albums should be a separate public-safe model in Phase 2.
-
-### 10.5 Service card
-
-For `service_created` / `service_updated` target `profile_cabinet_services`.
-
-Fields:
-
-- service title;
-- author/master;
-- description;
-- price if present;
-- public-safe image or fallback;
-- CTA: `Подробнее`, `К мастеру`.
-
-### 10.6 Admin announcement card
-
-For `admin_announcement` with `profile_id = null` or admin profile if later added.
-
-Fields:
-
-- label: `Объявление`;
-- title;
-- body preview;
-- date;
-- CTA optional.
-
-## 11. Cabinet integration
-
-### 11.1 Materials module
-
-Current materials already use:
-
-```text
-createOwnMaterial
-listOwnMaterials
-profile_cabinet_publications
-```
-
-Material statuses already exist:
-
-```text
-draft
-pending
-approved
-rejected
-```
-
-Feed integration:
-
-- when a material is approved by admin, optionally create/approve a matching activity event;
-- or create a pending event when user submits material to moderation.
-
-### 11.2 Services module
-
-Current service statuses:
-
-```text
-draft
-published
-archived
-```
-
-Feed integration:
-
-- when service status becomes `published`, create event `service_created` or `service_updated`;
-- public feed should query event, not directly mix service list with materials unless using a view.
-
-### 11.3 Power Place / saved mandalas
-
-Current saved compositions are private.
-
-Add later action in saved composition card:
-
-```text
-Опубликовать в ленту
-```
-
-This should open a public projection form:
-
-```text
-public title
-public description
-category
-tags
-cover behavior: fallback or public-safe cover only
-submit for moderation
-```
-
-It should create:
-
-- a public material/publication projection, or
-- an activity event with target to a public projection row.
-
-It should not make the original composition public.
-
-### 11.4 Uploaded photos
-
-Current photo categories:
-
-- client/goal photos;
-- tradition assets;
-- material uploads;
-- underlays;
-- power-place slot uploads.
-
-Do not publish any uploaded photo automatically.
-
-Later add:
-
-```text
-Публичные альбомы
-```
-
-An album should explicitly contain public-safe selected images.
-
-## 12. Admin moderation integration
-
-Current admin page only moderates profiles through:
-
-```text
-listPendingProfiles
-updateProfileStatus
-```
-
-Additive extension:
-
-- add `listPendingActivityEvents` helper;
-- add `updateActivityEventStatus` helper;
-- add a second section in `AdminPage.jsx`:
-
-```text
-Публикации и события на модерации
-```
-
-Do not redesign the full admin page.
-
-Admin should see:
-
-- event type;
-- title;
-- author profile;
-- target table/type;
-- description/body preview;
-- category/tags;
-- created date;
-- buttons:
-  - `Одобрить`
-  - `Отклонить`
-  - `В архив` later.
-
-## 13. Feed client helper
+## 11. Frontend client design
 
 Suggested file:
 
@@ -843,180 +847,414 @@ Suggested file:
 src/lib/profileActivityFeedClient.js
 ```
 
-Suggested exports:
+### 11.1 Constants
 
 ```js
-export const ACTIVITY_FEED_TABS = [...];
-export function activityTypeLabel(type) { ... }
-export function activityTabToTypes(tab) { ... }
-export async function listPublicActivityEvents({ tab, type, category, profileId, limit } = {}) { ... }
-export async function listOwnActivityEvents(profileId, session) { ... }
-export async function createOwnActivityEvent(event, session) { ... }
-export async function listPendingActivityEvents(session) { ... }
-export async function updateActivityEventStatus(eventId, status, session) { ... }
+export const ACTIVITY_TYPES = [...];
+export const ACTIVITY_STATUSES = ["draft", "pending", "approved", "rejected", "archived"];
+export const ACTIVITY_VISIBILITIES = ["private", "profile_only", "public_feed"];
+export const ACTIVITY_FEED_TABS = [
+  { id: "all", label: "Все", types: [] },
+  { id: "news", label: "Новости", types: ["master_update", "admin_announcement", "featured_item"] },
+  { id: "mandalas", label: "Мандалы", types: ["mandala_published", "power_place_published", "artifact_published"] },
+  { id: "photos", label: "Фото", types: ["photo_album_published"] },
+  { id: "services", label: "Услуги", types: ["service_created", "service_updated"] },
+  { id: "practices", label: "Практики", types: ["practice_published"] }
+];
 ```
 
-Keep request style consistent with current clients:
+### 11.2 Public list helper
 
-- direct `fetch`;
-- `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`;
-- anon token for public request;
-- session token for owner/admin request;
-- no env values in output.
-
-## 14. Possible Supabase view for feed
-
-Because feed cards need author display name/avatar and target data, a read view may simplify frontend.
-
-Possible later view:
-
-```text
-profile_cabinet_activity_feed_view
+```js
+export async function listPublicActivityEvents({ tab = "all", type = "", category = "", profileId = "", limit = 30 } = {})
 ```
 
-It can join:
+Query must include:
 
 ```text
-profile_cabinet_activity_events
-profile_cabinet_profiles
-profile_cabinet_publications
-profile_cabinet_services
+status=eq.approved
+visibility=eq.public_feed
+order=event_at.desc
+limit=safeLimit
 ```
 
-Public view must expose only public-safe fields:
+Optional filters:
 
 ```text
-event_id
-activity_type
-event_title
-event_body
-event_at
+activity_type=in.(...)
+category=eq.<category>
+profile_id=eq.<profileId>
+```
+
+### 11.3 Owner/admin helpers
+
+```js
+export async function listOwnActivityEvents(profileId, session)
+export async function createOwnActivityEvent(event, session)
+export async function listPendingActivityEvents(session)
+export async function updateActivityEventStatus(eventId, status, session)
+```
+
+### 11.4 Normalization
+
+Normalize rows to safe frontend shape:
+
+```js
+{
+  id,
+  profileId,
+  activityType,
+  title,
+  body,
+  imageUrl,
+  category,
+  tags,
+  status,
+  visibility,
+  isFeatured,
+  eventAt,
+  targetTable,
+  targetId
+}
+```
+
+Do not expose unsafe image refs in card rendering.
+
+## 12. FeedPage component design
+
+Suggested file:
+
+```text
+src/pages/FeedPage.jsx
+```
+
+### 12.1 State
+
+```js
+const [activeTab, setActiveTab] = useState("all");
+const [events, setEvents] = useState([]);
+const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
+const [error, setError] = useState("");
+```
+
+### 12.2 Behavior
+
+- load events on mount and when tab changes;
+- if Supabase not configured, show notice;
+- if no rows, show empty state;
+- if error, show safe error;
+- do not require login.
+
+### 12.3 CSS classes
+
+Suggested classes:
+
+```text
+feedShell
+feedTopbar
+feedHero
+feedTabs
+feedTab
+feedGrid
+feedCard
+feedCardMedia
+feedCardBody
+feedMeta
+feedFallback
+feedBadge
+```
+
+CSS can be added to `src/profileCabinet.css` or `src/index.css`, but keep scope prefixed with `feed` to avoid affecting existing cabinet/Profile Lite layouts.
+
+## 13. Admin integration
+
+Current `AdminPage.jsx` moderates only profiles.
+
+Additive extension:
+
+- keep existing profile moderation intact;
+- add second section after profile moderation:
+
+```text
+Публикации и события на модерации
+```
+
+Suggested helpers:
+
+```js
+listPendingActivityEvents(session)
+updateActivityEventStatus(eventId, status, session)
+```
+
+Admin card should show:
+
+```text
+activity type label
+title
+body preview
+author profile if present
+category/tags
+target_table/target_id for debugging but not too prominent
+buttons: Одобрить / Отклонить
+```
+
+Do not expose env values or real admin email.
+
+## 14. Integration with existing materials/services
+
+### 14.1 Existing materials
+
+`profile_cabinet_publications` currently supports:
+
+```text
+practice
+mandala
+artifact
+```
+
+Event mapping:
+
+```text
+publication.type = mandala  → mandala_published
+publication.type = artifact → artifact_published
+publication.type = practice → practice_published
+```
+
+Possible implementation options:
+
+**Option A — manual events MVP**
+
+Admin/user creates event separately. Lowest risk.
+
+**Option B — event on approval**
+
+When admin approves material, create matching activity event. Requires duplicate protection.
+
+### 14.2 Existing services
+
+`profile_cabinet_services.status = published` is already public-readable through RLS.
+
+Event mapping:
+
+```text
+first publish → service_created
+later explicit feed update → service_updated
+```
+
+Avoid creating a new event on every small edit automatically.
+
+### 14.3 Power Place compositions
+
+Saved compositions are private. Do not expose directly.
+
+Recommended projection fields for public event:
+
+```text
+source composition id — internal only if needed
+title
+description
 category
-subcategory
 tags
-is_featured
-profile_id
-display_name
-avatar_url
-target_table
-target_id
-target_title
-target_description
-target_type
-public_image_url
+fallback type
+public-safe image only if available
 ```
 
-Do not include:
+## 15. Public photo albums phase
+
+Do not solve public albums by making current media tables public.
+
+Future tables:
 
 ```text
-private storage refs
-signed URLs
-object_refs
-cover_ref raw json
-private reports
-client photo paths
-user_id
-admin email
+profile_cabinet_photo_albums
+profile_cabinet_photo_album_items
 ```
 
-MVP can query `profile_cabinet_activity_events` directly and fetch minimal author fields, but a view is cleaner after schema stabilizes.
+Album table fields:
 
-## 15. Implementation phases
+```text
+id
+profile_id
+title
+description
+cover_image_url public-safe only
+category
+tags
+status: draft | pending | approved | rejected | archived
+visibility: private | profile_only | public_feed
+created_at
+updated_at
+```
 
-### Phase 1 — Public activity feed skeleton
+Items should reference public-safe images only or a safe public projection, not raw private client photo paths.
 
-Goal: create `/feed` and public event infrastructure without touching private media behavior.
+## 16. MVP / Phase boundaries
 
-Tasks:
+### Phase 1 — Feed infrastructure and page
 
-1. Add migration for `profile_cabinet_activity_events`.
-2. Add RLS for public approved events and owner/admin management.
-3. Add `profileActivityFeedClient.js`.
-4. Add `FeedPage.jsx`.
-5. Add `/feed` branch in `src/main.jsx`.
-6. Add `/feed` rewrite in `vercel.json`.
-7. Add filter chips:
-   - `Все`
-   - `Новости`
-   - `Мандалы`
-   - `Фото`
-   - `Услуги`
-   - `Практики`
-8. Add fallback cards, loading, empty, error states.
-9. Add tests for client filtering/status mapping if existing test style allows.
+Deliver:
 
-No automatic creation of feed events yet unless very low risk.
+- migration for `profile_cabinet_activity_events`;
+- RLS;
+- `profileActivityFeedClient.js`;
+- `FeedPage.jsx`;
+- `/feed` route;
+- `/feed` Vercel rewrite;
+- public filters;
+- fallback cards;
+- no automatic publication from private saves.
 
 ### Phase 2 — Admin moderation for feed events
 
-Tasks:
+Deliver:
 
-1. Extend `AdminPage.jsx` with pending activity events section.
-2. Add admin helper functions in `profileActivityFeedClient.js`.
-3. Keep existing profile moderation intact.
-4. Do not expose env values or real admin email.
+- admin pending events list;
+- approve/reject event actions;
+- no redesign of full admin page.
 
-### Phase 3 — Materials/services to feed
+### Phase 3 — Materials/services event creation
 
-Tasks:
+Deliver:
 
-1. When material is submitted/approved, create corresponding event.
-2. When service becomes `published`, create `service_created` or `service_updated` event.
-3. Ensure duplicate events are controlled.
-4. Add safe reports in admin.
+- create event when material is approved or submitted;
+- create event when service is explicitly published to feed;
+- duplicate prevention.
 
 ### Phase 4 — Power Place public projection
 
-Tasks:
+Deliver:
 
-1. Add `Опубликовать в ленту` for saved compositions.
-2. Create a public projection row with safe fields only.
-3. Create pending activity event.
-4. Never expose private composition `object_refs` or private signed URLs.
+- `Опубликовать в ленту` for saved composition;
+- public projection form;
+- pending event;
+- no raw `object_refs` exposure.
 
 ### Phase 5 — Public photo albums
 
-Tasks:
+Deliver:
 
-1. Create `profile_cabinet_photo_albums` and `profile_cabinet_photo_album_items` or similar.
-2. Allow user to select public-safe photos.
-3. Add album moderation/publication.
-4. Add `Фото` feed cards.
+- album model;
+- album UI;
+- photo feed cards;
+- public-safe covers.
 
-## 16. Key implementation risks
+### Phase 6 — Social layer later
 
-Main risks:
+Only after stable public/private boundary:
 
-- leaking private Storage refs or signed URLs;
-- exposing `object_refs` from Power Place compositions;
-- exposing client/goal photos publicly;
-- breaking current Profile Lite save/load flow;
-- breaking manual router in `src/main.jsx`;
-- forgetting Vercel rewrite for `/feed`;
-- creating a parallel table that duplicates existing `profile_cabinet_publications` unnecessarily;
-- mixing `published` and `approved` status names incorrectly;
-- weakening RLS to make public feed load.
+- favorites;
+- likes/reactions;
+- follows;
+- comments;
+- recommendations.
+
+## 17. Testing and QA strategy
+
+### 17.1 Automated checks
+
+Run:
+
+```bash
+npm install
+npm run check
+npm run build
+npm run test:profile-lite
+npm run test:power-place
+npm run test:profile-media
+npm run test:profile-loading-recovery
+```
+
+If feed client tests are added:
+
+```bash
+npm run test:feed
+```
+
+or include in existing test runner according to repo scripts.
+
+### 17.2 Manual QA routes
+
+```text
+/
+/profile
+/profile/mandalas
+/profile/services
+/feed
+/masters
+/profile/admin
+```
+
+### 17.3 Manual QA cases
+
+```text
+/feed loads without login
+/feed shows Supabase notice if env missing
+/feed shows empty state if no approved events
+/feed filters by tab
+/feed does not show draft/pending/rejected events to anon
+/feed does not expose storage:// refs
+/feed does not expose signed URLs
+/feed does not query private Power Place/media tables as anon
+/profile still loads
+/profile/mandalas still saves/loads existing compositions
+/profile/services still loads
+/masters still loads approved profiles
+/profile/admin still moderates profiles
+mobile below 980px has no horizontal overflow
+```
+
+## 18. Key risks and mitigations
+
+### 18.1 Risk: private media leak
 
 Mitigation:
 
-- public feed uses only `profile_cabinet_activity_events` with approved/public visibility;
-- public projection objects are separate from private source objects;
-- image fallback is allowed and preferred when image safety is unclear;
-- no broad RLS loosening;
-- additive routing only;
-- keep existing `/profile/mandalas`, services, masters, admin flows intact.
+- feed cards show only public HTTPS image URLs;
+- storage refs fall back to symbolic card;
+- no signed URL persisted in event rows.
 
-## 17. Suggested Codex task prompt
+### 18.2 Risk: private Power Place data leak
+
+Mitigation:
+
+- feed never selects from `profile_cabinet_power_place_compositions` for public page;
+- use public projection/event only;
+- no `object_refs` in event rows.
+
+### 18.3 Risk: feed spam
+
+Mitigation:
+
+- no automatic events in Phase 1;
+- later explicit “Опубликовать в ленту” or admin approval;
+- duplicate protection by `target_table + target_id + activity_type`.
+
+### 18.4 Risk: status confusion
+
+Current project uses:
+
+```text
+profiles/materials: approved
+services: published
+```
+
+Mitigation:
+
+- activity events use `approved` to align with moderation;
+- service mapping converts `published` service into `approved` feed event.
+
+### 18.5 Risk: route/rewrite missing
+
+Mitigation:
+
+- add both `src/main.jsx` route and `vercel.json` rewrite;
+- verify `/feed` directly on test/live URL.
+
+## 19. Suggested Codex task prompt
 
 ```text
 Repo: andylitvinov-design/reiki-yggdrasil
-Target branch: codex/community-activity-feed-code-aligned-mvp
-
-Live/test context:
-- normal feature work targets main, not production;
-- expected owner QA/test site: https://2mentalica.vercel.app — needs verification;
-- target production/client live: https://mentalica.vercel.app;
-- current/legacy live: https://reiki-yggdrasil.vercel.app.
+Target branch: codex/community-activity-feed-phase-1
 
 Task:
 Implement Phase 1 of the code-aligned Community Activity Feed MVP based on docs/product/COMMUNITY_FEED_CONCEPT.md.
@@ -1042,11 +1280,11 @@ Before changing code, read:
 - src/pages/ProfileLitePage.jsx
 - src/pages/MastersPage.jsx
 - src/pages/AdminPage.jsx
-- current Supabase migrations for profile/publications/services/power-place/media.
+- relevant Supabase migrations for profiles/publications/services/power-place/media.
 
 Current architecture facts:
 - routing is manual in src/main.jsx RootRouter;
-- Supabase clients use direct fetch/REST, not Supabase JS SDK;
+- Supabase clients use direct fetch/REST;
 - profile_cabinet_publications already exists for practice/mandala/artifact with draft/pending/approved/rejected;
 - profile_cabinet_services already exists for services with draft/published/archived;
 - profile_cabinet_power_place_compositions is private and must not be publicly exposed;
@@ -1056,38 +1294,33 @@ Rules:
 - preserve /, /profile, /profile/mandalas, /profile/services, /masters, /profile/admin;
 - preserve RU-default UI;
 - preserve public home page;
-- preserve desktop/mobile layouts;
-- do not rewrite the app/router;
-- do not introduce Supabase JS SDK just for this task;
-- do not expose secrets/env values;
-- do not expose private Storage refs, signed URLs, object_refs, client photos, private reports;
+- preserve existing Profile Lite desktop/mobile layout;
+- do not introduce Supabase JS SDK;
+- do not expose env values;
+- do not expose storage refs, signed URLs, object_refs, private photos, private reports;
 - do not loosen RLS broadly;
 - keep saved compositions/photos private by default.
 
 Minimum implementation:
 1. Add migration for profile_cabinet_activity_events.
 2. Add RLS:
-   - anon/authenticated can read only status='approved' and visibility='public_feed' events;
+   - anon/authenticated can read only status='approved' and visibility='public_feed';
    - owner can manage own draft/pending/rejected events;
    - admin can manage all events.
-3. Add src/lib/profileActivityFeedClient.js using direct fetch style.
+3. Add src/lib/profileActivityFeedClient.js.
 4. Add src/pages/FeedPage.jsx.
 5. Add /feed route in src/main.jsx.
 6. Add /feed rewrite in vercel.json.
-7. Add public feed states:
-   - loading;
-   - empty;
-   - error;
-   - configured/unconfigured Supabase notice.
-8. Add filter tabs:
+7. Add filter tabs:
    - Все
    - Новости
    - Мандалы
    - Фото
    - Услуги
    - Практики
-9. Cards must use public-safe image_url only. If image is a storage ref or missing, show fallback.
-10. Do not wire automatic event creation from private saves in Phase 1 unless it is obviously safe.
+8. Add loading/empty/error/Supabase-not-configured states.
+9. Cards must use only public-safe image_url. If missing/unsafe, show fallback.
+10. Do not wire automatic event creation from private saves in Phase 1.
 
 Checks:
 - npm install
@@ -1097,7 +1330,7 @@ Checks:
 - npm run test:power-place
 - npm run test:profile-media
 - npm run test:profile-loading-recovery
-- add/run new feed client test if created.
+- add/run feed client test if created.
 
 Manual QA:
 - /
@@ -1111,7 +1344,7 @@ Manual QA:
 - no horizontal overflow
 - no console errors
 - anonymous user sees only approved public events
-- authenticated user cannot see other users' drafts/private uploads.
+- no storage:// refs or signed URLs visible in feed DOM/text.
 
 Report:
 - files read
@@ -1124,15 +1357,15 @@ Report:
 - whether STATE.md / LOG.md need updates
 ```
 
-## 18. Open questions / needs verification
+## 20. Open questions / needs verification
 
 Before implementation, verify:
 
-- exact latest `main` route state before adding `/feed`;
 - whether live/test Supabase has all existing migrations applied;
 - whether `profile_cabinet_is_admin()` exists live and works for activity events;
-- whether `profile_cabinet_publications.image_url` can safely contain public URLs only in public feed;
-- whether service images with `image_bucket/image_path` should be hidden/fallback in public feed unless public-safe copy exists;
-- whether master updates should use `profile_cabinet_publications` with type extension or only `profile_cabinet_activity_events` standalone rows;
-- whether public photo albums are Phase 2 or required for MVP;
-- whether `/feed` should be visible from the public home navigation immediately or only through direct route first.
+- whether feed event target joins should be done in frontend or a public-safe SQL view;
+- whether master updates should be standalone events or an extension of `profile_cabinet_publications`;
+- whether public photo albums are Phase 2 or required immediately;
+- whether `/feed` should be linked from the public home navigation immediately or stay direct-route first;
+- whether service updates should create a new event or update an existing event;
+- whether Power Place public projection should extend `profile_cabinet_publications` with `source_type/source_id`.
