@@ -6603,3 +6603,132 @@
     width: 25%;
   }
 }
+
+/* ── Profile Lite Media Module layout ──────────────────────────────────────── */
+
+.profileLiteMediaModule .profileLiteMediaLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaMain {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadPanel {
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+  padding: 10px 14px;
+  background: #f9f4ee;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e8ddd0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 140px;
+  max-width: 260px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterField label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7a6450;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterField select {
+  font-size: 13px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d4c0a8;
+  background: #fff;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.profileLiteMediaModule .profileLiteMediaFormError {
+  margin-bottom: 10px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFormHint {
+  font-size: 11px;
+  color: #9a7a5a;
+  margin: 2px 0 6px;
+}
+
+/* Custom file input label — hides the raw input, styles the label as a button */
+.profileLiteMediaModule .profileLiteFileInput {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: dashed;
+  border-color: #b8a090;
+  background: #f9f4ee;
+  cursor: pointer;
+  font-size: 13px;
+  color: #5a4030;
+  margin: 4px 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profileLiteMediaModule .profileLiteFileInput input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+
+.profileLiteMediaModule .profileLiteFileInput:hover {
+  border-color: #8a6848;
+  background: #f4ede4;
+}
+
+@media (max-width: 980px) {
+  .profileLiteMediaModule .profileLiteMediaLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFilterBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFilterField {
+    max-width: 100%;
+    flex: 1 1 auto;
+  }
+}
