@@ -2,7 +2,7 @@
 
 Last updated: 2026-06-05
 
-## Цель
+## 1. Цель
 
 Сайт должен иметь две живые версии:
 
@@ -11,26 +11,7 @@ Last updated: 2026-06-05
 
 Главное правило: клиенты не должны видеть незавершённые изменения. Новый функционал сначала проходит проверку на черновом сайте и только потом выпускается в чистовую версию через релиз.
 
-## Термины
-
-### Черновой сайт
-
-- Назначение: ежедневная разработка, проверка Codex-изменений, ручная QA-проверка владельцем.
-- Ветка: `main`.
-- Vercel project: `2mentalica`.
-- Ожидаемый URL: `https://2mentalica.vercel.app`.
-- Желательный URL `https://www.2mentalica.vercel.app` — `needs verification` в Vercel Domains.
-- Данные: staging/test Supabase, тестовые пользователи, тестовые мандалы, тестовые фото.
-
-### Чистовой сайт
-
-- Назначение: стабильная версия для клиентов.
-- Ветка: `production`.
-- Vercel project: текущий клиентский production-проект.
-- URL: текущий клиентский live-домен, `needs verification` перед переключением.
-- Данные: production Supabase, реальные пользователи/клиенты.
-
-## Базовая схема
+## 2. Короткая схема
 
 ```text
 feature/*
@@ -42,11 +23,30 @@ main
 release/YYYY-MM-DD
   ↓ final QA
 production
-  ↓ auto-deploy
+  ↓ auto-deploy / fallback deploy if needed
 client live site
 ```
 
-## Роли веток
+## 3. Термины и роли
+
+### Черновой сайт
+
+- Назначение: ежедневная разработка, проверка Codex-изменений, ручная QA-проверка владельцем.
+- Ветка: `main`.
+- Vercel project: `2mentalica`.
+- Ожидаемый URL: `https://2mentalica.vercel.app`.
+- Желательный URL `https://www.2mentalica.vercel.app` — `needs verification` в Vercel Domains.
+- Данные: staging/test Supabase, тестовые пользователи, тестовые мандалы, тестовые фото.
+- Статус: target model, dashboard setup still `needs verification`.
+
+### Чистовой сайт
+
+- Назначение: стабильная версия для клиентов.
+- Ветка: `production`.
+- Vercel project: текущий клиентский production-проект.
+- URL: текущий клиентский live-домен, `needs verification` перед переключением.
+- Данные: production Supabase, реальные пользователи/клиенты.
+- Статус: target model, production branch/dashboard setup still `needs verification`.
 
 ### `main`
 
@@ -71,7 +71,8 @@ client live site
 - не пушить напрямую;
 - не использовать для ежедневной разработки;
 - не менять без явной release-задачи;
-- обновлять только после ручной проверки владельцем на черновом сайте.
+- обновлять только после ручной проверки владельцем на черновом сайте;
+- защищать через GitHub branch protection.
 
 ### `release/*`
 
@@ -92,7 +93,146 @@ release/power-place-fixes
 - мелких release-blocking фиксов;
 - подготовки записи в `LOG.md` / `STATE.md`, если нужно.
 
-## Рабочий процесс разработки
+## 4. Важное переходное состояние
+
+На момент создания этого документа текущий repo всё ещё имеет `main` как default branch. Dashboard-настройки Vercel/Supabase/GitHub branch protection не подтверждены из кода.
+
+Пока production-branch migration не завершена, каждый deploy-related агент обязан явно различать:
+
+```text
+Documented target model != verified dashboard state
+```
+
+Нельзя утверждать, что `main` уже деплоится в `2mentalica`, а `production` уже деплоится клиентам, пока это не проверено в Vercel/GitHub.
+
+## 5. Программа внедрения
+
+### Phase 0 — зафиксировать текущее стабильное состояние
+
+1. Найти текущий клиентский live URL.
+2. Найти текущий Vercel project, который обслуживает клиентский live.
+3. Найти SHA, который сейчас считается стабильным.
+4. Проверить, что текущий live открывает:
+   - `/`
+   - `/profile`
+   - `/masters`
+   - `/profile/admin`
+   - `/profile/mandalas`
+5. Зафиксировать SHA как `previous_good_commit` в release-задаче или LOG.
+
+### Phase 1 — создать ветку `production`
+
+Создать `production` от текущего стабильного `main`:
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b production
+git push -u origin production
+```
+
+Если текущий `main` уже содержит непроверенные изменения, нельзя автоматически создавать `production` из него. Нужно выбрать последний стабильный SHA и создать `production` от него.
+
+### Phase 2 — защитить `production` в GitHub
+
+В GitHub Settings → Branches добавить rule для `production`:
+
+```text
+Require a pull request before merging
+Block direct pushes if available
+Block force pushes
+Require status checks if available
+Require conversation resolution if available
+```
+
+Правило: Codex не пушит напрямую в `production`.
+
+### Phase 3 — создать Vercel project `2mentalica`
+
+В Vercel:
+
+```text
+Add New Project
+Import repo: andylitvinov-design/reiki-yggdrasil
+Project name: 2mentalica
+Production branch: main
+Build command: npm run build
+Output directory: dist
+Framework: Vite
+```
+
+Ожидаемый результат:
+
+```text
+https://2mentalica.vercel.app
+```
+
+`https://www.2mentalica.vercel.app` — проверить отдельно в Domains. Пока статус: `needs verification`.
+
+### Phase 4 — перевести клиентский Vercel project на `production`
+
+В существующем клиентском Vercel project:
+
+```text
+Settings → Git → Production Branch → production
+```
+
+Нельзя менять клиентский домен без отдельной задачи и проверки.
+
+После переключения проверить, что клиентский live продолжает открываться и не потерял auth redirects.
+
+### Phase 5 — настроить Supabase staging для `2mentalica`
+
+Рекомендуется отдельный Supabase project:
+
+```text
+Production Supabase → client live
+Staging Supabase → 2mentalica
+```
+
+В staging Supabase:
+
+- применить актуальные migrations из `supabase/migrations/*`;
+- создать нужные storage buckets;
+- проверить RLS policies;
+- создать тестового пользователя;
+- создать тестового admin user/email;
+- добавить OAuth redirect URLs для `2mentalica`, если Google OAuth нужен на черновом сайте;
+- не копировать реальные клиентские данные без отдельного решения.
+
+Env names only:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+VITE_ADMIN_EMAIL
+```
+
+Значения никогда не коммитить.
+
+### Phase 6 — проверить оба сайта
+
+Проверить черновой сайт:
+
+```text
+https://2mentalica.vercel.app/
+https://2mentalica.vercel.app/profile
+https://2mentalica.vercel.app/masters
+https://2mentalica.vercel.app/profile/admin
+https://2mentalica.vercel.app/profile/mandalas
+```
+
+Проверить чистовой сайт:
+
+```text
+current client live /
+current client live /profile
+current client live /masters
+current client live /profile/admin
+current client live /profile/mandalas
+```
+
+## 6. Рабочий процесс разработки
 
 1. Codex создаёт feature-ветку от `main` или работает в ветке, которая целится в `main`.
 2. Изменения проходят локальные проверки.
@@ -104,7 +244,7 @@ release/power-place-fixes
 8. Release-ветка вливается в `production`.
 9. Клиентский live-сайт обновляется.
 
-## Команды релиза
+## 7. Команды релиза
 
 Создать release-ветку от актуального `main`:
 
@@ -133,53 +273,32 @@ git merge release/YYYY-MM-DD
 git push origin main
 ```
 
-## Vercel setup
+## 8. Когда нужен release branch, а когда достаточно main
 
-### Черновой проект
+### Достаточно `main`
 
-- Project name: `2mentalica`.
-- Git repo: `andylitvinov-design/reiki-yggdrasil`.
-- Production branch for this Vercel project: `main`.
-- Expected URL: `https://2mentalica.vercel.app`.
-- Optional desired URL: `https://www.2mentalica.vercel.app` — `needs verification`.
+- рабочая проверка UI;
+- черновой прототип;
+- исправление, которое должен увидеть только Андрей;
+- задача ещё не готова для клиентов.
 
-### Чистовой проект
+### Нужен `release/*`
 
-- Existing client-facing Vercel project.
-- Production branch: `production`.
-- Existing client domain must be preserved.
-- Existing rewrites from `vercel.json` must be preserved.
+- функционал готов для клиентов;
+- нужно зафиксировать стабильный набор изменений;
+- были изменения Supabase/auth/storage;
+- были изменения `/profile`, `/masters`, `/profile/admin`, `/profile/mandalas`;
+- нужен rollback path.
 
-Do not change production domains or production project settings from code unless the owner explicitly asks for a release/deployment setup task.
+### Нельзя сразу в `production`
 
-## Supabase setup
+- если не было owner QA на `2mentalica`;
+- если неизвестно, какие env values использовались;
+- если не проверены роуты;
+- если есть console errors;
+- если `npm run build` или релевантные тесты не проходили.
 
-Use separate Supabase environments when possible.
-
-### Черновой Supabase
-
-- Used by `2mentalica`.
-- Contains only test data.
-- Uses the same schema/migrations as production.
-- Has test user(s), test mandalas, test photos.
-
-### Чистовой Supabase
-
-- Used by client live site.
-- Contains real users and client data.
-- Must not be used for destructive testing.
-
-Env names only:
-
-```text
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
-VITE_ADMIN_EMAIL
-```
-
-Never commit env values or secrets.
-
-## Release QA checklist
+## 9. Release QA checklist
 
 Before merging a release into `production`, verify:
 
@@ -211,7 +330,50 @@ For Power Place / mandala tasks, additionally verify:
 - saved compositions reopen with the expected values;
 - Vercel routing still opens `/profile/mandalas` directly.
 
-## Rollback
+## 10. Vercel setup checklist
+
+### Черновой project `2mentalica`
+
+- [ ] Vercel project exists.
+- [ ] Repo is `andylitvinov-design/reiki-yggdrasil`.
+- [ ] Production branch is `main`.
+- [ ] Build command is `npm run build`.
+- [ ] Output directory is `dist`.
+- [ ] URL `https://2mentalica.vercel.app` opens.
+- [ ] Env names exist with staging values.
+- [ ] Auth redirect URLs include `2mentalica` if OAuth is tested there.
+
+### Чистовой client project
+
+- [ ] Existing project identified.
+- [ ] Existing client domain preserved.
+- [ ] Production branch is `production`.
+- [ ] Env names exist with production values.
+- [ ] Rewrites from `vercel.json` are not broken.
+- [ ] Fallback deploy uses `production`, not `main`.
+
+## 11. Supabase setup checklist
+
+### Staging Supabase
+
+- [ ] Separate project exists, or shared-production exception is explicitly accepted.
+- [ ] Migrations applied.
+- [ ] Storage buckets created.
+- [ ] RLS policies checked.
+- [ ] Test user created.
+- [ ] Test admin configured.
+- [ ] Test media upload works.
+- [ ] Test saved mandala flow works.
+- [ ] No real client data is required.
+
+### Production Supabase
+
+- [ ] Production env values are not exposed.
+- [ ] Production data is not used for destructive tests.
+- [ ] Redirect URLs include client live domain.
+- [ ] Existing redirects are kept during migration window.
+
+## 12. Rollback
 
 Preferred rollback: revert the release merge commit on `production`.
 
@@ -232,7 +394,31 @@ git push --force-with-lease origin production
 
 Always record the previous good commit before release.
 
-## Codex rules
+## 13. Deploy fallback
+
+Production fallback workflow:
+
+```text
+.github/workflows/deploy-production.yml
+```
+
+Under this release model, fallback production deploy normally uses:
+
+```text
+ref=production
+```
+
+Not:
+
+```text
+ref=main
+```
+
+Use `main` only if the production-branch migration is not implemented yet or the owner explicitly approves bypassing the release flow.
+
+More details: `docs/deploy-fallback.md`.
+
+## 14. Codex rules
 
 Codex must follow this model:
 
@@ -241,9 +427,10 @@ Codex must follow this model:
 - production domains are not changed during normal development;
 - production Supabase env values are not changed or exposed;
 - release branches are used for client-facing releases;
+- fallback production deploy normally uses `production`;
 - after a release-blocking fix in `release/*`, merge that fix back into `main`.
 
-## Report format after release work
+## 15. Report format after release work
 
 Every release task must report:
 
@@ -253,7 +440,19 @@ Every release task must report:
 4. changed files;
 5. checks run;
 6. QA pages checked;
-7. production URL checked;
-8. risks;
-9. what was not verified;
-10. whether `STATE.md` / `LOG.md` need updates.
+7. test site checked;
+8. production URL checked;
+9. risks;
+10. what was not verified;
+11. whether `STATE.md` / `LOG.md` need updates.
+
+## 16. Known risks / needs verification
+
+- Vercel project `2mentalica` — `needs verification`.
+- URL `https://2mentalica.vercel.app` — `needs verification` until project exists.
+- URL `https://www.2mentalica.vercel.app` — `needs verification`; may not be available as desired.
+- Branch `production` — `needs verification` until created in GitHub.
+- Client Vercel project production branch switch to `production` — `needs verification`.
+- Separate staging Supabase — `needs verification`.
+- GitHub branch protection for `production` — `needs verification`.
+- Exact client live domain — `needs verification` before final migration.
