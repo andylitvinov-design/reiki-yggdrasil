@@ -4,7 +4,9 @@ import {
   buildCompositionServicePayload,
   createEmptyServiceForm,
   formatServicePrice,
+  getServicePublicLinkState,
   groupServicesByStatus,
+  SERVICE_FORMAT_OPTIONS,
   normalizeServiceForm,
   normalizeServiceOrder,
   normalizeServiceRow,
@@ -17,6 +19,11 @@ const empty = createEmptyServiceForm();
 assert.equal(empty.status, "draft");
 assert.equal(empty.price_currency, "EUR");
 assert.equal(empty.image_url, "");
+assert.deepEqual(
+  SERVICE_FORMAT_OPTIONS.map((option) => option.label),
+  ["С подписью мастера", "Без подписи мастера", "Две версии"],
+  "services manager should expose Phase 2 MVP format labels"
+);
 
 assert.deepEqual(
   normalizeServiceForm(
@@ -105,6 +112,21 @@ assert.equal(formatServicePrice({ price_amount: null, price_currency: "EUR" }), 
 assert.equal(formatServicePrice({ price_amount: "", price_currency: "EUR" }), "Бесплатно");
 assert.equal(formatServicePrice({ price_amount: 0, price_currency: "EUR" }), "Бесплатно");
 assert.equal(formatServicePrice({ price_amount: "25", price_currency: "EUR" }), "25 EUR");
+assert.equal(
+  getServicePublicLinkState({ status: "draft" }).message,
+  "Ссылка появится после публикации.",
+  "draft service should not expose an active public link"
+);
+assert.equal(
+  getServicePublicLinkState({ status: "published", id: "service-1" }).message,
+  "Услуга опубликована. Публичная ссылка будет доступна после подключения маршрута /services/:serviceId.",
+  "published service should not expose a fake public link while route is missing"
+);
+assert.equal(
+  getServicePublicLinkState({ status: "archived", id: "service-1" }).message,
+  "Услуга в архиве. Публичная ссылка отключена.",
+  "archived service should keep public link disabled"
+);
 
 // composition_id is normalized through normalizeServiceForm
 const withComposition = normalizeServiceForm({ profile_id: "p1", composition_id: " comp-abc ", title: "Т" }, "draft");
@@ -132,6 +154,9 @@ const groupedServices = groupServicesByStatus([
 assert.deepEqual(groupedServices.draft.map((item) => item.id), ["draft-1", "draft-2"]);
 assert.deepEqual(groupedServices.published.map((item) => item.id), ["published-1"]);
 assert.deepEqual(groupedServices.archived.map((item) => item.id), ["archived-1"]);
+
+const archivedStatus = normalizeServiceForm({ profile_id: "p1", title: "Archived" }, "archived");
+assert.equal(archivedStatus.status, "archived", "archive action should normalize to archived status safely");
 
 const preserved = buildCompositionServicePayload({
   profileId: "profile-1",
