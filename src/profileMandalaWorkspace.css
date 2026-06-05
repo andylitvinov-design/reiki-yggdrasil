@@ -6967,7 +6967,7 @@
 
 .profileLiteMediaModule .profileLiteMediaLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   gap: 18px;
   align-items: start;
   min-width: 0;
@@ -6982,6 +6982,53 @@
 
 .profileLiteMediaModule .profileLiteMediaUploadPanel {
   min-width: 0;
+  align-self: start;
+}
+
+.profileLiteMediaModule .profileLiteMediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard h3 {
+  font-size: 13px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard p {
+  font-size: 12px;
+  margin: 0;
+  color: #7a6450;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaThumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: #f0e8dc;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #c0a080;
+  overflow: hidden;
 }
 
 .profileLiteMediaModule .profileLiteMediaFilterBar {
@@ -7151,6 +7198,10 @@
   .profileLiteMediaModule .profileLiteMediaFilterField {
     max-width: 100%;
     flex: 1 1 auto;
+  }
+
+  .profileLiteMediaModule .profileLiteMediaGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 }
 
