@@ -478,4 +478,26 @@ assert.match(profileMediaClientSource, /application\/pdf/, "PROFILE_MEDIA_ALLOWE
 const grimoireMigration = readFileSync("supabase/migrations/20260605120000_grimoire_publication_types.sql", "utf8");
 assert.match(grimoireMigration, /uncategorized.*photo.*article.*document.*audio/, "Grimoire migration should add uncategorized, photo, article, document, audio type values");
 
+// ── F: Cover layer separation and mobile width contract ───────────────────────
+
+assert.match(powerPlaceBaseSource, /Фон внутри/, "cover panel must include inner layer tab label");
+assert.match(powerPlaceBaseSource, /Фон снаружи/, "cover panel must include outer layer tab label");
+assert.match(powerPlaceBaseSource, /coverVariantsGrid/, "cover panel must use coverVariantsGrid");
+assert.match(powerPlaceBaseSource, /export function coverShortcutLayerFromPhoto/, "layer classifier helper must be exported for testing");
+assert.match(powerPlaceBaseSource, /export function filterCoverShortcutsByLayer/, "layer filter helper must be exported for testing");
+assert.match(powerPlaceBaseSource, /item\.kind === "client-photo"/, "cover shortcuts should only come from client-photo items");
+assert.match(powerPlaceBaseSource, /filterCoverShortcutsByLayer\(candidates, coverLayerMode, activeCoverSrc\)/, "savedCoverOptions must apply layer filter with current layer mode");
+
+// Mobile CSS: full-width enforcement
+assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch,[\s\S]*\.profileLitePowerPlace \.coverPickerPanel,[\s\S]*\.profileLitePowerPlace \.reportSettingsPanel \{[\s\S]*width: 100%/, "mobile CSS must enforce full width for layout, cover, and report panels");
+
+// Cover shortcuts: no internal scroll clipping
+assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.coverVariantsGrid\s*\{[^}]*max-height:[^}]*\}/, "coverVariantsGrid must not have a max-height clip that hides shortcuts");
+assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.coverVariantsGrid\s*\{[^}]*overflow:\s*auto[^}]*\}/, "coverVariantsGrid must not have overflow:auto that creates internal scrollbar");
+
+// Delete cleanup: cover_ref layers must be reset when deleted photo was active cover
+assert.match(profileLitePageSource, /NO_COVER_LAYER = \{ id: "no-cover"/, "handleDeleteClientPhoto must define a no-cover fallback for layer reset");
+assert.match(profileLitePageSource, /innerSrc && deletedRefs\.has\(innerSrc\)[\s\S]*nextCoverRef[\s\S]*inner: NO_COVER_LAYER/, "handleDeleteClientPhoto must reset inner cover when deleted photo was active inner cover");
+assert.match(profileLitePageSource, /outerSrc && deletedRefs\.has\(outerSrc\)[\s\S]*nextCoverRef[\s\S]*outer: NO_COVER_LAYER/, "handleDeleteClientPhoto must reset outer cover when deleted photo was active outer cover");
+
 console.log("Profile Lite cabinet contract: all assertions passed.");

@@ -1053,13 +1053,44 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         }
 
-        if (current.central_photo_id === photo.id) {
-          delete nextObjectRefs.__center_image;
-          if (centerRef) delete nextObjectRefUrls[centerRef];
-          return { ...current, central_photo_id: "", object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls };
+        // Reset cover_ref layers when the deleted photo was the active cover
+        const NO_COVER_LAYER = { id: "no-cover", label: "Без фона", type: "none", tone: "", src: "", display_src: "" };
+        const currentCoverRef = current.cover_ref || {};
+        const innerSrc = (currentCoverRef.inner || currentCoverRef).src || "";
+        const outerSrc = (currentCoverRef.outer || {}).src || "";
+        let nextCoverRef = currentCoverRef;
+        if (innerSrc && deletedRefs.has(innerSrc)) {
+          if (innerSrc) delete nextObjectRefUrls[innerSrc];
+          nextCoverRef = {
+            ...nextCoverRef,
+            id: NO_COVER_LAYER.id, label: NO_COVER_LAYER.label, type: NO_COVER_LAYER.type,
+            tone: NO_COVER_LAYER.tone, src: NO_COVER_LAYER.src, display_src: NO_COVER_LAYER.display_src,
+            inner: NO_COVER_LAYER
+          };
+          changed = true;
+        }
+        if (outerSrc && deletedRefs.has(outerSrc)) {
+          if (outerSrc) delete nextObjectRefUrls[outerSrc];
+          nextCoverRef = { ...nextCoverRef, outer: NO_COVER_LAYER };
+          changed = true;
         }
 
-        return changed ? { ...current, object_refs: nextObjectRefs, object_ref_urls: nextObjectRefUrls } : current;
+        const isCenterDeleted = current.central_photo_id === photo.id;
+        if (isCenterDeleted) {
+          delete nextObjectRefs.__center_image;
+          if (centerRef) delete nextObjectRefUrls[centerRef];
+        }
+
+        if (isCenterDeleted || changed) {
+          return {
+            ...current,
+            ...(isCenterDeleted ? { central_photo_id: "" } : {}),
+            object_refs: nextObjectRefs,
+            object_ref_urls: nextObjectRefUrls,
+            ...(nextCoverRef !== currentCoverRef ? { cover_ref: nextCoverRef } : {})
+          };
+        }
+        return current;
       });
     } catch (error) {
       setMediaStatus("needs-verification");
