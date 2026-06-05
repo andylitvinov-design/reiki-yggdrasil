@@ -1,5 +1,5 @@
 import React from "react";
-import { serviceStatusText } from "../../lib/profileServicesClient.js";
+import { formatServicePrice, groupServicesByStatus, serviceStatusText } from "../../lib/profileServicesClient.js";
 
 export default function ProfileLiteServicesModule({
   onFieldChange,
@@ -11,6 +11,13 @@ export default function ProfileLiteServicesModule({
   servicesError,
   servicesStatus
 }) {
+  const groupedServices = groupServicesByStatus(services);
+  const serviceGroups = [
+    ["draft", "Черновики", "Ссылка появится после публикации."],
+    ["published", "Опубликованные", "needs verification: публичный маршрут ещё не реализован"],
+    ["archived", "Архив", "Услуга в архиве. Публичная ссылка отключена."]
+  ];
+
   return (
     <section className="profileLiteModule profileLiteServices mandalaWorkspace" aria-label="Услуги">
       <div className="mandalaHero">
@@ -50,15 +57,28 @@ export default function ProfileLiteServicesModule({
             </div>
             {servicesError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {servicesError}</div>}
             <div className="profileLiteServiceList">
-              {services.map((service) => (
-                <article className="materialCard" key={service.id || service.title}>
-                  <div className="materialThumb">{serviceStatusText(service.status).slice(0, 1)}</div>
-                  <div>
-                    <h3>{service.title || "Без названия"}</h3>
-                    <p>{service.description || "Описание не заполнено."}</p>
-                    <small>{service.price_amount || "0"} {service.price_currency || "EUR"} · {serviceStatusText(service.status)}</small>
+              {serviceGroups.map(([status, title, linkText]) => (
+                <section className="profileLiteServiceGroup" key={status} aria-label={title}>
+                  <div className="cabinetFormHeader">
+                    <div>
+                      <p className="cabinetEyebrow">{title}</p>
+                      <h3>{title}</h3>
+                    </div>
+                    <span className="cabinetStatus">{groupedServices[status].length}</span>
                   </div>
-                </article>
+                  {groupedServices[status].map((service) => (
+                    <article className="materialCard" key={service.id || service.title}>
+                      <div className="materialThumb">{serviceStatusText(service.status).slice(0, 1)}</div>
+                      <div>
+                        <h3>{service.title || "Без названия"}</h3>
+                        <p>{service.description || "Описание не заполнено."}</p>
+                        <small>{formatServicePrice(service)} · {serviceStatusText(service.status)}</small>
+                        <p className={status === "published" ? "cabinetSecondaryDataWarning" : "cabinetMuted"}>{linkText}</p>
+                      </div>
+                    </article>
+                  ))}
+                  {groupedServices[status].length === 0 && <p>Нет записей в этом разделе.</p>}
+                </section>
               ))}
               {servicesStatus === "success" && services.length === 0 && <p>Услуги пока не найдены.</p>}
             </div>

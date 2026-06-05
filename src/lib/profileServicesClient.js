@@ -58,6 +58,20 @@ export function orderStatusText(status) {
   return ({ new: "Новая", in_progress: "В работе", sent: "Отправлено", closed: "Закрыта" })[status] || "Новая";
 }
 
+export function formatServicePrice(service = {}) {
+  const amount = price(service.price_amount);
+  if (!amount) return "Бесплатно";
+  return `${amount} ${text(service.price_currency || "EUR") || "EUR"}`;
+}
+
+export function groupServicesByStatus(services = []) {
+  return services.reduce((groups, service) => {
+    const status = serviceStatus(service?.status);
+    groups[status].push(service);
+    return groups;
+  }, { draft: [], published: [], archived: [] });
+}
+
 export function normalizeServiceForm(form = {}, requestedStatus = form?.status) {
   return {
     profile_id: text(form.profile_id),
@@ -141,6 +155,15 @@ export async function listOwnServices(profileId, session = getStoredSession()) {
   return Array.isArray(rows) ? rows.map(normalizeServiceRow) : [];
 }
 
+export async function findOwnServiceByComposition(profileId, compositionId, session = getStoredSession()) {
+  if (!profileId || !compositionId || !session?.access_token) return null;
+  const rows = await request(
+    `/rest/v1/${SERVICES_TABLE}?profile_id=eq.${encodeURIComponent(profileId)}&composition_id=eq.${encodeURIComponent(compositionId)}&select=*&order=updated_at.desc&limit=1`,
+    { session }
+  );
+  return rows?.[0] ? normalizeServiceRow(rows[0]) : null;
+}
+
 export async function createOwnService(service, session = getStoredSession()) {
   const rows = await request(`/rest/v1/${SERVICES_TABLE}`, {
     method: "POST",
@@ -166,6 +189,26 @@ export async function publishOwnService(serviceOrId, service = null, session = g
   const id = typeof serviceOrId === "string" ? serviceOrId : serviceOrId?.id;
   const payload = typeof serviceOrId === "string" ? service || {} : serviceOrId || {};
   return id ? updateOwnService(id, { ...payload, status: "published" }, session) : createOwnService({ ...payload, status: "published" }, session);
+}
+
+export async function upsertOwnServiceForComposition({ profileId, composition, status = "draft" } = {}, session = getStoredSession()) {
+  const compositionId = text(composition?.id);
+  if (!profileId) throw makeError("Missing profile id.");
+  if (!compositionId) throw makeError("Missing composition id.");
+
+  const payload = {
+    ...createEmptyServiceForm(),
+    profile_id: profileId,
+    composition_id: compositionId,
+    title: text(composition?.title) || "Мандала Места Силы",
+    description: "Услуга подготовлена из сохранённой мандалы.",
+    image_url: "",
+    status
+  };
+  const existing = await findOwnServiceByComposition(profileId, compositionId, session);
+
+  if (!existing) return createOwnService(payload, session);
+  return updateOwnService(existing.id, { ...existing, ...payload, status }, session);
 }
 
 export async function createServiceOrder(order, session = getStoredSession()) {
