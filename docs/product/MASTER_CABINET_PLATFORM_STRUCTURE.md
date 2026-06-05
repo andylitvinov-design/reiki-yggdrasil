@@ -1,4 +1,4 @@
-# Master Cabinet Platform Structure — Services, Feed, Grimoire
+# Master Cabinet Platform Structure — Master Page, Services, Feed, Grimoire
 
 Last updated: 2026-06-05  
 Project: Reiki Yggdrasil / Mentalica  
@@ -6,333 +6,322 @@ Repo: `andylitvinov-design/reiki-yggdrasil`
 Status: technical product architecture / implementation blueprint  
 Target branch for implementation work: `main` for normal feature work, never direct `production`
 
-## 1. Purpose
+## 1. Core correction
 
-This document coordinates several already-written product concepts into one technical architecture:
+The central product object is **not only the private `/profile` cabinet**.
 
-1. `docs/PROFILE_SERVICES_ROADMAP.md` — service/shop flow.
-2. `docs/product/COMMUNITY_FEED_CONCEPT.md` — public community activity feed at `/feed`.
-3. `docs/concepts/master-feed-grimoire.md` — personal master feed and Grimoire workspace.
+The central product object is the **public Master Page**, similar to a Facebook page for a practitioner.
 
-The goal is to prevent Codex/agents from implementing these ideas as separate unrelated modules.
+A master should have a public page where they can publish:
+
+- short notes;
+- articles;
+- news;
+- new mandalas;
+- public settings/initiations;
+- services;
+- public-safe materials;
+- announcements;
+- practice results.
+
+Then these published or drafted objects also enter the master's private workspace:
+
+```text
+public/draft master publication
+↓
+private master cabinet
+↓
+personal Grimoire
+↓
+sorting/classification
+↓
+workshop material / service / course material / public feed item
+```
+
+The public output of all masters becomes a news feed that other users can read.
+
+This community news feed should also be visible from the public home page, not hidden only under a separate `/feed` route.
+
+## 2. High-level product model
 
 The product should evolve as one connected system:
 
 ```text
-private master creation
+Master Page publishing
 ↓
-personal master feed / cabinet
+Public master posts / mandalas / articles / services
 ↓
-Grimoire review and classification
+Community news feed on home page and/or /feed
 ↓
-service/shop object OR public-safe publication
+Private master cabinet backstage
 ↓
-public profile / public feed
+Personal Grimoire sorting and classification
 ↓
-client order / request / delivery
+Workshop materials / services / courses
+↓
+Client orders and delivery
 ```
 
-## 2. Existing source documents
+There are four different but connected surfaces:
 
-### 2.1 Services / shop roadmap
+```text
+1. Public Master Page       = Facebook-like practitioner page
+2. Home/community feed      = news feed from all masters
+3. Private /profile cabinet = master backstage/editor
+4. Grimoire                 = sorting/classification/workshop preparation
+```
 
-Source:
+## 3. Source documents coordinated by this file
+
+This document coordinates:
 
 ```text
 docs/PROFILE_SERVICES_ROADMAP.md
-```
-
-Core flow:
-
-```text
-saved mandala / template
-↓
-master service
-↓
-public service profile
-↓
-authenticated order
-↓
-master request queue
-↓
-result delivery
-```
-
-Important existing rule:
-
-- stabilize `/profile` first;
-- only then turn service/shop foundation into a working flow;
-- do not add payment processing yet unless explicitly requested.
-
-### 2.2 Community feed concept
-
-Source:
-
-```text
 docs/product/COMMUNITY_FEED_CONCEPT.md
-```
-
-Core idea:
-
-```text
-/feed = public-safe community activity stream
-```
-
-Public feed can show:
-
-- master news posts;
-- approved mandalas/materials;
-- public-safe Power Place projections;
-- public-safe photo albums;
-- services created or updated by masters;
-- practices, rituals, course notes and announcements;
-- admin announcements and featured items.
-
-Important boundary:
-
-```text
-private source item ≠ public object ≠ activity event
-```
-
-The public feed must not expose:
-
-- private media;
-- `storage://` refs;
-- signed URLs;
-- raw `object_refs`;
-- client photos;
-- private reports;
-- private Power Place composition data.
-
-### 2.3 Personal master feed and Grimoire
-
-Source:
-
-```text
 docs/concepts/master-feed-grimoire.md
+docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md
 ```
 
-Core idea:
+Related product ideas:
+
+- service/shop flow;
+- personal Grimoire;
+- public community activity feed;
+- master page publishing;
+- workshop materials.
+
+## 4. Correct naming model
+
+Use these names consistently:
 
 ```text
-/profile = personal Facebook-like master workspace
+Master Page             = public Facebook-like page of one master
+Master Page Post        = public/draft/pending post created by master
+Community Feed          = aggregate public feed from all masters
+Home Feed Block         = feed block on main site home page
+Profile Cabinet         = private authenticated master backstage
+Grimoire                = private sorting/classification workspace
+Workshop Material       = prepared material used inside master's workshop/course/service flow
+Service Shop            = services and orderable offerings
+Activity Event          = public-safe event row for feed aggregation
+Source Item             = original private object: photo, mandala, composition, note, file
+Public Projection       = curated safe public representation of private source item
 ```
 
-Master can quickly create/upload:
-
-- mandalas;
-- settings/initiations;
-- materials;
-- photos;
-- notes;
-- Grimoire records;
-- services;
-- results of practices.
-
-Then the master can classify and deepen these objects in the Grimoire.
-
-## 3. One unified product model
-
-### 3.1 Private layer: raw creation
-
-This is where master creates or uploads source material.
-
-Examples:
-
-- saved Power Place composition;
-- uploaded photo;
-- uploaded article/PDF;
-- private note;
-- private client material;
-- draft mandala;
-- draft setting;
-- draft service.
-
-Default visibility:
+Avoid using only “лента” without qualifier. Always clarify:
 
 ```text
-private
+публичная страница мастера
+лента страницы мастера
+общая лента новостей
+личный кабинет мастера
+личный Гримуарий
+материалы мастерской
 ```
 
-Private layer must never be directly published to public feed.
+## 5. Product surfaces
 
-### 3.2 Personal feed layer: master cabinet timeline
+### 5.1 Public Master Page
 
-This is the master’s own Facebook-like cabinet inside `/profile`.
+The Master Page should feel like a Facebook page for a practitioner, but calmer and more ritual/art/academy oriented.
 
-Purpose:
-
-- show what master created, saved, uploaded, edited or wants to publish;
-- give quick actions;
-- keep work alive and visible;
-- reduce hidden/forgotten materials.
-
-The personal feed can show private items because it is inside authenticated `/profile`.
-
-Possible tabs/filters:
+It can contain:
 
 ```text
-Все
-Мандалы
-Фото
-Материалы
-Настройки
-Гримуар
-Услуги
-Черновики
-Неразобранное
+Master header
+Master bio
+Master services
+Master posts
+Master articles
+Master mandalas
+Master public materials
+Master announcements
+CTA to contact/order/follow later
 ```
 
-### 3.3 Grimoire layer: review and classification
+Possible route patterns — needs repo verification:
 
-The Grimoire is the meaning/structure layer.
+```text
+/masters/:profileId
+/masters/:slug
+/master/:slug
+```
+
+Do not invent route until `src/main.jsx`, `MastersPage.jsx`, and current profile/public profile structure are inspected.
+
+### 5.2 Community Feed / Home Feed
+
+All public-safe posts from all masters become a shared news feed.
+
+This feed should exist in two possible places:
+
+```text
+/             → home page block: latest community news
+/feed         → full feed page with filters/tabs
+```
+
+The home page feed block should be a curated/latest preview, not necessarily the full feed UI.
+
+Home page block example:
+
+```text
+Новости мастеров
+[Новая мандала]
+[Статья мастера]
+[Новая услуга]
+[Практика / настройка]
+Button: Смотреть всю ленту
+```
+
+### 5.3 Private Profile Cabinet
+
+`/profile` is the master backstage.
+
+It is not the main public page. It is where the master:
+
+- creates drafts;
+- uploads source materials;
+- manages saved mandalas;
+- manages services;
+- sees own posts and their statuses;
+- opens Grimoire;
+- sends items to public page/feed;
+- turns items into workshop materials.
+
+### 5.4 Personal Grimoire
+
+The Grimoire is a private classification and meaning workspace.
 
 It answers:
 
 ```text
 What is this object?
-How should it be classified?
-Where can it be used?
-Can it become a service, course material, public publication, or stay private?
+What category does it belong to?
+Is it private, public, service, course, workshop material, or archive?
+How can this be used in the master's practice?
 ```
 
-In Grimoire, master can add:
+The Grimoire should receive:
 
-- title;
-- category;
-- tags;
-- comment;
-- symbolism;
-- practice instructions;
-- link to mandala;
-- link to service;
-- link to course;
-- visibility/status.
+- drafts;
+- published master page posts;
+- uploaded files/photos;
+- mandalas;
+- service drafts;
+- articles;
+- notes;
+- public-safe copies/projections.
 
-### 3.4 Service/shop layer
-
-A service is not just a post.
-
-It is a sellable/orderable master object.
-
-Service flow:
+From Grimoire, an item can become:
 
 ```text
-mandala/template/material
-↓
-service draft
-↓
-service editor
-↓
-published service
-↓
-public service profile/link
-↓
-client order
-↓
-master request queue
-↓
-delivery/result
+workshop material
+service
+public post
+course material
+private archive
 ```
 
-A service can be created from:
+### 5.5 Workshop Materials
 
-- a saved mandala;
-- a Power Place composition;
-- a Grimoire record;
-- a material/template;
-- a standalone service editor.
+Workshop materials are the prepared internal library for the master's work.
 
-### 3.5 Public profile layer
+They can come from:
 
-The public master profile should show selected public-safe objects:
+- sorted Grimoire records;
+- public posts;
+- private notes;
+- mandalas;
+- articles;
+- settings;
+- service templates.
 
-- published services;
-- approved/public mandalas;
-- selected materials;
-- selected settings/practices;
-- master info;
-- later: public albums and testimonials.
+Workshop materials are not automatically public.
 
-Public profile should not show raw private uploads or private Grimoire notes.
+## 6. Correct object flow
 
-### 3.6 Community feed layer
-
-The community feed at `/feed` is not the same as the personal master feed.
-
-Difference:
+### 6.1 Master publishes a post
 
 ```text
-/profile feed = private/authenticated working timeline
-/feed = public-safe community newspaper
+Master opens /profile or public Master Page editor
+↓
+Creates note/article/mandala post/service announcement
+↓
+Post status = draft or pending
+↓
+Post appears in master's private cabinet list
+↓
+Post can be opened in Grimoire for classification
+↓
+If approved/public, it appears on public Master Page
+↓
+It also appears in Community Feed/Home Feed
 ```
 
-Public feed should show only approved/public-safe activity events.
-
-## 4. Recommended naming
-
-To avoid confusion, use these names consistently:
+### 6.2 Published post enters Grimoire
 
 ```text
-Personal master feed  = private cabinet feed inside /profile
-Community feed        = public /feed page
-Grimoire              = review/classification workspace
-Service shop          = /profile/services + public service pages/order flow
-Activity event        = public-safe feed event row
-Source item           = original private object
-Public projection     = curated public-safe representation of a private source item
+Published master post
+↓
+Automatically visible in private cabinet as own item
+↓
+Master clicks В Гримуарий
+↓
+Adds category, tags, symbolism, practice notes
+↓
+Marks as workshop material / service candidate / course material / archive
 ```
 
-Avoid calling all of them simply “лента”. Always specify:
-
-- личная лента мастера;
-- публичная лента сообщества;
-- события ленты;
-- гримуарный разбор.
-
-## 5. Current repo/code boundaries to verify first
-
-Before implementation, Codex must inspect real repo files and report found/not found:
+### 6.3 Grimoire item becomes workshop material
 
 ```text
-AGENTS.md
-README.md
-STATE.md
-LOG.md
-docs/release-workflow.md
-docs/deploy-fallback.md
-docs/PROFILE_SERVICES_ROADMAP.md
-docs/product/COMMUNITY_FEED_CONCEPT.md
-docs/concepts/master-feed-grimoire.md
-docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md
-package.json
-vercel.json
-src/main.jsx
-src/App.jsx
-src/index.css
-src/profileCabinet.css
-src/profileMandalaWorkspace.css
-src/lib/supabaseClient.js
-src/lib/profileMaterialsClient.js
-src/lib/profileServicesClient.js
-src/lib/profileMediaClient.js
-src/lib/powerPlaceClient.js
-src/pages/ProfilePage.jsx
-src/pages/ProfileLitePage.jsx
-src/pages/FeedPage.jsx
-src/pages/MastersPage.jsx
-src/pages/AdminPage.jsx
-src/pages/profile-lite/*
-supabase/migrations/*
+Grimoire record
+↓
+Master selects Добавить в мастерскую
+↓
+System creates/updates workshop material record
+↓
+Material appears in Workshop library
+↓
+Can be reused in services/courses/mandala constructor later
 ```
 
-Do not start from assumptions. Read actual code first.
+### 6.4 Mandala becomes post and service
 
-## 6. Data architecture direction
+```text
+Master creates mandala
+↓
+Saves private composition
+↓
+Creates public-safe mandala post/projection
+↓
+Post appears on Master Page and community feed after approval/publication
+↓
+Same mandala can also become service draft
+↓
+Service appears in service shop when published
+```
 
-### 6.1 Existing real tables from current concepts
+### 6.5 All masters create shared news feed
 
-Relevant existing tables documented in `COMMUNITY_FEED_CONCEPT.md`:
+```text
+Master A publishes article
+Master B publishes mandala
+Master C publishes service
+Master D publishes practice note
+↓
+All approved/public-safe items create activity events
+↓
+Home page feed block shows latest items
+↓
+/feed shows full filtered community feed
+```
+
+## 7. Data architecture direction
+
+### 7.1 Existing relevant tables to verify
+
+From existing concepts, likely relevant tables:
 
 ```text
 profile_cabinet_profiles
@@ -343,348 +332,93 @@ profile_cabinet_power_place_compositions
 profile_cabinet_client_goal_photos
 profile_cabinet_tradition_assets
 profile_cabinet_admins
+profile_cabinet_activity_events
 ```
 
-Existing `profile_cabinet_publications` represents materials:
+Codex must verify actual migrations before using fields.
+
+### 7.2 Public posts / publications
+
+Existing `profile_cabinet_publications` is likely the closest table for Master Page posts.
+
+It should be evaluated as the canonical object for:
 
 ```text
-type: practice | mandala | artifact
-status: draft | pending | approved | rejected
+master notes
+articles
+public mandalas
+artifacts
+practices
+settings/initiations
+announcements
 ```
 
-Existing `profile_cabinet_services` represents services:
+If current table only supports limited types, extend carefully later.
+
+Possible publication types:
 
 ```text
-status: draft | published | archived
+note
+article
+mandala
+practice
+artifact
+setting
+announcement
+photo_album
+service_announcement
 ```
 
-### 6.2 Public feed events
+Possible statuses:
 
-Public/community feed should use:
+```text
+draft
+pending
+approved
+rejected
+published
+archived
+```
+
+Use current repo statuses if they already exist. Do not invent incompatible status values without migration plan.
+
+### 7.3 Community feed events
+
+The community feed should not query every table directly if avoidable.
+
+Use:
 
 ```text
 profile_cabinet_activity_events
 ```
 
-This table is for public-safe events, not raw private source objects.
-
-Activity event examples:
+Activity events are generated from public-safe objects:
 
 ```text
-master_update
+publication_created
+publication_updated
+article_published
 mandala_published
-power_place_published
-photo_album_published
+setting_published
 service_created
 service_updated
-practice_published
-artifact_published
+photo_album_published
 admin_announcement
 featured_item
 ```
 
-### 6.3 Personal feed items
-
-Do not add `master_feed_items` immediately unless existing tables cannot support the personal feed.
-
-Safer MVP options:
-
-Option A — personal feed as UI aggregation:
+The event row should point back to the source public object:
 
 ```text
-/profile personal feed reads from existing private/user-owned tables:
-- saved mandalas/compositions
-- media/materials
-- services
-- publications
+target_table = profile_cabinet_publications | profile_cabinet_services | profile_cabinet_photo_albums
+target_id = uuid
 ```
 
-Option B — add a dedicated personal feed table later:
+It must not point directly to private source tables in public output.
 
-```text
-profile_cabinet_personal_feed_items
-```
+### 7.4 Grimoire records
 
-Only add this if there is a proven need for a separate timeline table.
-
-Important:
-
-`master_feed_items` mentioned in `docs/concepts/master-feed-grimoire.md` is conceptual only, not approved as a migration name.
-
-### 6.4 Grimoire records
-
-Grimoire can begin as metadata on existing objects, or later use a dedicated table.
-
-Possible future table:
-
-```text
-profile_cabinet_grimoire_records
-```
-
-Potential fields:
-
-```text
-id
-profile_id
-source_type
-source_id
-title
-comment
-symbolism
-practice_notes
-category
-tags
-status
-visibility
-linked_service_id
-linked_course_id
-created_at
-updated_at
-```
-
-Do not create this table until existing material/service/publication tables are inspected.
-
-## 7. Technical frontend architecture
-
-### 7.1 Target component map
-
-Recommended additive components, after checking current file structure:
-
-```text
-src/pages/profile-lite/MasterCabinetPlatform.jsx
-src/pages/profile-lite/MasterFeedComposer.jsx
-src/pages/profile-lite/MasterFeedList.jsx
-src/pages/profile-lite/MasterFeedCard.jsx
-src/pages/profile-lite/MasterFeedFilters.jsx
-src/pages/profile-lite/MasterQuickUploader.jsx
-src/pages/profile-lite/MasterUnsortedPanel.jsx
-src/pages/profile-lite/GrimoireWorkspace.jsx
-src/pages/profile-lite/GrimoireEditorDrawer.jsx
-src/pages/profile-lite/ServiceDraftBridge.jsx
-```
-
-If the repo already has a better component structure, use existing folders/naming. Do not duplicate similar components.
-
-### 7.2 Minimal integration point
-
-The safest first implementation should not replace the whole cabinet.
-
-Preferred integration:
-
-```text
-/Profile or ProfileLite page
-↓
-existing authenticated cabinet layout
-↓
-insert master feed block into current three-column structure
-```
-
-The feature should be gated by local component state, not by new route first.
-
-Possible UI placement:
-
-```text
-left column  → MasterFeedFilters
-center       → MasterFeedComposer + MasterFeedList
-right column → MasterQuickUploader + MasterUnsortedPanel
-```
-
-### 7.3 Personal feed view model
-
-Personal feed cards should use a normalized frontend-only shape, regardless of source table.
-
-Recommended normalized item:
-
-```js
-{
-  id: string,
-  sourceType: "composition" | "media" | "publication" | "service" | "grimoire" | "note",
-  sourceTable: string,
-  sourceId: string,
-  itemType: "mandala" | "photo" | "material" | "setting" | "grimoire" | "service" | "note",
-  title: string,
-  body: string,
-  comment: string,
-  previewUrl: string,
-  previewKind: "safe-url" | "signed-url" | "fallback" | "none",
-  category: string,
-  tags: string[],
-  status: "draft" | "private" | "pending" | "approved" | "published" | "archived" | "uncategorized",
-  visibility: "private" | "workshop" | "service" | "profile_only" | "public_feed",
-  createdAt: string,
-  updatedAt: string,
-  actions: string[]
-}
-```
-
-Important:
-
-- This shape is for UI only.
-- It must not force new DB schema in Phase 1.
-- It allows a single feed UI to render saved mandalas, media, services, and publications.
-
-### 7.4 Personal feed source adapters
-
-Add or extend a client file only after reading existing clients.
-
-Recommended new file if needed:
-
-```text
-src/lib/profilePersonalFeedClient.js
-```
-
-Suggested functions:
-
-```js
-export async function listPersonalFeedItems({ profileId, session, limit = 50 } = {})
-export async function normalizeCompositionToFeedItem(row)
-export async function normalizePublicationToFeedItem(row)
-export async function normalizeServiceToFeedItem(row)
-export async function normalizeMediaToFeedItem(row)
-export function filterPersonalFeedItems(items, filter)
-export function getPersonalFeedActions(item)
-```
-
-Implementation direction:
-
-- call existing clients where possible;
-- avoid duplicating low-level Supabase REST code if existing helpers already exist;
-- do not query public feed table for personal feed MVP;
-- keep all private data inside authenticated `/profile`.
-
-### 7.5 Composer actions
-
-The composer should not immediately create all object types if backend is not ready.
-
-MVP behavior:
-
-```text
-+ Мандала        → navigate/open existing mandala creator/module
-+ Фото/материал → open existing media/material uploader
-+ Настройка     → create local draft placeholder or disabled with TODO if no table exists
-+ Запись        → open Grimoire draft drawer if implemented; otherwise TODO
-+ Услуга        → open existing service editor or service draft flow
-```
-
-Do not create fake persistent records unless there is a real table and client method.
-
-### 7.6 Feed card actions
-
-Actions should be computed by item type and current status.
-
-Recommended mapping:
-
-```text
-composition/mandala:
-- Открыть
-- Редактировать
-- В услуги
-- В Гримуарий
-- Опубликовать в ленту later
-
-media/material:
-- Открыть
-- Категоризировать
-- В Гримуарий
-- Сделать публикацией later
-
-publication:
-- Редактировать
-- Отправить на модерацию
-- В Гримуарий
-- Создать событие ленты later
-
-service:
-- Редактировать услугу
-- Скопировать ссылку
-- Опубликовать обновление в ленту later
-- Архивировать
-
-grimoire:
-- Редактировать
-- Создать услугу
-- Создать публикацию
-- Привязать к мандале
-```
-
-### 7.7 UI state model
-
-Recommended React state for the personal feed shell:
-
-```js
-const [activeFilter, setActiveFilter] = useState("all");
-const [items, setItems] = useState([]);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState("");
-const [selectedItem, setSelectedItem] = useState(null);
-const [drawerMode, setDrawerMode] = useState(""); // grimoire | service | preview | publish
-```
-
-Avoid global state libraries. Keep MVP local to cabinet unless current repo already has a state pattern.
-
-### 7.8 CSS scope
-
-Use scoped class prefixes to avoid breaking existing cabinet design:
-
-```text
-masterPlatformShell
-masterFeedComposer
-masterFeedFilters
-masterFeedList
-masterFeedCard
-masterFeedCardMedia
-masterFeedCardBody
-masterFeedActions
-masterQuickUploader
-masterUnsortedPanel
-grimoireWorkspace
-grimoireDrawer
-serviceBridgePanel
-```
-
-Do not globally restyle buttons, cards, forms, or body typography.
-
-## 8. Technical backend/API architecture
-
-### 8.1 Keep current REST/fetch pattern
-
-Current repo clients use direct fetch/REST patterns instead of Supabase JS SDK.
-
-Do not introduce Supabase JS SDK just for this feature unless separately approved.
-
-New clients should follow existing style:
-
-```text
-src/lib/supabaseClient.js
-src/lib/profileMaterialsClient.js
-src/lib/profileServicesClient.js
-src/lib/profileMediaClient.js
-src/lib/powerPlaceClient.js
-```
-
-### 8.2 Existing-data-first approach
-
-Phase 1 should aggregate existing data.
-
-Potential sources:
-
-```text
-profile_cabinet_power_place_compositions → personal mandala/feed cards
-profile_cabinet_publications             → material/practice/artifact cards
-profile_cabinet_services                 → service cards
-profile_cabinet_client_goal_photos       → private media cards if safe and owner-only
-profile_cabinet_tradition_assets         → owner/admin materials if safe and owner-only
-```
-
-Important:
-
-- exact table names and fields must be verified in migrations/code;
-- if a source is unclear, mark it `needs verification`;
-- do not guess columns.
-
-### 8.3 Future Grimoire table draft
-
-Only after existing tables are checked, a future migration may add:
+Future table if existing metadata is not enough:
 
 ```sql
 create table if not exists public.profile_cabinet_grimoire_records (
@@ -725,367 +459,262 @@ admin can read if needed for moderation/debug
 anon cannot read grimoire records
 ```
 
-### 8.4 Future personal feed table draft
+### 7.5 Workshop materials
 
-Avoid this until needed. If later needed:
-
-```sql
-create table if not exists public.profile_cabinet_personal_feed_items (
-  id uuid primary key default gen_random_uuid(),
-  profile_id uuid not null references public.profile_cabinet_profiles(id) on delete cascade,
-  owner_user_id uuid not null references auth.users(id) on delete cascade,
-
-  source_type text not null,
-  source_table text not null default '',
-  source_id uuid null,
-
-  item_type text not null,
-  title text not null default '',
-  body text not null default '',
-  preview_url text not null default '',
-  category text not null default '',
-  tags text[] not null default '{}',
-
-  status text not null default 'draft',
-  visibility text not null default 'private',
-  pinned boolean not null default false,
-
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-
-  check (item_type in ('mandala','photo','material','setting','grimoire','service','note')),
-  check (visibility in ('private','workshop','service','profile_only','public_feed'))
-);
-```
-
-This is not Phase 1. Prefer aggregation first.
-
-### 8.5 Public feed table
-
-For `/feed`, use the already planned:
+Future table if needed:
 
 ```text
-profile_cabinet_activity_events
+profile_cabinet_workshop_materials
 ```
 
-Important:
-
-- this table is for public-safe activity rows;
-- it should not store raw private source data;
-- public read should only allow `status = approved` and `visibility = public_feed`.
-
-## 9. Route architecture
-
-### 9.1 Existing routes to protect
+Potential fields:
 
 ```text
-/
-/profile
-/profile-lite
-/profile-old
-/profile/mandalas
-/profile/services
-/profile/orders
-/profile/chats
-/profile/settings
-/masters
-/profile/admin
+id
+profile_id
+owner_user_id
+source_type
+source_table
+source_id
+title
+description
+content
+category
+tags
+material_type
+visibility
+status
+linked_service_id
+linked_publication_id
+linked_grimoire_record_id
+created_at
+updated_at
 ```
 
-### 9.2 Planned/used route
+Material types:
 
 ```text
-/feed
+article
+mandala
+setting
+practice
+photo
+template
+note
+ritual
+course_piece
 ```
 
-### 9.3 Grimoire route decision
-
-Do not add a public route immediately.
-
-MVP options:
-
-Option A — tab inside `/profile`:
+Visibility:
 
 ```text
-/profile → tab: Гримуарий
+private
+workshop
+service
+course
+profile_only
+public_candidate
 ```
 
-Option B — nested route later:
+Do not add this until the Grimoire/workshop UI needs persistence.
+
+## 8. Frontend architecture
+
+### 8.1 Public Master Page components
+
+Recommended component names after repo verification:
 
 ```text
-/profile/grimoire
+src/pages/MasterPublicPage.jsx
+src/pages/masters/MasterPageHeader.jsx
+src/pages/masters/MasterPageFeed.jsx
+src/pages/masters/MasterPagePostCard.jsx
+src/pages/masters/MasterPageServices.jsx
+src/pages/masters/MasterPageMandalas.jsx
+src/pages/masters/MasterPageMaterials.jsx
 ```
 
-Option C — drawer inside current feed:
+If current `MastersPage.jsx` already contains profile cards only, do not rewrite it wholesale. Add a detail page or route only after routing check.
+
+### 8.2 Home feed components
+
+Recommended additive components:
 
 ```text
-/profile → feed card → В Гримуарий → right/center drawer
+src/components/HomeCommunityFeed.jsx
+src/components/HomeCommunityFeedCard.jsx
 ```
 
-Recommendation:
+Or use existing home page component structure if present.
+
+Home page should show only latest approved public events, for example 3–6 cards.
+
+### 8.3 Private cabinet components
+
+Recommended additive components:
 
 ```text
-Phase 1: drawer or tab inside /profile
-Phase 3: consider /profile/grimoire if workflow becomes large
+src/pages/profile-lite/MasterCabinetPlatform.jsx
+src/pages/profile-lite/MasterPublishingComposer.jsx
+src/pages/profile-lite/MasterOwnPublicationsList.jsx
+src/pages/profile-lite/MasterFeedCard.jsx
+src/pages/profile-lite/MasterQuickUploader.jsx
+src/pages/profile-lite/MasterUnsortedPanel.jsx
+src/pages/profile-lite/GrimoireWorkspace.jsx
+src/pages/profile-lite/GrimoireEditorDrawer.jsx
+src/pages/profile-lite/WorkshopMaterialsPanel.jsx
+src/pages/profile-lite/ServiceDraftBridge.jsx
 ```
 
-### 9.4 Public service routes
+### 8.4 Frontend clients
 
-Needs verification.
-
-Possible future route patterns:
+Possible client files:
 
 ```text
-/service/:serviceId
-/masters/:profileSlug/services/:serviceId
-/profile/services/:serviceId/edit
+src/lib/profilePublicationsClient.js
+src/lib/profileActivityFeedClient.js
+src/lib/profileGrimoireClient.js
+src/lib/profileWorkshopMaterialsClient.js
+src/lib/profilePersonalFeedClient.js
 ```
 
-Do not add these until existing routing and Vercel rewrites are inspected.
-
-## 10. User flows across the whole system
-
-### 10.1 Upload everything now, classify later
+But first inspect existing clients:
 
 ```text
-Master opens /profile
-↓
-Uploads photos/articles/screens/files from phone
-↓
-Items appear in personal feed as Неразобранное
-↓
-Master opens Grimoire
-↓
-Adds title/category/comment/symbolism
-↓
-Marks item as private, workshop, service candidate, or public candidate
+src/lib/profileMaterialsClient.js
+src/lib/profileServicesClient.js
+src/lib/profileMediaClient.js
+src/lib/powerPlaceClient.js
+src/lib/supabaseClient.js
 ```
 
-### 10.2 Mandala becomes service
+Do not duplicate existing API helpers if current clients already cover publications/materials.
+
+### 8.5 Public post view model
+
+Public Master Page and Community Feed should render a safe normalized item:
+
+```js
+{
+  id: string,
+  profileId: string,
+  authorName: string,
+  authorAvatarUrl: string,
+  type: "note" | "article" | "mandala" | "practice" | "setting" | "service" | "announcement",
+  title: string,
+  excerpt: string,
+  body: string,
+  imageUrl: string,
+  imageKind: "public-safe" | "fallback",
+  category: string,
+  tags: string[],
+  status: "approved" | "published",
+  visibility: "profile_only" | "public_feed",
+  publishedAt: string,
+  targetUrl: string
+}
+```
+
+No private fields in this shape.
+
+### 8.6 Private Grimoire item view model
+
+Private Grimoire can render richer data:
+
+```js
+{
+  id: string,
+  sourceType: "publication" | "composition" | "media" | "service" | "note",
+  sourceTable: string,
+  sourceId: string,
+  title: string,
+  content: string,
+  comment: string,
+  symbolism: string,
+  practiceNotes: string,
+  category: string,
+  tags: string[],
+  status: "draft" | "active" | "archived",
+  visibility: "private" | "workshop" | "service_candidate" | "profile_only" | "public_candidate",
+  linkedServiceId: string,
+  linkedPublicationId: string,
+  linkedWorkshopMaterialId: string
+}
+```
+
+This is authenticated-only.
+
+## 9. Publishing flow in code
+
+### 9.1 Composer on Master Page / Cabinet
+
+Composer should support:
 
 ```text
-Master creates Power Place mandala
-↓
-Saves it in Мои мандалы
-↓
-It appears in personal feed
-↓
-Master clicks В услуги / Опубликовать в услугах
-↓
-Service draft opens
-↓
-Master edits title, description, format, preview, price if enabled
-↓
-Master publishes service
-↓
-Service appears in /profile/services and public service link
-↓
-Optional: create service_created event for /feed
+Заметка
+Статья
+Мандала
+Настройка
+Услуга
+Материал
 ```
 
-### 10.3 Service becomes public feed event
+MVP behavior:
 
 ```text
-Master publishes service
-↓
-System or user explicitly creates activity event
-↓
-Event status = pending
-↓
-Admin approves
-↓
-/feed shows service_created under Услуги
+Заметка/Статья → profile_cabinet_publications if table supports it
+Мандала       → existing mandala/power-place flow, then public projection
+Настройка     → publication type setting if supported, otherwise TODO
+Услуга        → profile_cabinet_services
+Материал      → existing materials/media flow, then Grimoire sorting
 ```
 
-Avoid automatic new event on every small service edit.
+### 9.2 Publication status flow
 
-### 10.4 Private Power Place becomes public projection
+Recommended flow:
 
 ```text
-Master opens saved private composition
+draft
 ↓
-Clicks Опубликовать в ленту
+pending
 ↓
-Public projection form opens
+approved/published
 ↓
-Master writes public title/description/category/tags
+activity event created or approved
 ↓
-System creates public-safe activity event
-↓
-Admin approves
-↓
-/feed shows fallback or public-safe cover
+Master Page + Community Feed + Home Feed
 ```
 
-Never expose raw source composition data.
+If admin moderation is not ready, use safe owner-only draft/published status only in staging/test until RLS is verified.
 
-### 10.5 Grimoire record becomes course/service/public material
+### 9.3 Home feed query
+
+Home page feed should use only public-safe event query:
 
 ```text
-Master opens Grimoire record
-↓
-Adds interpretation and category
-↓
-Chooses target:
-- keep private
-- add to workshop
-- create service
-- create public publication
-- attach to course later
-↓
-System creates or updates the appropriate object
+status = approved
+visibility = public_feed
+order = event_at.desc
+limit = 3..6
 ```
 
-## 11. Implementation order
+It should not query private tables.
 
-### Phase 0 — profile stability
+### 9.4 Master page query
 
-Before adding new product layers:
-
-- `/profile` must not hang forever;
-- auth/session recovery must be stable;
-- media/mandala loading must be stable;
-- saved compositions must remain private and load correctly.
-
-This matches `PROFILE_SERVICES_ROADMAP.md`.
-
-### Phase 1 — personal master feed UI in /profile
-
-Goal:
-
-- composer in center;
-- personal feed cards;
-- left filters;
-- right quick uploader;
-- Неразобранное block;
-- no public sharing yet;
-- use existing data where safe.
-
-Recommended code work:
+Master public page should use:
 
 ```text
-1. Identify actual /profile component.
-2. Add small MasterFeed* components.
-3. Build normalized feed view model from existing data.
-4. Add filtering locally.
-5. Wire card actions to existing flows only where available.
-6. Keep unknown actions disabled or TODO-labelled, not fake-persistent.
+profile_id = current public master profile
+status in approved/published
+visibility in profile_only/public_feed
 ```
 
-This implements the first part of `master-feed-grimoire.md`.
+It may show profile-only posts that are public on the master page but not necessarily in the global feed.
 
-### Phase 2 — services/shop MVP
+## 10. Public/private boundary rules
 
-Goal:
-
-- make `В услуги` from saved mandala/composition work;
-- service editor;
-- service publication status;
-- public service link;
-- order draft/auth redirect flow later;
-- no payments yet.
-
-Recommended code work:
-
-```text
-1. Inspect profileServicesClient and existing services UI.
-2. Add/create service draft from composition/publication if schema supports it.
-3. Preserve service status values.
-4. Add copy-link only if public route exists; otherwise mark needs route.
-5. Do not add payment flow.
-```
-
-This follows `PROFILE_SERVICES_ROADMAP.md`.
-
-### Phase 3 — Grimoire workspace
-
-Goal:
-
-- review/classification interface;
-- edit metadata;
-- move objects from Неразобранное to categories;
-- link item to mandala/service/course;
-- keep private by default.
-
-Recommended code work:
-
-```text
-1. Start as drawer/tab inside /profile.
-2. Use existing object metadata first.
-3. Add grimoire_records table only after schema review.
-4. Keep anon read disabled.
-```
-
-### Phase 4 — community feed infrastructure
-
-Goal:
-
-- `profile_cabinet_activity_events` migration/RLS;
-- `profileActivityFeedClient.js`;
-- `/feed` route/page;
-- public-safe filters/cards;
-- no automatic events from private saves.
-
-This follows `COMMUNITY_FEED_CONCEPT.md` Phase 1.
-
-### Phase 5 — moderation and publication bridge
-
-Goal:
-
-- events can be pending/approved/rejected;
-- admin can moderate feed events;
-- services/materials can explicitly create feed events;
-- no private data leakage.
-
-### Phase 6 — social layer later
-
-Only after public/private boundary is stable:
-
-- comments;
-- reactions;
-- follows;
-- recommendations;
-- subscriptions;
-- notifications.
-
-## 12. Public/private boundary rules in code
-
-### 12.1 Personal feed can show private refs, but only inside authenticated UI
-
-Inside `/profile`, it is acceptable to use temporary signed display URLs if the existing media client already does this for owner-only display.
-
-Rules:
-
-- signed URLs are display-only;
-- do not persist signed URLs as public feed image URLs;
-- do not copy signed URLs into service public data;
-- do not show private refs in public route DOM.
-
-### 12.2 Public feed and public service pages need public-safe projection
-
-Public routes must render only:
-
-```text
-plain public text
-approved public service fields
-approved public publication fields
-public-safe HTTPS image URL
-fallback image/symbol
-```
-
-Public routes must not render:
-
-```text
-storage://...
-signed URL
-object_refs
-private report text
-client photo refs
-private composition JSON
-private Grimoire notes
-```
-
-### 12.3 Helper to validate public image
+### 10.1 Public-safe image helper
 
 Recommended utility:
 
@@ -1103,124 +732,28 @@ export function isPublicSafeImageUrl(value) {
 
 Use fallback if unsafe.
 
-## 13. Event and status mapping
+### 10.2 Never expose publicly
 
-### 13.1 Personal feed status mapping
-
-Source table statuses can differ. Normalize them for UI only.
+Public Master Page, Home Feed, and `/feed` must not render:
 
 ```text
-composition saved        → private
-publication draft        → draft
-publication pending      → pending
-publication approved     → approved
-publication rejected     → draft/rejected display
-service draft            → draft
-service published        → published
-service archived         → archived
-media without category   → uncategorized
+storage://...
+signed URL
+object_refs
+private report text
+client photo refs
+private composition JSON
+private Grimoire notes
+raw private file paths
 ```
 
-### 13.2 Public event mapping
+### 10.3 Private cabinet can display owner-only data
 
-```text
-publication.type = mandala  → mandala_published
-publication.type = artifact → artifact_published
-publication.type = practice → practice_published
-service first publish       → service_created
-service explicit update     → service_updated
-Power Place projection      → power_place_published
-admin post                  → admin_announcement
-```
+Inside authenticated `/profile`, it is acceptable to display owner-only private media using existing signed URL flow, if current code already does this.
 
-### 13.3 Avoid feed spam
+But do not persist signed URLs into public rows.
 
-Do not create public events automatically for every save.
-
-Preferred trigger:
-
-```text
-explicit user action: Опубликовать в ленту
-or admin approval event
-```
-
-Duplicate rule later:
-
-```text
-one active pending/approved event per target_table + target_id + activity_type
-```
-
-## 14. Testing strategy
-
-### 14.1 Automated checks
-
-Run, if available:
-
-```bash
-npm install
-npm run check
-npm run build
-npm run test:profile-lite
-npm run test:power-place
-npm run test:profile-media
-npm run test:profile-loading-recovery
-npm run test:profile-services
-npm run test:feed
-```
-
-If a script is missing, report `not found`, do not invent success.
-
-### 14.2 Suggested unit/contract tests
-
-Possible tests to add:
-
-```text
-test/profilePersonalFeedClient.test.mjs
-test/profileMasterFeedContract.test.mjs
-test/grimoireRecordContract.test.mjs
-test/publicImageSafety.test.mjs
-```
-
-Test cases:
-
-```text
-normalizes composition into feed item
-normalizes service into feed item
-filters by item type
-does not mark signed URL as public safe
-does not mark storage:// as public safe
-service_created maps to feed services tab
-private item never becomes public event without explicit action
-```
-
-### 14.3 Manual QA routes
-
-```text
-/
-/profile
-/profile/mandalas
-/profile/services
-/feed if present
-/masters
-/profile/admin
-```
-
-Manual QA cases:
-
-```text
-/profile still loads authenticated cabinet
-/profile clean localStorage shows login/recovery, not infinite loading
-personal feed shows empty state if no items
-composer buttons do not break existing modules
-left filters do not overflow
-right uploader visible on desktop
-mobile below 980px has no horizontal overflow
-/service or public service link only if implemented
-/feed does not show private refs
-/admin profile moderation still works
-```
-
-## 15. Current route map
+## 11. Route architecture
 
 Protect existing routes:
 
@@ -1238,46 +771,156 @@ Protect existing routes:
 /profile/admin
 ```
 
-Planned/used public feed route:
+Potential routes — needs verification:
 
 ```text
 /feed
+/masters/:id or /masters/:slug
+/profile/grimoire later
+/profile/workshop later
+/service/:id later
 ```
 
-Do not break Vercel SPA rewrites when adding routes.
+Do not add routes without checking `src/main.jsx` and `vercel.json`.
 
-## 16. Safety rules
+## 12. Implementation phases
 
-Always preserve:
+### Phase 0 — inspect and stabilize
 
-- public home page;
-- RU-default interface;
-- desktop three-column cabinet layout;
-- mobile single-column fallback;
-- Supabase auth/data flows;
-- Vercel rewrites;
-- private storage boundary;
-- env names only, no env values.
+- Read repo docs and code.
+- Confirm current `/profile` implementation.
+- Confirm services/publications/feed tables.
+- Confirm current home page structure.
+- Confirm whether `/feed` exists and works.
+- Confirm whether Master detail page exists.
 
-Never expose publicly:
+### Phase 1 — Master Page publishing concept in code
 
-- private media bucket refs;
-- signed URLs;
-- `storage://...` values;
-- raw `object_refs`;
-- client photos;
-- private Grimoire notes;
-- private reports;
-- private Power Place composition JSON.
+Goal:
 
-## 17. Codex implementation prompt: Phase 1 technical MVP
+- define public Master Page feed model;
+- use existing `profile_cabinet_publications` if possible;
+- add UI only where safe;
+- do not expose private data.
+
+Deliverables:
+
+```text
+Master Page post cards
+public-safe post normalization
+empty states
+RU labels
+no schema changes unless verified
+```
+
+### Phase 2 — Home feed block
+
+Goal:
+
+- show latest approved public events on `/`;
+- keep home page design intact;
+- add small feed preview block;
+- link to full feed or masters catalog.
+
+Deliverables:
+
+```text
+HomeCommunityFeed component
+safe query through activity events
+fallback if Supabase not configured
+no private refs
+```
+
+### Phase 3 — Private cabinet backstage
+
+Goal:
+
+- master sees own posts/drafts/services/materials in `/profile`;
+- can open item in Grimoire;
+- can sort/category items;
+- can send to workshop/service/publication.
+
+### Phase 4 — Grimoire and Workshop Materials
+
+Goal:
+
+- classify objects;
+- create workshop material records if needed;
+- link materials to services/courses/mandalas.
+
+### Phase 5 — Service bridge
+
+Goal:
+
+- mandala/post/grimoire item can become service draft;
+- service can be published;
+- public service card appears on Master Page;
+- optional activity event appears in home/community feed.
+
+### Phase 6 — Full community feed
+
+Goal:
+
+- full `/feed` page;
+- filters by type/category/master;
+- public-safe cards;
+- moderation flow.
+
+### Phase 7 — social layer later
+
+Only later:
+
+```text
+likes
+comments
+follows
+subscriptions
+notifications
+recommendations
+```
+
+## 13. Testing strategy
+
+Run if available:
+
+```bash
+npm install
+npm run check
+npm run build
+npm run test:profile-lite
+npm run test:power-place
+npm run test:profile-media
+npm run test:profile-loading-recovery
+npm run test:profile-services
+npm run test:feed
+```
+
+If script is missing, report `not found`.
+
+Manual QA:
+
+```text
+/
+/profile
+/profile/mandalas
+/profile/services
+/feed if present
+/masters
+/profile/admin
+mobile below 980px
+no horizontal overflow
+no console errors
+no private refs in public DOM/text
+```
+
+## 14. Codex prompt — revise architecture implementation around Master Page
 
 ```text
 Repo: andylitvinov-design/reiki-yggdrasil
 Target branch: main for normal feature work. Do not push directly to production.
 
 Task:
-Implement Phase 1 technical MVP from docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md: personal master feed UI inside /profile, using existing data where safe, without adding public feed automation or risky migrations.
+Implement the next planning/technical pass around the corrected architecture in docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md: the public Master Page is a Facebook-like publishing page for each master; the home/community feed aggregates public-safe posts from all masters; /profile and Grimoire are the private backstage for sorting and converting posts/materials into workshop materials and services.
 
 Before changing code, read:
 - AGENTS.md
@@ -1295,171 +938,75 @@ Before changing code, read:
 - src/index.css
 - src/profileCabinet.css
 - src/profileMandalaWorkspace.css
+- src/pages/ProfilePage.jsx
+- src/pages/ProfileLitePage.jsx
+- src/pages/MastersPage.jsx
+- src/pages/FeedPage.jsx if present
+- src/pages/AdminPage.jsx
+- src/pages/profile-lite/*
 - src/lib/supabaseClient.js
 - src/lib/profileMaterialsClient.js
 - src/lib/profileServicesClient.js
 - src/lib/profileMediaClient.js
 - src/lib/powerPlaceClient.js
-- src/pages/ProfilePage.jsx
-- src/pages/ProfileLitePage.jsx
-- src/pages/profile-lite/*
+- src/lib/profileActivityFeedClient.js if present
 - relevant Supabase migrations.
 
-Product architecture:
-- /profile personal master feed is private/authenticated working timeline.
-- Grimoire is review/classification workspace.
-- /profile/services is service/shop management.
-- /feed is public-safe community feed, but do not implement /feed in this task unless already present and untouched.
-- Public feed events are not raw private source objects.
+Key product correction:
+- Master Page = public Facebook-like page for one master.
+- Master publishes notes/articles/mandalas/settings/services there.
+- These public/draft objects also enter private /profile backstage and Grimoire.
+- Grimoire sorts/classifies them and can turn them into workshop materials.
+- All public-safe master publications become the community news feed.
+- Home page should show a preview of this feed.
 
-Minimum implementation:
-1. Identify actual current /profile cabinet component.
-2. Add a small personal master feed UI without rewriting the whole cabinet.
-3. Preserve desktop three-column layout:
-   - left: filters
-   - center: composer + feed cards
-   - right: quick uploader + Неразобранное
-4. Build normalized feed items from existing available data if possible.
-5. If data is not available, show safe empty states/TODO states, not fake persisted records.
-6. Composer buttons should open existing modules where possible:
-   - + Мандала → existing mandala/power-place module
-   - + Фото / материал → existing media/material uploader
-   - + Услуга → existing services editor/list
-   - + Настройка / + Запись в гримуар → safe placeholder or drawer only if no backend exists
-7. Add helper/action mapping for feed cards.
-8. Keep Grimoire as placeholder/drawer/tab unless schema already exists.
-9. Do not add new Supabase migrations in Phase 1 unless absolutely necessary and separately justified.
-10. Do not expose private refs on public routes.
-
-Suggested files, adjust to actual repo:
-- src/pages/profile-lite/MasterFeedComposer.jsx
-- src/pages/profile-lite/MasterFeedList.jsx
-- src/pages/profile-lite/MasterFeedCard.jsx
-- src/pages/profile-lite/MasterFeedFilters.jsx
-- src/pages/profile-lite/MasterQuickUploader.jsx
-- src/pages/profile-lite/MasterUnsortedPanel.jsx
-- src/lib/profilePersonalFeedClient.js if needed
-- scoped CSS in src/profileCabinet.css or src/profileMandalaWorkspace.css, using masterFeed/masterPlatform prefixes.
+Implementation order:
+1. Verify current routes/tables/components.
+2. Identify whether Master detail page exists or only /masters catalog exists.
+3. Identify whether profile_cabinet_publications can represent notes/articles/mandalas/settings.
+4. Identify whether profile_cabinet_activity_events already exists and is wired.
+5. Do not implement risky migrations until the current schema is known.
+6. If implementing UI, prefer additive components and safe empty states.
+7. Preserve current home page design; add feed preview only if scope explicitly asks.
+8. Preserve /profile, /profile/mandalas, /profile/services, /masters, /profile/admin.
 
 Rules:
+- Do not expose private media, signed URLs, storage refs, object_refs, client photos, private reports or private Grimoire notes on public routes.
+- Public Master Page, home feed and /feed must render public-safe projections only.
+- Keep RU-default UI.
 - Do not rewrite the whole project.
-- Do not loosen RLS broadly.
-- Do not introduce Supabase JS SDK unless separately approved.
-- Do not expose secrets/env values.
-- Do not expose private media, signed URLs, storage refs, object_refs, client photos, private reports or private Grimoire notes.
-- Preserve /, /profile, /profile/mandalas, /profile/services, /masters, /profile/admin.
-- Preserve RU-default UI.
-- Preserve desktop three-column layout and mobile fallback.
+- Do not push to production.
+- Do not publish env values or secrets.
 
 Checks:
 - npm install
 - npm run check
 - npm run build
-- npm run test:profile-lite
-- npm run test:power-place
-- npm run test:profile-media
-- npm run test:profile-loading-recovery if available
-- npm run test:profile-services if available
-
-Manual QA:
-- /
-- /profile
-- /profile/mandalas
-- /profile/services
-- /masters
-- /profile/admin
-- mobile below 980px
-- no horizontal overflow
-- no console errors
-- no private refs in public DOM/text.
+- available profile/feed/services tests.
 
 Report:
 - files read
-- files changed
-- which phase was touched
-- exact checks run
-- manual QA
-- what was not verified
+- what exists / what is not found
+- proposed route model
+- proposed table/model mapping
+- files changed if any
+- checks run
 - risks
+- what still needs verification
 - whether STATE.md / LOG.md need updates.
 ```
 
-## 18. Codex implementation prompt: Phase 2 services bridge
-
-```text
-Repo: andylitvinov-design/reiki-yggdrasil
-Target branch: main for normal feature work. Do not push directly to production.
-
-Task:
-Implement the safe service/shop bridge from saved mandalas/compositions/personal feed items into /profile/services, following docs/PROFILE_SERVICES_ROADMAP.md and docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md.
-
-Before changing code, read all docs/files required by AGENTS.md plus:
-- docs/PROFILE_SERVICES_ROADMAP.md
-- docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md
-- profile services client/component files
-- power place composition client/component files
-- relevant migrations for profile_cabinet_services and profile_cabinet_power_place_compositions.
-
-Minimum implementation:
-1. Verify existing profile_cabinet_services fields and client helpers.
-2. Add or fix action В услуги from saved mandala/composition card.
-3. Create service draft with safe source reference only if schema supports it.
-4. Open service editor after draft creation.
-5. Allow editing title/description/preview/status fields already supported.
-6. Preserve status values: draft/published/archived unless repo schema says otherwise.
-7. Do not add payment processing.
-8. Do not expose private composition JSON in public service card.
-9. If public service route does not exist, copy-link action must show needs route, not fake URL.
-
-Checks and report as in Phase 1.
-```
-
-## 19. Codex implementation prompt: Phase 3 Grimoire technical design
-
-```text
-Repo: andylitvinov-design/reiki-yggdrasil
-Target branch: main for normal feature work. Do not push directly to production.
-
-Task:
-Design and optionally implement first Grimoire workspace MVP inside /profile, following docs/product/MASTER_CABINET_PLATFORM_STRUCTURE.md.
-
-Before code:
-- inspect existing tables and clients for materials/publications/services/media/compositions;
-- decide whether Grimoire can be metadata-first or needs profile_cabinet_grimoire_records;
-- do not create migration unless necessary.
-
-MVP:
-1. Add Grimoire drawer/tab inside /profile.
-2. Open selected feed item in Grimoire view.
-3. Allow editing local/display metadata only if persistence exists.
-4. Show fields:
-   - title
-   - category
-   - tags
-   - comment
-   - symbolism
-   - practice notes
-   - linked service/publication if available
-5. Keep all records private by default.
-6. Add public_candidate only as intent, not public publication.
-7. No anon read.
-
-Checks and report as in Phase 1.
-```
-
-## 20. Open questions / needs verification
+## 15. Open questions / needs verification
 
 Before implementation, verify:
 
-- whether `/feed` already works on current branch;
-- whether `src/pages/FeedPage.jsx` is wired in `src/main.jsx`;
-- whether migration `profile_cabinet_activity_events` is applied in live/test Supabase;
-- whether `profile_cabinet_services` has enough fields for public service cards;
-- whether service public pages exist or still need route design;
-- whether `Мои услуги` is currently a real data-backed module or UI placeholder;
-- whether Grimoire should be separate route, tab inside `/profile`, or drawer/modal workspace;
-- whether public albums are required before first feed MVP;
-- whether automatic feed event creation should remain disabled until moderation is stable;
-- whether personal feed can aggregate enough existing data without a new table;
-- whether current media/materials client can expose owner-only uploaded materials as normalized feed items;
-- whether source references from compositions to services already exist or need a safe `source_type/source_id` pattern.
+- is there a real public detail page for each master, or only `/masters` catalog?
+- should the Master Page URL be `/masters/:slug`, `/masters/:id`, or another route?
+- can `profile_cabinet_publications` support notes/articles/settings, or only practice/mandala/artifact?
+- does `profile_cabinet_activity_events` exist in live/test Supabase?
+- is `/feed` currently wired in `src/main.jsx` and `vercel.json`?
+- where should the home page feed preview be placed without breaking design?
+- should public master posts require admin approval before appearing in home/community feed?
+- should Master Page show `profile_only` posts that do not enter global feed?
+- should Grimoire auto-import every public post, or only when master clicks `В Гримуарий`?
+- does Workshop need a dedicated table now, or can it begin as categories/tags on Grimoire records?
