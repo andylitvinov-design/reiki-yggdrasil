@@ -6912,6 +6912,68 @@
   max-width: 100%;
 }
 
+.profileLiteMediaModule .profileLiteMediaUploadCard {
+  display: grid;
+  gap: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaDestinationTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 14px;
+}
+
+.profileLiteMediaModule .profileLiteMediaDestinationTabs button {
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: rgba(255, 253, 248, 0.86);
+  color: #6e4b1b;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.profileLiteMediaModule .profileLiteMediaDestinationTabs button.active {
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm {
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5a3e28;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm input,
+.profileLiteMediaModule .profileLiteMediaUploadForm select,
+.profileLiteMediaModule .profileLiteMediaUploadForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d4c0a8;
+  background: #fff;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm textarea {
+  resize: vertical;
+}
+
 .profileLiteMediaModule .profileLiteMediaFormError {
   margin-bottom: 10px;
 }
