@@ -1,7 +1,6 @@
 create table if not exists public.profile_cabinet_activity_events (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid null references public.profile_cabinet_profiles(id) on delete cascade,
-  actor_user_id uuid null references auth.users(id) on delete set null,
   activity_type text not null,
   target_table text null,
   target_id uuid null,
@@ -108,7 +107,6 @@ using (
 with check (
   status in ('draft', 'pending', 'rejected')
   and visibility in ('private', 'profile_only', 'public_feed')
-  and actor_user_id = auth.uid()
   and exists (
     select 1 from public.profile_cabinet_profiles
     where profile_cabinet_profiles.id = profile_cabinet_activity_events.profile_id
