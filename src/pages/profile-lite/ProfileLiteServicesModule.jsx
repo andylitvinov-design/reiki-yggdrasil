@@ -10,6 +10,7 @@ import {
 
 export default function ProfileLiteServicesModule({
   onFieldChange,
+  onAddToFeed = () => {},
   onPublish,
   onSave,
   onServiceSelect,
@@ -27,6 +28,7 @@ export default function ProfileLiteServicesModule({
   const selectedCompositionId = serviceForm?.composition_id || "";
   const isSaving = serviceActionStatus === "loading";
   const canPublish = Boolean(selectedServiceId && selectedCompositionId);
+  const canAddSelectedToFeed = Boolean(selectedServiceId && serviceForm?.status === "published");
   const serviceGroups = [
     ["draft", "Черновики"],
     ["published", "Опубликованные"],
@@ -182,7 +184,10 @@ export default function ProfileLiteServicesModule({
               <button className="cabinetSecondary" disabled={isSaving || !canPublish} type="button" onClick={onPublish}>Опубликовать</button>
               <button className="cabinetSecondary" disabled={isSaving || !selectedServiceId} type="button" onClick={() => onStatusChange("draft")}>Вернуть в черновик</button>
               <button className="cabinetSecondary" disabled={isSaving || !selectedServiceId} type="button" onClick={() => onStatusChange("archived")}>Архивировать</button>
+              <button className="cabinetSecondary" disabled={isSaving || !canAddSelectedToFeed} type="button" onClick={() => onAddToFeed("service_created")}>Добавить в ленту</button>
+              <button className="cabinetSecondary" disabled={isSaving || !canAddSelectedToFeed} type="button" onClick={() => onAddToFeed("service_updated")}>Опубликовать обновление</button>
             </div>
+            {!canAddSelectedToFeed && <p className="cabinetMuted">В ленту можно отправить только выбранную опубликованную услугу.</p>}
             {!canPublish && <p className="cabinetMuted">Сначала выберите услугу с привязанной мандалой. Публикация без шаблона отключена.</p>}
             <p className="cabinetMuted">Публичная ссылка активна только для опубликованных услуг.</p>
           </form>

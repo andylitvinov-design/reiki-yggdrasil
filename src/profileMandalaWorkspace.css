@@ -2641,8 +2641,59 @@
   order: 4;
 }
 
-.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPrintColorHint {
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPlaceFeedProjection {
   order: 5;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPrintColorHint {
+  order: 6;
+}
+
+.powerPlaceFeedProjection {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(138, 83, 8, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 250, 239, 0.72);
+}
+
+.powerPlaceFeedProjection label {
+  display: grid;
+  gap: 6px;
+  color: #6b5338;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.powerPlaceFeedProjection input,
+.powerPlaceFeedProjection textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(92, 61, 24, 0.18);
+  border-radius: 10px;
+  padding: 10px 11px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #2d2419;
+  font: inherit;
+}
+
+.powerPlaceFeedProjection textarea {
+  resize: vertical;
+}
+
+.powerPlaceFeedProjectionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .powerPlaceFeedProjectionGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .powerPlanNote {

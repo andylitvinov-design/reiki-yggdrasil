@@ -1,5 +1,53 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Implement Community Activity Feed Phase 2-4
+
+- Branch: `codex/community-feed-phase-2-4`.
+- Base: fresh `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50` after merged PR #291.
+- Changed files:
+  - `src/lib/profileActivityFeedClient.js`
+  - `src/pages/AdminPage.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteMaterialsModule.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `src/profileCabinet.css`
+  - `src/profileMandalaWorkspace.css`
+  - `supabase/migrations/20260605153000_profile_cabinet_activity_events.sql`
+  - `test/profileActivityFeedClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added admin moderation for pending activity events with type/title/body/category/tags/target/date and approve/reject actions;
+  - added an admin-only test event form that creates `status='pending'` public-feed events;
+  - added safe feed payload builders, material/service/Power Place event mapping, duplicate lookup, duplicate update, and approved-duplicate messaging;
+  - added explicit material/service/saved-mandala feed actions instead of automatic feed event creation on every edit;
+  - added a public Power Place projection form that sends only title/body/category/tags;
+  - allowed `profile_cabinet_power_place_compositions` as an activity-event target without loosening private Power Place/media RLS.
+- Checks run:
+  - `npm install` attempted and failed with `ENOSPC`; reused existing dependency install through a temporary `node_modules` symlink for validation, then removed the symlink;
+  - `npm run check`
+  - `npm run build`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-feed`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `git diff --check`
+- Check notes:
+  - final automated commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4356/`;
+  - Playwright MCP checked `/feed`, `/profile/admin`, `/profile`, `/profile/mandalas`, `/profile/services`, and `/masters`;
+  - desktop `1280x920` and mobile `390x900` had horizontal overflow `0`;
+  - console warnings/errors were `0`;
+  - checked route text did not contain private storage refs, signed URL markers, `object_refs`, or bearer tokens.
+- Not verified:
+  - live/staging Supabase writes, migration application, admin membership, approval-to-feed flow with real rows, Vercel preview, production/legacy live URLs, and Google OAuth.
+
 ## 2026-06-05 — Verify and tighten draft/clean release model docs
 
 - Branch: `codex/release-model-verification-20260605`.

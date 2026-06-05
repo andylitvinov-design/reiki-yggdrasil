@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import {
   ACTIVITY_FEED_TABS,
   activityTypeLabel,
+  buildActivityEventDuplicatePath,
   buildPublicActivityEventsPath,
+  buildSafeActivityEventPayload,
+  feedActivityTypeForMaterial,
   isPublicSafeFeedImageUrl,
   normalizeActivityEvent
 } from "../src/lib/profileActivityFeedClient.js";
@@ -50,11 +53,59 @@ assert.equal(normalized.isFeatured, true);
 
 assert.equal(activityTypeLabel("service_updated"), "Услуга обновлена");
 assert.equal(activityTypeLabel("unknown"), "Событие");
+assert.equal(feedActivityTypeForMaterial({ type: "mandala" }), "mandala_published");
+assert.equal(feedActivityTypeForMaterial({ type: "artifact" }), "artifact_published");
+assert.equal(feedActivityTypeForMaterial({ type: "practice" }), "practice_published");
+assert.equal(feedActivityTypeForMaterial({ type: "photo" }), "");
 
 assert.equal(
   buildPublicActivityEventsPath({ tab: "services", limit: 200 }),
   "/rest/v1/profile_cabinet_activity_events?status=eq.approved&visibility=eq.public_feed&select=id,profile_id,activity_type,target_table,target_id,title,body,image_url,category,subcategory,tags,status,visibility,is_featured,event_at,created_at,updated_at&order=event_at.desc&limit=60&activity_type=in.(service_created,service_updated)",
   "public feed query should clamp limit and filter service tab types"
+);
+
+assert.equal(
+  buildActivityEventDuplicatePath({
+    target_table: "profile_cabinet_publications",
+    target_id: "target-1",
+    activity_type: "mandala_published"
+  }),
+  "/rest/v1/profile_cabinet_activity_events?target_table=eq.profile_cabinet_publications&target_id=eq.target-1&activity_type=eq.mandala_published&status=in.(draft,pending,approved)&select=id,profile_id,activity_type,target_table,target_id,title,body,image_url,category,subcategory,tags,status,visibility,is_featured,event_at,created_at,updated_at&order=updated_at.desc&limit=1",
+  "duplicate query should use target table, target id, activity type, and active statuses"
+);
+
+assert.deepEqual(
+  buildSafeActivityEventPayload({
+    profile_id: " profile-1 ",
+    activity_type: "mandala_published",
+    target_table: "profile_cabinet_publications",
+    target_id: " target-1 ",
+    title: " Мандала ",
+    body: " Публичное описание ",
+    image_url: "storage://profile-cabinet-media/private.jpg",
+    category: " reiki ",
+    tags: " мандала, рэйки, , тест ",
+    status: "pending",
+    visibility: "public_feed"
+  }),
+  {
+    profile_id: "profile-1",
+    activity_type: "mandala_published",
+    target_table: "profile_cabinet_publications",
+    target_id: "target-1",
+    title: "Мандала",
+    body: "Публичное описание",
+    image_url: "",
+    image_bucket: null,
+    image_path: null,
+    category: "reiki",
+    subcategory: "",
+    tags: ["мандала", "рэйки", "тест"],
+    status: "pending",
+    visibility: "public_feed",
+    is_featured: false
+  },
+  "safe feed payload should strip private media refs and normalize public fields only"
 );
 
 assert.equal(

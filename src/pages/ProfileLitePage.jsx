@@ -13,6 +13,12 @@ import {
   stripFileExtension,
   updateOwnMaterial
 } from "../lib/profileMaterialsClient.js";
+import {
+  buildMaterialActivityEvent,
+  buildPowerPlaceActivityEvent,
+  buildServiceActivityEvent,
+  createOrUpdatePendingActivityEvent
+} from "../lib/profileActivityFeedClient.js";
 import { validateGrimoireFile } from "../lib/profileMediaClient.js";
 import {
   createEmptyServiceForm,
@@ -418,6 +424,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const [materialsStatus, setMaterialsStatus] = useState("idle");
   const [materialsError, setMaterialsError] = useState("");
+  const [materialsFeedMessage, setMaterialsFeedMessage] = useState("");
   const [materials, setMaterials] = useState([]);
   const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
   const [materialFile, setMaterialFile] = useState(null);
@@ -434,6 +441,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
   const [compositionDraft, setCompositionDraft] = useState(EMPTY_COMPOSITION);
   const [compositionMessage, setCompositionMessage] = useState("");
+  const [powerPlaceFeedForm, setPowerPlaceFeedForm] = useState({ title: "", body: "", category: "mandalas", tags: "" });
+  const [powerPlaceFeedStatus, setPowerPlaceFeedStatus] = useState("idle");
 
   const [servicesStatus, setServicesStatus] = useState("idle");
   const [servicesError, setServicesError] = useState("");
@@ -938,6 +947,23 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setMaterialsStatus("needs-verification");
       setMaterialsError(moduleError(error, "profile_cabinet_publications delete failed or migration/RLS not applied"));
       throw error;
+    }
+  };
+
+  const handleAddMaterialToFeed = async (material) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMaterialsError("Сначала сохраните профиль мастера.");
+      setMaterialsStatus("needs-verification");
+      return;
+    }
+    try {
+      const result = await createOrUpdatePendingActivityEvent(buildMaterialActivityEvent(material, profile.id), session);
+      setMaterialsFeedMessage(result.message);
+      setMaterialsStatus("success");
+      setMaterialsError("");
+    } catch (error) {
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(moduleError(error, "profile_cabinet_activity_events material create failed or migration/RLS not applied"));
     }
   };
 
@@ -1562,6 +1588,43 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handlePowerPlaceFeedFormChange = (field, value) => {
+    setPowerPlaceFeedForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handlePublishCompositionToFeed = async (composition = compositionDraft) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      const message = "Сначала сохраните профиль мастера.";
+      setMandalasError(message);
+      setCompositionMessage(message);
+      setMandalasStatus("needs-verification");
+      return;
+    }
+
+    const compositionId = composition?.id || compositionDraft.id;
+    if (!compositionId) {
+      setCompositionMessage("Сначала сохраните мандалу, затем отправьте публичную проекцию в ленту.");
+      return;
+    }
+
+    setPowerPlaceFeedStatus("loading");
+    try {
+      const result = await createOrUpdatePendingActivityEvent(
+        buildPowerPlaceActivityEvent({ ...composition, id: compositionId }, powerPlaceFeedForm, profile.id),
+        session
+      );
+      setCompositionMessage(result.message);
+      setMandalasStatus("success");
+      setMandalasError("");
+      setPowerPlaceFeedStatus("success");
+    } catch (error) {
+      setPowerPlaceFeedStatus("error");
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "profile_cabinet_activity_events power place create failed or migration/RLS not applied"));
+      setCompositionMessage(moduleError(error, "Публичная проекция не отправлена."));
+    }
+  };
+
   const handleProfileLiteTabNavigate = (tab) => {
     const nextTab = getProfileLiteTabById(tab?.id);
     const href = tab?.href || getProfileLiteRouteByTabId(nextTab.id);
@@ -1673,6 +1736,40 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setServicesStatus("needs-verification");
       setServiceActionStatus("error");
       setServicesError(moduleError(error, "profile_cabinet_services status update failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleAddServiceToFeed = async (activityType = "service_created") => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    if (!serviceForm.id) {
+      setServicesError("Выберите опубликованную услугу из списка.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    if (serviceForm.status !== "published") {
+      setServicesError("Сначала опубликуйте услугу, затем добавьте её в ленту.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    setServiceActionStatus("loading");
+    setServiceMessage("");
+    setServicesError("");
+    try {
+      const result = await createOrUpdatePendingActivityEvent(
+        buildServiceActivityEvent(serviceForm, profile.id, activityType),
+        session
+      );
+      setServicesStatus("success");
+      setServiceActionStatus("success");
+      setServiceMessage(result.message);
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServiceActionStatus("error");
+      setServicesError(moduleError(error, "profile_cabinet_activity_events service create failed or migration/RLS not applied"));
     }
   };
 
@@ -1791,6 +1888,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     materialForm,
     materials,
     materialsError,
+    materialsFeedMessage,
     materialsStatus,
     mediaError,
     mediaStatus,
@@ -1802,6 +1900,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     ordersStatus,
     pendingCartMessage,
     planLimits,
+    powerPlaceFeedForm,
+    powerPlaceFeedStatus,
     powerPlaceCompositions,
     profile,
     profileError,
@@ -1847,6 +1947,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
         onPublishAsService={handlePublishCompositionAsService}
+        onPublishToFeed={handlePublishCompositionToFeed}
+        onFeedFormChange={handlePowerPlaceFeedFormChange}
         onSaveNew={handleCompositionSaveNew}
         onSendToServices={handleSendCompositionToServices}
         services={services}
@@ -1870,6 +1972,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         materials={materials}
         materialsError={materialsError}
         materialsStatus={materialsStatus}
+        materialsFeedMessage={materialsFeedMessage}
+        onAddToFeed={handleAddMaterialToFeed}
         onDelete={handleGrimoireDelete}
         onMultiUpload={handleGrimoireMultiUpload}
         onUpdate={handleGrimoireUpdate}
@@ -1879,6 +1983,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       <ProfileLiteServicesModule
         {...moduleProps}
         onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
+        onAddToFeed={handleAddServiceToFeed}
         onPublish={handleServicePublish}
         onSave={handleServiceSave}
         onServiceSelect={(service) => {

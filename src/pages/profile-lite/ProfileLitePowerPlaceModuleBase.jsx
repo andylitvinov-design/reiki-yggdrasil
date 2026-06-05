@@ -435,6 +435,7 @@ export default function ProfileLitePowerPlaceModule({
   materials,
   mediaError,
   mediaStatus,
+  onFeedFormChange,
   onAddCompositionToServices,
   onClientPhotoDelete,
   onCompositionCoverSelect,
@@ -448,11 +449,14 @@ export default function ProfileLitePowerPlaceModule({
   onObjectFileUpload,
   onPrint,
   onPublishAsService,
+  onPublishToFeed,
   onSaveNew,
   onSendToServices,
   onUpdateExisting,
   onUploadedCentralPhoto,
   planLimits,
+  powerPlaceFeedForm = { title: "", body: "", category: "mandalas", tags: "" },
+  powerPlaceFeedStatus = "idle",
   powerPlaceCompositions,
   services = [],
   shellChrome,
@@ -1007,6 +1011,46 @@ export default function ProfileLitePowerPlaceModule({
       </div>
       {compositionMessage && <div className="cabinetSuccess compactNotice profileLitePowerPlaceActionFeedback">{compositionMessage}</div>}
       <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>
+      <div className="powerPlaceFeedProjection" aria-label="Публичная проекция для ленты">
+        <div className="cabinetFormHeader">
+          <div>
+            <p className="cabinetEyebrow">публичная проекция</p>
+            <h3>Опубликовать в ленту</h3>
+          </div>
+          <span className="cabinetStatus">{powerPlaceFeedStatus}</span>
+        </div>
+        <label>
+          Название для ленты
+          <input
+            value={powerPlaceFeedForm.title}
+            onChange={(event) => onFeedFormChange?.("title", event.target.value)}
+            placeholder={compositionDraft.title || "Место силы"}
+          />
+        </label>
+        <label>
+          Публичное описание
+          <textarea
+            value={powerPlaceFeedForm.body}
+            onChange={(event) => onFeedFormChange?.("body", event.target.value)}
+            rows={3}
+            placeholder="Опишите только публичный смысл мандалы, без клиентских фото и приватных заметок"
+          />
+        </label>
+        <div className="powerPlaceFeedProjectionGrid">
+          <label>
+            Категория
+            <input value={powerPlaceFeedForm.category} onChange={(event) => onFeedFormChange?.("category", event.target.value)} placeholder="mandalas" />
+          </label>
+          <label>
+            Теги
+            <input value={powerPlaceFeedForm.tags} onChange={(event) => onFeedFormChange?.("tags", event.target.value)} placeholder="мандала, рэйки" />
+          </label>
+        </div>
+        <button className="cabinetSecondary" type="button" onClick={() => onPublishToFeed?.(compositionDraft)} disabled={!compositionDraft.id || powerPlaceFeedStatus === "loading"}>
+          Опубликовать в ленту
+        </button>
+        {!compositionDraft.id && <p className="cabinetMuted">Сначала сохраните мандалу. В ленту отправляется только эта публичная форма, без приватных данных композиции.</p>}
+      </div>
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
   );

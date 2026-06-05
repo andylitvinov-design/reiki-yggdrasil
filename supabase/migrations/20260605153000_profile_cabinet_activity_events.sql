@@ -34,7 +34,8 @@ create table if not exists public.profile_cabinet_activity_events (
     target_table in (
       'profile_cabinet_publications',
       'profile_cabinet_services',
-      'profile_cabinet_photo_albums'
+      'profile_cabinet_photo_albums',
+      'profile_cabinet_power_place_compositions'
     ) or target_table is null
   ),
   constraint profile_cabinet_activity_events_status_check check (status in ('draft', 'pending', 'approved', 'rejected', 'archived')),
