@@ -120,6 +120,126 @@
   color: #fff0cd;
 }
 
+.profileLiteCompositionList,
+.profileLiteServicesList {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteCompositionItem {
+  min-width: 0;
+}
+
+.profileLiteCompositionItem--card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 16px;
+  padding: 10px;
+  background: rgba(255, 253, 248, 0.76);
+  box-shadow: 0 10px 24px rgba(79, 54, 18, 0.08);
+}
+
+.profileLiteCompositionCard--horizontal {
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: clamp(88px, 14vw, 112px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.profileLiteCompositionPreview {
+  width: 100%;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 12px;
+  background:
+    repeating-radial-gradient(circle at 50% 48%, rgba(184, 121, 29, 0.18) 0 2px, transparent 3px 12px),
+    linear-gradient(135deg, #21170d, #8f5a14 52%, #f0d595);
+  background-size: cover;
+  background-position: center;
+  color: #fff0cd;
+  font-size: 26px;
+  font-weight: 900;
+  overflow: hidden;
+}
+
+.profileLiteCompositionPreview.hasImage {
+  color: transparent;
+}
+
+.profileLiteCompositionBody {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.profileLiteCompositionBody b,
+.profileLiteCompositionBody span,
+.profileLiteCompositionBody small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteCompositionBody b {
+  color: #2b1b0c;
+  font-size: 15px;
+}
+
+.profileLiteCompositionBody span {
+  color: #6f4b1b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileLiteCompositionBody small {
+  color: #7a674f;
+  font-size: 12px;
+}
+
+.profileLiteCompositionActions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.profileLiteCompositionActions button,
+.profileLiteServiceLinkedStatus {
+  white-space: nowrap;
+}
+
+.profileLiteServiceLinkedStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(51, 121, 82, 0.24);
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: rgba(229, 246, 235, 0.72);
+  color: #2f6f4d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profileLiteServicesItem {
+  grid-template-columns: clamp(88px, 14vw, 112px) minmax(0, 1fr) max-content;
+}
+
 .mandalaModeSidebar,
 .chatPlaceholderWorkspace {
   min-width: 0;
@@ -5657,22 +5777,22 @@
 
 .profileLitePowerPlace .compactFieldLayoutSwitch {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 6px;
   align-items: stretch;
-  padding: 8px;
+  padding: 6px;
 }
 
 .profileLitePowerPlace .layoutCenterCell,
 .profileLitePowerPlace .layoutBackgroundCell {
   min-width: 0;
-  min-height: 74px;
+  min-height: 64px;
   display: grid;
-  gap: 6px;
+  gap: 5px;
   align-content: space-between;
   border: 1px solid rgba(184, 121, 29, 0.18);
   border-radius: 12px;
-  padding: 8px;
+  padding: 6px;
   background: rgba(255, 250, 240, 0.72);
   overflow: hidden;
 }
@@ -5703,6 +5823,14 @@
   gap: 6px;
 }
 
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .profileLitePowerPlace .centerShapeButtons button,
 .profileLitePowerPlace .mandalaFieldLayoutButtons button {
   min-width: 0;
@@ -5712,6 +5840,18 @@
 }
 
 .profileLitePowerPlace .sourceSlotScaleControl,
+
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
+  display: grid !important;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 !important;
+  border-radius: 9px;
+}
+
+.profileLitePowerPlace .chessSizeControl,
 .profileLitePowerPlace .innerFieldScaleControl,
 .profileLitePowerPlace .centerFrameScaleControl,
 .profileLitePowerPlace .photoScaleControl {
@@ -5863,6 +6003,16 @@
   border-color: rgba(245, 198, 106, 0.72);
   background: linear-gradient(180deg, #2a1a09, #8c570d);
   color: #fff0cd;
+}
+
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
+  display: grid !important;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 !important;
+  border-radius: 9px;
 }
 
 @media (max-width: 1180px) {
@@ -6559,6 +6709,50 @@
     width: 100%;
     flex-basis: 100%;
     font-size: 11px;
+  }
+
+  .profileLiteCompositionItem--card,
+  .profileLiteServicesItem {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .profileLiteCompositionCard--horizontal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteCompositionPreview {
+    height: 128px;
+  }
+
+  .profileLiteCompositionBody b,
+  .profileLiteCompositionBody span,
+  .profileLiteCompositionBody small {
+    white-space: normal;
+  }
+
+  .profileLiteCompositionActions {
+    justify-content: stretch;
+  }
+
+  .profileLiteCompositionActions button,
+  .profileLiteServiceLinkedStatus {
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .compactFieldLayoutSwitch {
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+  }
+
+  .profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons {
+    gap: 3px;
+  }
+
+  .profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
+    min-height: 26px !important;
   }
 
   .profileLitePowerPlace .coverPreview {

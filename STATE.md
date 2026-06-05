@@ -12,6 +12,36 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — PR #272 workshop tabs rebased onto current Power Place controls
+
+- Branch: `fix/profile-lite-mandala-cards-services-tab`, rebased onto `origin/main` at `29253fe`.
+- Scope: `/profile/mandalas` Profile Lite React/CSS/client contract tests/docs only; Supabase schema, auth redirects, Vercel rewrites, public homepage, `/masters`, `/profile/admin`, and mandala save/update payloads were not changed.
+- Preserved from current main:
+  - Power Place constructor scale logic for `sourceSlotScale`, `fieldScale`, `centerFrameScale`, and `centerImageScale`;
+  - CSS variables `--power-source-slot-scale`, `--power-place-chess-slot-scale`, `--power-field-scale`, `--power-center-image-scale`, and `--power-center-frame-scale`;
+  - four constructor sliders: `Размер окон`, `Размер поля`, `Размер центра`, `Размер фоток`;
+  - saved-count limit behavior through `saveNewDisabled`, `saveNewTitle`, `saveNewAriaLabel`, and the disabled `powerPlaceSaveButton`.
+- Kept from PR #272:
+  - visible Profile Lite top nav labels `mandalas` as `Мастерская`;
+  - `Настройки` and `Диагностика` remain hidden from visible top nav while internal route helpers still resolve them;
+  - internal workshop tabs are `Место силы`, `Мои мандалы`, and `Услуги`;
+  - saved mandalas render as horizontal preview cards with add/linked service state;
+  - internal `Услуги` lists only services linked by `service.composition_id`;
+  - add-to-services creates a draft service using the existing `profile_cabinet_services.composition_id` path;
+  - compact `Центр` / `Фон` layout icons stay on one row.
+- Verification:
+  - `npm install`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-services`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4337/profile/mandalas`;
+  - mock Supabase server: `http://127.0.0.1:4339`;
+  - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - desktop 1200px-wide browser: top text showed `Мастерская` and no visible top `Настройки`; internal tabs were `Место силы`, `Мои мандалы`, `Услуги`; saved mandala rendered as a horizontal card with preview; add-to-services created a draft linked service and switched to internal `Услуги`; constructor controls rendered `Размер окон`, `Размер поля`, `Размер центра`, `Размер фоток`; `Размер окон` changed slot/chess scale variables, `Размер центра` changed center-frame scale, and `Размер фоток` changed center-image scale; horizontal overflow was `0`; compact `Центр` / `Фон` icons stayed on one row.
+- Not verified:
+  - real authenticated Supabase service creation against production data;
+  - true mobile browser viewport QA, because the available MCP browser tool did not expose viewport resizing in this session;
+  - Vercel preview, merge/deploy, production/legacy live rendering, and Google OAuth.
+
 ## 2026-06-05 — Power Place window-size slider restore
 
 - Branch: `fix/power-place-window-size-slider`, based on fresh `origin/main` at `8062178`.

@@ -425,7 +425,7 @@ export default function ProfileLitePowerPlaceModule({
   onUploadedCentralPhoto,
   planLimits,
   powerPlaceCompositions,
-  services,
+  services = [],
   shellChrome,
   traditionAssets
 }) {
@@ -594,6 +594,51 @@ export default function ProfileLitePowerPlaceModule({
   const reportEnabled = reportDraft.mode === "with_report";
   const reportAdded = reportEnabled && reportDraft.added;
   const reportHasBody = Boolean(reportDraft.situation || reportDraft.mandala_effect || reportDraft.extra_help);
+  const serviceByCompositionId = useMemo(() => {
+    const next = new Map();
+    (services || []).forEach((service) => {
+      const compositionId = String(service?.composition_id || "").trim();
+      if (compositionId && !next.has(compositionId)) next.set(compositionId, service);
+    });
+    return next;
+  }, [services]);
+  const compositionById = useMemo(() => {
+    const next = new Map();
+    (powerPlaceCompositions || []).forEach((composition) => {
+      const compositionId = String(composition?.id || "").trim();
+      if (compositionId) next.set(compositionId, composition);
+    });
+    return next;
+  }, [powerPlaceCompositions]);
+  const compositionServices = useMemo(
+    () => (services || []).filter((service) => String(service?.composition_id || "").trim()),
+    [services]
+  );
+
+  const resolveCompositionPreviewSrc = (composition) => {
+    const coverRef = composition?.cover_ref || {};
+    const innerCoverRef = coverRef?.inner || {};
+    const compositionObjectRefUrls = cleanObjectRefs(composition?.object_ref_urls);
+    const candidates = [
+      innerCoverRef.display_src,
+      innerCoverRef.displaySrc,
+      innerCoverRef.src,
+      coverRef.display_src,
+      coverRef.displaySrc,
+      coverRef.src
+    ];
+    return candidates
+      .map((candidate) => compositionObjectRefUrls[candidate] || candidate)
+      .find(isImagePreview) || "";
+  };
+
+  const compositionDateLabel = (composition) => {
+    const raw = composition?.updated_at || composition?.created_at || "";
+    if (!raw) return "needs verification";
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return raw;
+    return parsed.toLocaleDateString("ru-RU");
+  };
 
   const updateReportDraft = (patch) => {
     const nextReport = normalizeReportDraft({ ...reportDraft, ...patch });
@@ -931,6 +976,101 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
+  const handleAddCompositionToServices = async (composition) => {
+    const saved = await onSendToServices(composition);
+    if (saved) setWorkspaceTab("services");
+  };
+
+  const renderCompositionPreview = (src, label = "Мандала") => (
+    <span className={`profileLiteCompositionPreview${src ? " hasImage" : ""}`} style={imageStyle(src)} aria-hidden="true">
+      {!src && <span>{label.slice(0, 1).toUpperCase()}</span>}
+    </span>
+  );
+
+  const renderMandalasTab = () => (
+    <section className="cabinetCard mandalaGallery">
+      <div className="cabinetFormHeader">
+        <div>
+          <p className="cabinetEyebrow">Мои мандалы</p>
+          <h2>Сохранённые места силы</h2>
+        </div>
+        <span className="cabinetStatus">{mandalasStatus}</span>
+      </div>
+      <div className="profileLiteCompositionList">
+        {powerPlaceCompositions.map((composition) => {
+          const linkedService = serviceByCompositionId.get(String(composition.id));
+          const previewSrc = resolveCompositionPreviewSrc(composition);
+          return (
+            <div className="profileLiteCompositionItem profileLiteCompositionItem--card" key={composition.id}>
+              <button className="profileLiteCompositionCard profileLiteCompositionCard--horizontal" type="button" onClick={() => {
+                onCompositionLoad(composition);
+                setWorkspaceTab("power-place");
+              }}>
+                {renderCompositionPreview(previewSrc, composition.title || "Место силы")}
+                <span className="profileLiteCompositionBody">
+                  <b>{composition.title || "Место силы"}</b>
+                  <span>{formatLabel(composition.constructor_type)} · {compositionDateLabel(composition)}</span>
+                  <small>{composition.tradition_title || composition.resource_comparison_mode || composition.chess_variant || "Сохранённая мандала места силы"}</small>
+                </span>
+              </button>
+              <div className="profileLiteCompositionActions">
+                {linkedService ? (
+                  <button
+                    className="cabinetSecondary profileLiteAddToServicesButton"
+                    disabled
+                    title="Эта мандала уже есть в Моих услугах"
+                    type="button"
+                  >
+                    В услугах ✓
+                  </button>
+                ) : (
+                  <button className="cabinetSecondary profileLiteAddToServicesButton" type="button" onClick={() => handleAddCompositionToServices(composition)}>
+                    Добавить в мои услуги
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+        {powerPlaceCompositions.length === 0 && <p>Сохранённые мандалы появятся здесь после сохранения места силы.</p>}
+      </div>
+    </section>
+  );
+
+  const renderServicesTab = () => (
+    <section className="cabinetCard mandalaGallery">
+      <div className="cabinetFormHeader">
+        <div>
+          <p className="cabinetEyebrow">Услуги</p>
+          <h2>Мандалы в услугах</h2>
+        </div>
+        <span className="cabinetStatus">{compositionServices.length}</span>
+      </div>
+      <div className="profileLiteServicesList">
+        {compositionServices.map((service) => {
+          const composition = compositionById.get(String(service.composition_id));
+          const previewSrc = composition ? resolveCompositionPreviewSrc(composition) : service.display_url || service.image_url || "";
+          const title = composition?.title || service.title || "Мандала Места Силы";
+          const typeLabel = composition ? formatLabel(composition.constructor_type) : "Услуга";
+          return (
+            <article className="profileLiteServicesItem profileLiteCompositionItem profileLiteCompositionItem--card" key={service.id || service.composition_id}>
+              {renderCompositionPreview(previewSrc, title)}
+              <span className="profileLiteCompositionBody">
+                <b>{title}</b>
+                <span>{typeLabel} · {service.updated_at || service.created_at || "needs verification"}</span>
+                <small>{service.description || composition?.tradition_title || "Услуга подготовлена из сохранённой мандалы."}</small>
+              </span>
+              <div className="profileLiteCompositionActions">
+                <span className="profileLiteServiceLinkedStatus">В услугах ✓</span>
+              </div>
+            </article>
+          );
+        })}
+        {compositionServices.length === 0 && <p>Пока нет мандал, добавленных в услуги.</p>}
+      </div>
+    </section>
+  );
+
   return (
     <section className="profileLiteModule profileLitePowerPlace mandalaWorkspace" aria-label="Мои мандалы">
       <div className="mandalaHero">
@@ -953,6 +1093,7 @@ export default function ProfileLitePowerPlaceModule({
         <div className="workspaceTabs" role="tablist" aria-label="Раздел мастерской мандал">
           <button className={workspaceTab === "power-place" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("power-place")}>Место силы</button>
           <button className={workspaceTab === "mandalas" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("mandalas")}>Мои мандалы</button>
+          <button className={workspaceTab === "services" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("services")}>Услуги</button>
         </div>
       </div>
 
@@ -1049,67 +1190,7 @@ export default function ProfileLitePowerPlaceModule({
         </aside>
 
         <div className="workspaceCenterColumn">
-          {workspaceTab === "mandalas" ? (
-            <section className="cabinetCard mandalaGallery">
-              <div className="cabinetFormHeader">
-                <div>
-                  <p className="cabinetEyebrow">Мои мандалы</p>
-                  <h2>Сохранённые места силы</h2>
-                </div>
-                <span className="cabinetStatus">{mandalasStatus}</span>
-              </div>
-              <div className="profileLiteCompositionList">
-                {powerPlaceCompositions.map((composition) => {
-                  const alreadyInServices = Array.isArray(services) && services.some((service) => service.composition_id && String(service.composition_id) === String(composition.id));
-                  return (
-                    <div key={composition.id} className="profileLiteCompositionItem">
-                      <button type="button" className="profileLiteCompositionCard" onClick={() => {
-                        onCompositionLoad(composition);
-                        setWorkspaceTab("power-place");
-                      }}>
-                        <b>{composition.title || "Место силы"}</b>
-                        <span>{formatLabel(composition.constructor_type)} · {composition.updated_at || composition.created_at || "needs verification"}</span>
-                      </button>
-                      {onAddCompositionToServices && (
-                        <button
-                          type="button"
-                          className="cabinetGhost profileLiteAddToServicesButton"
-                          disabled={alreadyInServices}
-                          title={alreadyInServices ? "Эта мандала уже есть в Моих услугах" : "Добавить в мои услуги"}
-                          onClick={() => onAddCompositionToServices(composition)}
-                        >
-                          {alreadyInServices ? "В услугах ✓" : "Добавить в мои услуги"}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {powerPlaceCompositions.length === 0 && (
-                <p className="cabinetMuted">Сохранённые места силы появятся здесь после первого сохранения.</p>
-              )}
-              {compositionMessage && <div className="cabinetSuccess compactNotice profileLiteCompositionTabMessage">{compositionMessage}</div>}
-
-              <section className="profileLiteMyServicesSection" aria-label="Мои услуги">
-                <div className="cabinetFormHeader">
-                  <p className="cabinetEyebrow">Мои услуги</p>
-                </div>
-                {Array.isArray(services) && services.filter((service) => service.composition_id).length > 0 ? (
-                  <div className="profileLiteServicesList">
-                    {services.filter((service) => service.composition_id).map((service) => (
-                      <div key={service.id} className="profileLiteServicesItem">
-                        <b>{service.title || "Услуга"}</b>
-                        <span>{service.status === "published" ? "Опубликовано" : service.status === "archived" ? "Архив" : "Черновик"}</span>
-                        <small>{service.updated_at || service.created_at || ""}</small>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="cabinetMuted">Выбранные мандалы появятся здесь после добавления в услуги.</p>
-                )}
-              </section>
-            </section>
-          ) : (
+          {workspaceTab === "mandalas" ? renderMandalasTab() : workspaceTab === "services" ? renderServicesTab() : (
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
               <div className="powerPlaceHeader">
                 <div>

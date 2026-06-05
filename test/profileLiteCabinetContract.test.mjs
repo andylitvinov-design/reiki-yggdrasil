@@ -15,15 +15,13 @@ import {
 } from "../src/lib/profileLiteClient.js";
 
 const expectedTabs = [
-  ["mandalas", "Мои мандалы"],
+  ["mandalas", "Мастерская"],
   ["profile", "Профиль"],
   ["media", "Фото / Медиа"],
   ["materials", "Материалы"],
   ["services", "Услуги"],
   ["orders", "Заказы"],
-  ["chats", "Чаты"],
-  ["settings", "Настройки"],
-  ["diagnostics", "Диагностика"]
+  ["chats", "Чаты"]
 ];
 
 assert.deepEqual(
@@ -41,26 +39,30 @@ assert.deepEqual(
     ["materials", "/profile?tab=materials"],
     ["services", "/profile/services"],
     ["orders", "/profile/orders"],
-    ["chats", "/profile/chats"],
-    ["settings", "/profile/settings"],
-    ["diagnostics", "/profile?tab=diagnostics"]
+    ["chats", "/profile/chats"]
   ],
   "Profile Lite tabs must be backed by stable URL paths or query strings"
 );
 
 assert.equal(PROFILE_LITE_TABS.some((tab) => tab.id === "overview" || tab.label === "Обзор"), false);
+assert.equal(PROFILE_LITE_TABS.some((tab) => tab.id === "settings" || tab.label === "Настройки"), false);
+assert.equal(PROFILE_LITE_TABS.some((tab) => tab.id === "diagnostics" || tab.label === "Диагностика"), false);
 assert.equal(getProfileLiteTabById("missing").id, "mandalas");
 assert.equal(getProfileLiteTabById("orders").label, "Заказы");
+assert.equal(getProfileLiteTabById("settings").label, "Настройки");
+assert.equal(getProfileLiteTabById("diagnostics").label, "Диагностика");
 assert.equal(getProfileLiteRouteByTabId("mandalas"), "/profile/mandalas");
 assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
 assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
 assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
 assert.equal(getProfileLiteRouteByTabId("settings"), "/profile/settings");
+assert.equal(getProfileLiteRouteByTabId("diagnostics"), "/profile?tab=diagnostics");
 assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/unknown", ""), "mandalas");
 
 const fullForm = createProfileLiteForm({
@@ -187,8 +189,12 @@ for (const requiredPowerPlaceText of [
   "Мастерская мандал",
   "Место силы",
   "Мои мандалы",
+  "Услуги",
   "Источники силы",
   "Добавить фото",
+  "Добавить в мои услуги",
+  "В услугах ✓",
+  "Пока нет мандал, добавленных в услуги.",
   "Группа",
   "Категория",
   "Подкатегория / Ступень",
@@ -298,6 +304,13 @@ assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "re
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
 assert.match(powerPlaceSource, /has-custom-outer-cover/, "outer custom covers should be rendered through React-owned classes");
+assert.match(powerPlaceSource, /workspaceTab === "services"/, "Power Place workshop should expose an internal services tab");
+assert.match(powerPlaceSource, /services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "internal services tab should list only services linked by composition_id");
+assert.match(powerPlaceSource, /serviceByCompositionId\.get\(String\(composition\.id\)\)/, "saved mandala cards should detect services linked by composition_id");
+assert.match(powerPlaceSource, /profileLiteCompositionCard profileLiteCompositionCard--horizontal/, "saved mandala cards should use horizontal card class");
+assert.match(powerPlaceSource, /profileLiteCompositionPreview/, "saved mandala and service cards should render a preview or placeholder");
+assert.match(profileLitePageSource, /const existing = services\.find\(\(service\) => String\(service\.composition_id \|\| ""\) === String\(composition\.id\)\)/, "Add to services handler should guard duplicate composition services");
+assert.match(profileLitePageSource, /createOwnService\(serviceDraft, session\)/, "Add to services should create a draft service through the existing services client");
 assert.match(powerPlaceSource, /coverLayerMode === "outer" \? "custom-outer-cover" : "custom-cover"/, "saved cover photos should use stable custom inner/outer cover ids");
 assert.match(powerPlaceSource, /outerCover\?\.type === "image" \? "image" : outerCover\?\.tone \|\| "none"/, "image outer cover must produce class outer-cover-image, not outer-cover-none");
 assert.doesNotMatch(powerPlaceSource, /outer-cover-\$\{outerCover\?\.tone \|\| "none"\}/, "outer cover class must not use tone directly — image type would silently become outer-cover-none");
@@ -399,17 +412,17 @@ assert.match(powerPlaceClientSource, /__hydration_warning[\s\S]*hydration/, "cre
 assert.match(profileLitePageSource, /refreshSavedCompositions\(saved\)[\s\S]*catch[\s\S]*setCompositionMessage[\s\S]*Мандала сохранена[\s\S]*список не обновился/, "refresh failure after create should keep the optimistic row and show a visible safe message");
 assert.match(powerPlaceBaseSource, /profileLitePowerPlaceActionFeedback[\s\S]*compositionMessage/, "action-area feedback should render near the Power Place Save button");
 
-// --- C: Мои услуги in Мои мандалы tab ---
+// --- C: Услуги internal workshop tab ---
 assert.match(powerPlaceBaseSource, /onAddCompositionToServices/, "ProfileLitePowerPlaceModuleBase should accept onAddCompositionToServices prop");
 assert.match(powerPlaceBaseSource, /Добавить в мои услуги/, "composition cards in Мои мандалы should expose the add-to-services button");
 assert.match(powerPlaceBaseSource, /Эта мандала уже есть в Моих услугах/, "add-to-services button should be disabled with the required message when already in services");
-assert.match(powerPlaceBaseSource, /profileLiteMyServicesSection/, "Мои мандалы tab should contain the services section wrapper class");
-assert.match(powerPlaceBaseSource, /Выбранные мандалы появятся здесь после добавления в услуги/, "empty Мои услуги section should show the required placeholder text");
-assert.match(powerPlaceBaseSource, /services\.filter[\s\S]*composition_id/, "Мои услуги section should filter services by composition_id");
-assert.match(profileLitePageSource, /handleAddCompositionToServices/, "ProfileLitePage should expose handleAddCompositionToServices");
-assert.match(profileLitePageSource, /Сначала сохраните мандалу/, "add-to-services without a saved id should show the required message");
-assert.match(profileLitePageSource, /Эта мандала уже есть в Моих услугах/, "add-to-services duplicate guard should show the required message");
-assert.match(profileLitePageSource, /Мандала добавлена в Мои услуги/, "successful add-to-services should show the required confirmation message");
+assert.match(powerPlaceBaseSource, /workspaceTab === "services" \? renderServicesTab\(\)/, "workspace should expose a dedicated internal Услуги tab");
+assert.match(powerPlaceBaseSource, /Пока нет мандал, добавленных в услуги/, "empty Услуги tab should show the required placeholder text");
+assert.match(powerPlaceBaseSource, /\(services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "Услуги tab should filter services by composition_id");
+assert.match(profileLitePageSource, /handleSendCompositionToServices/, "ProfileLitePage should expose handleSendCompositionToServices");
+assert.match(profileLitePageSource, /Сначала сохраните или откройте мандалу/, "add-to-services without a saved id should show the required message");
+assert.match(profileLitePageSource, /Мандала уже добавлена в услуги/, "add-to-services duplicate guard should show the required message");
+assert.match(profileLitePageSource, /Мандала добавлена в услуги/, "successful add-to-services should show the required confirmation message");
 assert.match(profileLitePageSource, /composition_id: composition\.id/, "add-to-services should pass composition_id to createOwnService");
 
 // --- D: Field layout persistence ---
