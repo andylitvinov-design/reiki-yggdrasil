@@ -851,28 +851,6 @@ export default function ProfileLitePowerPlaceModule({
     openPicker("cover");
   };
 
-  const renderCoverDropIcon = (layer) => {
-    const slotKey = layer === "outer" ? "cover_ref.outer" : "cover_ref.inner";
-    const active = coverLayerMode === layer;
-    const label = layer === "outer" ? "Фон снаружи" : "Фон внутри";
-    const icon = layer === "outer" ? "▣" : "◎";
-
-    return (
-      <button
-        className={`coverDropIconButton${active ? " active" : ""}${dragOverSlotId === slotKey ? " power-place-slot--drag-over" : ""}`}
-        key={slotKey}
-        type="button"
-        onClick={() => openCoverPickerForLayer(layer)}
-        aria-label={`${label}. Перетащите фото на слой`}
-        title={`${label}. Перетащите фото на слой`}
-        {...getPowerPlaceSlotDropHandlers(slotKey)}
-      >
-        <span aria-hidden="true">{icon}</span>
-        <b>{label}</b>
-      </button>
-    );
-  };
-
   const hideCoverShortcut = (cover, event) => {
     event.stopPropagation();
     const shortcutId = cover?.shortcutId || cover?.id;
@@ -1606,12 +1584,26 @@ export default function ProfileLitePowerPlaceModule({
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
-                <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
-                <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
-              </div>
-              <div className="coverDropIconRow" aria-label="Перетащите фото на слой">
-                {renderCoverDropIcon("inner")}
-                {renderCoverDropIcon("outer")}
+                <button
+                  className={`coverLayerTabButton${coverLayerMode === "inner" ? " active" : ""}${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
+                  type="button"
+                  onClick={() => setCoverLayerMode("inner")}
+                  aria-label="Фон внутри. Можно перетащить фото"
+                  title="Фон внутри. Можно перетащить фото"
+                  {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
+                >
+                  Фон внутри
+                </button>
+                <button
+                  className={`coverLayerTabButton${coverLayerMode === "outer" ? " active" : ""}${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
+                  type="button"
+                  onClick={() => setCoverLayerMode("outer")}
+                  aria-label="Фон снаружи. Можно перетащить фото"
+                  title="Фон снаружи. Можно перетащить фото"
+                  {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
+                >
+                  Фон снаружи
+                </button>
               </div>
               <div className="coverPreviewWrap">
                 <button
