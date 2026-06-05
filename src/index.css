@@ -33,6 +33,124 @@ button {
   cursor: pointer;
 }
 
+.publicServicesPage {
+  min-height: 100vh;
+  padding: 18px;
+  background: linear-gradient(180deg, #fbf6ee, #f0e3ce);
+}
+
+.publicServicesHeader {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.publicServicesHeader button,
+.publicServiceCard button,
+.publicServiceDetail button {
+  border: 1px solid rgba(152, 96, 24, 0.35);
+  border-radius: 8px;
+  background: #fff9ee;
+  color: #332418;
+  padding: 9px 13px;
+}
+
+.publicServicesHero,
+.publicServiceDetail {
+  max-width: 1120px;
+  margin: 0 auto 18px;
+}
+
+.publicServicesHero h1,
+.publicServiceDetail h1 {
+  margin: 0 0 10px;
+  font-size: 36px;
+  line-height: 1.08;
+}
+
+.publicServicesState {
+  max-width: 1120px;
+  margin: 12px auto;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 249, 238, 0.86);
+}
+
+.publicServicesGrid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.publicServiceCard,
+.publicServiceDetail {
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.94);
+  box-shadow: 0 16px 36px rgba(79, 54, 18, 0.1);
+  overflow: hidden;
+}
+
+.publicServiceCard img,
+.publicServiceDetail img,
+.publicServicePreview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: #171716;
+}
+
+.publicServicePreview {
+  display: grid;
+  place-items: center;
+  color: #f4be5d;
+  font-size: 42px;
+}
+
+.publicServicePreviewLarge {
+  min-height: 320px;
+}
+
+.publicServiceCard > div,
+.publicServiceDetailBody {
+  padding: 18px;
+}
+
+.publicServiceCard h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.publicServiceCard p,
+.publicServiceDetail p {
+  color: #5f5041;
+}
+
+.publicServiceDetail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+}
+
+@media (max-width: 760px) {
+  .publicServicesPage {
+    padding: 12px;
+  }
+
+  .publicServiceDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .publicServicesHero h1,
+  .publicServiceDetail h1 {
+    font-size: 30px;
+  }
+}
+
 .appShell {
   min-height: 100vh;
   position: relative;
