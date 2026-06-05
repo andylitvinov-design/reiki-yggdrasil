@@ -175,21 +175,16 @@ assert.ok(
 
 const baseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 
-// ─── Dynamic UI: only inner background arrows are rendered ───────────────────
+// ─── Dynamic UI: old cover arrow overlay is removed ──────────────────────────
 
 assert.ok(
-  moduleSource.includes("coverOffsetCornerGroup inner"),
-  "inner background arrows must remain available"
+  !moduleSource.includes("coverOffsetCornerGroup"),
+  "old coverOffsetCornerGroup arrow overlay must be removed from the module"
 );
 
 assert.ok(
-  !moduleSource.includes("coverOffsetCornerGroup outer"),
-  "outer background arrow group must not be rendered in the Profile Lite UI"
-);
-
-assert.ok(
-  !moduleSource.includes('shiftCoverOffset("outer"'),
-  "remaining arrow buttons must not move the outer background layer"
+  !moduleSource.includes("shiftCoverOffset"),
+  "shiftCoverOffset helper must be removed along with the arrow overlay"
 );
 
 assert.ok(
