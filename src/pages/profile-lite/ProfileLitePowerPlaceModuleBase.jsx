@@ -967,6 +967,31 @@ export default function ProfileLitePowerPlaceModule({
     .map((item) => `power-place-chess__slot--${item}`)
     .join(" ");
 
+  const renderInMandalaCoverDropTargets = () => (
+    <div className="powerMandalaCoverDropTargets">
+      <button
+        className={`powerMandalaCoverDropTarget powerMandalaCoverDropTarget--inner${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
+        type="button"
+        title="Фон внутри. Перетащите фото"
+        aria-label="Фон внутри. Перетащите фото"
+        onClick={() => openCoverPickerForLayer("inner")}
+        {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
+      >
+        ◎ Внутрь
+      </button>
+      <button
+        className={`powerMandalaCoverDropTarget powerMandalaCoverDropTarget--outer${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
+        type="button"
+        title="Фон снаружи. Перетащите фото"
+        aria-label="Фон снаружи. Перетащите фото"
+        onClick={() => openCoverPickerForLayer("outer")}
+        {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
+      >
+        ▣ Снаружи
+      </button>
+    </div>
+  );
+
   const renderPowerPlaceActions = () => (
     <div className="profileLitePowerPlaceActions">
       <label className="compositionTitleField">
@@ -1360,6 +1385,7 @@ export default function ProfileLitePowerPlaceModule({
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
                 <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
+                  {renderInMandalaCoverDropTargets()}
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>

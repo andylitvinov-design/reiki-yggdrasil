@@ -1,5 +1,43 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Verify and tighten draft/clean release model docs
+
+- Branch: `codex/release-model-verification-20260605`.
+- Base: fresh `origin/main` at `1c90788403540b5479d05cf82d8bb1669d55dfd2`.
+- Changed files:
+  - `README.md`
+  - `docs/release-workflow.md`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - corrected README migration filenames to match actual timestamped files under `supabase/migrations/`;
+  - added `2mentalica` staging OAuth redirect URLs to README;
+  - replaced normal direct release merge/push commands with PR-based commands for `production`;
+  - added exact safe `production` branch existence check and creation command requiring a verified stable SHA;
+  - expanded Vercel dashboard steps for `2mentalica` and the existing client live project;
+  - expanded Supabase staging dashboard steps for migrations, storage bucket, RLS, test user, test admin, and env names only.
+- Checks run:
+  - `git fetch origin --prune`
+  - `git ls-remote --heads origin main production 'release/*'`
+  - `git rebase --autostash origin/main` after remote `main` advanced to `1c90788403540b5479d05cf82d8bb1669d55dfd2`
+  - `rg` contradiction checks across release docs, README, workflow, STATE, and LOG
+  - `ls supabase/migrations`
+  - `rg` storage/RLS policy checks across migrations
+  - `npm install`
+  - `npm run check`
+  - `git diff --check`
+- Verification notes:
+  - remote `production` branch was not found;
+  - no remote `release/*` branches were found;
+  - workflow fallback input `ref` default is `production`;
+  - `npm run check` exited `0` after installing dependencies;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - no UI/app route files were changed.
+- Not verified:
+  - Vercel dashboard setup, Supabase dashboard setup, GitHub branch protection, live/test URLs, OAuth, uploads, save/update mandala, `Мои мандалы`, mobile, and desktop layout.
+- Risk:
+  - `scripts/apply-reiki-supabase-migrations.mjs` needs separate verification before relying on it for the latest migration list.
+
 ## 2026-06-05 — Implement Community Activity Feed Phase 1 infrastructure
 
 - Branch: `codex/community-activity-feed-phase-1`.

@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-05
 
+## 2026-06-05 — Draft/clean release model verification
+
+- Branch: `codex/release-model-verification-20260605`, based on `origin/main` at `1c90788403540b5479d05cf82d8bb1669d55dfd2`.
+- Scope: documentation only; UI, routes, Supabase code/schema, Vercel rewrites, domains, env values, and deployments were not changed.
+- Verified from git:
+  - `origin/main` exists at `1c90788403540b5479d05cf82d8bb1669d55dfd2`;
+  - remote `production` branch was not present in `git ls-remote --heads origin main production 'release/*'`;
+  - no remote `release/*` branches were present in that same check;
+  - `.github/workflows/deploy-production.yml` has workflow_dispatch input `ref` defaulting to `production`.
+- Verification:
+  - `npm install`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing warnings for `RY-L04-S04` / `RY-L04-S05` video placeholders and the existing Vite large-chunk warning.
+- Changed:
+  - README Supabase migration filenames were aligned with actual `supabase/migrations/` files;
+  - README now includes `2mentalica` OAuth redirects for staging OAuth QA;
+  - release workflow now requires checking for `production`, choosing a verified stable SHA, and only then running an explicit production-branch creation command;
+  - release workflow now describes PR-based release/back-merge commands instead of normal direct pushes to `production`;
+  - Vercel and Supabase dashboard checklists were made more explicit for `2mentalica`, client live, staging env names, storage bucket, RLS, test user, and test admin setup.
+- Not verified:
+  - Vercel dashboard project `2mentalica`, `https://2mentalica.vercel.app`, `https://www.2mentalica.vercel.app`, client project production branch setting, GitHub branch protection, and staging Supabase dashboard state;
+  - live `/`, `/profile`, `/masters`, `/profile/admin`, `/profile/mandalas`, auth, upload, save/update mandala, `Мои мандалы`, mobile, and desktop 3-column QA.
+- Risk:
+  - `scripts/apply-reiki-supabase-migrations.mjs` currently needs separate verification before using it for every migration, because the docs list includes `20260605120000_grimoire_publication_types.sql`.
+
 ## Current verified repo state
 
 - repo: `andylitvinov-design/reiki-yggdrasil`

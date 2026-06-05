@@ -371,6 +371,22 @@ assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset
 assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon PR must not reintroduce pointer repositioning handlers");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "public Profile Lite layout fix should not inject legacy diagonal inner-cover arrows");
 
+// Part A: in-mandala cover drop targets
+assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTargets/, "in-mandala cover drop targets wrapper must exist");
+assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTarget/, "in-mandala cover drop target buttons must exist");
+assert.match(powerPlaceBaseSource, /◎ Внутрь/, "in-mandala inner cover drop target must have ◎ Внутрь label");
+assert.match(powerPlaceBaseSource, /▣ Снаружи/, "in-mandala outer cover drop target must have ▣ Снаружи label");
+assert.match(powerPlaceBaseSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "in-mandala inner target must use getPowerPlaceSlotDropHandlers(cover_ref.inner)");
+assert.match(powerPlaceBaseSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)/, "in-mandala outer target must use getPowerPlaceSlotDropHandlers(cover_ref.outer)");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTargets/, "CSS must define .powerMandalaCoverDropTargets");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTarget/, "CSS must define .powerMandalaCoverDropTarget");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTarget\.power-place-slot--drag-over/, "CSS must define drag-over highlight for in-mandala cover targets");
+// Right-panel tabs must still be drop targets
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)|getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "right-panel cover layer tabs must still use getPowerPlaceSlotDropHandlers for both layers");
+// No pan/zoom keys or pointer repositioning introduced
+assert.doesNotMatch(powerPlaceBaseSource, /__center_image_offset_x|__center_image_offset_y|__center_image_zoom/, "Part A must not introduce center image pan/zoom persistence keys");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown|onPointerMove|onPointerUp/, "Part A must not introduce pointer pan/zoom handlers");
+
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
 assert.equal(publicFiles.includes("profile-lite-custom-inner-cover-fix.js"), false, "new public inner cover runtime patch must not be present");
@@ -666,5 +682,51 @@ assert.match(
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireUploaderColumn\s*\{[\s\S]*order: 1/, "mobile grimoire should show uploader first");
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 2/, "mobile grimoire should show filters second");
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 3/, "mobile grimoire should show records third");
+
+// ── Media module: filter applies to both photos and materials ─────────────────
+
+const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
+
+assert.match(
+  mediaModuleSource,
+  /filteredMaterials/,
+  "ProfileLiteMediaModule should compute filteredMaterials from the filter state"
+);
+
+assert.match(
+  mediaModuleSource,
+  /matchesMediaFilter/,
+  "ProfileLiteMediaModule should define a shared matchesMediaFilter helper"
+);
+
+assert.doesNotMatch(
+  mediaModuleSource,
+  /materials\.map\(/,
+  "ProfileLiteMediaModule must not render materials.map() directly — use filteredMaterials.map() instead"
+);
+
+assert.match(
+  mediaModuleSource,
+  /profileLiteMediaGrid/,
+  "ProfileLiteMediaModule gallery must use profileLiteMediaGrid class"
+);
+
+assert.match(
+  mediaModuleSource,
+  /profileLiteMediaCard/,
+  "ProfileLiteMediaModule cards must use profileLiteMediaCard class"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLiteMediaModule \.profileLiteMediaGrid/,
+  "CSS must define grid layout for profileLiteMediaGrid"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLiteMediaModule \.profileLiteMediaThumb/,
+  "CSS must define thumb style for profileLiteMediaThumb"
+);
 
 console.log("Profile Lite cabinet contract: all assertions passed.");
