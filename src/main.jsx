@@ -17,6 +17,7 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import ProfileLitePage from "./pages/ProfileLitePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import FeedPage from "./pages/FeedPage.jsx";
 import "./index.css";
 import "./degreeSettings.css";
 import "./stepSettings.css";
@@ -209,6 +210,10 @@ function RootRouter() {
 
   if (path === "/masters") {
     return <MastersPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+  }
+
+  if (path === "/feed") {
+    return <FeedPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} onNavigateProfile={() => navigateTo("/profile")} />;
   }
 
   return <App />;

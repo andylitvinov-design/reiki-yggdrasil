@@ -12,6 +12,39 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Community Activity Feed Phase 1 infrastructure
+
+- Branch: `codex/community-activity-feed-phase-1`, clean worktree from `origin/main` at `2192fc5`.
+- Scope: Phase 1 `/feed` infrastructure only: activity events migration/RLS, direct REST client, public feed page, manual route, Vercel rewrite, scoped CSS, and focused tests. Automatic event creation, likes/reactions/comments/follows, `/masters` redesign, public access to private Power Place/media tables, and production release were not implemented.
+- Changed:
+  - added `profile_cabinet_activity_events` as a public-safe projection/event table;
+  - public RLS reads only `status='approved'` and `visibility='public_feed'` rows, with approved-profile or admin-announcement support;
+  - owner RLS can manage own editable `draft` / `pending` / `rejected` events only;
+  - admin RLS can manage all events through the existing `profile_cabinet_is_admin()` helper;
+  - private Power Place/media table policies were not loosened;
+  - `/feed` renders RU filter tabs: `Все`, `Новости`, `Мандалы`, `Фото`, `Услуги`, `Практики`;
+  - feed cards strip unsafe images and render fallback visuals for missing/unsafe `image_url`;
+  - the frontend client selects only public event columns, excluding `image_bucket` and `image_path`.
+- Safety:
+  - public feed image acceptance is limited to normal `http(s)` URLs and rejects `storage://`, `data:image`, Supabase signed object URLs, and `profile-cabinet-media` paths;
+  - no Supabase JS SDK was introduced;
+  - no env values or storage refs were added to docs/UI.
+- Verification status:
+  - `npm install`, `npm run check`, `npm run build`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run test:profile-feed`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - local preview `http://localhost:4350/` browser QA checked `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/feed`, `/masters`, and `/profile/admin` at desktop `1280x920` and mobile `390x900`;
+  - all checked routes rendered with horizontal overflow `0`;
+  - `/feed` DOM/text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, or `object_refs`;
+  - Chrome console warnings/errors were `0`.
+- Not verified yet:
+  - real authenticated Supabase owner/admin event writes;
+  - live migration application in Supabase;
+  - real approved `public_feed` rows through live anon Supabase;
+  - Vercel preview, production/legacy live rendering, Google OAuth, and real public event data.
+- Risks:
+  - live `/feed` will show the configured/empty/error state until the migration is applied and approved `public_feed` rows exist;
+  - public visibility still depends on applying this migration after the existing admin helper migration.
+
 ## 2026-06-05 — Mandala services Phase 2 manager
 
 - Branch: `codex/mandala-services-phase2-manager`, clean worktree from `origin/main` at `c2cfb8e`.
