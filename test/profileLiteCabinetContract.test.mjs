@@ -527,4 +527,108 @@ assert.match(profileLitePageSource, /NO_COVER_LAYER = \{ id: "no-cover"/, "handl
 assert.match(profileLitePageSource, /innerSrc && deletedRefs\.has\(innerSrc\)[\s\S]*nextCoverRef[\s\S]*inner: NO_COVER_LAYER/, "handleDeleteClientPhoto must reset inner cover when deleted photo was active inner cover");
 assert.match(profileLitePageSource, /outerSrc && deletedRefs\.has\(outerSrc\)[\s\S]*nextCoverRef[\s\S]*outer: NO_COVER_LAYER/, "handleDeleteClientPhoto must reset outer cover when deleted photo was active outer cover");
 
+// ── Mandala style selector: СЕТКА МАНДАЛЫ removed, style buttons added ───────
+
+assert.doesNotMatch(
+  powerPlaceSource,
+  /Фото-сетка для формата|СЕТКА МАНДАЛЫ|mandalaTemplatePilotPanel/,
+  "The separate photo-grid pilot panel must be removed from the Power Place module"
+);
+
+assert.doesNotMatch(
+  powerPlaceWrapperSource,
+  /placePowerMandalaTemplates/,
+  "placePowerMandalaTemplates import must be removed from the wrapper module"
+);
+
+assert.doesNotMatch(
+  powerPlaceWrapperSource,
+  /profileMandalaTemplatePilot/,
+  "profileMandalaTemplatePilot.css import must be removed from the wrapper module"
+);
+
+assert.doesNotMatch(
+  powerPlaceWrapperSource,
+  /MANDALA_TEMPLATE_REF_KEY/,
+  "MANDALA_TEMPLATE_REF_KEY constant must be removed from the wrapper module"
+);
+
+assert.equal(
+  existsSync("src/data/placePowerMandalaTemplates.js"),
+  false,
+  "src/data/placePowerMandalaTemplates.js must be deleted as it is no longer used"
+);
+
+assert.equal(
+  existsSync("src/profileMandalaTemplatePilot.css"),
+  false,
+  "src/profileMandalaTemplatePilot.css must be deleted as it is no longer used"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /MANDALA_STYLE_VARIANTS/,
+  "Base module should define MANDALA_STYLE_VARIANTS constant for the Mandala format"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /mandalaStyleSelector/,
+  "Base module should render a mandala style selector for the Мандала format"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /constructor_type.*===.*"client"[\s\S]*mandalaStyleSelector|mandalaStyleSelector[\s\S]*constructor_type.*===.*"client"/,
+  "Mandala style selector must render only when constructor_type is client"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /Стиль 1[\s\S]*Стиль 2[\s\S]*Стиль 3/,
+  "Mandala style buttons must show Стиль 1, Стиль 2, Стиль 3 in order"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /compositionDraft\.__mandala_style \|\| "style-1"/,
+  "Mandala style must default to style-1 for backward compatibility with existing saved mandalas"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /mandala-\$\{compositionDraft\.__mandala_style \|\| "style-1"\}/,
+  "Мандала powerMandala div must apply the active style class"
+);
+
+assert.match(
+  powerPlaceSource,
+  /MANDALA_STYLE_REF_KEY = "__mandala_style"/,
+  "outer Power Place module must define MANDALA_STYLE_REF_KEY for persistence in object_refs"
+);
+
+assert.match(
+  powerPlaceSource,
+  /__mandala_style: mandalaStyle/,
+  "outer Power Place module must pass mandalaStyle through the enhancedDraft"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.powerMandala\.mandala-style-2/,
+  "CSS must define layout overrides for mandala-style-2"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.powerMandala\.mandala-style-3/,
+  "CSS must define layout overrides for mandala-style-3"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLitePowerPlace \.mandalaStyleSelector/,
+  "CSS must include compact pill button styles for the mandala style selector"
+);
+
 console.log("Profile Lite cabinet contract: all assertions passed.");

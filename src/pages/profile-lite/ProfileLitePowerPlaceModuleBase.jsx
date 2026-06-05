@@ -15,6 +15,11 @@ const CONSTRUCTOR_TYPES = [
 ];
 
 const GEOMETRIES = [2, 4, 6, 8, 12];
+const MANDALA_STYLE_VARIANTS = [
+  { value: "style-1", label: "Стиль 1" },
+  { value: "style-2", label: "Стиль 2" },
+  { value: "style-3", label: "Стиль 3" }
+];
 const ZODIAC_VARIANTS = [
   { value: "classic-2", label: "2", visibleCount: 2 },
   { value: "classic-4", label: "4", visibleCount: 4 },
@@ -1305,6 +1310,13 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
+                {compositionDraft.constructor_type === "client" && (
+                  <div className="mandalaStyleSelector" aria-label="Стиль мандалы">
+                    {MANDALA_STYLE_VARIANTS.map((variant) => (
+                      <button className={(compositionDraft.__mandala_style || "style-1") === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("__mandala_style", variant.value)} type="button">{variant.label}</button>
+                    ))}
+                  </div>
+                )}
                 {compositionDraft.constructor_type === "zodiac" && (
                   <div className="zodiacCountSelector" aria-label="Количество видимых позиций зодиака">
                     <span>Позиции зодиака</span>
@@ -1353,7 +1365,7 @@ export default function ProfileLitePowerPlaceModule({
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>

@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { placePowerMandalaTemplates } from "../../data/placePowerMandalaTemplates.js";
 import { innerFieldWidthDesktop, innerFieldWidthMobile } from "../../lib/powerPlaceStyleContract.js"; // kept for backward compat; absolute centering uses % directly
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
-import "../../profileMandalaTemplatePilot.css";
 
-const MANDALA_TEMPLATE_REF_KEY = "__mandala_template_id";
+const MANDALA_STYLE_REF_KEY = "__mandala_style";
 const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
@@ -530,30 +528,6 @@ function emptyOuterCover() {
   return { id: "no-cover", label: "Без фона", type: "none", tone: "none", src: "", display_src: "" };
 }
 
-function templateCover(template, currentCover) {
-  const current = currentCover && typeof currentCover === "object" && !Array.isArray(currentCover) ? currentCover : {};
-  const outer = current.outer || emptyOuterCover();
-  const inner = {
-    id: template.id,
-    label: template.title,
-    type: "image",
-    tone: template.coverTone || template.id,
-    src: template.src,
-    display_src: template.src
-  };
-
-  return {
-    id: inner.id,
-    label: inner.label,
-    type: inner.type,
-    tone: inner.tone,
-    src: inner.src,
-    display_src: inner.display_src,
-    inner,
-    outer
-  };
-}
-
 function normalizeLayeredCoverRef(coverRef) {
   const cover = cleanRefs(coverRef);
   const hasNestedLayers = Boolean(cover.inner || cover.outer);
@@ -579,7 +553,6 @@ export default function ProfileLitePowerPlaceModule(props) {
   const [printAreaNode, setPrintAreaNode] = useState(null);
   const [layoutPanelNode, setLayoutPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
-  const activeTemplateId = objectRefs[MANDALA_TEMPLATE_REF_KEY] || "";
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
   const innerCoverOffsetY = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_Y_REF_KEY]);
   const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
@@ -588,8 +561,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageScale = centerImageScaleValue(objectRefs[CENTER_IMAGE_SCALE_REF_KEY]);
   const centerFrameScale = centerFrameScaleValue(objectRefs[CENTER_FRAME_SCALE_REF_KEY]);
   const centerShape = centerShapeValue(objectRefs[CENTER_SHAPE_REF_KEY]);
-  const activeTemplate = placePowerMandalaTemplates.find((template) => template.id === activeTemplateId) || null;
-  const isClientMandala = (props.compositionDraft?.constructor_type || "") === "client";
+  const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape),
@@ -624,58 +596,28 @@ export default function ProfileLitePowerPlaceModule(props) {
     writeObjectRefs({ ...objectRefs, [CENTER_SHAPE_REF_KEY]: centerShapeValue(nextShape) });
   }, [objectRefs, writeObjectRefs]);
 
-  const writeTemplateId = useCallback((templateId) => {
-    const nextRefs = { ...objectRefs };
-    if (templateId) {
-      nextRefs[MANDALA_TEMPLATE_REF_KEY] = templateId;
-    } else {
-      delete nextRefs[MANDALA_TEMPLATE_REF_KEY];
-    }
-    writeObjectRefs(nextRefs);
-  }, [objectRefs, writeObjectRefs]);
-
-  const handleTemplateSelect = useCallback((templateId) => {
-    writeTemplateId(templateId);
-    props.onCompositionDraftChange?.("constructor_type", "client");
-    props.onCompositionDraftChange?.("geometry", 9);
-  }, [props, writeTemplateId]);
-
-  const handleTemplateClear = useCallback(() => {
-    writeTemplateId("");
-    props.onCompositionDraftChange?.("constructor_type", "client");
-    if (Number(props.compositionDraft?.geometry) === 9) {
-      props.onCompositionDraftChange?.("geometry", 4);
-    }
-  }, [props, writeTemplateId]);
-
   const handleDraftChange = useCallback((field, value) => {
     if (field === CENTER_FRAME_SCALE_REF_KEY) {
       writeObjectRefs({ ...objectRefs, [CENTER_FRAME_SCALE_REF_KEY]: String(centerFrameScaleValue(value)) });
       return;
     }
 
-    if ((field === "geometry" && activeTemplateId) || (field === "constructor_type" && value !== "client" && activeTemplateId)) {
-      writeTemplateId("");
+    if (field === MANDALA_STYLE_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [MANDALA_STYLE_REF_KEY]: value });
+      return;
     }
-    props.onCompositionDraftChange?.(field, value);
-  }, [activeTemplateId, objectRefs, props, writeObjectRefs, writeTemplateId]);
 
-  const enhancedDraft = useMemo(() => {
-    const baseDraft = activeTemplate && isClientMandala
-      ? {
-        ...props.compositionDraft,
-        geometry: 9,
-        cover_ref: templateCover(activeTemplate, props.compositionDraft?.cover_ref)
-      }
-      : props.compositionDraft;
-    return {
-      ...baseDraft,
-      field_scale: innerFieldScale,
-      __center_image_scale: centerImageScale,
-      __center_frame_scale: centerFrameScale,
-      cover_ref: normalizeLayeredCoverRef(baseDraft?.cover_ref)
-    };
-  }, [activeTemplate, centerFrameScale, centerImageScale, innerFieldScale, isClientMandala, props.compositionDraft]);
+    props.onCompositionDraftChange?.(field, value);
+  }, [objectRefs, props, writeObjectRefs]);
+
+  const enhancedDraft = useMemo(() => ({
+    ...props.compositionDraft,
+    field_scale: innerFieldScale,
+    __center_image_scale: centerImageScale,
+    __center_frame_scale: centerFrameScale,
+    __mandala_style: mandalaStyle,
+    cover_ref: normalizeLayeredCoverRef(props.compositionDraft?.cover_ref)
+  }), [centerFrameScale, centerImageScale, innerFieldScale, mandalaStyle, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
@@ -716,21 +658,6 @@ export default function ProfileLitePowerPlaceModule(props) {
       {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
       {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
-      <div className="mandalaTemplatePilotPanel" aria-label="Сетки мандалы">
-        <div>
-          <p className="cabinetEyebrow">Сетка мандалы</p>
-          <b>Фото-сетка для формата «Мандала»</b>
-          <small>Пилот: сетка 1 включает 9 зон для загрузки мини-мандал.</small>
-        </div>
-        <div className="mandalaTemplatePilotButtons" role="group" aria-label="Выбор сетки мандалы">
-          <button className={!activeTemplateId ? "active" : ""} type="button" onClick={handleTemplateClear}>Без сетки</button>
-          {placePowerMandalaTemplates.map((template) => (
-            <button className={activeTemplateId === template.id ? "active" : ""} key={template.id} type="button" onClick={() => handleTemplateSelect(template.id)} title={template.title}>
-              {template.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </>
   );
 
