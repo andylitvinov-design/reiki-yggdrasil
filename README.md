@@ -22,6 +22,18 @@ npm run build
 
 The frontend OAuth redirect flow uses `window.location.origin`, so the app should work on the active Vercel domain after the domain alias and Supabase Auth redirects are configured. Keep both target and legacy redirect URLs during the migration window.
 
+## Release workflow: черновой и чистовой сайт
+
+The deployment concept is documented in `docs/release-workflow.md`.
+
+Target model:
+
+- `main` → черновой/test-сайт for owner QA, expected Vercel project `2mentalica`, expected URL `https://2mentalica.vercel.app`.
+- `production` → чистовой/client live-сайт for stable client access.
+- `release/*` → frozen release branches created from `main` after owner QA and merged into `production` only after final checks.
+
+Normal work should target `main`. Client-facing releases should go through `release/*` and then `production`. Do not expose env values or change production domains during normal development.
+
 ## Profile cabinet setup
 
 The profile cabinet MVP is routed at `/profile`, `/masters`, and `/profile/admin`.
@@ -117,21 +129,3 @@ Power Place persistence setup:
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.
 
 Master chat setup:
-
-- `20260526_power_place_upgrade_6_zodiac_chat.sql` also adds authenticated chat tables for conversations, participants, messages, and favorite chats.
-- Chat RLS has no anon access: only authenticated conversation participants can read messages/conversation rows, only participants can send messages, and favorite chats are owner-only.
-- The cabinet-visible master ID is derived from the existing profile UUID as `RY-<first 8 chars>`; no extra secret or service-role key is required.
-
-Supabase migration runner:
-
-- `npm run supabase:migrations:apply` runs `scripts/apply-reiki-supabase-migrations.mjs`.
-- The runner reads only `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` from the local wallet at `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
-- The runner allowlists only the committed Power Place and media Storage migrations listed above and stops if the wallet is unavailable, secrets are missing, migration files are dirty, or `supabase db push --dry-run` reports unrelated pending migrations.
-- The runner redacts token-shaped values and prints only secret presence, never secret values.
-
-## Deploy
-
-The repository includes:
-
-- `vercel.json` for Vercel deployment
-- `.github/workflows/deploy-pages.yml` for GitHub Pages deployment
