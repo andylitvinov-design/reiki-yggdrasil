@@ -1,5 +1,49 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Attempt dashboard-side release model setup
+
+- Branch/worktree: `codex/release-dashboard-setup-20260605` in `/private/tmp/reiki-yggdrasil-release-dashboard`.
+- Base: rebased onto `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50`.
+- Changed files:
+  - `STATE.md`
+  - `LOG.md`
+- External Vercel changes:
+  - created project `2mentalica` in team `super10`;
+  - linked `2mentalica` to GitHub repo `andylitvinov-design/reiki-yggdrasil`;
+  - confirmed `2mentalica` Git production branch is `main`;
+  - set `2mentalica` framework settings to Vite, build command `npm run build`, output directory `dist`, and install command `npm install`;
+  - attempted first `2mentalica` production deploy from the local worktree, but Vercel returned quota error `api-deployments-free-per-day`;
+  - after pushing this docs-only branch, Vercel created a ready `2mentalica` production deployment and `https://2mentalica.vercel.app` returned HTTP 200;
+  - current `2mentalica` deployment metadata points to `codex/release-dashboard-setup-20260605` at `783763171fe9e30f478c7e6bfb80d50d52d791df`, not `main`;
+  - forcing a replacement deployment from `main` at `4f85b477ac92739d2680cc3ea454aee532654f50` through Vercel API was blocked by quota `api-deployments-free-per-day`.
+- External Vercel state verified:
+  - existing client project `reiki-yggdrasil` is still production branch `main`;
+  - `https://mentalica.vercel.app` deployment logs showed branch `main`, commit `64a37daae874844bf48c81a1e4eb8d516fe54ab2`;
+  - client project production env names exist and are encrypted: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`;
+  - `2mentalica` has no env vars yet.
+- GitHub state verified:
+  - PR #289 is merged with merge commit `2a0115f34ffd5255223ad14332f749b9a6db5757`;
+  - remote `production` branch is absent;
+  - no remote `release/*` branch was returned;
+  - deploy fallback workflow default input `ref` remains `production`;
+  - repository fallback secrets exist by name: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
+- Supabase state verified:
+  - visible org: `Andy`;
+  - existing project `reiki-yggdrasil` is active;
+  - no separate `2mentalica` staging project exists;
+  - create-project cost quote for org `Andy` is `0 monthly`, but explicit user confirmation is required before creation.
+- Not changed:
+  - UI, routes, Vercel rewrites, production domains, env values, Supabase schema/data, and GitHub `production` branch.
+- Blockers:
+  - Vercel daily deployment quota blocks replacing the current `2mentalica` deployment with an explicit `main` deployment;
+  - Supabase staging project creation requires user confirmation;
+  - client project cannot be switched to `production` until a stable SHA is approved and the branch exists.
+- Checks to run after this entry:
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+  - docs/workflow consistency search
+
 ## 2026-06-05 — Verify and tighten draft/clean release model docs
 
 - Branch: `codex/release-model-verification-20260605`.

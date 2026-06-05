@@ -2,6 +2,44 @@
 
 Last updated: 2026-06-05
 
+## 2026-06-05 — Dashboard-side release model setup attempt
+
+- Branch/worktree: `codex/release-dashboard-setup-20260605` in `/private/tmp/reiki-yggdrasil-release-dashboard`, rebased onto `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50`.
+- Scope: dashboard/release infrastructure verification and setup only; UI, routes, Supabase code/schema, Vercel rewrites, production domains, env values, and GitHub `production` branch were not changed.
+- GitHub verified:
+  - repo default branch is still `main`;
+  - PR #289 is merged into `main` with merge commit `2a0115f34ffd5255223ad14332f749b9a6db5757`;
+  - `git ls-remote --heads origin main production 'release/*'` returned only `main`;
+  - GitHub API for `branches/production` returned `404 Branch not found`;
+  - `.github/workflows/deploy-production.yml` still defaults workflow input `ref` to `production`;
+  - fallback deploy secrets exist by name: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
+- Vercel verified/changed:
+  - existing client project `reiki-yggdrasil` is connected to `andylitvinov-design/reiki-yggdrasil`, has production URL `https://mentalica.vercel.app`, and still uses Git production branch `main`;
+  - live `https://mentalica.vercel.app` deployment logs showed branch `main` at commit `64a37daae874844bf48c81a1e4eb8d516fe54ab2`, so client live has not yet migrated to `production`;
+  - new Vercel project `2mentalica` was created in team `super10`;
+  - `2mentalica` was connected to GitHub repo `andylitvinov-design/reiki-yggdrasil`;
+  - `2mentalica` Git production branch is `main`;
+  - `2mentalica` framework settings are now Vite, build command `npm run build`, output directory `dist`, install command `npm install`;
+  - `2mentalica` has no env vars yet;
+  - `https://2mentalica.vercel.app` returns HTTP 200;
+  - current `2mentalica` production deployment metadata points to docs-only branch `codex/release-dashboard-setup-20260605` at `783763171fe9e30f478c7e6bfb80d50d52d791df`, not `main`;
+  - forcing a replacement `2mentalica` production deployment from `main` at `4f85b477ac92739d2680cc3ea454aee532654f50` was attempted through Vercel API but blocked by quota `api-deployments-free-per-day`.
+- Supabase verified:
+  - existing Supabase project `reiki-yggdrasil` is active in org `Andy`;
+  - no separate staging project for `2mentalica` exists in the visible Supabase project list;
+  - Supabase create-project cost quote for org `Andy` was `0 monthly`, but connector rules require explicit user confirmation before creating a new project;
+  - existing Supabase migrations differ from local latest names after the currently applied `20260527120000_profile_cabinet_media_storage` era, so staging must apply local `supabase/migrations/*.sql` in filename order and then verify migration history explicitly.
+- Not done:
+  - no `production` branch was created;
+  - no client project production branch switch was made;
+  - no production domains were changed;
+  - no Supabase staging project, users/admin row, OAuth redirects, or env values were created;
+  - no `main` deploy was made to the client live project.
+- Current blockers:
+  - replacing the current `2mentalica` deployment with an explicit `main` deployment is blocked by Vercel daily deployment quota until it resets;
+  - creating the separate Supabase staging project requires explicit user confirmation despite the current `0 monthly` quote;
+  - switching client live to `production` requires a user-approved stable SHA and creation of the `production` branch first.
+
 ## 2026-06-05 — Draft/clean release model verification
 
 - Branch: `codex/release-model-verification-20260605`, based on `origin/main` at `1c90788403540b5479d05cf82d8bb1669d55dfd2`.
