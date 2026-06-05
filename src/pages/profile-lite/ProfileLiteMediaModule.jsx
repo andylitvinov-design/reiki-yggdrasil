@@ -68,6 +68,7 @@ const SOURCE_LIBRARY_CATEGORIES = [
 
 export default function ProfileLiteMediaModule({
   clientGoalPhotos,
+  materials,
   mediaError,
   mediaStatus,
   onClientPhotoDelete,
@@ -187,6 +188,7 @@ export default function ProfileLiteMediaModule({
         </div>
         <div className="mandalaHeroStats">
           <span><b>{clientGoalPhotos.length}</b> Фото</span>
+          {materials?.length > 0 && <span><b>{materials.length}</b> Материалы</span>}
         </div>
       </div>
       {shellChrome}
@@ -251,7 +253,7 @@ export default function ProfileLiteMediaModule({
             <div className="cabinetFormHeader">
               <div>
                 <p className="cabinetEyebrow">Фото / Медиа</p>
-                <h2>Фото клиентов и материалов</h2>
+                <h2>Фото клиентов и цели</h2>
               </div>
               <span className="cabinetStatus">{mediaStatus}</span>
             </div>
@@ -283,6 +285,31 @@ export default function ProfileLiteMediaModule({
               )}
             </div>
           </div>
+
+          {materials?.length > 0 && (
+            <div className="cabinetCard profileLiteMediaMaterialsBlock">
+              <p className="cabinetEyebrow">Материалы библиотеки</p>
+              <h2>Загруженные материалы</h2>
+              <div className="profileLiteMediaGrid">
+                {materials.map((mat) => (
+                  <article className="profileLiteMediaCard" key={mat.id || mat.image_url}>
+                    <div
+                      className="profileLiteMediaThumb"
+                      style={
+                        mat.display_url || mat.image_url
+                          ? { backgroundImage: `url(${mat.display_url || mat.image_url})` }
+                          : undefined
+                      }
+                    >
+                      ◎
+                    </div>
+                    <h3>{mat.title || "Материал"}</h3>
+                    <p>{mat.description || mat.step_title || mat.setting_title || ""}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right column: single upload card */}
