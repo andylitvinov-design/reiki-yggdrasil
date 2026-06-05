@@ -2,13 +2,17 @@ export const PROFILE_LITE_AUTH_STATUSES = ["idle", "loading", "success", "error"
 export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "error"];
 
 export const PROFILE_LITE_TABS = [
-  { id: "mandalas", label: "Мои мандалы", href: "/profile/mandalas" },
+  { id: "mandalas", label: "Мастерская", href: "/profile/mandalas" },
   { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
   { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
   { id: "materials", label: "Материалы", href: "/profile?tab=materials" },
   { id: "services", label: "Услуги", href: "/profile/services" },
   { id: "orders", label: "Заказы", href: "/profile/orders" },
-  { id: "chats", label: "Чаты", href: "/profile/chats" },
+  { id: "chats", label: "Чаты", href: "/profile/chats" }
+];
+
+const PROFILE_LITE_INTERNAL_TABS = [
+  ...PROFILE_LITE_TABS,
   { id: "settings", label: "Настройки", href: "/profile/settings" },
   { id: "diagnostics", label: "Диагностика", href: "/profile?tab=diagnostics" }
 ];
@@ -29,7 +33,7 @@ export function normalizeProfileLiteStatus(value, fallback = "idle") {
 }
 
 export function getProfileLiteTabById(tabId) {
-  return PROFILE_LITE_TABS.find((tab) => tab.id === tabId) || PROFILE_LITE_TABS[0];
+  return PROFILE_LITE_INTERNAL_TABS.find((tab) => tab.id === tabId) || PROFILE_LITE_TABS[0];
 }
 
 export function getProfileLiteRouteByTabId(tabId) {

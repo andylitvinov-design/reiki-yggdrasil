@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Rebase PR #272 workshop tabs onto current Power Place controls
+
+- Branch: `fix/profile-lite-mandala-cards-services-tab`.
+- Base: rebased onto `origin/main` at `29253fe`.
+- Changed files:
+  - `src/lib/profileLiteClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - preserved current main Power Place slider/save logic while keeping PR #272 workshop/nav/card/services changes;
+  - kept visible top nav `Мастерская` and hidden visible `Настройки` / `Диагностика` with internal helper resolution intact;
+  - kept internal tabs `Место силы`, `Мои мандалы`, `Услуги`;
+  - kept horizontal saved-mandala preview cards and add-to-services service creation via `composition_id`;
+  - kept compact `Центр` / `Фон` icon layout while restoring the four constructor sliders.
+- Checks run:
+  - `npm install`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - URL: `http://127.0.0.1:4337/profile/mandalas`;
+  - mock Supabase: `http://127.0.0.1:4339`;
+  - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - desktop 1200px-wide browser confirmed top `Мастерская`, no visible top `Настройки`, internal tabs, horizontal saved-mandala preview card, add-to-services service creation and switch to internal `Услуги`, four constructor sliders, scale-variable changes for `Размер окон` / `Размер центра` / `Размер фоток`, horizontal overflow `0`, and one-row compact `Центр` / `Фон` icons.
+- Not verified:
+  - real authenticated Supabase service creation in production data;
+  - true mobile browser viewport QA, because the available MCP browser tool did not expose viewport resizing in this session;
+  - Vercel preview, merge/deploy, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-05 — Document draft/clean release workflow
 
 - Branch: `main`.

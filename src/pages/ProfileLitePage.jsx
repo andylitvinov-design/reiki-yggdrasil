@@ -1300,54 +1300,45 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
-  const handleAddCompositionToServices = async (composition) => {
-    if (!composition?.id) {
-      setCompositionMessage("Сначала сохраните мандалу.");
-      return;
-    }
+  const handleSendCompositionToServices = async (composition = compositionDraft) => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setServicesError("Сначала сохраните профиль мастера.");
       setServicesStatus("needs-verification");
-      return;
+      return null;
     }
-    const duplicate = services.find((service) => service.composition_id && String(service.composition_id) === String(composition.id));
-    if (duplicate) {
-      setCompositionMessage("Эта мандала уже есть в Моих услугах.");
-      return;
+    if (!composition?.id) {
+      setCompositionMessage("Сначала сохраните или откройте мандалу.");
+      return null;
     }
-    const imageUrl = (composition.cover_ref?.inner?.src || composition.cover_ref?.src) || "";
+
+    const existing = services.find((service) => String(service.composition_id || "") === String(composition.id));
+    if (existing) {
+      setCompositionMessage("Мандала уже добавлена в услуги.");
+      return existing;
+    }
+
+    const serviceDraft = {
+      ...createEmptyServiceForm(),
+      profile_id: profile.id,
+      composition_id: composition.id,
+      title: composition.title || "Мандала Места Силы",
+      description: "Услуга подготовлена из сохранённой мандалы.",
+      image_url: composition.cover_ref?.inner?.display_src || composition.cover_ref?.inner?.displaySrc || composition.cover_ref?.inner?.src || composition.cover_ref?.display_src || composition.cover_ref?.src || "",
+      status: "draft"
+    };
+
     try {
-      const saved = await createOwnService({
-        profile_id: profile.id,
-        composition_id: composition.id,
-        title: composition.title || "Мандала Места Силы",
-        description: "Услуга подготовлена из сохранённой мандалы.",
-        image_url: imageUrl,
-        status: "draft"
-      }, session);
-      if (saved) {
-        setServices((current) => [saved, ...current.filter((item) => item.id !== saved.id)].filter(Boolean));
-        setServicesStatus("success");
-        setServicesError("");
-      }
-      setCompositionMessage("Мандала добавлена в Мои услуги.");
+      const saved = await createOwnService(serviceDraft, session);
+      setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setServicesStatus("success");
+      setServicesError("");
+      setCompositionMessage("Мандала добавлена в услуги.");
+      return saved;
     } catch (error) {
       setServicesStatus("needs-verification");
-      setServicesError(moduleError(error, "profile_cabinet_services create failed or migration/RLS not applied"));
-      setCompositionMessage("Не удалось добавить в Мои услуги: " + moduleError(error, "profile_cabinet_services request failed"));
+      setServicesError(moduleError(error, "profile_cabinet_services request failed or migration/RLS not applied"));
+      return null;
     }
-  };
-
-  const handleSendCompositionToServices = () => {
-    setServiceForm((current) => ({
-      ...current,
-      profile_id: profile?.id || "",
-      composition_id: compositionDraft.id || "",
-      title: compositionDraft.title || "Мандала Места Силы",
-      description: current.description || "Услуга подготовлена из сохранённой мандалы.",
-      image_url: compositionDraft.cover_ref?.src || ""
-    }));
-    handleProfileLiteTabNavigate({ id: "services", href: getProfileLiteRouteByTabId("services") });
   };
 
   const handleProfileLiteTabNavigate = (tab) => {
@@ -1532,13 +1523,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onCompositionObjectRefSelect={setCompositionObjectRef}
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
         onCoverFileUpload={handleCompositionCoverFileUpload}
-        onAddCompositionToServices={handleAddCompositionToServices}
+        onAddCompositionToServices={handleSendCompositionToServices}
         onDownload={handleDownloadComposition}
         onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
         onSaveNew={handleCompositionSaveNew}
         onSendToServices={handleSendCompositionToServices}
+        services={services}
         onUpdateExisting={handleCompositionUpdateExisting}
         onUploadedCentralPhoto={handleUploadedCentralPhoto}
       />
