@@ -131,22 +131,6 @@
     return true;
   }
 
-  function clampCoverOffset(value) {
-    const next = Number(value);
-    if (!Number.isFinite(next)) return 50;
-    return Math.min(80, Math.max(20, next));
-  }
-
-  function nudgeInnerCover(dx, dy) {
-    const refs = parseObjectRefs();
-    const x = clampCoverOffset(refs.__inner_cover_offset_x);
-    const y = clampCoverOffset(refs.__inner_cover_offset_y);
-    return updateObjectRefs({
-      __inner_cover_offset_x: String(clampCoverOffset(x + dx)),
-      __inner_cover_offset_y: String(clampCoverOffset(y + dy))
-    });
-  }
-
   function mergeReportAndAnalysis() {
     const root = document.querySelector('.profileLitePowerPlace');
     if (!root) return;
@@ -162,36 +146,9 @@
     report.appendChild(analysis);
   }
 
-  function tuneInnerCoverArrows() {
-    const group = document.querySelector('.profileLitePowerPlace .coverOffsetCornerGroup.inner');
-    if (!group || group.dataset.diagonalOnly === 'true') return;
-    const buttons = Array.from(group.querySelectorAll('button'));
-    if (buttons.length < 4) return;
-    const arrows = [
-      { text: '↖', label: 'Сдвинуть внутренний фон вверх и влево', dx: -5, dy: -5 },
-      { text: '↗', label: 'Сдвинуть внутренний фон вверх и вправо', dx: 5, dy: -5 },
-      { text: '↙', label: 'Сдвинуть внутренний фон вниз и влево', dx: -5, dy: 5 },
-      { text: '↘', label: 'Сдвинуть внутренний фон вниз и вправо', dx: 5, dy: 5 }
-    ];
-    group.dataset.diagonalOnly = 'true';
-    buttons.slice(0, 4).forEach((button, index) => {
-      const arrow = arrows[index];
-      button.textContent = arrow.text;
-      button.setAttribute('aria-label', arrow.label);
-      button.setAttribute('title', arrow.label);
-      button.addEventListener('click', (event) => {
-        if (!nudgeInnerCover(arrow.dx, arrow.dy)) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        requestAnimationFrame(applyState);
-      }, true);
-    });
-  }
-
   function applyState() {
     injectStyle();
     mergeReportAndAnalysis();
-    tuneInnerCoverArrows();
     const refs = parseObjectRefs();
     const scaleRaw = Number(refs.__inner_field_scale);
     const scale = Number.isFinite(scaleRaw) ? Math.min(100, Math.max(48, scaleRaw)) : 78;
