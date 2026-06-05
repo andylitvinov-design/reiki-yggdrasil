@@ -205,6 +205,7 @@ const FIELD_LAYOUTS = [
   { value: "rectangle", label: "Прямоугольник" },
   { value: "square", label: "Квадрат" }
 ];
+const POWER_PLACE_DRAG_PAYLOAD_TYPE = "application/x-reiki-power-place-source";
 
 function objectRefText(value) {
   try {
@@ -220,6 +221,44 @@ function isImagePreview(value) {
 
 function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
+}
+
+function buildPowerPlaceDragPayload(item) {
+  const objectRef = String(item?.src || item?.object_ref || "");
+  if (!objectRef) return null;
+
+  return {
+    id: String(item?.id || ""),
+    title: String(item?.label || item?.title || item?.name || ""),
+    name: String(item?.name || item?.label || item?.title || ""),
+    src: String(item?.displaySrc || item?.display_url || item?.src || ""),
+    object_ref: objectRef,
+    type: item?.kind === "client-photo" ? "profile-media" : item?.kind === "saved-mandala" ? "saved-mandala" : String(item?.kind || "profile-media"),
+    photoId: item?.photoId ? String(item.photoId) : ""
+  };
+}
+
+function parsePowerPlaceDragPayload(dataTransfer) {
+  if (!dataTransfer) return null;
+  const raw = dataTransfer.getData(POWER_PLACE_DRAG_PAYLOAD_TYPE) || dataTransfer.getData("text/plain");
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    const objectRef = String(parsed?.object_ref || "").trim();
+    if (!objectRef) return null;
+    return {
+      id: String(parsed?.id || "").trim(),
+      title: String(parsed?.title || parsed?.name || "").trim(),
+      name: String(parsed?.name || parsed?.title || "").trim(),
+      src: String(parsed?.src || "").trim(),
+      object_ref: objectRef,
+      type: ["saved-mandala", "profile-media", "client-photo", "tradition-asset", "material"].includes(parsed?.type) ? parsed.type : "profile-media",
+      photoId: String(parsed?.photoId || "").trim()
+    };
+  } catch {
+    return null;
+  }
 }
 
 // For inner cover images, use a CSS variable so the dynamic style rule can override
@@ -401,6 +440,7 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceSubcategory, setActiveSourceSubcategory] = useState("");
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
+  const [dragOverSlotId, setDragOverSlotId] = useState("");
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -456,6 +496,28 @@ export default function ProfileLitePowerPlaceModule({
   };
 
   const savedImages = useMemo(() => uniqueImageSources([
+    ...powerPlaceCompositions.map((composition) => {
+      const refs = cleanObjectRefs(composition.object_refs);
+      const urls = cleanObjectRefs(composition.object_ref_urls);
+      const cover = composition.cover_ref || {};
+      const innerCoverRef = cover.inner?.src || cover.src || "";
+      const outerCoverRef = cover.outer?.src || "";
+      const src = refs.__center_image || innerCoverRef || outerCoverRef || Object.values(refs).find((value) => typeof value === "string" && isImagePreview(urls[value] || value)) || "";
+      const displaySrc = urls[src] || cover.inner?.display_src || cover.display_src || cover.outer?.display_src || src;
+
+      return {
+        id: `composition-${composition.id}`,
+        label: composition.title || "Сохранённая мандала",
+        meta: formatLabel(composition.constructor_type),
+        src,
+        displaySrc,
+        signingError: "",
+        kind: "saved-mandala",
+        compositionId: composition.id,
+        favorite: false,
+        updatedAt: composition.updated_at || composition.created_at || ""
+      };
+    }),
     ...clientGoalPhotos.map((photo) => ({
       id: `client-${photo.id}`,
       label: photo.title || "Фото клиента / цели",
@@ -493,7 +555,7 @@ export default function ProfileLitePowerPlaceModule({
       favorite: Boolean(item.favorite || item.is_favorite || item.pinned),
       updatedAt: item.updated_at || item.created_at || ""
     }))
-  ]), [clientGoalPhotos, materials, traditionAssets]);
+  ]), [clientGoalPhotos, materials, powerPlaceCompositions, traditionAssets]);
 
   const latestSavedImages = useMemo(() => [...savedImages].sort((a, b) => {
     const left = Date.parse(a.updatedAt || "");
@@ -616,22 +678,77 @@ export default function ProfileLitePowerPlaceModule({
     openPicker("object");
   };
 
+  const assignPowerPlaceSlotImage = (slotKey, selectedRef, displayUrl = "", item = null) => {
+    const ref = String(selectedRef || "");
+    const displaySrc = String(displayUrl || ref);
+    if (!slotKey || !ref) return;
+
+    if (slotKey === "__center_image") {
+      onCompositionDraftChange("central_photo_id", item?.kind === "client-photo" || item?.type === "profile-media" ? item?.photoId || "" : "");
+      onCompositionObjectRefSelect("__center_image", ref, displaySrc);
+      return;
+    }
+
+    if (slotKey === "cover_ref.inner" || slotKey === "cover_ref.outer") {
+      const layer = slotKey === "cover_ref.outer" ? "outer" : "inner";
+      onCompositionCoverSelect(layer, {
+        id: item?.id || (layer === "outer" ? "custom-outer-cover" : "custom-cover"),
+        label: item?.label || item?.title || item?.name || "Своё изображение",
+        type: "image",
+        src: ref,
+        display_src: displaySrc
+      });
+      return;
+    }
+
+    onCompositionObjectRefSelect(slotKey, ref, displaySrc);
+  };
+
   const chooseImage = async (item) => {
     if (pickerMode === "center" || (!pickerMode && !selectedSlot)) {
-      onCompositionDraftChange("central_photo_id", item.kind === "client-photo" ? item.photoId : "");
-      onCompositionObjectRefSelect("__center_image", item.src || "", item.displaySrc || item.src || "");
+      assignPowerPlaceSlotImage("__center_image", item.src || "", item.displaySrc || item.src || "", item);
     } else if (pickerMode === "cover") {
-      onCompositionCoverSelect(coverLayerMode, {
-        id: coverLayerMode === "outer" ? "custom-outer-cover" : "custom-cover",
-        label: item.label,
-        type: "image",
-        src: item.src,
-        display_src: item.displaySrc || item.src
+      assignPowerPlaceSlotImage(coverLayerMode === "outer" ? "cover_ref.outer" : "cover_ref.inner", item.src || "", item.displaySrc || item.src || "", {
+        ...item,
+        id: coverLayerMode === "outer" ? "custom-outer-cover" : "custom-cover"
       });
     } else if (selectedSlotId || selectedSlot?.id) {
-      onCompositionObjectRefSelect(selectedSlotId || selectedSlot.id, item.src || "", item.displaySrc || item.src || "");
+      assignPowerPlaceSlotImage(selectedSlotId || selectedSlot.id, item.src || "", item.displaySrc || item.src || "", item);
     }
   };
+
+  const handleSavedImageDragStart = (event, item) => {
+    const payload = buildPowerPlaceDragPayload(item);
+    if (!payload) return;
+    const encoded = JSON.stringify(payload);
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData(POWER_PLACE_DRAG_PAYLOAD_TYPE, encoded);
+    event.dataTransfer.setData("text/plain", encoded);
+  };
+
+  const getPowerPlaceSlotDropHandlers = (slotKey) => ({
+    onDragOver: (event) => {
+      if (!slotKey) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+    },
+    onDragEnter: (event) => {
+      if (!slotKey) return;
+      event.preventDefault();
+      setDragOverSlotId(slotKey);
+    },
+    onDragLeave: (event) => {
+      if (event.currentTarget.contains(event.relatedTarget)) return;
+      setDragOverSlotId((current) => current === slotKey ? "" : current);
+    },
+    onDrop: (event) => {
+      event.preventDefault();
+      setDragOverSlotId("");
+      const payload = parsePowerPlaceDragPayload(event.dataTransfer);
+      if (!payload) return;
+      assignPowerPlaceSlotImage(slotKey, payload.object_ref, payload.src || payload.object_ref, payload);
+    }
+  });
 
   const handleSavedImageDelete = (item, event) => {
     event.stopPropagation();
@@ -695,13 +812,14 @@ export default function ProfileLitePowerPlaceModule({
 
     return (
       <button
-        className={`powerSource source-${index + 1}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}`}
+        className={`powerSource source-${index + 1}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
         key={slot.id}
         onClick={() => openObjectPicker(slot.id)}
         style={style}
         type="button"
         title={slot.label}
         aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+        {...getPowerPlaceSlotDropHandlers(slot.id)}
       >
         {!src && <span>{index + 1}</span>}
       </button>
@@ -709,7 +827,15 @@ export default function ProfileLitePowerPlaceModule({
   };
 
   const renderCenterPhotoWithMode = (className) => (
-    <button className={`${className}${centralImage ? " hasImage" : ""}`} style={centerImageStyle} onClick={() => openPicker("center")} title="Фото клиента / цели" type="button" aria-label="Фото клиента / цели">
+    <button
+      className={`${className}${centralImage ? " hasImage" : ""}${dragOverSlotId === "__center_image" ? " power-place-slot--drag-over" : ""}`}
+      style={centerImageStyle}
+      onClick={() => openPicker("center")}
+      title="Фото клиента / цели"
+      type="button"
+      aria-label="Фото клиента / цели"
+      {...getPowerPlaceSlotDropHandlers("__center_image")}
+    >
       {!centralImage && <span>Фото клиента / цели</span>}
     </button>
   );
@@ -720,13 +846,14 @@ export default function ProfileLitePowerPlaceModule({
 
     return (
       <button
-        className={`${className}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}`}
+        className={`${className}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
         key={slot.id}
         onClick={() => openObjectPicker(slot.id)}
         style={imageStyle(displaySrc)}
         type="button"
         title={slot.label}
         aria-label={`Выбрать ${labelPrefix}${slot.label.toLowerCase()}`}
+        {...getPowerPlaceSlotDropHandlers(slot.id)}
       >
         {!src && <span>{index + 1}</span>}
       </button>
@@ -891,7 +1018,13 @@ export default function ProfileLitePowerPlaceModule({
             </div>
             {filteredSavedImages.map((item) => (
               <div className="powerSavedImageItem" key={item.id}>
-                <button className="powerSavedImageCard" type="button" onClick={() => chooseImage(item)}>
+                <button
+                  className="powerSavedImageCard"
+                  type="button"
+                  draggable={Boolean(item.src)}
+                  onDragStart={(event) => handleSavedImageDragStart(event, item)}
+                  onClick={() => chooseImage(item)}
+                >
                   <span className={`powerSavedImageThumb${item.displaySrc ? " hasImage" : ""}`} style={imageStyle(item.displaySrc || item.src)} />
                   <b>{item.label}</b>
                   <small>{item.meta}</small>
@@ -1117,12 +1250,13 @@ export default function ProfileLitePowerPlaceModule({
                           return (
                             <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
                               <button
-                                className={`zodiacPositionImage${selectedSlotId === slot.id ? " selected" : ""}`}
+                                className={`zodiacPositionImage${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                 onClick={() => openObjectPicker(slot.id)}
                                 style={imageStyle(displaySrc)}
                                 type="button"
                                 title={slot.label}
                                 aria-label={`Выбрать знак ${slot.label}`}
+                                {...getPowerPlaceSlotDropHandlers(slot.id)}
                               >
                                 {!src && <span>{index + 1}</span>}
                               </button>
@@ -1137,12 +1271,13 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`zodiacFieldPlusPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
                             <button
-                              className={`zodiacFieldPlusPositionImage${selectedSlotId === slot.id ? " selected" : ""}`}
+                              className={`zodiacFieldPlusPositionImage${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                               onClick={() => openObjectPicker(slot.id)}
                               style={imageStyle(displaySrc)}
                               type="button"
                               title={slot.label}
                               aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                              {...getPowerPlaceSlotDropHandlers(slot.id)}
                             >
                               {!src && <span>{index + 1}</span>}
                             </button>
@@ -1179,12 +1314,13 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`starPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
                             <button
-                              className={`starPositionImage${selectedSlotId === slot.id ? " selected" : ""}`}
+                              className={`starPositionImage${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                               onClick={() => openObjectPicker(slot.id)}
                               style={imageStyle(displaySrc)}
                               type="button"
                               title={slot.label}
                               aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                              {...getPowerPlaceSlotDropHandlers(slot.id)}
                             >
                               {!src && <span>{index + 1}</span>}
                             </button>
@@ -1239,12 +1375,13 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`daoElement ${element.className}`} key={element.id}>
                             <button
-                              className={`daoElementImage${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}`}
+                              className={`daoElementImage${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
                               onClick={() => openObjectPicker(slotId)}
                               style={imageStyle(displaySrc)}
                               type="button"
                               title={element.label}
                               aria-label={`Выбрать элемент ${element.label}`}
+                              {...getPowerPlaceSlotDropHandlers(slotId)}
                             >
                               {!src && <span>◎</span>}
                             </button>
@@ -1300,12 +1437,13 @@ export default function ProfileLitePowerPlaceModule({
               <div className="coverPreviewWrap">
                 <button
                   type="button"
-                  className={`coverPreview ${visibleCover?.type === "image" ? "hasImage" : `tone-${visibleCover?.tone || "none"}`}`}
+                  className={`coverPreview ${visibleCover?.type === "image" ? "hasImage" : `tone-${visibleCover?.tone || "none"}`}${dragOverSlotId === coverLayerSaveTarget ? " power-place-slot--drag-over" : ""}`}
                   onClick={() => {
                     if (!visibleCover?.src) openPicker("cover");
                   }}
                   style={visibleCover?.type === "image" ? imageStyle(coverDisplaySrc(visibleCover)) : undefined}
                   aria-label={visibleCover?.src ? visibleCover.label || "Фон" : "Выбрать фото для пустого фона"}
+                  {...getPowerPlaceSlotDropHandlers(coverLayerSaveTarget)}
                 >
                   <span>{visibleCover?.label || "Без фона"}</span>
                 </button>
@@ -1340,7 +1478,7 @@ export default function ProfileLitePowerPlaceModule({
                 <div className="selectedObjectBody">
                   <b>{selectedSlot?.label || "Выберите позицию на мандале"}</b>
                   <small>Нажмите точку на диаграмме, затем выберите образ или загрузите файл.</small>
-                  <select disabled={!selectedSlot} value={selectedSlotImage} onChange={(event) => selectedSlot && onCompositionObjectRefSelect(selectedSlot.id, event.target.value, event.target.value)}>
+                  <select disabled={!selectedSlot} value={selectedSlotImage} onChange={(event) => selectedSlot && assignPowerPlaceSlotImage(selectedSlot.id, event.target.value, event.target.value)}>
                     <option value="">Пусто</option>
                     {savedImages.map((item) => (
                       <option key={`${selectedSlot?.id || "slot"}-${item.id}`} value={item.src}>{item.label}</option>

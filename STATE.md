@@ -40,6 +40,31 @@ Last updated: 2026-06-05
   - real authenticated Supabase save/update/reload against production data;
   - Vercel preview, merge/deploy, production/legacy live rendering, and Google OAuth.
 
+## 2026-06-05 — Profile Lite Power Place desktop drag-and-drop
+
+- Branch: `feature/profile-lite-power-place-drag-drop`, based on fresh `origin/main` at `25bed1b`.
+- Scope: Profile Lite Power Place source cards, slot assignment handlers, drag-over styling, and focused contract coverage only; public home page, routes, Supabase env names/values, Vercel rewrites, and schema were not changed.
+- Changed:
+  - saved source cards now expose desktop `draggable` only when a durable/source ref exists;
+  - drag payloads use `application/x-reiki-power-place-source` with compact fields: `id`, `title`, `name`, display `src`, durable `object_ref`, item `type`, and safe `photoId`;
+  - center, regular layout slots, Zodiac/Star/DAO/chess/altar/business slots, and the active inner/outer cover preview accept drops;
+  - dropped items reuse the same assignment helper used by picker/dropdown selection and continue writing `object_refs` / `object_ref_urls`;
+  - added scoped `.power-place-slot--drag-over` styling.
+- Verification:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing DnD contract, then passed after the fix;
+  - `npm install`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-bootstrap`, `npm run build`, and `npm run check` exited `0`;
+  - retained existing warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large-chunk warning.
+- Local browser QA:
+  - Browser plugin rendered the mocked `/profile/mandalas` page with no console warnings/errors, but its evaluation sandbox could not synthesize DnD events, so Playwright MCP was used for the interaction proof;
+  - mocked dev server: `http://localhost:4338/profile/mandalas`;
+  - mocked Supabase endpoint: `http://127.0.0.1:4339`;
+  - desktop 1280x920: left source list showed one saved mandala and two saved photos, drop to center set the center background, drop to a Zodiac slot set only that slot and updated the fallback object select value;
+  - mobile 390x900: constructor, left source list, saved mandala select, cover controls, and fallback object controls remained visible;
+  - local route smoke passed for `/`, `/profile`, `/masters`, and `/profile/admin` with no console warnings/errors.
+- Not verified:
+  - real authenticated production Supabase save/reload hydration;
+  - production/legacy live rendering, Vercel preview/deploy, and Google OAuth.
+
 ## 2026-06-05 — Power Place mobile save clickability
 
 - Branch: `fix/power-place-save-button-clickability`, based on fresh `origin/main` at `5379004` after PR #264.

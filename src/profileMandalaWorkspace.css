@@ -6157,6 +6157,20 @@
   outline-offset: 2px;
 }
 
+.profileLitePowerPlace .powerSavedImageCard[draggable="true"] {
+  cursor: grab;
+}
+
+.profileLitePowerPlace .powerSavedImageCard[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.profileLitePowerPlace .power-place-slot--drag-over {
+  outline: 3px solid rgba(184, 121, 29, 0.72);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(255, 222, 147, 0.28), 0 10px 28px rgba(98, 58, 12, 0.18);
+}
+
 .power-place-chess--classic-14 .power-place-chess__board,
 .power-place-chess--classic-8 .power-place-chess__board {
   grid-template-columns: repeat(3, minmax(0, 1fr));

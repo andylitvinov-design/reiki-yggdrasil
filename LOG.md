@@ -65,6 +65,45 @@
   - real authenticated Supabase save/update/reload;
   - Vercel preview, production/legacy live QA, and Google OAuth.
 
+## 2026-06-05 — Add Profile Lite Power Place desktop drag-and-drop
+
+- Branch: `feature/profile-lite-power-place-drag-drop`.
+- Base: fresh `origin/main` at `25bed1b` (`Fix Power Place save button clickability on mobile (#265)`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added compact desktop drag payload helpers for saved source cards with stable non-secret fields only;
+  - made valid saved mandala/photo source cards draggable;
+  - added shared drop handlers for the center image, object slots, and active inner/outer cover slot;
+  - routed dropdown, picker, and drop assignment through `assignPowerPlaceSlotImage` so persistence still uses existing `object_refs` / `object_ref_urls`;
+  - added scoped `.power-place-slot--drag-over` visual feedback.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on the missing DnD contract, then passed;
+  - `npm install`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-bootstrap`
+  - `npm run build`
+  - `npm run check`
+- Check notes:
+  - all final commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large-chunk warning.
+- Local browser QA:
+  - Browser plugin rendered mocked `/profile/mandalas` without console warnings/errors, but event synthesis was blocked in its sandbox, so Playwright MCP was used for DnD interaction proof;
+  - mocked app: `http://localhost:4338/profile/mandalas`;
+  - mocked Supabase: `http://127.0.0.1:4339`;
+  - desktop 1280x920 confirmed saved mandala/photo cards, center drop update, slot-only drop update, and fallback object select value update;
+  - mobile 390x900 confirmed fallback controls still render;
+  - route smoke checked `/`, `/profile`, `/masters`, and `/profile/admin`.
+- Not verified:
+  - real authenticated Supabase save/reload hydration;
+  - Vercel preview, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-05 — Fix Power Place mobile save clickability
 
 - Branch: `fix/power-place-save-button-clickability`.

@@ -231,6 +231,17 @@ for (const requiredClass of [
 
 assert.match(powerPlaceSource, /<aside className="mandalaModeSidebar powerLibrarySidebar"[\s\S]*<div className="workspaceCenterColumn"[\s\S]*<div className="workspaceRightColumn"/, "Lite Power Place should preserve desktop left / center / right source order");
 assert.match(powerPlaceSource, /data-compact-photo-list="true"/, "Profile Lite source rail should expose a compact photo list marker");
+assert.match(powerPlaceSource, /POWER_PLACE_DRAG_PAYLOAD_TYPE = "application\/x-reiki-power-place-source"/, "Power Place DnD should use a scoped compact payload MIME type");
+assert.match(powerPlaceSource, /function buildPowerPlaceDragPayload\(/, "Power Place source cards should build a compact drag payload");
+assert.match(powerPlaceSource, /function parsePowerPlaceDragPayload\(/, "Power Place drops should parse drag payloads defensively");
+assert.match(powerPlaceSource, /const assignPowerPlaceSlotImage = \(/, "Power Place slot assignment should be shared by dropdowns, picker, and drops");
+assert.match(powerPlaceSource, /const getPowerPlaceSlotDropHandlers = \(/, "Power Place slots should expose shared drop target handlers");
+assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid saved source cards should be draggable");
+assert.match(powerPlaceSource, /onDragStart=\{\(event\) => handleSavedImageDragStart\(event, item\)\}/, "Saved source cards should write the compact payload on drag start");
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("__center_image"\)/, "Center slot should accept dropped saved images through the shared assignment path");
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\(slot\.id\)/, "Layout image slots should accept dropped saved images through the shared assignment path");
+assert.match(powerPlaceSource, /onChange=\{\(event\) => selectedSlot && assignPowerPlaceSlotImage\(selectedSlot\.id, event\.target\.value, event\.target\.value\)\}/, "Object dropdown should reuse the same slot assignment helper as drops");
+assert.match(profileMandalaCss, /\.power-place-slot--drag-over/, "Power Place drop targets should have a subtle drag-over state");
 assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
 assert.match(profileLitePageSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite drafts should default to Без отчёта in the page state");
 assert.match(powerPlaceBaseSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite report UI drafts should default to Без отчёта");
