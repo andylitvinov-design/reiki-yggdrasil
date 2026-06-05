@@ -121,6 +121,39 @@ export function normalizeServiceOrder(row = {}) {
   };
 }
 
+export function buildCompositionServicePayload({ profileId, composition, status = "draft", existing = null } = {}) {
+  const compositionId = text(composition?.id);
+  const fallbackTitle = text(composition?.title) || "Мандала Места Силы";
+  const fallbackDescription = "Услуга подготовлена из сохранённой мандалы.";
+  const requestedStatus = serviceStatus(status);
+
+  if (!existing) {
+    return {
+      ...createEmptyServiceForm(),
+      profile_id: profileId,
+      composition_id: compositionId,
+      title: fallbackTitle,
+      description: fallbackDescription,
+      image_url: "",
+      status: requestedStatus
+    };
+  }
+
+  return {
+    ...existing,
+    profile_id: profileId,
+    composition_id: compositionId,
+    title: text(existing.title) || fallbackTitle,
+    description: text(existing.description) || fallbackDescription,
+    image_url: text(existing.image_url),
+    image_bucket: text(existing.image_bucket) || null,
+    image_path: text(existing.image_path) || null,
+    price_amount: existing.price_amount,
+    price_currency: text(existing.price_currency || "EUR") || "EUR",
+    status: requestedStatus
+  };
+}
+
 async function request(path, options = {}) {
   if (!supabaseEnv.isConfigured) throw makeError("Supabase is not configured.");
   const session = options.session || getStoredSession();
@@ -196,19 +229,11 @@ export async function upsertOwnServiceForComposition({ profileId, composition, s
   if (!profileId) throw makeError("Missing profile id.");
   if (!compositionId) throw makeError("Missing composition id.");
 
-  const payload = {
-    ...createEmptyServiceForm(),
-    profile_id: profileId,
-    composition_id: compositionId,
-    title: text(composition?.title) || "Мандала Места Силы",
-    description: "Услуга подготовлена из сохранённой мандалы.",
-    image_url: "",
-    status
-  };
   const existing = await findOwnServiceByComposition(profileId, compositionId, session);
+  const payload = buildCompositionServicePayload({ profileId, composition, status, existing });
 
   if (!existing) return createOwnService(payload, session);
-  return updateOwnService(existing.id, { ...existing, ...payload, status }, session);
+  return updateOwnService(existing.id, payload, session);
 }
 
 export async function createServiceOrder(order, session = getStoredSession()) {
