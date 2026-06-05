@@ -34,6 +34,7 @@ function assertProfilePageHasKey(path, expectedKey) {
 
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
+assert.match(mainSource, /import FeedPage from "\.\/pages\/FeedPage\.jsx";/);
 
 assertRouteMapsTo("/profile", "ProfileLitePage");
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
@@ -46,6 +47,7 @@ assertRouteMapsToProfileLiteTab("/profile/chats", "chats");
 assertRouteMapsToProfileLiteTab("/profile/settings", "settings");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
+assertRouteMapsTo("/feed", "FeedPage");
 
 assert.match(
   mainSource,
@@ -97,6 +99,11 @@ assert.ok(
 assert.ok(
   vercelConfig.rewrites.some((rewrite) => rewrite.source === "/profile-old" && rewrite.destination === "/"),
   "vercel.json should rewrite /profile-old to the SPA root"
+);
+
+assert.ok(
+  vercelConfig.rewrites.some((rewrite) => rewrite.source === "/feed" && rewrite.destination === "/"),
+  "vercel.json should rewrite /feed to the SPA root"
 );
 
 for (const path of [

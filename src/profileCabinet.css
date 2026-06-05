@@ -259,6 +259,286 @@
   color: #426e31;
 }
 
+.feedShell {
+  overflow-x: hidden;
+}
+
+.feedTopbar {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(260px, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 22px 32px;
+  border-bottom: 1px solid rgba(203, 152, 64, 0.38);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.feedTopbar div {
+  text-align: center;
+}
+
+.feedTopbar p {
+  margin: 0 0 7px;
+  color: #9a6517;
+  font-size: 11px;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+
+.feedTopbar h1,
+.feedHero h2,
+.feedCard h2 {
+  margin: 0;
+  line-height: 1.06;
+}
+
+.feedTopbar button,
+.feedCardActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.feedTopActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.feedTopbar button {
+  border: 1px solid rgba(184, 121, 29, 0.46);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #24180e;
+  font-weight: 700;
+}
+
+.feedMain {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.feedHero {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 24px 0 10px;
+}
+
+.feedHero h2 {
+  max-width: 760px;
+  font-size: 42px;
+}
+
+.feedHero p:last-child {
+  max-width: 820px;
+  margin: 0;
+  color: #5f5142;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.feedTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 20px;
+}
+
+.feedTab {
+  min-height: 42px;
+  border: 1px solid rgba(184, 121, 29, 0.32);
+  border-radius: 999px;
+  padding: 9px 15px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #4a3828;
+  font-weight: 800;
+}
+
+.feedTab--active {
+  border-color: rgba(151, 95, 30, 0.72);
+  background: #21190f;
+  color: #f7d38c;
+}
+
+.feedState {
+  margin-top: 16px;
+}
+
+.feedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.feedCard {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  border-radius: 22px;
+  background: rgba(255, 252, 246, 0.88);
+  box-shadow: 0 14px 42px rgba(79, 54, 18, 0.1);
+}
+
+.feedCardMedia {
+  min-height: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: cover;
+  background-position: center;
+}
+
+.feedFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at center, rgba(245, 198, 106, 0.68) 0 2px, transparent 3px 100%),
+    repeating-radial-gradient(circle at center, rgba(184, 121, 29, 0.28) 0 1px, transparent 2px 18px),
+    linear-gradient(135deg, #21190f, #7a4f13);
+  color: #f7d38c;
+}
+
+.feedFallback span {
+  width: 82px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(247, 211, 140, 0.56);
+  border-radius: 50%;
+  background: rgba(20, 14, 8, 0.28);
+  font-size: 42px;
+}
+
+.feedCardBody {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+}
+
+.feedMeta,
+.feedCardFooter,
+.feedCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedBadge {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #8a5a14;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.feedBadgeFeatured {
+  background: rgba(33, 25, 15, 0.88);
+  color: #f7d38c;
+}
+
+.feedCard h2 {
+  overflow-wrap: anywhere;
+  font-size: 24px;
+}
+
+.feedCard p {
+  margin: 0;
+  color: #5f5142;
+  line-height: 1.5;
+}
+
+.feedCardFooter {
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.feedCardActions {
+  margin-top: 4px;
+}
+
+.feedCardActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+@media (max-width: 980px) {
+  .feedTopbar {
+    grid-template-columns: 1fr;
+    padding: 18px 16px;
+  }
+
+  .feedTopbar > button,
+  .feedTopActions {
+    justify-self: stretch;
+    justify-content: center;
+  }
+
+  .feedTopActions button {
+    flex: 1 1 150px;
+  }
+
+  .feedMain {
+    width: min(100%, calc(100vw - 20px));
+    padding: 20px 0 36px;
+  }
+
+  .feedHero h2 {
+    font-size: 30px;
+  }
+
+  .feedTabs {
+    gap: 8px;
+  }
+
+  .feedTab {
+    flex: 1 1 118px;
+    padding: 9px 11px;
+  }
+
+  .feedGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedCard {
+    grid-template-columns: 128px minmax(0, 1fr);
+  }
+
+  .feedCardBody {
+    padding: 14px;
+  }
+
+  .feedCard h2 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .feedCard {
+    grid-template-columns: 1fr;
+  }
+
+  .feedCardMedia {
+    min-height: 180px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .feedCardActions button {
+    width: 100%;
+  }
+}
+
 .status-rejected {
   background: rgba(170, 67, 39, 0.13);
   color: #903c25;

@@ -40,6 +40,10 @@
       "destination": "/"
     },
     {
+      "source": "/feed",
+      "destination": "/"
+    },
+    {
       "source": "/profile/admin",
       "destination": "/"
     }

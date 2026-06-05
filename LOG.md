@@ -38,6 +38,63 @@
 - Risk:
   - `scripts/apply-reiki-supabase-migrations.mjs` needs separate verification before relying on it for the latest migration list.
 
+## 2026-06-05 — Implement Community Activity Feed Phase 1 infrastructure
+
+- Branch: `codex/community-activity-feed-phase-1`.
+- Base: fresh `origin/main` at `2192fc5`.
+- Changed files:
+  - `supabase/migrations/20260605153000_profile_cabinet_activity_events.sql`
+  - `src/lib/profileActivityFeedClient.js`
+  - `src/pages/FeedPage.jsx`
+  - `src/main.jsx`
+  - `src/profileCabinet.css`
+  - `vercel.json`
+  - `package-lock.json`
+  - `package.json`
+  - `test/profileActivityFeedClient.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `profile_cabinet_activity_events` with event type/status/visibility checks, indexes, updated-at trigger, and RLS;
+  - allowed anon/authenticated public reads only for approved `public_feed` events;
+  - allowed owners to manage only their own editable draft/pending/rejected events and admins to manage all events;
+  - kept private Power Place/media table policies unchanged;
+  - added direct-fetch feed client helpers with public-safe image filtering and RU tab/type labels;
+  - added `/feed` page with loading, empty, error, and Supabase-not-configured states;
+  - added `/feed` route and Vercel SPA rewrite;
+  - added scoped responsive feed CSS and focused feed client tests.
+- Checks run so far:
+  - `node test/profileActivityFeedClient.test.mjs` failed first on missing client file;
+  - `node test/profileLiteRoute.test.mjs` failed first on missing `FeedPage` route import;
+  - `npm install`
+  - `npm run check`
+  - `npm run build`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run test:profile-feed` passed after implementation;
+  - `node test/profileLiteRoute.test.mjs` passed after implementation;
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4350/`;
+  - Chrome DevTools checked `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/feed`, `/masters`, and `/profile/admin`;
+  - viewports: desktop `1280x920` and mobile `390x900`;
+  - all route/viewport combinations rendered expected route markers with horizontal overflow `0`;
+  - because local Supabase env is not configured, `/profile/mandalas` and `/profile/services` rendered the Profile Lite auth/config gate rather than authenticated inner modules;
+  - `/feed` DOM/text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, or `object_refs`;
+  - Chrome console warnings/errors were `0`.
+- Not verified yet:
+  - real Supabase migration application, owner/admin event writes, live anon reads from real approved `public_feed` rows, Vercel preview, production/legacy live QA, and Google OAuth.
+- Risks:
+  - `/feed` will be empty until approved `visibility='public_feed'` rows exist;
+  - applying the migration depends on the existing `profile_cabinet_is_admin()` helper already being present.
+
 ## 2026-06-05 — Complete mandala services Phase 2 manager
 
 - Branch: `codex/mandala-services-phase2-manager`.
