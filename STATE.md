@@ -12,6 +12,39 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Mandala services Phase 2 manager
+
+- Branch: `codex/mandala-services-phase2-manager`, clean worktree from `origin/main` at `c2cfb8e`.
+- Scope: Phase 2 Services Manager only for `/profile/services`, shared service helpers, focused contracts, and docs. Public `/services/:serviceId`, Vercel rewrites, shop/cart/checkout/orders/result generation, auth/env changes, and destructive Supabase migrations were not implemented.
+- Changed:
+  - `/profile/services` is now a working services manager rather than a diagnostics-only list;
+  - services remain grouped into `Черновики`, `Опубликованные`, and `Архив`;
+  - service cards show title, description empty state, formatted price, status, `composition_id` state, and non-active public-link state;
+  - selecting a service fills the right-side form for edit;
+  - save draft updates an existing selected service by id, or creates a new draft when no id is selected;
+  - safe status actions were added for `published`, `draft`, and `archived` with disabled loading state and visible success/error messages;
+  - archived and draft services still do not expose an active public copy link;
+  - MVP format labels were added: `С подписью мастера`, `Без подписи мастера`, `Две версии`.
+- Formats persistence:
+  - UI-ready placeholder only;
+  - no migration was added and no new service table columns are assumed;
+  - formats persistence is `needs verification`.
+- Not verified yet:
+  - real authenticated Supabase update/create/status-change against live data;
+  - Vercel preview, production/legacy live rendering, Google OAuth, and public `/services/:serviceId`.
+- Verification:
+  - `npm install`, `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4348/`;
+  - headless Chrome/CDP checked `/`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin`;
+  - viewports: desktop `1280x920`, desktop `1366x900`, and mobile `390x900`;
+  - all route/viewport combinations rendered with console errors `0` and horizontal overflow `0`;
+  - Chrome DevTools MCP Browser opening was attempted but blocked by an existing `chrome-profile` lock, so local CDP QA used a separate temporary Chrome user-data-dir.
+- Risks:
+  - selected service status changes depend on existing `profile_cabinet_services` RLS allowing owner PATCH;
+  - format selection is local UI state until the table/schema decision is verified.
+
 ## 2026-06-05 — Mandala to services Phase 1 bridge
 
 - Branch: `codex/mandala-services-phase1`, clean worktree from `origin/main` at `5a19379`.

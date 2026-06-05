@@ -8,6 +8,11 @@ const PUBLIC_SERVICE_FIELDS = "id,profile_id,composition_id,title,description,im
 
 export const SERVICE_STATUSES = ["draft", "published", "archived"];
 export const ORDER_STATUSES = ["new", "in_progress", "sent", "closed"];
+export const SERVICE_FORMAT_OPTIONS = [
+  { value: "master_signature", label: "С подписью мастера" },
+  { value: "without_signature", label: "Без подписи мастера" },
+  { value: "two_versions", label: "Две версии" }
+];
 
 function makeError(message, details = null) {
   const error = new Error(message);
@@ -33,6 +38,11 @@ function price(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
+function serviceImageRef(value) {
+  const ref = text(value);
+  return ref.startsWith("data:image/") ? "" : ref;
+}
+
 export function createEmptyServiceForm(overrides = {}) {
   return {
     id: "",
@@ -45,6 +55,7 @@ export function createEmptyServiceForm(overrides = {}) {
     image_path: null,
     price_amount: "",
     price_currency: "EUR",
+    format_option: SERVICE_FORMAT_OPTIONS[0].value,
     status: "draft",
     ...overrides
   };
@@ -64,6 +75,26 @@ export function formatServicePrice(service = {}) {
   return `${amount} ${text(service.price_currency || "EUR") || "EUR"}`;
 }
 
+export function getServicePublicLinkState(service = {}) {
+  const status = serviceStatus(service.status);
+  if (status === "published") {
+    return {
+      isActive: false,
+      message: "Услуга опубликована. Публичная ссылка будет доступна после подключения маршрута /services/:serviceId."
+    };
+  }
+  if (status === "archived") {
+    return {
+      isActive: false,
+      message: "Услуга в архиве. Публичная ссылка отключена."
+    };
+  }
+  return {
+    isActive: false,
+    message: "Ссылка появится после публикации."
+  };
+}
+
 export function groupServicesByStatus(services = []) {
   return services.reduce((groups, service) => {
     const status = serviceStatus(service?.status);
@@ -78,7 +109,7 @@ export function normalizeServiceForm(form = {}, requestedStatus = form?.status) 
     composition_id: text(form.composition_id) || null,
     title: text(form.title),
     description: text(form.description),
-    image_url: text(form.image_url),
+    image_url: serviceImageRef(form.image_url),
     image_bucket: text(form.image_bucket) || null,
     image_path: text(form.image_path) || null,
     price_amount: price(form.price_amount),
@@ -95,7 +126,10 @@ export function normalizeServiceRow(row = {}) {
     created_at: row.created_at || null,
     updated_at: row.updated_at || null,
     price_amount: row.price_amount === null || row.price_amount === undefined ? "" : Number(row.price_amount),
-    display_url: text(row.display_url || row.image_url)
+    display_url: serviceImageRef(row.display_url || row.image_url),
+    format_option: SERVICE_FORMAT_OPTIONS.some((option) => option.value === row.format_option)
+      ? row.format_option
+      : SERVICE_FORMAT_OPTIONS[0].value
   };
 }
 
