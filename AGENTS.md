@@ -16,13 +16,14 @@ Before changing this repo, read:
 2. `README.md`
 3. `STATE.md`
 4. `LOG.md`
-5. `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
-6. `src/data/reikiKnowledgeBase.js`
-7. `src/main.jsx`
-8. `src/index.css`
-9. `package.json`
-10. `vercel.json`
-11. `docs/deploy-fallback.md`
+5. `docs/release-workflow.md`
+6. `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
+7. `src/data/reikiKnowledgeBase.js`
+8. `src/main.jsx`
+9. `src/index.css`
+10. `package.json`
+11. `vercel.json`
+12. `docs/deploy-fallback.md`
 
 If a file is missing, report `not found`.
 
@@ -76,6 +77,46 @@ When giving the user a terminal prompt for this repo:
   - `https://reiki-yggdrasil.vercel.app/profile`
   - `https://reiki-yggdrasil.vercel.app/profile/admin`
 - The frontend currently builds OAuth redirect URLs from `window.location.origin`; do not replace this with a hardcoded domain.
+
+## Draft / clean site release workflow
+
+Target concept: keep one GitHub repo, but separate the owner test site from the client live site.
+
+- Черновой/test site:
+  - target branch: `main`;
+  - target Vercel project: `2mentalica`;
+  - expected URL: `https://2mentalica.vercel.app`;
+  - desired URL `https://www.2mentalica.vercel.app` is `needs verification` in Vercel;
+  - should use staging/test Supabase env values.
+- Чистовой/client live site:
+  - target branch: `production`;
+  - existing client-facing Vercel project/domain must be preserved;
+  - should use production Supabase env values.
+- Release branches:
+  - use `release/YYYY-MM-DD`, `release/vX.Y.Z`, or another explicit `release/*` branch;
+  - release branches are created from `main` after owner QA on the test site;
+  - merge `release/*` into `production` only after final QA.
+
+Normal development flow:
+
+```text
+feature/* → main → 2mentalica test deploy → owner QA → release/* → production → client live deploy
+```
+
+Codex rules for this workflow:
+
+- Normal feature work targets `main`, not `production`.
+- Do not push directly to `production`.
+- Do not open PRs to `production` unless the user explicitly asks for a release.
+- Do not change production Vercel project settings or production domains during normal development.
+- Do not change or expose production Supabase env values.
+- Use env names only:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+  - `VITE_ADMIN_EMAIL`
+- If a release-blocking fix is made in `release/*`, merge that fix back into `main` after release.
+
+Full concept and checklist: `docs/release-workflow.md`.
 
 ## GitHub Actions Deploy Fallback
 
@@ -166,7 +207,14 @@ For the domain migration, also verify on the target production URL after Vercel 
 - `https://mentalica.vercel.app/profile/admin`
 - Google OAuth from `/profile` and `/profile/admin`
 
-A task is not complete until it is merged into main, deployed to production/live, and visually/functionally verified on the live URL.
+For the draft/clean release workflow, also verify before production release:
+
+- `https://2mentalica.vercel.app/` if the test Vercel project exists;
+- `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` on the test site;
+- owner QA approval before merging `release/*` into `production`.
+
+A normal development task is complete when it is committed/merged to its target branch, checks are reported, and the relevant preview/test/live URL verification status is reported.
+A client-facing release is complete only after `production` is updated and the client live URL is verified.
 
 ## Report format
 
