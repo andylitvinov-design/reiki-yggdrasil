@@ -175,6 +175,8 @@ const moduleSource = readdirSync(moduleDir)
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
+const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
+const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
@@ -290,7 +292,7 @@ assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Со
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
 assert.match(powerPlaceSource, />Сохранить мандалу<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose the three Phase 1 mandala-service buttons");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить мандалу<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
-assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[\s\S]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
+assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
 assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(saveNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Save button should use an explicit click wrapper that calls onSaveNew only when enabled");
 assert.match(powerPlaceBaseSource, /<button className="cabinetPrimary powerPlaceSaveButton"[\s\S]*onClick=\{handleSaveCompositionClick\}[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should create new drafts or update the opened composition");
 assert.doesNotMatch(powerPlaceBaseSource, /<div className="powerPlaceActions">[\s\S]*<span>[\s\S]*сохранённых мест силы[\s\S]*<\/span>[\s\S]*<\/div>/, "saved-count text must not be a raw inline span inside the clickable actions row");
@@ -312,6 +314,25 @@ assert.match(profileLitePageSource, /handleCompositionUpdateExisting[\s\S]*updat
 assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft\.id/, "Power Place UI should compute the saved-count limit and disable save-new only for unsaved drafts at the limit");
 assert.match(powerPlaceBaseSource, /saveNewAriaLabel[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*aria-label=\{compositionDraft\.id \? "Сохранить мандалу" : saveNewAriaLabel\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should remain visible but disabled with an explanatory label at the 7/7 limit for unsaved drafts");
 assert.match(powerPlaceSource, /\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "Power Place UI should show count text like 7/7 сохранённых мест силы");
+for (const servicesManagerText of [
+  "Черновики",
+  "Опубликованные",
+  "Архив",
+  "Опубликовать",
+  "Вернуть в черновик",
+  "Архивировать",
+  "С подписью мастера",
+  "Без подписи мастера",
+  "Две версии",
+  "Ссылка появится после публикации",
+  "Публичная ссылка будет доступна после подключения маршрута /services/:serviceId",
+  "Услуга в архиве. Публичная ссылка отключена."
+]) {
+  assert.match(profileServicesManagerSource, new RegExp(servicesManagerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `/profile/services should include ${servicesManagerText}`);
+}
+assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
+assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
+assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
 assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
 assert.doesNotMatch(powerPlaceSource, /Макет|макет/, "Profile Lite Power Place UI should not show the word Макет");
@@ -452,8 +473,8 @@ const servicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesMo
 assert.match(servicesModuleSource, /Черновики/, "Services module should group drafts under Черновики");
 assert.match(servicesModuleSource, /Опубликованные/, "Services module should group published services under Опубликованные");
 assert.match(servicesModuleSource, /Архив/, "Services module should group archived services under Архив");
-assert.match(servicesModuleSource, /Ссылка появится после публикации/, "Draft services should not show an active public link");
-assert.match(servicesModuleSource, /needs verification: публичный маршрут ещё не реализован/, "Published services should not show a fake public link before /services/:serviceId exists");
+assert.match(profileServicesManagerSource, /Ссылка появится после публикации/, "Draft services should not show an active public link");
+assert.match(profileServicesManagerSource, /Публичная ссылка будет доступна после подключения маршрута \/services\/:serviceId/, "Published services should not show a fake public link before /services/:serviceId exists");
 assert.doesNotMatch(servicesModuleSource, /Скопировать ссылку/, "Phase 1 should not expose copy link before the public service route exists");
 assert.match(servicesModuleSource, /formatServicePrice/, "Services module should use the shared free-price formatter");
 
@@ -473,10 +494,21 @@ assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAY
 const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 
 assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");
+assert.match(grimoireModuleSource, /Соберите фото, статьи, практики, аудио и документы\. Сначала загрузите всё без структуры, потом разложите по категориям\./, "Grimoire hero should explain the collect-first workflow");
+assert.match(grimoireModuleSource, /Без категории[\s\S]*Готово к работе/, "Grimoire hero should expose uncategorized and ready-to-work stats");
 assert.match(grimoireModuleSource, /Фильтр гримуара/, "Grimoire left column should say 'Фильтр гримуара'");
 assert.match(grimoireModuleSource, /Записи гримуара/, "Grimoire center column should say 'Записи гримуара'");
 assert.match(grimoireModuleSource, /Загрузить в гримуар/, "Grimoire right column should say 'Загрузить в гримуар'");
 assert.match(grimoireModuleSource, /type="file"[\s\S]*multiple/, "Grimoire uploader should be a multi-file input");
+assert.match(grimoireModuleSource, /Перетащите файлы сюда или выберите с телефона/, "Grimoire uploader should expose a clear drop-zone instruction");
+assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should keep selected files before upload");
+assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
+assert.match(grimoireModuleSource, /Разберите позже/, "Uncategorized records should be treated as the main working state");
+assert.match(grimoireModuleSource, /Гримуар пуст/, "Empty grimoire should use the dedicated empty state title");
+assert.match(grimoireModuleSource, /Загрузите первые фото, статьи или документы — их можно разобрать позже\./, "Empty grimoire should explain first upload flow");
+assert.match(grimoireModuleSource, /Редактировать запись гримуара/, "Edit panel should use the grimoire-specific title");
+assert.match(grimoireModuleSource, /Ступень/, "Edit panel should include step field");
+assert.match(grimoireModuleSource, /Настройка/, "Edit panel should include setting field");
 assert.match(grimoireModuleSource, /Редактировать/, "Grimoire record cards should expose an edit action");
 assert.match(grimoireModuleSource, /Удалить/, "Grimoire record cards should expose a delete action");
 assert.match(grimoireModuleSource, /GRIMOIRE_CATEGORIES/, "Grimoire left column should use GRIMOIRE_CATEGORIES for filters");
@@ -630,6 +662,10 @@ assert.match(
   /\.profileLitePowerPlace \.mandalaStyleSelector/,
   "CSS must include compact pill button styles for the mandala style selector"
 );
+
+assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireUploaderColumn\s*\{[\s\S]*order: 1/, "mobile grimoire should show uploader first");
+assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 2/, "mobile grimoire should show filters second");
+assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 3/, "mobile grimoire should show records third");
 
 // ── Media module: filter applies to both photos and materials ─────────────────
 

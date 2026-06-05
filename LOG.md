@@ -1,5 +1,53 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Complete mandala services Phase 2 manager
+
+- Branch: `codex/mandala-services-phase2-manager`.
+- Base: fresh `origin/main` at `c2cfb8e`.
+- Changed files:
+  - `src/lib/profileServicesClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/profileServicesClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - turned `/profile/services` into a selectable Services Manager grouped by `Черновики`, `Опубликованные`, and `Архив`;
+  - cards now show title, description/empty state, formatted price, status, `composition_id` state, and honest public-link state;
+  - selecting a service fills the edit form; saving updates an existing selected service or creates a new draft;
+  - added publish, return-to-draft, and archive actions with loading/disabled state, success messages, and actionable error paths;
+  - kept draft/archive services non-public and kept published copy-link disabled until `/services/:serviceId` is implemented;
+  - added MVP format UI labels: `С подписью мастера`, `Без подписи мастера`, `Две версии`.
+- Formats behavior:
+  - UI-ready placeholder only;
+  - no Supabase migration or new persistence field was added;
+  - formats persistence is `needs verification`.
+- Checks run so far:
+  - `npm run test:profile-services` failed first on missing `SERVICE_FORMAT_OPTIONS`;
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing Phase 2 manager labels/actions;
+  - `npm install`
+  - `npm run test:profile-services`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4348/`;
+  - headless Chrome/CDP checked `/`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin`;
+  - viewports checked: `1280x920`, `1366x900`, and `390x900`;
+  - every route/viewport combination rendered with console errors `0` and horizontal overflow `0`;
+  - Chrome DevTools MCP Browser opening was attempted but blocked by an existing `chrome-profile` lock, so QA used a separate temporary Chrome user-data-dir through local CDP.
+- Not verified yet:
+  - real authenticated Supabase writes, Vercel preview, production/legacy live QA, and Google OAuth.
+
 ## 2026-06-05 — Implement mandala to services Phase 1 bridge
 
 - Branch: `codex/mandala-services-phase1`.

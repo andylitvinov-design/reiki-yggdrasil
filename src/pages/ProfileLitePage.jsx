@@ -20,6 +20,7 @@ import {
   listOwnServiceOrders,
   listOwnServices,
   publishOwnService,
+  updateOwnService,
   updateServiceOrder,
   upsertOwnServiceForComposition
 } from "../lib/profileServicesClient.js";
@@ -427,6 +428,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [servicesError, setServicesError] = useState("");
   const [services, setServices] = useState([]);
   const [serviceForm, setServiceForm] = useState(() => createEmptyServiceForm());
+  const [serviceActionStatus, setServiceActionStatus] = useState("idle");
+  const [serviceMessage, setServiceMessage] = useState("");
 
   const [ordersStatus, setOrdersStatus] = useState("idle");
   const [ordersError, setOrdersError] = useState("");
@@ -515,6 +518,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setServices([]);
     setServicesStatus("idle");
     setServicesError("");
+    setServiceForm(createEmptyServiceForm());
+    setServiceActionStatus("idle");
+    setServiceMessage("");
     setOrders([]);
     setOrdersStatus("idle");
     setOrdersError("");
@@ -1532,29 +1538,83 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setServicesStatus("needs-verification");
       return;
     }
+    setServiceActionStatus("loading");
+    setServiceMessage("");
+    setServicesError("");
     try {
-      const saved = await createOwnService({ ...serviceForm, profile_id: profile.id, status: nextStatus }, session);
+      const payload = { ...serviceForm, profile_id: profile.id, status: nextStatus };
+      const saved = serviceForm.id
+        ? await updateOwnService(serviceForm.id, payload, session)
+        : await createOwnService(payload, session);
       setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
-      setServiceForm(createEmptyServiceForm());
+      setServiceForm(createEmptyServiceForm(saved || payload));
       setServicesStatus("success");
+      setServiceActionStatus("success");
+      setServiceMessage(serviceForm.id ? "Услуга обновлена." : "Черновик услуги сохранён.");
       setServicesError("");
     } catch (error) {
       setServicesStatus("needs-verification");
+      setServiceActionStatus("error");
       setServicesError(moduleError(error, "profile_cabinet_services request failed or migration/RLS not applied"));
     }
   };
 
   const handleServicePublish = async () => {
-    if (!profile?.id || !hasProfileLiteSessionCredential(session)) return;
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    setServiceActionStatus("loading");
+    setServiceMessage("");
+    setServicesError("");
     try {
       const saved = await publishOwnService({ ...serviceForm, profile_id: profile.id }, null, session);
       setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
-      setServiceForm(createEmptyServiceForm());
+      setServiceForm(createEmptyServiceForm(saved || { ...serviceForm, status: "published" }));
       setServicesStatus("success");
+      setServiceActionStatus("success");
+      setServiceMessage("Услуга опубликована.");
       setServicesError("");
     } catch (error) {
       setServicesStatus("needs-verification");
+      setServiceActionStatus("error");
       setServicesError(moduleError(error, "profile_cabinet_services publish failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleServiceStatusChange = async (status) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    if (!serviceForm.id) {
+      setServicesError("Выберите услугу из списка перед сменой статуса.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    const normalizedStatus = status === "published" ? "published" : status === "archived" ? "archived" : "draft";
+    setServiceActionStatus("loading");
+    setServiceMessage("");
+    setServicesError("");
+    try {
+      const saved = await updateOwnService(serviceForm.id, { ...serviceForm, profile_id: profile.id, status: normalizedStatus }, session);
+      setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setServiceForm(createEmptyServiceForm(saved || { ...serviceForm, status: normalizedStatus }));
+      setServicesStatus("success");
+      setServiceActionStatus("success");
+      setServiceMessage(
+        normalizedStatus === "published"
+          ? "Услуга опубликована."
+          : normalizedStatus === "archived"
+            ? "Услуга перенесена в архив."
+            : "Услуга возвращена в черновик."
+      );
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServiceActionStatus("error");
+      setServicesError(moduleError(error, "profile_cabinet_services status update failed or migration/RLS not applied"));
     }
   };
 
@@ -1650,7 +1710,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     saveMessage,
     saveStatus,
     selectedThreadId,
+    serviceActionStatus,
     serviceForm,
+    serviceMessage,
     services,
     servicesError,
     servicesStatus,
@@ -1720,6 +1782,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
         onPublish={handleServicePublish}
         onSave={handleServiceSave}
+        onServiceSelect={(service) => {
+          setServiceForm(createEmptyServiceForm(service));
+          setServiceMessage("Услуга выбрана для редактирования.");
+          setServicesError("");
+        }}
+        onStatusChange={handleServiceStatusChange}
       />
     ),
     orders: (
