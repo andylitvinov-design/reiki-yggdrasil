@@ -197,6 +197,7 @@ for (const requiredPowerPlaceText of [
   "Фон снаружи",
   "Отчёт",
   "Анализ",
+  "Размер окон",
   "Размер фоток",
   "Размер поля",
   "Размер центра",
@@ -235,6 +236,8 @@ assert.match(profileLitePageSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*
 assert.match(powerPlaceBaseSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite report UI drafts should default to Без отчёта");
 assert.match(profileLitePageSource, /slot_scale:\s*1/, "Profile Lite empty composition should include the shared slot_scale field");
 assert.match(profileLitePageSource, /field_scale:\s*78/, "Profile Lite empty composition should include the persisted field_scale control");
+assert.match(profileLitePageSource, /slotScaleFromComposition\(composition\)/, "handleCompositionLoad should restore slot_scale from either slot_scale or object_refs.__slot_scale");
+assert.match(profileLitePageSource, /slotScaleFromComposition\(freshSaved\)/, "refreshSavedCompositions should restore slot_scale from either slot_scale or object_refs.__slot_scale");
 assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace CSS should include shared source slot scaling");
 assert.match(profileMandalaCss, /--power-field-scale/, "Mandala workspace CSS should include independent inner field scaling");
 assert.match(powerPlaceSource, /CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale"/, "center photo scale should persist through object_refs");
@@ -243,12 +246,13 @@ assert.match(powerPlaceSource, /style=\{centerImageStyle\}/, "center photo rende
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Размер фоток[\s\S]*field: "__center_image_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"/, "Power Place constructor controls should map center, photo-content, and field sliders to distinct fields");
+assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Размер фоток[\s\S]*field: "__center_image_scale"/, "Power Place constructor controls should map slot-window, field, center, and photo-content sliders to distinct fields");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "sourceSlotScaleControl"/g) || []).length, 1, "Размер окон slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Размер фоток slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
-assert.match(profileMandalaCss, /\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl \{[\s\S]*grid-template-columns: minmax\(170px, 220px\) 28px minmax\(240px, 1fr\) 28px;/, "all three size sliders should share the requested desktop grid");
-assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*grid-template-columns: minmax\(0, 120px\) 24px minmax\(0, 1fr\) 24px;/, "all three size sliders should share the requested mobile grid");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(170px, 220px\) 28px minmax\(240px, 1fr\) 28px;/, "all four size sliders should share the requested desktop grid");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*grid-template-columns: minmax\(0, 120px\) 24px minmax\(0, 1fr\) 24px;/, "all four size sliders should share the requested mobile grid");
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
