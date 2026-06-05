@@ -48,6 +48,10 @@
       "destination": "/"
     },
     {
+      "source": "/masters/:id",
+      "destination": "/"
+    },
+    {
       "source": "/feed",
       "destination": "/"
     },

@@ -1,5 +1,52 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Implement Public Master Page MVP
+
+- Branch: `codex/public-master-page-mvp`.
+- Base: fresh `origin/main` at `1157df6`.
+- Changed files:
+  - `src/lib/profilePublicMasterClient.js`
+  - `src/pages/MasterPublicPage.jsx`
+  - `src/pages/MastersPage.jsx`
+  - `src/pages/masters/MasterPageHeader.jsx`
+  - `src/pages/masters/MasterPageFeed.jsx`
+  - `src/pages/masters/MasterPagePostCard.jsx`
+  - `src/main.jsx`
+  - `src/profileCabinet.css`
+  - `vercel.json`
+  - `package.json`
+  - `test/profilePublicMasterClient.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `/masters/:id` as the public master detail route, before the existing `/masters` catalog branch;
+  - added public-safe loading for approved profiles, approved publications, and published services;
+  - added calm Facebook-like master page UI with cover/header, avatar, master info, action buttons, tabs, central feed cards, and public right rail;
+  - added demo/empty cards for no-Supabase or no-public-row states, clearly marked as examples;
+  - added route/rewrite/client tests for the public-private boundary.
+- Checks run so far:
+  - `npm install`
+  - `npm run test:public-master`
+  - `node test/profileLiteRoute.test.mjs`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands listed above exited `0`;
+  - first build failed on an extra CSS brace and passed after the scoped CSS fix;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4362/`;
+  - accepted concept inspected from `/Users/andriilitvinov/.codex/generated_images/019e9947-6f3d-74c0-bf72-60f5cc2842ff/ig_0a07498d9a1bd719016a23250de2d481919918bd60202cb7ff.png`;
+  - rendered screenshots inspected at `/private/tmp/master-page-desktop.png` and `/private/tmp/master-page-mobile.png`;
+  - scripted Playwright QA checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin` at `1280x920` and `390x900`;
+  - horizontal overflow was `0`, console warnings/errors were `0`, the master page cover/avatar/tabs/feed/right rail were present, and public DOM/HTML had no private storage refs, signed URL markers, bucket/path fields, `object_refs`, or bearer token markers.
+- Not verified yet:
+  - real Supabase rows, Vercel preview, production/legacy live URLs, and Google OAuth.
+
 ## 2026-06-05 — Implement Community Activity Feed Phase 2-4
 
 - Branch: `codex/community-feed-phase-2-4`.

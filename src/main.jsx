@@ -16,6 +16,7 @@ import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/
 import ProfilePage from "./pages/ProfilePage.jsx";
 import ProfileLitePage from "./pages/ProfileLitePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
+import MasterPublicPage from "./pages/MasterPublicPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
 import FeedPage from "./pages/FeedPage.jsx";
 import PublicServicesPage from "./pages/PublicServicesPage.jsx";
@@ -218,8 +219,20 @@ function RootRouter() {
     return <ProfileLitePage initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path.startsWith("/masters/")) {
+    const masterId = decodeURIComponent(path.replace(/^\/masters\//, "").split("/")[0] || "");
+    return (
+      <MasterPublicPage
+        masterId={masterId}
+        onNavigateHome={() => navigateTo("/")}
+        onNavigateMasters={() => navigateTo("/masters")}
+        onNavigateProfile={() => navigateTo("/profile")}
+      />
+    );
+  }
+
   if (path === "/masters") {
-    return <MastersPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+    return <MastersPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} onNavigateMaster={(profileId) => navigateTo(`/masters/${encodeURIComponent(profileId)}`)} />;
   }
 
   if (path === "/feed") {

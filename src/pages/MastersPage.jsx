@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { listApprovedProfiles, supabaseEnv } from "../lib/supabaseClient.js";
 
-export default function MastersPage({ onNavigateHome, onNavigateProfile }) {
+export default function MastersPage({ onNavigateHome, onNavigateProfile, onNavigateMaster }) {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
   const [error, setError] = useState("");
@@ -75,6 +75,7 @@ export default function MastersPage({ onNavigateHome, onNavigateProfile }) {
                   <p>{profile.bio || "Описание мастера готовится."}</p>
                   <small>{[profile.city, profile.country].filter(Boolean).join(", ")}</small>
                   <div className="masterLinks">
+                    <button type="button" onClick={() => onNavigateMaster?.(profile.id)}>Страница мастера</button>
                     {profile.telegram && <a href={profile.telegram.startsWith("http") ? profile.telegram : `https://t.me/${profile.telegram.replace(/^@/, "")}`} target="_blank" rel="noreferrer">Telegram</a>}
                     {profile.website && <a href={profile.website} target="_blank" rel="noreferrer">Сайт</a>}
                   </div>

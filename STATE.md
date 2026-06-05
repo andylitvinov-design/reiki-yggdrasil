@@ -2,6 +2,34 @@
 
 Last updated: 2026-06-05
 
+## 2026-06-05 — Public Master Page MVP
+
+- Branch: `codex/public-master-page-mvp`, clean worktree from `origin/main` at `1157df6`.
+- Scope: first visible public master detail page at `/masters/:id`; no production push/deploy and no Supabase migration.
+- Changed:
+  - added `/masters/:id` manual route and Vercel SPA rewrite while preserving `/masters` catalog;
+  - added public-safe master page data client for approved profiles, approved publications, and published services;
+  - added Facebook-like master page UI: cover, avatar, master identity, action buttons, tabs, central feed cards, and compact public-safe right rail;
+  - catalog cards now include `Страница мастера` navigation;
+  - home page preview was intentionally not added in this pass.
+- Data boundary:
+  - real rows come from `profile_cabinet_profiles`, `profile_cabinet_publications`, and `profile_cabinet_services`;
+  - fallback/demo cards render only when Supabase is not configured or public rows are empty, and are labeled as examples;
+  - public rendering strips `storage://`, `data:image`, Supabase signed object URLs, and `profile-cabinet-media` URLs.
+- Verification status:
+  - `npm install`, `npm run test:public-master`, `node test/profileLiteRoute.test.mjs`, `npm run test:profile-materials`, `npm run test:profile-services`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4362/`;
+  - screenshots captured for `/masters/demo-master` at desktop `1280x920` and mobile `390x900`;
+  - scripted Playwright QA checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin` at desktop and mobile;
+  - horizontal overflow was `0`, console warnings/errors were `0`, master page cover/avatar/tabs/feed/right rail were present, and public DOM/HTML had no `storage://`, `profile-cabinet-media`, signed URL markers, bucket/path fields, `object_refs`, or bearer token markers.
+- Not verified yet:
+  - real Supabase approved-profile/publication/service rows;
+  - Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+- Next integration step:
+  - add a private Grimoire/workshop action that publishes explicit public-safe rows into `profile_cabinet_publications`, then aggregate approved rows into `/feed`.
+
 ## 2026-06-05 — Draft/clean release model verification
 
 - Branch: `codex/release-model-verification-20260605`, based on `origin/main` at `1c90788403540b5479d05cf82d8bb1669d55dfd2`.
