@@ -371,6 +371,22 @@ assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset
 assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon PR must not reintroduce pointer repositioning handlers");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "public Profile Lite layout fix should not inject legacy diagonal inner-cover arrows");
 
+// Part A: in-mandala cover drop targets
+assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTargets/, "in-mandala cover drop targets wrapper must exist");
+assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTarget/, "in-mandala cover drop target buttons must exist");
+assert.match(powerPlaceBaseSource, /◎ Внутрь/, "in-mandala inner cover drop target must have ◎ Внутрь label");
+assert.match(powerPlaceBaseSource, /▣ Снаружи/, "in-mandala outer cover drop target must have ▣ Снаружи label");
+assert.match(powerPlaceBaseSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "in-mandala inner target must use getPowerPlaceSlotDropHandlers(cover_ref.inner)");
+assert.match(powerPlaceBaseSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)/, "in-mandala outer target must use getPowerPlaceSlotDropHandlers(cover_ref.outer)");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTargets/, "CSS must define .powerMandalaCoverDropTargets");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTarget/, "CSS must define .powerMandalaCoverDropTarget");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTarget\.power-place-slot--drag-over/, "CSS must define drag-over highlight for in-mandala cover targets");
+// Right-panel tabs must still be drop targets
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)|getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "right-panel cover layer tabs must still use getPowerPlaceSlotDropHandlers for both layers");
+// No pan/zoom keys or pointer repositioning introduced
+assert.doesNotMatch(powerPlaceBaseSource, /__center_image_offset_x|__center_image_offset_y|__center_image_zoom/, "Part A must not introduce center image pan/zoom persistence keys");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown|onPointerMove|onPointerUp/, "Part A must not introduce pointer pan/zoom handlers");
+
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
 assert.equal(publicFiles.includes("profile-lite-custom-inner-cover-fix.js"), false, "new public inner cover runtime patch must not be present");
