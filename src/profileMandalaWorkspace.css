@@ -6140,6 +6140,15 @@
     order: 4 !important;
   }
 
+  /* Ensure layout, cover, and report panels stretch to the full single-column width */
+  .profileLitePowerPlace .powerLayoutPanel.compactFieldLayoutSwitch,
+  .profileLitePowerPlace .coverPickerPanel,
+  .profileLitePowerPlace .reportSettingsPanel {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
   .profileLitePowerPlace .sourceSlotScaleControl,
   .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerFrameScaleControl,
@@ -6672,9 +6681,7 @@
 }
 
 .profileLitePowerPlace .coverVariantsGrid {
-  max-height: 168px;
-  overflow: auto;
-  padding-right: 2px;
+  overflow: visible;
 }
 
 .profileLitePowerPlace .coverPreview {

@@ -968,3 +968,48 @@ assert.equal(
   "1.18",
   "shared slot scale persisted in object_refs should be clamped"
 );
+
+// ── Cover ref data contract ───────────────────────────────────────────────────
+// cover_ref.inner and cover_ref.outer must survive normalization and hydration
+
+{
+  const innerRef = "storage://profile-cabinet-media/profile-1/underlays/inner.png";
+  const outerRef = "storage://profile-cabinet-media/profile-1/underlays/outer.png";
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Test",
+    constructor_type: "client",
+    cover_ref: {
+      id: "custom-cover", type: "image", src: innerRef,
+      inner: { id: "custom-cover", type: "image", src: innerRef, display_src: "" },
+      outer: { id: "custom-outer-cover", type: "image", src: outerRef, display_src: "" }
+    }
+  });
+  assert.equal(comp.cover_ref.inner?.src, innerRef, "cover_ref.inner.src must survive normalization");
+  assert.equal(comp.cover_ref.outer?.src, outerRef, "cover_ref.outer.src must survive normalization");
+}
+
+{
+  // Cover upload flow uses image_ref / image_url (durable storage ref), not data:image.
+  // Verify the upload handler source pattern in ProfileLitePage.
+  const { readFileSync } = await import("node:fs");
+  const pageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+  const uploadFnMatch = pageSource.match(/handleCompositionCoverFileUpload[\s\S]*?savedImageRef = savedPhoto\?\.image_ref \|\| savedPhoto\?\.image_url/);
+  assert.ok(uploadFnMatch, "cover upload must derive src from image_ref or image_url (durable ref, not data:image)");
+}
+
+{
+  // object_ref_urls must keep display URL mapped by durable storage ref
+  const durableRef = "storage://profile-cabinet-media/profile-1/underlays/bg.png";
+  const signedUrl = "https://signed.example/bg.png";
+  const hydrated = __testPowerPlaceClient.hydrateCompositionRowsWithSignedUrls([
+    {
+      id: "comp-ref-test",
+      object_refs: { __center_image: durableRef },
+      cover_ref: {
+        inner: { id: "custom-cover", type: "image", src: durableRef }
+      }
+    }
+  ], { [durableRef]: signedUrl })[0];
+  assert.equal(hydrated.object_ref_urls[durableRef], signedUrl, "object_ref_urls must be keyed by durable storage ref");
+}

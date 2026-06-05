@@ -298,6 +298,29 @@ function centerFrameScaleValue(value) {
   return Math.min(1.4, Math.max(0.72, scale));
 }
 
+// Classify a saved image item as an inner-cover, outer-cover, or legacy (both) shortcut.
+// Uses the `meta` field which maps to the `notes` column in the database.
+// Cover uploads use notes `Фон мандалы: inner` / `Фон мандалы: outer`.
+export function coverShortcutLayerFromPhoto(item) {
+  const notes = String(item?.meta || item?.notes || "");
+  if (/Фон мандалы:\s*inner/i.test(notes)) return "inner";
+  if (/Фон мандалы:\s*outer/i.test(notes)) return "outer";
+  return null; // unclassified legacy — show in both layers
+}
+
+// Filter cover shortcut candidates for a given layer.
+// Photos with a layer marker appear only in their layer.
+// Photos without a layer marker appear in both (legacy).
+// The active cover for the layer is always included.
+export function filterCoverShortcutsByLayer(items, layer, activeCoverSrc) {
+  return items.filter((item) => {
+    if (activeCoverSrc && item.src === activeCoverSrc) return true;
+    const itemLayer = coverShortcutLayerFromPhoto(item);
+    if (itemLayer === null) return true; // unclassified legacy
+    return itemLayer === layer;
+  });
+}
+
 function uniqueImageSources(items) {
   const seen = new Set();
   return items.filter((item) => {
@@ -567,18 +590,25 @@ export default function ProfileLitePowerPlaceModule({
   }), [savedImages]);
 
   const hiddenCoverShortcutIdSet = useMemo(() => new Set(hiddenCoverShortcutIds), [hiddenCoverShortcutIds]);
-  const savedCoverOptions = useMemo(() => latestSavedImages
-    .filter((item) => item.src && !hiddenCoverShortcutIdSet.has(item.id))
-    .slice(0, 6)
-    .map((item) => ({
-    id: `saved-cover-${item.id}`,
-    shortcutId: item.id,
-    label: item.label,
-    type: "image",
-    src: item.src,
-    display_src: item.displaySrc,
-    displaySrc: item.displaySrc
-  })), [hiddenCoverShortcutIdSet, latestSavedImages]);
+  const savedCoverOptions = useMemo(() => {
+    // Only client-photo items can be cover shortcuts (they carry the "Фон мандалы: layer" note).
+    // Unclassified client photos (no layer note) appear in both layers as legacy shortcuts.
+    const activeCoverSrc = visibleCover?.src || "";
+    const candidates = latestSavedImages.filter((item) =>
+      item.src && item.kind === "client-photo" && !hiddenCoverShortcutIdSet.has(item.id)
+    );
+    return filterCoverShortcutsByLayer(candidates, coverLayerMode, activeCoverSrc)
+      .slice(0, 6)
+      .map((item) => ({
+        id: `saved-cover-${item.id}`,
+        shortcutId: item.id,
+        label: item.label,
+        type: "image",
+        src: item.src,
+        display_src: item.displaySrc,
+        displaySrc: item.displaySrc
+      }));
+  }, [hiddenCoverShortcutIdSet, latestSavedImages, coverLayerMode, visibleCover]);
   const coverOptions = useMemo(() => [
     ...FALLBACK_COVERS,
     ...savedCoverOptions,
