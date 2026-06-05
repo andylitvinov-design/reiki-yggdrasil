@@ -6976,3 +6976,276 @@
     flex: 1 1 auto;
   }
 }
+
+/* ── Grimoire module ── */
+
+.profileLiteGrimoireModule .grimoireFilterSidebar {
+  min-width: 0;
+}
+
+.grimoireFilterList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.grimoireFilterBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid #d4b896;
+  background: #fdf8f0;
+  color: #5a4030;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.grimoireFilterBtn:hover {
+  background: #f5e8d4;
+  border-color: #b89060;
+}
+
+.grimoireFilterBtn.active {
+  background: #e8c87a;
+  border-color: #b8902a;
+  color: #2f2418;
+  font-weight: 600;
+}
+
+.grimoireFilterCount {
+  font-size: 11px;
+  color: #a08060;
+  min-width: 18px;
+  text-align: right;
+}
+
+.grimoireCenterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.grimoireRecordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grimoireRecordCard {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  background: #fdf8f0;
+  border: 1px solid #d4b896;
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.grimoireCardPreview {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: #ede0c8 center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.grimoireCardIcon {
+  font-size: 22px;
+  color: #a08060;
+}
+
+.grimoireCardBody {
+  min-width: 0;
+}
+
+.grimoireCardChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.grimoireChipType {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: #e8c87a;
+  border-radius: 20px;
+  color: #2f2418;
+}
+
+.grimoireCardTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2f2418;
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grimoireCardDesc {
+  font-size: 12px;
+  color: #5a4030;
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grimoireCardMeta {
+  font-size: 11px;
+  color: #a08060;
+  display: block;
+}
+
+.grimoireCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.grimoireActionBtn {
+  padding: 5px 10px;
+  font-size: 12px;
+  border: 1px solid #d4b896;
+  background: #fdf8f0;
+  color: #5a4030;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.grimoireActionBtn:hover {
+  background: #f5e8d4;
+}
+
+.grimoireActionBtnDelete {
+  color: #c0392b;
+  border-color: #e0a090;
+}
+
+.grimoireActionBtnDelete:hover {
+  background: #fdf0ee;
+}
+
+.grimoireUploaderCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grimoireUploaderHint {
+  font-size: 13px;
+  color: #5a4030;
+  margin: 0;
+}
+
+.grimoireFileInputLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.grimoireFileInput {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+}
+
+.grimoireFileInputText {
+  display: none;
+}
+
+.grimoireUploadStatus {
+  font-size: 13px;
+  color: #5a4030;
+  margin: 0;
+  padding: 6px 10px;
+  background: #f5e8d4;
+  border-radius: 6px;
+}
+
+.grimoireUploaderFormats {
+  font-size: 11px;
+  color: #a08060;
+  margin: 0;
+}
+
+.grimoireEditBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.grimoireEditModal {
+  background: #fdf8f0;
+  border: 1px solid #d4b896;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grimoireEditModal h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #2f2418;
+}
+
+.grimoireEditModal label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #5a4030;
+}
+
+.grimoireEditModal input,
+.grimoireEditModal textarea,
+.grimoireEditModal select {
+  padding: 8px 10px;
+  border: 1px solid #d4b896;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: #2f2418;
+}
+
+@media (max-width: 768px) {
+  .profileLiteGrimoireModule .workspaceMainColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .grimoireRecordCard {
+    grid-template-columns: 48px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .grimoireCardActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

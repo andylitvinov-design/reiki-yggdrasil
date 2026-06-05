@@ -5,7 +5,7 @@ export const PROFILE_LITE_TABS = [
   { id: "mandalas", label: "Мастерская", href: "/profile/mandalas" },
   { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
   { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
-  { id: "materials", label: "Материалы", href: "/profile?tab=materials" },
+  { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
   { id: "services", label: "Услуги", href: "/profile/services" },
   { id: "orders", label: "Заказы", href: "/profile/orders" },
   { id: "chats", label: "Чаты", href: "/profile/chats" }

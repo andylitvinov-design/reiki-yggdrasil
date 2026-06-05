@@ -18,7 +18,7 @@ const expectedTabs = [
   ["mandalas", "Мастерская"],
   ["profile", "Профиль"],
   ["media", "Фото / Медиа"],
-  ["materials", "Материалы"],
+  ["materials", "Гримуар"],
   ["services", "Услуги"],
   ["orders", "Заказы"],
   ["chats", "Чаты"]
@@ -280,7 +280,7 @@ assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Со
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
 assert.match(powerPlaceSource, />Сохранить<\/button>[\s\S]*>Обновить<\/button>/, "Power Place actions should expose separate Save and Update buttons");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
-assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[\s\S]*?order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
+assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[\s\S]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
 assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(saveNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Save button should use an explicit click wrapper that calls onSaveNew only when enabled");
 assert.match(powerPlaceBaseSource, /<button className="cabinetPrimary powerPlaceSaveButton"[\s\S]*onClick=\{handleSaveNewClick\}[\s\S]*disabled=\{saveNewDisabled\}[\s\S]*title=\{saveNewTitle\}[\s\S]*aria-label=\{saveNewAriaLabel\}[\s\S]*>Сохранить<\/button>/, "Save button should expose explicit clickability, disabled title, and aria label");
 assert.doesNotMatch(powerPlaceBaseSource, /<div className="powerPlaceActions">[\s\S]*<span>[\s\S]*сохранённых мест силы[\s\S]*<\/span>[\s\S]*<\/div>/, "saved-count text must not be a raw inline span inside the clickable actions row");
@@ -441,5 +441,41 @@ assert.match(profileLitePageSource, /refreshSavedCompositions[\s\S]*field_layout
 assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout"/, "powerPlaceClient.js should define FIELD_LAYOUT_REF_KEY = \"__field_layout\"");
 assert.match(powerPlaceClientSource, /VALID_FIELD_LAYOUTS\s*=\s*\[[\s\S]*"square"[\s\S]*"vertical"[\s\S]*"horizontal"[\s\S]*"rectangle"[\s\S]*\]/, "powerPlaceClient.js should define VALID_FIELD_LAYOUTS with all four layouts");
 assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAYOUTS\.includes/, "normalizePowerPlaceComposition should validate and persist __field_layout");
+
+// --- E: Grimoire tab (issue #273) ---
+const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
+
+assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");
+assert.match(grimoireModuleSource, /Фильтр гримуара/, "Grimoire left column should say 'Фильтр гримуара'");
+assert.match(grimoireModuleSource, /Записи гримуара/, "Grimoire center column should say 'Записи гримуара'");
+assert.match(grimoireModuleSource, /Загрузить в гримуар/, "Grimoire right column should say 'Загрузить в гримуар'");
+assert.match(grimoireModuleSource, /type="file"[\s\S]*multiple/, "Grimoire uploader should be a multi-file input");
+assert.match(grimoireModuleSource, /Редактировать/, "Grimoire record cards should expose an edit action");
+assert.match(grimoireModuleSource, /Удалить/, "Grimoire record cards should expose a delete action");
+assert.match(grimoireModuleSource, /GRIMOIRE_CATEGORIES/, "Grimoire left column should use GRIMOIRE_CATEGORIES for filters");
+assert.match(grimoireModuleSource, /grimoireFilterBtn/, "Grimoire filter buttons should use grimoireFilterBtn class");
+assert.match(grimoireModuleSource, /grimoireRecordCard/, "Grimoire records should use grimoireRecordCard class");
+assert.match(profileLitePageSource, /handleGrimoireMultiUpload/, "ProfileLitePage should expose handleGrimoireMultiUpload");
+assert.match(profileLitePageSource, /handleGrimoireUpdate/, "ProfileLitePage should expose handleGrimoireUpdate");
+assert.match(profileLitePageSource, /handleGrimoireDelete/, "ProfileLitePage should expose handleGrimoireDelete");
+assert.match(profileLitePageSource, /deleteOwnMaterial/, "ProfileLitePage should import deleteOwnMaterial");
+assert.match(profileLitePageSource, /updateOwnMaterial/, "ProfileLitePage should import updateOwnMaterial");
+assert.match(profileLitePageSource, /detectMaterialTypeFromFile/, "ProfileLitePage should use detectMaterialTypeFromFile for grimoire uploads");
+assert.match(profileLitePageSource, /stripFileExtension/, "ProfileLitePage should use stripFileExtension for grimoire title derivation");
+
+const profileMaterialsClientSource = readFileSync("src/lib/profileMaterialsClient.js", "utf8");
+assert.match(profileMaterialsClientSource, /export.*GRIMOIRE_CATEGORIES/, "profileMaterialsClient.js should export GRIMOIRE_CATEGORIES");
+assert.match(profileMaterialsClientSource, /export function detectMaterialTypeFromFile/, "profileMaterialsClient.js should export detectMaterialTypeFromFile");
+assert.match(profileMaterialsClientSource, /export function stripFileExtension/, "profileMaterialsClient.js should export stripFileExtension");
+assert.match(profileMaterialsClientSource, /export async function updateOwnMaterial/, "profileMaterialsClient.js should export updateOwnMaterial");
+assert.match(profileMaterialsClientSource, /export async function deleteOwnMaterial/, "profileMaterialsClient.js should export deleteOwnMaterial");
+
+const profileMediaClientSource = readFileSync("src/lib/profileMediaClient.js", "utf8");
+assert.match(profileMediaClientSource, /export function validateGrimoireFile/, "profileMediaClient.js should export validateGrimoireFile");
+assert.match(profileMediaClientSource, /audio\/mpeg/, "PROFILE_MEDIA_ALLOWED_TYPES should include audio/mpeg for grimoire");
+assert.match(profileMediaClientSource, /application\/pdf/, "PROFILE_MEDIA_ALLOWED_TYPES should include application/pdf for grimoire");
+
+const grimoireMigration = readFileSync("supabase/migrations/20260605120000_grimoire_publication_types.sql", "utf8");
+assert.match(grimoireMigration, /uncategorized.*photo.*article.*document.*audio/, "Grimoire migration should add uncategorized, photo, article, document, audio type values");
 
 console.log("Profile Lite cabinet contract: all assertions passed.");

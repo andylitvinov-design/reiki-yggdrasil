@@ -21,10 +21,58 @@ const PUBLIC_MATERIAL_FIELDS = [
 ].join(",");
 
 export const MATERIAL_TYPES = [
-  { value: "mandala", label: "Мандала" },
+  { value: "uncategorized", label: "Без категории" },
+  { value: "photo", label: "Фото / образ" },
+  { value: "article", label: "Статья" },
+  { value: "document", label: "Документ" },
+  { value: "audio", label: "Аудио" },
+  { value: "practice", label: "Практика" },
   { value: "artifact", label: "Артефакт" },
-  { value: "practice", label: "Практика" }
+  { value: "mandala", label: "Мандала" }
 ];
+
+export const GRIMOIRE_CATEGORIES = [
+  { value: "all", label: "Все записи" },
+  { value: "uncategorized", label: "Без категории" },
+  { value: "photo", label: "Фото / образ" },
+  { value: "article", label: "Статья" },
+  { value: "document", label: "Документ" },
+  { value: "audio", label: "Аудио" },
+  { value: "practice", label: "Практика" },
+  { value: "artifact", label: "Артефакт" },
+  { value: "mandala", label: "Мандала" }
+];
+
+const AUDIO_EXTENSIONS = ["mp3", "mp4a", "ogg", "wav", "webm", "aac", "flac", "m4a", "opus"];
+const DOC_EXTENSIONS = ["pdf", "doc", "docx"];
+const TEXT_EXTENSIONS = ["txt", "md"];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
+
+export function stripFileExtension(filename) {
+  const name = String(filename || "").trim();
+  const dotIndex = name.lastIndexOf(".");
+  if (dotIndex > 0) return name.slice(0, dotIndex);
+  return name;
+}
+
+export function detectMaterialTypeFromFile(file) {
+  if (!file) return "uncategorized";
+  const mimeType = String(file.type || "").toLowerCase();
+  if (mimeType.startsWith("audio/")) return "audio";
+  if (mimeType.startsWith("image/")) return "photo";
+  if (mimeType === "text/plain" || mimeType === "text/markdown") return "article";
+  if (
+    mimeType === "application/pdf" ||
+    mimeType === "application/msword" ||
+    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) return "document";
+  const ext = String(file.name || "").split(".").pop().toLowerCase();
+  if (AUDIO_EXTENSIONS.includes(ext)) return "audio";
+  if (IMAGE_EXTENSIONS.includes(ext)) return "photo";
+  if (TEXT_EXTENSIONS.includes(ext)) return "article";
+  if (DOC_EXTENSIONS.includes(ext)) return "document";
+  return "uncategorized";
+}
 
 export const MATERIAL_STATUSES = [
   { value: "draft", label: "черновик" },
@@ -44,7 +92,7 @@ function cleanText(value) {
 }
 
 function cleanType(value) {
-  return MATERIAL_TYPES.some((item) => item.value === value) ? value : "mandala";
+  return MATERIAL_TYPES.some((item) => item.value === value) ? value : "uncategorized";
 }
 
 function cleanStatus(value) {
@@ -59,7 +107,7 @@ function cleanSettingIndex(value) {
 
 export function createEmptyMaterialForm(overrides = {}) {
   return {
-    type: "mandala",
+    type: "uncategorized",
     title: "",
     description: "",
     image_url: "",
@@ -73,7 +121,7 @@ export function createEmptyMaterialForm(overrides = {}) {
 }
 
 export function publicationTypeLabel(type) {
-  return MATERIAL_TYPES.find((item) => item.value === type)?.label || "Мандала";
+  return MATERIAL_TYPES.find((item) => item.value === type)?.label || "Без категории";
 }
 
 export function materialStatusText(status) {
@@ -169,4 +217,29 @@ export async function createOwnMaterial(material, session = getStoredSession()) 
 
   const hydrated = await hydrateMaterialRows(rows, session);
   return hydrated?.[0] || null;
+}
+
+export async function updateOwnMaterial(id, patch, session = getStoredSession()) {
+  if (!session?.access_token) throw materialError("Нужно войти в кабинет.");
+  if (!id) throw materialError("Не указан идентификатор материала.");
+
+  const rows = await request(`/rest/v1/${PUBLICATIONS_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: { ...patch, updated_at: new Date().toISOString() }
+  });
+
+  const hydrated = await hydrateMaterialRows(rows, session);
+  return hydrated?.[0] || null;
+}
+
+export async function deleteOwnMaterial(id, session = getStoredSession()) {
+  if (!session?.access_token) throw materialError("Нужно войти в кабинет.");
+  if (!id) throw materialError("Не указан идентификатор материала.");
+
+  await request(`/rest/v1/${PUBLICATIONS_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    session
+  });
 }
