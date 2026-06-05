@@ -122,12 +122,27 @@ Documented target model != verified dashboard state
 
 ### Phase 1 — создать ветку `production`
 
-Создать `production` от текущего стабильного `main`:
+Сначала проверить, существует ли `production` на GitHub:
 
 ```bash
-git checkout main
-git pull origin main
-git checkout -b production
+git ls-remote --heads origin production
+```
+
+Если команда ничего не выводит, `production` ещё не создана.
+
+Не создавать `production` вслепую из текущего `main`. Сначала выбрать stable SHA: последний commit, который прошёл owner/live QA для клиентского сайта. Текущий `origin/main` может быть кандидатом только после такой проверки.
+
+Точная команда создания после подтверждения stable SHA:
+
+```bash
+cd /Users/andriilitvinov/projects/MYPROJECTS/reiki-yggdrasil
+git status --short
+git branch --show-current
+git worktree list
+git fetch origin --prune
+git ls-remote --heads origin production
+git rev-parse <stable_sha>^{commit}
+git branch production <stable_sha>
 git push -u origin production
 ```
 
@@ -156,6 +171,7 @@ Add New Project
 Import repo: andylitvinov-design/reiki-yggdrasil
 Project name: 2mentalica
 Production branch: main
+Install command: npm install
 Build command: npm run build
 Output directory: dist
 Framework: Vite
@@ -181,6 +197,21 @@ Settings → Git → Production Branch → production
 
 После переключения проверить, что клиентский live продолжает открываться и не потерял auth redirects.
 
+Dashboard steps:
+
+```text
+1. Open the existing client-facing Vercel project.
+2. Confirm it is connected to repo andylitvinov-design/reiki-yggdrasil.
+3. Preserve the existing production/client domains.
+4. Settings → Git → Production Branch → production.
+5. Confirm env names are present for the Production environment only:
+   VITE_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY
+   VITE_ADMIN_EMAIL
+6. Do not paste or expose env values.
+7. Trigger/observe a deployment only from production after release approval.
+```
+
 ### Phase 5 — настроить Supabase staging для `2mentalica`
 
 Рекомендуется отдельный Supabase project:
@@ -192,12 +223,15 @@ Staging Supabase → 2mentalica
 
 В staging Supabase:
 
-- применить актуальные migrations из `supabase/migrations/*`;
-- создать нужные storage buckets;
-- проверить RLS policies;
+- создать отдельный staging project для `2mentalica`;
+- применить актуальные migrations из `supabase/migrations/*` в порядке имён файлов;
+- подтвердить, что private bucket `profile-cabinet-media` создан migration `20260527120000_profile_cabinet_media_storage.sql`;
+- проверить RLS policies для profile/admin/publications, Power Place compositions, media storage, services/orders, and chat tables;
 - создать тестового пользователя;
-- создать тестового admin user/email;
-- добавить OAuth redirect URLs для `2mentalica`, если Google OAuth нужен на черновом сайте;
+- создать тестового admin user/email и строку в `profile_cabinet_admins`;
+- добавить OAuth redirect URLs для `2mentalica`, если Google OAuth нужен на черновом сайте:
+  - `https://2mentalica.vercel.app/profile`
+  - `https://2mentalica.vercel.app/profile/admin`
 - не копировать реальные клиентские данные без отдельного решения.
 
 Env names only:
@@ -258,19 +292,17 @@ git push -u origin release/YYYY-MM-DD
 Выпустить релиз в `production`:
 
 ```bash
-git checkout production
-git pull origin production
-git merge release/YYYY-MM-DD
-git push origin production
+gh pr create --base production --head release/YYYY-MM-DD --title "Release YYYY-MM-DD" --body "Release after owner QA on 2mentalica."
+gh pr merge --merge --delete-branch
 ```
+
+Если GitHub branch protection ещё не включён и нужен временный manual merge, это требует явного owner approval. Codex не должен использовать direct push в `production` как обычный путь.
 
 Если в release-ветке были дополнительные фиксы, вернуть их обратно в `main`:
 
 ```bash
-git checkout main
-git pull origin main
-git merge release/YYYY-MM-DD
-git push origin main
+gh pr create --base main --head release/YYYY-MM-DD --title "Back-merge release YYYY-MM-DD into main" --body "Return release-blocking fixes to main."
+gh pr merge --merge
 ```
 
 ## 8. Когда нужен release branch, а когда достаточно main
