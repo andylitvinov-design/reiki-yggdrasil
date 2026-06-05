@@ -1141,6 +1141,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (field === "__center_image_offset_x" || field === "__center_image_offset_y" || field === "__center_image_zoom") {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [field]: Number(value)
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,

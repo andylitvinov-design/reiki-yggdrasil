@@ -7426,3 +7426,71 @@
     flex-wrap: wrap;
   }
 }
+
+/* ── In-mandala cover drop targets ──────────────────────────────────────── */
+
+.profileLitePowerPlace .powerMandalaCoverDropTargets {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.profileLitePowerPlace .powerMandalaCoverDropTarget {
+  pointer-events: all;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  border-radius: 6px;
+  border: 1.5px dashed rgba(160, 120, 50, 0.55);
+  background: rgba(255, 248, 225, 0.82);
+  color: rgba(90, 60, 10, 0.85);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  backdrop-filter: blur(2px);
+}
+
+.profileLitePowerPlace .powerMandalaCoverDropTarget:hover {
+  background: rgba(255, 240, 190, 0.97);
+  border-color: rgba(180, 120, 20, 0.8);
+}
+
+.profileLitePowerPlace .powerMandalaCoverDropTarget.power-place-slot--drag-over {
+  border-style: solid;
+  border-color: #b8791d;
+  background: rgba(255, 239, 194, 0.98);
+  box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.22);
+}
+
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerMandalaCoverDropTargets {
+    top: 5px;
+    left: 5px;
+    gap: 3px;
+  }
+
+  .profileLitePowerPlace .powerMandalaCoverDropTarget {
+    font-size: 0.68rem;
+    padding: 2px 5px;
+  }
+}
+
+/* ── Central photo pan/zoom ──────────────────────────────────────────────── */
+
+.profileLitePowerPlace .centerPhotoPanZoomTarget {
+  cursor: grab;
+  touch-action: none;
+}
+
+.profileLitePowerPlace .centerPhotoPanZoomTarget.centerPhotoPanning {
+  cursor: grabbing;
+}

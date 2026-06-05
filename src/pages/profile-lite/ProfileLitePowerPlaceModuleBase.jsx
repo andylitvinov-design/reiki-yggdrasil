@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
@@ -303,6 +303,18 @@ function centerFrameScaleValue(value) {
   return Math.min(1.4, Math.max(0.72, scale));
 }
 
+function clampCenterImageOffset(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 50;
+  return Math.min(80, Math.max(20, n));
+}
+
+function clampCenterImageZoom(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 1;
+  return Math.min(1.8, Math.max(0.65, n));
+}
+
 // Classify a saved image item as an inner-cover, outer-cover, or legacy (both) shortcut.
 // Uses the `meta` field which maps to the `notes` column in the database.
 // Cover uploads use notes `Фон мандалы: inner` / `Фон мандалы: outer`.
@@ -470,6 +482,9 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const [dragOverSlotId, setDragOverSlotId] = useState("");
+  const [liveCenterPos, setLiveCenterPos] = useState(null);
+  const centerPanPointer = useRef(null);
+  const centerPhotoElRef = useRef(null);
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -523,9 +538,18 @@ export default function ProfileLitePowerPlaceModule({
     "--power-center-image-scale": centerImageScale,
     "--power-center-frame-scale": centerFrameScale
   };
+  const persistedCenterOffsetX = clampCenterImageOffset(objectRefs.__center_image_offset_x ?? 50);
+  const persistedCenterOffsetY = clampCenterImageOffset(objectRefs.__center_image_offset_y ?? 50);
+  const persistedCenterZoom = clampCenterImageZoom(objectRefs.__center_image_zoom ?? 1);
+  const liveCenterOffsetX = liveCenterPos?.x ?? persistedCenterOffsetX;
+  const liveCenterOffsetY = liveCenterPos?.y ?? persistedCenterOffsetY;
   const centerImageStyle = {
     ...(imageStyle(centralImage) || {}),
-    "--power-center-image-scale": centerImageScale
+    "--power-center-image-scale": centerImageScale,
+    ...(centralImage ? {
+      backgroundPosition: `${liveCenterOffsetX}% ${liveCenterOffsetY}%`,
+      backgroundSize: `calc(100% * ${persistedCenterZoom}) auto`
+    } : {})
   };
   const chessCoverStyle = {
     ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
@@ -892,6 +916,96 @@ export default function ProfileLitePowerPlaceModule({
     }
   };
 
+  // Non-passive wheel listener for central photo zoom (React onWheel is passive by default)
+  useEffect(() => {
+    const el = centerPhotoElRef.current;
+    if (!el || !centralImage) return undefined;
+    const handleWheel = (e) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.05 : 0.05;
+      onCompositionDraftChange("__center_image_zoom", clampCenterImageZoom(persistedCenterZoom + delta));
+    };
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [centralImage, persistedCenterZoom, onCompositionDraftChange]);
+
+  const getCenterPhotoPanZoomHandlers = () => {
+    if (!centralImage) return {};
+    return {
+      onPointerDown: (e) => {
+        if (e.button !== 0 && e.pointerType !== "touch") return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        centerPanPointer.current = {
+          pointerId: e.pointerId,
+          startClientX: e.clientX,
+          startClientY: e.clientY,
+          startOffX: persistedCenterOffsetX,
+          startOffY: persistedCenterOffsetY,
+          currentX: persistedCenterOffsetX,
+          currentY: persistedCenterOffsetY,
+          hasMoved: false
+        };
+      },
+      onPointerMove: (e) => {
+        const ptr = centerPanPointer.current;
+        if (!ptr || ptr.pointerId !== e.pointerId) return;
+        const dx = e.clientX - ptr.startClientX;
+        const dy = e.clientY - ptr.startClientY;
+        if (!ptr.hasMoved && Math.abs(dx) < 4 && Math.abs(dy) < 4) return;
+        ptr.hasMoved = true;
+        const newX = clampCenterImageOffset(ptr.startOffX - dx * 0.2);
+        const newY = clampCenterImageOffset(ptr.startOffY - dy * 0.2);
+        ptr.currentX = newX;
+        ptr.currentY = newY;
+        setLiveCenterPos({ x: newX, y: newY });
+      },
+      onPointerUp: (e) => {
+        const ptr = centerPanPointer.current;
+        if (!ptr || ptr.pointerId !== e.pointerId) return;
+        try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+        if (ptr.hasMoved) {
+          onCompositionDraftChange("__center_image_offset_x", ptr.currentX);
+          onCompositionDraftChange("__center_image_offset_y", ptr.currentY);
+        }
+        centerPanPointer.current = null;
+        setLiveCenterPos(null);
+      },
+      onPointerCancel: () => {
+        centerPanPointer.current = null;
+        setLiveCenterPos(null);
+      },
+      onClick: (e) => {
+        if (centerPanPointer.current?.hasMoved) { e.preventDefault(); return; }
+        openPicker("center");
+      }
+    };
+  };
+
+  const renderInMandalaCoverDropTargets = () => (
+    <div className="powerMandalaCoverDropTargets">
+      <button
+        className={`powerMandalaCoverDropTarget powerMandalaCoverDropTarget--inner${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
+        type="button"
+        title="Фон внутри. Перетащите фото"
+        aria-label="Фон внутри. Перетащите фото"
+        onClick={() => openCoverPickerForLayer("inner")}
+        {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
+      >
+        ◎ Внутрь
+      </button>
+      <button
+        className={`powerMandalaCoverDropTarget powerMandalaCoverDropTarget--outer${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
+        type="button"
+        title="Фон снаружи. Перетащите фото"
+        aria-label="Фон снаружи. Перетащите фото"
+        onClick={() => openCoverPickerForLayer("outer")}
+        {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
+      >
+        ▣ Снаружи
+      </button>
+    </div>
+  );
+
   const renderSourceSlot = (slot, index) => {
     const src = objectRefs[slot.id] || "";
     const displaySrc = objectRefUrls[src] || objectRefUrls[slot.id] || src;
@@ -920,19 +1034,29 @@ export default function ProfileLitePowerPlaceModule({
     );
   };
 
-  const renderCenterPhotoWithMode = (className) => (
-    <button
-      className={`${className}${centralImage ? " hasImage" : ""}${dragOverSlotId === "__center_image" ? " power-place-slot--drag-over" : ""}`}
-      style={centerImageStyle}
-      onClick={() => openPicker("center")}
-      title="Фото клиента / цели"
-      type="button"
-      aria-label="Фото клиента / цели"
-      {...getPowerPlaceSlotDropHandlers("__center_image")}
-    >
-      {!centralImage && <span>Фото клиента / цели</span>}
-    </button>
-  );
+  const renderCenterPhotoWithMode = (className) => {
+    const panZoom = getCenterPhotoPanZoomHandlers();
+    return (
+      <button
+        ref={centerPhotoElRef}
+        className={`${className}${centralImage ? " hasImage centerPhotoPanZoomTarget" : ""}${dragOverSlotId === "__center_image" ? " power-place-slot--drag-over" : ""}${liveCenterPos ? " centerPhotoPanning" : ""}`}
+        style={centerImageStyle}
+        onClick={panZoom.onClick || (() => openPicker("center"))}
+        title="Фото клиента / цели"
+        type="button"
+        aria-label="Фото клиента / цели"
+        {...getPowerPlaceSlotDropHandlers("__center_image")}
+        {...(centralImage ? {
+          onPointerDown: panZoom.onPointerDown,
+          onPointerMove: panZoom.onPointerMove,
+          onPointerUp: panZoom.onPointerUp,
+          onPointerCancel: panZoom.onPointerCancel
+        } : {})}
+      >
+        {!centralImage && <span>Фото клиента / цели</span>}
+      </button>
+    );
+  };
 
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
@@ -1360,6 +1484,7 @@ export default function ProfileLitePowerPlaceModule({
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
                 <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
+                  {renderInMandalaCoverDropTargets()}
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>

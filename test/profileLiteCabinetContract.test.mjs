@@ -346,8 +346,31 @@ assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwn
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
-assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__center_image_offset_x|__inner_cover_offset_x|__outer_cover_offset_x|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon UI must not reintroduce pointer repositioning or offset persistence in the edited base module");
-assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon PR must not reintroduce pointer repositioning handlers");
+// Cover repositioning and legacy helpers remain forbidden; central photo pan/zoom is now allowed.
+assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__inner_cover_offset_x|__outer_cover_offset_x|imageOffsetStyle/, "cover drop icon UI must not reintroduce legacy cover pointer repositioning or offset persistence");
+assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|imageOffsetStyle/, "cover drop icon PR must not reintroduce legacy cover repositioning helpers");
+
+// Part A: in-mandala cover drop targets
+assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTargets/, "in-mandala cover drop targets wrapper must exist");
+assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTarget/, "in-mandala cover drop target buttons must exist");
+assert.match(powerPlaceBaseSource, /◎ Внутрь/, "in-mandala inner cover drop target must have ◎ Внутрь label");
+assert.match(powerPlaceBaseSource, /▣ Снаружи/, "in-mandala outer cover drop target must have ▣ Снаружи label");
+assert.match(powerPlaceBaseSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)|getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "in-mandala drop targets must use getPowerPlaceSlotDropHandlers for both cover layers");
+
+// Part B: central photo pan/zoom — keys present, handlers scoped to center only
+assert.match(powerPlaceBaseSource, /__center_image_offset_x/, "center image pan/zoom must persist __center_image_offset_x in object_refs");
+assert.match(powerPlaceBaseSource, /__center_image_offset_y/, "center image pan/zoom must persist __center_image_offset_y in object_refs");
+assert.match(powerPlaceBaseSource, /__center_image_zoom/, "center image pan/zoom must persist __center_image_zoom in object_refs");
+assert.match(powerPlaceBaseSource, /onPointerDown/, "central photo must have onPointerDown pan handler");
+assert.match(powerPlaceBaseSource, /onPointerMove/, "central photo must have onPointerMove pan handler");
+assert.match(powerPlaceBaseSource, /onPointerUp/, "central photo must have onPointerUp pan handler");
+assert.match(powerPlaceBaseSource, /clampCenterImageOffset/, "pan/zoom must clamp offset values");
+assert.match(powerPlaceBaseSource, /clampCenterImageZoom/, "pan/zoom must clamp zoom values");
+// Pointer handlers must only be applied when centralImage exists (not to cover slots)
+assert.match(powerPlaceBaseSource, /centralImage.*onPointerDown|onPointerDown[\s\S]{0,200}centralImage/, "pointer handlers must be guarded by centralImage (not applied to cover slots)");
+// No cover offset keys introduced
+assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "must not introduce inner/outer cover offset keys");
+assert.doesNotMatch(powerPlaceBaseSource, /coverOffsetCornerGroup|renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "must not reintroduce legacy cover offset UI");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "public Profile Lite layout fix should not inject legacy diagonal inner-cover arrows");
 
 const publicFiles = readdirSync("public");
