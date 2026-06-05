@@ -124,16 +124,39 @@ export default function ProfileLiteMediaModule({
     [uploadSubcategoryOptions, uploadSubcategory]
   );
 
+  /* ── Shared filter helper ───────────────────────────────────────── */
+  function matchesMediaFilter(item, { filterGroup: fg, filterCategory: fc, filterSubcategory: fs }) {
+    if (!fg && !fc && !fs) return true;
+    if (fg) {
+      const itemGroup = item.material_group || item.group || item.library_group || "";
+      if (!itemGroup || itemGroup !== fg) return false;
+    }
+    if (fc) {
+      const itemCategory = item.material_category || item.category || item.step_id || "";
+      if (!itemCategory || itemCategory !== fc) return false;
+    }
+    if (fs) {
+      const itemSubcategory = item.material_subcategory || item.subcategory || item.setting_title || item.step_id || "";
+      if (!itemSubcategory || itemSubcategory !== fs) return false;
+    }
+    return true;
+  }
+
   /* ── Filtered photo list ────────────────────────────────────────── */
   const filteredPhotos = useMemo(() => {
     if (!filterGroup && !filterCategory && !filterSubcategory) return clientGoalPhotos;
-    return clientGoalPhotos.filter((photo) => {
-      if (filterGroup && photo.material_group && photo.material_group !== filterGroup) return false;
-      if (filterCategory && photo.step_id && photo.step_id !== filterCategory) return false;
-      if (filterSubcategory && photo.setting_title && photo.setting_title !== filterSubcategory) return false;
-      return true;
-    });
+    return clientGoalPhotos.filter((photo) =>
+      matchesMediaFilter(photo, { filterGroup, filterCategory, filterSubcategory })
+    );
   }, [clientGoalPhotos, filterGroup, filterCategory, filterSubcategory]);
+
+  /* ── Filtered materials list ────────────────────────────────────── */
+  const filteredMaterials = useMemo(() => {
+    if (!filterGroup && !filterCategory && !filterSubcategory) return materials || [];
+    return (materials || []).filter((mat) =>
+      matchesMediaFilter(mat, { filterGroup, filterCategory, filterSubcategory })
+    );
+  }, [materials, filterGroup, filterCategory, filterSubcategory]);
 
   const clientsFormError = mediaStatus === "needs-verification" ? mediaError : "";
   const isUploading = uploadStatus === "loading";
@@ -291,7 +314,7 @@ export default function ProfileLiteMediaModule({
               <p className="cabinetEyebrow">Материалы библиотеки</p>
               <h2>Загруженные материалы</h2>
               <div className="profileLiteMediaGrid">
-                {materials.map((mat) => (
+                {filteredMaterials.map((mat) => (
                   <article className="profileLiteMediaCard" key={mat.id || mat.image_url}>
                     <div
                       className="profileLiteMediaThumb"
@@ -307,6 +330,9 @@ export default function ProfileLiteMediaModule({
                     <p>{mat.description || mat.step_title || mat.setting_title || ""}</p>
                   </article>
                 ))}
+                {filteredMaterials.length === 0 && (filterGroup || filterCategory || filterSubcategory) && (
+                  <p>Нет материалов по выбранному фильтру.</p>
+                )}
               </div>
             </div>
           )}

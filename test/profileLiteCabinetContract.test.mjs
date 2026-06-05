@@ -683,4 +683,50 @@ assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLite
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 2/, "mobile grimoire should show filters second");
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 3/, "mobile grimoire should show records third");
 
+// ── Media module: filter applies to both photos and materials ─────────────────
+
+const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
+
+assert.match(
+  mediaModuleSource,
+  /filteredMaterials/,
+  "ProfileLiteMediaModule should compute filteredMaterials from the filter state"
+);
+
+assert.match(
+  mediaModuleSource,
+  /matchesMediaFilter/,
+  "ProfileLiteMediaModule should define a shared matchesMediaFilter helper"
+);
+
+assert.doesNotMatch(
+  mediaModuleSource,
+  /materials\.map\(/,
+  "ProfileLiteMediaModule must not render materials.map() directly — use filteredMaterials.map() instead"
+);
+
+assert.match(
+  mediaModuleSource,
+  /profileLiteMediaGrid/,
+  "ProfileLiteMediaModule gallery must use profileLiteMediaGrid class"
+);
+
+assert.match(
+  mediaModuleSource,
+  /profileLiteMediaCard/,
+  "ProfileLiteMediaModule cards must use profileLiteMediaCard class"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLiteMediaModule \.profileLiteMediaGrid/,
+  "CSS must define grid layout for profileLiteMediaGrid"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLiteMediaModule \.profileLiteMediaThumb/,
+  "CSS must define thumb style for profileLiteMediaThumb"
+);
+
 console.log("Profile Lite cabinet contract: all assertions passed.");
