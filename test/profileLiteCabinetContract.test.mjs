@@ -471,6 +471,6 @@ assert.match(profileMediaClientSource, /audio\/mpeg/, "PROFILE_MEDIA_ALLOWED_TYP
 assert.match(profileMediaClientSource, /application\/pdf/, "PROFILE_MEDIA_ALLOWED_TYPES should include application/pdf for grimoire");
 
 const grimoireMigration = readFileSync("supabase/migrations/20260605120000_grimoire_publication_types.sql", "utf8");
-assert.match(grimoireMigration, /photo.*article.*document.*audio/, "Grimoire migration should add photo, article, document, audio type values");
+assert.match(grimoireMigration, /uncategorized.*photo.*article.*document.*audio/, "Grimoire migration should add uncategorized, photo, article, document, audio type values");
 
 console.log("Profile Lite cabinet contract: all assertions passed.");

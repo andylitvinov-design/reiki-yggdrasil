@@ -21,13 +21,14 @@ const PUBLIC_MATERIAL_FIELDS = [
 ].join(",");
 
 export const MATERIAL_TYPES = [
-  { value: "mandala", label: "Мандала" },
-  { value: "artifact", label: "Артефакт" },
-  { value: "practice", label: "Практика" },
+  { value: "uncategorized", label: "Без категории" },
   { value: "photo", label: "Фото / образ" },
   { value: "article", label: "Статья" },
   { value: "document", label: "Документ" },
-  { value: "audio", label: "Аудио" }
+  { value: "audio", label: "Аудио" },
+  { value: "practice", label: "Практика" },
+  { value: "artifact", label: "Артефакт" },
+  { value: "mandala", label: "Мандала" }
 ];
 
 export const GRIMOIRE_CATEGORIES = [
@@ -43,7 +44,8 @@ export const GRIMOIRE_CATEGORIES = [
 ];
 
 const AUDIO_EXTENSIONS = ["mp3", "mp4a", "ogg", "wav", "webm", "aac", "flac", "m4a", "opus"];
-const DOC_EXTENSIONS = ["pdf", "doc", "docx", "txt", "md"];
+const DOC_EXTENSIONS = ["pdf", "doc", "docx"];
+const TEXT_EXTENSIONS = ["txt", "md"];
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
 
 export function stripFileExtension(filename) {
@@ -54,22 +56,22 @@ export function stripFileExtension(filename) {
 }
 
 export function detectMaterialTypeFromFile(file) {
-  if (!file) return "mandala";
+  if (!file) return "uncategorized";
   const mimeType = String(file.type || "").toLowerCase();
   if (mimeType.startsWith("audio/")) return "audio";
-  if (mimeType === "application/pdf") return "document";
-  if (
-    mimeType === "application/msword" ||
-    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-    mimeType === "text/plain" ||
-    mimeType === "text/markdown"
-  ) return "document";
   if (mimeType.startsWith("image/")) return "photo";
+  if (mimeType === "text/plain" || mimeType === "text/markdown") return "article";
+  if (
+    mimeType === "application/pdf" ||
+    mimeType === "application/msword" ||
+    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) return "document";
   const ext = String(file.name || "").split(".").pop().toLowerCase();
   if (AUDIO_EXTENSIONS.includes(ext)) return "audio";
-  if (DOC_EXTENSIONS.includes(ext)) return "document";
   if (IMAGE_EXTENSIONS.includes(ext)) return "photo";
-  return "mandala";
+  if (TEXT_EXTENSIONS.includes(ext)) return "article";
+  if (DOC_EXTENSIONS.includes(ext)) return "document";
+  return "uncategorized";
 }
 
 export const MATERIAL_STATUSES = [
@@ -90,7 +92,7 @@ function cleanText(value) {
 }
 
 function cleanType(value) {
-  return MATERIAL_TYPES.some((item) => item.value === value) ? value : "mandala";
+  return MATERIAL_TYPES.some((item) => item.value === value) ? value : "uncategorized";
 }
 
 function cleanStatus(value) {
@@ -105,7 +107,7 @@ function cleanSettingIndex(value) {
 
 export function createEmptyMaterialForm(overrides = {}) {
   return {
-    type: "mandala",
+    type: "uncategorized",
     title: "",
     description: "",
     image_url: "",
@@ -119,7 +121,7 @@ export function createEmptyMaterialForm(overrides = {}) {
 }
 
 export function publicationTypeLabel(type) {
-  return MATERIAL_TYPES.find((item) => item.value === type)?.label || "Мандала";
+  return MATERIAL_TYPES.find((item) => item.value === type)?.label || "Без категории";
 }
 
 export function materialStatusText(status) {

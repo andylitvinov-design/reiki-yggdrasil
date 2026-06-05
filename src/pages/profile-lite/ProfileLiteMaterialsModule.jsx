@@ -78,7 +78,7 @@ export default function ProfileLiteMaterialsModule({
 
   const filteredMaterials = materials.filter((m) => {
     if (activeFilter === "all") return true;
-    if (activeFilter === "uncategorized") return !m.type || m.type === "mandala";
+    if (activeFilter === "uncategorized") return !m.type || m.type === "uncategorized";
     return m.type === activeFilter;
   });
 
@@ -146,7 +146,7 @@ export default function ProfileLiteMaterialsModule({
                 {cat.value !== "all" && (
                   <span className="grimoireFilterCount">
                     {cat.value === "uncategorized"
-                      ? materials.filter((m) => !m.type || m.type === "mandala").length
+                      ? materials.filter((m) => !m.type || m.type === "uncategorized").length
                       : materials.filter((m) => m.type === cat.value).length}
                   </span>
                 )}
