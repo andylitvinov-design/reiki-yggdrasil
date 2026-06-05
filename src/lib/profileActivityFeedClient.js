@@ -3,6 +3,13 @@ import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const ACTIVITY_EVENTS_TABLE = "profile_cabinet_activity_events";
+const ACTIVE_DUPLICATE_STATUSES = ["draft", "pending", "approved"];
+const FEED_TARGET_TABLES = [
+  "profile_cabinet_publications",
+  "profile_cabinet_services",
+  "profile_cabinet_photo_albums",
+  "profile_cabinet_power_place_compositions"
+];
 const PUBLIC_ACTIVITY_FIELDS = [
   "id",
   "profile_id",
@@ -98,9 +105,18 @@ function cleanVisibility(value) {
 }
 
 function cleanTags(value) {
-  return Array.isArray(value)
-    ? value.map(text).filter(Boolean).slice(0, 12)
-    : [];
+  if (Array.isArray(value)) return value.map(text).filter(Boolean).slice(0, 12);
+  if (typeof value === "string") return value.split(",").map(text).filter(Boolean).slice(0, 12);
+  return [];
+}
+
+function cleanTargetTable(value) {
+  const table = text(value);
+  return FEED_TARGET_TABLES.includes(table) ? table : "";
+}
+
+function cleanNullableUuid(value) {
+  return text(value);
 }
 
 export function activityTypeLabel(type) {
@@ -147,6 +163,102 @@ export function normalizeActivityEvent(row = {}) {
     createdAt: row.created_at || "",
     updatedAt: row.updated_at || ""
   };
+}
+
+export function feedActivityTypeForMaterial(material = {}) {
+  const type = text(material.type);
+  if (type === "mandala") return "mandala_published";
+  if (type === "artifact") return "artifact_published";
+  if (type === "practice") return "practice_published";
+  return "";
+}
+
+export function buildSafeActivityEventPayload(event = {}) {
+  const imageUrl = text(event.image_url);
+  return {
+    profile_id: text(event.profile_id) || null,
+    activity_type: cleanActivityType(event.activity_type),
+    target_table: cleanTargetTable(event.target_table) || null,
+    target_id: cleanNullableUuid(event.target_id) || null,
+    title: text(event.title),
+    body: text(event.body),
+    image_url: isPublicSafeFeedImageUrl(imageUrl) ? imageUrl : "",
+    image_bucket: null,
+    image_path: null,
+    category: text(event.category),
+    subcategory: text(event.subcategory),
+    tags: cleanTags(event.tags),
+    status: cleanStatus(event.status || "pending"),
+    visibility: cleanVisibility(event.visibility || "public_feed"),
+    is_featured: Boolean(event.is_featured)
+  };
+}
+
+export function buildActivityEventDuplicatePath(event = {}) {
+  const targetTable = cleanTargetTable(event.target_table);
+  const targetId = cleanNullableUuid(event.target_id);
+  const activityType = cleanActivityType(event.activity_type);
+  const query = [
+    targetTable ? `target_table=eq.${encodeURIComponent(targetTable)}` : "target_table=is.null",
+    targetId ? `target_id=eq.${encodeURIComponent(targetId)}` : "target_id=is.null",
+    `activity_type=eq.${encodeURIComponent(activityType)}`,
+    `status=in.(${ACTIVE_DUPLICATE_STATUSES.join(",")})`,
+    `select=${PUBLIC_ACTIVITY_FIELDS}`,
+    "order=updated_at.desc",
+    "limit=1"
+  ];
+  return `/rest/v1/${ACTIVITY_EVENTS_TABLE}?${query.join("&")}`;
+}
+
+export function buildMaterialActivityEvent(material = {}, profileId = material.profile_id) {
+  const activityType = feedActivityTypeForMaterial(material);
+  if (!activityType) throw feedError("Для этой категории гримуара лента пока не подключена.");
+  return buildSafeActivityEventPayload({
+    profile_id: profileId,
+    activity_type: activityType,
+    target_table: "profile_cabinet_publications",
+    target_id: material.id,
+    title: material.title || activityTypeLabel(activityType),
+    body: material.description || "Материал подготовлен мастером для публичной ленты.",
+    image_url: material.image_url,
+    category: material.type || "materials",
+    tags: [material.step_id, material.step_title, material.setting_title].filter(Boolean),
+    status: "pending",
+    visibility: "public_feed"
+  });
+}
+
+export function buildServiceActivityEvent(service = {}, profileId = service.profile_id, activityType = "service_created") {
+  const safeType = activityType === "service_updated" ? "service_updated" : "service_created";
+  return buildSafeActivityEventPayload({
+    profile_id: profileId,
+    activity_type: safeType,
+    target_table: "profile_cabinet_services",
+    target_id: service.id,
+    title: service.title || activityTypeLabel(safeType),
+    body: service.description || "Мастер подготовил публичное описание услуги.",
+    image_url: service.image_url || service.display_url,
+    category: "services",
+    tags: [service.price_currency].filter(Boolean),
+    status: "pending",
+    visibility: "public_feed"
+  });
+}
+
+export function buildPowerPlaceActivityEvent(composition = {}, projection = {}, profileId = composition.profile_id) {
+  return buildSafeActivityEventPayload({
+    profile_id: profileId,
+    activity_type: "power_place_published",
+    target_table: "profile_cabinet_power_place_compositions",
+    target_id: composition.id,
+    title: projection.title || composition.title || "Место силы",
+    body: projection.body || "Мастер подготовил публичную проекцию места силы.",
+    image_url: projection.image_url || "",
+    category: projection.category || "mandalas",
+    tags: projection.tags || [],
+    status: "pending",
+    visibility: "public_feed"
+  });
 }
 
 export function buildPublicActivityEventsPath({ tab = "all", type = "", category = "", profileId = "", limit = 30 } = {}) {
@@ -212,9 +324,64 @@ export async function createOwnActivityEvent(event, session = getStoredSession()
     method: "POST",
     session,
     prefer: "return=representation",
-    body: event
+    body: buildSafeActivityEventPayload(event)
   });
   return rows?.[0] ? normalizeActivityEvent(rows[0]) : null;
+}
+
+export async function findDuplicateActivityEvent(event, session = getStoredSession()) {
+  if (!session?.access_token) throw feedError("Нужно войти в кабинет.");
+  const rows = await request(buildActivityEventDuplicatePath(event), { session });
+  return rows?.[0] ? normalizeActivityEvent(rows[0]) : null;
+}
+
+export async function createOrUpdatePendingActivityEvent(event, session = getStoredSession()) {
+  if (!session?.access_token) throw feedError("Нужно войти в кабинет.");
+  const payload = buildSafeActivityEventPayload(event);
+  if (!payload.title) throw feedError("Добавьте публичное название события.");
+  if (!payload.target_table || !payload.target_id) throw feedError("Не удалось определить объект для публикации в ленту.");
+
+  const existing = await findDuplicateActivityEvent(payload, session);
+  if (existing?.id && existing.status === "approved") {
+    return {
+      event: existing,
+      mode: "duplicate",
+      message: "Это событие уже одобрено и есть в ленте."
+    };
+  }
+
+  if (existing?.id) {
+    const rows = await request(`/rest/v1/${ACTIVITY_EVENTS_TABLE}?id=eq.${encodeURIComponent(existing.id)}`, {
+      method: "PATCH",
+      session,
+      prefer: "return=representation",
+      body: {
+        title: payload.title,
+        body: payload.body,
+        image_url: payload.image_url,
+        image_bucket: null,
+        image_path: null,
+        category: payload.category,
+        subcategory: payload.subcategory,
+        tags: payload.tags,
+        status: "pending",
+        visibility: "public_feed",
+        is_featured: payload.is_featured
+      }
+    });
+    return {
+      event: rows?.[0] ? normalizeActivityEvent(rows[0]) : existing,
+      mode: "updated",
+      message: "Событие уже было в очереди, публичное описание обновлено."
+    };
+  }
+
+  const created = await createOwnActivityEvent(payload, session);
+  return {
+    event: created,
+    mode: "created",
+    message: "Событие отправлено на модерацию ленты."
+  };
 }
 
 export async function listPendingActivityEvents(session = getStoredSession()) {

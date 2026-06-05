@@ -36,6 +36,38 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Community Activity Feed Phase 2-4 implementation
+
+- Branch: `codex/community-feed-phase-2-4`, clean worktree from `origin/main` at PR #291 merge commit `4f85b477ac92739d2680cc3ea454aee532654f50`.
+- Scope: make `/feed` usable/testable through explicit pending-event creation and admin moderation, without automatic event creation on every edit and without production release.
+- Changed:
+  - `/profile/admin` now loads pending activity events, shows the second moderation section `Публикации и события на модерации`, and can approve/reject pending feed events;
+  - `/profile/admin` has an admin-only test event form for pending public-safe events;
+  - feed client now builds safe public event payloads, maps material types `mandala` / `artifact` / `practice`, checks duplicates by `target_table` + `target_id` + `activity_type`, updates existing draft/pending events, and returns a friendly message for approved duplicates;
+  - Grimoire materials expose explicit `Добавить в ленту` for mapped publication types only;
+  - published services expose explicit `Добавить в ленту` and `Опубликовать обновление`;
+  - saved Power Place compositions expose a public projection form and `Опубликовать в ленту`, sending only title/body/category/tags and not private composition data;
+  - activity-event migration target constraint now allows `profile_cabinet_power_place_compositions` as a feed event target, without changing private table/storage RLS.
+- Verification:
+  - `npm run check`, `npm run build`, `npm run test:profile-lite`, `npm run test:profile-feed`, `npm run test:profile-services`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, and `git diff --check` exited `0`;
+  - `npm install` was attempted but failed with `ENOSPC`; validation used a temporary symlink to the existing main-checkout `node_modules`, then removed it;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4356/`;
+  - Playwright MCP checked `/feed`, `/profile/admin`, `/profile`, `/profile/mandalas`, `/profile/services`, and `/masters`;
+  - desktop `1280x920` and mobile `390x900` checks had horizontal overflow `0`;
+  - browser console warnings/errors were `0`;
+  - checked route text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `object_refs`, or `Bearer`.
+- Not verified:
+  - real Supabase migration application;
+  - real authenticated admin create/approve/reject event flow;
+  - real material/service/saved-mandala pending event creation against Supabase;
+  - approved event appearing in `/feed` with live data;
+  - Vercel preview, production/legacy live URLs, Google OAuth, and real admin membership.
+- Risks:
+  - live feed writes depend on applying the updated activity-events migration and existing admin/profile RLS helpers;
+  - local QA used the Supabase-not-configured state, so data mutations remain `needs verification` in staging/live.
+
 ## 2026-06-05 — Community Activity Feed Phase 1 infrastructure
 
 - Branch: `codex/community-activity-feed-phase-1`, clean worktree from `origin/main` at `2192fc5`.

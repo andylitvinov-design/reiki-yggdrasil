@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { GRIMOIRE_CATEGORIES, materialStatusText, publicationTypeLabel } from "../../lib/profileMaterialsClient.js";
+import { feedActivityTypeForMaterial } from "../../lib/profileActivityFeedClient.js";
 
-function GrimoireRecordCard({ material, onEdit, onDelete }) {
+function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
   const isUncategorized = !material.type || material.type === "uncategorized";
   const noteText = material.description || "Комментарий ещё не добавлен";
+  const canAddToFeed = Boolean(material.id && feedActivityTypeForMaterial(material));
 
   return (
     <article className={`grimoireRecordCard${isUncategorized ? " grimoireRecordCard--uncategorized" : ""}`} key={material.id || material.title}>
@@ -23,6 +25,7 @@ function GrimoireRecordCard({ material, onEdit, onDelete }) {
         )}
       </div>
       <div className="grimoireCardActions">
+        {canAddToFeed && <button className="grimoireActionBtn" type="button" onClick={() => onAddToFeed(material)}>Добавить в ленту</button>}
         <button className="grimoireActionBtn" type="button" onClick={() => onEdit(material)}>Редактировать</button>
         <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material)}>Удалить</button>
       </div>
@@ -81,7 +84,9 @@ export default function ProfileLiteMaterialsModule({
   materialFile,
   materials,
   materialsError,
+  materialsFeedMessage,
   materialsStatus,
+  onAddToFeed = () => {},
   onDelete,
   onMultiUpload,
   onUpdate,
@@ -196,6 +201,7 @@ export default function ProfileLiteMaterialsModule({
             <span className="cabinetStatus">{materialsStatus === "loading" ? "..." : filteredMaterials.length}</span>
           </div>
           {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
+          {materialsFeedMessage && <div className="cabinetNotice">{materialsFeedMessage}</div>}
           {materialsStatus === "loading" && <p>Загружаю гримуар...</p>}
           {materialsStatus !== "loading" && filteredMaterials.length === 0 && (
             <div className="mandalaEmptyState grimoireEmptyState">
@@ -210,6 +216,7 @@ export default function ProfileLiteMaterialsModule({
                 <GrimoireRecordCard
                   key={material.id || `${material.title}-${material.updated_at}`}
                   material={material}
+                  onAddToFeed={onAddToFeed}
                   onEdit={setEditingMaterial}
                   onDelete={handleDelete}
                 />

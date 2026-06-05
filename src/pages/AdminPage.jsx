@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
+  ACTIVITY_TYPES,
+  activityTypeLabel,
+  buildSafeActivityEventPayload,
+  createOwnActivityEvent,
+  listPendingActivityEvents,
+  updateActivityEventStatus
+} from "../lib/profileActivityFeedClient.js";
+import {
   clearStoredSession,
   getCurrentUser,
   getStoredSession,
@@ -11,11 +19,34 @@ import {
   updateProfileStatus
 } from "../lib/supabaseClient.js";
 
+const EMPTY_TEST_EVENT = {
+  activity_type: "master_update",
+  title: "",
+  body: "",
+  category: "",
+  tags: "",
+  image_url: ""
+};
+
+function preview(value, max = 160) {
+  const text = String(value || "").trim();
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function formatAdminDate(value) {
+  if (!value) return "Дата уточняется";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Дата уточняется";
+  return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
 export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
   const [user, setUser] = useState(null);
   const [profiles, setProfiles] = useState([]);
+  const [pendingEvents, setPendingEvents] = useState([]);
+  const [testEventForm, setTestEventForm] = useState(EMPTY_TEST_EVENT);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -52,10 +83,14 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           return;
         }
 
-        const rows = await listPendingProfiles(session);
+        const [profileRows, eventRows] = await Promise.all([
+          listPendingProfiles(session),
+          listPendingActivityEvents(session)
+        ]);
         if (!cancelled) {
           setUser(currentUser);
-          setProfiles(rows || []);
+          setProfiles(profileRows || []);
+          setPendingEvents(eventRows || []);
         }
       } catch (err) {
         if (!cancelled) setError(err.message || "Не удалось загрузить модерацию.");
@@ -94,6 +129,43 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
       setProfiles((rows) => rows.filter((row) => row.id !== profileId));
     } catch (err) {
       setError(err.message || "Не удалось обновить статус.");
+    }
+  };
+
+  const moderateEvent = async (eventId, status) => {
+    setError("");
+    setMessage("");
+
+    try {
+      await updateActivityEventStatus(eventId, status, session);
+      setPendingEvents((rows) => rows.filter((row) => row.id !== eventId));
+      setMessage(status === "approved" ? "Событие опубликовано в ленте." : "Событие отклонено.");
+    } catch (err) {
+      setError(err.message || "Не удалось обновить событие ленты.");
+    }
+  };
+
+  const updateTestEventField = (field, value) => {
+    setTestEventForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const createTestEvent = async (event) => {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+
+    try {
+      const payload = buildSafeActivityEventPayload({
+        ...testEventForm,
+        status: "pending",
+        visibility: "public_feed"
+      });
+      const created = await createOwnActivityEvent(payload, session);
+      if (created) setPendingEvents((rows) => [created, ...rows.filter((row) => row.id !== created.id)]);
+      setTestEventForm(EMPTY_TEST_EVENT);
+      setMessage("Тестовое событие создано и ждёт модерации.");
+    } catch (err) {
+      setError(err.message || "Не удалось создать тестовое событие.");
     }
   };
 
@@ -153,7 +225,6 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           <div className="cabinetNotice">
             <b>Нет профилей на модерации.</b>
             <p>Новые заявки появятся здесь после отправки из кабинета мастера.</p>
-            <button className="cabinetGhost" type="button" onClick={logout}>Выйти</button>
           </div>
         )}
 
@@ -177,6 +248,95 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
               </article>
             ))}
           </div>
+        )}
+
+        {!loading && user && isAdminUser(user) && (
+          <section className="cabinetCard adminTestEventCard" aria-label="Тестовое событие ленты">
+            <div className="cabinetFormHeader">
+              <div>
+                <p className="cabinetEyebrow">только администратор</p>
+                <h2>Тестовое событие ленты</h2>
+              </div>
+              <span className="cabinetStatus">pending</span>
+            </div>
+            <form onSubmit={createTestEvent}>
+              <div className="cabinetTwoColumns">
+                <label>
+                  Тип события
+                  <select value={testEventForm.activity_type} onChange={(event) => updateTestEventField("activity_type", event.target.value)}>
+                    {ACTIVITY_TYPES.map((type) => (
+                      <option key={type} value={type}>{activityTypeLabel(type)}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Категория
+                  <input value={testEventForm.category} onChange={(event) => updateTestEventField("category", event.target.value)} placeholder="news / mandalas / services" />
+                </label>
+              </div>
+              <label>
+                Название
+                <input value={testEventForm.title} onChange={(event) => updateTestEventField("title", event.target.value)} required placeholder="Публичное название" />
+              </label>
+              <label>
+                Описание
+                <textarea value={testEventForm.body} onChange={(event) => updateTestEventField("body", event.target.value)} rows={3} placeholder="Публичное описание без приватных данных" />
+              </label>
+              <div className="cabinetTwoColumns">
+                <label>
+                  Теги
+                  <input value={testEventForm.tags} onChange={(event) => updateTestEventField("tags", event.target.value)} placeholder="рэйки, мандала" />
+                </label>
+                <label>
+                  Public-safe image URL
+                  <input value={testEventForm.image_url} onChange={(event) => updateTestEventField("image_url", event.target.value)} placeholder="https://..." />
+                </label>
+              </div>
+              <button className="cabinetPrimary" type="submit">Создать pending событие</button>
+            </form>
+          </section>
+        )}
+
+        {!loading && user && isAdminUser(user) && (
+          <section className="moderationList adminActivityModeration" aria-label="Публикации и события на модерации">
+            <div className="cabinetFormHeader">
+              <div>
+                <p className="cabinetEyebrow">лента сообщества</p>
+                <h2>Публикации и события на модерации</h2>
+              </div>
+              <span className="cabinetStatus">{pendingEvents.length}</span>
+            </div>
+            {pendingEvents.length === 0 && (
+              <div className="cabinetNotice">
+                <b>Нет событий на модерации.</b>
+                <p>Pending-события появятся после отправки из гримуара, услуг, места силы или тестовой формы.</p>
+              </div>
+            )}
+            {pendingEvents.map((activityEvent) => (
+              <article className="cabinetCard moderationCard adminActivityCard" key={activityEvent.id}>
+                <div className="cabinetFormHeader">
+                  <div>
+                    <p className="cabinetEyebrow">{activityTypeLabel(activityEvent.activityType)}</p>
+                    <h3>{activityEvent.title || activityTypeLabel(activityEvent.activityType)}</h3>
+                  </div>
+                  <span className="cabinetStatus status-pending">pending</span>
+                </div>
+                <p>{preview(activityEvent.body) || "Описание не заполнено."}</p>
+                <div className="adminActivityMeta">
+                  <span>{activityEvent.category || "без категории"}</span>
+                  {activityEvent.tags.map((tag) => <span key={tag}>#{tag}</span>)}
+                  <span>{activityEvent.targetTable || "без target_table"}</span>
+                  <span>{activityEvent.targetId || "без target_id"}</span>
+                  <span>{formatAdminDate(activityEvent.eventAt)}</span>
+                </div>
+                <div className="cabinetActions">
+                  <button className="cabinetPrimary" type="button" onClick={() => moderateEvent(activityEvent.id, "approved")}>Одобрить</button>
+                  <button className="cabinetSecondary" type="button" onClick={() => moderateEvent(activityEvent.id, "rejected")}>Отклонить</button>
+                </div>
+              </article>
+            ))}
+            <button className="cabinetGhost" type="button" onClick={logout}>Выйти</button>
+          </section>
         )}
       </main>
     </div>
