@@ -23,7 +23,9 @@ export default function ProfileLiteServicesModule({
 }) {
   const groupedServices = groupServicesByStatus(services);
   const selectedServiceId = serviceForm?.id || "";
+  const selectedCompositionId = serviceForm?.composition_id || "";
   const isSaving = serviceActionStatus === "loading";
+  const canPublish = Boolean(selectedServiceId && selectedCompositionId);
   const serviceGroups = [
     ["draft", "Черновики"],
     ["published", "Опубликованные"],
@@ -157,10 +159,11 @@ export default function ProfileLiteServicesModule({
               <button className="cabinetPrimary" disabled={isSaving} type="submit">
                 {isSaving ? "Сохраняем..." : "Сохранить черновик"}
               </button>
-              <button className="cabinetSecondary" disabled={isSaving} type="button" onClick={onPublish}>Опубликовать</button>
+              <button className="cabinetSecondary" disabled={isSaving || !canPublish} type="button" onClick={onPublish}>Опубликовать</button>
               <button className="cabinetSecondary" disabled={isSaving || !selectedServiceId} type="button" onClick={() => onStatusChange("draft")}>Вернуть в черновик</button>
               <button className="cabinetSecondary" disabled={isSaving || !selectedServiceId} type="button" onClick={() => onStatusChange("archived")}>Архивировать</button>
             </div>
+            {!canPublish && <p className="cabinetMuted">Сначала выберите услугу с привязанной мандалой. Публикация без шаблона отключена.</p>}
             <p className="cabinetMuted">Активная кнопка copy link появится только после реализации рабочего маршрута /services/:serviceId.</p>
           </form>
         </div>
