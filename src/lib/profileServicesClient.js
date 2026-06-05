@@ -255,6 +255,9 @@ export async function updateOwnService(serviceId, service, session = getStoredSe
 export async function publishOwnService(serviceOrId, service = null, session = getStoredSession()) {
   const id = typeof serviceOrId === "string" ? serviceOrId : serviceOrId?.id;
   const payload = typeof serviceOrId === "string" ? service || {} : serviceOrId || {};
+  if (!id && !text(payload.composition_id)) {
+    throw makeError("Сначала перенесите сохранённую мандалу в услуги. Публикация без шаблона отключена.");
+  }
   return id ? updateOwnService(id, { ...payload, status: "published" }, session) : createOwnService({ ...payload, status: "published" }, session);
 }
 
@@ -300,7 +303,7 @@ export async function listOwnServiceOrders(profileId, session = getStoredSession
 }
 
 export async function updateServiceOrder(orderId, order, session = getStoredSession()) {
-  if (!orderId) throw makeError("Missing order id.");
+  if (!orderId) throw makeError("Missing service id.");
   const body = {
     master_comment: text(order?.master_comment),
     result_image_url: text(order?.result_image_url),
