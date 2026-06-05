@@ -762,6 +762,34 @@ export default function ProfileLitePowerPlaceModule({
     setPickerMode(mode);
   };
 
+  const openCoverPickerForLayer = (layer) => {
+    setCoverLayerMode(layer);
+    openPicker("cover");
+  };
+
+  const renderCoverDropZone = (layer, cover) => {
+    const slotKey = layer === "outer" ? "cover_ref.outer" : "cover_ref.inner";
+    const label = layer === "outer" ? "Фон снаружи" : "Фон внутри";
+    const displaySrc = coverDisplaySrc(cover);
+    const hasImage = cover?.type === "image" && isImagePreview(displaySrc);
+
+    return (
+      <button
+        type="button"
+        className={`coverDropZone coverDropZone-${layer}${hasImage ? " hasImage" : ""}${coverLayerMode === layer ? " active" : ""}${dragOverSlotId === slotKey ? " power-place-slot--drag-over" : ""}`}
+        onClick={() => openCoverPickerForLayer(layer)}
+        style={hasImage ? imageStyle(displaySrc) : undefined}
+        aria-label={`${label}: выбрать или перетащить фото`}
+        {...getPowerPlaceSlotDropHandlers(slotKey)}
+      >
+        <span className="coverDropZoneLabel">{label}</span>
+        <span className="coverDropZoneHint">
+          {hasImage ? cover?.label || "Фото выбрано" : "Перетащите фото сюда или нажмите, чтобы выбрать"}
+        </span>
+      </button>
+    );
+  };
+
   const hideCoverShortcut = (cover, event) => {
     event.stopPropagation();
     const shortcutId = cover?.shortcutId || cover?.id;
@@ -1434,20 +1462,11 @@ export default function ProfileLitePowerPlaceModule({
                 <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
               </div>
-              <div className="coverPreviewWrap">
-                <button
-                  type="button"
-                  className={`coverPreview ${visibleCover?.type === "image" ? "hasImage" : `tone-${visibleCover?.tone || "none"}`}${dragOverSlotId === coverLayerSaveTarget ? " power-place-slot--drag-over" : ""}`}
-                  onClick={() => {
-                    if (!visibleCover?.src) openPicker("cover");
-                  }}
-                  style={visibleCover?.type === "image" ? imageStyle(coverDisplaySrc(visibleCover)) : undefined}
-                  aria-label={visibleCover?.src ? visibleCover.label || "Фон" : "Выбрать фото для пустого фона"}
-                  {...getPowerPlaceSlotDropHandlers(coverLayerSaveTarget)}
-                >
-                  <span>{visibleCover?.label || "Без фона"}</span>
-                </button>
+              <div className="coverDropZoneGrid" aria-label="Зоны фона места силы">
+                {renderCoverDropZone("inner", innerCover)}
+                {renderCoverDropZone("outer", outerCover)}
               </div>
+              <p className="coverLayerHint">Варианты ниже применяются к выбранному слою</p>
               <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона" data-cover-layer-target={coverLayerSaveTarget}>
                 {coverOptions.map((cover) => cover.shortcutId ? (
                   <span className="coverVariantShortcut" key={cover.id}>

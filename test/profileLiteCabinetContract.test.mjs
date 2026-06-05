@@ -240,8 +240,20 @@ assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid
 assert.match(powerPlaceSource, /onDragStart=\{\(event\) => handleSavedImageDragStart\(event, item\)\}/, "Saved source cards should write the compact payload on drag start");
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("__center_image"\)/, "Center slot should accept dropped saved images through the shared assignment path");
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\(slot\.id\)/, "Layout image slots should accept dropped saved images through the shared assignment path");
+assert.match(powerPlaceBaseSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\);[\s\S]*openPicker\("cover"\);[\s\S]*\};/, "Cover drop-zone clicks should select the layer and open the cover picker");
+assert.match(powerPlaceBaseSource, /const renderCoverDropZone = \(layer, cover\) => \{[\s\S]*const slotKey = layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner";[\s\S]*onClick=\{\(\) => openCoverPickerForLayer\(layer\)\}[\s\S]*getPowerPlaceSlotDropHandlers\(slotKey\)/, "Explicit cover drop zones should reuse shared slot drop handlers");
+assert.match(powerPlaceBaseSource, /dragOverSlotId === slotKey \? " power-place-slot--drag-over" : ""/, "Explicit cover drop zones should reuse the shared drag-over class");
+assert.match(powerPlaceBaseSource, /renderCoverDropZone\("inner", innerCover\)[\s\S]*renderCoverDropZone\("outer", outerCover\)/, "Cover selector should render inner and outer cover drop zones at the same time");
+assert.match(powerPlaceBaseSource, /const label = layer === "outer" \? "Фон снаружи" : "Фон внутри"/, "Explicit cover drop-zone helper should include both RU layer labels");
+assert.match(powerPlaceBaseSource, /coverDropZoneGrid[\s\S]*renderCoverDropZone\("inner", innerCover\)[\s\S]*renderCoverDropZone\("outer", outerCover\)/, "Explicit cover drop-zone area should show both cover layers at the same time");
+assert.match(powerPlaceBaseSource, /const slotKey = layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner"/, "Explicit cover drop zones should wire both cover_ref.inner and cover_ref.outer targets");
 assert.match(powerPlaceSource, /onChange=\{\(event\) => selectedSlot && assignPowerPlaceSlotImage\(selectedSlot\.id, event\.target\.value, event\.target\.value\)\}/, "Object dropdown should reuse the same slot assignment helper as drops");
 assert.match(profileMandalaCss, /\.power-place-slot--drag-over/, "Power Place drop targets should have a subtle drag-over state");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZoneGrid/, "Profile Lite CSS should style the explicit cover drop-zone grid");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZone\b/, "Profile Lite CSS should style explicit cover drop zones");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZone\.hasImage/, "Profile Lite CSS should style image-backed cover drop zones");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZoneLabel/, "Profile Lite CSS should style cover drop-zone labels");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropZoneHint/, "Profile Lite CSS should style cover drop-zone hints");
 assert.match(profileLitePageSource, /PROFILE_LITE_REPORT_REF_KEY[\s\S]*object_refs[\s\S]*normalizeProfileLiteReport/, "Profile Lite page should save report payload into object_refs");
 assert.match(profileLitePageSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite drafts should default to Без отчёта in the page state");
 assert.match(powerPlaceBaseSource, /const EMPTY_PROFILE_LITE_REPORT = \{[\s\S]*mode: "without_report"/, "new Profile Lite report UI drafts should default to Без отчёта");
@@ -311,7 +323,7 @@ assert.match(powerPlaceSource, /\.slice\(0,\s*6\)/, "cover picker should show 6 
 assert.match(powerPlaceSource, /coverShortcutHideButton/, "saved cover shortcuts should expose a local hide badge");
 assert.doesNotMatch(powerPlaceSource, /className="coverUploadButton"[\s\S]*Своё изображение/, "cover module should not show the old direct custom image upload button");
 assert.match(powerPlaceSource, /if \(visibleCount === 8\) return signSlots/, "Zodiac 8+ should render only the 8 round zodiac slots");
-assert.match(powerPlaceSource, /className={`coverPreview[\s\S]*onClick=\{\(\) => \{[\s\S]*openPicker\("cover"\)/, "empty cover preview should open the React image picker");
+assert.match(powerPlaceSource, /className={`coverDropZone[\s\S]*onClick=\{\(\) => openCoverPickerForLayer\(layer\)\}/, "explicit cover drop zones should open the React image picker for their own layer");
 assert.doesNotMatch(powerPlaceSource, /zodiac-plus-\$\{compositionDraft\.zodiac_visible_count \|\| 12\}[\s\S]*visibleCount === 8[\s\S]*ZODIAC_PLUS_SLOT_LAYOUT\[8\]/, "Zodiac 8+ must not append the old four plus slots");
 
 assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwnMaterial/, "image picker material uploads should use the existing material publication save flow");

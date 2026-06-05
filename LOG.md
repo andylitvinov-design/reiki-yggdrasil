@@ -1,5 +1,50 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-05 — Add explicit Profile Lite inner/outer cover drop zones
+
+- Branch: `feature/profile-lite-explicit-cover-drop-zones`.
+- Base: fresh `origin/main` at `1c31fc2` (`Add Profile Lite Power Place drag and drop slot assignment`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `openCoverPickerForLayer(layer)`;
+  - added `renderCoverDropZone(layer, cover)`;
+  - replaced the single active cover preview with two visible zones for `Фон внутри` and `Фон снаружи`;
+  - wired the zones to `getPowerPlaceSlotDropHandlers("cover_ref.inner")` and `getPowerPlaceSlotDropHandlers("cover_ref.outer")` through the existing shared helper path;
+  - kept cover variant buttons and saved cover shortcuts on the active `coverLayerMode`;
+  - added scoped `.profileLitePowerPlace` cover drop-zone CSS and mobile stacking;
+  - expanded the Profile Lite contract test for explicit cover zones, shared DnD MIME type, shared assignment helper, object dropdown fallback, and scoped CSS.
+- Checks run:
+  - `npm install`
+  - `git diff --check`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-bootstrap`
+  - `npm run build`
+  - `npm run check`
+- Check notes:
+  - all commands exited `0`;
+  - retained warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large chunk warning;
+  - `npm install` rewrote local lock metadata, but no dependencies changed, so `package-lock.json` was restored and left unmodified.
+- Local browser QA:
+  - URL: `http://localhost:4342/profile/mandalas`;
+  - fake public Supabase env/session and a local mock REST server at `http://127.0.0.1:4343`;
+  - desktop 1280x920: `Фон внутри` and `Фон снаружи` rendered as two visible side-by-side zones, each click selected the matching tab and opened the cover picker, source cards and object dropdown remained present, horizontal overflow `0`, console warnings/errors `0`;
+  - synthetic desktop drops with `application/x-reiki-power-place-source` updated inner and outer zones independently through the existing drop path;
+  - mobile 390x900: zones stacked vertically, picker fallback opened, object dropdown/source cards remained present, horizontal overflow `0`, console warnings/errors `0`.
+- Not verified:
+  - real authenticated Supabase save/update/reload hydration;
+  - real human drag gestures;
+  - Vercel preview, production/legacy live QA, and Google OAuth.
+- Risks:
+  - mocked QA proves UI wiring and the shared drop path, but production Storage signing and persisted `cover_ref.inner` / `cover_ref.outer` hydration still need authenticated live confirmation.
+
 ## 2026-06-05 — Document draft/clean release workflow
 
 - Branch: `main`.

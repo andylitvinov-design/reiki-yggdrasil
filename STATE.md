@@ -12,6 +12,34 @@ Last updated: 2026-06-05
 - output directory: `dist`
 - framework: `vite`
 
+## 2026-06-05 — Profile Lite explicit inner/outer cover drop zones
+
+- Branch: `feature/profile-lite-explicit-cover-drop-zones`, based on fresh `origin/main` at `1c31fc2`.
+- Scope: Profile Lite Power Place React/CSS/contract/docs only; Supabase schema/env values, Vercel rewrites, route structure, Google OAuth, public home page, save/update persistence schema, package dependencies, and existing center/object drag/drop architecture were not changed.
+- Changed:
+  - replaced the single active cover preview in `Фон Места Силы` with two always-visible drop zones: `Фон внутри` and `Фон снаружи`;
+  - each cover zone is clickable and opens the existing cover picker after selecting its layer;
+  - each cover zone uses the existing `getPowerPlaceSlotDropHandlers(...)` path with `cover_ref.inner` or `cover_ref.outer`;
+  - existing cover variants and saved cover shortcuts still apply to the active `coverLayerMode`;
+  - added compact scoped CSS for desktop two-column zones and mobile stacked zones;
+  - expanded Profile Lite contract tests for the explicit cover zones, shared assignment helper, MIME type, and scoped CSS.
+- Verification:
+  - `npm install`, `git diff --check`, `node test/profileLiteCabinetContract.test.mjs`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-bootstrap`, `npm run build`, and `npm run check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4342/profile/mandalas`;
+  - mock Supabase server: `http://127.0.0.1:4343`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop 1280x920: two zones rendered side by side, labels/hints were visible, helper text showed that variants apply to the selected layer, clicking `Фон внутри` / `Фон снаружи` activated the matching tab and opened the cover picker, source cards and object dropdown remained present, horizontal overflow was `0`, and console warnings/errors were `0`;
+  - synthetic desktop drops using `application/x-reiki-power-place-source` marked inner and outer cover zones independently as image-backed through the existing drop path;
+  - mobile 390x900: zones stacked vertically, picker fallback opened on tap, object dropdown/source cards remained present, horizontal overflow was `0`, and console warnings/errors were `0`.
+- Not verified:
+  - real authenticated Supabase save/update/reload hydration against production data;
+  - real drag gestures in a human browser session;
+  - Vercel preview, merge/deploy, production/legacy live rendering, and Google OAuth.
+- Risks:
+  - the QA used mocked Supabase data, so durable `cover_ref.inner` / `cover_ref.outer` save-reload behavior still needs live authenticated confirmation.
+
 ## 2026-06-05 — Power Place window-size slider restore
 
 - Branch: `fix/power-place-window-size-slider`, based on fresh `origin/main` at `8062178`.
