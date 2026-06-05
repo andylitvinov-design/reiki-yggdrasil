@@ -807,6 +807,33 @@ export default function ProfileLitePowerPlaceModule({
     setPickerMode(mode);
   };
 
+  const openCoverPickerForLayer = (layer) => {
+    setCoverLayerMode(layer);
+    openPicker("cover");
+  };
+
+  const renderCoverDropIcon = (layer) => {
+    const slotKey = layer === "outer" ? "cover_ref.outer" : "cover_ref.inner";
+    const active = coverLayerMode === layer;
+    const label = layer === "outer" ? "Фон снаружи" : "Фон внутри";
+    const icon = layer === "outer" ? "▣" : "◎";
+
+    return (
+      <button
+        className={`coverDropIconButton${active ? " active" : ""}${dragOverSlotId === slotKey ? " power-place-slot--drag-over" : ""}`}
+        key={slotKey}
+        type="button"
+        onClick={() => openCoverPickerForLayer(layer)}
+        aria-label={`${label}. Перетащите фото на слой`}
+        title={`${label}. Перетащите фото на слой`}
+        {...getPowerPlaceSlotDropHandlers(slotKey)}
+      >
+        <span aria-hidden="true">{icon}</span>
+        <b>{label}</b>
+      </button>
+    );
+  };
+
   const hideCoverShortcut = (cover, event) => {
     event.stopPropagation();
     const shortcutId = cover?.shortcutId || cover?.id;
@@ -1542,6 +1569,10 @@ export default function ProfileLitePowerPlaceModule({
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
                 <button className={coverLayerMode === "inner" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("inner")}>Фон внутри</button>
                 <button className={coverLayerMode === "outer" ? "active" : ""} type="button" onClick={() => setCoverLayerMode("outer")}>Фон снаружи</button>
+              </div>
+              <div className="coverDropIconRow" aria-label="Перетащите фото на слой">
+                {renderCoverDropIcon("inner")}
+                {renderCoverDropIcon("outer")}
               </div>
               <div className="coverPreviewWrap">
                 <button

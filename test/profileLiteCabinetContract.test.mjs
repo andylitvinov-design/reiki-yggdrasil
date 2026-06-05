@@ -242,14 +242,25 @@ assert.match(powerPlaceSource, /function buildPowerPlaceDragPayload\(/, "Power P
 assert.match(powerPlaceSource, /function parsePowerPlaceDragPayload\(/, "Power Place drops should parse drag payloads defensively");
 assert.match(powerPlaceSource, /const assignPowerPlaceSlotImage = \(/, "Power Place slot assignment should be shared by dropdowns, picker, and drops");
 assert.match(powerPlaceSource, /const getPowerPlaceSlotDropHandlers = \(/, "Power Place slots should expose shared drop target handlers");
+assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "cover layer drop icons should open the existing cover picker after selecting the layer");
+assert.match(powerPlaceSource, /const renderCoverDropIcon = \(layer\) => \{[\s\S]*const slotKey = layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner"/, "cover layer drop icons should map layers to explicit cover_ref slot keys");
+assert.match(powerPlaceSource, /renderCoverDropIcon\("inner"\)[\s\S]*renderCoverDropIcon\("outer"\)/, "cover module should render explicit inner and outer drop icons together");
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\(slotKey\)/, "cover layer drop icons should reuse the shared Power Place drop handlers");
+assert.match(powerPlaceSource, /className=\{`coverDropIconButton[\s\S]*power-place-slot--drag-over/, "cover layer drop icons should expose the shared drag-over state");
 assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid saved source cards should be draggable");
 assert.match(powerPlaceSource, /onDragStart=\{\(event\) => handleSavedImageDragStart\(event, item\)\}/, "Saved source cards should write the compact payload on drag start");
 assert.match(powerPlaceSource, /const buildCompositionDragItem = \(composition, previewSrc = ""\) => \{[\s\S]*kind: "saved-mandala"[\s\S]*displaySrc: previewSrc/, "saved mandala cards should create a compatible drag item from their preview image");
 assert.match(powerPlaceSource, /profileLiteCompositionCard profileLiteCompositionCard--horizontal[\s\S]*draggable=\{Boolean\(compositionDragItem\?\.src\)\}[\s\S]*handleSavedImageDragStart\(event, compositionDragItem\)/, "saved mandala cards should be draggable when they have a usable image ref");
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("__center_image"\)/, "Center slot should accept dropped saved images through the shared assignment path");
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\(slot\.id\)/, "Layout image slots should accept dropped saved images through the shared assignment path");
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)|slotKey = "cover_ref\.inner"|layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner"/, "inner cover drop icon should target cover_ref.inner through shared handlers");
+assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)|slotKey = "cover_ref\.outer"|layer === "outer" \? "cover_ref\.outer" : "cover_ref\.inner"/, "outer cover drop icon should target cover_ref.outer through shared handlers");
 assert.match(powerPlaceSource, /onChange=\{\(event\) => selectedSlot && assignPowerPlaceSlotImage\(selectedSlot\.id, event\.target\.value, event\.target\.value\)\}/, "Object dropdown should reuse the same slot assignment helper as drops");
 assert.match(profileMandalaCss, /\.power-place-slot--drag-over/, "Power Place drop targets should have a subtle drag-over state");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropIconRow/, "cover drop icons should use scoped row CSS");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropIconButton/, "cover drop icons should use scoped button CSS");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropIconButton\.active/, "active cover drop icon should have scoped active styling");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverDropIconButton\.power-place-slot--drag-over/, "cover drop icon drag-over styling should be scoped");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four Power Place sliders should share the desktop grid contract");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl button,[\s\S]*\.profileLitePowerPlace \.photoScaleControl button \{[\s\S]*width: 28px;[\s\S]*height: 28px;[\s\S]*display: grid;[\s\S]*place-items: center;/, "all four Power Place slider buttons should share compact square sizing");
 assert.match(profileMandalaCss, /@media \(max-width: 640px\) \{[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) 28px minmax\(110px, 1fr\) 28px;/, "all four Power Place sliders should keep a no-overlap mobile grid");
@@ -336,6 +347,8 @@ assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwn
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
+assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__center_image_offset_x|__inner_cover_offset_x|__outer_cover_offset_x|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon UI must not reintroduce pointer repositioning or offset persistence in the edited base module");
+assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon PR must not reintroduce pointer repositioning handlers");
 
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
