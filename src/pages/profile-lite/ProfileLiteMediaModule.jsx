@@ -1,10 +1,16 @@
 import React, { useMemo, useState } from "react";
-import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../../data/reikiStepSettings.js";
 
 const MATERIAL_GROUPS = [
   { value: "", label: "Все группы" },
+  { value: "dao-ri", label: "ДАО РИ" },
+  { value: "god-channels", label: "Мистерии" },
+  { value: "channels", label: "Каналы" },
+  { value: "form", label: "Форма" }
+];
+
+const MATERIAL_GROUPS_UPLOAD = [
   { value: "dao-ri", label: "ДАО РИ" },
   { value: "god-channels", label: "Мистерии" },
   { value: "channels", label: "Каналы" },
@@ -27,6 +33,8 @@ const materialStepOptions = reikiLevels.flatMap((level) =>
   }))
 );
 
+const firstMaterialStep = materialStepOptions[0] || null;
+
 export default function ProfileLiteMediaModule({
   clientGoalPhotos,
   mediaError,
@@ -47,13 +55,21 @@ export default function ProfileLiteMediaModule({
   const [filterStepId, setFilterStepId] = useState("");
   const [filterSettingTitle, setFilterSettingTitle] = useState("");
 
+  const [uploadDestination, setUploadDestination] = useState("clients");
+  const [materialGroup, setMaterialGroup] = useState("dao-ri");
+  const [materialType, setMaterialType] = useState("mandala");
+  const [materialStepId, setMaterialStepId] = useState(firstMaterialStep?.id || "");
+  const activeMaterialStep = materialStepOptions.find((s) => s.id === materialStepId) || firstMaterialStep;
+  const [materialSettingTitle, setMaterialSettingTitle] = useState(
+    activeMaterialStep?.settings?.[0]?.title || ""
+  );
+
   const activeFilterStep = useMemo(
     () => materialStepOptions.find((s) => s.id === filterStepId) || null,
     [filterStepId]
   );
   const filterSettings = activeFilterStep?.settings || [];
 
-  // UI-only filter: photos without metadata are never hidden aggressively
   const filteredPhotos = useMemo(() => {
     if (!filterGroup && !filterStepId && !filterSettingTitle) return clientGoalPhotos;
     return clientGoalPhotos.filter((photo) => {
@@ -66,6 +82,8 @@ export default function ProfileLiteMediaModule({
 
   const formError = mediaStatus === "needs-verification" ? mediaError : "";
 
+  const totalCount = clientGoalPhotos.length + traditionAssets.length;
+
   return (
     <section className="profileLiteModule profileLiteMediaModule mandalaWorkspace" aria-label="Фото / Медиа">
       <div className="mandalaHero">
@@ -73,11 +91,10 @@ export default function ProfileLiteMediaModule({
         <div>
           <p className="cabinetEyebrow">Фото / Медиа</p>
           <h2>Медиа мастерской</h2>
-          <p>Загружайте фото клиентов, цели и образы традиций для мандал, алтаря и материалов.</p>
+          <p>Загружайте фото клиентов и образы материалов для мандал, алтаря и материалов.</p>
         </div>
         <div className="mandalaHeroStats">
-          <span><b>{clientGoalPhotos.length}</b> Фото</span>
-          <span><b>{traditionAssets.length}</b> Традиции</span>
+          <span><b>{totalCount}</b> Фото</span>
         </div>
       </div>
       {shellChrome}
@@ -138,7 +155,7 @@ export default function ProfileLiteMediaModule({
             <div className="cabinetFormHeader">
               <div>
                 <p className="cabinetEyebrow">Фото / Медиа</p>
-                <h2>Фото клиентов и цели</h2>
+                <h2>Фото клиентов и материалов</h2>
               </div>
               <span className="cabinetStatus">{mediaStatus}</span>
             </div>
@@ -172,17 +189,36 @@ export default function ProfileLiteMediaModule({
           </div>
         </div>
 
-        {/* Right column: upload form, always open */}
+        {/* Right column: single upload card */}
         <div className="profileLiteMediaUploadPanel">
-          <form
-            className="cabinetCard"
-            onSubmit={(event) => {
-              event.preventDefault();
-              onClientPhotoSave();
-            }}
-          >
+          <div className="cabinetCard profileLiteMediaUploadCard">
             <p className="cabinetEyebrow">Загрузить фото</p>
-            <h2>Фото клиента / цели</h2>
+
+            <div
+              className="profileLiteMediaDestinationTabs"
+              role="tablist"
+              aria-label="Назначение загрузки"
+            >
+              <button
+                className={uploadDestination === "clients" ? "active" : ""}
+                type="button"
+                role="tab"
+                aria-selected={uploadDestination === "clients"}
+                onClick={() => setUploadDestination("clients")}
+              >
+                Клиенты
+              </button>
+              <button
+                className={uploadDestination === "materials" ? "active" : ""}
+                type="button"
+                role="tab"
+                aria-selected={uploadDestination === "materials"}
+                onClick={() => setUploadDestination("materials")}
+              >
+                Материалы
+              </button>
+            </div>
+
             {formError && (
               <div
                 className="cabinetNotice cabinetSecondaryDataWarning profileLiteMediaFormError"
@@ -191,112 +227,142 @@ export default function ProfileLiteMediaModule({
                 {formError}
               </div>
             )}
-            <label>
-              Название
-              <input
-                value={clientPhotoForm.title}
-                onChange={(event) => onClientPhotoFieldChange("title", event.target.value)}
-                placeholder="Фото цели"
-              />
-            </label>
-            <label>
-              URL изображения
-              <input
-                value={clientPhotoForm.image_url}
-                onChange={(event) => onClientPhotoFieldChange("image_url", event.target.value)}
-                placeholder="https://..."
-              />
-            </label>
-            <label>
-              Заметка
-              <textarea
-                value={clientPhotoForm.notes}
-                onChange={(event) => onClientPhotoFieldChange("notes", event.target.value)}
-                rows={2}
-              />
-            </label>
-            <label className="profileLiteFileInput">
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                onChange={onClientPhotoFileChange}
-              />
-              {clientPhotoForm.file ? `Выбрано: ${clientPhotoForm.file.name}` : "Загрузить файл"}
-            </label>
-            <p className="profileLiteMediaFormHint">
-              Файл и URL — взаимоисключающие: выберите одно из двух.
-            </p>
-            <button className="cabinetPrimary" type="submit">
-              Сохранить фото
-            </button>
-          </form>
+
+            {uploadDestination === "clients" ? (
+              <form
+                className="profileLiteMediaUploadForm"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onClientPhotoSave();
+                }}
+              >
+                <label>
+                  Название
+                  <input
+                    value={clientPhotoForm.title}
+                    onChange={(event) => onClientPhotoFieldChange("title", event.target.value)}
+                    placeholder="Фото цели"
+                  />
+                </label>
+                <label>
+                  URL изображения
+                  <input
+                    value={clientPhotoForm.image_url}
+                    onChange={(event) => onClientPhotoFieldChange("image_url", event.target.value)}
+                    placeholder="https://..."
+                  />
+                </label>
+                <label>
+                  Заметка
+                  <textarea
+                    value={clientPhotoForm.notes}
+                    onChange={(event) => onClientPhotoFieldChange("notes", event.target.value)}
+                    rows={2}
+                  />
+                </label>
+                <label className="profileLiteFileInput">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={onClientPhotoFileChange}
+                  />
+                  {clientPhotoForm.file ? `Выбрано: ${clientPhotoForm.file.name}` : "Загрузить файл"}
+                </label>
+                <p className="profileLiteMediaFormHint">
+                  Файл и URL — взаимоисключающие: выберите одно из двух.
+                </p>
+                <button className="cabinetPrimary" type="submit">
+                  Сохранить фото
+                </button>
+              </form>
+            ) : (
+              <form
+                className="profileLiteMediaUploadForm"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onTraditionAssetSave();
+                }}
+              >
+                <label>
+                  Группа
+                  <select
+                    value={materialGroup}
+                    onChange={(event) => setMaterialGroup(event.target.value)}
+                  >
+                    {MATERIAL_GROUPS_UPLOAD.map((g) => (
+                      <option key={g.value} value={g.value}>{g.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Тип материала
+                  <select
+                    value={materialType}
+                    onChange={(event) => setMaterialType(event.target.value)}
+                  >
+                    {MATERIAL_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Категория / ступень
+                  <select
+                    value={materialStepId}
+                    onChange={(event) => {
+                      const next = materialStepOptions.find((s) => s.id === event.target.value) || firstMaterialStep;
+                      setMaterialStepId(next?.id || "");
+                      setMaterialSettingTitle(next?.settings?.[0]?.title || "");
+                    }}
+                  >
+                    {materialStepOptions.map((s) => (
+                      <option key={s.id} value={s.id}>{s.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Подкатегория
+                  <select
+                    value={materialSettingTitle}
+                    onChange={(event) => setMaterialSettingTitle(event.target.value)}
+                  >
+                    {(activeMaterialStep?.settings || []).map((s) => (
+                      <option key={s.title} value={s.title}>{s.title}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Название
+                  <input
+                    value={traditionAssetForm.title}
+                    onChange={(event) => onTraditionAssetFieldChange("title", event.target.value)}
+                    placeholder="Образ традиции"
+                  />
+                </label>
+                <label>
+                  URL
+                  <input
+                    value={traditionAssetForm.image_url}
+                    onChange={(event) => onTraditionAssetFieldChange("image_url", event.target.value)}
+                    placeholder="https://..."
+                  />
+                </label>
+                <label className="profileLiteFileInput">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={onTraditionAssetFileChange}
+                  />
+                  {traditionAssetForm.file ? `Выбрано: ${traditionAssetForm.file.name}` : "Загрузить файл"}
+                </label>
+                <button className="cabinetPrimary" type="submit">
+                  Сохранить материал
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
-
-      <form
-        className="cabinetCard"
-        onSubmit={(event) => {
-          event.preventDefault();
-          onTraditionAssetSave();
-        }}
-      >
-        <p className="cabinetEyebrow">Медиа традиций</p>
-        <h2>Образы для алтаря</h2>
-        <label>
-          Традиция
-          <select
-            value={traditionAssetForm.tradition_id}
-            onChange={(event) => onTraditionAssetFieldChange("tradition_id", event.target.value)}
-          >
-            {mysteryTraditions.map((tradition) => (
-              <option key={tradition.id} value={tradition.id}>{tradition.title}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Название
-          <input
-            value={traditionAssetForm.title}
-            onChange={(event) => onTraditionAssetFieldChange("title", event.target.value)}
-            placeholder="Образ традиции"
-          />
-        </label>
-        <label>
-          URL
-          <input
-            value={traditionAssetForm.image_url}
-            onChange={(event) => onTraditionAssetFieldChange("image_url", event.target.value)}
-            placeholder="https://..."
-          />
-        </label>
-        <label className="profileLiteFileInput">
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            onChange={onTraditionAssetFileChange}
-          />
-          {traditionAssetForm.file ? `Выбрано: ${traditionAssetForm.file.name}` : "Загрузить файл"}
-        </label>
-        <button className="cabinetPrimary" type="submit">Сохранить образ</button>
-        <div className="profileLiteMediaGrid">
-          {traditionAssets.map((asset) => (
-            <article className="profileLiteMediaCard" key={asset.id || asset.image_ref || asset.image_url}>
-              <div
-                className="profileLiteMediaThumb"
-                style={
-                  asset.display_url || asset.image_url
-                    ? { backgroundImage: `url(${asset.display_url || asset.image_url})` }
-                    : undefined
-                }
-              >
-                ◎
-              </div>
-              <h3>{asset.title || "Образ традиции"}</h3>
-              <p>{asset.tradition_title || asset.tradition_id}</p>
-            </article>
-          ))}
-        </div>
-      </form>
     </section>
   );
 }
