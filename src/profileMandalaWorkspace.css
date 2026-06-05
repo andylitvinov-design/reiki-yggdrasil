@@ -133,22 +133,23 @@
 
 .profileLiteCompositionItem--card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
   border: 1px solid rgba(184, 121, 29, 0.22);
   border-radius: 16px;
-  padding: 10px;
+  padding: 12px;
   background: rgba(255, 253, 248, 0.76);
   box-shadow: 0 10px 24px rgba(79, 54, 18, 0.08);
 }
 
 .profileLiteCompositionCard--horizontal {
+  flex: 1 1 auto;
   min-width: 0;
   width: 100%;
   display: grid;
-  grid-template-columns: clamp(88px, 14vw, 112px) minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 14px;
   align-items: center;
   border: 0;
   padding: 0;
@@ -158,12 +159,13 @@
 }
 
 .profileLiteCompositionPreview {
-  width: 100%;
-  height: 88px;
+  flex: 0 0 108px;
+  width: 108px;
+  height: 82px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(184, 121, 29, 0.2);
-  border-radius: 12px;
+  border-radius: 16px;
   background:
     repeating-radial-gradient(circle at 50% 48%, rgba(184, 121, 29, 0.18) 0 2px, transparent 3px 12px),
     linear-gradient(135deg, #21170d, #8f5a14 52%, #f0d595);
@@ -237,7 +239,7 @@
 }
 
 .profileLiteServicesItem {
-  grid-template-columns: clamp(88px, 14vw, 112px) minmax(0, 1fr) max-content;
+  grid-template-columns: 108px minmax(0, 1fr) auto;
 }
 
 .mandalaModeSidebar,
@@ -5839,8 +5841,6 @@
   overflow: hidden;
 }
 
-.profileLitePowerPlace .sourceSlotScaleControl,
-
 .profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
   display: grid !important;
   flex: 0 0 28px;
@@ -5851,15 +5851,16 @@
   border-radius: 9px;
 }
 
-.profileLitePowerPlace .chessSizeControl,
+.profileLitePowerPlace .sourceSlotScaleControl,
 .profileLitePowerPlace .innerFieldScaleControl,
 .profileLitePowerPlace .centerFrameScaleControl,
 .profileLitePowerPlace .photoScaleControl {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(170px, 220px) 28px minmax(240px, 1fr) 28px;
-  gap: 6px;
+  grid-template-columns: minmax(140px, 190px) 28px minmax(180px, 1fr) 28px;
   align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .profileLitePowerPlace .sourceSlotScaleControl span,
@@ -5885,7 +5886,11 @@
   width: 28px;
   min-width: 28px;
   height: 28px;
+  min-height: 28px;
   padding: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1;
 }
 
 .profileLitePowerPlace .reportModeToggle,
@@ -6139,16 +6144,16 @@
   .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerFrameScaleControl,
   .profileLitePowerPlace .photoScaleControl {
-    grid-template-columns: minmax(0, 120px) 24px minmax(0, 1fr) 24px;
+    grid-template-columns: minmax(0, 1fr) 28px minmax(110px, 1fr) 28px;
   }
 
   .profileLitePowerPlace .sourceSlotScaleControl button,
   .profileLitePowerPlace .innerFieldScaleControl button,
   .profileLitePowerPlace .centerFrameScaleControl button,
   .profileLitePowerPlace .photoScaleControl button {
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
   }
 
   .profileLitePowerPlace .mandalaModeSidebar {
@@ -6171,6 +6176,50 @@
 
   .profileLitePowerPlace .powerPlacePrintArea .powerMandala {
     width: min(350px, 88vw) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .profileLitePowerPlace .sourceSlotScaleControl,
+  .profileLitePowerPlace .innerFieldScaleControl,
+  .profileLitePowerPlace .centerFrameScaleControl,
+  .profileLitePowerPlace .photoScaleControl {
+    grid-template-columns: minmax(0, 1fr) 28px minmax(110px, 1fr) 28px;
+    gap: 8px;
+  }
+
+  .profileLitePowerPlace .sourceSlotScaleControl button,
+  .profileLitePowerPlace .innerFieldScaleControl button,
+  .profileLitePowerPlace .centerFrameScaleControl button,
+  .profileLitePowerPlace .photoScaleControl button {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .profileLiteCompositionItem--card,
+  .profileLiteServicesItem {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .profileLiteCompositionCard--horizontal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteCompositionPreview {
+    width: 100%;
+    height: 120px;
+  }
+
+  .profileLiteCompositionActions {
+    justify-content: stretch;
+  }
+
+  .profileLiteCompositionActions button,
+  .profileLiteServiceLinkedStatus {
+    width: 100%;
   }
 }
 
@@ -6722,7 +6771,8 @@
   }
 
   .profileLiteCompositionPreview {
-    height: 128px;
+    width: 100%;
+    height: 120px;
   }
 
   .profileLiteCompositionBody b,

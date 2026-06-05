@@ -983,9 +983,31 @@ export default function ProfileLitePowerPlaceModule({
 
   const renderCompositionPreview = (src, label = "Мандала") => (
     <span className={`profileLiteCompositionPreview${src ? " hasImage" : ""}`} style={imageStyle(src)} aria-hidden="true">
-      {!src && <span>{label.slice(0, 1).toUpperCase()}</span>}
+      {!src && <span>М</span>}
     </span>
   );
+
+  const buildCompositionDragItem = (composition, previewSrc = "") => {
+    const refs = cleanObjectRefs(composition?.object_refs);
+    const urls = cleanObjectRefs(composition?.object_ref_urls);
+    const cover = composition?.cover_ref || {};
+    const innerCoverRef = cover.inner?.src || cover.src || "";
+    const outerCoverRef = cover.outer?.src || "";
+    const src = refs.__center_image || innerCoverRef || outerCoverRef || Object.values(refs).find((value) => typeof value === "string" && isImagePreview(urls[value] || value)) || "";
+
+    if (!src) return null;
+
+    return {
+      id: `composition-${composition.id}`,
+      label: composition.title || "Сохранённая мандала",
+      title: composition.title || "Сохранённая мандала",
+      meta: formatLabel(composition.constructor_type),
+      src,
+      kind: "saved-mandala",
+      displaySrc: previewSrc || urls[src] || cover.inner?.display_src || cover.display_src || cover.outer?.display_src || src,
+      compositionId: composition.id
+    };
+  };
 
   const renderMandalasTab = () => (
     <section className="cabinetCard mandalaGallery">
@@ -1000,9 +1022,15 @@ export default function ProfileLitePowerPlaceModule({
         {powerPlaceCompositions.map((composition) => {
           const linkedService = serviceByCompositionId.get(String(composition.id));
           const previewSrc = resolveCompositionPreviewSrc(composition);
+          const compositionDragItem = buildCompositionDragItem(composition, previewSrc);
           return (
             <div className="profileLiteCompositionItem profileLiteCompositionItem--card" key={composition.id}>
-              <button className="profileLiteCompositionCard profileLiteCompositionCard--horizontal" type="button" onClick={() => {
+              <button
+                className="profileLiteCompositionCard profileLiteCompositionCard--horizontal"
+                type="button"
+                draggable={Boolean(compositionDragItem?.src)}
+                onDragStart={(event) => compositionDragItem && handleSavedImageDragStart(event, compositionDragItem)}
+                onClick={() => {
                 onCompositionLoad(composition);
                 setWorkspaceTab("power-place");
               }}>
