@@ -2,18 +2,22 @@ import React, { useState } from "react";
 import { GRIMOIRE_CATEGORIES, materialStatusText, publicationTypeLabel } from "../../lib/profileMaterialsClient.js";
 
 function GrimoireRecordCard({ material, onEdit, onDelete }) {
+  const isUncategorized = !material.type || material.type === "uncategorized";
+  const noteText = material.description || "Комментарий ещё не добавлен";
+
   return (
-    <article className="grimoireRecordCard" key={material.id || material.title}>
+    <article className={`grimoireRecordCard${isUncategorized ? " grimoireRecordCard--uncategorized" : ""}`} key={material.id || material.title}>
       <div className={material.display_url || material.image_url ? "grimoireCardPreview hasImage" : "grimoireCardPreview"} style={material.display_url || material.image_url ? { backgroundImage: `url(${material.display_url || material.image_url})` } : undefined}>
         {!(material.display_url || material.image_url) && <span className="grimoireCardIcon">◎</span>}
       </div>
       <div className="grimoireCardBody">
         <div className="grimoireCardChips">
-          <span className="grimoireChipType">{publicationTypeLabel(material.type)}</span>
+          <span className={`grimoireChipType${isUncategorized ? " grimoireChipType--uncategorized" : ""}`}>{publicationTypeLabel(material.type)}</span>
           <span className={`statusChip status-${material.status || "draft"}`}>{materialStatusText(material.status)}</span>
+          {isUncategorized && <span className="grimoireWorkBadge">Разберите позже</span>}
         </div>
         <h3 className="grimoireCardTitle">{material.title || "Без названия"}</h3>
-        {material.description && <p className="grimoireCardDesc">{material.description}</p>}
+        <p className={`grimoireCardNote${material.description ? "" : " grimoireCardNote--empty"}`}>{noteText}</p>
         {(material.step_id || material.step_title || material.setting_title) && (
           <small className="grimoireCardMeta">{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
         )}
@@ -30,32 +34,43 @@ function GrimoireEditModal({ material, onClose, onSave }) {
   const [form, setForm] = useState({
     title: material.title || "",
     description: material.description || "",
-    type: material.type || "mandala"
+    type: material.type || "uncategorized",
+    step_title: material.step_title || "",
+    setting_title: material.setting_title || ""
   });
 
   return (
     <div className="grimoireEditBackdrop" role="dialog" aria-modal="true" aria-label="Редактировать запись гримуара">
       <div className="grimoireEditModal">
-        <h3>Редактировать запись</h3>
+        <h3>Редактировать запись гримуара</h3>
         <label>
           Название
           <input value={form.title} onChange={(e) => setForm((s) => ({ ...s, title: e.target.value }))} />
         </label>
         <label>
-          Описание / комментарий
+          Комментарий
           <textarea rows={3} value={form.description} onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))} />
         </label>
         <label>
           Категория
           <select value={form.type} onChange={(e) => setForm((s) => ({ ...s, type: e.target.value }))}>
-            {GRIMOIRE_CATEGORIES.filter((c) => c.value !== "all" && c.value !== "uncategorized").map((c) => (
+            {GRIMOIRE_CATEGORIES.filter((c) => c.value !== "all").map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
         </label>
-        <div className="cabinetActions">
+        <label>
+          Ступень
+          <input value={form.step_title} onChange={(e) => setForm((s) => ({ ...s, step_title: e.target.value }))} />
+        </label>
+        <label>
+          Настройка
+          <input value={form.setting_title} onChange={(e) => setForm((s) => ({ ...s, setting_title: e.target.value }))} />
+        </label>
+        <div className="cabinetActions grimoireEditActions">
           <button className="cabinetPrimary" type="button" onClick={() => onSave(material.id, form)}>Сохранить</button>
           <button className="cabinetSecondary" type="button" onClick={onClose}>Отмена</button>
+          <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material).then(onClose)}>Удалить</button>
         </div>
       </div>
     </div>
@@ -74,7 +89,11 @@ export default function ProfileLiteMaterialsModule({
 }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [editingMaterial, setEditingMaterial] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadStatus, setUploadStatus] = useState("");
+
+  const uncategorizedCount = materials.filter((m) => !m.type || m.type === "uncategorized").length;
+  const readyCount = Math.max(materials.length - uncategorizedCount, 0);
 
   const filteredMaterials = materials.filter((m) => {
     if (activeFilter === "all") return true;
@@ -82,13 +101,29 @@ export default function ProfileLiteMaterialsModule({
     return m.type === activeFilter;
   });
 
-  const handleFileInputChange = async (event) => {
+  const setPendingFiles = (files) => {
+    setSelectedFiles(Array.from(files || []));
+    setUploadStatus("");
+  };
+
+  const handleFileInputChange = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
+    setPendingFiles(files);
     event.target.value = "";
-    setUploadStatus(`Загружаю ${files.length} файл(ов)...`);
+  };
+
+  const handleFileDrop = (event) => {
+    event.preventDefault();
+    setPendingFiles(event.dataTransfer?.files || []);
+  };
+
+  const handleUploadSelectedFiles = async () => {
+    if (!selectedFiles.length) return;
+    setUploadStatus(`Загружаю ${selectedFiles.length} файл(ов)...`);
     try {
-      await onMultiUpload(files);
+      await onMultiUpload(selectedFiles);
+      setSelectedFiles([]);
       setUploadStatus("Загружено.");
     } catch (error) {
       setUploadStatus("Ошибка загрузки: " + String(error?.message || error));
@@ -121,12 +156,12 @@ export default function ProfileLiteMaterialsModule({
         <div>
           <p className="cabinetEyebrow">Гримуар</p>
           <h2>Гримуар мастера</h2>
-          <p>Личная библиотека материалов: загружайте файлы, добавляйте описания, назначайте категории.</p>
+          <p>Соберите фото, статьи, практики, аудио и документы. Сначала загрузите всё без структуры, потом разложите по категориям.</p>
         </div>
         <div className="mandalaHeroStats">
-          <span><b>{materials.length}</b> Записи</span>
-          <span><b>{filteredMaterials.length}</b> Показаны</span>
-          <span><b>{materialsStatus}</b> Статус</span>
+          <span><b>{materials.length}</b> Всего записей</span>
+          <span><b>{uncategorizedCount}</b> Без категории</span>
+          <span><b>{readyCount}</b> Готово к работе</span>
         </div>
       </div>
       {shellChrome}
@@ -163,10 +198,10 @@ export default function ProfileLiteMaterialsModule({
           {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
           {materialsStatus === "loading" && <p>Загружаю гримуар...</p>}
           {materialsStatus !== "loading" && filteredMaterials.length === 0 && (
-            <div className="mandalaEmptyState">
+            <div className="mandalaEmptyState grimoireEmptyState">
               <div className="mandalaEmptySeal">✦</div>
-              <b>Записей не найдено</b>
-              <p>Загрузите файлы через панель справа — они появятся здесь.</p>
+              <b>Гримуар пуст</b>
+              <p>Загрузите первые фото, статьи или документы — их можно разобрать позже.</p>
             </div>
           )}
           {filteredMaterials.length > 0 && (
@@ -188,7 +223,7 @@ export default function ProfileLiteMaterialsModule({
             <p className="cabinetEyebrow">Загрузить в гримуар</p>
             <h3>Добавить записи</h3>
             <p className="grimoireUploaderHint">Загрузите один или несколько файлов. Категория и описание — необязательны при загрузке, их можно добавить после.</p>
-            <label className="grimoireFileInputLabel">
+            <label className="grimoireFileInputLabel" onDragOver={(event) => event.preventDefault()} onDrop={handleFileDrop}>
               <input
                 type="file"
                 multiple
@@ -197,9 +232,23 @@ export default function ProfileLiteMaterialsModule({
                 className="grimoireFileInput"
               />
               <span className="grimoireFileInputText">
-                {materialFile ? `Выбрано: ${materialFile.name}` : "Выбрать файлы"}
+                Перетащите файлы сюда или выберите с телефона
               </span>
+              <small>Без категории по умолчанию. Разберите позже.</small>
             </label>
+            {selectedFiles.length > 0 && (
+              <div className="grimoireSelectedFiles" aria-label="Выбранные файлы">
+                <b>Выбрано перед загрузкой</b>
+                <ul>
+                  {selectedFiles.map((file) => (
+                    <li key={`${file.name}-${file.size}`}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <button className="cabinetPrimary grimoireUploadPrimary" type="button" onClick={handleUploadSelectedFiles} disabled={!selectedFiles.length}>
+              Загрузить в гримуар
+            </button>
             {uploadStatus && <p className="grimoireUploadStatus">{uploadStatus}</p>}
             <p className="grimoireUploaderFormats">Поддерживаются: изображения, аудио, PDF, TXT, MD, DOC, DOCX · до 5 MB каждый</p>
           </div>
@@ -211,6 +260,7 @@ export default function ProfileLiteMaterialsModule({
           material={editingMaterial}
           onClose={() => setEditingMaterial(null)}
           onSave={handleEditSave}
+          onDelete={handleDelete}
         />
       )}
     </section>
