@@ -3,7 +3,24 @@ const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 
 export const PROFILE_MEDIA_BUCKET = "profile-cabinet-media";
 export const PROFILE_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
-export const PROFILE_MEDIA_ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+export const PROFILE_MEDIA_ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/wav",
+  "audio/webm",
+  "audio/ogg",
+  "audio/aac",
+  "application/pdf",
+  "text/plain",
+  "text/markdown",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+];
+export const PROFILE_MEDIA_ALLOWED_GRIMOIRE_TYPES = PROFILE_MEDIA_ALLOWED_TYPES;
 export const MEDIA_SIGNING_ERROR_MESSAGE = "signed URL не создан — проверьте Storage/RLS";
 
 function mediaError(message, details = null) {
@@ -58,6 +75,16 @@ export function validateProfileMediaFile(file) {
   }
   if (file.size > PROFILE_MEDIA_MAX_BYTES) {
     throw mediaError("Файл слишком большой. Максимальный размер изображения — 5 MB.");
+  }
+}
+
+export function validateGrimoireFile(file) {
+  if (!file) throw mediaError("Выберите файл.");
+  if (!PROFILE_MEDIA_ALLOWED_TYPES.includes(file.type)) {
+    throw mediaError("Недопустимый тип файла. Поддерживаются изображения, аудио, PDF, TXT, MD, DOC, DOCX.");
+  }
+  if (file.size > PROFILE_MEDIA_MAX_BYTES) {
+    throw mediaError("Файл слишком большой. Максимальный размер — 5 MB.");
   }
 }
 

@@ -6,9 +6,14 @@ import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import {
   createEmptyMaterialForm,
   createOwnMaterial,
+  deleteOwnMaterial,
+  detectMaterialTypeFromFile,
   listOwnMaterials,
-  normalizeMaterialForm
+  normalizeMaterialForm,
+  stripFileExtension,
+  updateOwnMaterial
 } from "../lib/profileMaterialsClient.js";
+import { validateGrimoireFile } from "../lib/profileMediaClient.js";
 import {
   createEmptyServiceForm,
   createOwnService,
@@ -799,6 +804,78 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleGrimoireMultiUpload = async (files) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMaterialsError("Сначала сохраните профиль мастера.");
+      setMaterialsStatus("needs-verification");
+      throw new Error("Сначала сохраните профиль мастера.");
+    }
+    const results = await Promise.allSettled(files.map(async (file) => {
+      validateGrimoireFile(file);
+      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+      const detectedType = detectMaterialTypeFromFile(file);
+      const title = stripFileExtension(file.name) || "Запись гримуара";
+      const payload = {
+        profile_id: profile.id,
+        type: detectedType,
+        title,
+        description: "",
+        image_url: uploaded.ref,
+        step_id: "",
+        step_title: "",
+        setting_title: "",
+        setting_index: null,
+        status: "draft",
+        updated_at: new Date().toISOString()
+      };
+      return createOwnMaterial(payload, session);
+    }));
+    const saved = results.filter((r) => r.status === "fulfilled").map((r) => r.value).filter(Boolean);
+    const failed = results.filter((r) => r.status === "rejected");
+    setMaterials((current) => [...saved, ...current.filter((item) => !saved.some((s) => s?.id === item.id))].filter(Boolean));
+    setMaterialsStatus("success");
+    if (failed.length > 0) {
+      setMaterialsError(`${failed.length} файл(ов) не загрузилось: ${moduleError(failed[0]?.reason, "upload or save failed")}`);
+      throw new Error(`${failed.length} файл(ов) не загрузилось.`);
+    } else {
+      setMaterialsError("");
+    }
+  };
+
+  const handleGrimoireUpdate = async (id, patch) => {
+    if (!hasProfileLiteSessionCredential(session)) {
+      throw new Error("Нужно войти в кабинет.");
+    }
+    try {
+      const saved = await updateOwnMaterial(id, patch, session);
+      if (saved) {
+        setMaterials((current) => current.map((item) => item.id === id ? { ...item, ...saved } : item));
+      }
+      setMaterialsStatus("success");
+      setMaterialsError("");
+    } catch (error) {
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(moduleError(error, "profile_cabinet_publications update failed or migration/RLS not applied"));
+      throw error;
+    }
+  };
+
+  const handleGrimoireDelete = async (material) => {
+    if (!hasProfileLiteSessionCredential(session)) {
+      throw new Error("Нужно войти в кабинет.");
+    }
+    try {
+      await deleteOwnMaterial(material.id, session);
+      setMaterials((current) => current.filter((item) => item.id !== material.id));
+      setMaterialsStatus("success");
+      setMaterialsError("");
+    } catch (error) {
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(moduleError(error, "profile_cabinet_publications delete failed or migration/RLS not applied"));
+      throw error;
+    }
+  };
+
   const handleClientPhotoSave = async () => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMediaError("Сначала сохраните профиль мастера.");
@@ -1549,14 +1626,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     ),
     materials: (
       <ProfileLiteMaterialsModule
-        {...moduleProps}
-        onFieldChange={handleMaterialFieldChange}
-        onFileChange={(event) => {
-          const file = event.target.files?.[0] || null;
-          setMaterialFile(file);
-          if (file) setMaterialForm((current) => ({ ...current, image_url: "" }));
-        }}
-        onSave={handleMaterialSave}
+        materialFile={materialFile}
+        materials={materials}
+        materialsError={materialsError}
+        materialsStatus={materialsStatus}
+        onDelete={handleGrimoireDelete}
+        onMultiUpload={handleGrimoireMultiUpload}
+        onUpdate={handleGrimoireUpdate}
       />
     ),
     services: (

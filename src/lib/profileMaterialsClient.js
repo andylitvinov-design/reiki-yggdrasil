@@ -23,8 +23,54 @@ const PUBLIC_MATERIAL_FIELDS = [
 export const MATERIAL_TYPES = [
   { value: "mandala", label: "Мандала" },
   { value: "artifact", label: "Артефакт" },
-  { value: "practice", label: "Практика" }
+  { value: "practice", label: "Практика" },
+  { value: "photo", label: "Фото / образ" },
+  { value: "article", label: "Статья" },
+  { value: "document", label: "Документ" },
+  { value: "audio", label: "Аудио" }
 ];
+
+export const GRIMOIRE_CATEGORIES = [
+  { value: "all", label: "Все записи" },
+  { value: "uncategorized", label: "Без категории" },
+  { value: "photo", label: "Фото / образ" },
+  { value: "article", label: "Статья" },
+  { value: "document", label: "Документ" },
+  { value: "audio", label: "Аудио" },
+  { value: "practice", label: "Практика" },
+  { value: "artifact", label: "Артефакт" },
+  { value: "mandala", label: "Мандала" }
+];
+
+const AUDIO_EXTENSIONS = ["mp3", "mp4a", "ogg", "wav", "webm", "aac", "flac", "m4a", "opus"];
+const DOC_EXTENSIONS = ["pdf", "doc", "docx", "txt", "md"];
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
+
+export function stripFileExtension(filename) {
+  const name = String(filename || "").trim();
+  const dotIndex = name.lastIndexOf(".");
+  if (dotIndex > 0) return name.slice(0, dotIndex);
+  return name;
+}
+
+export function detectMaterialTypeFromFile(file) {
+  if (!file) return "mandala";
+  const mimeType = String(file.type || "").toLowerCase();
+  if (mimeType.startsWith("audio/")) return "audio";
+  if (mimeType === "application/pdf") return "document";
+  if (
+    mimeType === "application/msword" ||
+    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    mimeType === "text/plain" ||
+    mimeType === "text/markdown"
+  ) return "document";
+  if (mimeType.startsWith("image/")) return "photo";
+  const ext = String(file.name || "").split(".").pop().toLowerCase();
+  if (AUDIO_EXTENSIONS.includes(ext)) return "audio";
+  if (DOC_EXTENSIONS.includes(ext)) return "document";
+  if (IMAGE_EXTENSIONS.includes(ext)) return "photo";
+  return "mandala";
+}
 
 export const MATERIAL_STATUSES = [
   { value: "draft", label: "черновик" },
@@ -169,4 +215,29 @@ export async function createOwnMaterial(material, session = getStoredSession()) 
 
   const hydrated = await hydrateMaterialRows(rows, session);
   return hydrated?.[0] || null;
+}
+
+export async function updateOwnMaterial(id, patch, session = getStoredSession()) {
+  if (!session?.access_token) throw materialError("Нужно войти в кабинет.");
+  if (!id) throw materialError("Не указан идентификатор материала.");
+
+  const rows = await request(`/rest/v1/${PUBLICATIONS_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: { ...patch, updated_at: new Date().toISOString() }
+  });
+
+  const hydrated = await hydrateMaterialRows(rows, session);
+  return hydrated?.[0] || null;
+}
+
+export async function deleteOwnMaterial(id, session = getStoredSession()) {
+  if (!session?.access_token) throw materialError("Нужно войти в кабинет.");
+  if (!id) throw materialError("Не указан идентификатор материала.");
+
+  await request(`/rest/v1/${PUBLICATIONS_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    session
+  });
 }

@@ -60,14 +60,15 @@ Supabase setup steps:
 9. Apply `supabase/migrations/20260527143000_power_place_star_format.sql`.
 10. Apply `supabase/migrations/20260531090000_power_place_chess_format.sql`.
 11. Apply `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql`.
-12. Add these auth redirect URLs in Supabase for the target domain:
+12. Apply `supabase/migrations/20260605120000_grimoire_publication_types.sql`.
+13. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-13. Keep these legacy auth redirect URLs until the migration is fully verified:
+14. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-14. Add the Vercel production env vars named above.
-15. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+15. Add the Vercel production env vars named above.
+16. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
