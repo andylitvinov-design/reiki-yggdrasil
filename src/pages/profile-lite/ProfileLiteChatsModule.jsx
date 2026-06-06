@@ -1,4 +1,5 @@
 import React from "react";
+import { buildServiceShareText, listShareableServices } from "../../lib/masterChatLinks.js";
 
 export default function ProfileLiteChatsModule({
   chatDraft,
@@ -7,11 +8,21 @@ export default function ProfileLiteChatsModule({
   chatsStatus,
   onChatDraftChange,
   onSendMessage,
+  services = [],
   shellChrome,
   onThreadSelect,
   selectedThreadId
 }) {
   const selectedThread = chatThreads.find((thread) => thread.conversation_id === selectedThreadId) || chatThreads[0] || null;
+  const shareableServices = listShareableServices(services);
+
+  const handleInsertServiceLink = (service) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const shareText = buildServiceShareText(service, origin);
+    if (!shareText) return;
+    const separator = chatDraft.trim() ? "\n\n" : "";
+    onChatDraftChange(`${chatDraft}${separator}${shareText}`);
+  };
 
   return (
     <section className="profileLiteModule profileLiteChats mandalaWorkspace" aria-label="Чаты">
@@ -24,6 +35,7 @@ export default function ProfileLiteChatsModule({
         </div>
         <div className="mandalaHeroStats">
           <span><b>{chatThreads.length}</b> Чаты</span>
+          <span><b>{shareableServices.length}</b> Ссылки</span>
           <span><b>{chatsStatus}</b> Статус</span>
           <span><b>{selectedThread ? "open" : "idle"}</b> Поток</span>
         </div>
@@ -86,10 +98,27 @@ export default function ProfileLiteChatsModule({
             <span className="cabinetStatus">{chatsStatus}</span>
             <label>
               Сообщение
-              <textarea value={chatDraft} onChange={(event) => onChatDraftChange(event.target.value)} rows={3} placeholder="Написать сообщение..." />
+              <textarea value={chatDraft} onChange={(event) => onChatDraftChange(event.target.value)} rows={5} placeholder="Написать сообщение или вставить ссылку на услугу..." />
             </label>
             <button className="cabinetPrimary" type="submit" disabled={!selectedThread}>Отправить</button>
           </form>
+
+          <section className="cabinetCard" aria-label="Ссылки на услуги и продукты">
+            <p className="cabinetEyebrow">Подтянуть ссылку</p>
+            <h2>Услуги и продукты</h2>
+            <p className="cabinetMuted">Вставьте в сообщение публичную ссылку на опубликованную услугу. Отдельные продукты/артефакты: needs verification.</p>
+            <div className="chatModeNav" aria-label="Опубликованные услуги для вставки в чат">
+              {shareableServices.map((service) => (
+                <button key={service.id} type="button" onClick={() => handleInsertServiceLink(service)}>
+                  <span>{service.title || "Услуга"}</span>
+                  <small>{service.price_amount ? `${service.price_amount} ${service.price_currency || "EUR"}` : "Бесплатно / donation"}</small>
+                </button>
+              ))}
+              {shareableServices.length === 0 && (
+                <div className="cabinetNotice compactNotice">Опубликованных услуг пока нет. Создайте и опубликуйте услугу во вкладке «Услуги».</div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </section>
