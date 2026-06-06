@@ -37,7 +37,7 @@ client live site
 - Ожидаемый URL: `https://2mentalica.vercel.app`.
 - Желательный URL `https://www.2mentalica.vercel.app` — `needs verification` в Vercel Domains.
 - Данные: staging/test Supabase, тестовые пользователи, тестовые мандалы, тестовые фото.
-- Статус: target model, dashboard setup still `needs verification`.
+- Статус 2026-06-06: Vercel project and `https://2mentalica.vercel.app` verified; production deployment currently tracks `main`. Staging/test Supabase env setup still `needs configuration`.
 
 ### Чистовой сайт
 
@@ -46,7 +46,7 @@ client live site
 - Vercel project: текущий клиентский production-проект.
 - URL: текущий клиентский live-домен, `needs verification` перед переключением.
 - Данные: production Supabase, реальные пользователи/клиенты.
-- Статус: target model, production branch/dashboard setup still `needs verification`.
+- Статус 2026-06-06: `production` branch exists, but the Vercel project still has a promoted production deployment from `main`; dashboard switch to `production` and branch protection still required.
 
 ### `main`
 
@@ -480,11 +480,11 @@ Every release task must report:
 
 ## 16. Known risks / needs verification
 
-- Vercel project `2mentalica` — `needs verification`.
-- URL `https://2mentalica.vercel.app` — `needs verification` until project exists.
+- Vercel project `2mentalica` — verified 2026-06-06.
+- URL `https://2mentalica.vercel.app` — verified 2026-06-06.
 - URL `https://www.2mentalica.vercel.app` — `needs verification`; may not be available as desired.
-- Branch `production` — `needs verification` until created in GitHub.
-- Client Vercel project production branch switch to `production` — `needs verification`.
-- Separate staging Supabase — `needs verification`.
-- GitHub branch protection for `production` — `needs verification`.
-- Exact client live domain — `needs verification` before final migration.
+- Branch `production` — verified 2026-06-06 at `2a0115f34ffd5255223ad14332f749b9a6db5757`.
+- Client Vercel project production branch switch to `production` — still required; current promoted production deployment for client aliases points to `main`.
+- Separate staging Supabase — `needs configuration`; `2mentalica` Vercel project has no production/preview env names listed by CLI/API.
+- GitHub branch protection for `production` — still required; branch is currently unprotected.
+- Exact client live domain — verified as `https://mentalica.vercel.app`; legacy alias `https://reiki-yggdrasil.vercel.app` remains assigned to the same project.

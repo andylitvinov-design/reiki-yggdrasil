@@ -1,6 +1,30 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-05
+Last updated: 2026-06-06
+
+## 2026-06-06 — Vercel safe release mapping analysis
+
+- Branch: `codex/vercel-safe-release-mapping`, based on `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
+- Scope: safe configuration analysis and documentation only; UI, routes, Vercel rewrites, Supabase code/schema, env values, domains, branch protection, and Vercel project settings were not changed.
+- Changed:
+  - added `docs/deployment/VERCEL_SAFE_RELEASE_MAPPING_2026-06-06.md`;
+  - recorded verified Vercel project/domain mapping, GitHub branch divergence, env-name presence, manual dashboard steps, live route smoke results, and `ai-projects-brain` memory suggestion.
+- Verified:
+  - `2mentalica` Vercel project exists and production deploys from `main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`;
+  - `reiki-yggdrasil` Vercel project serves `https://mentalica.vercel.app` and `https://reiki-yggdrasil.vercel.app`, but current promoted production deployment still points to `main` at `2a0115f34ffd5255223ad14332f749b9a6db5757`;
+  - `origin/production` exists at `2a0115f34ffd5255223ad14332f749b9a6db5757`;
+  - branch compare `origin/production...origin/main` is `0` production-only commits and `19` main-only commits;
+  - GitHub `main` and `production` are both unprotected;
+  - `reiki-yggdrasil` production Vercel env names include `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_ADMIN_EMAIL`;
+  - `2mentalica` has no production/preview Vercel env names listed by CLI/API, so staging Supabase env setup remains required.
+- Verification:
+  - `npm install`, `npm run build`, `npm run check`, and live HTTP smoke for `/`, `/profile`, `/masters`, and `/profile/admin` on `https://2mentalica.vercel.app`, `https://mentalica.vercel.app`, and `https://reiki-yggdrasil.vercel.app` exited `0` / returned `200`;
+  - `npm test` is not available because `package.json` has no `test` script;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning.
+- Not verified:
+  - Supabase dashboard redirect URLs, Google OAuth, `www.2mentalica.vercel.app`, real staging Supabase separation, browser visual QA, authenticated profile/admin flows, and any dashboard changes after manual configuration.
+- Risk:
+  - production/client aliases are still effectively fed by `main` until the `reiki-yggdrasil` Vercel project Production Branch is switched to `production` and `production` is protected.
 
 ## 2026-06-05 — Mandala services Phase 5 result generation and delivery
 

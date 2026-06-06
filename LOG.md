@@ -1,5 +1,45 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-06 — Analyze Vercel safe release mapping
+
+- Branch: `codex/vercel-safe-release-mapping`.
+- Base: fresh `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
+- Docs/source read:
+  - `AGENTS.md`, `README.md`, `STATE.md`, `LOG.md`, `docs/release-workflow.md`, `docs/deploy-fallback.md`, `.github/workflows/deploy-production.yml`, `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`, `src/data/reikiKnowledgeBase.js`, `src/main.jsx`, `src/index.css`, `package.json`, `vercel.json`, `src/lib/supabaseClient.js`;
+  - `project-state.md`, `src/App.jsx`, and `projects/reiki-yggdrasil/PROJECT.md` were not found.
+- Changed files:
+  - `docs/deployment/VERCEL_SAFE_RELEASE_MAPPING_2026-06-06.md`
+  - `STATE.md`
+  - `LOG.md`
+- Verified config:
+  - Vite build is `npm run build`, output `dist`, framework `vite`;
+  - `vercel.json` preserves rewrites for `/profile`, `/masters`, and `/profile/admin`;
+  - required routes are handled in `src/main.jsx`.
+- Verified Vercel/GitHub state:
+  - `2mentalica` production deployment uses `main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`;
+  - `reiki-yggdrasil` production aliases `mentalica.vercel.app` and `reiki-yggdrasil.vercel.app` still use `main` at `2a0115f34ffd5255223ad14332f749b9a6db5757`;
+  - `origin/production` exists at `2a0115f34ffd5255223ad14332f749b9a6db5757`;
+  - `origin/production...origin/main` has `0` production-only commits and `19` main-only commits;
+  - GitHub `main` and `production` are unprotected.
+- Env names:
+  - `reiki-yggdrasil` production has `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_ADMIN_EMAIL`;
+  - `2mentalica` production/preview lists no env names, so staging Supabase env setup remains required;
+  - no env values were printed or committed.
+- Checks run:
+  - `npm install`
+  - `npm run build`
+  - `npm run check`
+  - `npm test` check: no `test` script exists
+  - live HTTP smoke for `/`, `/profile`, `/masters`, and `/profile/admin` on `https://2mentalica.vercel.app`, `https://mentalica.vercel.app`, and `https://reiki-yggdrasil.vercel.app`
+  - final commands exited `0`; live smoke returned `200` for all requested URLs.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Not verified:
+  - Supabase redirect URLs in dashboard, Google OAuth, `www.2mentalica.vercel.app`, real staging Supabase separation, browser visual QA, authenticated profile/admin flows, and dashboard changes after manual configuration.
+- Risk:
+  - the release model is still unsafe until `reiki-yggdrasil` Vercel Production Branch is switched to `production`, `production` is protected, and releases go through owner QA/PR.
+
 ## 2026-06-05 — Add mandala services Phase 5 result generation and delivery
 
 - Branch: `codex/mandala-services-phase5-result-delivery`.
