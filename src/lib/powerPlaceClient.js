@@ -35,6 +35,9 @@ const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
+const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const HYDRATION_TIMEOUT_MS = 8000;
 
@@ -385,6 +388,12 @@ export function normalizePowerPlaceComposition(composition) {
   }
   for (const key of [INNER_COVER_OFFSET_X_REF_KEY, INNER_COVER_OFFSET_Y_REF_KEY, OUTER_COVER_OFFSET_X_REF_KEY, OUTER_COVER_OFFSET_Y_REF_KEY]) {
     if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
+  }
+  for (const key of [CENTER_IMAGE_OFFSET_X_REF_KEY, CENTER_IMAGE_OFFSET_Y_REF_KEY]) {
+    if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
+  }
+  if (Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_ZOOM_REF_KEY)) {
+    objectRefs[CENTER_IMAGE_ZOOM_REF_KEY] = normalizeNumericRef(sourceObjectRefs[CENTER_IMAGE_ZOOM_REF_KEY], 0.65, 1.8, 1);
   }
   objectRefs[FIELD_LAYOUT_REF_KEY] = fieldLayout;
   if (report && typeof report === "object" && !Array.isArray(report)) {

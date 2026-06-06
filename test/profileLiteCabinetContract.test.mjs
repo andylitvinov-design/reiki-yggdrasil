@@ -278,7 +278,7 @@ assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace 
 assert.match(profileMandalaCss, /--power-field-scale/, "Mandala workspace CSS should include independent inner field scaling");
 assert.match(powerPlaceSource, /CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale"/, "center photo scale should persist through object_refs");
 assert.match(powerPlaceSource, /__center_image_scale: centerImageScale/, "center photo scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /style=\{centerImageStyle\}/, "center photo renderer should receive the independent center image scale style");
+assert.match(powerPlaceSource, /centerImageStyle/, "center photo renderer should use the independent center image scale style");
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
@@ -404,11 +404,15 @@ assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwn
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
-assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__center_image_offset_x|__inner_cover_offset_x|__outer_cover_offset_x|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon UI must not reintroduce pointer repositioning or offset persistence in the edited base module");
-assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon PR must not reintroduce pointer repositioning handlers");
+assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__inner_cover_offset_x|__outer_cover_offset_x|imageOffsetStyle/, "base module must not reintroduce legacy cover pointer repositioning or inner/outer cover offset persistence");
+assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|imageOffsetStyle/, "module wrapper must not reintroduce legacy cover pointer repositioning");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "public Profile Lite layout fix should not inject legacy diagonal inner-cover arrows");
 
-// Part A: in-mandala cover drop targets
+// Part A: old arrow overlay must be removed
+assert.doesNotMatch(powerPlaceSource, /coverOffsetCornerGroup/, "old coverOffsetCornerGroup arrow overlay must be removed from module");
+assert.doesNotMatch(powerPlaceSource, /tuneInnerCoverArrows|nudgeInnerCover/, "old arrow overlay helpers must be absent");
+
+// Part A: in-mandala cover drop targets must still exist
 assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTargets/, "in-mandala cover drop targets wrapper must exist");
 assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTarget/, "in-mandala cover drop target buttons must exist");
 assert.match(powerPlaceBaseSource, /◎ Внутрь/, "in-mandala inner cover drop target must have ◎ Внутрь label");
@@ -420,9 +424,25 @@ assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDrop
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTarget\.power-place-slot--drag-over/, "CSS must define drag-over highlight for in-mandala cover targets");
 // Right-panel tabs must still be drop targets
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)|getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "right-panel cover layer tabs must still use getPowerPlaceSlotDropHandlers for both layers");
-// No pan/zoom keys or pointer repositioning introduced
-assert.doesNotMatch(powerPlaceBaseSource, /__center_image_offset_x|__center_image_offset_y|__center_image_zoom/, "Part A must not introduce center image pan/zoom persistence keys");
-assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown|onPointerMove|onPointerUp/, "Part A must not introduce pointer pan/zoom handlers");
+
+// Part B: central photo pan/zoom must exist in base module
+assert.match(powerPlaceBaseSource, /__center_image_offset_x/, "central pan/zoom: __center_image_offset_x must be persisted");
+assert.match(powerPlaceBaseSource, /__center_image_offset_y/, "central pan/zoom: __center_image_offset_y must be persisted");
+assert.match(powerPlaceBaseSource, /__center_image_zoom/, "central pan/zoom: __center_image_zoom must be persisted");
+assert.match(powerPlaceBaseSource, /clampCenterImageOffset/, "central pan/zoom: clampCenterImageOffset helper must exist");
+assert.match(powerPlaceBaseSource, /clampCenterImageZoom/, "central pan/zoom: clampCenterImageZoom helper must exist");
+assert.match(powerPlaceBaseSource, /suppressCenterPickerClickRef/, "central pan/zoom: suppressCenterPickerClickRef must exist");
+assert.match(powerPlaceBaseSource, /onPointerDown[\s\S]*handleCenterPointerDown|handleCenterPointerDown[\s\S]*onPointerDown/, "central pan/zoom: onPointerDown must be wired to center photo handler");
+assert.match(powerPlaceBaseSource, /onPointerMove[\s\S]*handleCenterPointerMove|handleCenterPointerMove[\s\S]*onPointerMove/, "central pan/zoom: onPointerMove must be wired to center photo handler");
+assert.match(powerPlaceBaseSource, /onPointerUp[\s\S]*handleCenterPointerUp|handleCenterPointerUp[\s\S]*onPointerUp/, "central pan/zoom: onPointerUp must be wired to center photo handler");
+
+// Part B: cover slots must NOT have pointer pan/zoom handlers
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to inner cover slots");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.outer|cover_ref\.outer[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to outer cover slots");
+assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must be absent from base module");
+
+// Part B: CSS must define grab cursor for center photo
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerCenterPhoto\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for center photo with image");
 
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");

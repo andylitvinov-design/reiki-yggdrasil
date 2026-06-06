@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
@@ -303,6 +303,18 @@ function centerFrameScaleValue(value) {
   return Math.min(1.4, Math.max(0.72, scale));
 }
 
+export function clampCenterImageOffset(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 50;
+  return Math.min(80, Math.max(20, parsed));
+}
+
+export function clampCenterImageZoom(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(1.8, Math.max(0.65, parsed));
+}
+
 // Classify a saved image item as an inner-cover, outer-cover, or legacy (both) shortcut.
 // Uses the `meta` field which maps to the `notes` column in the database.
 // Cover uploads use notes `Фон мандалы: inner` / `Фон мандалы: outer`.
@@ -474,6 +486,8 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const [dragOverSlotId, setDragOverSlotId] = useState("");
+  const suppressCenterPickerClickRef = useRef(false);
+  const centerDragRef = useRef({ active: false, startX: 0, startY: 0, startOffsetX: 50, startOffsetY: 50, startPointerId: -1, moved: false, currentOffsetX: 50, currentOffsetY: 50 });
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
@@ -499,6 +513,9 @@ export default function ProfileLitePowerPlaceModule({
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
   const centerFrameScale = centerFrameScaleValue(compositionDraft.__center_frame_scale ?? objectRefs.__center_frame_scale);
+  const centerImageOffsetX = clampCenterImageOffset(compositionDraft.__center_image_offset_x ?? objectRefs.__center_image_offset_x);
+  const centerImageOffsetY = clampCenterImageOffset(compositionDraft.__center_image_offset_y ?? objectRefs.__center_image_offset_y);
+  const centerImageZoom = clampCenterImageZoom(compositionDraft.__center_image_zoom ?? objectRefs.__center_image_zoom);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
@@ -520,6 +537,79 @@ export default function ProfileLitePowerPlaceModule({
     }
     handleSaveNewClick();
   };
+
+  const writeCenterImageTransform = useCallback((offsetX, offsetY, zoom) => {
+    const nextRefs = {
+      ...objectRefs,
+      __center_image_offset_x: String(clampCenterImageOffset(offsetX)),
+      __center_image_offset_y: String(clampCenterImageOffset(offsetY)),
+      __center_image_zoom: String(clampCenterImageZoom(zoom))
+    };
+    onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
+  }, [objectRefs, onCompositionObjectRefsChange]);
+
+  const handleCenterPointerDown = useCallback((e) => {
+    if (!centralImage) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    centerDragRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startOffsetX: centerImageOffsetX,
+      startOffsetY: centerImageOffsetY,
+      startPointerId: e.pointerId,
+      moved: false,
+      currentOffsetX: centerImageOffsetX,
+      currentOffsetY: centerImageOffsetY
+    };
+    e.currentTarget.style.cursor = "grabbing";
+  }, [centralImage, centerImageOffsetX, centerImageOffsetY]);
+
+  const handleCenterPointerMove = useCallback((e) => {
+    const drag = centerDragRef.current;
+    if (!drag.active || e.pointerId !== drag.startPointerId) return;
+    const deltaX = e.clientX - drag.startX;
+    const deltaY = e.clientY - drag.startY;
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+      drag.moved = true;
+      suppressCenterPickerClickRef.current = true;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xPct = rect.width > 0 ? (deltaX / rect.width) * 100 : 0;
+    const yPct = rect.height > 0 ? (deltaY / rect.height) * 100 : 0;
+    drag.currentOffsetX = clampCenterImageOffset(drag.startOffsetX - xPct);
+    drag.currentOffsetY = clampCenterImageOffset(drag.startOffsetY - yPct);
+    e.currentTarget.style.setProperty("--power-center-bg-pos", `${drag.currentOffsetX}% ${drag.currentOffsetY}%`);
+  }, []);
+
+  const handleCenterPointerUp = useCallback((e) => {
+    const drag = centerDragRef.current;
+    if (!drag.active || e.pointerId !== drag.startPointerId) return;
+    drag.active = false;
+    e.currentTarget.style.cursor = "";
+    e.currentTarget.style.removeProperty("--power-center-bg-pos");
+    if (drag.moved) {
+      writeCenterImageTransform(drag.currentOffsetX, drag.currentOffsetY, centerImageZoom);
+    }
+  }, [centerImageZoom, writeCenterImageTransform]);
+
+  const handleCenterPointerCancel = useCallback((e) => {
+    const drag = centerDragRef.current;
+    drag.active = false;
+    drag.moved = false;
+    suppressCenterPickerClickRef.current = false;
+    e.currentTarget.style.cursor = "";
+    e.currentTarget.style.removeProperty("--power-center-bg-pos");
+  }, []);
+
+  const handleCenterWheel = useCallback((e) => {
+    if (!centralImage) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    const newZoom = clampCenterImageZoom(centerImageZoom + delta);
+    writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, newZoom);
+  }, [centralImage, centerImageOffsetX, centerImageOffsetY, centerImageZoom, writeCenterImageTransform]);
+
   const sourceSlotScaleStyle = {
     "--power-source-slot-scale": sourceSlotScale,
     "--power-place-chess-slot-scale": chessSlotScale,
@@ -927,8 +1017,20 @@ export default function ProfileLitePowerPlaceModule({
   const renderCenterPhotoWithMode = (className) => (
     <button
       className={`${className}${centralImage ? " hasImage" : ""}${dragOverSlotId === "__center_image" ? " power-place-slot--drag-over" : ""}`}
-      style={centerImageStyle}
-      onClick={() => openPicker("center")}
+      style={centralImage ? { ...centerImageStyle, touchAction: "none" } : centerImageStyle}
+      onClick={(e) => {
+        if (suppressCenterPickerClickRef.current) {
+          e.preventDefault();
+          suppressCenterPickerClickRef.current = false;
+          return;
+        }
+        openPicker("center");
+      }}
+      onPointerDown={handleCenterPointerDown}
+      onPointerMove={handleCenterPointerMove}
+      onPointerUp={handleCenterPointerUp}
+      onPointerCancel={handleCenterPointerCancel}
+      onWheel={handleCenterWheel}
       title="Фото клиента / цели"
       type="button"
       aria-label="Фото клиента / цели"
