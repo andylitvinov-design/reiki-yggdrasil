@@ -7736,6 +7736,26 @@
   box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.22);
 }
 
+/* Central photo pan/zoom: grab cursor and isolated touch-action */
+.profileLitePowerPlace .powerCenterPhoto.hasImage,
+.profileLitePowerPlace .altarCenterPhoto.hasImage,
+.profileLitePowerPlace .businessCenterPhoto.hasImage,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage,
+.profileLitePowerPlace .starCenterPhoto.hasImage,
+.profileLitePowerPlace .daoCenterPhoto.hasImage,
+.profileLitePowerPlace .power-place-chess__center.hasImage {
+  cursor: grab;
+}
+.profileLitePowerPlace .powerCenterPhoto.hasImage:active,
+.profileLitePowerPlace .altarCenterPhoto.hasImage:active,
+.profileLitePowerPlace .businessCenterPhoto.hasImage:active,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage:active,
+.profileLitePowerPlace .starCenterPhoto.hasImage:active,
+.profileLitePowerPlace .daoCenterPhoto.hasImage:active,
+.profileLitePowerPlace .power-place-chess__center.hasImage:active {
+  cursor: grabbing;
+}
+
 @media (max-width: 980px) {
   .profileLitePowerPlace .powerMandalaCoverDropTargets {
     top: 5px;

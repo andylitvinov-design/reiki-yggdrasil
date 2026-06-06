@@ -35,6 +35,9 @@ const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
+const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const HYDRATION_TIMEOUT_MS = 8000;
 
@@ -386,6 +389,12 @@ export function normalizePowerPlaceComposition(composition) {
   for (const key of [INNER_COVER_OFFSET_X_REF_KEY, INNER_COVER_OFFSET_Y_REF_KEY, OUTER_COVER_OFFSET_X_REF_KEY, OUTER_COVER_OFFSET_Y_REF_KEY]) {
     if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
   }
+  for (const key of [CENTER_IMAGE_OFFSET_X_REF_KEY, CENTER_IMAGE_OFFSET_Y_REF_KEY]) {
+    if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
+  }
+  if (Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_ZOOM_REF_KEY)) {
+    objectRefs[CENTER_IMAGE_ZOOM_REF_KEY] = normalizeNumericRef(sourceObjectRefs[CENTER_IMAGE_ZOOM_REF_KEY], 0.65, 1.8, 1);
+  }
   objectRefs[FIELD_LAYOUT_REF_KEY] = fieldLayout;
   if (report && typeof report === "object" && !Array.isArray(report)) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
@@ -409,6 +418,35 @@ export function normalizePowerPlaceComposition(composition) {
     resource_comparison_mode: VALID_RESOURCE_COMPARISON_MODES.includes(resourceComparisonMode) ? resourceComparisonMode : "client_photo",
     resource_without_mandala_comment: cleanText(composition?.resource_without_mandala_comment),
     resource_with_mandala_comment: cleanText(composition?.resource_with_mandala_comment)
+  };
+}
+
+
+export function buildStorageRefFromMediaRow(row = {}) {
+  const path = cleanText(row.image_path);
+  const bucket = cleanText(row.image_bucket) || PROFILE_MEDIA_BUCKET;
+  if (path) return `storage://${bucket}/${path}`;
+  const imageUrl = cleanText(row.image_url || row.image_ref);
+  return isPersistableImageRef(imageUrl) ? imageUrl : "";
+}
+
+export function clonePowerPlaceCompositionForOrder({ template, masterProfileId, serviceTitle, clientLabel, clientPhoto } = {}) {
+  if (!template?.id) throw powerPlaceError("Не найден шаблон мандалы услуги.");
+  if (!masterProfileId) throw powerPlaceError("Не найден профиль мастера для результата заказа.");
+  const centerRef = buildStorageRefFromMediaRow(clientPhoto);
+  if (!centerRef) throw powerPlaceError("Фото клиента не выбрано для результата заказа.");
+
+  const objectRefs = { ...cleanJsonObject(template.object_refs) };
+  objectRefs.__center_image = centerRef;
+
+  return {
+    ...template,
+    id: undefined,
+    profile_id: cleanText(masterProfileId),
+    title: `Заказ: ${cleanText(serviceTitle) || "Услуга"} / ${cleanText(clientLabel) || "клиент"}`,
+    object_refs: objectRefs,
+    object_ref_urls: { ...cleanJsonObject(template.object_ref_urls), ...(clientPhoto?.display_url ? { [centerRef]: clientPhoto.display_url } : {}) },
+    central_photo_id: cleanText(clientPhoto?.id) || null
   };
 }
 
@@ -486,6 +524,16 @@ export async function listPowerPlaceCompositions(profileId, session = getStoredS
     session
   });
   return hydrateCompositionRows(rows, session);
+}
+
+
+export async function getPowerPlaceCompositionById(compositionId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanId = cleanText(compositionId);
+  if (!cleanId) throw powerPlaceError("Не удалось определить мандалу.");
+  const rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}?id=eq.${encodeURIComponent(cleanId)}&select=*&limit=1`, { session });
+  const hydrated = await hydrateCompositionRows(rows, session);
+  return hydrated?.[0] || null;
 }
 
 export async function createPowerPlaceComposition(composition, plan, session = getStoredSession(), options = {}) {

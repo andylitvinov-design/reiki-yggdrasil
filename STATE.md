@@ -1,6 +1,27 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-05
+Last updated: 2026-06-06
+
+## 2026-06-06 — PR #299 conflict resolution
+
+- Branch: `codex/public-master-page-mvp`, updated from `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
+- Scope: conflict resolution only for PR #299 Public Master Page MVP; no production deploy, no production branch changes, and no product-scope expansion.
+- Conflicts resolved:
+  - `STATE.md`: kept the Public Master Page MVP status entry and the newer Mandala services Phase 5 status entry from `main`;
+  - `LOG.md`: kept the Public Master Page MVP log entry and the newer Mandala services Phase 5 log entry from `main`.
+- Preserved:
+  - `/masters/:id`, Vercel SPA rewrite for `/masters/:id`, `MasterPublicPage`, `MasterPageHeader`, `MasterPageFeed`, `MasterPagePostCard`, `profilePublicMasterClient.js`, `/masters` catalog button `Страница мастера`, public-safe filtering tests, `test:public-master`, and route coverage.
+- Verification:
+  - `npm install`, `npm run test:public-master`, `node test/profileLiteRoute.test.mjs`, `npm run test:profile-materials`, `npm run test:profile-services`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4363/`;
+  - checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin` at desktop `1280x920` and mobile `390x900`;
+  - horizontal overflow was `0` on every checked route;
+  - console errors and warnings were `0`;
+  - `/masters/demo-master` rendered the public master shell, and `/masters` plus `/masters/demo-master` DOM/text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `object_refs`, bearer token markers, bucket/path fields, or composition JSON markers.
+- Not verified:
+  - real Supabase approved-profile/publication/service rows, Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
 
 ## 2026-06-05 — Public Master Page MVP
 
@@ -29,6 +50,29 @@ Last updated: 2026-06-05
   - Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
 - Next integration step:
   - add a private Grimoire/workshop action that publishes explicit public-safe rows into `profile_cabinet_publications`, then aggregate approved rows into `/feed`.
+
+## 2026-06-05 — Mandala services Phase 5 result generation and delivery
+
+- Branch: `codex/mandala-services-phase5-result-delivery`, based on `origin/main` at `c0cd3ba`.
+- Scope: Phase 5 only: generated personal order result compositions, master open/comment/send flow, client final result card, and result open/download through the existing Power Place constructor/PDF flow. Payments, multi-cart, email/Telegram delivery, service-role/env/auth changes, and production deploy were not implemented.
+- Changed:
+  - added additive migration `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`;
+  - added `draft_result_composition_id`, `final_result_composition_id`, `sent_at`, and `ready_for_review`;
+  - added a final-result-only client composition read policy for sent orders;
+  - added template clone helpers that never mutate `service.composition_id`;
+  - generated clones are owned by `master_profile_id`, titled `Заказ: <service title> / <client label>`, and receive the selected client photo in `__center_image`;
+  - master requests now show selected-photo state, create/open result, master comment, and send-to-client controls;
+  - client orders show `Результат отправлен`, `Открыть результат`, and `Скачать результат` only for `status='sent'` with a final composition id.
+- Verification:
+  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:power-place`, `npm run test:profile-media`, `npm run test:profile-loading-recovery`, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - local preview `http://127.0.0.1:4361/` rendered `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, and `/profile/admin`;
+  - Playwright QA at `1280x920`, `1366x900`, and `390x900` reported console errors `0` and horizontal overflow `0` for all checked routes.
+- Not verified:
+  - live Supabase migration application, real authenticated clone/send RLS against live data, Google OAuth, Vercel preview, production/legacy live URLs, and PNG/JPEG export.
+- Risks:
+  - real result open/download depends on applying the Phase 5 migration plus existing private media signing policies;
+  - PDF download uses the existing print/PDF flow, not a new binary export.
 
 ## 2026-06-05 — Draft/clean release model verification
 

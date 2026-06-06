@@ -12,6 +12,9 @@ const INNER_FIELD_SCALE_REF_KEY = "__inner_field_scale";
 const CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale";
 const CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale";
 const CENTER_SHAPE_REF_KEY = "__center_shape";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
+const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 
 const CONSTRUCTOR_LABELS = {
   zodiac: "Зодиак",
@@ -51,7 +54,19 @@ function centerShapeValue(value) {
   return value === "circle" ? "circle" : "square";
 }
 
-function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape) {
+function clampCenterImageOffset(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 50;
+  return Math.min(80, Math.max(20, parsed));
+}
+
+function clampCenterImageZoom(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(1.8, Math.max(0.65, parsed));
+}
+
+function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom) {
   const centerRadius = centerShape === "circle" ? "50%" : "24px";
   // innerFieldWidthDesktop / innerFieldWidthMobile kept for tests; absolute centering uses % directly.
   return `
@@ -69,13 +84,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .daoCenterPhoto.hasImage {
   background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
-  background-position: center !important;
+  background-position: var(--power-center-bg-pos, center) !important;
 }
 .profileLitePowerPlace .power-place-chess__center.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__center.hasImage {
   background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
   background-repeat: no-repeat !important;
-  background-position: center !important;
+  background-position: var(--power-center-bg-pos, center) !important;
 }
 .profileLitePowerPlace .power-place-chess__slot.hasImage,
 .profileLitePowerPlace .powerSource.hasImage,
@@ -177,8 +192,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 }
 .profileLitePowerPlace .powerMandalaPanel[style],
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] {
-  --power-center-image-scale: ${centerImageScale};
+  --power-center-image-scale: ${centerImageScale * centerImageZoom};
   --power-center-frame-scale: ${centerFrameScale};
+  --power-center-bg-pos: ${centerImageOffsetX}% ${centerImageOffsetY}%;
 }
 .profileLitePowerPlace .powerPlaceExternalTitle,
 .powerPlacePdfOnlyArea .powerPlaceExternalTitle {
@@ -431,45 +447,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 }
 .profileLitePowerPlace .centerShapeIcon.square { border-radius: 3px; }
 .profileLitePowerPlace .centerShapeIcon.circle { border-radius: 50%; }
-.profileLitePowerPlace .coverOffsetOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 45;
-  pointer-events: none;
-}
-.profileLitePowerPlace .coverOffsetCornerGroup {
-  position: absolute;
-  display: grid;
-  grid-template-columns: repeat(2, 22px);
-  gap: 4px;
-  pointer-events: none;
-}
-.profileLitePowerPlace .coverOffsetCornerGroup.inner {
-  top: 9px;
-  left: 9px;
-}
-.profileLitePowerPlace .coverOffsetCornerGroup.outer {
-  right: 9px;
-  bottom: 9px;
-}
-.profileLitePowerPlace .coverOffsetCornerGroup button {
-  border: 1px solid rgba(184, 121, 29, 0.32);
-  border-radius: 999px;
-  padding: 0;
-  background: rgba(255, 250, 238, 0.82);
-  color: #704812;
-  font-weight: 900;
-  line-height: 1;
-  box-shadow: 0 8px 18px rgba(80, 52, 14, 0.12);
-  width: 22px;
-  min-width: 22px;
-  height: 22px;
-  font-size: 11px;
-  pointer-events: auto;
-}
-.profileLitePowerPlace .coverOffsetCornerGroup button:active {
-  transform: scale(0.96);
-}
 .profileLitePowerPlace .centerFrameScaleControl,
 .profileLitePowerPlace .photoScaleControl,
 .profileLitePowerPlace .innerFieldScaleControl {
@@ -493,12 +470,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   color: #704812;
   font-size: 12px;
 }
-.powerPlacePdfOnlyArea .coverOffsetOverlay,
-body.printMandalaOnly .coverOffsetOverlay {
-  display: none !important;
-}
 @media print {
-  .coverOffsetOverlay,
   .centerFrameScaleControl,
   .photoScaleControl,
   .innerFieldScaleControl,
@@ -561,11 +533,14 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageScale = centerImageScaleValue(objectRefs[CENTER_IMAGE_SCALE_REF_KEY]);
   const centerFrameScale = centerFrameScaleValue(objectRefs[CENTER_FRAME_SCALE_REF_KEY]);
   const centerShape = centerShapeValue(objectRefs[CENTER_SHAPE_REF_KEY]);
+  const centerImageOffsetX = clampCenterImageOffset(objectRefs[CENTER_IMAGE_OFFSET_X_REF_KEY]);
+  const centerImageOffsetY = clampCenterImageOffset(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
+  const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
-    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape),
-    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape]
+    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
+    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom]
   );
 
   useEffect(() => {
@@ -583,14 +558,6 @@ export default function ProfileLitePowerPlaceModule(props) {
   const writeObjectRefs = useCallback((nextRefs) => {
     props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
   }, [props]);
-
-  const shiftCoverOffset = useCallback((layer, axis, delta) => {
-    const key = layer === "outer"
-      ? (axis === "y" ? OUTER_COVER_OFFSET_Y_REF_KEY : OUTER_COVER_OFFSET_X_REF_KEY)
-      : (axis === "y" ? INNER_COVER_OFFSET_Y_REF_KEY : INNER_COVER_OFFSET_X_REF_KEY);
-    const current = coverOffsetValue(objectRefs[key]);
-    writeObjectRefs({ ...objectRefs, [key]: coverOffsetValue(current + delta) });
-  }, [objectRefs, writeObjectRefs]);
 
   const setCenterShape = useCallback((nextShape) => {
     writeObjectRefs({ ...objectRefs, [CENTER_SHAPE_REF_KEY]: centerShapeValue(nextShape) });
@@ -616,24 +583,16 @@ export default function ProfileLitePowerPlaceModule(props) {
     __center_image_scale: centerImageScale,
     __center_frame_scale: centerFrameScale,
     __mandala_style: mandalaStyle,
+    __center_image_offset_x: centerImageOffsetX,
+    __center_image_offset_y: centerImageOffsetY,
+    __center_image_zoom: centerImageZoom,
     cover_ref: normalizeLayeredCoverRef(props.compositionDraft?.cover_ref)
-  }), [centerFrameScale, centerImageScale, innerFieldScale, mandalaStyle, props.compositionDraft]);
+  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, innerFieldScale, mandalaStyle, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
       <p>Формат</p>
       <h3>{formatLabel}</h3>
-    </div>
-  );
-
-  const coverOffsetOverlay = (
-    <div className="coverOffsetOverlay" aria-label="Смещение фоновых фото" data-print-hidden="true">
-      <div className="coverOffsetCornerGroup inner" aria-label="Смещение внутреннего фона">
-        <button type="button" onClick={() => shiftCoverOffset("inner", "x", -5)} aria-label="Сдвинуть внутренний фон влево">←</button>
-        <button type="button" onClick={() => shiftCoverOffset("inner", "x", 5)} aria-label="Сдвинуть внутренний фон вправо">→</button>
-        <button type="button" onClick={() => shiftCoverOffset("inner", "y", -5)} aria-label="Сдвинуть внутренний фон вверх">↑</button>
-        <button type="button" onClick={() => shiftCoverOffset("inner", "y", 5)} aria-label="Сдвинуть внутренний фон вниз">↓</button>
-      </div>
     </div>
   );
 
@@ -655,7 +614,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
       {printAreaNode ? createPortal(externalTitle, printAreaNode) : null}
-      {powerPanelNode ? createPortal(coverOffsetOverlay, powerPanelNode) : null}
       {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
     </>

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   __testPowerPlaceClient,
+  clonePowerPlaceCompositionForOrder,
   createPowerPlaceCompositionWithDependencies,
   getPlanLimits,
   normalizeAccountPlan,
@@ -82,6 +83,45 @@ assert.deepEqual(
 assert.equal(hydratedComposition.cover_ref.display_src, "https://signed.example/legacy.png");
 assert.equal(hydratedComposition.cover_ref.inner.display_src, "https://signed.example/inner.png");
 assert.equal(hydratedComposition.cover_ref.outer.display_src, "https://signed.example/outer.png");
+
+
+const templateComposition = {
+  id: "template-1",
+  profile_id: "master-1",
+  title: "Шаблон услуги",
+  constructor_type: "chess",
+  chess_variant: "compact-5",
+  object_refs: {
+    "chess-1": storageRefs.slot,
+    __center_image: "storage://profile-cabinet-media/master/template-center.png",
+    __field_layout: "vertical"
+  },
+  object_ref_urls: {
+    [storageRefs.slot]: "https://signed.example/slot.png"
+  },
+  central_photo_id: "template-photo"
+};
+const clientPhoto = {
+  id: "client-photo-1",
+  title: "Клиент",
+  image_ref: storageRefs.center,
+  display_url: "https://signed.example/client-center.png"
+};
+const clonedForOrder = clonePowerPlaceCompositionForOrder({
+  template: templateComposition,
+  masterProfileId: "master-1",
+  serviceTitle: "Личная мандала",
+  clientLabel: "Анна",
+  clientPhoto
+});
+assert.equal(clonedForOrder.id, undefined, "clone payload must not keep template id");
+assert.equal(clonedForOrder.profile_id, "master-1");
+assert.equal(clonedForOrder.title, "Заказ: Личная мандала / Анна");
+assert.equal(clonedForOrder.central_photo_id, "client-photo-1");
+assert.equal(clonedForOrder.object_refs.__center_image, storageRefs.center, "client photo should be inserted only into clone center");
+assert.equal(templateComposition.object_refs.__center_image, "storage://profile-cabinet-media/master/template-center.png", "template center must not be mutated");
+assert.equal(clonedForOrder.object_refs["chess-1"], storageRefs.slot, "non-center template refs should be preserved in clone");
+assert.notEqual(clonedForOrder.object_refs, templateComposition.object_refs, "clone must own a separate object_refs object");
 
 const createBasePayload = {
   profile_id: "profile-1",

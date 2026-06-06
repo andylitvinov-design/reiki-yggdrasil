@@ -1,5 +1,41 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-06 — Resolve PR #299 conflicts after latest main
+
+- Branch: `codex/public-master-page-mvp`.
+- Base update: merged `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
+- Scope: conflict resolution only; production was not touched and PR #299 was not merged.
+- Conflicts resolved:
+  - `STATE.md`: preserved both the Public Master Page MVP entry and the Mandala services Phase 5 entry from `main`;
+  - `LOG.md`: preserved both the Public Master Page MVP entry and the Mandala services Phase 5 entry from `main`.
+- Public Master Page MVP preservation checked:
+  - `/masters/:id` route;
+  - `/masters/:id` Vercel rewrite;
+  - `MasterPublicPage`, `MasterPageHeader`, `MasterPageFeed`, `MasterPagePostCard`;
+  - `profilePublicMasterClient.js`;
+  - `/masters` catalog button `Страница мастера`;
+  - `test:public-master` and `test/profileLiteRoute.test.mjs` route coverage.
+- Checks run:
+  - `npm install`
+  - `npm run test:public-master`
+  - `node test/profileLiteRoute.test.mjs`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Browser QA:
+  - local dev server: `http://127.0.0.1:4363/`;
+  - checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin`;
+  - viewports: `1280x920` and `390x900`;
+  - horizontal overflow was `0`, console errors/warnings were `0`;
+  - public `/masters` routes had no private storage refs, signed URL markers, `object_refs`, bearer markers, bucket/path fields, or composition JSON markers in DOM/text.
+- Not verified:
+  - real Supabase public rows, Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+
 ## 2026-06-05 — Implement Public Master Page MVP
 
 - Branch: `codex/public-master-page-mvp`.
@@ -47,6 +83,70 @@
 - Not verified yet:
   - real Supabase rows, Vercel preview, production/legacy live URLs, and Google OAuth.
 
+## 2026-06-05 — Add mandala services Phase 5 result generation and delivery
+
+- Branch: `codex/mandala-services-phase5-result-delivery`.
+- Base: rebased onto `origin/main` at `1157df6f8926fe5362c84c70b73d5d6dfa689f3e`.
+- Docs/source read:
+  - `AGENTS.md`, `README.md`, `STATE.md`, `LOG.md`, `docs/release-workflow.md`, `docs/deploy-fallback.md`, `.github/workflows/deploy-production.yml`, `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`, `src/data/reikiKnowledgeBase.js`, `src/main.jsx`, `src/index.css`, `package.json`, `vercel.json`, `src/lib/supabaseClient.js`;
+  - Phase 5 docs and code listed in the task, including `profileServicesClient`, `powerPlaceClient`, `profileMediaClient`, `ProfileLitePage`, `ProfileLiteOrdersModule`, `ProfileLitePowerPlaceModuleBase`, the Phase 4 migration, and focused tests.
+- Changed files:
+  - `src/lib/profileServicesClient.js`
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteOrdersModule.jsx`
+  - `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `README.md`
+  - `test/profileServicesClient.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Migration/RLS:
+  - additive only: `draft_result_composition_id`, `final_result_composition_id`, `sent_at`, `ready_for_review`, indexes;
+  - client composition read policy is final-only for own sent orders and does not grant draft-result reads.
+- Clone algorithm:
+  - fetch own master order and template composition;
+  - clone template payload without preserving template id;
+  - set clone `profile_id` to `master_profile_id`;
+  - set title `Заказ: <service title> / <client label>`;
+  - insert selected client photo into clone `object_refs.__center_image`;
+  - never patch or overwrite `service.composition_id`.
+- Master flow:
+  - `Кабинет Мастера / Заявки` can create draft result, open it in `/profile/mandalas`, add `Комментарий мастера`, and send final result to client;
+  - send is blocked with `Сначала создайте или выберите результат мандалы заказа.` when no draft/result exists.
+- Client flow:
+  - `Кабинет Личный / Мои Заказы` shows final result actions only when order is `sent` with `final_result_composition_id`;
+  - unsent orders do not render draft result actions in the client UI;
+  - download uses existing PDF/print flow.
+- Checks run:
+  - `node test/profileServicesClient.test.mjs` failed first on missing `buildSendOrderResultPayload`;
+  - `node test/powerPlaceClient.test.mjs` failed first on missing `clonePowerPlaceCompositionForOrder`;
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing Phase 5 order UI labels;
+  - `npm run test:profile-lite`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Browser QA:
+  - local preview: `http://127.0.0.1:4361/`;
+  - routes checked: `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, `/profile/admin`;
+  - viewports checked: `1280x920`, `1366x900`, `390x900`;
+  - all route/viewport combinations had console errors `0` and horizontal overflow `0`.
+- Not verified:
+  - real Supabase migration application, authenticated live clone/send flow, Vercel preview, production/legacy live URLs, Google OAuth, and PNG/JPEG export.
+- Risks:
+  - live Phase 5 requires applying the new migration;
+  - final result download is PDF/print MVP only.
+
 ## 2026-06-05 — Implement Community Activity Feed Phase 2-4
 
 - Branch: `codex/community-feed-phase-2-4`.
@@ -78,10 +178,6 @@
   - `npm run build`
   - `npm run test:profile-lite`
   - `npm run test:profile-feed`
-  - `npm run test:profile-services`
-  - `npm run test:power-place`
-  - `npm run test:profile-media`
-  - `npm run test:profile-loading-recovery`
   - `git diff --check`
 - Check notes:
   - final automated commands exited `0`;
