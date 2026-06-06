@@ -11,6 +11,7 @@
     "test:profile-loading-recovery": "node test/profileLoadingRecovery.test.mjs && node test/profilePageAuthBootstrap.test.mjs && node test/profileAuthRenderRecovery.test.mjs",
     "test:profile-lite": "node test/profileLiteClient.test.mjs && node test/profileLiteRoute.test.mjs && node test/profileLiteCabinetContract.test.mjs",
     "test:profile-services": "node test/profileServicesClient.test.mjs",
+    "test:public-master": "node test/profilePublicMasterClient.test.mjs",
     "test:profile-feed": "node test/profileActivityFeedClient.test.mjs",
     "test:power-place": "node test/powerPlaceClient.test.mjs && node test/powerPlaceStyleContract.test.mjs && node test/printUtils.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
@@ -19,7 +20,7 @@
     "validate:free-courses": "node scripts/validate-free-course-links.mjs",
     "verify:debug-contract": "node scripts/verify-reiki-debug-contract.mjs",
     "verify:debug-manifest": "node scripts/verify-reiki-debug-manifest.mjs",
-    "check": "npm run verify:debug-contract && npm run verify:debug-manifest && npm run test:profile-bootstrap && npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run test:profile-loading-recovery && npm run test:profile-lite && npm run test:profile-services && npm run test:profile-feed && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
+    "check": "npm run verify:debug-contract && npm run verify:debug-manifest && npm run test:profile-bootstrap && npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run test:profile-loading-recovery && npm run test:profile-lite && npm run test:profile-services && npm run test:public-master && npm run test:profile-feed && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

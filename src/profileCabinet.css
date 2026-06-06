@@ -630,9 +630,426 @@
   margin-top: 14px;
 }
 
-.masterLinks a {
+.masterLinks a,
+.masterLinks button {
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: #8f5d17;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.masterPageShell {
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(143, 93, 23, 0.16), transparent 26%),
+    radial-gradient(circle at 86% 5%, rgba(78, 112, 86, 0.18), transparent 28%),
+    linear-gradient(180deg, #fbf6ee, #f2e7d6 58%, #ead8bd);
+}
+
+.masterPageHeader {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 18px 0 0;
+}
+
+.masterPageTopbar {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.masterPageTopbar span {
+  color: #5f5142;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.masterPageTopbar button,
+.masterPageActions button,
+.masterPageAsideCard button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.masterPageTopbar button {
+  width: max-content;
+  border: 1px solid rgba(184, 121, 29, 0.36);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #2d2117;
+  font-weight: 800;
+}
+
+.masterPageTopbar button:last-child {
+  justify-self: end;
+}
+
+.masterPageCover {
+  min-height: 230px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(203, 152, 64, 0.38);
+  border-radius: 18px 18px 0 0;
+  background:
+    linear-gradient(115deg, rgba(33, 25, 15, 0.82), rgba(68, 95, 73, 0.74)),
+    radial-gradient(circle at 24% 35%, rgba(247, 211, 140, 0.34), transparent 22%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 18px),
+    linear-gradient(135deg, #1d1a14, #4d6e57 54%, #8b5b18);
+  box-shadow: 0 18px 50px rgba(79, 54, 18, 0.13);
+}
+
+.masterPageCover::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, transparent, rgba(19, 14, 8, 0.48));
+}
+
+.masterPageCoverMark {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  z-index: 1;
+  color: rgba(255, 244, 215, 0.86);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.masterPageIdentity {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: end;
+  gap: 22px;
+  margin-bottom: 20px;
+  padding: 0 24px 24px;
+  border: 1px solid rgba(203, 152, 64, 0.36);
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background: rgba(255, 252, 246, 0.9);
+  box-shadow: 0 16px 48px rgba(79, 54, 18, 0.1);
+}
+
+.masterPageAvatar {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -64px;
+  position: relative;
+  z-index: 2;
+  border: 5px solid rgba(255, 252, 246, 0.98);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(245, 198, 106, 0.68) 0 2px, transparent 3px 100%),
+    repeating-radial-gradient(circle at center, rgba(184, 121, 29, 0.26) 0 1px, transparent 2px 18px),
+    linear-gradient(135deg, #171716, #5f3b0c);
+  background-position: center;
+  background-size: cover;
+  color: #f5c66a;
+  font-size: 56px;
+  box-shadow: 0 18px 38px rgba(58, 39, 15, 0.22);
+}
+
+.masterPageIdentityText {
+  min-width: 0;
+  padding-top: 24px;
+}
+
+.masterPageIdentityText h1 {
+  margin: 0;
+  color: #17120c;
+  font-size: 42px;
+  line-height: 1.02;
+}
+
+.masterPageIdentityText p:not(.cabinetEyebrow) {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: #5f5142;
+  font-size: 16px;
+  line-height: 1.52;
+}
+
+.masterPageIdentityText small {
+  display: block;
+  margin-top: 8px;
+  color: #7d6b56;
+  font-weight: 800;
+}
+
+.masterPageCounters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+.masterPageCounters div {
+  min-width: 112px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.masterPageCounters dt {
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.masterPageCounters dd {
+  margin: 3px 0 0;
+  color: #20170f;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.masterPageActions {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+
+.masterPageMain {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 0 0 52px;
+}
+
+.masterPageState {
+  margin-top: 18px;
+}
+
+.masterPageLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 22px;
+  align-items: start;
+}
+
+.masterPageTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 8px;
+  border: 1px solid rgba(203, 152, 64, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 252, 246, 0.74);
+}
+
+.masterPageTab {
+  min-height: 40px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: transparent;
+  color: #4a3828;
+  font-weight: 800;
+}
+
+.masterPageTab--active {
+  border-color: rgba(151, 95, 30, 0.72);
+  background: #21190f;
+  color: #f7d38c;
+}
+
+.masterPageNotice {
+  margin-bottom: 16px;
+  border: 1px solid rgba(78, 112, 86, 0.28);
+  border-radius: 14px;
+  padding: 15px 16px;
+  background: rgba(244, 248, 239, 0.82);
+  color: #465a45;
+}
+
+.masterPageNotice p {
+  margin: 6px 0 0;
+  line-height: 1.45;
+}
+
+.masterPageFeedList {
+  display: grid;
+  gap: 14px;
+}
+
+.masterPagePost,
+.masterPageAsideCard {
+  min-width: 0;
+  border: 1px solid rgba(203, 152, 64, 0.36);
+  border-radius: 12px;
+  background: rgba(255, 252, 246, 0.9);
+  box-shadow: 0 12px 34px rgba(79, 54, 18, 0.09);
+}
+
+.masterPagePost {
+  overflow: hidden;
+}
+
+.masterPagePostMeta,
+.masterPagePostFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.masterPagePostMeta {
+  padding: 14px 16px 0;
+}
+
+.masterPagePostBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #8a5a14;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.masterPagePostBadge--demo {
+  background: rgba(78, 112, 86, 0.13);
+  color: #496d50;
+}
+
+.masterPagePostBadge--price {
+  background: rgba(33, 25, 15, 0.88);
+  color: #f7d38c;
+}
+
+.masterPagePostImage {
+  min-height: 260px;
+  margin: 14px 16px 0;
+  border-radius: 10px;
+  background-position: center;
+  background-size: cover;
+}
+
+.masterPagePostImage--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at center, rgba(245, 198, 106, 0.66) 0 2px, transparent 3px 100%),
+    repeating-radial-gradient(circle at center, rgba(184, 121, 29, 0.24) 0 1px, transparent 2px 18px),
+    linear-gradient(135deg, #21190f, #4d6e57);
+  color: #f7d38c;
+}
+
+.masterPagePostBody {
+  padding: 16px;
+}
+
+.masterPagePostBody h2 {
+  margin: 0;
+  color: #17120c;
+  font-size: 26px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.masterPagePostBody p {
+  margin: 10px 0 0;
+  color: #5f5142;
+  font-size: 15px;
+  line-height: 1.52;
+}
+
+.masterPagePostFooter {
+  margin-top: 12px;
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.masterPagePostLink {
+  display: inline-flex;
+  margin-top: 14px;
+  color: #8f5d17;
+  font-weight: 800;
+}
+
+.masterPageAside {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 14px;
+}
+
+.masterPageAsideCard {
+  padding: 18px;
+}
+
+.masterPageAsideCard h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 18px;
+  line-height: 1.18;
+}
+
+.masterPageAsideCard p {
+  margin: 0;
+  color: #5f5142;
+  line-height: 1.5;
+}
+
+.masterPageAsideCard span {
+  display: inline-flex;
+  margin-top: 12px;
+  color: #7d6b56;
+  font-weight: 800;
+}
+
+.masterPageAsideCard a,
+.masterPageAsideCard button {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #2d2117;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.masterPageContactList {
+  display: grid;
+  gap: 2px;
+}
+
+.masterPageSafetyCard {
+  border-color: rgba(78, 112, 86, 0.34);
+  background: rgba(244, 248, 239, 0.86);
 }
 
 .profileLiteMain {
@@ -890,6 +1307,103 @@
 .profileLiteDebug dl {
   display: grid;
   gap: 10px;
+}
+
+@media (max-width: 980px) {
+  .masterPageHeader,
+  .masterPageMain {
+    width: min(100%, calc(100vw - 20px));
+  }
+
+  .masterPageTopbar {
+    grid-template-columns: 1fr;
+  }
+
+  .masterPageTopbar button,
+  .masterPageTopbar button:last-child {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .masterPageCover {
+    min-height: 190px;
+  }
+
+  .masterPageCoverMark {
+    right: 18px;
+    bottom: 16px;
+    font-size: 28px;
+  }
+
+  .masterPageIdentity {
+    grid-template-columns: 1fr;
+    align-items: start;
+    padding: 0 16px 18px;
+  }
+
+  .masterPageAvatar {
+    width: 118px;
+    height: 118px;
+    margin-top: -52px;
+    font-size: 42px;
+  }
+
+  .masterPageIdentityText {
+    padding-top: 0;
+  }
+
+  .masterPageIdentityText h1 {
+    font-size: 32px;
+  }
+
+  .masterPageActions {
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    justify-content: stretch;
+  }
+
+  .masterPageActions button {
+    flex: 1 1 180px;
+  }
+
+  .masterPageLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .masterPageAside {
+    position: static;
+  }
+
+  .masterPageTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .masterPageTab {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .masterPagePostImage {
+    min-height: 200px;
+    margin: 12px 12px 0;
+  }
+
+  .masterPagePostMeta,
+  .masterPagePostBody {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .masterPagePostBody h2 {
+    font-size: 22px;
+  }
+
+  .masterPageCounters div {
+    flex: 1 1 120px;
+  }
 }
 
 @media (max-width: 760px) {
