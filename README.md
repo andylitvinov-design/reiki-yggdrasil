@@ -18,9 +18,10 @@ npm run build
 ## Domains
 
 - Target production URL: `https://mentalica.vercel.app`
+- Additional client/live URL: `https://supermindnet.vercel.app` (added in Vercel; Supabase Auth redirects need dashboard verification)
 - Current/legacy URL until migration is fully verified: `https://reiki-yggdrasil.vercel.app`
 
-The frontend OAuth redirect flow uses `window.location.origin`, so the app should work on the active Vercel domain after the domain alias and Supabase Auth redirects are configured. Keep both target and legacy redirect URLs during the migration window.
+The frontend OAuth redirect flow uses `window.location.origin`, so the app should work on the active Vercel domain after the domain alias and Supabase Auth redirects are configured. Keep target, requested additional client/live, and legacy redirect URLs during the migration window. Do not hardcode a domain in the frontend.
 
 ## Release workflow: черновой и чистовой сайт
 
@@ -67,14 +68,17 @@ Supabase setup steps:
 16. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-17. Keep these legacy auth redirect URLs until the migration is fully verified:
+17. Add these auth redirect URLs in Supabase for the additional client/live domain; status is `needs verification` until dashboard QA passes:
+    - `https://supermindnet.vercel.app/profile`
+    - `https://supermindnet.vercel.app/profile/admin`
+18. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-18. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
+19. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
     - `https://2mentalica.vercel.app/profile`
     - `https://2mentalica.vercel.app/profile/admin`
-19. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
-20. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+20. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
+21. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -94,29 +98,41 @@ Google OAuth setup:
 4. Add these target auth redirect URLs in Supabase:
    - `https://mentalica.vercel.app/profile`
    - `https://mentalica.vercel.app/profile/admin`
-5. Keep these legacy auth redirect URLs until the migration is fully verified:
+5. Add these requested additional client/live auth redirect URLs in Supabase:
+   - `https://supermindnet.vercel.app/profile`
+   - `https://supermindnet.vercel.app/profile/admin`
+6. Keep these legacy auth redirect URLs until the migration is fully verified:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
-6. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
-7. For the `2mentalica` staging site, also add the `https://2mentalica.vercel.app/profile` and `https://2mentalica.vercel.app/profile/admin` redirect URLs before OAuth QA.
+7. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
+8. For the `2mentalica` staging site, also add the `https://2mentalica.vercel.app/profile` and `https://2mentalica.vercel.app/profile/admin` redirect URLs before OAuth QA.
 
 ## Domain migration checklist
 
-Before switching production traffic to `https://mentalica.vercel.app`:
+Before switching production traffic to `https://mentalica.vercel.app` or adding `https://supermindnet.vercel.app` as an additional client/live domain:
 
 1. Confirm the Vercel project is the same project connected to `andylitvinov-design/reiki-yggdrasil`.
 2. Confirm `mentalica.vercel.app` is assigned to the intended Vercel project.
-3. Confirm Vercel production env names are configured:
+3. In the intended client-facing Vercel project, confirm the production branch setting is `production` if the release workflow is active; otherwise mark it `needs verification`.
+4. In Settings -> Domains, confirm `supermindnet.vercel.app` is assigned to the client-facing Vercel project.
+   - If Vercel rejects it as unavailable/reserved, report that exact result and do not invent a workaround.
+   - Current known result: added to Vercel project `reiki-yggdrasil`; HTTP route QA passed on 2026-06-06.
+5. Confirm Vercel production env names are configured without exposing values:
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_ADMIN_EMAIL`
-4. Confirm Supabase Auth Site URL and Redirect URLs include the target `/profile` and `/profile/admin` URLs.
-5. Keep the old `reiki-yggdrasil.vercel.app` redirects during transition.
-6. Verify:
+6. Confirm Supabase Auth Site URL and Redirect URLs include the target and requested additional client/live `/profile` and `/profile/admin` URLs.
+7. Keep the old `reiki-yggdrasil.vercel.app` redirects during transition; do not remove legacy URLs until live QA passes.
+8. Verify:
    - `https://mentalica.vercel.app/`
    - `https://mentalica.vercel.app/profile`
    - `https://mentalica.vercel.app/masters`
    - `https://mentalica.vercel.app/profile/admin`
+   - `https://supermindnet.vercel.app/`
+   - `https://supermindnet.vercel.app/profile`
+   - `https://supermindnet.vercel.app/masters`
+   - `https://supermindnet.vercel.app/profile/admin`
+   - `https://supermindnet.vercel.app/profile/mandalas`
    - Google login from `/profile`
    - Google login/admin access from `/profile/admin`
    - no console errors

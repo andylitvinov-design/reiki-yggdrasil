@@ -4,6 +4,7 @@
 
 Canonical repo: `andylitvinov-design/reiki-yggdrasil`.
 Target production URL: `https://mentalica.vercel.app`.
+Additional client/live URL: `https://supermindnet.vercel.app` (added in Vercel; Supabase Auth redirects need dashboard verification).
 Current/legacy live URL until migration is verified: `https://reiki-yggdrasil.vercel.app`.
 Framework: Vite + React.
 Hosting: Vercel, `npm run build`, output `dist`.
@@ -71,11 +72,14 @@ When giving the user a terminal prompt for this repo:
 ## Domain migration rules
 
 - The desired production domain is `https://mentalica.vercel.app`.
+- Additional client/live domain: `https://supermindnet.vercel.app` (added in Vercel; Supabase Auth redirects need dashboard verification).
 - Keep `https://reiki-yggdrasil.vercel.app` as legacy/current until the Vercel production alias and Supabase auth flow are verified.
 - Do not remove old Supabase redirect URLs during the migration window.
 - For Supabase Auth and Google OAuth, allow both target and legacy redirects until live QA passes:
   - `https://mentalica.vercel.app/profile`
   - `https://mentalica.vercel.app/profile/admin`
+  - `https://supermindnet.vercel.app/profile`
+  - `https://supermindnet.vercel.app/profile/admin`
   - `https://reiki-yggdrasil.vercel.app/profile`
   - `https://reiki-yggdrasil.vercel.app/profile/admin`
 - The frontend currently builds OAuth redirect URLs from `window.location.origin`; do not replace this with a hardcoded domain.
@@ -156,6 +160,7 @@ Expected SHA: known production commit SHA
 Changes: committed and pushed/merged
 Release approval: yes / needs verification
 Production URL: https://mentalica.vercel.app/
+Additional client live URL: https://supermindnet.vercel.app/
 Legacy URL: https://reiki-yggdrasil.vercel.app/
 ```
 
@@ -193,6 +198,7 @@ During the domain migration window, verify both:
 
 ```text
 https://mentalica.vercel.app/
+https://supermindnet.vercel.app/
 https://reiki-yggdrasil.vercel.app/
 ```
 
@@ -238,6 +244,11 @@ For the domain migration, also verify on the target production URL after Vercel 
 - `https://mentalica.vercel.app/profile`
 - `https://mentalica.vercel.app/masters`
 - `https://mentalica.vercel.app/profile/admin`
+- `https://supermindnet.vercel.app/`;
+- `https://supermindnet.vercel.app/profile`;
+- `https://supermindnet.vercel.app/masters`;
+- `https://supermindnet.vercel.app/profile/admin`;
+- `https://supermindnet.vercel.app/profile/mandalas`;
 - Google OAuth from `/profile` and `/profile/admin`
 
 For the draft/clean release workflow, also verify before production release:

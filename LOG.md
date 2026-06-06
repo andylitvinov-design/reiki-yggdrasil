@@ -1,5 +1,41 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-06 — Add Supermindnet domain and migration checklist
+
+- Branch: `codex/supermindnet-domain-docs`.
+- Base: fresh `origin/main` at `8b7491f`.
+- Scope: Vercel domain setup plus documentation/checklist update only; production branch and app code were not touched.
+- Changed files:
+  - `AGENTS.md`
+  - `README.md`
+  - `docs/release-workflow.md`
+  - `docs/deploy-fallback.md`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `https://supermindnet.vercel.app` to Vercel project `reiki-yggdrasil`;
+  - added Supabase Auth redirect checklist entries for `/profile` and `/profile/admin` on `supermindnet.vercel.app`;
+  - kept existing `mentalica`, legacy `reiki-yggdrasil`, and staging `2mentalica` domain/redirect references;
+  - documented Vercel dashboard verification: client project, repo connection, production branch, domain add result, route QA, and env-name-only checks;
+  - documented that frontend OAuth must continue using `window.location.origin`, old redirects must not be removed during migration, and env values must not be printed or committed.
+- Vercel/live checks:
+  - project identified: `super10/reiki-yggdrasil`, latest production URL `https://mentalica.vercel.app`;
+  - domain add result: `npx vercel domains add supermindnet.vercel.app reiki-yggdrasil` exited `0`;
+  - production env names exist: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_EMAIL`; values were not printed;
+  - HTTP checks returned `200` for `https://supermindnet.vercel.app/`, `/profile`, `/masters`, `/profile/admin`, `/profile/mandalas`, `https://mentalica.vercel.app/`, and `https://reiki-yggdrasil.vercel.app/`.
+- Checks run:
+  - `npm install`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Not verified:
+  - Supabase redirect status;
+  - Google OAuth on `supermindnet.vercel.app`;
+  - browser console/layout QA on `supermindnet.vercel.app` beyond HTTP route checks.
+
 ## 2026-06-06 — Resolve PR #299 conflicts after latest main
 
 - Branch: `codex/public-master-page-mvp`.

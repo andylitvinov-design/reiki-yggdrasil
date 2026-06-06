@@ -45,6 +45,7 @@ client live site
 - Ветка: `production`.
 - Vercel project: текущий клиентский production-проект.
 - URL: текущий клиентский live-домен, `needs verification` перед переключением.
+- Дополнительный client/live URL: `https://supermindnet.vercel.app` — added in Vercel and HTTP route QA passed; Supabase Auth redirects and Google OAuth still need dashboard verification.
 - Данные: production Supabase, реальные пользователи/клиенты.
 - Статус: target model, production branch/dashboard setup still `needs verification`.
 
@@ -212,6 +213,48 @@ Dashboard steps:
 7. Trigger/observe a deployment only from production after release approval.
 ```
 
+### Phase 4a — добавить client/live domain `supermindnet`
+
+Это dashboard/domain setup, не UI rewrite.
+
+В существующем клиентском Vercel project:
+
+```text
+1. Open the intended client-facing Vercel project.
+2. Confirm it is connected to repo andylitvinov-design/reiki-yggdrasil.
+3. Confirm Production Branch is production if release workflow is active; otherwise mark needs verification.
+4. Settings -> Domains -> confirm supermindnet.vercel.app is assigned to the client-facing project.
+5. If Vercel rejects supermindnet.vercel.app as unavailable/reserved, record that exact result and stop. Do not invent a workaround.
+6. Current known result from 2026-06-06: Vercel CLI added supermindnet.vercel.app to project reiki-yggdrasil, and HTTP route QA passed. Keep OAuth status needs verification until Supabase redirects and Google OAuth are checked.
+7. Confirm Production env names exist, without printing values:
+   VITE_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY
+   VITE_ADMIN_EMAIL
+```
+
+Supabase Auth redirect checklist:
+
+```text
+Add:
+https://supermindnet.vercel.app/profile
+https://supermindnet.vercel.app/profile/admin
+
+Keep:
+https://mentalica.vercel.app/profile
+https://mentalica.vercel.app/profile/admin
+https://reiki-yggdrasil.vercel.app/profile
+https://reiki-yggdrasil.vercel.app/profile/admin
+```
+
+For `2mentalica` staging, keep staging references if OAuth is tested there:
+
+```text
+https://2mentalica.vercel.app/profile
+https://2mentalica.vercel.app/profile/admin
+```
+
+Do not remove old redirect URLs during the migration window. Do not hardcode any domain in frontend code; OAuth redirects must continue using `window.location.origin`. Env values must not be printed, committed, or pasted into docs/logs.
+
 ### Phase 5 — настроить Supabase staging для `2mentalica`
 
 Рекомендуется отдельный Supabase project:
@@ -265,6 +308,18 @@ current client live /masters
 current client live /profile/admin
 current client live /profile/mandalas
 ```
+
+For `supermindnet.vercel.app`, verify:
+
+```text
+https://supermindnet.vercel.app/
+https://supermindnet.vercel.app/profile
+https://supermindnet.vercel.app/masters
+https://supermindnet.vercel.app/profile/admin
+https://supermindnet.vercel.app/profile/mandalas
+```
+
+Also verify Google OAuth from `/profile` and `/profile/admin` on `supermindnet.vercel.app` after Supabase redirects are configured.
 
 ## 6. Рабочий процесс разработки
 
@@ -379,6 +434,7 @@ For Power Place / mandala tasks, additionally verify:
 
 - [ ] Existing project identified.
 - [ ] Existing client domain preserved.
+- [x] Client/live domain `https://supermindnet.vercel.app` added to Vercel project `reiki-yggdrasil` on 2026-06-06.
 - [ ] Production branch is `production`.
 - [ ] Env names exist with production values.
 - [ ] Rewrites from `vercel.json` are not broken.
@@ -403,6 +459,7 @@ For Power Place / mandala tasks, additionally verify:
 - [ ] Production env values are not exposed.
 - [ ] Production data is not used for destructive tests.
 - [ ] Redirect URLs include client live domain.
+- [ ] Redirect URLs include `https://supermindnet.vercel.app/profile` and `https://supermindnet.vercel.app/profile/admin` if the domain is added.
 - [ ] Existing redirects are kept during migration window.
 
 ## 12. Rollback
@@ -485,6 +542,8 @@ Every release task must report:
 - URL `https://www.2mentalica.vercel.app` — `needs verification`; may not be available as desired.
 - Branch `production` — `needs verification` until created in GitHub.
 - Client Vercel project production branch switch to `production` — `needs verification`.
+- Client/live URL `https://supermindnet.vercel.app` — added in Vercel and HTTP route QA passed on 2026-06-06; OAuth still needs verification.
+- Supabase Auth redirects for `https://supermindnet.vercel.app/profile` and `https://supermindnet.vercel.app/profile/admin` — `needs verification`.
 - Separate staging Supabase — `needs verification`.
 - GitHub branch protection for `production` — `needs verification`.
 - Exact client live domain — `needs verification` before final migration.

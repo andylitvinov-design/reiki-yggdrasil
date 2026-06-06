@@ -28,6 +28,12 @@ Target production URL:
 https://mentalica.vercel.app/
 ```
 
+Additional client/live URL, added in Vercel on 2026-06-06:
+
+```text
+https://supermindnet.vercel.app/
+```
+
 Legacy/current URL during migration window:
 
 ```text
@@ -135,18 +141,20 @@ Before fallback deploy:
 4. Confirm changes are committed and pushed.
 5. Confirm the release was approved if ref is production.
 6. Check production URL and legacy URL if relevant.
-7. Check workflow/deploy evidence and available live endpoints.
-8. If production is stale, trigger deploy-production.yml.
+7. Check `https://supermindnet.vercel.app/` too because it has been added to the client-facing Vercel project.
+8. Check workflow/deploy evidence and available live endpoints.
+9. If production is stale, trigger deploy-production.yml.
 ```
 
 After fallback deploy:
 
 ```text
 1. Re-check https://mentalica.vercel.app/.
-2. Re-check https://reiki-yggdrasil.vercel.app/ during the migration window.
-3. Verify required pages visually/functionally if the task touched UI/auth/profile/admin routes.
-4. Report workflow result and live verification.
-5. If exact live commit cannot be proven, state that commit-level proof requires build-info/status metadata.
+2. Re-check https://supermindnet.vercel.app/.
+3. Re-check https://reiki-yggdrasil.vercel.app/ during the migration window.
+4. Verify required pages visually/functionally if the task touched UI/auth/profile/admin routes.
+5. Report workflow result and live verification.
+6. If exact live commit cannot be proven, state that commit-level proof requires build-info/status metadata.
 ```
 
 ## Hard rules
@@ -188,6 +196,7 @@ Every deploy-related report must also include:
 ```text
 Live version check:
 - Production URL:
+- Requested client/live URL:
 - Legacy URL:
 - Status/version URL:
 - Expected SHA:

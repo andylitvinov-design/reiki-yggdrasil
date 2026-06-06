@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-06
 
+## 2026-06-06 — Supermindnet live-domain setup
+
+- Branch: `codex/supermindnet-domain-docs`, clean worktree from `origin/main` at `8b7491f`.
+- Scope: Vercel domain setup plus documentation/checklist update only; no UI rewrite, no Vercel rewrite changes, no Supabase schema/migration changes, no env value changes, no production branch change, and no deploy.
+- Changed:
+  - added `https://supermindnet.vercel.app` to Vercel project `reiki-yggdrasil`;
+  - added Supabase Auth redirect checklist entries for `https://supermindnet.vercel.app/profile` and `https://supermindnet.vercel.app/profile/admin`;
+  - preserved existing `https://mentalica.vercel.app`, `https://reiki-yggdrasil.vercel.app`, and `https://2mentalica.vercel.app` references;
+  - documented Vercel dashboard checks for repo connection, production branch, domain add/rejection handling, route QA, and env-name-only verification.
+- Verification:
+  - `npx vercel project ls` identified project `reiki-yggdrasil` with latest production URL `https://mentalica.vercel.app`;
+  - `npx vercel project inspect reiki-yggdrasil` confirmed Vite framework settings and output directory `dist`;
+  - `npx vercel domains add supermindnet.vercel.app reiki-yggdrasil` exited `0` and reported the domain was added;
+  - `npx vercel env ls` showed `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_ADMIN_EMAIL` exist for Production without exposing values;
+  - HTTP checks returned `200` for `https://supermindnet.vercel.app/`, `/profile`, `/masters`, `/profile/admin`, `/profile/mandalas`, plus `https://mentalica.vercel.app/` and `https://reiki-yggdrasil.vercel.app/`;
+  - `npm install`, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - standalone `npm run build` retained the existing Vite large-chunk warning.
+- Not verified:
+  - Supabase Auth redirect dashboard changes;
+  - Google OAuth on `supermindnet.vercel.app`;
+  - browser console/layout QA on `supermindnet.vercel.app` beyond HTTP route checks.
+
 ## 2026-06-06 — PR #299 conflict resolution
 
 - Branch: `codex/public-master-page-mvp`, updated from `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
