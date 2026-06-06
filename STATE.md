@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-06
 
+## 2026-06-06 — Master chats links MVP
+
+- Branch: `codex/master-chats-links-mvp-rebased`, from `origin/main` at `8b7491f` (PR #299 merge).
+- Scope: add "Подтянуть ссылку" link-insertion panel to `/profile/chats` and a pure helper `src/lib/masterChatLinks.js`; add idempotent chat RLS migration. Realtime, payments, attachments, notifications, unread counters, and product cards were not implemented.
+- Changed:
+  - added `src/lib/masterChatLinks.js`: pure helpers `getMasterPagePath`, `getMasterPageUrl`, `getServicePath`, `getServiceUrl`, `getMasterPageInsertText`, `getServiceInsertText`, `filterPublishedServices`; generates only `/masters/:id` and `/services/:id` public paths; never exposes `storage://`, signed URLs, `image_bucket`, `image_path`, or private refs;
+  - updated `src/pages/profile-lite/ProfileLiteChatsModule.jsx`: right column now shows "Подтянуть ссылку" panel with "Моя страница мастера" button and list of own published services; clicking inserts plain-text link into the draft without auto-sending;
+  - added `supabase/migrations/20260606120000_master_chats_links_mvp.sql`: idempotent `do $$...$$` blocks that add six RLS policies (read/insert conversations, read/insert participant rows, read/send messages, manage favorites) only when missing; RLS is also enabled on each chat table; no existing policies are dropped or replaced;
+  - added migration to `ALLOWED_MIGRATIONS` allowlist in `scripts/apply-reiki-supabase-migrations.mjs`;
+  - updated `README.md` with migration description and master chat setup notes;
+  - added `test/masterChatLinks.test.mjs` with 17 pure-function assertions.
+- Verification:
+  - `node test/masterChatLinks.test.mjs` exited `0` (17/17 passed);
+  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:public-master`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Not verified:
+  - live Supabase migration application (migration is `needs verification`);
+  - authenticated browser QA at `/profile/chats` with real sessions, real threads, and real service rows;
+  - Vercel preview, production/legacy live URLs, and Google OAuth.
+- Security:
+  - insert text contains only public `/masters/:id` or `/services/:id` paths;
+  - `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `image_bucket`, `image_path`, `object_refs`, `object_ref_urls`, `Bearer`, and env values are not referenced anywhere in the new code.
+
 ## 2026-06-06 — PR #299 conflict resolution
 
 - Branch: `codex/public-master-page-mvp`, updated from `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.

@@ -138,4 +138,13 @@ Power Place persistence setup:
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.
 
+- `20260606120000_master_chats_links_mvp.sql` adds idempotent RLS policies for the four chat tables (`profile_cabinet_chat_conversations`, `profile_cabinet_chat_participants`, `profile_cabinet_chat_messages`, `profile_cabinet_chat_favorites`) so participants can read/write only their own data.
+
 Master chat setup:
+
+- Chat tables are created by `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql`.
+- RLS policies are added by `20260606120000_master_chats_links_mvp.sql`.
+- `/profile/chats` shows the 3-column chat UI: left conversation list, center messages, right composer.
+- The right column includes "Подтянуть ссылку": one-click insert of the master's public page link (`/masters/:profileId`) or any published service link (`/services/:serviceId`) into the draft. Links are plain text; no auto-send.
+- `src/lib/masterChatLinks.js` is a pure helper for public URL/text generation; it never exposes storage refs, signed URLs, or private composition data.
+

@@ -1,5 +1,17 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-06 — Master chats links MVP
+
+- Branch: `codex/master-chats-links-mvp-rebased`, from `origin/main` at `8b7491f`.
+- Added `src/lib/masterChatLinks.js` — pure public-URL helpers.
+- Updated `/profile/chats` right column with "Подтянуть ссылку" panel: inserts `/masters/:id` or `/services/:id` plain-text links into the draft without auto-sending.
+- Added `supabase/migrations/20260606120000_master_chats_links_mvp.sql` — idempotent RLS policies for the four chat tables.
+- Added migration to migration runner allowlist.
+- Added `test/masterChatLinks.test.mjs` — 17 pure-function assertions.
+- Updated README and STATE.md.
+- All checks passed: `node test/masterChatLinks.test.mjs`, `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:public-master`, `npm run build`, `npm run check`, `git diff --check`.
+- Supabase migration: not applied — needs verification.
+
 ## 2026-06-06 — Resolve PR #299 conflicts after latest main
 
 - Branch: `codex/public-master-page-mvp`.
