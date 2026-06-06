@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { BookOpenText, BriefcaseBusiness, FileText, LayoutGrid, NotebookText, Sparkles } from "lucide-react";
 import { MASTER_PAGE_TABS } from "../../lib/profilePublicMasterClient.js";
 import MasterPagePostCard from "./MasterPagePostCard.jsx";
 
@@ -47,6 +48,15 @@ const DEMO_ITEMS = [
   }
 ];
 
+const TAB_ICONS = {
+  all: LayoutGrid,
+  notes: NotebookText,
+  articles: BookOpenText,
+  mandalas: Sparkles,
+  services: BriefcaseBusiness,
+  materials: FileText
+};
+
 function tabMatches(tabId, item) {
   if (tabId === "all") return true;
   if (tabId === "notes") return item.kind === "note";
@@ -74,6 +84,9 @@ export default function MasterPageFeed({ activeTab, onTabChange, publications, s
     <section className="masterPageFeed" aria-label="Публичная лента мастера">
       <div className="masterPageTabs" role="tablist" aria-label="Фильтр публикаций мастера">
         {MASTER_PAGE_TABS.map((tab) => (
+          (() => {
+            const Icon = TAB_ICONS[tab.id] || LayoutGrid;
+            return (
           <button
             type="button"
             role="tab"
@@ -82,8 +95,11 @@ export default function MasterPageFeed({ activeTab, onTabChange, publications, s
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
           >
+            <Icon size={16} aria-hidden="true" />
             {tab.label}
           </button>
+            );
+          })()
         ))}
       </div>
 

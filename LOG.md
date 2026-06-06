@@ -1,5 +1,50 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-06 — Polish Public Master Page MVP
+
+- Branch: `codex/public-master-page-polish-20260606`.
+- Base: fresh `origin/main` at `8b7491f` (`Merge pull request #299 from andylitvinov-design/codex/public-master-page-mvp`).
+- Changed files:
+  - `src/pages/MasterPublicPage.jsx`
+  - `src/pages/masters/MasterPageHeader.jsx`
+  - `src/pages/masters/MasterPageFeed.jsx`
+  - `src/pages/masters/MasterPagePostCard.jsx`
+  - `src/profileCabinet.css`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - rebuilt the public master hero into one cover/profile header with parchment texture, profile identity, city, bio, counters, and action buttons;
+  - replaced the fallback mandala avatar with a portrait-style CSS placeholder;
+  - added icon-led compact tabs with active underline styling;
+  - converted public feed cards to compact list rows with thumbnail, metadata, date, category, and CTA alignment;
+  - tightened the right sidebar into compact cards for about, contacts, quote, practice status, public-zone safety, and navigation;
+  - removed visible private-reference technical wording from the public sidebar copy.
+- Checks run:
+  - `npm run test:public-master`
+  - `node test/profileLiteRoute.test.mjs`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Browser QA:
+  - local dev server: `http://localhost:4370/`;
+  - screenshots: `master-page-polish-desktop-top-1280x920.png`, `master-page-polish-mobile-390x900.png`;
+  - checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin`;
+  - viewports: `1280x920` and `390x900`;
+  - horizontal overflow was `0` on checked routes;
+  - no framework overlay appeared on checked routes;
+  - desktop aggregate console check reported errors `0` and warnings `0`;
+  - `/masters/demo-master` had no private storage refs, signed URL markers, `object_refs`, bearer markers, or composition JSON markers in DOM/text.
+- Not verified:
+  - real Supabase approved-profile/publication/service rows;
+  - Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+- Risks:
+  - fallback portrait is a CSS illustration until real public-safe avatar images exist;
+  - real data density may need another pass once approved production/staging rows are available.
+
 ## 2026-06-06 — Resolve PR #299 conflicts after latest main
 
 - Branch: `codex/public-master-page-mvp`.
