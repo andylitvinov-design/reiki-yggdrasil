@@ -2,6 +2,35 @@
 
 Last updated: 2026-06-06
 
+## 2026-06-06 — Public Master Page visual polish
+
+- Branch: `codex/public-master-page-polish-20260606`, based on `origin/main` at `8b7491f`.
+- Scope: visual/UI polish only for `/masters/demo-master` and the existing public master page components; no Supabase migration, no production branch changes, no deploy/fallback workflow.
+- Changed:
+  - replaced the dark empty cover with a lighter parchment/gold/green textured hero;
+  - moved avatar, name, role, city, bio, counters, and actions into one Facebook-like master header;
+  - changed the demo/fallback avatar from a mandala symbol to a portrait-style placeholder;
+  - made tabs compact, horizontal, icon-led, and underline-active;
+  - changed feed cards from large blog cards to compact list rows with left thumbnails, right content, date, category, and CTA alignment;
+  - tightened the right sidebar into compact public cards for `О мастере`, contacts, quote, status, safety, and navigation;
+  - removed visible technical private-reference wording from public sidebar copy.
+- Verification:
+  - `npm run test:public-master`, `node test/profileLiteRoute.test.mjs`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4370/`;
+  - screenshots captured for `/masters/demo-master` at desktop `1280x920` and mobile `390x900`;
+  - desktop `1280x920`: hero, tabs, right rail, and 2 visible compact feed cards were in the first viewport; after scroll position from the screenshot run, 3 feed cards were visible; horizontal overflow `0`;
+  - mobile `390x900`: stacked hero/tabs/sidebar flow had horizontal overflow `0`;
+  - route sweep checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin` at desktop and mobile for route rendering, no framework overlay, and horizontal overflow `0`;
+  - `/masters/demo-master` DOM/text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `signed URL`, `object_refs`, `object refs`, bearer token markers, or composition JSON markers;
+  - Playwright desktop aggregate console check showed errors `0` and warnings `0`; the MCP browser target closed before the final mobile aggregate console pull, but each mobile route rendered without framework overlay.
+- Not verified:
+  - real Supabase public rows, Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+- Risks:
+  - the demo portrait is CSS-generated, not a real uploaded master photo;
+  - real master rows still depend on public-safe approved data from Supabase.
+
 ## 2026-06-06 — PR #299 conflict resolution
 
 - Branch: `codex/public-master-page-mvp`, updated from `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
