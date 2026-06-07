@@ -1,6 +1,46 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-06
+Last updated: 2026-06-07
+
+## 2026-06-07 — Private Courses MVP with individual access
+
+- Branch: `codex/profile-courses-individual-access-mvp`, clean worktree from `origin/main` at `0b0584c`.
+- Scope: private Courses MVP inside the existing Profile Lite cabinet and `/profile/admin`; no payments, progress, certificates, homework, quizzes, comments, notifications, drip access, public course catalog, public feed integration, public master-page course cards, private video upload, production deploy, or live Supabase migration.
+- Migration added:
+  - `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`;
+  - adds `profile_cabinet_courses`, `profile_cabinet_course_steps`, `profile_cabinet_course_lessons`, and `profile_cabinet_course_access`;
+  - uses individual access only: `access_scope='course'` + `step_id is null` for full course access, `access_scope='step'` + `step_id` for step access, lessons inherit parent-step access, revoked rows keep `status='revoked'`;
+  - RLS reuses existing `profile_cabinet_is_admin()` for admin CRUD and allows profile owners to read only personally accessible published courses/steps/lessons/access rows.
+- Changed:
+  - added `src/lib/profileCoursesClient.js` with normalizers, RU labels, `buildCourseAccessIndex`, admin CRUD, grant/revoke, and available-course/step/lesson loaders;
+  - added `/profile/courses` manual route and Vercel SPA rewrite;
+  - added visible Profile Lite tab `Курсы` between `Гримуар` and `Услуги`;
+  - added `ProfileLiteCoursesModule.jsx` with left course list, center selected course/steps/lessons, and right access note;
+  - wired separate course, step, and lesson effects into `ProfileLitePage.jsx`;
+  - extracted `src/pages/admin/AdminCoursesPanel.jsx` for compact course, step, lesson, access manager, and current access list inside `/profile/admin`;
+  - updated migration apply allowlist/schema checks and README setup list.
+- Master UI behavior:
+  - `/profile/courses` shows only loaded accessible published courses, available published steps, and published lessons inside the selected accessible step;
+  - lesson `body` renders as plain text, YouTube/Vimeo iframe embeds are allowed, other safe public video URLs render as external links, and audio renders only for safe `http/https` URLs;
+  - storage refs, signed URL markers, bearer markers, and env values are filtered from course media rendering.
+- Admin UI behavior:
+  - `/profile/admin` now has `Курсы и доступы`;
+  - admin can create/update courses, steps, lessons, grant full-course or specific-step access, view current access rows, and revoke by patching `status='revoked'`;
+  - approved master profile selector uses display name and `user_id` fallback because profile rows do not store email.
+- Verification:
+  - `node test/profileCoursesClient.test.mjs` exited `0`;
+  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:profile-materials`, `npm run test:profile-feed`, `npm run test:public-master`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - local preview route HTTP checks returned `200` for `/`, `/profile/courses`, `/profile/admin`, `/profile`, `/profile/services`, and `/masters`.
+- Not verified:
+  - live Supabase migration application, authenticated admin CRUD/grant/revoke against real Supabase, authenticated master course access with real rows, Vercel preview, production/legacy live URLs, Google OAuth, desktop/mobile visual browser QA.
+- Tooling note:
+  - `npm install` in the clean worktree failed with `ENOSPC`; validation used a temporary symlink to the canonical checkout `node_modules`, then removed it;
+  - Playwright MCP browser transport was closed and Chrome DevTools MCP reported a profile conflict, so visual/browser QA could not be completed in this turn.
+- Risks:
+  - live course UI remains empty or `needs-verification` until the new migration is applied and course/access rows exist;
+  - admin writes depend on real `profile_cabinet_admins` membership and live RLS state;
+  - real course media URLs should be reviewed to avoid storing private signed URLs in lesson fields.
 
 ## 2026-06-06 — Public Master Page visual polish
 

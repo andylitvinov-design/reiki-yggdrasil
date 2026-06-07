@@ -6,6 +6,7 @@ export const PROFILE_LITE_TABS = [
   { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
   { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
   { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
+  { id: "courses", label: "Курсы", href: "/profile/courses" },
   { id: "services", label: "Услуги", href: "/profile/services" },
   { id: "orders", label: "Заказы", href: "/profile/orders" },
   { id: "chats", label: "Чаты", href: "/profile/chats" }
@@ -43,6 +44,7 @@ export function getProfileLiteRouteByTabId(tabId) {
 export function getProfileLiteInitialTabFromLocation(pathname = "/profile", search = "") {
   const routeTabMap = {
     "/profile/mandalas": "mandalas",
+    "/profile/courses": "courses",
     "/profile/services": "services",
     "/profile/orders": "orders",
     "/profile/chats": "chats",

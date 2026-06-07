@@ -18,6 +18,7 @@ import {
   supabaseEnv,
   updateProfileStatus
 } from "../lib/supabaseClient.js";
+import AdminCoursesPanel from "./admin/AdminCoursesPanel.jsx";
 
 const EMPTY_TEST_EVENT = {
   activity_type: "master_update",
@@ -248,6 +249,10 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
               </article>
             ))}
           </div>
+        )}
+
+        {!loading && user && isAdminUser(user) && (
+          <AdminCoursesPanel session={session} />
         )}
 
         {!loading && user && isAdminUser(user) && (
