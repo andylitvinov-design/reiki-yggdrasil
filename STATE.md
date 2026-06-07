@@ -17,9 +17,17 @@ Last updated: 2026-06-06
   - `node test/masterChatLinks.test.mjs` exited `0` (17/17 passed);
   - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:public-master`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
   - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4380/`;
+  - Chrome browser MCP used;
+  - desktop `1280x920` and mobile `390x900` checked for all six routes: `/profile/chats`, `/profile/services`, `/services/test-service`, `/masters`, `/masters/demo-master`, `/profile/admin`;
+  - horizontal overflow was `0` on all routes at both viewports;
+  - console errors were `0`;
+  - DOM/HTML for all routes contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `image_bucket`, `image_path`, `object_refs`, `object_ref_urls`, or `Bearer`;
+  - Node.js script confirmed: `getMasterPageInsertText("test-profile-123")` → `/masters/test-profile-123` (no private refs); `getServiceInsertText({id:"svc-abc",title:"Зодиак"})` → `Зодиак: /services/svc-abc` (no private refs).
 - Not verified:
   - live Supabase migration application (migration is `needs verification`);
-  - authenticated browser QA at `/profile/chats` with real sessions, real threads, and real service rows;
+  - authenticated browser QA at `/profile/chats` with real sessions, real threads, and real service rows (Supabase not configured locally);
   - Vercel preview, production/legacy live URLs, and Google OAuth.
 - Security:
   - insert text contains only public `/masters/:id` or `/services/:id` paths;
