@@ -9,8 +9,7 @@ Last updated: 2026-06-06
 - Changed:
   - added `src/lib/masterChatLinks.js`: pure helpers `getMasterPagePath`, `getMasterPageUrl`, `getServicePath`, `getServiceUrl`, `getMasterPageInsertText`, `getServiceInsertText`, `filterPublishedServices`; generates only `/masters/:id` and `/services/:id` public paths; never exposes `storage://`, signed URLs, `image_bucket`, `image_path`, or private refs;
   - updated `src/pages/profile-lite/ProfileLiteChatsModule.jsx`: right column now shows "Подтянуть ссылку" panel with "Моя страница мастера" button and list of own published services; clicking inserts plain-text link into the draft without auto-sending;
-  - added `supabase/migrations/20260606120000_master_chats_links_mvp.sql`: idempotent `do $$...$$` blocks that add six RLS policies (read/insert conversations, read/insert participant rows, read/send messages, manage favorites) only when missing; RLS is also enabled on each chat table; no existing policies are dropped or replaced;
-  - added migration to `ALLOWED_MIGRATIONS` allowlist in `scripts/apply-reiki-supabase-migrations.mjs`;
+  - no new Supabase migration: chat tables, RLS enable, and all six RLS policies (`participants read conversations`, `profile owners create conversations`, `participants read participant rows`, `owners join own conversations`, `participants read messages`, `participants send messages`, `owners manage chat favorites`) already exist in `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql` using the `profile_cabinet_owns_profile` and `profile_cabinet_is_chat_participant` UUID-based helpers; the initially added `20260606120000_master_chats_links_mvp.sql` was removed because it contained incorrect `auth.uid()::text` UUID comparisons and was redundant;
   - updated `README.md` with migration description and master chat setup notes;
   - added `test/masterChatLinks.test.mjs` with 17 pure-function assertions.
 - Verification:
@@ -25,8 +24,8 @@ Last updated: 2026-06-06
   - console errors were `0`;
   - DOM/HTML for all routes contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `image_bucket`, `image_path`, `object_refs`, `object_ref_urls`, or `Bearer`;
   - Node.js script confirmed: `getMasterPageInsertText("test-profile-123")` → `/masters/test-profile-123` (no private refs); `getServiceInsertText({id:"svc-abc",title:"Зодиак"})` → `Зодиак: /services/svc-abc` (no private refs).
+- Supabase migration: no new migration needed; chat RLS already created by `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql`.
 - Not verified:
-  - live Supabase migration application (migration is `needs verification`);
   - authenticated browser QA at `/profile/chats` with real sessions, real threads, and real service rows (Supabase not configured locally);
   - Vercel preview, production/legacy live URLs, and Google OAuth.
 - Security:

@@ -5,8 +5,7 @@
 - Branch: `codex/master-chats-links-mvp-rebased`, from `origin/main` at `8b7491f`.
 - Added `src/lib/masterChatLinks.js` — pure public-URL helpers.
 - Updated `/profile/chats` right column with "Подтянуть ссылку" panel: inserts `/masters/:id` or `/services/:id` plain-text links into the draft without auto-sending.
-- Added `supabase/migrations/20260606120000_master_chats_links_mvp.sql` — idempotent RLS policies for the four chat tables.
-- Added migration to migration runner allowlist.
+- No new Supabase migration: chat tables and all RLS policies already exist in `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql`. Initial `20260606120000_master_chats_links_mvp.sql` was removed because it contained incorrect `auth.uid()::text` UUID comparisons and was redundant with the existing migration.
 - Added `test/masterChatLinks.test.mjs` — 17 pure-function assertions.
 - Updated README and STATE.md.
 - All checks passed: `node test/masterChatLinks.test.mjs`, `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:public-master`, `npm run build`, `npm run check`, `git diff --check`.
