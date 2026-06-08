@@ -2696,6 +2696,26 @@
     linear-gradient(135deg, #09070c, #241a3d 58%, #8a5a13);
 }
 
+.coverPreview.tone-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520);
+}
+
+.coverPreview.tone-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d);
+}
+
+.coverPreview.tone-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a);
+}
+
+.coverPreview.tone-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00);
+}
+
+.coverPreview.tone-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499);
+}
+
 .coverUploadButton {
   position: relative;
   display: inline-flex;
@@ -3261,6 +3281,114 @@
     radial-gradient(circle at 50% 45%, rgba(255, 243, 204, 0.86) 0 18%, rgba(67, 46, 91, 0.42) 42%, rgba(28, 19, 44, 0.72) 100%),
     repeating-conic-gradient(from 0deg, rgba(232, 179, 68, 0.16) 0 8deg, transparent 9deg 18deg);
 }
+
+.powerMandala.cover-gradient-gold,
+.altarMandalaSheet.cover-gradient-gold,
+.businessMandalaSheet.cover-gradient-gold,
+.zodiacMandalaSheet.cover-gradient-gold,
+.starMandalaSheet.cover-gradient-gold,
+.power-place-chess.cover-gradient-gold,
+.daoMandalaSheet.cover-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520);
+}
+
+.powerMandala.cover-gradient-forest,
+.altarMandalaSheet.cover-gradient-forest,
+.businessMandalaSheet.cover-gradient-forest,
+.zodiacMandalaSheet.cover-gradient-forest,
+.starMandalaSheet.cover-gradient-forest,
+.power-place-chess.cover-gradient-forest,
+.daoMandalaSheet.cover-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d);
+}
+
+.powerMandala.cover-gradient-night,
+.altarMandalaSheet.cover-gradient-night,
+.businessMandalaSheet.cover-gradient-night,
+.zodiacMandalaSheet.cover-gradient-night,
+.starMandalaSheet.cover-gradient-night,
+.power-place-chess.cover-gradient-night,
+.daoMandalaSheet.cover-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a);
+}
+
+.powerMandala.cover-gradient-fire,
+.altarMandalaSheet.cover-gradient-fire,
+.businessMandalaSheet.cover-gradient-fire,
+.zodiacMandalaSheet.cover-gradient-fire,
+.starMandalaSheet.cover-gradient-fire,
+.power-place-chess.cover-gradient-fire,
+.daoMandalaSheet.cover-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00);
+}
+
+.powerMandala.cover-gradient-water,
+.altarMandalaSheet.cover-gradient-water,
+.businessMandalaSheet.cover-gradient-water,
+.zodiacMandalaSheet.cover-gradient-water,
+.starMandalaSheet.cover-gradient-water,
+.power-place-chess.cover-gradient-water,
+.daoMandalaSheet.cover-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499);
+}
+
+/* gradient tones in print/PDF area */
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-gold,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-gold,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-forest,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-forest,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-night,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-night,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-fire,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-fire,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-water,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-water,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499) !important;
+}
+
+/* outer panel gradient tones */
+.powerMandalaPanel.outer-cover-gradient-gold { background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520); }
+.powerMandalaPanel.outer-cover-gradient-forest { background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d); }
+.powerMandalaPanel.outer-cover-gradient-night { background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a); }
+.powerMandalaPanel.outer-cover-gradient-fire { background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00); }
+.powerMandalaPanel.outer-cover-gradient-water { background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499); }
 
 .powerMandala.cover-gold,
 .altarMandalaSheet.cover-gold,

@@ -326,4 +326,34 @@ assert.ok(
   `count-4 motion photo must be at least 11% wide to be visible as a full circle (got ${count4PercentMatch[1]}%)`
 );
 
+// ─── Gradient tones: CSS coverage ────────────────────────────────────────────
+
+for (const tone of ["gradient-gold", "gradient-forest", "gradient-night", "gradient-fire", "gradient-water"]) {
+  assert.ok(
+    cssSource.includes(`cover-${tone}`),
+    `CSS must define cover-${tone} rule for mandala inner surface gradient preset`
+  );
+  assert.ok(
+    cssSource.includes(`.coverPreview.tone-${tone}`),
+    `CSS must define .coverPreview.tone-${tone} rule for the cover preview chip`
+  );
+}
+
+assert.ok(
+  cssSource.includes("powerPlacePdfOnlyArea") && cssSource.includes("cover-gradient-gold"),
+  "print area must include gradient-gold coverage for PDF export"
+);
+
+// ─── Top photoScaleControl removed; slot photo editor has Масштаб фото ────────
+
+assert.ok(
+  !baseSource.includes('className: "photoScaleControl"') && !baseSource.includes('className="photoScaleControl"'),
+  "top photoScaleControl must no longer be rendered in constructor controls"
+);
+
+assert.ok(
+  baseSource.includes("Масштаб фото"),
+  "renderSlotPhotoEditor must include Масштаб фото zoom slider"
+);
+
 console.log("powerPlaceStyleContract: all assertions passed");
