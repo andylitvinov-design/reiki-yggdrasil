@@ -433,8 +433,38 @@ assert.ok(
 );
 
 assert.ok(
+  baseSource.includes("mandalaStyleSelector daoStyleSelector"),
+  "DAO style selector must also carry mandalaStyleSelector class for shared pill button styling"
+);
+
+assert.ok(
   baseSource.includes("__dao_style") && baseSource.includes('"__dao_style"'),
   "Base module must use __dao_style to read/write the DAO style"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanPureMarks"),
+  ".daoTalismanPureMarks must be defined in CSS for the three pure marks header"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanBody"),
+  ".daoTalismanBody must be defined in CSS for the absolute-positioned slot area"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanCenterArea"),
+  ".daoTalismanCenterArea must be defined in CSS for the talisman center photo positioning"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanSlot--water") && cssSource.includes(".daoTalismanSlot--fire"),
+  "CSS must define absolute positions for individual talisman slot variants"
+);
+
+assert.ok(
+  cssSource.includes(".powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman"),
+  "print area must include talisman-specific print/PDF rules"
 );
 
 // Slot IDs must remain unchanged in talisman mode
