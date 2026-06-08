@@ -1351,21 +1351,21 @@ export default function ProfileLitePowerPlaceModule({
       </label>
       <div className="powerPlaceActions powerPlaceActions--save">
         <button
-          className="cabinetPrimary"
+          className="cabinetPrimary powerPlaceUpdateButton"
           type="button"
           onClick={onUpdateExisting}
           disabled={updateExistingDisabled}
           title={updateExistingDisabled ? "Сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}
-          aria-label={updateExistingDisabled ? "Сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}>
+          aria-label={updateExistingDisabled ? "Обновить: сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}>
           Обновить
         </button>
         <button
-          className="cabinetSecondary"
+          className="cabinetSecondary powerPlaceCreateButton"
           type="button"
           onClick={handleSaveNewClick}
           disabled={createNewDisabled}
           title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}
-          aria-label={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}>
+          aria-label={createNewDisabled ? "Создать новую: лимит сохранённых мандал достигнут" : "Создать новую мандалу"}>
           Создать новую
         </button>
       </div>

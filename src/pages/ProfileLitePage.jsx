@@ -435,10 +435,10 @@ function openPowerPlacePdfPrintView(title) {
   ${collectPrintableStyles()}
   <style>
     body{margin:0;background:#fffaf0;color:#2f2418}
-    body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:auto!important;height:auto!important;page-break-after:auto}
+    body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:auto!important;height:auto!important;break-inside:avoid;page-break-inside:avoid}
     @page{size:auto;margin:10mm}
     #pdfStatus{position:fixed;top:0;left:0;right:0;padding:12px;background:#f5f0e8;text-align:center;font-family:sans-serif;font-size:14px;color:#5a4030;z-index:9999}
-    @media print{html,body{margin:0!important;padding:0!important;background:#fff!important}#pdfStatus{display:none!important}.powerPlacePdfOnlyArea{break-inside:avoid;page-break-inside:avoid;margin:0 auto!important}button,input,textarea,select{pointer-events:none}}
+    @media print{html,body{margin:0!important;padding:0!important;background:#fff!important}#pdfStatus{display:none!important}.powerPlacePdfOnlyArea{break-inside:avoid;page-break-inside:avoid;margin:0 auto!important}}
   </style>
 </head>
 <body class="printMandalaOnly">
@@ -1619,7 +1619,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionSaveNew = async () => {
-    setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.clicked);
+    setCompositionMessage("Создаём новую мандалу…");
     await Promise.resolve();
     setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.profile);
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
@@ -1678,20 +1678,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
         };
       });
-      setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы. " + POWER_PLACE_SAVE_STAGE_MESSAGES.success);
+      setCompositionMessage("Новая мандала создана и открыта в конструкторе. Место силы сохранено и добавлено в Мои мандалы.");
       setMandalasStatus("success");
     } catch (error) {
       const failedStage = error?.details?.stage || "POST";
-      const failureMessage = powerPlaceSaveFailureMessage(failedStage, error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied");
+      const safeMsg = moduleError(error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied");
       setMandalasStatus("needs-verification");
-      setMandalasError("Место силы не сохранилось: " + moduleError(error, "profile_cabinet_power_place_compositions create failed or migration/RLS not applied"));
-      setCompositionMessage(failureMessage);
+      setMandalasError("Место силы не сохранилось: " + safeMsg);
+      setCompositionMessage("Новая мандала не создана: " + powerPlaceSaveFailureMessage(failedStage, error, safeMsg));
       return;
     }
     try {
       setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.refresh);
       await refreshSavedCompositions(saved);
-      setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы. " + POWER_PLACE_SAVE_STAGE_MESSAGES.success);
+      setCompositionMessage("Новая мандала создана и открыта в конструкторе. Место силы сохранено и добавлено в Мои мандалы.");
     } catch {
       setCompositionMessage("Мандала сохранена, но список не обновился. Обновите кабинет, если она не появилась в списке.");
     }

@@ -353,6 +353,12 @@ assert.match(profileLitePageSource, /handleCompositionUpdateExisting[\s\S]*updat
 assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const createNewDisabled = savedCompositionCount >= savedCompositionLimit[\s\S]*const updateExistingDisabled = !compositionDraft\.id/, "Power Place UI should compute separate create-new and update-existing disabled flags");
 assert.match(powerPlaceBaseSource, /disabled=\{updateExistingDisabled\}[\s\S]*title=\{updateExistingDisabled[\s\S]*aria-label=\{updateExistingDisabled/, "Update button should show an explanatory title and aria-label when disabled");
 assert.match(powerPlaceBaseSource, /disabled=\{createNewDisabled\}[\s\S]*title=\{createNewDisabled[\s\S]*aria-label=\{createNewDisabled/, "Create-new button should show an explanatory title and aria-label when at limit");
+assert.doesNotMatch(powerPlaceBaseSource, /handleSaveCompositionClick/, "handleSaveCompositionClick must be removed — two explicit buttons replace it");
+assert.match(profileLitePageSource, /const handlePrintComposition[\s\S]*openPowerPlacePdfPrintView/, "handlePrintComposition must use the clean print window, not direct window.print");
+assert.doesNotMatch(profileLitePageSource, /handlePrintComposition[\s\S]*body\.classList\.add\("printMandalaOnly"\)/, "handlePrintComposition must not apply printMandalaOnly to the main body");
+assert.doesNotMatch(powerPlaceBaseSource, /const createNewDisabled\s*=.*!compositionDraft\.id/, "createNewDisabled definition must not depend on compositionDraft.id — only on the plan limit");
+assert.match(powerPlaceBaseSource, /powerPlaceUpdateButton/, "Update button must carry powerPlaceUpdateButton class for scoped targeting");
+assert.match(powerPlaceBaseSource, /powerPlaceCreateButton/, "Create-new button must carry powerPlaceCreateButton class for scoped targeting");
 assert.match(powerPlaceSource, /\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "Power Place UI should show count text like 7/7 сохранённых мест силы");
 for (const servicesManagerText of [
   "Черновики",

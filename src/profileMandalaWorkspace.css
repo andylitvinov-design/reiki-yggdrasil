@@ -2696,7 +2696,7 @@
 
 .profileLitePowerPlace .powerPlaceActions button:disabled {
   cursor: not-allowed;
-  opacity: 0.48;
+  opacity: 0.55;
   filter: grayscale(0.35);
   box-shadow: none;
 }
@@ -2704,11 +2704,18 @@
 .profileLitePowerPlace .powerPlaceActions--save,
 .profileLitePowerPlace .powerPlaceActions--export,
 .profileLitePowerPlace .powerPlaceActions--service {
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  width: 100%;
+  align-items: center;
   margin-top: 0;
+}
+
+.profileLitePowerPlace .powerPlaceActions--save button,
+.profileLitePowerPlace .powerPlaceActions--export button,
+.profileLitePowerPlace .powerPlaceActions--service button {
+  flex: 1 1 calc(50% - 8px);
 }
 
 .profileLitePowerPlace .powerPlaceActionsMeta {
@@ -5997,6 +6004,8 @@
 .profileLitePowerPlace .profileLitePowerPlaceActions {
   width: min(560px, 100%);
   justify-self: center;
+  display: grid;
+  gap: 10px;
 }
 
 .profileLitePowerPlace .profileLiteAdvancedJson {
