@@ -2002,7 +2002,7 @@
 }
 
 .profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
-  width: clamp(34px, 10.5%, 62px);
+  width: clamp(40px, 13%, 72px);
 }
 
 .businessMandalaSheet {
@@ -7883,7 +7883,7 @@
   }
 
   .profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
-    width: clamp(26px, 9vw, 44px);
+    width: clamp(30px, 11vw, 52px);
   }
 }
 
