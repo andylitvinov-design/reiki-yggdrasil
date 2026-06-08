@@ -69,8 +69,21 @@
         justify-self: center !important;
         align-self: center !important;
         overflow: visible !important;
-        max-width: min(440px, var(--profile-lite-inner-field-scale, 78%)) !important;
-        width: min(440px, var(--profile-lite-inner-field-scale, 78%)) !important;
+        max-width: var(--profile-lite-inner-field-scale, 78%) !important;
+        width: var(--profile-lite-inner-field-scale, 78%) !important;
+      }
+      @media (max-width: 640px) {
+        .profileLitePowerPlace .powerMandalaPanel,
+        .powerPlacePdfOnlyArea .powerMandalaPanel {
+          overflow: hidden !important;
+        }
+        .profileLitePowerPlace .zodiacPositionImage,
+        .profileLitePowerPlace .zodiacFieldPlusPositionImage {
+          width: min(94px, 100%) !important;
+        }
+        .profileLitePowerPlace .daoElementImage {
+          width: min(96px, 100%) !important;
+        }
       }
       .profileLitePowerPlace .powerMandalaPanel.center-shape-circle > .power-place-chess,
       .profileLitePowerPlace .powerMandalaPanel.center-shape-circle > .powerMandala,
@@ -151,20 +164,23 @@
     mergeReportAndAnalysis();
     const refs = parseObjectRefs();
     const scaleRaw = Number(refs.__inner_field_scale);
-    const scale = Number.isFinite(scaleRaw) ? Math.min(100, Math.max(48, scaleRaw)) : 78;
+    const scale = Number.isFinite(scaleRaw) ? Math.min(230, Math.max(48, scaleRaw)) : 78;
     const shape = refs.__center_shape === 'circle' ? 'circle' : 'square';
 
     document.querySelectorAll('.profileLitePowerPlace .powerMandalaPanel, .powerPlacePdfOnlyArea .powerMandalaPanel').forEach((panel) => {
       panel.style.setProperty('--profile-lite-inner-field-scale', `${scale}%`);
+      panel.style.setProperty('overflow', 'hidden', 'important');
       panel.classList.toggle('center-shape-circle', shape === 'circle');
       panel.classList.toggle('center-shape-square', shape !== 'circle');
       panel.querySelectorAll(INNER_SELECTOR).forEach((inner) => {
         inner.style.setProperty('overflow', 'visible', 'important');
+        inner.style.setProperty('width', `${scale}%`, 'important');
+        inner.style.setProperty('max-width', `${scale}%`, 'important');
       });
     });
 
     document.querySelectorAll('.innerFieldScaleControl input[type="range"]').forEach((input) => {
-      input.max = '100';
+      input.max = '230';
       if (Number(input.value) !== scale) input.value = String(scale);
     });
   }
@@ -174,7 +190,7 @@
       const input = event.target;
       if (!(input instanceof HTMLInputElement)) return;
       if (!input.closest('.innerFieldScaleControl')) return;
-      const scale = Math.min(100, Math.max(48, Number(input.value) || 78));
+      const scale = Math.min(230, Math.max(48, Number(input.value) || 78));
       updateObjectRefs({ __inner_field_scale: String(scale) });
       requestAnimationFrame(applyState);
     }, true);
