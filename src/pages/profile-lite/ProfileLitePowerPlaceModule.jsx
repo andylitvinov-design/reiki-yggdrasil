@@ -67,6 +67,10 @@ function clampCenterImageZoom(value) {
   return Math.min(1.8, Math.max(0.65, parsed));
 }
 
+function daoStyleValue(value) {
+  return value === "talisman" ? "talisman" : "style-1";
+}
+
 function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom) {
   const centerRadius = centerShape === "circle" ? "50%" : "24px";
   // innerFieldWidthDesktop / innerFieldWidthMobile kept for tests; absolute centering uses % directly.
@@ -538,7 +542,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageOffsetY = clampCenterImageOffset(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
   const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
-  const daoStyle = objectRefs[DAO_STYLE_REF_KEY] || "style-1";
+  const daoStyle = daoStyleValue(objectRefs[DAO_STYLE_REF_KEY]);
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
@@ -577,7 +581,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     }
 
     if (field === DAO_STYLE_REF_KEY) {
-      writeObjectRefs({ ...objectRefs, [DAO_STYLE_REF_KEY]: value });
+      writeObjectRefs({ ...objectRefs, [DAO_STYLE_REF_KEY]: daoStyleValue(value) });
       return;
     }
 

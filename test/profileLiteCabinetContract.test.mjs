@@ -999,6 +999,29 @@ assert.match(
   "Wrapper module must pass daoStyle to enhancedDraft as __dao_style"
 );
 
+assert.match(
+  powerPlaceSource,
+  /function daoStyleValue\(/,
+  "Wrapper module must define daoStyleValue normalizer"
+);
+
+// Talisman must be nested inside daoMandalaSheet — outer surface preserved
+assert.match(
+  powerPlaceBaseSource,
+  /dao-talisman/,
+  "daoMandalaSheet must receive dao-talisman modifier class in talisman mode"
+);
+
+// daoTalismanScroll must appear after daoMandalaSheet in source (nested, not standalone root)
+{
+  const mandalaSheetIdx = powerPlaceBaseSource.indexOf("daoMandalaSheet");
+  const talismanScrollIdx = powerPlaceBaseSource.indexOf("daoTalismanScroll");
+  assert.ok(
+    mandalaSheetIdx >= 0 && talismanScrollIdx > mandalaSheetIdx,
+    "daoTalismanScroll must be nested inside daoMandalaSheet (daoMandalaSheet must appear first in source)"
+  );
+}
+
 // Existing DAO slot IDs must not change: dao-water, dao-wood, dao-fire, dao-earth, dao-metal
 for (const element of ["water", "wood", "fire", "earth", "metal"]) {
   assert.ok(

@@ -2183,6 +2183,17 @@
 
 /* ── DAO Talisman scroll style ──────────────────────────────────────────── */
 
+/* The outer surface stays .daoMandalaSheet so field_scale, print/PDF, and cover
+   contracts are inherited unchanged. .dao-talisman overrides the visual shape.
+   .daoTalismanScroll is nested inside and fills the outer surface. */
+
+.daoMandalaSheet.dao-talisman {
+  border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(180deg, #f5e47a 0%, #f9f0b0 30%, #fdf8d8 60%, #f5e47a 100%);
+  border: 2px solid rgba(139, 90, 15, 0.55);
+  box-shadow: inset 0 0 0 4px rgba(184, 121, 29, 0.18), 0 4px 18px rgba(100, 60, 10, 0.18);
+}
+
 .daoTalismanScroll {
   position: relative;
   display: flex;
@@ -2190,13 +2201,7 @@
   align-items: center;
   width: 100%;
   height: 100%;
-  aspect-ratio: 1 / 2.2;
-  background: linear-gradient(180deg, #f5e47a 0%, #f9f0b0 30%, #fdf8d8 60%, #f5e47a 100%);
-  border-radius: 8px 8px 12px 12px;
-  border: 2px solid rgba(139, 90, 15, 0.55);
-  box-shadow: inset 0 0 0 4px rgba(184, 121, 29, 0.18), 0 4px 18px rgba(100, 60, 10, 0.18);
   overflow: hidden;
-  padding: 0;
 }
 
 .daoTalismanRoof {

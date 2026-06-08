@@ -368,11 +368,27 @@ assert.ok(
   "daoStyle must be passed through enhancedDraft as __dao_style"
 );
 
+assert.ok(
+  moduleSource.includes("function daoStyleValue("),
+  "daoStyleValue normalizer must be defined in the wrapper module"
+);
+
+assert.ok(
+  moduleSource.includes('return value === "talisman" ? "talisman" : "style-1"'),
+  "daoStyleValue must return talisman or style-1 — no other values"
+);
+
 // ─── DAO talisman: CSS and JSX contracts ─────────────────────────────────────
+
+// Outer surface stays .daoMandalaSheet — field_scale, print/PDF and cover contracts inherited
+assert.ok(
+  cssSource.includes(".daoMandalaSheet.dao-talisman"),
+  ".daoMandalaSheet.dao-talisman must override visual shape while keeping outer surface class"
+);
 
 assert.ok(
   cssSource.includes(".daoTalismanScroll"),
-  ".daoTalismanScroll must be defined in CSS for the talisman layout"
+  ".daoTalismanScroll must be defined in CSS (nested inside .daoMandalaSheet)"
 );
 
 assert.ok(
@@ -390,9 +406,15 @@ assert.ok(
   ".daoTalismanSlot must be defined in CSS for talisman element slots"
 );
 
+// JSX: talisman is rendered inside daoMandalaSheet (not as a standalone root)
+assert.ok(
+  baseSource.includes("dao-talisman"),
+  "Base module must add dao-talisman class modifier to daoMandalaSheet"
+);
+
 assert.ok(
   baseSource.includes("daoTalismanScroll"),
-  "Base module must render daoTalismanScroll for talisman style"
+  "Base module must render daoTalismanScroll nested inside daoMandalaSheet"
 );
 
 assert.ok(
