@@ -135,7 +135,12 @@ const EMPTY_COMPOSITION = {
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
+const VALID_MOTION_MODES = ["photo", "video"];
+const VALID_VIDEO_COUNTS = [1, 4];
+const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
+const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -143,6 +148,13 @@ const EMPTY_PROFILE_LITE_REPORT = {
   mandala_effect: "",
   extra_help: "",
   master_note: ""
+};
+const EMPTY_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
 };
 const EMPTY_ORDER_PATCH = {
   id: "",
@@ -294,6 +306,38 @@ function normalizeFieldLayout(value) {
   return VALID_FIELD_LAYOUTS.includes(layout) ? layout : "square";
 }
 
+function normalizeMotionSettings(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const mode = VALID_MOTION_MODES.includes(String(source.mode || "").trim()) ? String(source.mode).trim() : EMPTY_MOTION_SETTINGS.mode;
+  const count = Number(source.count);
+  const direction = VALID_VIDEO_DIRECTIONS.includes(String(source.direction || "").trim()) ? String(source.direction).trim() : EMPTY_MOTION_SETTINGS.direction;
+  const stepSeconds = Number(source.step_seconds);
+  const videoBackgroundRef = String(source.video_background_ref || "").trim();
+  const safeVideoBackgroundRef = videoBackgroundRef.startsWith("storage://") && !videoBackgroundRef.startsWith("data:") ? videoBackgroundRef : "";
+
+  return {
+    mode,
+    count: VALID_VIDEO_COUNTS.includes(count) ? count : EMPTY_MOTION_SETTINGS.count,
+    direction,
+    step_seconds: VALID_VIDEO_STEP_SECONDS.includes(stepSeconds) ? stepSeconds : EMPTY_MOTION_SETTINGS.step_seconds,
+    video_background_ref: safeVideoBackgroundRef
+  };
+}
+
+function withDefaultMotionSettings(composition) {
+  const source = composition || {};
+  const objectRefs = source.object_refs && typeof source.object_refs === "object" && !Array.isArray(source.object_refs)
+    ? source.object_refs
+    : {};
+  return {
+    ...source,
+    object_refs: {
+      ...objectRefs,
+      [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(objectRefs[MOTION_SETTINGS_REF_KEY])
+    }
+  };
+}
+
 function fieldLayoutFromComposition(composition) {
   return normalizeFieldLayout(composition?.field_layout ?? composition?.object_refs?.[FIELD_LAYOUT_REF_KEY]);
 }
@@ -441,7 +485,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [mandalasStatus, setMandalasStatus] = useState("idle");
   const [mandalasError, setMandalasError] = useState("");
   const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
-  const [compositionDraft, setCompositionDraft] = useState(EMPTY_COMPOSITION);
+  const [compositionDraft, setCompositionDraft] = useState(() => withDefaultMotionSettings(EMPTY_COMPOSITION));
   const [compositionMessage, setCompositionMessage] = useState("");
   const [powerPlaceFeedForm, setPowerPlaceFeedForm] = useState({ title: "", body: "", category: "mandalas", tags: "" });
   const [powerPlaceFeedStatus, setPowerPlaceFeedStatus] = useState("idle");
@@ -695,7 +739,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         setMediaError(moduleError(traditionResult.reason, "profile_cabinet_tradition_assets request failed or migration/RLS not applied"));
       }
       if (compositionsResult.status === "fulfilled") {
-        setPowerPlaceCompositions(compositionsResult.value || []);
+        setPowerPlaceCompositions((compositionsResult.value || []).map(withDefaultMotionSettings));
         setMandalasStatus("success");
       } else {
         setPowerPlaceCompositions([]);
@@ -1233,6 +1277,24 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (["motion_mode", "video_count", "video_direction", "video_step_seconds", "video_background_ref"].includes(field)) {
+        const currentMotionSettings = normalizeMotionSettings(current.object_refs?.[MOTION_SETTINGS_REF_KEY]);
+        const nextMotionSettings = normalizeMotionSettings({
+          ...currentMotionSettings,
+          ...(field === "motion_mode" ? { mode: value } : {}),
+          ...(field === "video_count" ? { count: value } : {}),
+          ...(field === "video_direction" ? { direction: value } : {}),
+          ...(field === "video_step_seconds" ? { step_seconds: value } : {}),
+          ...(field === "video_background_ref" ? { video_background_ref: value } : {})
+        });
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [MOTION_SETTINGS_REF_KEY]: nextMotionSettings
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,
@@ -1248,10 +1310,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const handleCompositionObjectRefsChange = (value) => {
     try {
       const refs = value.trim() ? JSON.parse(value) : {};
+      const refsWithMotionSettings = {
+        ...refs,
+        [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(refs[MOTION_SETTINGS_REF_KEY])
+      };
       setCompositionDraft((current) => ({
         ...current,
-        field_layout: fieldLayoutFromComposition({ ...current, object_refs: refs }),
-        object_refs: refs
+        field_layout: fieldLayoutFromComposition({ ...current, object_refs: refsWithMotionSettings }),
+        object_refs: refsWithMotionSettings
       }));
       setCompositionMessage("");
     } catch {
@@ -1264,6 +1330,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       ...current,
       object_refs: {
         ...(current.object_refs || {}),
+        [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(current.object_refs?.[MOTION_SETTINGS_REF_KEY]),
         [slotId]: value
       },
       object_ref_urls: displayUrl && displayUrl !== value
@@ -1318,7 +1385,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setCompositionDraft((current) => ({
         ...current,
         central_photo_id: savedPhoto?.id || "",
-        object_refs: { ...(current.object_refs || {}), __center_image: savedImageRef },
+        object_refs: {
+          ...(current.object_refs || {}),
+          [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(current.object_refs?.[MOTION_SETTINGS_REF_KEY]),
+          __center_image: savedImageRef
+        },
         object_ref_urls: { ...(current.object_ref_urls || {}), [savedImageRef]: savedDisplayUrl }
       }));
       setMediaStatus("success");
@@ -1370,7 +1441,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionLoad = (composition) => {
-    setCompositionDraft({
+    setCompositionDraft(withDefaultMotionSettings({
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
@@ -1378,7 +1449,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       field_layout: fieldLayoutFromComposition(composition),
       object_refs: composition.object_refs || {},
       object_ref_urls: composition.object_ref_urls || {}
-    });
+    }));
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
   };
 
@@ -1408,19 +1479,19 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
     const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
     setPowerPlaceCompositions(freshCompositions.length
-      ? freshCompositions
-      : [saved].filter(Boolean)
+      ? freshCompositions.map(withDefaultMotionSettings)
+      : [saved].filter(Boolean).map(withDefaultMotionSettings)
     );
     if (freshSaved) {
-      setCompositionDraft({
+      setCompositionDraft(withDefaultMotionSettings({
         ...EMPTY_COMPOSITION,
         ...freshSaved,
         id: freshSaved?.id || "",
         slot_scale: slotScaleFromComposition(freshSaved),
         field_layout: fieldLayoutFromComposition(freshSaved)
-      });
+      }));
     }
-    return freshSaved;
+    return freshSaved ? withDefaultMotionSettings(freshSaved) : freshSaved;
   };
 
   const handleCompositionSaveNew = async () => {
@@ -1448,7 +1519,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     let saved = null;
     try {
       const createPayload = {
-        ...compositionDraft,
+        ...withDefaultMotionSettings(compositionDraft),
         id: undefined,
         title: uniqueCompositionCopyTitle(compositionDraft.title, powerPlaceCompositions),
         profile_id: profile.id
@@ -1471,16 +1542,18 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       }
       setPowerPlaceCompositions((current) => {
         const without = current.filter((item) => item.id !== saved.id);
-        return [saved, ...without];
+        return [withDefaultMotionSettings(saved), ...without];
       });
-      setCompositionDraft((current) => ({
-        ...EMPTY_COMPOSITION,
-        ...saved,
-        id: saved.id,
-        field_layout: fieldLayoutFromComposition(saved),
-        object_refs: saved.object_refs || current.object_refs || {},
-        object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
-      }));
+      setCompositionDraft((current) => {
+        const savedWithMotionSettings = withDefaultMotionSettings({ ...EMPTY_COMPOSITION, ...saved });
+        return {
+          ...savedWithMotionSettings,
+          id: saved.id,
+          field_layout: fieldLayoutFromComposition(saved),
+          object_refs: savedWithMotionSettings.object_refs || current.object_refs || {},
+          object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
+        };
+      });
       setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы. " + POWER_PLACE_SAVE_STAGE_MESSAGES.success);
       setMandalasStatus("success");
     } catch (error) {
@@ -1511,7 +1584,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       return;
     }
     try {
-      const payload = { ...compositionDraft, profile_id: profile.id };
+      const payload = { ...withDefaultMotionSettings(compositionDraft), profile_id: profile.id };
       const saved = await updatePowerPlaceComposition(compositionDraft.id, payload, session);
       await refreshSavedCompositions(saved);
       setCompositionMessage("Место силы обновлено.");
@@ -1534,13 +1607,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
     try {
       if (composition?.id) {
-        const saved = await updatePowerPlaceComposition(composition.id, { ...composition, profile_id: profile.id }, session);
+        const saved = await updatePowerPlaceComposition(composition.id, { ...withDefaultMotionSettings(composition), profile_id: profile.id }, session);
         await refreshSavedCompositions(saved);
         return saved;
       }
 
       const createPayload = {
-        ...composition,
+        ...withDefaultMotionSettings(composition),
         id: undefined,
         title: uniqueCompositionCopyTitle(composition?.title, powerPlaceCompositions),
         profile_id: profile.id

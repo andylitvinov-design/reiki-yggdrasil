@@ -564,7 +564,26 @@ assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout
 assert.match(powerPlaceClientSource, /VALID_FIELD_LAYOUTS\s*=\s*\[[\s\S]*"square"[\s\S]*"vertical"[\s\S]*"horizontal"[\s\S]*"rectangle"[\s\S]*\]/, "powerPlaceClient.js should define VALID_FIELD_LAYOUTS with all four layouts");
 assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAYOUTS\.includes/, "normalizePowerPlaceComposition should validate and persist __field_layout");
 
-// --- E: Grimoire tab (issue #273) ---
+// --- E: Power Place motion mode ---
+assert.match(powerPlaceClientSource, /MOTION_SETTINGS_REF_KEY\s*=\s*"__motion_settings"/, "powerPlaceClient should define MOTION_SETTINGS_REF_KEY");
+assert.match(powerPlaceClientSource, /DEFAULT_MOTION_SETTINGS[\s\S]*mode:\s*"photo"[\s\S]*step_seconds:\s*2[\s\S]*function normalizeMotionSettings/, "powerPlaceClient should normalize motion settings with Фото defaults");
+assert.match(powerPlaceClientSource, /cleanObjectRefs[\s\S]*MOTION_SETTINGS_REF_KEY[\s\S]*normalizeMotionSettings/, "cleanObjectRefs should preserve only normalized __motion_settings nested object");
+assert.match(powerPlaceClientSource, /objectRefs\[MOTION_SETTINGS_REF_KEY\]\s*=\s*normalizeMotionSettings/, "normalizePowerPlaceComposition should always default __motion_settings");
+assert.match(profileLitePageSource, /MOTION_SETTINGS_REF_KEY\s*=\s*"__motion_settings"/, "ProfileLitePage should define MOTION_SETTINGS_REF_KEY");
+assert.match(profileLitePageSource, /function withDefaultMotionSettings[\s\S]*MOTION_SETTINGS_REF_KEY[\s\S]*normalizeMotionSettings/, "ProfileLitePage should hydrate default motion settings");
+assert.match(profileLitePageSource, /motion_mode[\s\S]*video_count[\s\S]*video_direction[\s\S]*video_step_seconds[\s\S]*video_background_ref/, "handleCompositionDraftChange should map video control fields into __motion_settings");
+assert.match(powerPlaceBaseSource, /data-motion-mode-switch="true"/, "motion mode switch should expose a stable data marker");
+assert.match(powerPlaceBaseSource, /data-video-count=\{count\}/, "video count controls should expose data-video-count markers");
+assert.match(powerPlaceBaseSource, /data-video-direction="clockwise"[\s\S]*data-video-direction="counterclockwise"/, "video direction controls should expose stable markers");
+assert.match(powerPlaceBaseSource, /data-video-step-seconds=\{seconds\}/, "video step controls should expose data-video-step-seconds markers");
+assert.match(powerPlaceBaseSource, /data-motion-layer="true"[\s\S]*data-motion-copy=\{index \+ 1\}/, "motion layer should expose data markers for copies");
+assert.match(powerPlaceBaseSource, /data-video-export-button="true"[\s\S]*Экспорт видео: needs implementation/, "video export button should be honest about missing export implementation");
+assert.match(powerPlaceBaseSource, /Видео-фон: needs implementation/, "video background should remain a needs implementation status");
+assert.match(powerPlaceBaseSource, /clockPositions[\s\S]*getMotionPositionsForComposition[\s\S]*compact-5[\s\S]*plus-8[\s\S]*classic-8[\s\S]*classic-14/, "motion helpers should define mappings for all required formats");
+assert.match(powerPlaceBaseSource, /renderCenterPhotoWithMode\("powerCenterPhoto"\)[\s\S]*renderPowerPlaceMotionLayer\(\)/, "client branch should keep motion layer separate from center button");
+assert.doesNotMatch(powerPlaceBaseSource, /value:\s*"video"/, "CONSTRUCTOR_TYPES must not add a video constructor type");
+
+// --- F: Grimoire tab (issue #273) ---
 const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 
 assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");

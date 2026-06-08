@@ -1,6 +1,48 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-06
+Last updated: 2026-06-08
+
+## 2026-06-08 — Power Place Фото / Видео mode Phase 1-3
+
+- Branch: `codex/power-place-video-mode-20260608`, based on `origin/main` at `d88ae81`.
+- Scope: `/profile/mandalas` Power Place constructor only; no homepage, `/masters` public logic, `/profile/admin`, Supabase auth, Vercel rewrites, env values, production branch/deploy config, or Supabase migration changes.
+- Persistence:
+  - video settings are stored only in `object_refs.__motion_settings`;
+  - shape: `{ mode, count, direction, step_seconds, video_background_ref }`;
+  - `Фото` defaults to `{ mode: "photo", count: 1, direction: "clockwise", step_seconds: 2, video_background_ref: "" }`;
+  - `data:image`, `data:video`, Supabase signed URLs, and unknown nested object refs are stripped; durable scalar refs continue to persist.
+- Changed:
+  - added `Фото / Видео` controls to the constructor while keeping `Фото` as the default mode;
+  - added `Видео 1 / Видео 4`, `По часовой / Против часовой`, and `1 сек / 2 сек / 3 сек` controls with stable data markers;
+  - added interval-driven motion copies from the central photo;
+  - added honest Phase 1-3 placeholders: `Видео-фон: needs implementation` and `Экспорт видео: needs implementation`;
+  - added scoped motion CSS with `pointer-events: none`, mobile sizing, and reduced-motion transition disabling.
+- Supported motion mappings:
+  - client: visible `geometry` count;
+  - zodiac: visible zodiac count;
+  - star: 5 fixed star points;
+  - dao: 5 clock-like points;
+  - business: 3 vertices;
+  - altar: 5 top + 2 bottom support points;
+  - chess: `compact-5`, `plus-8`, `classic-8`, and `classic-14` without center traversal.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run test:profile-services`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - unauthenticated/no-env route rendered safe Supabase-not-configured fallback;
+  - mocked Supabase/session dev server at `http://127.0.0.1:4389/`;
+  - routes `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin` returned `200`;
+  - desktop `/profile/mandalas`: client `4/12`, zodiac `12`, star, dao, business, altar, chess `compact-5`, `plus-8`, `classic-8`, and `classic-14` all showed video controls, active count/direction/timing markers, honest video-background/export text, and horizontal overflow `0`;
+  - mocked center-photo selection rendered `Видео 4` with 4 motion copies and horizontal overflow `0`;
+  - mobile `390x900` with mocked center photo kept horizontal overflow `0`, motion controls `1`, motion copies `4`, and export button `1`;
+  - browser console logs contained only React DevTools info messages.
+- Not verified:
+  - real authenticated Supabase save/reload/update/service conversion with production or staging data;
+  - real drag/drop upload and center-photo edit persistence against Storage/RLS;
+  - Vercel preview, production/legacy live URLs, and Google OAuth.
+- Risks:
+  - local manual QA used a mock Supabase server and fake session, so live RLS/storage behavior still needs environment verification;
+  - no real video upload/export exists in Phase 1-3 by design.
 
 ## 2026-06-06 — Public Master Page visual polish
 
