@@ -4,6 +4,11 @@ import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import {
+  listAvailableCourseLessons,
+  listAvailableCoursesForProfile,
+  listAvailableCourseSteps
+} from "../lib/profileCoursesClient.js";
+import {
   createEmptyMaterialForm,
   createOwnMaterial,
   deleteOwnMaterial,
@@ -13,15 +18,26 @@ import {
   stripFileExtension,
   updateOwnMaterial
 } from "../lib/profileMaterialsClient.js";
+import {
+  buildMaterialActivityEvent,
+  buildPowerPlaceActivityEvent,
+  buildServiceActivityEvent,
+  createOrUpdatePendingActivityEvent
+} from "../lib/profileActivityFeedClient.js";
 import { validateGrimoireFile } from "../lib/profileMediaClient.js";
 import {
   createEmptyServiceForm,
+  createServiceCartStore,
+  createServiceOrderDraft,
   createOwnService,
+  generateDraftResultComposition,
+  listClientServiceOrders,
   listOwnServiceOrders,
   listOwnServices,
   publishOwnService,
+  sendOrderResultToClient,
+  submitServiceOrderToMaster,
   updateOwnService,
-  updateServiceOrder,
   upsertOwnServiceForComposition
 } from "../lib/profileServicesClient.js";
 import {
@@ -41,6 +57,7 @@ import {
   createTraditionAsset,
   deleteClientGoalPhoto,
   getPlanLimits,
+  getPowerPlaceCompositionById,
   listClientGoalPhotos,
   listPowerPlaceCompositions,
   listTraditionAssets,
@@ -65,6 +82,7 @@ import ProfileLiteProfileModule from "./profile-lite/ProfileLiteProfileModule.js
 import ProfileLiteMandalasModule from "./profile-lite/ProfileLiteMandalasModule.jsx";
 import ProfileLiteMediaModule from "./profile-lite/ProfileLiteMediaModule.jsx";
 import ProfileLiteMaterialsModule from "./profile-lite/ProfileLiteMaterialsModule.jsx";
+import ProfileLiteCoursesModule from "./profile-lite/ProfileLiteCoursesModule.jsx";
 import ProfileLiteServicesModule from "./profile-lite/ProfileLiteServicesModule.jsx";
 import ProfileLiteOrdersModule from "./profile-lite/ProfileLiteOrdersModule.jsx";
 import ProfileLiteChatsModule from "./profile-lite/ProfileLiteChatsModule.jsx";
@@ -123,7 +141,12 @@ const EMPTY_COMPOSITION = {
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
+const VALID_MOTION_MODES = ["photo", "video"];
+const VALID_VIDEO_COUNTS = [1, 4];
+const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
+const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -132,6 +155,13 @@ const EMPTY_PROFILE_LITE_REPORT = {
   extra_help: "",
   master_note: ""
 };
+const EMPTY_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
+};
 const EMPTY_ORDER_PATCH = {
   id: "",
   master_comment: "",
@@ -139,6 +169,13 @@ const EMPTY_ORDER_PATCH = {
   result_image_bucket: null,
   result_image_path: null,
   status: "sent"
+};
+const EMPTY_ORDER_CONFIRMATION = {
+  orderId: "",
+  photoId: "",
+  requestText: "",
+  status: "idle",
+  message: ""
 };
 const POWER_PLACE_START_LIMIT_MESSAGE = "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
 const ROUTE_CHANGE_EVENT = "reiki-route-change";
@@ -275,6 +312,38 @@ function normalizeFieldLayout(value) {
   return VALID_FIELD_LAYOUTS.includes(layout) ? layout : "square";
 }
 
+function normalizeMotionSettings(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const mode = VALID_MOTION_MODES.includes(String(source.mode || "").trim()) ? String(source.mode).trim() : EMPTY_MOTION_SETTINGS.mode;
+  const count = Number(source.count);
+  const direction = VALID_VIDEO_DIRECTIONS.includes(String(source.direction || "").trim()) ? String(source.direction).trim() : EMPTY_MOTION_SETTINGS.direction;
+  const stepSeconds = Number(source.step_seconds);
+  const videoBackgroundRef = String(source.video_background_ref || "").trim();
+  const safeVideoBackgroundRef = videoBackgroundRef.startsWith("storage://") && !videoBackgroundRef.startsWith("data:") ? videoBackgroundRef : "";
+
+  return {
+    mode,
+    count: VALID_VIDEO_COUNTS.includes(count) ? count : EMPTY_MOTION_SETTINGS.count,
+    direction,
+    step_seconds: VALID_VIDEO_STEP_SECONDS.includes(stepSeconds) ? stepSeconds : EMPTY_MOTION_SETTINGS.step_seconds,
+    video_background_ref: safeVideoBackgroundRef
+  };
+}
+
+function withDefaultMotionSettings(composition) {
+  const source = composition || {};
+  const objectRefs = source.object_refs && typeof source.object_refs === "object" && !Array.isArray(source.object_refs)
+    ? source.object_refs
+    : {};
+  return {
+    ...source,
+    object_refs: {
+      ...objectRefs,
+      [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(objectRefs[MOTION_SETTINGS_REF_KEY])
+    }
+  };
+}
+
 function fieldLayoutFromComposition(composition) {
   return normalizeFieldLayout(composition?.field_layout ?? composition?.object_refs?.[FIELD_LAYOUT_REF_KEY]);
 }
@@ -407,9 +476,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const [materialsStatus, setMaterialsStatus] = useState("idle");
   const [materialsError, setMaterialsError] = useState("");
+  const [materialsFeedMessage, setMaterialsFeedMessage] = useState("");
   const [materials, setMaterials] = useState([]);
   const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
   const [materialFile, setMaterialFile] = useState(null);
+
+  const [courses, setCourses] = useState([]);
+  const [coursesStatus, setCoursesStatus] = useState("idle");
+  const [coursesError, setCoursesError] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [courseSteps, setCourseSteps] = useState([]);
+  const [selectedStepId, setSelectedStepId] = useState("");
+  const [courseLessons, setCourseLessons] = useState([]);
+  const [courseLessonsStatus, setCourseLessonsStatus] = useState("idle");
+  const [courseLessonsError, setCourseLessonsError] = useState("");
 
   const [mediaStatus, setMediaStatus] = useState("idle");
   const [mediaError, setMediaError] = useState("");
@@ -421,8 +501,10 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [mandalasStatus, setMandalasStatus] = useState("idle");
   const [mandalasError, setMandalasError] = useState("");
   const [powerPlaceCompositions, setPowerPlaceCompositions] = useState([]);
-  const [compositionDraft, setCompositionDraft] = useState(EMPTY_COMPOSITION);
+  const [compositionDraft, setCompositionDraft] = useState(() => withDefaultMotionSettings(EMPTY_COMPOSITION));
   const [compositionMessage, setCompositionMessage] = useState("");
+  const [powerPlaceFeedForm, setPowerPlaceFeedForm] = useState({ title: "", body: "", category: "mandalas", tags: "" });
+  const [powerPlaceFeedStatus, setPowerPlaceFeedStatus] = useState("idle");
 
   const [servicesStatus, setServicesStatus] = useState("idle");
   const [servicesError, setServicesError] = useState("");
@@ -434,6 +516,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [ordersStatus, setOrdersStatus] = useState("idle");
   const [ordersError, setOrdersError] = useState("");
   const [orders, setOrders] = useState([]);
+  const [clientOrders, setClientOrders] = useState([]);
+  const [pendingCartMessage, setPendingCartMessage] = useState("");
+  const [orderConfirmation, setOrderConfirmation] = useState(EMPTY_ORDER_CONFIRMATION);
   const [orderPatch, setOrderPatch] = useState(EMPTY_ORDER_PATCH);
 
   const [chatsStatus, setChatsStatus] = useState("idle");
@@ -463,16 +548,22 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const moduleStates = useMemo(() => ({
     profile: { status: profileStatus, count: profile ? 1 : 0, error: profileError },
     materials: { status: materialsStatus, count: materials.length, error: materialsError },
+    courses: { status: coursesStatus, count: courses.length, error: coursesError || courseLessonsError },
     media: { status: mediaStatus, count: clientGoalPhotos.length + traditionAssets.length, error: mediaError },
     mandalas: { status: mandalasStatus, count: powerPlaceCompositions.length, error: mandalasError },
     services: { status: servicesStatus, count: services.length, error: servicesError },
-    orders: { status: ordersStatus, count: orders.length, error: ordersError },
+    orders: { status: ordersStatus, count: orders.length + clientOrders.length, error: ordersError },
     chats: { status: chatsStatus, count: chatThreads.length, error: chatsError }
   }), [
     chatThreads.length,
     chatsError,
     chatsStatus,
+    clientOrders.length,
     clientGoalPhotos.length,
+    courseLessonsError,
+    courses.length,
+    coursesError,
+    coursesStatus,
     materials.length,
     materialsError,
     materialsStatus,
@@ -508,6 +599,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setMaterials([]);
     setMaterialsStatus("idle");
     setMaterialsError("");
+    setCourses([]);
+    setCoursesStatus("idle");
+    setCoursesError("");
+    setSelectedCourseId("");
+    setCourseSteps([]);
+    setSelectedStepId("");
+    setCourseLessons([]);
+    setCourseLessonsStatus("idle");
+    setCourseLessonsError("");
     setClientGoalPhotos([]);
     setTraditionAssets([]);
     setMediaStatus("idle");
@@ -522,8 +622,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setServiceActionStatus("idle");
     setServiceMessage("");
     setOrders([]);
+    setClientOrders([]);
     setOrdersStatus("idle");
     setOrdersError("");
+    setPendingCartMessage("");
+    setOrderConfirmation(EMPTY_ORDER_CONFIRMATION);
     setChatThreads([]);
     setChatsStatus("idle");
     setChatsError("");
@@ -636,6 +739,99 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   useEffect(() => {
     let cancelled = false;
+    async function loadCourses() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+        setCourses([]);
+        setSelectedCourseId("");
+        setCourseSteps([]);
+        setSelectedStepId("");
+        setCourseLessons([]);
+        setCoursesStatus("idle");
+        setCourseLessonsStatus("idle");
+        return;
+      }
+      setCoursesStatus("loading");
+      setCoursesError("");
+      try {
+        const rows = await listAvailableCoursesForProfile(profile.id, session);
+        if (cancelled) return;
+        setCourses(rows || []);
+        setSelectedCourseId((current) => (rows || []).some((course) => course.id === current) ? current : rows?.[0]?.id || "");
+        setCoursesStatus("success");
+      } catch (error) {
+        if (cancelled) return;
+        setCourses([]);
+        setSelectedCourseId("");
+        setCoursesStatus("needs-verification");
+        setCoursesError(moduleError(error, "profile_cabinet_courses request failed or migration/RLS not applied"));
+      }
+    }
+    void loadCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCourseSteps() {
+      if (!profile?.id || !selectedCourseId || !hasProfileLiteSessionCredential(session)) {
+        setCourseSteps([]);
+        setSelectedStepId("");
+        setCourseLessons([]);
+        setCourseLessonsStatus("idle");
+        return;
+      }
+      try {
+        const rows = await listAvailableCourseSteps(profile.id, selectedCourseId, session);
+        if (cancelled) return;
+        setCourseSteps(rows || []);
+        setSelectedStepId((current) => (rows || []).some((step) => step.id === current) ? current : rows?.[0]?.id || "");
+      } catch (error) {
+        if (cancelled) return;
+        setCourseSteps([]);
+        setSelectedStepId("");
+        setCourseLessons([]);
+        setCoursesStatus("needs-verification");
+        setCoursesError(moduleError(error, "profile_cabinet_course_steps request failed or migration/RLS not applied"));
+      }
+    }
+    void loadCourseSteps();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, selectedCourseId, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCourseLessons() {
+      if (!profile?.id || !selectedCourseId || !selectedStepId || !hasProfileLiteSessionCredential(session)) {
+        setCourseLessons([]);
+        setCourseLessonsStatus("idle");
+        return;
+      }
+      setCourseLessonsStatus("loading");
+      setCourseLessonsError("");
+      try {
+        const rows = await listAvailableCourseLessons(profile.id, selectedCourseId, selectedStepId, session);
+        if (cancelled) return;
+        setCourseLessons(rows || []);
+        setCourseLessonsStatus("success");
+      } catch (error) {
+        if (cancelled) return;
+        setCourseLessons([]);
+        setCourseLessonsStatus("needs-verification");
+        setCourseLessonsError(moduleError(error, "profile_cabinet_course_lessons request failed or migration/RLS not applied"));
+      }
+    }
+    void loadCourseLessons();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, selectedCourseId, selectedStepId, session]);
+
+  useEffect(() => {
+    let cancelled = false;
     async function loadMediaAndMandalas() {
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
         setClientGoalPhotos([]);
@@ -666,7 +862,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         setMediaError(moduleError(traditionResult.reason, "profile_cabinet_tradition_assets request failed or migration/RLS not applied"));
       }
       if (compositionsResult.status === "fulfilled") {
-        setPowerPlaceCompositions(compositionsResult.value || []);
+        setPowerPlaceCompositions((compositionsResult.value || []).map(withDefaultMotionSettings));
         setMandalasStatus("success");
       } else {
         setPowerPlaceCompositions([]);
@@ -687,6 +883,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
         setServices([]);
         setOrders([]);
+        setClientOrders([]);
         setChatThreads([]);
         setServicesStatus("idle");
         setOrdersStatus("idle");
@@ -696,8 +893,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setServicesStatus("loading");
       setOrdersStatus("loading");
       setChatsStatus("loading");
-      const [servicesResult, ordersResult, chatsResult] = await Promise.allSettled([
+      const [servicesResult, clientOrdersResult, masterOrdersResult, chatsResult] = await Promise.allSettled([
         listOwnServices(profile.id, session),
+        listClientServiceOrders(profile.id, session),
         listOwnServiceOrders(profile.id, session),
         listOwnChatThreads(profile.id, session)
       ]);
@@ -711,14 +909,19 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         setServicesStatus("needs-verification");
         setServicesError(moduleError(servicesResult.reason, "profile_cabinet_services request failed or migration/RLS not applied"));
       }
-      if (ordersResult.status === "fulfilled") {
-        setOrders(ordersResult.value || []);
+      if (clientOrdersResult.status === "fulfilled" || masterOrdersResult.status === "fulfilled") {
+        setClientOrders(clientOrdersResult.status === "fulfilled" ? clientOrdersResult.value || [] : []);
+        setOrders(masterOrdersResult.status === "fulfilled" ? masterOrdersResult.value || [] : []);
         setOrdersStatus("success");
-        setOrdersError("");
+        setOrdersError([
+          clientOrdersResult.status === "rejected" ? moduleError(clientOrdersResult.reason, "client orders request failed or migration/RLS not applied") : "",
+          masterOrdersResult.status === "rejected" ? moduleError(masterOrdersResult.reason, "master orders request failed or migration/RLS not applied") : ""
+        ].filter(Boolean).join(" · "));
       } else {
+        setClientOrders([]);
         setOrders([]);
         setOrdersStatus("needs-verification");
-        setOrdersError(moduleError(ordersResult.reason, "profile_cabinet_service_orders request failed or migration/RLS not applied"));
+        setOrdersError(moduleError(clientOrdersResult.reason || masterOrdersResult.reason, "profile_cabinet_service_orders request failed or migration/RLS not applied"));
       }
       if (chatsResult.status === "fulfilled") {
         const threads = (chatsResult.value || []).map((thread) => ({ ...thread, ownerProfileId: profile.id }));
@@ -738,10 +941,43 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     };
   }, [profile?.id, session]);
 
+  useEffect(() => {
+    let cancelled = false;
+    async function restoreFreshPendingServiceCart() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) return;
+      const cartStore = createServiceCartStore();
+      const pendingCart = cartStore.restoreFreshPending();
+      if (!pendingCart) return;
+      setPendingCartMessage("Восстановили заказ из корзины. Проверьте фото и отправьте заказ мастеру.");
+      setOrdersStatus("loading");
+      try {
+        const draft = await createServiceOrderDraft({ cartItem: pendingCart, clientProfileId: profile.id }, session);
+        if (cancelled) return;
+        cartStore.clearPending();
+        cartStore.clear();
+        setClientOrders((current) => [draft, ...current.filter((item) => item.id !== draft?.id)].filter(Boolean));
+        setOrderConfirmation((current) => ({ ...current, orderId: draft?.id || current.orderId }));
+        setOrdersStatus("success");
+        setOrdersError("");
+      } catch (error) {
+        if (cancelled) return;
+        setOrdersStatus("needs-verification");
+        setOrdersError(moduleError(error, "Не удалось создать черновик заказа. Проверьте публикацию услуги и RLS."));
+      }
+    }
+    void restoreFreshPendingServiceCart();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
   const handleGoogleLogin = async () => {
     setAuthError("");
     try {
-      await signInWithGoogle(window.location.pathname === "/profile-lite" ? "/profile-lite" : "/profile");
+      const redirectPath = ["/profile-lite", "/profile/orders"].includes(window.location.pathname)
+        ? window.location.pathname
+        : "/profile";
+      await signInWithGoogle(redirectPath);
     } catch (error) {
       setAuthStatus("error");
       setAuthError(safeProfileLiteError(error, "Не удалось начать вход через Google."));
@@ -880,6 +1116,23 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setMaterialsStatus("needs-verification");
       setMaterialsError(moduleError(error, "profile_cabinet_publications delete failed or migration/RLS not applied"));
       throw error;
+    }
+  };
+
+  const handleAddMaterialToFeed = async (material) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setMaterialsError("Сначала сохраните профиль мастера.");
+      setMaterialsStatus("needs-verification");
+      return;
+    }
+    try {
+      const result = await createOrUpdatePendingActivityEvent(buildMaterialActivityEvent(material, profile.id), session);
+      setMaterialsFeedMessage(result.message);
+      setMaterialsStatus("success");
+      setMaterialsError("");
+    } catch (error) {
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(moduleError(error, "profile_cabinet_activity_events material create failed or migration/RLS not applied"));
     }
   };
 
@@ -1147,6 +1400,24 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           }
         };
       }
+      if (["motion_mode", "video_count", "video_direction", "video_step_seconds", "video_background_ref"].includes(field)) {
+        const currentMotionSettings = normalizeMotionSettings(current.object_refs?.[MOTION_SETTINGS_REF_KEY]);
+        const nextMotionSettings = normalizeMotionSettings({
+          ...currentMotionSettings,
+          ...(field === "motion_mode" ? { mode: value } : {}),
+          ...(field === "video_count" ? { count: value } : {}),
+          ...(field === "video_direction" ? { direction: value } : {}),
+          ...(field === "video_step_seconds" ? { step_seconds: value } : {}),
+          ...(field === "video_background_ref" ? { video_background_ref: value } : {})
+        });
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [MOTION_SETTINGS_REF_KEY]: nextMotionSettings
+          }
+        };
+      }
       if (field !== "slot_scale") return { ...current, [field]: value };
       return {
         ...current,
@@ -1162,10 +1433,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const handleCompositionObjectRefsChange = (value) => {
     try {
       const refs = value.trim() ? JSON.parse(value) : {};
+      const refsWithMotionSettings = {
+        ...refs,
+        [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(refs[MOTION_SETTINGS_REF_KEY])
+      };
       setCompositionDraft((current) => ({
         ...current,
-        field_layout: fieldLayoutFromComposition({ ...current, object_refs: refs }),
-        object_refs: refs
+        field_layout: fieldLayoutFromComposition({ ...current, object_refs: refsWithMotionSettings }),
+        object_refs: refsWithMotionSettings
       }));
       setCompositionMessage("");
     } catch {
@@ -1178,6 +1453,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       ...current,
       object_refs: {
         ...(current.object_refs || {}),
+        [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(current.object_refs?.[MOTION_SETTINGS_REF_KEY]),
         [slotId]: value
       },
       object_ref_urls: displayUrl && displayUrl !== value
@@ -1232,7 +1508,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setCompositionDraft((current) => ({
         ...current,
         central_photo_id: savedPhoto?.id || "",
-        object_refs: { ...(current.object_refs || {}), __center_image: savedImageRef },
+        object_refs: {
+          ...(current.object_refs || {}),
+          [MOTION_SETTINGS_REF_KEY]: normalizeMotionSettings(current.object_refs?.[MOTION_SETTINGS_REF_KEY]),
+          __center_image: savedImageRef
+        },
         object_ref_urls: { ...(current.object_ref_urls || {}), [savedImageRef]: savedDisplayUrl }
       }));
       setMediaStatus("success");
@@ -1284,7 +1564,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionLoad = (composition) => {
-    setCompositionDraft({
+    setCompositionDraft(withDefaultMotionSettings({
       ...EMPTY_COMPOSITION,
       ...composition,
       id: composition.id || "",
@@ -1292,27 +1572,49 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       field_layout: fieldLayoutFromComposition(composition),
       object_refs: composition.object_refs || {},
       object_ref_urls: composition.object_ref_urls || {}
-    });
+    }));
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
+  };
+
+
+  const openCompositionInMandalas = async (compositionId, fallbackMessage = "Мандала заказа открыта в конструкторе.") => {
+    if (!compositionId || !hasProfileLiteSessionCredential(session)) return null;
+    let composition = powerPlaceCompositions.find((item) => item.id === compositionId) || null;
+    if (!composition) {
+      composition = await getPowerPlaceCompositionById(compositionId, session);
+      if (composition) {
+        setPowerPlaceCompositions((current) => [composition, ...current.filter((item) => item.id !== composition.id)]);
+      }
+    }
+    if (!composition) throw new Error("Мандала результата не найдена или недоступна.");
+    handleCompositionLoad(composition);
+    setCompositionMessage(fallbackMessage);
+    setActiveTab("mandalas");
+    if (typeof window !== "undefined" && window.location.pathname !== "/profile/mandalas") {
+      window.history.pushState({}, "", "/profile/mandalas");
+      window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    return composition;
   };
 
   const refreshSavedCompositions = async (saved) => {
     const freshCompositions = await listPowerPlaceCompositions(profile.id, session);
     const freshSaved = freshCompositions.find((composition) => composition.id === saved?.id) || saved;
     setPowerPlaceCompositions(freshCompositions.length
-      ? freshCompositions
-      : [saved].filter(Boolean)
+      ? freshCompositions.map(withDefaultMotionSettings)
+      : [saved].filter(Boolean).map(withDefaultMotionSettings)
     );
     if (freshSaved) {
-      setCompositionDraft({
+      setCompositionDraft(withDefaultMotionSettings({
         ...EMPTY_COMPOSITION,
         ...freshSaved,
         id: freshSaved?.id || "",
         slot_scale: slotScaleFromComposition(freshSaved),
         field_layout: fieldLayoutFromComposition(freshSaved)
-      });
+      }));
     }
-    return freshSaved;
+    return freshSaved ? withDefaultMotionSettings(freshSaved) : freshSaved;
   };
 
   const handleCompositionSaveNew = async () => {
@@ -1340,7 +1642,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     let saved = null;
     try {
       const createPayload = {
-        ...compositionDraft,
+        ...withDefaultMotionSettings(compositionDraft),
         id: undefined,
         title: uniqueCompositionCopyTitle(compositionDraft.title, powerPlaceCompositions),
         profile_id: profile.id
@@ -1363,16 +1665,18 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       }
       setPowerPlaceCompositions((current) => {
         const without = current.filter((item) => item.id !== saved.id);
-        return [saved, ...without];
+        return [withDefaultMotionSettings(saved), ...without];
       });
-      setCompositionDraft((current) => ({
-        ...EMPTY_COMPOSITION,
-        ...saved,
-        id: saved.id,
-        field_layout: fieldLayoutFromComposition(saved),
-        object_refs: saved.object_refs || current.object_refs || {},
-        object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
-      }));
+      setCompositionDraft((current) => {
+        const savedWithMotionSettings = withDefaultMotionSettings({ ...EMPTY_COMPOSITION, ...saved });
+        return {
+          ...savedWithMotionSettings,
+          id: saved.id,
+          field_layout: fieldLayoutFromComposition(saved),
+          object_refs: savedWithMotionSettings.object_refs || current.object_refs || {},
+          object_ref_urls: saved.object_ref_urls || current.object_ref_urls || {}
+        };
+      });
       setCompositionMessage("Место силы сохранено и добавлено в Мои мандалы. " + POWER_PLACE_SAVE_STAGE_MESSAGES.success);
       setMandalasStatus("success");
     } catch (error) {
@@ -1403,7 +1707,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       return;
     }
     try {
-      const payload = { ...compositionDraft, profile_id: profile.id };
+      const payload = { ...withDefaultMotionSettings(compositionDraft), profile_id: profile.id };
       const saved = await updatePowerPlaceComposition(compositionDraft.id, payload, session);
       await refreshSavedCompositions(saved);
       setCompositionMessage("Место силы обновлено.");
@@ -1426,13 +1730,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
     try {
       if (composition?.id) {
-        const saved = await updatePowerPlaceComposition(composition.id, { ...composition, profile_id: profile.id }, session);
+        const saved = await updatePowerPlaceComposition(composition.id, { ...withDefaultMotionSettings(composition), profile_id: profile.id }, session);
         await refreshSavedCompositions(saved);
         return saved;
       }
 
       const createPayload = {
-        ...composition,
+        ...withDefaultMotionSettings(composition),
         id: undefined,
         title: uniqueCompositionCopyTitle(composition?.title, powerPlaceCompositions),
         profile_id: profile.id
@@ -1501,6 +1805,43 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       setServicesStatus("needs-verification");
       setServicesError(moduleError(error, "profile_cabinet_services publish failed or migration/RLS not applied"));
       return null;
+    }
+  };
+
+  const handlePowerPlaceFeedFormChange = (field, value) => {
+    setPowerPlaceFeedForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handlePublishCompositionToFeed = async (composition = compositionDraft) => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      const message = "Сначала сохраните профиль мастера.";
+      setMandalasError(message);
+      setCompositionMessage(message);
+      setMandalasStatus("needs-verification");
+      return;
+    }
+
+    const compositionId = composition?.id || compositionDraft.id;
+    if (!compositionId) {
+      setCompositionMessage("Сначала сохраните мандалу, затем отправьте публичную проекцию в ленту.");
+      return;
+    }
+
+    setPowerPlaceFeedStatus("loading");
+    try {
+      const result = await createOrUpdatePendingActivityEvent(
+        buildPowerPlaceActivityEvent({ ...composition, id: compositionId }, powerPlaceFeedForm, profile.id),
+        session
+      );
+      setCompositionMessage(result.message);
+      setMandalasStatus("success");
+      setMandalasError("");
+      setPowerPlaceFeedStatus("success");
+    } catch (error) {
+      setPowerPlaceFeedStatus("error");
+      setMandalasStatus("needs-verification");
+      setMandalasError(moduleError(error, "profile_cabinet_activity_events power place create failed or migration/RLS not applied"));
+      setCompositionMessage(moduleError(error, "Публичная проекция не отправлена."));
     }
   };
 
@@ -1618,17 +1959,131 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
-  const handleOrderUpdate = async () => {
-    if (!orderPatch.id || !hasProfileLiteSessionCredential(session)) return;
+  const handleAddServiceToFeed = async (activityType = "service_created") => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    if (!serviceForm.id) {
+      setServicesError("Выберите опубликованную услугу из списка.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    if (serviceForm.status !== "published") {
+      setServicesError("Сначала опубликуйте услугу, затем добавьте её в ленту.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    setServiceActionStatus("loading");
+    setServiceMessage("");
+    setServicesError("");
     try {
-      const saved = await updateServiceOrder(orderPatch.id, orderPatch, session);
-      setOrders((current) => current.map((item) => item.id === saved.id ? saved : item));
+      const result = await createOrUpdatePendingActivityEvent(
+        buildServiceActivityEvent(serviceForm, profile.id, activityType),
+        session
+      );
+      setServicesStatus("success");
+      setServiceActionStatus("success");
+      setServiceMessage(result.message);
+    } catch (error) {
+      setServicesStatus("needs-verification");
+      setServiceActionStatus("error");
+      setServicesError(moduleError(error, "profile_cabinet_activity_events service create failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleSubmitServiceOrderToMaster = async (order) => {
+    if (!profile?.id || !order?.id || !hasProfileLiteSessionCredential(session)) return;
+    const selectedPhoto = clientGoalPhotos.find((photo) => photo.id === orderConfirmation.photoId);
+    if (!selectedPhoto) {
+      setOrderConfirmation((current) => ({
+        ...current,
+        orderId: order.id,
+        status: "error",
+        message: "Загрузите своё фото, чтобы отправить заказ в работу Мастеру."
+      }));
+      return;
+    }
+    setOrderConfirmation((current) => ({ ...current, orderId: order.id, status: "loading", message: "" }));
+    try {
+      const saved = await submitServiceOrderToMaster(order.id, {
+        clientProfileId: profile.id,
+        photo: selectedPhoto,
+        requestText: orderConfirmation.requestText
+      }, session);
+      setClientOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
+      setOrderConfirmation(EMPTY_ORDER_CONFIRMATION);
+      setOrdersStatus("success");
+      setOrdersError("");
+    } catch (error) {
+      setOrderConfirmation((current) => ({
+        ...current,
+        orderId: order.id,
+        status: "error",
+        message: moduleError(error, "Не удалось отправить заказ мастеру.")
+      }));
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "profile_cabinet_service_orders submit failed or migration/RLS not applied"));
+    }
+  };
+
+  const handleGenerateDraftResultComposition = async (order) => {
+    if (!order?.id || !hasProfileLiteSessionCredential(session)) return;
+    try {
+      const saved = await generateDraftResultComposition(order.id, session);
+      setOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
+      setOrdersStatus("success");
+      setOrdersError("");
+      if (saved.draft_result_composition_id) {
+        await openCompositionInMandalas(saved.draft_result_composition_id, "Черновик мандалы заказа создан и открыт в конструкторе.");
+      }
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "Не удалось создать мандалу заказа. Проверьте template composition, фото клиента и RLS."));
+    }
+  };
+
+  const handleOpenOrderResult = async (order, mode = "draft") => {
+    const compositionId = mode === "final" ? order?.final_result_composition_id : order?.draft_result_composition_id;
+    try {
+      await openCompositionInMandalas(compositionId, mode === "final" ? "Финальный результат заказа открыт в конструкторе." : "Черновик мандалы заказа открыт в конструкторе.");
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "Мандала результата не открылась."));
+    }
+  };
+
+  const handleDownloadOrderResult = async (order) => {
+    try {
+      const composition = await openCompositionInMandalas(order?.final_result_composition_id, "Результат открыт. Скачать PDF / Печать в PDF доступна в конструкторе.");
+      window.setTimeout(() => {
+        try {
+          openPowerPlacePdfPrintView(composition?.title || order?.service?.title || "power-place");
+        } catch (error) {
+          setCompositionMessage(moduleError(error, "PDF preview failed"));
+        }
+      }, 100);
+    } catch (error) {
+      setOrdersStatus("needs-verification");
+      setOrdersError(moduleError(error, "Результат для скачивания не открылся."));
+    }
+  };
+
+  const handleSendOrderResultToClient = async (order) => {
+    if (!order?.id || !hasProfileLiteSessionCredential(session)) return;
+    const patch = orderPatch.id === order.id ? orderPatch : { ...EMPTY_ORDER_PATCH, id: order.id };
+    const resultCompositionId = patch.resultCompositionId || order.draft_result_composition_id || compositionDraft.id;
+    try {
+      const saved = await sendOrderResultToClient(order.id, resultCompositionId, patch.master_comment || order.master_comment || "", session);
+      setOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
+      setClientOrders((current) => current.map((item) => item.id === saved.id ? { ...item, ...saved, service: saved.service || item.service } : item));
       setOrderPatch(EMPTY_ORDER_PATCH);
       setOrdersStatus("success");
       setOrdersError("");
     } catch (error) {
       setOrdersStatus("needs-verification");
-      setOrdersError(moduleError(error, "profile_cabinet_service_orders update failed or migration/RLS not applied"));
+      setOrdersError(moduleError(error, "profile_cabinet_service_orders result send failed or migration/RLS not applied"));
     }
   };
 
@@ -1663,6 +2118,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           <section className="cabinetCard profileLitePanel">
             <p className="cabinetEyebrow">Auth flow</p>
             <h2>Вход в кабинет</h2>
+            {window.location.pathname === "/profile/orders" && (
+              <div className="cabinetNotice compactNotice">Войдите через Google, чтобы открыть Кабинет Личный / Мои Заказы. Корзина заказа сохранена на 24 часа.</div>
+            )}
             {!supabaseEnv.isConfigured && <div className="cabinetNotice compactNotice">Supabase не настроен. Кабинет не зависает и ждёт настройки окружения.</div>}
             {authStatus === "loading" && <div className="cabinetNotice compactNotice">Сессия найдена, открываю оболочку...</div>}
             {authError && <div className="cabinetError">{authError}</div>}
@@ -1686,29 +2144,44 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     chatsError,
     chatsStatus,
     clientGoalPhotos,
+    clientOrders,
     clientPhotoForm,
     compositionDraft,
     compositionMessage,
+    courseLessons,
+    courseLessonsError,
+    courseLessonsStatus,
+    courseSteps,
+    courses,
+    coursesError,
+    coursesStatus,
     form,
     materialFile,
     materialForm,
     materials,
     materialsError,
+    materialsFeedMessage,
     materialsStatus,
     mediaError,
     mediaStatus,
     moduleStates,
+    orderConfirmation,
     orderPatch,
     orders,
     ordersError,
     ordersStatus,
+    pendingCartMessage,
     planLimits,
+    powerPlaceFeedForm,
+    powerPlaceFeedStatus,
     powerPlaceCompositions,
     profile,
     profileError,
     profileStatus,
     saveMessage,
     saveStatus,
+    selectedCourseId,
+    selectedStepId,
     selectedThreadId,
     serviceActionStatus,
     serviceForm,
@@ -1748,6 +2221,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onObjectFileUpload={handleCompositionObjectFileUpload}
         onPrint={handlePrintComposition}
         onPublishAsService={handlePublishCompositionAsService}
+        onPublishToFeed={handlePublishCompositionToFeed}
+        onFeedFormChange={handlePowerPlaceFeedFormChange}
         onSaveNew={handleCompositionSaveNew}
         onSendToServices={handleSendCompositionToServices}
         services={services}
@@ -1771,15 +2246,29 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         materials={materials}
         materialsError={materialsError}
         materialsStatus={materialsStatus}
+        materialsFeedMessage={materialsFeedMessage}
+        onAddToFeed={handleAddMaterialToFeed}
         onDelete={handleGrimoireDelete}
         onMultiUpload={handleGrimoireMultiUpload}
         onUpdate={handleGrimoireUpdate}
+      />
+    ),
+    courses: (
+      <ProfileLiteCoursesModule
+        {...moduleProps}
+        onCourseSelect={(courseId) => {
+          setSelectedCourseId(courseId);
+          setSelectedStepId("");
+          setCourseLessons([]);
+        }}
+        onStepSelect={setSelectedStepId}
       />
     ),
     services: (
       <ProfileLiteServicesModule
         {...moduleProps}
         onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
+        onAddToFeed={handleAddServiceToFeed}
         onPublish={handleServicePublish}
         onSave={handleServiceSave}
         onServiceSelect={(service) => {
@@ -1793,15 +2282,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     orders: (
       <ProfileLiteOrdersModule
         {...moduleProps}
-        onOrderPatchChange={(patch) => setOrderPatch({
-          id: patch.id || "",
-          master_comment: patch.master_comment || "",
-          result_image_url: patch.result_image_url || "",
-          result_image_bucket: patch.result_image_bucket || null,
-          result_image_path: patch.result_image_path || null,
-          status: patch.status || "sent"
-        })}
-        onOrderUpdate={handleOrderUpdate}
+        onClientPhotoFieldChange={(field, value) => setClientPhotoForm((current) => ({ ...current, [field]: value }))}
+        onClientPhotoFileChange={(event) => setClientPhotoForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
+        onClientPhotoSave={handleClientPhotoSave}
+        onOrderConfirmationChange={(patch) => setOrderConfirmation((current) => ({ ...current, ...patch }))}
+        onGenerateDraftResult={handleGenerateDraftResultComposition}
+        onOpenOrderResult={handleOpenOrderResult}
+        onDownloadOrderResult={handleDownloadOrderResult}
+        onOrderPatchChange={(patch) => setOrderPatch((current) => ({ ...current, ...patch }))}
+        onSendOrderResult={handleSendOrderResultToClient}
+        onSubmitOrderToMaster={handleSubmitServiceOrderToMaster}
       />
     ),
     chats: (

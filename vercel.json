@@ -20,6 +20,10 @@
       "destination": "/"
     },
     {
+      "source": "/profile/courses",
+      "destination": "/"
+    },
+    {
       "source": "/profile/services",
       "destination": "/"
     },
@@ -36,7 +40,23 @@
       "destination": "/"
     },
     {
+      "source": "/shop",
+      "destination": "/"
+    },
+    {
+      "source": "/services/:serviceId",
+      "destination": "/"
+    },
+    {
       "source": "/masters",
+      "destination": "/"
+    },
+    {
+      "source": "/masters/:id",
+      "destination": "/"
+    },
+    {
+      "source": "/feed",
       "destination": "/"
     },
     {

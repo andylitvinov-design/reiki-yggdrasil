@@ -34,18 +34,28 @@ function assertProfilePageHasKey(path, expectedKey) {
 
 assert.match(mainSource, /import ProfileLitePage from "\.\/pages\/ProfileLitePage\.jsx";/);
 assert.match(mainSource, /import ProfilePage from "\.\/pages\/ProfilePage\.jsx";/);
+assert.match(mainSource, /import FeedPage from "\.\/pages\/FeedPage\.jsx";/);
+assert.match(mainSource, /import MasterPublicPage from "\.\/pages\/MasterPublicPage\.jsx";/);
 
 assertRouteMapsTo("/profile", "ProfileLitePage");
 assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
 assertProfilePageHasKey("/profile-old", "profile-old");
 assertRouteMapsToProfileLiteTab("/profile/mandalas", "mandalas");
+assertRouteMapsToProfileLiteTab("/profile/courses", "courses");
 assertRouteMapsToProfileLiteTab("/profile/services", "services");
 assertRouteMapsToProfileLiteTab("/profile/orders", "orders");
 assertRouteMapsToProfileLiteTab("/profile/chats", "chats");
 assertRouteMapsToProfileLiteTab("/profile/settings", "settings");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
+assertRouteMapsTo("/feed", "FeedPage");
+
+assert.match(
+  mainSource,
+  /if \(path\.startsWith\("\/masters\/"\)\) \{[\s\S]*?const masterId = decodeURIComponent[\s\S]*?return \([\s\S]*?<MasterPublicPage\b[\s\S]*?masterId=\{masterId\}/,
+  "/masters/:id should decode the public master id and render MasterPublicPage before /masters catalog"
+);
 
 assert.match(
   mainSource,
@@ -64,6 +74,7 @@ assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=media"), "me
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=materials"), "materials");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/services", ""), "services");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/orders", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/chats", ""), "chats");
@@ -81,6 +92,7 @@ assert.ok(
 
 for (const [path, initialTab] of [
   ["/profile/mandalas", "mandalas"],
+  ["/profile/courses", "courses"],
   ["/profile/services", "services"],
   ["/profile/orders", "orders"],
   ["/profile/chats", "chats"],
@@ -99,8 +111,19 @@ assert.ok(
   "vercel.json should rewrite /profile-old to the SPA root"
 );
 
+assert.ok(
+  vercelConfig.rewrites.some((rewrite) => rewrite.source === "/feed" && rewrite.destination === "/"),
+  "vercel.json should rewrite /feed to the SPA root"
+);
+
+assert.ok(
+  vercelConfig.rewrites.some((rewrite) => rewrite.source === "/masters/:id" && rewrite.destination === "/"),
+  "vercel.json should rewrite /masters/:id to the SPA root"
+);
+
 for (const path of [
   "/profile/mandalas",
+  "/profile/courses",
   "/profile/services",
   "/profile/orders",
   "/profile/chats",

@@ -1,5 +1,366 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-08 — Implement Power Place Фото / Видео mode Phase 1-3
+
+- Branch: `codex/power-place-video-mode-20260608`.
+- Base: fresh `origin/main` at `d88ae81` (`docs: harden video mode integration contract`).
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - stored video mode only in `object_refs.__motion_settings` with `{ mode, count, direction, step_seconds, video_background_ref }`;
+  - defaulted old/missing rows to `Фото`;
+  - stripped unsafe `data:image`, `data:video`, signed storage URLs, and unknown nested object refs from persistence;
+  - added constructor controls for `Фото / Видео`, `Видео 1 / Видео 4`, direction, and 1/2/3 second step timing;
+  - rendered non-interactive motion copies from the central photo across client, zodiac, star, dao, business, altar, and chess variants;
+  - kept `Видео-фон` and video export as explicit `needs implementation` placeholders.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - no-env `/profile/mandalas` rendered the safe Supabase-not-configured fallback;
+  - mocked Supabase/session dev server: `http://127.0.0.1:4389/`;
+  - `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin` returned `200`;
+  - `/profile/mandalas` desktop matrix checked client `4/12`, zodiac `12`, star, dao, business, altar, chess `compact-5`, `plus-8`, `classic-8`, and `classic-14`;
+  - matrix showed video controls, active `Видео 4`, counterclockwise, `1 сек`, honest background/export copy, and horizontal overflow `0`;
+  - mocked center photo rendered `Видео 4` with 4 moving-copy elements; mobile `390x900` kept overflow `0`;
+  - browser console had only React DevTools info messages.
+- Not verified:
+  - real authenticated Supabase save/reload/update/service conversion, Storage/RLS upload/drag/drop persistence, Vercel preview, production/legacy live URLs, and Google OAuth.
+
+## 2026-06-07 — Add private Courses MVP with individual access
+
+- Branch: `codex/profile-courses-individual-access-mvp`.
+- Base: fresh `origin/main` at `0b0584c` (`docs: add courses technical integration details`).
+- Source of truth:
+  - GitHub issue #307;
+  - `docs/product/COURSES_PLATFORM_CONCEPT.md`;
+  - `docs/product/COURSES_PLATFORM_TECHNICAL_INTEGRATION.md`.
+- Changed files:
+  - `README.md`
+  - `STATE.md`
+  - `LOG.md`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `src/lib/profileCoursesClient.js`
+  - `src/lib/profileLiteClient.js`
+  - `src/main.jsx`
+  - `src/pages/AdminPage.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/admin/AdminCoursesPanel.jsx`
+  - `src/pages/profile-lite/ProfileLiteCoursesModule.jsx`
+  - `src/profileCabinet.css`
+  - `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`
+  - `test/profileCoursesClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `vercel.json`
+- Migration:
+  - added private courses, course steps, course lessons, and course access tables;
+  - added status/position indexes and duplicate-active-grant protection for full-course and step grants;
+  - added updated-at triggers;
+  - added RLS through the existing `profile_cabinet_is_admin()` helper plus profile-owner reads for personally accessible published content;
+  - live Supabase migration was not applied.
+- Admin behavior:
+  - `/profile/admin` includes `Курсы и доступы`;
+  - course, step, and lesson editors are compact and preserve selected records after save;
+  - access manager grants full course or specific step access;
+  - current access list displays master label, course, step or `Весь курс`, status, and `Закрыть доступ`;
+  - revoke patches `status='revoked'`, no delete.
+- Master behavior:
+  - `/profile/courses` opens Profile Lite with active `Курсы` tab;
+  - master-side data loads after `profile.id` and session credential;
+  - course, step, and lesson effects are separate from materials/services;
+  - module shows only available courses, available published steps, and lessons inside the selected available step;
+  - lesson text renders as plain text, safe YouTube/Vimeo URLs embed, other safe public video URLs become external links, and safe `http/https` audio URLs render with `<audio controls>`.
+- Access model:
+  - individual access only;
+  - `account_plan` is not used for course access;
+  - full course access is `access_scope='course'` with `step_id=null`;
+  - step access is `access_scope='step'` with `step_id`;
+  - lessons inherit access from parent step;
+  - no per-lesson access was added.
+- Checks run:
+  - `node test/profileCoursesClient.test.mjs`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-services`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-feed`
+  - `npm run test:public-master`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands exited `0`;
+  - `npm install` failed with `ENOSPC`, so validation used a temporary symlink to the canonical checkout `node_modules`, then removed it;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local route verification:
+  - preview server: `http://127.0.0.1:4388/`;
+  - HTTP checks returned `200` for `/`, `/profile/courses`, `/profile/admin`, `/profile`, `/profile/services`, and `/masters`;
+  - visual/browser QA was not completed because Playwright MCP transport was closed and Chrome DevTools MCP reported a profile conflict.
+- Not verified:
+  - live Supabase migration application;
+  - real authenticated admin CRUD/grant/revoke;
+  - real authenticated master course access rows;
+  - Vercel preview, production/legacy live URLs, Google OAuth, desktop/mobile visual browser QA.
+- Risks:
+  - live courses need the new migration plus course/access rows before users see content;
+  - admin course writes depend on real DB admin membership;
+  - admins should store only public-safe media URLs in MVP lesson fields, not signed/private URLs.
+- Next PR:
+  - apply the migration to staging/test Supabase, seed one draft/published course with one step and one lesson, grant one test master access, and verify `/profile/courses` plus `/profile/admin` against real authenticated data.
+
+## 2026-06-06 — Polish Public Master Page MVP
+
+- Branch: `codex/public-master-page-polish-20260606`.
+- Base: fresh `origin/main` at `8b7491f` (`Merge pull request #299 from andylitvinov-design/codex/public-master-page-mvp`).
+- Changed files:
+  - `src/pages/MasterPublicPage.jsx`
+  - `src/pages/masters/MasterPageHeader.jsx`
+  - `src/pages/masters/MasterPageFeed.jsx`
+  - `src/pages/masters/MasterPagePostCard.jsx`
+  - `src/profileCabinet.css`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - rebuilt the public master hero into one cover/profile header with parchment texture, profile identity, city, bio, counters, and action buttons;
+  - replaced the fallback mandala avatar with a portrait-style CSS placeholder;
+  - added icon-led compact tabs with active underline styling;
+  - converted public feed cards to compact list rows with thumbnail, metadata, date, category, and CTA alignment;
+  - tightened the right sidebar into compact cards for about, contacts, quote, practice status, public-zone safety, and navigation;
+  - removed visible private-reference technical wording from the public sidebar copy.
+- Checks run:
+  - `npm run test:public-master`
+  - `node test/profileLiteRoute.test.mjs`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Browser QA:
+  - local dev server: `http://localhost:4370/`;
+  - screenshots: `master-page-polish-desktop-top-1280x920.png`, `master-page-polish-mobile-390x900.png`;
+  - checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin`;
+  - viewports: `1280x920` and `390x900`;
+  - horizontal overflow was `0` on checked routes;
+  - no framework overlay appeared on checked routes;
+  - desktop aggregate console check reported errors `0` and warnings `0`;
+  - `/masters/demo-master` had no private storage refs, signed URL markers, `object_refs`, bearer markers, or composition JSON markers in DOM/text.
+- Not verified:
+  - real Supabase approved-profile/publication/service rows;
+  - Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+- Risks:
+  - fallback portrait is a CSS illustration until real public-safe avatar images exist;
+  - real data density may need another pass once approved production/staging rows are available.
+
+## 2026-06-06 — Resolve PR #299 conflicts after latest main
+
+- Branch: `codex/public-master-page-mvp`.
+- Base update: merged `origin/main` at `acdf72a9a3134fd9d269956c38ceaa3c308c6b46`.
+- Scope: conflict resolution only; production was not touched and PR #299 was not merged.
+- Conflicts resolved:
+  - `STATE.md`: preserved both the Public Master Page MVP entry and the Mandala services Phase 5 entry from `main`;
+  - `LOG.md`: preserved both the Public Master Page MVP entry and the Mandala services Phase 5 entry from `main`.
+- Public Master Page MVP preservation checked:
+  - `/masters/:id` route;
+  - `/masters/:id` Vercel rewrite;
+  - `MasterPublicPage`, `MasterPageHeader`, `MasterPageFeed`, `MasterPagePostCard`;
+  - `profilePublicMasterClient.js`;
+  - `/masters` catalog button `Страница мастера`;
+  - `test:public-master` and `test/profileLiteRoute.test.mjs` route coverage.
+- Checks run:
+  - `npm install`
+  - `npm run test:public-master`
+  - `node test/profileLiteRoute.test.mjs`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Browser QA:
+  - local dev server: `http://127.0.0.1:4363/`;
+  - checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin`;
+  - viewports: `1280x920` and `390x900`;
+  - horizontal overflow was `0`, console errors/warnings were `0`;
+  - public `/masters` routes had no private storage refs, signed URL markers, `object_refs`, bearer markers, bucket/path fields, or composition JSON markers in DOM/text.
+- Not verified:
+  - real Supabase public rows, Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+
+## 2026-06-05 — Implement Public Master Page MVP
+
+- Branch: `codex/public-master-page-mvp`.
+- Base: fresh `origin/main` at `1157df6`.
+- Changed files:
+  - `src/lib/profilePublicMasterClient.js`
+  - `src/pages/MasterPublicPage.jsx`
+  - `src/pages/MastersPage.jsx`
+  - `src/pages/masters/MasterPageHeader.jsx`
+  - `src/pages/masters/MasterPageFeed.jsx`
+  - `src/pages/masters/MasterPagePostCard.jsx`
+  - `src/main.jsx`
+  - `src/profileCabinet.css`
+  - `vercel.json`
+  - `package.json`
+  - `test/profilePublicMasterClient.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `/masters/:id` as the public master detail route, before the existing `/masters` catalog branch;
+  - added public-safe loading for approved profiles, approved publications, and published services;
+  - added calm Facebook-like master page UI with cover/header, avatar, master info, action buttons, tabs, central feed cards, and public right rail;
+  - added demo/empty cards for no-Supabase or no-public-row states, clearly marked as examples;
+  - added route/rewrite/client tests for the public-private boundary.
+- Checks run so far:
+  - `npm install`
+  - `npm run test:public-master`
+  - `node test/profileLiteRoute.test.mjs`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands listed above exited `0`;
+  - first build failed on an extra CSS brace and passed after the scoped CSS fix;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4362/`;
+  - accepted concept inspected from `/Users/andriilitvinov/.codex/generated_images/019e9947-6f3d-74c0-bf72-60f5cc2842ff/ig_0a07498d9a1bd719016a23250de2d481919918bd60202cb7ff.png`;
+  - rendered screenshots inspected at `/private/tmp/master-page-desktop.png` and `/private/tmp/master-page-mobile.png`;
+  - scripted Playwright QA checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin` at `1280x920` and `390x900`;
+  - horizontal overflow was `0`, console warnings/errors were `0`, the master page cover/avatar/tabs/feed/right rail were present, and public DOM/HTML had no private storage refs, signed URL markers, bucket/path fields, `object_refs`, or bearer token markers.
+- Not verified yet:
+  - real Supabase rows, Vercel preview, production/legacy live URLs, and Google OAuth.
+
+## 2026-06-05 — Add mandala services Phase 5 result generation and delivery
+
+- Branch: `codex/mandala-services-phase5-result-delivery`.
+- Base: rebased onto `origin/main` at `1157df6f8926fe5362c84c70b73d5d6dfa689f3e`.
+- Docs/source read:
+  - `AGENTS.md`, `README.md`, `STATE.md`, `LOG.md`, `docs/release-workflow.md`, `docs/deploy-fallback.md`, `.github/workflows/deploy-production.yml`, `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`, `src/data/reikiKnowledgeBase.js`, `src/main.jsx`, `src/index.css`, `package.json`, `vercel.json`, `src/lib/supabaseClient.js`;
+  - Phase 5 docs and code listed in the task, including `profileServicesClient`, `powerPlaceClient`, `profileMediaClient`, `ProfileLitePage`, `ProfileLiteOrdersModule`, `ProfileLitePowerPlaceModuleBase`, the Phase 4 migration, and focused tests.
+- Changed files:
+  - `src/lib/profileServicesClient.js`
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteOrdersModule.jsx`
+  - `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `README.md`
+  - `test/profileServicesClient.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Migration/RLS:
+  - additive only: `draft_result_composition_id`, `final_result_composition_id`, `sent_at`, `ready_for_review`, indexes;
+  - client composition read policy is final-only for own sent orders and does not grant draft-result reads.
+- Clone algorithm:
+  - fetch own master order and template composition;
+  - clone template payload without preserving template id;
+  - set clone `profile_id` to `master_profile_id`;
+  - set title `Заказ: <service title> / <client label>`;
+  - insert selected client photo into clone `object_refs.__center_image`;
+  - never patch or overwrite `service.composition_id`.
+- Master flow:
+  - `Кабинет Мастера / Заявки` can create draft result, open it in `/profile/mandalas`, add `Комментарий мастера`, and send final result to client;
+  - send is blocked with `Сначала создайте или выберите результат мандалы заказа.` when no draft/result exists.
+- Client flow:
+  - `Кабинет Личный / Мои Заказы` shows final result actions only when order is `sent` with `final_result_composition_id`;
+  - unsent orders do not render draft result actions in the client UI;
+  - download uses existing PDF/print flow.
+- Checks run:
+  - `node test/profileServicesClient.test.mjs` failed first on missing `buildSendOrderResultPayload`;
+  - `node test/powerPlaceClient.test.mjs` failed first on missing `clonePowerPlaceCompositionForOrder`;
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing Phase 5 order UI labels;
+  - `npm run test:profile-lite`
+  - `npm run test:profile-services`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Browser QA:
+  - local preview: `http://127.0.0.1:4361/`;
+  - routes checked: `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, `/profile/admin`;
+  - viewports checked: `1280x920`, `1366x900`, `390x900`;
+  - all route/viewport combinations had console errors `0` and horizontal overflow `0`.
+- Not verified:
+  - real Supabase migration application, authenticated live clone/send flow, Vercel preview, production/legacy live URLs, Google OAuth, and PNG/JPEG export.
+- Risks:
+  - live Phase 5 requires applying the new migration;
+  - final result download is PDF/print MVP only.
+
+## 2026-06-05 — Implement Community Activity Feed Phase 2-4
+
+- Branch: `codex/community-feed-phase-2-4`.
+- Base: fresh `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50` after merged PR #291.
+- Changed files:
+  - `src/lib/profileActivityFeedClient.js`
+  - `src/pages/AdminPage.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteMaterialsModule.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `src/profileCabinet.css`
+  - `src/profileMandalaWorkspace.css`
+  - `supabase/migrations/20260605153000_profile_cabinet_activity_events.sql`
+  - `test/profileActivityFeedClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added admin moderation for pending activity events with type/title/body/category/tags/target/date and approve/reject actions;
+  - added an admin-only test event form that creates `status='pending'` public-feed events;
+  - added safe feed payload builders, material/service/Power Place event mapping, duplicate lookup, duplicate update, and approved-duplicate messaging;
+  - added explicit material/service/saved-mandala feed actions instead of automatic feed event creation on every edit;
+  - added a public Power Place projection form that sends only title/body/category/tags;
+  - allowed `profile_cabinet_power_place_compositions` as an activity-event target without loosening private Power Place/media RLS.
+- Checks run:
+  - `npm install` attempted and failed with `ENOSPC`; reused existing dependency install through a temporary `node_modules` symlink for validation, then removed the symlink;
+  - `npm run check`
+  - `npm run build`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-feed`
+  - `git diff --check`
+- Check notes:
+  - final automated commands exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4356/`;
+  - Playwright MCP checked `/feed`, `/profile/admin`, `/profile`, `/profile/mandalas`, `/profile/services`, and `/masters`;
+  - desktop `1280x920` and mobile `390x900` had horizontal overflow `0`;
+  - console warnings/errors were `0`;
+  - checked route text did not contain private storage refs, signed URL markers, `object_refs`, or bearer tokens.
+- Not verified:
+  - live/staging Supabase writes, migration application, admin membership, approval-to-feed flow with real rows, Vercel preview, production/legacy live URLs, and Google OAuth.
+
 ## 2026-06-05 — Verify and tighten draft/clean release model docs
 
 - Branch: `codex/release-model-verification-20260605`.
@@ -37,6 +398,139 @@
   - Vercel dashboard setup, Supabase dashboard setup, GitHub branch protection, live/test URLs, OAuth, uploads, save/update mandala, `Мои мандалы`, mobile, and desktop layout.
 - Risk:
   - `scripts/apply-reiki-supabase-migrations.mjs` needs separate verification before relying on it for the latest migration list.
+
+## 2026-06-05 — Implement Community Activity Feed Phase 1 infrastructure
+
+- Branch: `codex/community-activity-feed-phase-1`.
+- Base: fresh `origin/main` at `2192fc5`.
+- Changed files:
+  - `supabase/migrations/20260605153000_profile_cabinet_activity_events.sql`
+  - `src/lib/profileActivityFeedClient.js`
+  - `src/pages/FeedPage.jsx`
+  - `src/main.jsx`
+  - `src/profileCabinet.css`
+  - `vercel.json`
+  - `package-lock.json`
+  - `package.json`
+  - `test/profileActivityFeedClient.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `profile_cabinet_activity_events` with event type/status/visibility checks, indexes, updated-at trigger, and RLS;
+  - allowed anon/authenticated public reads only for approved `public_feed` events;
+  - allowed owners to manage only their own editable draft/pending/rejected events and admins to manage all events;
+  - kept private Power Place/media table policies unchanged;
+  - added direct-fetch feed client helpers with public-safe image filtering and RU tab/type labels;
+  - added `/feed` page with loading, empty, error, and Supabase-not-configured states;
+  - added `/feed` route and Vercel SPA rewrite;
+  - added scoped responsive feed CSS and focused feed client tests.
+- Checks run so far:
+  - `node test/profileActivityFeedClient.test.mjs` failed first on missing client file;
+  - `node test/profileLiteRoute.test.mjs` failed first on missing `FeedPage` route import;
+  - `npm install`
+  - `npm run check`
+  - `npm run build`
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run test:profile-media`
+  - `npm run test:profile-loading-recovery`
+  - `npm run test:profile-feed` passed after implementation;
+  - `node test/profileLiteRoute.test.mjs` passed after implementation;
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Local browser QA:
+  - preview server: `http://localhost:4350/`;
+  - Chrome DevTools checked `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/feed`, `/masters`, and `/profile/admin`;
+  - viewports: desktop `1280x920` and mobile `390x900`;
+  - all route/viewport combinations rendered expected route markers with horizontal overflow `0`;
+  - because local Supabase env is not configured, `/profile/mandalas` and `/profile/services` rendered the Profile Lite auth/config gate rather than authenticated inner modules;
+  - `/feed` DOM/text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, or `object_refs`;
+  - Chrome console warnings/errors were `0`.
+- Not verified yet:
+  - real Supabase migration application, owner/admin event writes, live anon reads from real approved `public_feed` rows, Vercel preview, production/legacy live QA, and Google OAuth.
+- Risks:
+  - `/feed` will be empty until approved `visibility='public_feed'` rows exist;
+  - applying the migration depends on the existing `profile_cabinet_is_admin()` helper already being present.
+
+## 2026-06-05 — Add mandala services Phase 3-4 shop cart and orders
+
+- Branch: `codex/mandala-services-phase3-4-shop-cart-orders`.
+- Base: rebased onto `origin/main` at `4f85b477ac92739d2680cc3ea454aee532654f50`.
+- Docs/source read:
+  - `AGENTS.md`, `README.md`, `STATE.md`, `LOG.md`, `docs/release-workflow.md`, `docs/deploy-fallback.md`, `.github/workflows/deploy-production.yml`, `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`, `src/data/reikiKnowledgeBase.js`, `src/main.jsx`, `src/index.css`, `package.json`, `vercel.json`, `src/lib/supabaseClient.js`;
+  - `src/lib/profileServicesClient.js`, `src/lib/profileMediaClient.js`, `src/lib/powerPlaceClient.js`, `src/pages/ProfileLitePage.jsx`, `src/pages/profile-lite/ProfileLiteServicesModule.jsx`, `test/profileServicesClient.test.mjs`, `test/profileLiteCabinetContract.test.mjs`;
+  - `docs/mandala-to-services-all-in-one.md`, `docs/mandala-to-services-implementation-program.md`, `docs/mandala-to-services-professional-spec.md`, `docs/mandala-to-services-engineering-guardrails.md`, `docs/mandala-to-services-goal.md`.
+- Shop audit:
+  - searched `shop`, `магазин`, `services`, `service`, `publicService`, `shopItems`, `Артефакты`, `предложения`, `услуги`;
+  - no existing real shop route was found, only unrelated public-materials keyword text, so `/shop` was added.
+- Changed files:
+  - `src/lib/profileServicesClient.js`
+  - `src/pages/PublicServicesPage.jsx`
+  - `src/main.jsx`
+  - `src/index.css`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteOrdersModule.jsx`
+  - `vercel.json`
+  - `supabase/migrations/20260605153000_service_orders_client_phase4.sql`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `README.md`
+  - `test/profileServicesClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Routes/rewrites:
+  - added `/shop`;
+  - added `/services/:serviceId`;
+  - added Vercel rewrites for both routes to `/`.
+- Cart keys:
+  - active cart: `reiki-yggdrasil-service-cart`;
+  - pending checkout cart: `reiki-yggdrasil-pending-service-cart`.
+- Order/photo flow:
+  - checkout saves pending cart and navigates to `/profile/orders`;
+  - unauthenticated users see Google login prompt and pending cart is kept up to 24h;
+  - after auth, Profile Lite creates a `photo_required` order draft after re-fetching the published service;
+  - client chooses one saved photo or uploads a new one, max 4 visible in UI;
+  - order becomes `new` only after explicit `Отправить заказ мастеру`.
+- RLS/migration notes:
+  - additive migration adds client ownership/order format/photo fields, `draft` and `photo_required` statuses, indexes, authenticated client policies, and a trigger preventing post-draft changes to service/client/master identity fields;
+  - live migration application is not verified.
+- Rebase notes:
+  - conflicts were resolved in `README.md` and `LOG.md`;
+  - retained main's release-model, grimoire/media, cover/mandala controls, and Profile Lite fixes while preserving Phase 3/4 shop/cart/orders.
+- Checks run:
+  - `node test/profileServicesClient.test.mjs` failed first on missing Phase 3-4 exports;
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing public-link/order UI contracts;
+  - `npm install`
+  - `npm run test:profile-services`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-loading-recovery`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+  - final commands exited `0`.
+- Check notes:
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Browser QA:
+  - local preview: `http://localhost:4359/`;
+  - Browser/Chrome DevTools plugin was blocked by existing `chrome-profile` lock, so isolated headless Chrome/CDP was used;
+  - routes checked: `/`, `/shop`, `/services/test`, `/profile`, `/profile-old`, `/profile/mandalas`, `/profile/services`, `/profile/orders`, `/masters`, `/profile/admin`;
+  - viewports checked: `1280x920`, `1366x900`, `390x900`;
+  - every route/viewport combination had console errors `0` and horizontal overflow `0`.
+- Not implemented:
+  - Phase 5 result generation, master edit/send result, final result download, payments, multi-item cart, email/Telegram, destructive migrations, production deploy.
+- Not verified:
+  - real live Supabase reads/writes/RLS, migration application, Google OAuth, Vercel preview, production/legacy live URLs.
+- Risks:
+  - public draft/archive detail distinction is safe but depends on RLS visibility; private details are not exposed;
+  - order flow requires the new migration to be applied before real authenticated Phase 4 use.
 
 ## 2026-06-05 — Complete mandala services Phase 2 manager
 

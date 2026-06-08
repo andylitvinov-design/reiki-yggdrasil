@@ -1,6 +1,7 @@
 import React from "react";
 import {
   SERVICE_FORMAT_OPTIONS,
+  buildServicePublicUrl,
   formatServicePrice,
   getServicePublicLinkState,
   groupServicesByStatus,
@@ -9,6 +10,7 @@ import {
 
 export default function ProfileLiteServicesModule({
   onFieldChange,
+  onAddToFeed = () => {},
   onPublish,
   onSave,
   onServiceSelect,
@@ -26,11 +28,21 @@ export default function ProfileLiteServicesModule({
   const selectedCompositionId = serviceForm?.composition_id || "";
   const isSaving = serviceActionStatus === "loading";
   const canPublish = Boolean(selectedServiceId && selectedCompositionId);
+  const canAddSelectedToFeed = Boolean(selectedServiceId && serviceForm?.status === "published");
   const serviceGroups = [
     ["draft", "Черновики"],
     ["published", "Опубликованные"],
     ["archived", "Архив"]
   ];
+  const copyPublicLink = async (service) => {
+    const url = buildServicePublicUrl(service, window.location.origin);
+    if (!url) return;
+    try {
+      await navigator.clipboard?.writeText(url);
+    } catch {
+      window.prompt("Публичная ссылка для клиентов", url);
+    }
+  };
 
   return (
     <section className="profileLiteModule profileLiteServices mandalaWorkspace" aria-label="Услуги">
@@ -82,12 +94,9 @@ export default function ProfileLiteServicesModule({
                     <span className="cabinetStatus">{groupedServices[status].length}</span>
                   </div>
                   {groupedServices[status].map((service) => (
-                    <button
+                    <article
                       className={`materialCard profileLiteServiceCard ${selectedServiceId === service.id ? "active" : ""}`}
-                      disabled={isSaving}
                       key={service.id || service.title}
-                      onClick={() => onServiceSelect(service)}
-                      type="button"
                     >
                       <div className="materialThumb">{serviceStatusText(service.status).slice(0, 1)}</div>
                       <div>
@@ -97,11 +106,24 @@ export default function ProfileLiteServicesModule({
                         <p className="cabinetMuted">
                           {service.composition_id ? `composition_id: ${service.composition_id}` : "composition_id не привязан"}
                         </p>
-                        <p className={status === "published" ? "cabinetSecondaryDataWarning" : "cabinetMuted"}>
+                        <p className={status === "published" ? "cabinetNotice" : "cabinetMuted"}>
                           {getServicePublicLinkState(service).message}
                         </p>
+                        {getServicePublicLinkState(service).isActive && (
+                          <button
+                            className="cabinetSecondary"
+                            disabled={isSaving}
+                            onClick={() => void copyPublicLink(service)}
+                            type="button"
+                          >
+                            Скопировать ссылку
+                          </button>
+                        )}
+                        <button className="cabinetSecondary" disabled={isSaving} onClick={() => onServiceSelect(service)} type="button">
+                          Редактировать
+                        </button>
                       </div>
-                    </button>
+                    </article>
                   ))}
                   {groupedServices[status].length === 0 && <p>Нет записей в этом разделе.</p>}
                 </section>
@@ -162,9 +184,12 @@ export default function ProfileLiteServicesModule({
               <button className="cabinetSecondary" disabled={isSaving || !canPublish} type="button" onClick={onPublish}>Опубликовать</button>
               <button className="cabinetSecondary" disabled={isSaving || !selectedServiceId} type="button" onClick={() => onStatusChange("draft")}>Вернуть в черновик</button>
               <button className="cabinetSecondary" disabled={isSaving || !selectedServiceId} type="button" onClick={() => onStatusChange("archived")}>Архивировать</button>
+              <button className="cabinetSecondary" disabled={isSaving || !canAddSelectedToFeed} type="button" onClick={() => onAddToFeed("service_created")}>Добавить в ленту</button>
+              <button className="cabinetSecondary" disabled={isSaving || !canAddSelectedToFeed} type="button" onClick={() => onAddToFeed("service_updated")}>Опубликовать обновление</button>
             </div>
+            {!canAddSelectedToFeed && <p className="cabinetMuted">В ленту можно отправить только выбранную опубликованную услугу.</p>}
             {!canPublish && <p className="cabinetMuted">Сначала выберите услугу с привязанной мандалой. Публикация без шаблона отключена.</p>}
-            <p className="cabinetMuted">Активная кнопка copy link появится только после реализации рабочего маршрута /services/:serviceId.</p>
+            <p className="cabinetMuted">Публичная ссылка активна только для опубликованных услуг.</p>
           </form>
         </div>
       </div>

@@ -245,6 +245,27 @@
   white-space: nowrap;
 }
 
+.adminActivityModeration {
+  margin-top: 18px;
+}
+
+.adminActivityMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  color: #6f614f;
+  font-size: 12px;
+}
+
+.adminActivityMeta span {
+  max-width: 100%;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(115, 88, 45, 0.08);
+  overflow-wrap: anywhere;
+}
+
 .cabinetPublicId {
   display: inline-block;
   margin-top: 6px;
@@ -257,6 +278,415 @@
 .status-approved {
   background: rgba(79, 143, 67, 0.13);
   color: #426e31;
+}
+
+.feedShell {
+  overflow-x: hidden;
+}
+
+.feedTopbar {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(260px, 1fr);
+  align-items: center;
+  gap: 18px;
+  padding: 22px 32px;
+  border-bottom: 1px solid rgba(203, 152, 64, 0.38);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.feedTopbar div {
+  text-align: center;
+}
+
+.feedTopbar p {
+  margin: 0 0 7px;
+  color: #9a6517;
+  font-size: 11px;
+  letter-spacing: 1.25px;
+  text-transform: uppercase;
+}
+
+.feedTopbar h1,
+.feedHero h2,
+.feedCard h2 {
+  margin: 0;
+  line-height: 1.06;
+}
+
+.feedTopbar button,
+.feedCardActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.feedTopActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.feedTopbar button {
+  border: 1px solid rgba(184, 121, 29, 0.46);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #24180e;
+  font-weight: 700;
+}
+
+.feedMain {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 28px 0 48px;
+}
+
+.feedHero {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 24px 0 10px;
+}
+
+.feedHero h2 {
+  max-width: 760px;
+  font-size: 42px;
+}
+
+.feedHero p:last-child {
+  max-width: 820px;
+  margin: 0;
+  color: #5f5142;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.feedTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 20px;
+}
+
+.feedTab {
+  min-height: 42px;
+  border: 1px solid rgba(184, 121, 29, 0.32);
+  border-radius: 999px;
+  padding: 9px 15px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #4a3828;
+  font-weight: 800;
+}
+
+.feedTab--active {
+  border-color: rgba(151, 95, 30, 0.72);
+  background: #21190f;
+  color: #f7d38c;
+}
+
+.feedState {
+  margin-top: 16px;
+}
+
+.feedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.feedCard {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(203, 152, 64, 0.42);
+  border-radius: 22px;
+  background: rgba(255, 252, 246, 0.88);
+  box-shadow: 0 14px 42px rgba(79, 54, 18, 0.1);
+}
+
+.feedCardMedia {
+  min-height: 100%;
+  aspect-ratio: 1 / 1;
+  background-size: cover;
+  background-position: center;
+}
+
+.feedFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at center, rgba(245, 198, 106, 0.68) 0 2px, transparent 3px 100%),
+    repeating-radial-gradient(circle at center, rgba(184, 121, 29, 0.28) 0 1px, transparent 2px 18px),
+    linear-gradient(135deg, #21190f, #7a4f13);
+  color: #f7d38c;
+}
+
+.feedFallback span {
+  width: 82px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(247, 211, 140, 0.56);
+  border-radius: 50%;
+  background: rgba(20, 14, 8, 0.28);
+  font-size: 42px;
+}
+
+.feedCardBody {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+}
+
+.feedMeta,
+.feedCardFooter,
+.feedCardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedBadge {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #8a5a14;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.feedBadgeFeatured {
+  background: rgba(33, 25, 15, 0.88);
+  color: #f7d38c;
+}
+
+.feedCard h2 {
+  overflow-wrap: anywhere;
+  font-size: 24px;
+}
+
+.feedCard p {
+  margin: 0;
+  color: #5f5142;
+  line-height: 1.5;
+}
+
+.feedCardFooter {
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.feedCardActions {
+  margin-top: 4px;
+}
+
+.feedCardActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+@media (max-width: 980px) {
+  .feedTopbar {
+    grid-template-columns: 1fr;
+    padding: 18px 16px;
+  }
+
+  .feedTopbar > button,
+  .feedTopActions {
+    justify-self: stretch;
+    justify-content: center;
+  }
+
+  .feedTopActions button {
+    flex: 1 1 150px;
+  }
+
+  .feedMain {
+    width: min(100%, calc(100vw - 20px));
+    padding: 20px 0 36px;
+  }
+
+  .feedHero h2 {
+    font-size: 30px;
+  }
+
+  .feedTabs {
+    gap: 8px;
+  }
+
+  .feedTab {
+    flex: 1 1 118px;
+    padding: 9px 11px;
+  }
+
+  .feedGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedCard {
+    grid-template-columns: 128px minmax(0, 1fr);
+  }
+
+  .feedCardBody {
+    padding: 14px;
+  }
+
+  .feedCard h2 {
+    font-size: 20px;
+  }
+}
+
+/* Profile Lite courses MVP */
+.profileLiteCoursesModule .workspaceMainColumns {
+  align-items: start;
+}
+
+.courseListColumn .cabinetCard,
+.courseHelpColumn .cabinetCard,
+.courseCenterColumn .cabinetCard,
+.adminCoursesPanel {
+  border-radius: 8px;
+}
+
+.courseListButton,
+.courseStepList button,
+.adminCoursePillList button {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+}
+
+.courseListButton small,
+.courseStepList small {
+  display: block;
+  margin-top: 4px;
+  font-weight: 500;
+  opacity: 0.78;
+}
+
+.courseStepList,
+.adminCoursePillList {
+  display: grid;
+  gap: 8px;
+}
+
+.courseLessonsCard {
+  display: grid;
+  gap: 12px;
+}
+
+.courseLessonCard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(120, 88, 44, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 252, 244, 0.78);
+}
+
+.courseLessonCard h4 {
+  margin: 0;
+}
+
+.courseLessonBody {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.courseLessonMedia {
+  display: grid;
+  gap: 10px;
+}
+
+.courseLessonMedia iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 8px;
+  background: #1f1b16;
+}
+
+.courseLessonMedia audio {
+  width: 100%;
+}
+
+.courseMediaLink {
+  width: fit-content;
+}
+
+.adminCoursesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.adminCoursesBlock {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(120, 88, 44, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 252, 244, 0.7);
+}
+
+.adminLessonEditor {
+  grid-column: 1 / -1;
+}
+
+.adminCoursesAccessList {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.adminCourseAccessRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.adminCourseAccessRow h4,
+.adminCourseAccessRow p {
+  margin: 0;
+}
+
+.adminAccessMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 980px) {
+  .adminCoursesGrid,
+  .adminCourseAccessRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .feedCard {
+    grid-template-columns: 1fr;
+  }
+
+  .feedCardMedia {
+    min-height: 180px;
+    aspect-ratio: 16 / 9;
+  }
+
+  .feedCardActions button {
+    width: 100%;
+  }
 }
 
 .status-rejected {
@@ -329,9 +759,544 @@
   margin-top: 14px;
 }
 
-.masterLinks a {
+.masterLinks a,
+.masterLinks button {
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: #8f5d17;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.masterPageShell {
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(203, 152, 64, 0.12), transparent 27%),
+    radial-gradient(circle at 88% 7%, rgba(86, 114, 91, 0.12), transparent 30%),
+    linear-gradient(180deg, #f8efe2, #f1e2cd 54%, #e9d6ba);
+}
+
+.masterPageHeader {
+  width: min(1280px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 18px 0 0;
+}
+
+.masterPageTopbar {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.masterPageTopbar span {
+  color: #5f5142;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.masterPageTopbar button,
+.masterPageActions button,
+.masterPageAsideCard button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.masterPageTopbar button {
+  width: max-content;
+  border: 1px solid rgba(184, 121, 29, 0.36);
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: rgba(255, 252, 246, 0.78);
+  color: #2d2117;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgba(76, 51, 20, 0.07);
+}
+
+.masterPageTopbar button:last-child {
+  justify-self: end;
+}
+
+.masterPageHero {
+  position: relative;
+  overflow: hidden;
+  min-height: 336px;
+  border: 1px solid rgba(203, 152, 64, 0.34);
+  border-radius: 18px;
+  background: rgba(255, 250, 241, 0.88);
+  box-shadow: 0 18px 50px rgba(79, 54, 18, 0.12);
+}
+
+.masterPageCover {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 73% 24%, rgba(207, 166, 91, 0.12) 0 132px, transparent 134px),
+    radial-gradient(circle at 10% 14%, rgba(184, 121, 29, 0.15), transparent 150px),
+    linear-gradient(90deg, rgba(255, 252, 246, 0.95), rgba(249, 239, 221, 0.82) 45%, rgba(219, 224, 209, 0.68)),
+    linear-gradient(140deg, #f7ecd8, #eef0e1 62%, #d4dac9);
+}
+
+.masterPageCover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 72% 20%, transparent 0 64px, rgba(184, 121, 29, 0.15) 65px 66px, transparent 67px 92px, rgba(184, 121, 29, 0.11) 93px 94px, transparent 95px),
+    repeating-linear-gradient(122deg, transparent 0 23px, rgba(151, 95, 30, 0.08) 24px, transparent 25px 42px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.15) 0 1px, transparent 1px 22px);
+  opacity: 0.9;
+}
+
+.masterPageCover::after {
+  content: "";
+  position: absolute;
+  left: -34px;
+  bottom: -22px;
+  width: 310px;
+  height: 310px;
+  opacity: 0.42;
+  background:
+    radial-gradient(ellipse at 50% 88%, rgba(151, 95, 30, 0.24) 0 3px, transparent 4px),
+    radial-gradient(ellipse at 42% 70%, transparent 0 34px, rgba(151, 95, 30, 0.28) 35px 37px, transparent 38px),
+    repeating-conic-gradient(from 12deg at 48% 72%, transparent 0 12deg, rgba(151, 95, 30, 0.24) 13deg 15deg, transparent 16deg 28deg);
+  border-radius: 54% 46% 48% 52%;
+}
+
+.masterPageCoverMark {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  z-index: 1;
+  color: rgba(80, 92, 78, 0.35);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.masterPageIdentity {
+  display: grid;
+  grid-template-columns: 188px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-height: 336px;
+  position: relative;
+  z-index: 2;
+  padding: 42px 28px 28px 76px;
+}
+
+.masterPageAvatar {
+  width: 188px;
+  height: 188px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  border: 5px solid rgba(255, 252, 246, 0.98);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 34%, #d8bba0 0 30px, transparent 31px),
+    radial-gradient(ellipse at 50% 98%, #b68f72 0 58px, transparent 59px),
+    linear-gradient(140deg, #52624f, #c7b596);
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 18px 38px rgba(58, 39, 15, 0.2);
+}
+
+.masterPageAvatarPortrait {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 48% 35%, #d9b391 0 25px, transparent 26px),
+    radial-gradient(ellipse at 48% 27%, #7b766b 0 42px, transparent 43px),
+    linear-gradient(180deg, #536353 0 54%, #d5c2a5 54% 100%);
+}
+
+.masterPageAvatarPortrait i {
+  position: absolute;
+  left: 45px;
+  top: 30px;
+  width: 96px;
+  height: 88px;
+  border-radius: 50% 50% 45% 45%;
+  background:
+    radial-gradient(circle at 42% 40%, #e2c2a4 0 31px, transparent 32px),
+    linear-gradient(135deg, #837d72, #b7a68b);
+}
+
+.masterPageAvatarPortrait b {
+  position: absolute;
+  left: 42px;
+  bottom: 20px;
+  width: 104px;
+  height: 64px;
+  border-radius: 48% 48% 0 0;
+  background: linear-gradient(135deg, #eee1cd, #b99369);
+}
+
+.masterPageIdentityText {
+  min-width: 0;
+  max-width: 590px;
+}
+
+.masterPageIdentityText h1 {
+  margin: 0;
+  color: #2a241f;
+  font-size: 44px;
+  line-height: 1.02;
+}
+
+.masterPageIdentityText p:not(.cabinetEyebrow) {
+  max-width: 580px;
+  margin: 12px 0 0;
+  color: #5f5142;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.masterPageIdentityText small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: #7d6b56;
+  font-weight: 800;
+}
+
+.masterPageCounters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 2;
+  margin: 2px 0 0;
+}
+
+.masterPageCounters div {
+  min-width: 98px;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.44);
+}
+
+.masterPageCounters dt {
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.masterPageCounters dd {
+  margin: 3px 0 0;
+  color: #20170f;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.masterPageActions {
+  grid-column: 2 / 4;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+  margin-top: 6px;
+}
+
+.masterPageActions button {
+  border-radius: 8px;
+  min-height: 42px;
+}
+
+.masterPageMain {
+  width: min(1280px, calc(100vw - 32px));
+  margin: 0 auto;
+  padding: 18px 0 52px;
+}
+
+.masterPageState {
+  margin-top: 18px;
+}
+
+.masterPageLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.masterPageTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0 10px;
+  border: 1px solid rgba(203, 152, 64, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 252, 246, 0.86);
+  box-shadow: 0 8px 26px rgba(79, 54, 18, 0.07);
+}
+
+.masterPageTab {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  padding: 8px 14px 6px;
+  background: transparent;
+  color: #4a3828;
+  font-weight: 800;
+}
+
+.masterPageTab--active {
+  border-bottom-color: #2f6a52;
+  background: rgba(78, 112, 86, 0.08);
+  color: #2f5b49;
+}
+
+.masterPageNotice {
+  margin-bottom: 16px;
+  border: 1px solid rgba(78, 112, 86, 0.28);
+  border-radius: 14px;
+  padding: 15px 16px;
+  background: rgba(244, 248, 239, 0.82);
+  color: #465a45;
+}
+
+.masterPageNotice p {
+  margin: 6px 0 0;
+  line-height: 1.45;
+}
+
+.masterPageFeedList {
+  display: grid;
+  gap: 10px;
+}
+
+.masterPagePost,
+.masterPageAsideCard {
+  min-width: 0;
+  border: 1px solid rgba(203, 152, 64, 0.36);
+  border-radius: 12px;
+  background: rgba(255, 252, 246, 0.9);
+  box-shadow: 0 12px 34px rgba(79, 54, 18, 0.09);
+}
+
+.masterPagePost {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.masterPagePostMeta,
+.masterPagePostFooter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.masterPagePostBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(184, 121, 29, 0.12);
+  color: #8a5a14;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.masterPagePostBadge--demo {
+  background: rgba(78, 112, 86, 0.13);
+  color: #496d50;
+}
+
+.masterPagePostBadge--price {
+  background: rgba(33, 25, 15, 0.88);
+  color: #f7d38c;
+}
+
+.masterPagePostImage {
+  width: 150px;
+  min-height: 106px;
+  align-self: stretch;
+  border-radius: 8px;
+  background-position: center;
+  background-size: cover;
+}
+
+.masterPagePostImage--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at center, rgba(245, 198, 106, 0.66) 0 2px, transparent 3px 100%),
+    repeating-radial-gradient(circle at center, rgba(184, 121, 29, 0.24) 0 1px, transparent 2px 18px),
+    linear-gradient(135deg, #21190f, #4d6e57);
+  color: #f7d38c;
+}
+
+.masterPagePostBody {
+  min-width: 0;
+  padding: 4px 6px 2px 0;
+}
+
+.masterPagePostTitleRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.masterPagePostBody h2 {
+  margin: 0;
+  color: #17120c;
+  font-size: 20px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.masterPagePostDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #8a7a67;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.masterPagePostBody p {
+  margin: 7px 0 0;
+  color: #5f5142;
+  font-size: 14px;
+  line-height: 1.38;
+}
+
+.masterPagePostFooter {
+  justify-content: space-between;
+  margin-top: 10px;
+  color: #7d6b56;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.masterPagePostLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: #8f5d17;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.masterPageAside {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 14px;
+}
+
+.masterPageAsideCard {
+  padding: 16px;
+}
+
+.masterPageAsideCard h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 18px;
+  line-height: 1.18;
+}
+
+.masterPageAsideCard p {
+  margin: 0;
+  color: #5f5142;
+  line-height: 1.5;
+}
+
+.masterPageAsideCard span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: #7d6b56;
+  font-weight: 800;
+}
+
+.masterPageAsideCard a,
+.masterPageAsideCard button {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.62);
+  color: #2d2117;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.masterPageContactList {
+  display: grid;
+  gap: 2px;
+}
+
+.masterPageSafetyCard {
+  border-color: rgba(78, 112, 86, 0.34);
+  background: rgba(244, 248, 239, 0.86);
+}
+
+.masterPageQuoteCard {
+  min-height: 118px;
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(203, 152, 64, 0.26);
+  background:
+    radial-gradient(circle at 88% 26%, rgba(203, 152, 64, 0.16), transparent 58px),
+    linear-gradient(135deg, rgba(255, 252, 246, 0.94), rgba(247, 239, 226, 0.9));
+}
+
+.masterPageQuoteCard svg {
+  color: rgba(184, 121, 29, 0.55);
+}
+
+.masterPageQuoteCard p {
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.masterPageStatusCard {
+  border-color: rgba(78, 112, 86, 0.28);
+  background: rgba(239, 246, 232, 0.88);
 }
 
 .profileLiteMain {
@@ -589,6 +1554,167 @@
 .profileLiteDebug dl {
   display: grid;
   gap: 10px;
+}
+
+@media (max-width: 980px) {
+  .masterPageHeader,
+  .masterPageMain {
+    width: min(100%, calc(100vw - 20px));
+  }
+
+  .masterPageTopbar {
+    grid-template-columns: 1fr;
+  }
+
+  .masterPageTopbar button,
+  .masterPageTopbar button:last-child {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .masterPageHero {
+    min-height: 0;
+  }
+
+  .masterPageCoverMark {
+    right: 18px;
+    bottom: 16px;
+    font-size: 28px;
+  }
+
+  .masterPageIdentity {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 12px;
+    min-height: 0;
+    padding: 76px 16px 18px;
+  }
+
+  .masterPageAvatar {
+    width: 118px;
+    height: 118px;
+    margin-top: 0;
+    font-size: 42px;
+  }
+
+  .masterPageAvatarPortrait i {
+    left: 27px;
+    top: 20px;
+    width: 62px;
+    height: 58px;
+  }
+
+  .masterPageAvatarPortrait b {
+    left: 25px;
+    bottom: 13px;
+    width: 68px;
+    height: 42px;
+  }
+
+  .masterPageIdentityText {
+    padding-top: 0;
+  }
+
+  .masterPageIdentityText h1 {
+    font-size: 32px;
+  }
+
+  .masterPageCounters {
+    grid-column: 1;
+    width: 100%;
+  }
+
+  .masterPageActions {
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    justify-content: stretch;
+  }
+
+  .masterPageActions button {
+    flex: 1 1 180px;
+  }
+
+  .masterPageLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .masterPageAside {
+    position: static;
+  }
+
+  .masterPageTabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .masterPageTab {
+    flex: 0 0 auto;
+  }
+
+  .masterPagePost {
+    grid-template-columns: 122px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .masterPagePostImage {
+    width: 122px;
+  }
+
+  .masterPagePostTitleRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 560px) {
+  .masterPageHeader,
+  .masterPageMain {
+    width: min(100%, calc(100vw - 16px));
+  }
+
+  .masterPageIdentity {
+    padding: 64px 12px 14px;
+  }
+
+  .masterPagePostImage {
+    width: 92px;
+    min-height: 92px;
+  }
+
+  .masterPagePost {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 10px;
+    padding: 8px;
+  }
+
+  .masterPagePostBody {
+    padding-right: 0;
+  }
+
+  .masterPagePostBody h2 {
+    font-size: 17px;
+  }
+
+  .masterPagePostBody p {
+    font-size: 13px;
+  }
+
+  .masterPagePostMeta {
+    gap: 5px;
+  }
+
+  .masterPagePostBadge {
+    padding: 3px 7px;
+  }
+
+  .masterPageCounters div {
+    flex: 1 1 120px;
+  }
+
+  .masterPagePostFooter {
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 760px) {

@@ -16,7 +16,10 @@ import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/
 import ProfilePage from "./pages/ProfilePage.jsx";
 import ProfileLitePage from "./pages/ProfileLitePage.jsx";
 import MastersPage from "./pages/MastersPage.jsx";
+import MasterPublicPage from "./pages/MasterPublicPage.jsx";
 import AdminPage from "./pages/AdminPage.jsx";
+import FeedPage from "./pages/FeedPage.jsx";
+import PublicServicesPage from "./pages/PublicServicesPage.jsx";
 import "./index.css";
 import "./degreeSettings.css";
 import "./stepSettings.css";
@@ -175,6 +178,15 @@ function RootRouter() {
     return <AdminPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path === "/shop") {
+    return <PublicServicesPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+  }
+
+  if (path.startsWith("/services/")) {
+    const serviceId = decodeURIComponent(path.replace(/^\/services\//, "").split("/")[0] || "");
+    return <PublicServicesPage serviceId={serviceId} onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+  }
+
   if (path === "/profile-lite") {
     return <ProfileLitePage initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
@@ -185,6 +197,10 @@ function RootRouter() {
 
   if (path === "/profile/mandalas") {
     return <ProfileLitePage initialTab="mandalas" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile/courses") {
+    return <ProfileLitePage initialTab="courses" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/services") {
@@ -207,8 +223,24 @@ function RootRouter() {
     return <ProfileLitePage initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path.startsWith("/masters/")) {
+    const masterId = decodeURIComponent(path.replace(/^\/masters\//, "").split("/")[0] || "");
+    return (
+      <MasterPublicPage
+        masterId={masterId}
+        onNavigateHome={() => navigateTo("/")}
+        onNavigateMasters={() => navigateTo("/masters")}
+        onNavigateProfile={() => navigateTo("/profile")}
+      />
+    );
+  }
+
   if (path === "/masters") {
-    return <MastersPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} />;
+    return <MastersPage onNavigateHome={() => navigateTo("/")} onNavigateProfile={() => navigateTo("/profile")} onNavigateMaster={(profileId) => navigateTo(`/masters/${encodeURIComponent(profileId)}`)} />;
+  }
+
+  if (path === "/feed") {
+    return <FeedPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} onNavigateProfile={() => navigateTo("/profile")} />;
   }
 
   return <App />;

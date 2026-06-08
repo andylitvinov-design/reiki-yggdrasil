@@ -1,16 +1,32 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   buildCompositionServicePayload,
+  buildServiceCartItem,
+  buildServicePublicUrl,
+  buildServiceQueryParams,
+  buildServiceOrderDraftPayload,
+  buildSendOrderResultPayload,
+  buildServiceOrderSubmitPayload,
   createEmptyServiceForm,
+  createServiceCartStore,
+  filterPublishedServices,
   formatServicePrice,
   getServicePublicLinkState,
   groupServicesByStatus,
+  isPendingServiceCartFresh,
+  PUBLIC_SERVICE_NOT_FOUND_MESSAGE,
+  PUBLIC_SERVICE_UNAVAILABLE_MESSAGE,
   SERVICE_FORMAT_OPTIONS,
+  SERVICE_CART_KEY,
+  PENDING_SERVICE_CART_KEY,
   normalizeServiceForm,
   normalizeServiceOrder,
   normalizeServiceRow,
+  orderHasClientVisibleResult,
   orderStatusText,
+  resolvePublicServiceState,
   serviceStatusText
 } from "../src/lib/profileServicesClient.js";
 
@@ -23,6 +39,11 @@ assert.deepEqual(
   SERVICE_FORMAT_OPTIONS.map((option) => option.label),
   ["С подписью мастера", "Без подписи мастера", "Две версии"],
   "services manager should expose Phase 2 MVP format labels"
+);
+assert.deepEqual(
+  SERVICE_FORMAT_OPTIONS.map((option) => option.value),
+  ["signature", "no_signature", "both"],
+  "public service format values must match the Phase 3 contract"
 );
 
 assert.deepEqual(
@@ -106,6 +127,8 @@ assert.equal(order.id, "order-1");
 assert.equal(order.status, "sent");
 assert.equal(order.service.title, "Услуга");
 assert.equal(order.service.price_amount, 90);
+assert.equal(order.draft_result_composition_id, "", "missing draft result should normalize to empty string");
+assert.equal(order.final_result_composition_id, "", "missing final result should normalize to empty string");
 assert.equal(serviceStatusText("published"), "Размещено");
 assert.equal(orderStatusText("in_progress"), "В работе");
 assert.equal(formatServicePrice({ price_amount: null, price_currency: "EUR" }), "Бесплатно");
@@ -119,9 +142,11 @@ assert.equal(
 );
 assert.equal(
   getServicePublicLinkState({ status: "published", id: "service-1" }).message,
-  "Услуга опубликована. Публичная ссылка будет доступна после подключения маршрута /services/:serviceId.",
-  "published service should not expose a fake public link while route is missing"
+  "Публичная ссылка для клиентов",
+  "published service should expose a real public link after /services/:serviceId is implemented"
 );
+assert.equal(getServicePublicLinkState({ status: "published", id: "service-1" }).isActive, true);
+assert.equal(buildServicePublicUrl({ id: "service-1" }, "https://mentalica.vercel.app"), "https://mentalica.vercel.app/services/service-1");
 assert.equal(
   getServicePublicLinkState({ status: "archived", id: "service-1" }).message,
   "Услуга в архиве. Публичная ссылка отключена.",
@@ -184,5 +209,184 @@ assert.equal(preserved.image_path, "service-image-path");
 assert.equal(preserved.price_amount, 77);
 assert.equal(preserved.price_currency, "CAD");
 assert.equal(preserved.status, "published");
+
+const publicServices = [
+  normalizeServiceRow({ id: "draft-public", status: "draft", title: "Черновик", description: "private" }),
+  normalizeServiceRow({ id: "published-public", status: "published", title: "Опубликовано", description: "visible" }),
+  normalizeServiceRow({ id: "archived-public", status: "archived", title: "Архив", description: "private" })
+];
+assert.deepEqual(
+  filterPublishedServices(publicServices).map((item) => item.id),
+  ["published-public"],
+  "public shop should list only published services"
+);
+assert.deepEqual(
+  buildServiceQueryParams({ publicOnly: true, id: "service-1" }),
+  {
+    path: "/rest/v1/profile_cabinet_services?id=eq.service-1&status=eq.published&select=id%2Cprofile_id%2Ccomposition_id%2Ctitle%2Cdescription%2Cimage_url%2Cimage_bucket%2Cimage_path%2Cprice_amount%2Cprice_currency%2Cstatus%2Ccreated_at%2Cupdated_at&limit=1",
+    publicRequest: true
+  },
+  "public service detail query must filter by id and published status"
+);
+assert.equal(resolvePublicServiceState(null, "missing").message, PUBLIC_SERVICE_NOT_FOUND_MESSAGE);
+assert.equal(resolvePublicServiceState(normalizeServiceRow({ id: "s1", status: "draft", title: "Draft title" }), "s1").message, PUBLIC_SERVICE_UNAVAILABLE_MESSAGE);
+assert.equal(resolvePublicServiceState(normalizeServiceRow({ id: "s1", status: "archived", title: "Archived title" }), "s1").message, PUBLIC_SERVICE_UNAVAILABLE_MESSAGE);
+assert.equal(resolvePublicServiceState(normalizeServiceRow({ id: "s1", status: "published", title: "Published title" }), "s1").isVisible, true);
+
+const cartItem = buildServiceCartItem({
+  service: normalizeServiceRow({
+    id: " service-1 ",
+    profile_id: " master-1 ",
+    composition_id: " composition-1 ",
+    price_amount: 0,
+    price_currency: "EUR",
+    status: "published",
+    image_path: "private/path.jpg"
+  }),
+  format: "both",
+  now: "2026-06-05T12:00:00.000Z"
+});
+assert.deepEqual(Object.keys(cartItem).sort(), [
+  "composition_id",
+  "created_at",
+  "format",
+  "master_profile_id",
+  "price_amount",
+  "price_currency",
+  "service_id"
+].sort(), "cart item must store only the approved compact fields");
+assert.equal(cartItem.service_id, "service-1");
+assert.equal(cartItem.composition_id, "composition-1");
+assert.equal(cartItem.master_profile_id, "master-1");
+assert.equal(cartItem.format, "both");
+assert.equal(cartItem.price_amount, null);
+assert.equal(cartItem.price_currency, "EUR");
+assert.equal(JSON.stringify(cartItem).includes("private/path"), false, "cart must not store private image refs");
+
+const memoryStorage = new Map();
+const storage = {
+  getItem: (key) => memoryStorage.get(key) || null,
+  setItem: (key, value) => memoryStorage.set(key, value),
+  removeItem: (key) => memoryStorage.delete(key)
+};
+const cartStore = createServiceCartStore(storage);
+cartStore.set(cartItem);
+cartStore.set(buildServiceCartItem({
+  service: normalizeServiceRow({ id: "service-2", profile_id: "master-2", composition_id: "composition-2", price_amount: 25, price_currency: "USD", status: "published" }),
+  format: "signature",
+  now: "2026-06-05T12:01:00.000Z"
+}));
+assert.equal(JSON.parse(storage.getItem(SERVICE_CART_KEY)).service_id, "service-2", "adding a service should replace the previous one-service cart item");
+cartStore.savePending();
+assert.equal(JSON.parse(storage.getItem(PENDING_SERVICE_CART_KEY)).service_id, "service-2", "checkout should save pending cart for auth restore");
+assert.equal(isPendingServiceCartFresh({ created_at: "2026-06-05T00:00:00.000Z" }, new Date("2026-06-05T23:59:59.000Z")), true);
+assert.equal(isPendingServiceCartFresh({ created_at: "2026-06-04T00:00:00.000Z" }, new Date("2026-06-05T00:00:01.000Z")), false);
+
+const orderDraft = buildServiceOrderDraftPayload({
+  cartItem,
+  clientProfileId: "client-1",
+  service: normalizeServiceRow({ id: "service-1", profile_id: "master-1", composition_id: "composition-1", status: "published" })
+});
+assert.deepEqual(orderDraft, {
+  service_id: "service-1",
+  master_profile_id: "master-1",
+  client_profile_id: "client-1",
+  template_composition_id: "composition-1",
+  order_format: "both",
+  client_photo_id: null,
+  client_photo_url: "",
+  client_photo_bucket: null,
+  client_photo_path: null,
+  request_text: "",
+  status: "photo_required"
+});
+assert.throws(
+  () => buildServiceOrderDraftPayload({ cartItem, clientProfileId: "client-1", service: normalizeServiceRow({ id: "service-1", status: "draft" }) }),
+  /Услуга недоступна/,
+  "order drafts must re-check that the service is still published"
+);
+assert.deepEqual(
+  buildServiceOrderSubmitPayload({
+    orderId: "order-1",
+    clientProfileId: "client-1",
+    photo: { id: "photo-1", image_ref: "storage://profile-cabinet-media/client/photo.jpg", image_bucket: "profile-cabinet-media", image_path: "client/photo.jpg" },
+    requestText: "Запрос"
+  }),
+  {
+    id: "order-1",
+    client_profile_id: "client-1",
+    client_photo_id: "photo-1",
+    client_photo_url: "",
+    client_photo_bucket: "profile-cabinet-media",
+    client_photo_path: "client/photo.jpg",
+    request_text: "Запрос",
+    status: "new"
+  },
+  "explicit submit should lock selected photo and move status to new"
+);
+
+const draftResultOrder = normalizeServiceOrder({
+  id: "order-draft-result",
+  service_id: "service-1",
+  status: "ready_for_review",
+  draft_result_composition_id: "draft-composition-1",
+  final_result_composition_id: "",
+  master_comment: "Черновик готов"
+});
+assert.equal(draftResultOrder.status, "ready_for_review");
+assert.equal(draftResultOrder.draft_result_composition_id, "draft-composition-1");
+assert.equal(orderHasClientVisibleResult(draftResultOrder), false, "client must not see a draft result before sent");
+
+const sentResultOrder = normalizeServiceOrder({
+  id: "order-sent",
+  service_id: "service-1",
+  status: "sent",
+  draft_result_composition_id: "draft-composition-1",
+  final_result_composition_id: "final-composition-1",
+  sent_at: "2026-06-05T17:30:00.000Z",
+  master_comment: "Готово"
+});
+assert.equal(sentResultOrder.final_result_composition_id, "final-composition-1");
+assert.equal(sentResultOrder.sent_at, "2026-06-05T17:30:00.000Z");
+assert.equal(orderHasClientVisibleResult(sentResultOrder), true, "sent order should expose the final result to client UI");
+
+assert.deepEqual(
+  buildSendOrderResultPayload({
+    orderId: "order-1",
+    resultCompositionId: "result-1",
+    comment: " Мандала готова "
+  }),
+  {
+    id: "order-1",
+    final_result_composition_id: "result-1",
+    master_comment: "Мандала готова",
+    status: "sent"
+  },
+  "send result should set final composition and sent status without exposing draft fields"
+);
+assert.throws(
+  () => buildSendOrderResultPayload({ orderId: "order-1", resultCompositionId: "", comment: "" }),
+  /Сначала создайте или выберите результат мандалы заказа/,
+  "send result must require an existing result composition"
+);
+
+const phase4Migration = readFileSync(new URL("../supabase/migrations/20260605153000_service_orders_client_phase4.sql", import.meta.url), "utf8");
+assert.match(
+  phase4Migration,
+  /prevent_service_order_identity_change/,
+  "migration should install a trigger that prevents changing service order identity fields"
+);
+assert.match(phase4Migration, /old\.service_id is distinct from new\.service_id/);
+assert.match(phase4Migration, /old\.master_profile_id is distinct from new\.master_profile_id/);
+assert.match(phase4Migration, /old\.client_profile_id is distinct from new\.client_profile_id/);
+
+
+const phase5Migration = readFileSync(new URL("../supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql", import.meta.url), "utf8");
+assert.match(phase5Migration, /draft_result_composition_id/, "Phase 5 migration should add draft result composition id");
+assert.match(phase5Migration, /final_result_composition_id/, "Phase 5 migration should add final result composition id");
+assert.match(phase5Migration, /ready_for_review/, "Phase 5 migration should allow ready_for_review status");
+assert.match(phase5Migration, /sent_at/, "Phase 5 migration should add sent_at");
+assert.match(phase5Migration, /client reads own sent final result compositions/, "RLS assumptions should document client final-only visibility");
+assert.doesNotMatch(phase5Migration, /drop table|drop column|alter column .* type/i, "Phase 5 migration must stay additive");
 
 console.log("profileServicesClient: all assertions passed.");

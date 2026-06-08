@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   __testPowerPlaceClient,
+  clonePowerPlaceCompositionForOrder,
   createPowerPlaceCompositionWithDependencies,
   getPlanLimits,
   normalizeAccountPlan,
@@ -18,6 +19,19 @@ const storageRefs = {
   innerCover: "storage://profile-cabinet-media/profile-1/underlays/inner.png",
   outerCover: "storage://profile-cabinet-media/profile-1/underlays/outer.png"
 };
+const DEFAULT_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
+};
+
+function normalizePowerPlaceCompositionWithoutDefaultMotion(composition) {
+  const normalized = normalizePowerPlaceComposition(composition);
+  delete normalized.object_refs.__motion_settings;
+  return normalized;
+}
 
 const compositionRefs = __testPowerPlaceClient.collectCompositionStorageRefs({
     object_refs: {
@@ -43,6 +57,62 @@ assert.deepEqual(
   [storageRefs.center, storageRefs.innerCover, storageRefs.legacyCover, storageRefs.outerCover, storageRefs.slot].sort(),
   "composition hydration should collect only string storage refs from object_refs and all cover layers"
 );
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({ object_refs: {} }).object_refs.__motion_settings,
+  DEFAULT_MOTION_SETTINGS,
+  "old compositions should load with default Фото motion settings"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    object_refs: {
+      __motion_settings: {
+        mode: "video",
+        count: 4,
+        direction: "counterclockwise",
+        step_seconds: 3,
+        video_background_ref: storageRefs.innerCover
+      }
+    }
+  }).object_refs.__motion_settings,
+  {
+    mode: "video",
+    count: 4,
+    direction: "counterclockwise",
+    step_seconds: 3,
+    video_background_ref: storageRefs.innerCover
+  },
+  "valid motion settings should survive normalization inside object_refs.__motion_settings"
+);
+
+const normalizedUnsafeMotionRefs = normalizePowerPlaceComposition({
+  object_refs: {
+    __motion_settings: {
+      mode: "gif",
+      count: 99,
+      direction: "sideways",
+      step_seconds: 9,
+      video_background_ref: "data:video/mp4;base64,local"
+    },
+    nested_unknown: { src: storageRefs.slot },
+    "client-1": "data:image/png;base64,local",
+    "client-2": "data:video/mp4;base64,local",
+    "client-3": "https://example.supabase.co/storage/v1/object/sign/profile-cabinet-media/private.png?token=signed",
+    "client-4": "https://example.com/durable.jpg"
+  }
+}).object_refs;
+
+assert.deepEqual(
+  normalizedUnsafeMotionRefs.__motion_settings,
+  DEFAULT_MOTION_SETTINGS,
+  "invalid motion settings should normalize to defaults"
+);
+assert.equal(normalizedUnsafeMotionRefs.nested_unknown, undefined, "arbitrary nested object_refs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-1"], undefined, "data:image object refs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-2"], undefined, "data:video object refs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-3"], undefined, "signed storage URLs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-4"], "https://example.com/durable.jpg", "ordinary durable refs should continue to persist");
 
 const hydratedComposition = __testPowerPlaceClient.hydrateCompositionRowsWithSignedUrls([
   {
@@ -82,6 +152,45 @@ assert.deepEqual(
 assert.equal(hydratedComposition.cover_ref.display_src, "https://signed.example/legacy.png");
 assert.equal(hydratedComposition.cover_ref.inner.display_src, "https://signed.example/inner.png");
 assert.equal(hydratedComposition.cover_ref.outer.display_src, "https://signed.example/outer.png");
+
+
+const templateComposition = {
+  id: "template-1",
+  profile_id: "master-1",
+  title: "Шаблон услуги",
+  constructor_type: "chess",
+  chess_variant: "compact-5",
+  object_refs: {
+    "chess-1": storageRefs.slot,
+    __center_image: "storage://profile-cabinet-media/master/template-center.png",
+    __field_layout: "vertical"
+  },
+  object_ref_urls: {
+    [storageRefs.slot]: "https://signed.example/slot.png"
+  },
+  central_photo_id: "template-photo"
+};
+const clientPhoto = {
+  id: "client-photo-1",
+  title: "Клиент",
+  image_ref: storageRefs.center,
+  display_url: "https://signed.example/client-center.png"
+};
+const clonedForOrder = clonePowerPlaceCompositionForOrder({
+  template: templateComposition,
+  masterProfileId: "master-1",
+  serviceTitle: "Личная мандала",
+  clientLabel: "Анна",
+  clientPhoto
+});
+assert.equal(clonedForOrder.id, undefined, "clone payload must not keep template id");
+assert.equal(clonedForOrder.profile_id, "master-1");
+assert.equal(clonedForOrder.title, "Заказ: Личная мандала / Анна");
+assert.equal(clonedForOrder.central_photo_id, "client-photo-1");
+assert.equal(clonedForOrder.object_refs.__center_image, storageRefs.center, "client photo should be inserted only into clone center");
+assert.equal(templateComposition.object_refs.__center_image, "storage://profile-cabinet-media/master/template-center.png", "template center must not be mutated");
+assert.equal(clonedForOrder.object_refs["chess-1"], storageRefs.slot, "non-center template refs should be preserved in clone");
+assert.notEqual(clonedForOrder.object_refs, templateComposition.object_refs, "clone must own a separate object_refs object");
 
 const createBasePayload = {
   profile_id: "profile-1",
@@ -176,8 +285,9 @@ assert.deepEqual(
     label: "Своё изображение",
     type: "image",
     tone: "",
-    src: "data:image/png;base64,cover"
-  }
+    src: ""
+  },
+  "data:image cover refs should not persist"
 );
 
 assert.deepEqual(
@@ -279,7 +389,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Алтарь цели ",
     constructor_type: "altar",
@@ -342,7 +452,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Новый черновик ",
     constructor_type: "client",
@@ -364,7 +474,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Сохранённый отчёт ",
     constructor_type: "client",
@@ -389,7 +499,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "",
     constructor_type: "client",
@@ -423,7 +533,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Бизнес-цель ",
     constructor_type: "business",
@@ -468,7 +578,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " ДАО ",
     constructor_type: "dao",
@@ -509,7 +619,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Зодиак цели ",
     constructor_type: "zodiac",
@@ -550,7 +660,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Зодиак fallback ",
     constructor_type: "zodiac",
@@ -585,7 +695,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Звезда цели ",
     constructor_type: "star",
@@ -627,7 +737,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Звезда fallback ",
     constructor_type: "star",
@@ -662,7 +772,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Центр из мандалы ",
     constructor_type: "client",
@@ -700,7 +810,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Шахматы силы ",
     constructor_type: "chess",
@@ -740,7 +850,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Фото-макет 1 ",
     constructor_type: "client",
@@ -781,12 +891,12 @@ assert.deepEqual(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
+  normalizePowerPlaceCompositionWithoutDefaultMotion({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
   "classic-14"
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Вертикальный макет",
     constructor_type: "client",
@@ -800,7 +910,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Неверный макет",
     constructor_type: "client",
@@ -814,7 +924,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Макет по умолчанию",
     constructor_type: "client",
@@ -827,7 +937,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Макет из object_refs",
     constructor_type: "client",
@@ -839,7 +949,7 @@ assert.equal(
   "object_refs.__field_layout should be preserved when loading/saving"
 );
 
-const normalizedServiceRefsComposition = normalizePowerPlaceComposition({
+const normalizedServiceRefsComposition = normalizePowerPlaceCompositionWithoutDefaultMotion({
   profile_id: "profile-1",
   title: "Служебные настройки",
   constructor_type: "client",
@@ -878,7 +988,7 @@ assert.deepEqual(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Центр из enhanced draft",
     constructor_type: "client",
@@ -891,7 +1001,7 @@ assert.equal(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Неверные служебные настройки",
     constructor_type: "client",
@@ -920,7 +1030,7 @@ assert.deepEqual(
   "invalid numeric service refs should clamp or fall back safely"
 );
 
-const compactChessComposition = normalizePowerPlaceComposition({
+const compactChessComposition = normalizePowerPlaceCompositionWithoutDefaultMotion({
   profile_id: "profile-1",
   title: " Компактные шахматы ",
   constructor_type: "chess",
@@ -936,7 +1046,7 @@ assert.equal(compactChessComposition.chess_variant, "compact-5", "compact-5 shou
 assert.equal(compactChessComposition.object_refs.__slot_scale, "1.14", "shared slot scale should persist inside object_refs without requiring a schema migration");
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "zodiac",
     slot_scale: "0.83",
     object_refs: {
@@ -948,7 +1058,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "star",
     object_refs: {
       __slot_scale: "1.12",
@@ -960,7 +1070,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "chess",
     chess_variant: "plus-8",
     object_refs: { __slot_scale: "9" }
@@ -975,7 +1085,7 @@ assert.equal(
 {
   const innerRef = "storage://profile-cabinet-media/profile-1/underlays/inner.png";
   const outerRef = "storage://profile-cabinet-media/profile-1/underlays/outer.png";
-  const comp = normalizePowerPlaceComposition({
+  const comp = normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Test",
     constructor_type: "client",

@@ -19,6 +19,7 @@ const expectedTabs = [
   ["profile", "Профиль"],
   ["media", "Фото / Медиа"],
   ["materials", "Гримуар"],
+  ["courses", "Курсы"],
   ["services", "Услуги"],
   ["orders", "Заказы"],
   ["chats", "Чаты"]
@@ -37,6 +38,7 @@ assert.deepEqual(
     ["profile", "/profile?tab=profile"],
     ["media", "/profile?tab=media"],
     ["materials", "/profile?tab=materials"],
+    ["courses", "/profile/courses"],
     ["services", "/profile/services"],
     ["orders", "/profile/orders"],
     ["chats", "/profile/chats"]
@@ -52,6 +54,7 @@ assert.equal(getProfileLiteTabById("orders").label, "Заказы");
 assert.equal(getProfileLiteTabById("settings").label, "Настройки");
 assert.equal(getProfileLiteTabById("diagnostics").label, "Диагностика");
 assert.equal(getProfileLiteRouteByTabId("mandalas"), "/profile/mandalas");
+assert.equal(getProfileLiteRouteByTabId("courses"), "/profile/courses");
 assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
 assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
 assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
@@ -61,6 +64,7 @@ assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/unknown", ""), "mandalas");
@@ -156,6 +160,7 @@ for (const file of [
   "ProfileLiteMandalasModule.jsx",
   "ProfileLiteMediaModule.jsx",
   "ProfileLiteMaterialsModule.jsx",
+  "ProfileLiteCoursesModule.jsx",
   "ProfileLitePowerPlaceModule.jsx",
   "ProfileLitePowerPlaceModuleBase.jsx",
   "ProfileLiteImagePicker.jsx",
@@ -176,7 +181,12 @@ const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
 const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
+const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
+const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
+const profileCoursesClientSource = readFileSync("src/lib/profileCoursesClient.js", "utf8");
+const profileCoursesModuleSource = readFileSync(join(moduleDir, "ProfileLiteCoursesModule.jsx"), "utf8");
+const adminCoursesPanelSource = readFileSync("src/pages/admin/AdminCoursesPanel.jsx", "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
@@ -187,6 +197,27 @@ const layoutFinalFix = readFileSync("public/profile-lite-layout-final-fix.js", "
 for (const label of expectedTabs.map(([, label]) => label)) {
   assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
 }
+
+assert.match(profileLitePageSource, /listAvailableCoursesForProfile/, "ProfileLitePage should load private courses through profileCoursesClient");
+assert.match(profileLitePageSource, /listAvailableCourseSteps/, "ProfileLitePage should load course steps separately");
+assert.match(profileLitePageSource, /listAvailableCourseLessons/, "ProfileLitePage should load lessons separately");
+assert.match(profileLitePageSource, /courses:\s*\(\s*<ProfileLiteCoursesModule/, "ProfileLitePage should render the courses module by tab id");
+assert.match(profileLitePageSource, /setSelectedCourseId\(courseId\)[\s\S]*setSelectedStepId\(""\)[\s\S]*setCourseLessons\(\[\]\)/, "Course selection should reset selected step and lessons");
+assert.match(profileCoursesModuleSource, /Курсы Академии/, "Courses module should expose the RU course heading");
+assert.match(profileCoursesModuleSource, /Курсы пока не открыты\./, "Courses module should include empty course state");
+assert.match(profileCoursesModuleSource, /Для этого курса пока нет доступных ступеней\./, "Courses module should include empty step state");
+assert.match(profileCoursesModuleSource, /Уроки для этой ступени готовятся\./, "Courses module should include empty lesson state");
+assert.match(profileCoursesModuleSource, /safeVideoEmbedUrl/, "Courses module should only iframe recognized safe video URLs");
+assert.match(profileCoursesModuleSource, /<audio controls src=\{audioUrl\}/, "Courses module should render audio only after safe URL normalization");
+assert.doesNotMatch(profileCoursesModuleSource, /dangerouslySetInnerHTML/, "Courses lesson body must render as plain text");
+assert.match(adminCoursesPanelSource, /Курсы и доступы/, "Admin should expose courses and access section");
+assert.match(adminCoursesPanelSource, /Выдать доступ/, "Admin courses panel should grant access");
+assert.match(adminCoursesPanelSource, /Закрыть доступ/, "Admin courses panel should revoke access");
+assert.match(profileCoursesClientSource, /buildCourseAccessIndex/, "Course client should expose access index helper");
+assert.match(profileCoursesClientSource, /listAvailableCoursesForProfile/, "Course client should load courses for current profile");
+assert.match(profileCoursesClientSource, /listAvailableCourseSteps/, "Course client should load steps for current profile");
+assert.match(profileCoursesClientSource, /listAvailableCourseLessons/, "Course client should load lessons for current profile");
+assert.doesNotMatch(`${profileCoursesClientSource}\n${profileCoursesModuleSource}\n${adminCoursesPanelSource}`, /lesson_access|per[-_ ]lesson/i, "Courses MVP should not implement per-lesson access");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -276,7 +307,7 @@ assert.match(profileMandalaCss, /--power-source-slot-scale/, "Mandala workspace 
 assert.match(profileMandalaCss, /--power-field-scale/, "Mandala workspace CSS should include independent inner field scaling");
 assert.match(powerPlaceSource, /CENTER_IMAGE_SCALE_REF_KEY = "__center_image_scale"/, "center photo scale should persist through object_refs");
 assert.match(powerPlaceSource, /__center_image_scale: centerImageScale/, "center photo scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /style=\{centerImageStyle\}/, "center photo renderer should receive the independent center image scale style");
+assert.match(powerPlaceSource, /centerImageStyle/, "center photo renderer should use the independent center image scale style");
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
@@ -291,6 +322,11 @@ assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLite
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
 assert.match(powerPlaceSource, />Сохранить мандалу<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose the three Phase 1 mandala-service buttons");
+assert.match(powerPlaceSource, /Опубликовать в ленту[\s\S]*Название для ленты[\s\S]*Публичное описание/, "Power Place should expose a public projection form before creating a feed event");
+const powerPlaceFeedProjectionSource = powerPlaceSource.match(/<div className="powerPlaceFeedProjection"[\s\S]*?<\/div>\s*<p className="powerPrintColorHint">/)?.[0] || "";
+assert.doesNotMatch(powerPlaceFeedProjectionSource, /object_refs|storage:\/\/|signed URL|profile-cabinet-media/i, "Power Place feed projection UI must not render private refs");
+assert.match(profileMaterialsModuleSource, /Добавить в ленту/, "materials should expose an explicit feed action");
+assert.match(profileServicesModuleSource, /Добавить в ленту[\s\S]*Опубликовать обновление/, "published services should expose explicit feed create/update actions");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить мандалу<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
 assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
 assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(saveNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Save button should use an explicit click wrapper that calls onSaveNew only when enabled");
@@ -325,12 +361,42 @@ for (const servicesManagerText of [
   "Без подписи мастера",
   "Две версии",
   "Ссылка появится после публикации",
-  "Публичная ссылка будет доступна после подключения маршрута /services/:serviceId",
+  "Публичная ссылка для клиентов",
+  "Скопировать ссылку",
   "Услуга в архиве. Публичная ссылка отключена."
 ]) {
   assert.match(profileServicesManagerSource, new RegExp(servicesManagerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `/profile/services should include ${servicesManagerText}`);
 }
 assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
+assert.match(profileLitePageSource, /restoreFreshPendingServiceCart/, "Profile Lite should restore a fresh pending cart after auth");
+assert.match(profileLitePageSource, /createServiceOrderDraft/, "checkout should create an order draft after auth, not a public new order");
+assert.match(profileLitePageSource, /submitServiceOrderToMaster/, "order flow should require explicit submit to master");
+assert.match(profileLitePageSource, /listClientServiceOrders\(profile\.id/, "client cabinet should load own client orders");
+assert.match(profileLitePageSource, /listOwnServiceOrders\(profile\.id/, "master cabinet should load incoming orders for own services");
+assert.match(profileOrdersModuleSource, /Кабинет Личный/, "orders module should expose personal cabinet mode");
+assert.match(profileOrdersModuleSource, /Мои Заказы/, "orders module should expose client orders");
+assert.match(profileOrdersModuleSource, /Мои Фото/, "orders module should expose client photos");
+assert.match(profileOrdersModuleSource, /Кабинет Мастера/, "orders module should expose master cabinet mode");
+assert.match(profileOrdersModuleSource, /Заявки/, "orders module should expose master requests");
+assert.match(profileOrdersModuleSource, /Можно хранить до 4 фото\. Удалите старое фото или выберите одно из существующих\./, "orders module should show exact 4-photo limit message");
+assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
+assert.match(profileOrdersModuleSource, /Отправить заказ мастеру/, "orders module should require explicit submit button");
+assert.doesNotMatch(profileOrdersModuleSource, /onSubmit=\{\(event\) => \{ event\.preventDefault\(\); onOrderUpdate\(\); \}\}/, "orders module should not silently submit via generic form update");
+for (const phase5OrderText of [
+  "Создать мандалу заказа",
+  "Открыть мандалу заказа",
+  "Комментарий мастера",
+  "Отправить клиенту",
+  "Сначала создайте или выберите результат мандалы заказа.",
+  "Результат отправлен",
+  "Открыть результат",
+  "Скачать результат"
+]) {
+  assert.match(profileOrdersModuleSource, new RegExp(phase5OrderText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Phase 5 orders module should include ${phase5OrderText}`);
+}
+assert.match(profileLitePageSource, /generateDraftResultComposition/, "Profile Lite page should call Phase 5 draft generation helper");
+assert.match(profileLitePageSource, /sendOrderResultToClient/, "Profile Lite page should call Phase 5 send result helper");
+assert.doesNotMatch(profileOrdersModuleSource, /draft_result_composition_id[^]*Кабинет Личный/, "client UI must not expose draft_result_composition_id before sent");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
@@ -367,11 +433,15 @@ assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwn
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
-assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__center_image_offset_x|__inner_cover_offset_x|__outer_cover_offset_x|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon UI must not reintroduce pointer repositioning or offset persistence in the edited base module");
-assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|onPointerDown|onPointerMove|onPointerUp|imageOffsetStyle/, "cover drop icon PR must not reintroduce pointer repositioning handlers");
+assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__inner_cover_offset_x|__outer_cover_offset_x|imageOffsetStyle/, "base module must not reintroduce legacy cover pointer repositioning or inner/outer cover offset persistence");
+assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|imageOffsetStyle/, "module wrapper must not reintroduce legacy cover pointer repositioning");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "public Profile Lite layout fix should not inject legacy diagonal inner-cover arrows");
 
-// Part A: in-mandala cover drop targets
+// Part A: old arrow overlay must be removed
+assert.doesNotMatch(powerPlaceSource, /coverOffsetCornerGroup/, "old coverOffsetCornerGroup arrow overlay must be removed from module");
+assert.doesNotMatch(powerPlaceSource, /tuneInnerCoverArrows|nudgeInnerCover/, "old arrow overlay helpers must be absent");
+
+// Part A: in-mandala cover drop targets must still exist
 assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTargets/, "in-mandala cover drop targets wrapper must exist");
 assert.match(powerPlaceBaseSource, /powerMandalaCoverDropTarget/, "in-mandala cover drop target buttons must exist");
 assert.match(powerPlaceBaseSource, /◎ Внутрь/, "in-mandala inner cover drop target must have ◎ Внутрь label");
@@ -383,9 +453,25 @@ assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDrop
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaCoverDropTarget\.power-place-slot--drag-over/, "CSS must define drag-over highlight for in-mandala cover targets");
 // Right-panel tabs must still be drop targets
 assert.match(powerPlaceSource, /getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)|getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "right-panel cover layer tabs must still use getPowerPlaceSlotDropHandlers for both layers");
-// No pan/zoom keys or pointer repositioning introduced
-assert.doesNotMatch(powerPlaceBaseSource, /__center_image_offset_x|__center_image_offset_y|__center_image_zoom/, "Part A must not introduce center image pan/zoom persistence keys");
-assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown|onPointerMove|onPointerUp/, "Part A must not introduce pointer pan/zoom handlers");
+
+// Part B: central photo pan/zoom must exist in base module
+assert.match(powerPlaceBaseSource, /__center_image_offset_x/, "central pan/zoom: __center_image_offset_x must be persisted");
+assert.match(powerPlaceBaseSource, /__center_image_offset_y/, "central pan/zoom: __center_image_offset_y must be persisted");
+assert.match(powerPlaceBaseSource, /__center_image_zoom/, "central pan/zoom: __center_image_zoom must be persisted");
+assert.match(powerPlaceBaseSource, /clampCenterImageOffset/, "central pan/zoom: clampCenterImageOffset helper must exist");
+assert.match(powerPlaceBaseSource, /clampCenterImageZoom/, "central pan/zoom: clampCenterImageZoom helper must exist");
+assert.match(powerPlaceBaseSource, /suppressCenterPickerClickRef/, "central pan/zoom: suppressCenterPickerClickRef must exist");
+assert.match(powerPlaceBaseSource, /onPointerDown[\s\S]*handleCenterPointerDown|handleCenterPointerDown[\s\S]*onPointerDown/, "central pan/zoom: onPointerDown must be wired to center photo handler");
+assert.match(powerPlaceBaseSource, /onPointerMove[\s\S]*handleCenterPointerMove|handleCenterPointerMove[\s\S]*onPointerMove/, "central pan/zoom: onPointerMove must be wired to center photo handler");
+assert.match(powerPlaceBaseSource, /onPointerUp[\s\S]*handleCenterPointerUp|handleCenterPointerUp[\s\S]*onPointerUp/, "central pan/zoom: onPointerUp must be wired to center photo handler");
+
+// Part B: cover slots must NOT have pointer pan/zoom handlers
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to inner cover slots");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.outer|cover_ref\.outer[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to outer cover slots");
+assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must be absent from base module");
+
+// Part B: CSS must define grab cursor for center photo
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerCenterPhoto\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for center photo with image");
 
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
@@ -490,8 +576,9 @@ assert.match(servicesModuleSource, /Черновики/, "Services module should
 assert.match(servicesModuleSource, /Опубликованные/, "Services module should group published services under Опубликованные");
 assert.match(servicesModuleSource, /Архив/, "Services module should group archived services under Архив");
 assert.match(profileServicesManagerSource, /Ссылка появится после публикации/, "Draft services should not show an active public link");
-assert.match(profileServicesManagerSource, /Публичная ссылка будет доступна после подключения маршрута \/services\/:serviceId/, "Published services should not show a fake public link before /services/:serviceId exists");
-assert.doesNotMatch(servicesModuleSource, /Скопировать ссылку/, "Phase 1 should not expose copy link before the public service route exists");
+assert.match(profileServicesManagerSource, /Публичная ссылка для клиентов/, "Published services should show a real public link after /services/:serviceId exists");
+assert.match(profileServicesManagerSource, /Скопировать ссылку/, "Published services should expose a copy link button");
+assert.match(servicesModuleSource, /Скопировать ссылку/, "Phase 3 should expose copy link after the public service route exists");
 assert.match(servicesModuleSource, /formatServicePrice/, "Services module should use the shared free-price formatter");
 
 // --- D: Field layout persistence ---
@@ -506,7 +593,26 @@ assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY\s*=\s*"__field_layout
 assert.match(powerPlaceClientSource, /VALID_FIELD_LAYOUTS\s*=\s*\[[\s\S]*"square"[\s\S]*"vertical"[\s\S]*"horizontal"[\s\S]*"rectangle"[\s\S]*\]/, "powerPlaceClient.js should define VALID_FIELD_LAYOUTS with all four layouts");
 assert.match(powerPlaceClientSource, /FIELD_LAYOUT_REF_KEY[\s\S]*VALID_FIELD_LAYOUTS\.includes/, "normalizePowerPlaceComposition should validate and persist __field_layout");
 
-// --- E: Grimoire tab (issue #273) ---
+// --- E: Power Place motion mode ---
+assert.match(powerPlaceClientSource, /MOTION_SETTINGS_REF_KEY\s*=\s*"__motion_settings"/, "powerPlaceClient should define MOTION_SETTINGS_REF_KEY");
+assert.match(powerPlaceClientSource, /DEFAULT_MOTION_SETTINGS[\s\S]*mode:\s*"photo"[\s\S]*step_seconds:\s*2[\s\S]*function normalizeMotionSettings/, "powerPlaceClient should normalize motion settings with Фото defaults");
+assert.match(powerPlaceClientSource, /cleanObjectRefs[\s\S]*MOTION_SETTINGS_REF_KEY[\s\S]*normalizeMotionSettings/, "cleanObjectRefs should preserve only normalized __motion_settings nested object");
+assert.match(powerPlaceClientSource, /objectRefs\[MOTION_SETTINGS_REF_KEY\]\s*=\s*normalizeMotionSettings/, "normalizePowerPlaceComposition should always default __motion_settings");
+assert.match(profileLitePageSource, /MOTION_SETTINGS_REF_KEY\s*=\s*"__motion_settings"/, "ProfileLitePage should define MOTION_SETTINGS_REF_KEY");
+assert.match(profileLitePageSource, /function withDefaultMotionSettings[\s\S]*MOTION_SETTINGS_REF_KEY[\s\S]*normalizeMotionSettings/, "ProfileLitePage should hydrate default motion settings");
+assert.match(profileLitePageSource, /motion_mode[\s\S]*video_count[\s\S]*video_direction[\s\S]*video_step_seconds[\s\S]*video_background_ref/, "handleCompositionDraftChange should map video control fields into __motion_settings");
+assert.match(powerPlaceBaseSource, /data-motion-mode-switch="true"/, "motion mode switch should expose a stable data marker");
+assert.match(powerPlaceBaseSource, /data-video-count=\{count\}/, "video count controls should expose data-video-count markers");
+assert.match(powerPlaceBaseSource, /data-video-direction="clockwise"[\s\S]*data-video-direction="counterclockwise"/, "video direction controls should expose stable markers");
+assert.match(powerPlaceBaseSource, /data-video-step-seconds=\{seconds\}/, "video step controls should expose data-video-step-seconds markers");
+assert.match(powerPlaceBaseSource, /data-motion-layer="true"[\s\S]*data-motion-copy=\{index \+ 1\}/, "motion layer should expose data markers for copies");
+assert.match(powerPlaceBaseSource, /data-video-export-button="true"[\s\S]*Экспорт видео: needs implementation/, "video export button should be honest about missing export implementation");
+assert.match(powerPlaceBaseSource, /Видео-фон: needs implementation/, "video background should remain a needs implementation status");
+assert.match(powerPlaceBaseSource, /clockPositions[\s\S]*getMotionPositionsForComposition[\s\S]*compact-5[\s\S]*plus-8[\s\S]*classic-8[\s\S]*classic-14/, "motion helpers should define mappings for all required formats");
+assert.match(powerPlaceBaseSource, /renderCenterPhotoWithMode\("powerCenterPhoto"\)[\s\S]*renderPowerPlaceMotionLayer\(\)/, "client branch should keep motion layer separate from center button");
+assert.doesNotMatch(powerPlaceBaseSource, /value:\s*"video"/, "CONSTRUCTOR_TYPES must not add a video constructor type");
+
+// --- F: Grimoire tab (issue #273) ---
 const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 
 assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");
@@ -682,5 +788,51 @@ assert.match(
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireUploaderColumn\s*\{[\s\S]*order: 1/, "mobile grimoire should show uploader first");
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 2/, "mobile grimoire should show filters second");
 assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 3/, "mobile grimoire should show records third");
+
+// ── Media module: filter applies to both photos and materials ─────────────────
+
+const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
+
+assert.match(
+  mediaModuleSource,
+  /filteredMaterials/,
+  "ProfileLiteMediaModule should compute filteredMaterials from the filter state"
+);
+
+assert.match(
+  mediaModuleSource,
+  /matchesMediaFilter/,
+  "ProfileLiteMediaModule should define a shared matchesMediaFilter helper"
+);
+
+assert.doesNotMatch(
+  mediaModuleSource,
+  /materials\.map\(/,
+  "ProfileLiteMediaModule must not render materials.map() directly — use filteredMaterials.map() instead"
+);
+
+assert.match(
+  mediaModuleSource,
+  /profileLiteMediaGrid/,
+  "ProfileLiteMediaModule gallery must use profileLiteMediaGrid class"
+);
+
+assert.match(
+  mediaModuleSource,
+  /profileLiteMediaCard/,
+  "ProfileLiteMediaModule cards must use profileLiteMediaCard class"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLiteMediaModule \.profileLiteMediaGrid/,
+  "CSS must define grid layout for profileLiteMediaGrid"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLiteMediaModule \.profileLiteMediaThumb/,
+  "CSS must define thumb style for profileLiteMediaThumb"
+);
 
 console.log("Profile Lite cabinet contract: all assertions passed.");
