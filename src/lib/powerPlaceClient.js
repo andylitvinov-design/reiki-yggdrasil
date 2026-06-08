@@ -38,7 +38,19 @@ const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
 const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
 const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
+const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
+const VALID_MOTION_MODES = ["photo", "video"];
+const VALID_VIDEO_COUNTS = [1, 4];
+const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
+const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
+const DEFAULT_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
+};
 const HYDRATION_TIMEOUT_MS = 8000;
 
 export const ACCOUNT_PLANS = [
@@ -79,17 +91,51 @@ function isDataImage(value) {
   return cleanText(value).startsWith("data:image/");
 }
 
+function isDataVideo(value) {
+  return cleanText(value).startsWith("data:video/");
+}
+
+function isSignedStorageUrl(value) {
+  const ref = cleanText(value);
+  return /\/storage\/v1\/object\/sign\//.test(ref) || /[?&]token=/.test(ref);
+}
+
 function isPersistableImageRef(value) {
   const ref = cleanText(value);
-  return Boolean(ref && !isDataImage(ref));
+  return Boolean(ref && !isDataImage(ref) && !isDataVideo(ref) && !isSignedStorageUrl(ref));
+}
+
+function normalizeMotionSettings(value) {
+  const source = cleanJsonObject(value);
+  const mode = VALID_MOTION_MODES.includes(cleanText(source.mode)) ? cleanText(source.mode) : DEFAULT_MOTION_SETTINGS.mode;
+  const count = Number(source.count);
+  const direction = VALID_VIDEO_DIRECTIONS.includes(cleanText(source.direction)) ? cleanText(source.direction) : DEFAULT_MOTION_SETTINGS.direction;
+  const stepSeconds = Number(source.step_seconds);
+  const videoBackgroundRef = cleanText(source.video_background_ref);
+
+  return {
+    mode,
+    count: VALID_VIDEO_COUNTS.includes(count) ? count : DEFAULT_MOTION_SETTINGS.count,
+    direction,
+    step_seconds: VALID_VIDEO_STEP_SECONDS.includes(stepSeconds) ? stepSeconds : DEFAULT_MOTION_SETTINGS.step_seconds,
+    video_background_ref: isPersistableImageRef(videoBackgroundRef) && isStorageRef(videoBackgroundRef) ? videoBackgroundRef : ""
+  };
 }
 
 function cleanObjectRefs(value) {
-  return Object.fromEntries(
-    Object.entries(cleanJsonObject(value))
-      .map(([key, item]) => [cleanText(key), cleanText(item)])
-      .filter(([key, item]) => key && isPersistableImageRef(item))
-  );
+  const refs = {};
+  for (const [rawKey, rawItem] of Object.entries(cleanJsonObject(value))) {
+    const key = cleanText(rawKey);
+    if (!key) continue;
+    if (key === MOTION_SETTINGS_REF_KEY) {
+      refs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(rawItem);
+      continue;
+    }
+    if (rawItem && typeof rawItem === "object") continue;
+    const item = cleanText(rawItem);
+    if (isPersistableImageRef(item)) refs[key] = item;
+  }
+  return refs;
 }
 
 function clampNumericRef(value, min, max) {
@@ -318,6 +364,10 @@ export function normalizeCoverRef(coverRef) {
   const cover = cleanJsonObject(coverRef);
   const id = cleanText(cover.id);
   if (!id) return null;
+  const cleanCoverSrc = (value) => {
+    const src = cleanText(value);
+    return isPersistableImageRef(src) ? src : "";
+  };
 
   const normalizeLayer = (layer, fallback = {}) => {
     const source = cleanJsonObject(layer);
@@ -330,7 +380,7 @@ export function normalizeCoverRef(coverRef) {
       label: cleanText(source.label) || cleanText(fallback.label) || (type === "none" ? "Без фона" : "Заставка места силы"),
       type,
       tone: cleanText(source.tone) || cleanText(fallback.tone),
-      src: cleanText(source.src) || cleanText(fallback.src)
+      src: cleanCoverSrc(source.src) || cleanCoverSrc(fallback.src)
     };
   };
 
@@ -340,7 +390,7 @@ export function normalizeCoverRef(coverRef) {
     label: cleanText(cover.label) || "Заставка места силы",
     type,
     tone: cleanText(cover.tone),
-    src: cleanText(cover.src)
+    src: cleanCoverSrc(cover.src)
   };
 
   if (!cover.inner && !cover.outer) return legacy;
@@ -399,6 +449,7 @@ export function normalizePowerPlaceComposition(composition) {
   if (report && typeof report === "object" && !Array.isArray(report)) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
+  objectRefs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(sourceObjectRefs[MOTION_SETTINGS_REF_KEY]);
 
   return {
     profile_id: cleanText(composition?.profile_id),

@@ -171,6 +171,30 @@ assert.ok(
   "photo scale should resize background image content proportionally with a single-axis size"
 );
 
+// ─── Motion mode CSS contract ────────────────────────────────────────────────
+
+for (const selector of [
+  ".powerPlaceMotionLayer",
+  ".powerPlaceMotionPhoto",
+  ".powerPlaceMotionPhoto--count-4",
+  ".powerPlaceMotionControls",
+  ".powerPlaceVideoControls",
+  ".powerPlaceVideoHint"
+]) {
+  assert.ok(cssSource.includes(selector), `${selector} must be defined for Power Place video mode`);
+}
+
+const motionLayerBlock = (() => {
+  const idx = cssSource.indexOf(".profileLitePowerPlace .powerPlaceMotionLayer {");
+  const end = cssSource.indexOf("}", idx);
+  return idx >= 0 ? cssSource.slice(idx, end + 1) : "";
+})();
+
+assert.ok(motionLayerBlock.includes("position: absolute"), "motion layer must be absolute inside the mandala sheet");
+assert.ok(motionLayerBlock.includes("pointer-events: none"), "motion layer must not block center editing, drag/drop, slots, save, or print actions");
+assert.ok(cssSource.includes("@media (prefers-reduced-motion: reduce)") && cssSource.includes("transition: none"), "motion photos should disable transitions for reduced motion");
+assert.ok(cssSource.includes("@media (max-width: 640px)") && cssSource.includes(".profileLitePowerPlace .powerPlaceMotionPhoto"), "motion photos should have mobile sizing rules");
+
 // ─── Base module: inner surface JSX uses CSS variable for image covers ─────────
 
 const baseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");

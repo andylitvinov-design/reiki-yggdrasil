@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
@@ -53,6 +53,7 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
   classPrefix: "chess-top"
 }));
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
+const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -61,6 +62,17 @@ const EMPTY_PROFILE_LITE_REPORT = {
   extra_help: "",
   master_note: ""
 };
+const EMPTY_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
+};
+const VALID_MOTION_MODES = ["photo", "video"];
+const VALID_VIDEO_COUNTS = [1, 4];
+const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
+const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
 const CHESS_SLOT_LAYOUTS = {
   "classic-14": [
     { id: "chess-1", row: 1, col: 1, label: "Шахматная ячейка 1" },
@@ -366,6 +378,21 @@ function normalizeReportDraft(value) {
   };
 }
 
+function normalizeMotionSettings(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const mode = VALID_MOTION_MODES.includes(String(source.mode || "").trim()) ? String(source.mode).trim() : EMPTY_MOTION_SETTINGS.mode;
+  const count = Number(source.count);
+  const direction = VALID_VIDEO_DIRECTIONS.includes(String(source.direction || "").trim()) ? String(source.direction).trim() : EMPTY_MOTION_SETTINGS.direction;
+  const stepSeconds = Number(source.step_seconds);
+  return {
+    mode,
+    count: VALID_VIDEO_COUNTS.includes(count) ? count : EMPTY_MOTION_SETTINGS.count,
+    direction,
+    step_seconds: VALID_VIDEO_STEP_SECONDS.includes(stepSeconds) ? stepSeconds : EMPTY_MOTION_SETTINGS.step_seconds,
+    video_background_ref: String(source.video_background_ref || "").trim().startsWith("storage://") ? String(source.video_background_ref || "").trim() : ""
+  };
+}
+
 function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
 }
@@ -427,6 +454,107 @@ function buildSlotList(draft) {
   return [];
 }
 
+function clockPositions(count, radius = 38, startAngle = -90) {
+  const safeCount = Math.max(1, Number(count) || 1);
+  return Array.from({ length: safeCount }, (_, index) => {
+    const angle = startAngle + (360 / safeCount) * index;
+    const radians = angle * (Math.PI / 180);
+    return {
+      left: 50 + radius * Math.cos(radians),
+      top: 50 + radius * Math.sin(radians)
+    };
+  });
+}
+
+function motionCopyOffsets(count, positionsLength) {
+  if (Number(count) !== 4) return [0];
+  const length = Math.max(1, Number(positionsLength) || 1);
+  if (length >= 8) return [0, Math.floor(length / 4), Math.floor(length / 2), Math.floor((length * 3) / 4)];
+  if (length === 5) return [0, 1, 2, 3];
+  return [0, 1, 2, 3].map((offset) => offset % length);
+}
+
+function getGridRingPositions(rows, cols, skipIndex = -1) {
+  const positions = [];
+  const push = (row, col) => {
+    const index = (row - 1) * cols + col;
+    if (index === skipIndex) return;
+    positions.push({
+        left: cols === 1 ? 50 : ((col - 0.5) / cols) * 100,
+        top: rows === 1 ? 50 : ((row - 0.5) / rows) * 100
+      });
+  };
+  for (let col = 1; col <= cols; col += 1) push(1, col);
+  for (let row = 2; row <= rows; row += 1) push(row, cols);
+  if (rows > 1) {
+    for (let col = cols - 1; col >= 1; col -= 1) push(rows, col);
+  }
+  if (cols > 1) {
+    for (let row = rows - 1; row >= 2; row -= 1) push(row, 1);
+  }
+  return positions;
+}
+
+function getMotionPositionsForComposition(draft, slots) {
+  const type = draft?.constructor_type || "zodiac";
+  if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, 38);
+  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, 39);
+  if (type === "star") {
+    return [
+      { left: 50, top: 12 },
+      { left: 84, top: 40 },
+      { left: 70, top: 82 },
+      { left: 30, top: 82 },
+      { left: 16, top: 40 }
+    ];
+  }
+  if (type === "dao") return clockPositions(5, 36, -90);
+  if (type === "business") {
+    return [
+      { left: 50, top: 13 },
+      { left: 78, top: 78 },
+      { left: 22, top: 78 }
+    ];
+  }
+  if (type === "altar") {
+    return [
+      { left: 16, top: 17 },
+      { left: 33, top: 17 },
+      { left: 50, top: 17 },
+      { left: 67, top: 17 },
+      { left: 84, top: 17 },
+      { left: 34, top: 80 },
+      { left: 66, top: 80 }
+    ];
+  }
+  if (type === "chess") {
+    if (draft.chess_variant === "compact-5") {
+      return [
+        { left: 50, top: 17 },
+        { left: 76, top: 42 },
+        { left: 65, top: 76 },
+        { left: 35, top: 76 },
+        { left: 24, top: 42 }
+      ];
+    }
+    if (draft.chess_variant === "plus-8") {
+      return [
+        { left: 15, top: 15 },
+        { left: 85, top: 15 },
+        { left: 85, top: 85 },
+        { left: 15, top: 85 },
+        { left: 39, top: 39 },
+        { left: 61, top: 39 },
+        { left: 61, top: 61 },
+        { left: 39, top: 61 }
+      ];
+    }
+    if (draft.chess_variant === "classic-8") return getGridRingPositions(3, 3, 5);
+    return getGridRingPositions(5, 3, 8);
+  }
+  return clockPositions(slots.length || 4, 38);
+}
+
 function coverLayer(coverRef, layer) {
   if (!coverRef) return FALLBACK_COVERS[0];
   if (layer === "inner") return coverRef.inner || coverRef || FALLBACK_COVERS[0];
@@ -486,10 +614,18 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const [dragOverSlotId, setDragOverSlotId] = useState("");
+  const [motionStep, setMotionStep] = useState(0);
+  const [videoExportMessage, setVideoExportMessage] = useState("");
   const suppressCenterPickerClickRef = useRef(false);
   const centerDragRef = useRef({ active: false, startX: 0, startY: 0, startOffsetX: 50, startOffsetY: 50, startPointerId: -1, moved: false, currentOffsetX: 50, currentOffsetY: 50 });
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
+  const motionSettings = normalizeMotionSettings(objectRefs[MOTION_SETTINGS_REF_KEY]);
+  const motionMode = motionSettings.mode;
+  const videoCount = motionSettings.count;
+  const videoDirection = motionSettings.direction;
+  const videoStepSeconds = motionSettings.step_seconds;
+  const videoEnabled = motionMode === "video";
   const selectedSlot = slots.find((slot) => slot.id === selectedSlotId) || slots[0] || null;
   const selectedSlotImage = selectedSlot ? objectRefs[selectedSlot.id] || "" : "";
   const objectRefUrls = cleanObjectRefs(compositionDraft.object_ref_urls);
@@ -525,6 +661,24 @@ export default function ProfileLitePowerPlaceModule({
     ? "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу."
     : "Сохранить новую мандалу";
   const saveNewAriaLabel = saveNewDisabled ? `Сохранить: ${saveNewTitle}` : saveNewTitle;
+
+  useEffect(() => {
+    if (!videoEnabled) return undefined;
+    const timer = window.setInterval(() => {
+      setMotionStep((current) => current + 1);
+    }, videoStepSeconds * 1000);
+    return () => window.clearInterval(timer);
+  }, [
+    videoEnabled,
+    videoStepSeconds,
+    videoDirection,
+    videoCount,
+    compositionDraft.constructor_type,
+    compositionDraft.geometry,
+    compositionDraft.zodiac_visible_count,
+    compositionDraft.chess_variant
+  ]);
+
   const handleSaveNewClick = () => {
     if (saveNewDisabled) return;
     onSaveNew();
@@ -783,6 +937,79 @@ export default function ProfileLitePowerPlaceModule({
     onCompositionDraftChange(PROFILE_LITE_REPORT_REF_KEY, nextReport);
   };
 
+  const renderMotionControls = () => (
+    <div className="powerPlaceMotionControls" aria-label="Режим фото и видео">
+      <div className="powerPlaceVideoControls" role="group" aria-label="Режим конструктора" data-motion-mode-switch="true">
+        <span>Режим</span>
+        <button className={motionMode === "photo" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("motion_mode", "photo")}>Фото</button>
+        <button className={motionMode === "video" ? "active" : ""} type="button" onClick={() => onCompositionDraftChange("motion_mode", "video")}>Видео</button>
+      </div>
+      {videoEnabled && (
+        <>
+          <div className="powerPlaceVideoControls" role="group" aria-label="Количество видео копий">
+            <span>Копии</span>
+            {[1, 4].map((count) => (
+              <button
+                className={videoCount === count ? "active" : ""}
+                data-video-count={count}
+                key={count}
+                type="button"
+                onClick={() => onCompositionDraftChange("video_count", count)}
+              >
+                {`Видео ${count}`}
+              </button>
+            ))}
+          </div>
+          <div className="powerPlaceVideoControls" role="group" aria-label="Направление видео">
+            <span>Ход</span>
+            <button
+              className={videoDirection === "clockwise" ? "active" : ""}
+              data-video-direction="clockwise"
+              type="button"
+              onClick={() => onCompositionDraftChange("video_direction", "clockwise")}
+            >
+              По часовой
+            </button>
+            <button
+              className={videoDirection === "counterclockwise" ? "active" : ""}
+              data-video-direction="counterclockwise"
+              type="button"
+              onClick={() => onCompositionDraftChange("video_direction", "counterclockwise")}
+            >
+              Против часовой
+            </button>
+          </div>
+          <div className="powerPlaceVideoControls" role="group" aria-label="Задержка шага видео">
+            <span>Шаг</span>
+            {[1, 2, 3].map((seconds) => (
+              <button
+                className={videoStepSeconds === seconds ? "active" : ""}
+                data-video-step-seconds={seconds}
+                key={seconds}
+                type="button"
+                onClick={() => onCompositionDraftChange("video_step_seconds", seconds)}
+              >
+                {seconds} сек
+              </button>
+            ))}
+          </div>
+          {!centralImage && <div className="powerPlaceVideoHint">Сначала добавьте фото клиента / цели</div>}
+          <div className="powerPlaceVideoHint">Видео-фон: needs implementation</div>
+          <div className="powerPlaceVideoControls powerPlaceVideoControls--export">
+            <button
+              data-video-export-button="true"
+              type="button"
+              onClick={() => setVideoExportMessage("Экспорт видео: needs implementation")}
+            >
+              Скачать видеоролик
+            </button>
+            {videoExportMessage && <span className="powerPlaceVideoHint">{videoExportMessage}</span>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   const renderReportModule = () => (
     <div className="reportSettingsPanel">
       <p className="cabinetEyebrow">Отчёт</p>
@@ -1039,6 +1266,35 @@ export default function ProfileLitePowerPlaceModule({
       {!centralImage && <span>Фото клиента / цели</span>}
     </button>
   );
+
+  const renderPowerPlaceMotionLayer = () => {
+    if (!videoEnabled || !centralImage) return null;
+    const positions = getMotionPositionsForComposition(compositionDraft, slots);
+    if (!positions.length) return null;
+    const directionFactor = videoDirection === "counterclockwise" ? -1 : 1;
+    const baseIndex = ((motionStep * directionFactor) % positions.length + positions.length) % positions.length;
+    const offsets = motionCopyOffsets(videoCount, positions.length);
+
+    return (
+      <div className="powerPlaceMotionLayer" data-motion-layer="true" aria-hidden="true" key="power-place-motion-layer">
+        {offsets.map((offset, index) => {
+          const position = positions[(baseIndex + offset) % positions.length];
+          return (
+            <span
+              className={`powerPlaceMotionPhoto powerPlaceMotionPhoto--count-${videoCount}`}
+              data-motion-copy={index + 1}
+              key={`${index}-${offset}`}
+              style={{
+                left: `${position.left}%`,
+                top: `${position.top}%`,
+                backgroundImage: `url(${centralImage})`
+              }}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
@@ -1519,6 +1775,7 @@ export default function ProfileLitePowerPlaceModule({
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
                 {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.4", step: "0.01", field: "__center_frame_scale" })}
                 {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
+                {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
                     <span>Зон в каждой вершине</span>
@@ -1539,6 +1796,7 @@ export default function ProfileLitePowerPlaceModule({
                   {compositionDraft.constructor_type === "client" ? (
                     <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
+                      {renderPowerPlaceMotionLayer()}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
@@ -1551,6 +1809,7 @@ export default function ProfileLitePowerPlaceModule({
                         ))}
                       </div>
                       {renderCenterPhotoWithMode("altarCenterPhoto")}
+                      {renderPowerPlaceMotionLayer()}
                       <div className="altarMandalaBase">
                         <span>мандала места силы</span>
                       </div>
@@ -1561,6 +1820,7 @@ export default function ProfileLitePowerPlaceModule({
                   ) : compositionDraft.constructor_type === "business" ? (
                     <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
+                      {renderPowerPlaceMotionLayer()}
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
                         <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
@@ -1578,6 +1838,7 @@ export default function ProfileLitePowerPlaceModule({
                     <>
                       <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                         {renderCenterPhotoWithMode("zodiacCenterPhoto")}
+                        {renderPowerPlaceMotionLayer()}
                         <div className="zodiacClockFace" aria-hidden="true">
                           <span>ЗОДИАК</span>
                         </div>
@@ -1628,6 +1889,7 @@ export default function ProfileLitePowerPlaceModule({
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
+                      {renderPowerPlaceMotionLayer()}
                       <div className="starGuide" aria-hidden="true">
                         <span className="starAxis vertical" />
                         <span className="starAxis horizontal" />
@@ -1672,6 +1934,7 @@ export default function ProfileLitePowerPlaceModule({
                         {chessVariant === "plus-8" || chessVariant === "compact-5" ? (
                           <>
                             {renderCenterPhotoWithMode("power-place-chess__center")}
+                            {renderPowerPlaceMotionLayer()}
                             {(CHESS_SLOT_LAYOUTS[chessVariant] || []).map((slot, index) => renderChessSlot(slot, index, chessSlotClass(slot.className)))}
                           </>
                         ) : (
@@ -1695,13 +1958,14 @@ export default function ProfileLitePowerPlaceModule({
                                 {renderChessSlot(slot, Number(slot.id.replace("chess-", "")) - 1)}
                               </div>
                             ) : null;
-                          })
+                          }).concat(renderPowerPlaceMotionLayer())
                         )}
                       </div>
                     </div>
                   ) : (
                     <div className={`daoMandalaSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("daoCenterPhoto")}
+                      {renderPowerPlaceMotionLayer()}
                       <div className="daoUsinCore" aria-hidden="true">
                         <span>УСИН</span>
                       </div>

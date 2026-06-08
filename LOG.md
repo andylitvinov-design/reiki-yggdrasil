@@ -1,5 +1,49 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-08 — Implement Power Place Фото / Видео mode Phase 1-3
+
+- Branch: `codex/power-place-video-mode-20260608`.
+- Base: fresh `origin/main` at `d88ae81` (`docs: harden video mode integration contract`).
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - stored video mode only in `object_refs.__motion_settings` with `{ mode, count, direction, step_seconds, video_background_ref }`;
+  - defaulted old/missing rows to `Фото`;
+  - stripped unsafe `data:image`, `data:video`, signed storage URLs, and unknown nested object refs from persistence;
+  - added constructor controls for `Фото / Видео`, `Видео 1 / Видео 4`, direction, and 1/2/3 second step timing;
+  - rendered non-interactive motion copies from the central photo across client, zodiac, star, dao, business, altar, and chess variants;
+  - kept `Видео-фон` and video export as explicit `needs implementation` placeholders.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - no-env `/profile/mandalas` rendered the safe Supabase-not-configured fallback;
+  - mocked Supabase/session dev server: `http://127.0.0.1:4389/`;
+  - `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin` returned `200`;
+  - `/profile/mandalas` desktop matrix checked client `4/12`, zodiac `12`, star, dao, business, altar, chess `compact-5`, `plus-8`, `classic-8`, and `classic-14`;
+  - matrix showed video controls, active `Видео 4`, counterclockwise, `1 сек`, honest background/export copy, and horizontal overflow `0`;
+  - mocked center photo rendered `Видео 4` with 4 moving-copy elements; mobile `390x900` kept overflow `0`;
+  - browser console had only React DevTools info messages.
+- Not verified:
+  - real authenticated Supabase save/reload/update/service conversion, Storage/RLS upload/drag/drop persistence, Vercel preview, production/legacy live URLs, and Google OAuth.
+
 ## 2026-06-07 — Add private Courses MVP with individual access
 
 - Branch: `codex/profile-courses-individual-access-mvp`.
