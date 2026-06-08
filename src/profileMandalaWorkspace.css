@@ -7821,6 +7821,15 @@
   box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.22);
 }
 
+/* Slot image pan/zoom: grab cursor only on assigned images */
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage {
+  cursor: grab;
+}
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage.is-panning,
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage.is-pinching {
+  cursor: grabbing;
+}
+
 /* Central photo pan/zoom: grab cursor and isolated touch-action */
 .profileLitePowerPlace .powerCenterPhoto.hasImage,
 .profileLitePowerPlace .altarCenterPhoto.hasImage,

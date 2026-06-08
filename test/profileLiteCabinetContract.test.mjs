@@ -474,6 +474,35 @@ assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_
 // Part B: CSS must define grab cursor for center photo
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerCenterPhoto\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for center photo with image");
 
+// Part C: slot image pan/zoom must exist
+assert.match(powerPlaceBaseSource, /clampSlotImageOffset/, "slot pan/zoom: clampSlotImageOffset helper must exist");
+assert.match(powerPlaceBaseSource, /clampSlotImageZoom/, "slot pan/zoom: clampSlotImageZoom helper must exist");
+assert.match(powerPlaceBaseSource, /slotImageTransformFor/, "slot pan/zoom: slotImageTransformFor helper must exist");
+assert.match(powerPlaceBaseSource, /slotImageStyle/, "slot pan/zoom: slotImageStyle helper must exist");
+assert.match(powerPlaceBaseSource, /writeSlotImageTransform/, "slot pan/zoom: writeSlotImageTransform helper must exist");
+assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers/, "slot pan/zoom: getSlotImagePanZoomHandlers must exist");
+assert.match(powerPlaceBaseSource, /__slot_transforms/, "slot pan/zoom: __slot_transforms key must exist in base module");
+assert.match(powerPlaceBaseSource, /suppressSlotPickerClickRef/, "slot pan/zoom: suppressSlotPickerClickRef must exist for click suppression");
+assert.match(powerPlaceBaseSource, /slotDragRef/, "slot pan/zoom: slotDragRef must exist");
+assert.match(powerPlaceBaseSource, /slotPinchRef/, "slot pan/zoom: slotPinchRef must exist for pinch tracking");
+assert.match(powerPlaceBaseSource, /Math\.hypot/, "slot pan/zoom: pinch distance must use Math.hypot");
+assert.match(powerPlaceBaseSource, /slotImagePanZoomTarget/, "slot pan/zoom: slotImagePanZoomTarget class must be applied to slot buttons");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.slotImagePanZoomTarget\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for slot images");
+
+// Part C: slot renderers must use slotImageStyle and attach pan/zoom handlers only when image exists
+assert.match(powerPlaceBaseSource, /slotImageStyle\(slot\.id/, "renderObjectImageButton must use slotImageStyle");
+assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers\(slot\.id/, "renderObjectImageButton must attach slot pan/zoom handlers");
+assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers\(slotId/, "inline DAO/zodiac/star renderers must attach slot pan/zoom handlers");
+
+// Part C: cover pan/zoom must NOT have been introduced
+assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must remain absent");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to inner cover slots");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.outer|cover_ref\.outer[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to outer cover slots");
+
+// Part C: powerPlaceClient must preserve __slot_transforms
+assert.match(powerPlaceClientSource, /SLOT_TRANSFORMS_REF_KEY|__slot_transforms/, "powerPlaceClient must handle __slot_transforms");
+assert.match(powerPlaceClientSource, /normalizeSlotTransforms/, "powerPlaceClient must normalize slot transforms");
+
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
 assert.equal(publicFiles.includes("profile-lite-custom-inner-cover-fix.js"), false, "new public inner cover runtime patch must not be present");

@@ -110,9 +110,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style],
 .powerPlacePdfOnlyArea .starPositionImage[style],
 .powerPlacePdfOnlyArea .daoElementImage.hasImage {
-  background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
   background-repeat: no-repeat !important;
-  background-position: center !important;
+  background-position: var(--slot-bg-pos, center) !important;
   background-color: transparent !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
