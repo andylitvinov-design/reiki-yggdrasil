@@ -742,8 +742,8 @@ export default function ProfileLitePowerPlaceModule({
     const b = Number(a?.brightness);
     const c = Number(a?.contrast);
     return {
-      brightness: Number.isFinite(b) ? Math.round(Math.max(0, Math.min(200, b))) : 100,
-      contrast: Number.isFinite(c) ? Math.round(Math.max(0, Math.min(200, c))) : 100
+      brightness: Number.isFinite(b) ? Math.round(Math.max(40, Math.min(160, b))) : 100,
+      contrast: Number.isFinite(c) ? Math.round(Math.max(40, Math.min(180, c))) : 100
     };
   }
 
@@ -752,8 +752,8 @@ export default function ProfileLitePowerPlaceModule({
     const nextAdjustments = {
       ...currentAdjustments,
       [slotId]: {
-        brightness: Math.round(Math.max(0, Math.min(200, brightness))),
-        contrast: Math.round(Math.max(0, Math.min(200, contrast)))
+        brightness: Math.round(Math.max(40, Math.min(160, brightness))),
+        contrast: Math.round(Math.max(40, Math.min(180, contrast)))
       }
     };
     const nextRefs = { ...objectRefs, __slot_adjustments: nextAdjustments };
@@ -1595,8 +1595,8 @@ export default function ProfileLitePowerPlaceModule({
           Яркость фото
           <input
             type="range"
-            min="0"
-            max="200"
+            min="40"
+            max="160"
             value={brightness}
             onChange={(e) => writeSlotImageAdjustment(selectedSlotId, Number(e.target.value), contrast)}
           />
@@ -1606,8 +1606,8 @@ export default function ProfileLitePowerPlaceModule({
           Контраст фото
           <input
             type="range"
-            min="0"
-            max="200"
+            min="40"
+            max="180"
             value={contrast}
             onChange={(e) => writeSlotImageAdjustment(selectedSlotId, brightness, Number(e.target.value))}
           />
