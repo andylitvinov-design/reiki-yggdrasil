@@ -191,6 +191,7 @@ const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPl
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
+const grimoireWorkspaceCss = readFileSync(join(moduleDir, "ProfileLiteGrimoireWorkspace.css"), "utf8");
 const mobileOrderCss = readFileSync("public/profile-lite-mobile-order-hotfix.css", "utf8");
 const layoutFinalFix = readFileSync("public/profile-lite-layout-final-fix.js", "utf8");
 
@@ -472,6 +473,35 @@ assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_
 
 // Part B: CSS must define grab cursor for center photo
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerCenterPhoto\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for center photo with image");
+
+// Part C: slot image pan/zoom must exist
+assert.match(powerPlaceBaseSource, /clampSlotImageOffset/, "slot pan/zoom: clampSlotImageOffset helper must exist");
+assert.match(powerPlaceBaseSource, /clampSlotImageZoom/, "slot pan/zoom: clampSlotImageZoom helper must exist");
+assert.match(powerPlaceBaseSource, /slotImageTransformFor/, "slot pan/zoom: slotImageTransformFor helper must exist");
+assert.match(powerPlaceBaseSource, /slotImageStyle/, "slot pan/zoom: slotImageStyle helper must exist");
+assert.match(powerPlaceBaseSource, /writeSlotImageTransform/, "slot pan/zoom: writeSlotImageTransform helper must exist");
+assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers/, "slot pan/zoom: getSlotImagePanZoomHandlers must exist");
+assert.match(powerPlaceBaseSource, /__slot_transforms/, "slot pan/zoom: __slot_transforms key must exist in base module");
+assert.match(powerPlaceBaseSource, /suppressSlotPickerClickRef/, "slot pan/zoom: suppressSlotPickerClickRef must exist for click suppression");
+assert.match(powerPlaceBaseSource, /slotDragRef/, "slot pan/zoom: slotDragRef must exist");
+assert.match(powerPlaceBaseSource, /slotPinchRef/, "slot pan/zoom: slotPinchRef must exist for pinch tracking");
+assert.match(powerPlaceBaseSource, /Math\.hypot/, "slot pan/zoom: pinch distance must use Math.hypot");
+assert.match(powerPlaceBaseSource, /slotImagePanZoomTarget/, "slot pan/zoom: slotImagePanZoomTarget class must be applied to slot buttons");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.slotImagePanZoomTarget\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for slot images");
+
+// Part C: slot renderers must use slotImageStyle and attach pan/zoom handlers only when image exists
+assert.match(powerPlaceBaseSource, /slotImageStyle\(slot\.id/, "renderObjectImageButton must use slotImageStyle");
+assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers\(slot\.id/, "renderObjectImageButton must attach slot pan/zoom handlers");
+assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers\(slotId/, "inline DAO/zodiac/star renderers must attach slot pan/zoom handlers");
+
+// Part C: cover pan/zoom must NOT have been introduced
+assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must remain absent");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to inner cover slots");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.outer|cover_ref\.outer[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to outer cover slots");
+
+// Part C: powerPlaceClient must preserve __slot_transforms
+assert.match(powerPlaceClientSource, /SLOT_TRANSFORMS_REF_KEY|__slot_transforms/, "powerPlaceClient must handle __slot_transforms");
+assert.match(powerPlaceClientSource, /normalizeSlotTransforms/, "powerPlaceClient must normalize slot transforms");
 
 const publicFiles = readdirSync("public");
 assert.equal(publicFiles.includes("profile-power-place-cover-polish.js"), false, "new public cover polish runtime patch must not be present");
@@ -785,9 +815,14 @@ assert.match(
   "CSS must include compact pill button styles for the mandala style selector"
 );
 
-assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireUploaderColumn\s*\{[\s\S]*order: 1/, "mobile grimoire should show uploader first");
-assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 2/, "mobile grimoire should show filters second");
-assert.match(profileMandalaCss, /@media \(max-width: 768px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 3/, "mobile grimoire should show records third");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.workspaceMainColumns/, "Grimoire workspace CSS should own scoped layout fixes");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.workspaceCenterColumn\s*\{[\s\S]*order: 1/, "mobile grimoire should show composer and center content first");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireUploaderColumn\s*\{[\s\S]*order: 2/, "mobile grimoire should show uploader and quick actions second");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireFilterSidebar\s*\{[\s\S]*order: 3/, "mobile grimoire should show filters third");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposer\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer should be a full-width single column");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerTools\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer tools should stack full width");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer buttons should stack full width");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireQuickActionsCard\s+a\s*\{[\s\S]*display: flex/, "Grimoire quick actions should render as separated vertical links");
 
 // ── Media module: filter applies to both photos and materials ─────────────────
 

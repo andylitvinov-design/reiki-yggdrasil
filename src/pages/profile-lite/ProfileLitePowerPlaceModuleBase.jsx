@@ -327,6 +327,18 @@ export function clampCenterImageZoom(value) {
   return Math.min(1.8, Math.max(0.65, parsed));
 }
 
+export function clampSlotImageOffset(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 50;
+  return Math.min(80, Math.max(20, parsed));
+}
+
+export function clampSlotImageZoom(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(1.8, Math.max(0.65, parsed));
+}
+
 // Classify a saved image item as an inner-cover, outer-cover, or legacy (both) shortcut.
 // Uses the `meta` field which maps to the `notes` column in the database.
 // Cover uploads use notes `Фон мандалы: inner` / `Фон мандалы: outer`.
@@ -495,54 +507,54 @@ function getGridRingPositions(rows, cols, skipIndex = -1) {
   return positions;
 }
 
+const DEFAULT_MOTION_RADIUS = 25;
+const CLIENT_MOTION_RADIUS = 25;
+const ZODIAC_MOTION_RADIUS = 25;
+const DAO_MOTION_RADIUS = 24;
+const CHESS_MOTION_RADIUS = 24;
+
 function getMotionPositionsForComposition(draft, slots) {
   const type = draft?.constructor_type || "zodiac";
-  if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, 38);
-  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, 39);
+  if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, CLIENT_MOTION_RADIUS);
+  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, ZODIAC_MOTION_RADIUS);
   if (type === "star") {
     return [
-      { left: 50, top: 12 },
-      { left: 84, top: 40 },
-      { left: 70, top: 82 },
-      { left: 30, top: 82 },
-      { left: 16, top: 40 }
+      { left: 50, top: 22 },
+      { left: 73, top: 40 },
+      { left: 64, top: 68 },
+      { left: 36, top: 68 },
+      { left: 27, top: 40 }
     ];
   }
-  if (type === "dao") return clockPositions(5, 36, -90);
+  if (type === "dao") return clockPositions(5, DAO_MOTION_RADIUS, -90);
   if (type === "business") {
     return [
-      { left: 50, top: 13 },
-      { left: 78, top: 78 },
-      { left: 22, top: 78 }
+      { left: 50, top: 24 },
+      { left: 68, top: 68 },
+      { left: 32, top: 68 }
     ];
   }
   if (type === "altar") {
     return [
-      { left: 16, top: 17 },
-      { left: 33, top: 17 },
-      { left: 50, top: 17 },
-      { left: 67, top: 17 },
-      { left: 84, top: 17 },
-      { left: 34, top: 80 },
-      { left: 66, top: 80 }
+      { left: 26, top: 30 },
+      { left: 38, top: 30 },
+      { left: 50, top: 30 },
+      { left: 62, top: 30 },
+      { left: 74, top: 30 },
+      { left: 38, top: 70 },
+      { left: 62, top: 70 }
     ];
   }
   if (type === "chess") {
     if (draft.chess_variant === "compact-5") {
-      return [
-        { left: 50, top: 17 },
-        { left: 76, top: 42 },
-        { left: 65, top: 76 },
-        { left: 35, top: 76 },
-        { left: 24, top: 42 }
-      ];
+      return clockPositions(5, CHESS_MOTION_RADIUS, -90);
     }
     if (draft.chess_variant === "plus-8") {
       return [
-        { left: 15, top: 15 },
-        { left: 85, top: 15 },
-        { left: 85, top: 85 },
-        { left: 15, top: 85 },
+        { left: 26, top: 26 },
+        { left: 74, top: 26 },
+        { left: 74, top: 74 },
+        { left: 26, top: 74 },
         { left: 39, top: 39 },
         { left: 61, top: 39 },
         { left: 61, top: 61 },
@@ -552,7 +564,7 @@ function getMotionPositionsForComposition(draft, slots) {
     if (draft.chess_variant === "classic-8") return getGridRingPositions(3, 3, 5);
     return getGridRingPositions(5, 3, 8);
   }
-  return clockPositions(slots.length || 4, 38);
+  return clockPositions(slots.length || 4, DEFAULT_MOTION_RADIUS);
 }
 
 function coverLayer(coverRef, layer) {
@@ -618,6 +630,10 @@ export default function ProfileLitePowerPlaceModule({
   const [videoExportMessage, setVideoExportMessage] = useState("");
   const suppressCenterPickerClickRef = useRef(false);
   const centerDragRef = useRef({ active: false, startX: 0, startY: 0, startOffsetX: 50, startOffsetY: 50, startPointerId: -1, moved: false, currentOffsetX: 50, currentOffsetY: 50 });
+  const centerPinchRef = useRef({ active: false, pointers: [], startDist: 0, startZoom: 1, currentZoom: undefined });
+  const slotDragRef = useRef({});
+  const slotPinchRef = useRef({});
+  const suppressSlotPickerClickRef = useRef({});
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const motionSettings = normalizeMotionSettings(objectRefs[MOTION_SETTINGS_REF_KEY]);
@@ -702,9 +718,159 @@ export default function ProfileLitePowerPlaceModule({
     onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
   }, [objectRefs, onCompositionObjectRefsChange]);
 
+  const slotTransforms = cleanObjectRefs(objectRefs.__slot_transforms);
+
+  function slotImageTransformFor(slotId) {
+    const t = slotTransforms[slotId];
+    return {
+      x: clampSlotImageOffset(t?.x ?? 50),
+      y: clampSlotImageOffset(t?.y ?? 50),
+      zoom: clampSlotImageZoom(t?.zoom ?? 1)
+    };
+  }
+
+  const writeSlotImageTransform = useCallback((slotId, x, y, zoom) => {
+    const currentTransforms = cleanObjectRefs(objectRefs.__slot_transforms);
+    const nextTransforms = {
+      ...currentTransforms,
+      [slotId]: {
+        x: clampSlotImageOffset(x),
+        y: clampSlotImageOffset(y),
+        zoom: clampSlotImageZoom(zoom)
+      }
+    };
+    const nextRefs = { ...objectRefs, __slot_transforms: nextTransforms };
+    onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
+  }, [objectRefs, onCompositionObjectRefsChange]);
+
+  function slotImageStyle(slotId, displaySrc) {
+    if (!isImagePreview(displaySrc)) return imageStyle(displaySrc);
+    const { x, y, zoom } = slotImageTransformFor(slotId);
+    return {
+      backgroundImage: `url(${displaySrc})`,
+      "--slot-bg-pos": `${x}% ${y}%`,
+      "--slot-bg-zoom": String(zoom),
+      touchAction: "none"
+    };
+  }
+
+  function getSlotImagePanZoomHandlers(slotId) {
+    return {
+      onPointerDown(e) {
+        const pinch = slotPinchRef.current[slotId];
+        if (pinch && pinch.pointers.length === 1) {
+          pinch.pointers.push({ id: e.pointerId, x: e.clientX, y: e.clientY });
+          const [p1, p2] = pinch.pointers;
+          pinch.startDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          const t = slotImageTransformFor(slotId);
+          pinch.startZoom = t.zoom;
+          pinch.currentZoom = t.zoom;
+          pinch.active = true;
+          const drag = slotDragRef.current[slotId];
+          if (drag) drag.active = false;
+          return;
+        }
+        const t = slotImageTransformFor(slotId);
+        e.currentTarget.setPointerCapture(e.pointerId);
+        slotDragRef.current[slotId] = {
+          active: true,
+          startX: e.clientX,
+          startY: e.clientY,
+          startOffsetX: t.x,
+          startOffsetY: t.y,
+          pointerId: e.pointerId,
+          moved: false,
+          currentOffsetX: t.x,
+          currentOffsetY: t.y
+        };
+        slotPinchRef.current[slotId] = { pointers: [{ id: e.pointerId, x: e.clientX, y: e.clientY }], active: false, startDist: 0, startZoom: t.zoom, currentZoom: t.zoom };
+        e.currentTarget.style.cursor = "grabbing";
+      },
+      onPointerMove(e) {
+        const pinch = slotPinchRef.current[slotId];
+        if (pinch?.active) {
+          const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+          if (pIdx === -1) return;
+          pinch.pointers[pIdx] = { id: e.pointerId, x: e.clientX, y: e.clientY };
+          const [p1, p2] = pinch.pointers;
+          const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          if (pinch.startDist > 0) {
+            const newZoom = clampSlotImageZoom(pinch.startZoom * (dist / pinch.startDist));
+            pinch.currentZoom = newZoom;
+            e.currentTarget.style.setProperty("--slot-bg-zoom", String(newZoom));
+            suppressSlotPickerClickRef.current[slotId] = true;
+          }
+          return;
+        }
+        const drag = slotDragRef.current[slotId];
+        if (!drag?.active || e.pointerId !== drag.pointerId) return;
+        const dX = e.clientX - drag.startX;
+        const dY = e.clientY - drag.startY;
+        if (Math.abs(dX) > 3 || Math.abs(dY) > 3) {
+          drag.moved = true;
+          suppressSlotPickerClickRef.current[slotId] = true;
+        }
+        const rect = e.currentTarget.getBoundingClientRect();
+        drag.currentOffsetX = clampSlotImageOffset(drag.startOffsetX - (rect.width > 0 ? (dX / rect.width) * 100 : 0));
+        drag.currentOffsetY = clampSlotImageOffset(drag.startOffsetY - (rect.height > 0 ? (dY / rect.height) * 100 : 0));
+        e.currentTarget.style.setProperty("--slot-bg-pos", `${drag.currentOffsetX}% ${drag.currentOffsetY}%`);
+      },
+      onPointerUp(e) {
+        const pinch = slotPinchRef.current[slotId];
+        if (pinch?.active) {
+          const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+          if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
+          if (pinch.pointers.length < 2) {
+            pinch.active = false;
+            const t = slotImageTransformFor(slotId);
+            writeSlotImageTransform(slotId, t.x, t.y, pinch.currentZoom ?? t.zoom);
+            e.currentTarget.style.removeProperty("--slot-bg-zoom");
+          }
+          return;
+        }
+        const drag = slotDragRef.current[slotId];
+        if (!drag?.active || e.pointerId !== drag.pointerId) return;
+        drag.active = false;
+        e.currentTarget.style.cursor = "";
+        e.currentTarget.style.removeProperty("--slot-bg-pos");
+        if (drag.moved) {
+          const t = slotImageTransformFor(slotId);
+          writeSlotImageTransform(slotId, drag.currentOffsetX, drag.currentOffsetY, t.zoom);
+        }
+        if (pinch) {
+          const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+          if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
+        }
+      },
+      onPointerCancel() {
+        delete slotDragRef.current[slotId];
+        delete slotPinchRef.current[slotId];
+        delete suppressSlotPickerClickRef.current[slotId];
+      },
+      onWheel(e) {
+        e.preventDefault();
+        const t = slotImageTransformFor(slotId);
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        writeSlotImageTransform(slotId, t.x, t.y, clampSlotImageZoom(t.zoom + delta));
+      }
+    };
+  }
+
   const handleCenterPointerDown = useCallback((e) => {
     if (!centralImage) return;
+    const pinch = centerPinchRef.current;
+    if (pinch.pointers.length === 1) {
+      pinch.pointers.push({ id: e.pointerId, x: e.clientX, y: e.clientY });
+      const [p1, p2] = pinch.pointers;
+      pinch.startDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      pinch.startZoom = centerImageZoom;
+      pinch.currentZoom = centerImageZoom;
+      pinch.active = true;
+      centerDragRef.current.active = false;
+      return;
+    }
     e.currentTarget.setPointerCapture(e.pointerId);
+    centerPinchRef.current = { active: false, pointers: [{ id: e.pointerId, x: e.clientX, y: e.clientY }], startDist: 0, startZoom: centerImageZoom, currentZoom: centerImageZoom };
     centerDragRef.current = {
       active: true,
       startX: e.clientX,
@@ -717,9 +883,24 @@ export default function ProfileLitePowerPlaceModule({
       currentOffsetY: centerImageOffsetY
     };
     e.currentTarget.style.cursor = "grabbing";
-  }, [centralImage, centerImageOffsetX, centerImageOffsetY]);
+  }, [centralImage, centerImageOffsetX, centerImageOffsetY, centerImageZoom]);
 
   const handleCenterPointerMove = useCallback((e) => {
+    const pinch = centerPinchRef.current;
+    if (pinch.active) {
+      const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+      if (pIdx === -1) return;
+      pinch.pointers[pIdx] = { id: e.pointerId, x: e.clientX, y: e.clientY };
+      const [p1, p2] = pinch.pointers;
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      if (pinch.startDist > 0) {
+        const newZoom = clampCenterImageZoom(pinch.startZoom * (dist / pinch.startDist));
+        pinch.currentZoom = newZoom;
+        e.currentTarget.parentElement?.style.setProperty("--power-center-image-scale", String(newZoom));
+        suppressCenterPickerClickRef.current = true;
+      }
+      return;
+    }
     const drag = centerDragRef.current;
     if (!drag.active || e.pointerId !== drag.startPointerId) return;
     const deltaX = e.clientX - drag.startX;
@@ -737,6 +918,17 @@ export default function ProfileLitePowerPlaceModule({
   }, []);
 
   const handleCenterPointerUp = useCallback((e) => {
+    const pinch = centerPinchRef.current;
+    if (pinch.active) {
+      const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+      if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
+      if (pinch.pointers.length < 2) {
+        pinch.active = false;
+        e.currentTarget.parentElement?.style.removeProperty("--power-center-image-scale");
+        writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, pinch.currentZoom ?? centerImageZoom);
+      }
+      return;
+    }
     const drag = centerDragRef.current;
     if (!drag.active || e.pointerId !== drag.startPointerId) return;
     drag.active = false;
@@ -745,15 +937,21 @@ export default function ProfileLitePowerPlaceModule({
     if (drag.moved) {
       writeCenterImageTransform(drag.currentOffsetX, drag.currentOffsetY, centerImageZoom);
     }
-  }, [centerImageZoom, writeCenterImageTransform]);
+    if (pinch.pointers.length > 0) {
+      const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+      if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
+    }
+  }, [centerImageOffsetX, centerImageOffsetY, centerImageZoom, writeCenterImageTransform]);
 
   const handleCenterPointerCancel = useCallback((e) => {
     const drag = centerDragRef.current;
     drag.active = false;
     drag.moved = false;
+    centerPinchRef.current = { active: false, pointers: [], startDist: 0, startZoom: 1, currentZoom: undefined };
     suppressCenterPickerClickRef.current = false;
     e.currentTarget.style.cursor = "";
     e.currentTarget.style.removeProperty("--power-center-bg-pos");
+    e.currentTarget.parentElement?.style.removeProperty("--power-center-image-scale");
   }, []);
 
   const handleCenterWheel = useCallback((e) => {
@@ -1219,21 +1417,29 @@ export default function ProfileLitePowerPlaceModule({
     const angle = (360 / Math.max(slots.length, 1)) * index - 90;
     const radius = 39;
     const radians = angle * (Math.PI / 180);
-    const style = {
+    const posStyle = {
       left: `${50 + radius * Math.cos(radians)}%`,
-      top: `${50 + radius * Math.sin(radians)}%`,
-      ...imageStyle(displaySrc)
+      top: `${50 + radius * Math.sin(radians)}%`
     };
+    const imgStyle = src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc);
+    const style = { ...posStyle, ...imgStyle };
 
     return (
       <button
-        className={`powerSource source-${index + 1}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+        className={`powerSource source-${index + 1} slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
         key={slot.id}
-        onClick={() => openObjectPicker(slot.id)}
+        onClick={() => {
+          if (suppressSlotPickerClickRef.current[slot.id]) {
+            suppressSlotPickerClickRef.current[slot.id] = false;
+            return;
+          }
+          openObjectPicker(slot.id);
+        }}
         style={style}
         type="button"
         title={slot.label}
         aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+        {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
         {...getPowerPlaceSlotDropHandlers(slot.id)}
       >
         {!src && <span>{index + 1}</span>}
@@ -1302,13 +1508,20 @@ export default function ProfileLitePowerPlaceModule({
 
     return (
       <button
-        className={`${className}${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+        className={`${className} slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
         key={slot.id}
-        onClick={() => openObjectPicker(slot.id)}
-        style={imageStyle(displaySrc)}
+        onClick={() => {
+          if (suppressSlotPickerClickRef.current[slot.id]) {
+            suppressSlotPickerClickRef.current[slot.id] = false;
+            return;
+          }
+          openObjectPicker(slot.id);
+        }}
+        style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
         type="button"
         title={slot.label}
         aria-label={`Выбрать ${labelPrefix}${slot.label.toLowerCase()}`}
+        {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
         {...getPowerPlaceSlotDropHandlers(slot.id)}
       >
         {!src && <span>{index + 1}</span>}
@@ -1848,12 +2061,19 @@ export default function ProfileLitePowerPlaceModule({
                           return (
                             <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
                               <button
-                                className={`zodiacPositionImage${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                                onClick={() => openObjectPicker(slot.id)}
-                                style={imageStyle(displaySrc)}
+                                className={`zodiacPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                onClick={() => {
+                                  if (suppressSlotPickerClickRef.current[slot.id]) {
+                                    suppressSlotPickerClickRef.current[slot.id] = false;
+                                    return;
+                                  }
+                                  openObjectPicker(slot.id);
+                                }}
+                                style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
                                 type="button"
                                 title={slot.label}
                                 aria-label={`Выбрать знак ${slot.label}`}
+                                {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
                                 {...getPowerPlaceSlotDropHandlers(slot.id)}
                               >
                                 {!src && <span>{index + 1}</span>}
@@ -1869,12 +2089,19 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`zodiacFieldPlusPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
                             <button
-                              className={`zodiacFieldPlusPositionImage${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                              onClick={() => openObjectPicker(slot.id)}
-                              style={imageStyle(displaySrc)}
+                              className={`zodiacFieldPlusPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                              onClick={() => {
+                                if (suppressSlotPickerClickRef.current[slot.id]) {
+                                  suppressSlotPickerClickRef.current[slot.id] = false;
+                                  return;
+                                }
+                                openObjectPicker(slot.id);
+                              }}
+                              style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
                               type="button"
                               title={slot.label}
                               aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                              {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
                               {...getPowerPlaceSlotDropHandlers(slot.id)}
                             >
                               {!src && <span>{index + 1}</span>}
@@ -1913,12 +2140,19 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`starPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
                             <button
-                              className={`starPositionImage${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                              onClick={() => openObjectPicker(slot.id)}
-                              style={imageStyle(displaySrc)}
+                              className={`starPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                              onClick={() => {
+                                if (suppressSlotPickerClickRef.current[slot.id]) {
+                                  suppressSlotPickerClickRef.current[slot.id] = false;
+                                  return;
+                                }
+                                openObjectPicker(slot.id);
+                              }}
+                              style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
                               type="button"
                               title={slot.label}
                               aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                              {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
                               {...getPowerPlaceSlotDropHandlers(slot.id)}
                             >
                               {!src && <span>{index + 1}</span>}
@@ -1976,12 +2210,19 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`daoElement ${element.className}`} key={element.id}>
                             <button
-                              className={`daoElementImage${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
-                              onClick={() => openObjectPicker(slotId)}
-                              style={imageStyle(displaySrc)}
+                              className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                              onClick={() => {
+                                if (suppressSlotPickerClickRef.current[slotId]) {
+                                  suppressSlotPickerClickRef.current[slotId] = false;
+                                  return;
+                                }
+                                openObjectPicker(slotId);
+                              }}
+                              style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
                               type="button"
                               title={element.label}
                               aria-label={`Выбрать элемент ${element.label}`}
+                              {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
                               {...getPowerPlaceSlotDropHandlers(slotId)}
                             >
                               {!src && <span>◎</span>}
