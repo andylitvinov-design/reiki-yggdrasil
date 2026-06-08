@@ -495,54 +495,54 @@ function getGridRingPositions(rows, cols, skipIndex = -1) {
   return positions;
 }
 
+const DEFAULT_MOTION_RADIUS = 25;
+const CLIENT_MOTION_RADIUS = 25;
+const ZODIAC_MOTION_RADIUS = 25;
+const DAO_MOTION_RADIUS = 24;
+const CHESS_MOTION_RADIUS = 24;
+
 function getMotionPositionsForComposition(draft, slots) {
   const type = draft?.constructor_type || "zodiac";
-  if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, 38);
-  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, 39);
+  if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, CLIENT_MOTION_RADIUS);
+  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, ZODIAC_MOTION_RADIUS);
   if (type === "star") {
     return [
-      { left: 50, top: 12 },
-      { left: 84, top: 40 },
-      { left: 70, top: 82 },
-      { left: 30, top: 82 },
-      { left: 16, top: 40 }
+      { left: 50, top: 22 },
+      { left: 73, top: 40 },
+      { left: 64, top: 68 },
+      { left: 36, top: 68 },
+      { left: 27, top: 40 }
     ];
   }
-  if (type === "dao") return clockPositions(5, 36, -90);
+  if (type === "dao") return clockPositions(5, DAO_MOTION_RADIUS, -90);
   if (type === "business") {
     return [
-      { left: 50, top: 13 },
-      { left: 78, top: 78 },
-      { left: 22, top: 78 }
+      { left: 50, top: 24 },
+      { left: 68, top: 68 },
+      { left: 32, top: 68 }
     ];
   }
   if (type === "altar") {
     return [
-      { left: 16, top: 17 },
-      { left: 33, top: 17 },
-      { left: 50, top: 17 },
-      { left: 67, top: 17 },
-      { left: 84, top: 17 },
-      { left: 34, top: 80 },
-      { left: 66, top: 80 }
+      { left: 26, top: 30 },
+      { left: 38, top: 30 },
+      { left: 50, top: 30 },
+      { left: 62, top: 30 },
+      { left: 74, top: 30 },
+      { left: 38, top: 70 },
+      { left: 62, top: 70 }
     ];
   }
   if (type === "chess") {
     if (draft.chess_variant === "compact-5") {
-      return [
-        { left: 50, top: 17 },
-        { left: 76, top: 42 },
-        { left: 65, top: 76 },
-        { left: 35, top: 76 },
-        { left: 24, top: 42 }
-      ];
+      return clockPositions(5, CHESS_MOTION_RADIUS, -90);
     }
     if (draft.chess_variant === "plus-8") {
       return [
-        { left: 15, top: 15 },
-        { left: 85, top: 15 },
-        { left: 85, top: 85 },
-        { left: 15, top: 85 },
+        { left: 26, top: 26 },
+        { left: 74, top: 26 },
+        { left: 74, top: 74 },
+        { left: 26, top: 74 },
         { left: 39, top: 39 },
         { left: 61, top: 39 },
         { left: 61, top: 61 },
@@ -552,7 +552,7 @@ function getMotionPositionsForComposition(draft, slots) {
     if (draft.chess_variant === "classic-8") return getGridRingPositions(3, 3, 5);
     return getGridRingPositions(5, 3, 8);
   }
-  return clockPositions(slots.length || 4, 38);
+  return clockPositions(slots.length || 4, DEFAULT_MOTION_RADIUS);
 }
 
 function coverLayer(coverRef, layer) {
