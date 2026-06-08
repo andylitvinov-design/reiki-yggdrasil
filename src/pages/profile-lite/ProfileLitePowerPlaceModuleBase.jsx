@@ -290,7 +290,7 @@ function innerCoverImageStyle(cover, displaySrc) {
 function slotScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.18, Math.max(0.7, scale));
+  return Math.min(1.85, Math.max(0.7, scale));
 }
 
 function chessSlotScaleValue(value) {
@@ -300,19 +300,19 @@ function chessSlotScaleValue(value) {
 function fieldScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 78;
-  return Math.min(92, Math.max(48, scale));
+  return Math.min(145, Math.max(48, scale));
 }
 
 function centerImageScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.45, Math.max(0.65, scale));
+  return Math.min(2, Math.max(0.65, scale));
 }
 
 function centerFrameScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.4, Math.max(0.72, scale));
+  return Math.min(1.85, Math.max(0.72, scale));
 }
 
 export function clampCenterImageOffset(value) {
@@ -1984,10 +1984,10 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
-                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
-                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.4", step: "0.01", field: "__center_frame_scale" })}
-                {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
+                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale" })}
+                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale" })}
+                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale" })}
+                {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "2", step: "0.01", field: "__center_image_scale" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">

@@ -6,7 +6,7 @@
 export function innerFieldScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 78;
-  return Math.min(96, Math.max(48, parsed));
+  return Math.min(145, Math.max(48, parsed));
 }
 
 /**
