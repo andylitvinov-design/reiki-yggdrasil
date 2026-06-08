@@ -244,7 +244,8 @@ for (const requiredPowerPlaceText of [
   "Размер центра",
   "Сохранённые мандалы",
   "Объекты композиции",
-  "Сохранить мандалу",
+  "Обновить",
+  "Создать новую",
   "Перенести в услуги",
   "Опубликовать как услугу",
   "Скачать PDF",
@@ -322,16 +323,17 @@ assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLite
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
-assert.match(powerPlaceSource, />Сохранить мандалу<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose the three Phase 1 mandala-service buttons");
+assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Создать новую\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose save, create-new, transfer, and publish buttons in order");
 assert.match(powerPlaceSource, /Опубликовать в ленту[\s\S]*Название для ленты[\s\S]*Публичное описание/, "Power Place should expose a public projection form before creating a feed event");
 const powerPlaceFeedProjectionSource = powerPlaceSource.match(/<div className="powerPlaceFeedProjection"[\s\S]*?<\/div>\s*<p className="powerPrintColorHint">/)?.[0] || "";
 assert.doesNotMatch(powerPlaceFeedProjectionSource, /object_refs|storage:\/\/|signed URL|profile-cabinet-media/i, "Power Place feed projection UI must not render private refs");
 assert.match(profileMaterialsModuleSource, /Добавить в ленту/, "materials should expose an explicit feed action");
 assert.match(profileServicesModuleSource, /Добавить в ленту[\s\S]*Опубликовать обновление/, "published services should expose explicit feed create/update actions");
-assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions">[\s\S]*>Сохранить мандалу<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
+assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions powerPlaceActions--save">[\s\S]*>\s*Обновить\s*<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
 assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
-assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(saveNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Save button should use an explicit click wrapper that calls onSaveNew only when enabled");
-assert.match(powerPlaceBaseSource, /<button className="cabinetPrimary powerPlaceSaveButton"[\s\S]*onClick=\{handleSaveCompositionClick\}[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should create new drafts or update the opened composition");
+assert.match(powerPlaceBaseSource, /const handleSaveNewClick = \(\) => \{[\s\S]*if \(createNewDisabled\)[\s\S]*return;[\s\S]*onSaveNew\(\);[\s\S]*\}/, "Create-new button should use an explicit click wrapper that calls onSaveNew only when not at limit");
+assert.match(powerPlaceBaseSource, /onClick=\{onUpdateExisting\}[\s\S]*disabled=\{updateExistingDisabled\}[\s\S]*>[\s\S]*Обновить[\s\S]*<\/button>/, "Update button should call onUpdateExisting and be disabled when no composition is open");
+assert.match(powerPlaceBaseSource, /onClick=\{handleSaveNewClick\}[\s\S]*disabled=\{createNewDisabled\}[\s\S]*>[\s\S]*Создать новую[\s\S]*<\/button>/, "Create-new button should call handleSaveNewClick and be disabled at the limit");
 assert.doesNotMatch(powerPlaceBaseSource, /<div className="powerPlaceActions">[\s\S]*<span>[\s\S]*сохранённых мест силы[\s\S]*<\/span>[\s\S]*<\/div>/, "saved-count text must not be a raw inline span inside the clickable actions row");
 assert.match(powerPlaceBaseSource, /<p className="powerPlaceActionsMeta"[\s\S]*\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "saved-count text should render as a dedicated meta block below action buttons");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions button:disabled[\s\S]*cursor: not-allowed[\s\S]*opacity:/, "Power Place disabled action buttons should have obvious scoped disabled styling");
@@ -343,13 +345,20 @@ assert.match(profileLitePageSource, /const message = "Сначала сохра�
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting/, "Profile Lite page should split composition update into handleCompositionUpdateExisting");
 assert.match(profileLitePageSource, /createPowerPlaceComposition\(\s*\{\s*\.\.\.createPayload\s*,\s*id:\s*undefined\s*\}|delete createPayload\.id/, "Save should create a new composition without preserving draft id");
 assert.match(profileLitePageSource, /копия/, "Duplicate saved mandala titles should be saved as copy titles");
-assert.match(profileLitePageSource, /Сначала откройте сохранённую мандалу/, "Update without an existing composition should show the required message");
+assert.match(profileLitePageSource, /Сначала создайте новую мандалу или откройте сохранённую/, "Update without an existing composition should show the required message");
 assert.match(profileLitePageSource, /updatePowerPlaceComposition\(compositionDraft\.id/, "Update should call updatePowerPlaceComposition for the current saved composition");
 assert.match(profileLitePageSource, /Лимит 7 сохранённых мандал достигнут/, "Save-new should show a clear RU limit message before backend create");
 assert.match(profileLitePageSource, /currentSavedCompositionCount[\s\S]*powerPlaceCompositions\.length[\s\S]*currentCompositionLimit[\s\S]*planLimits\.compositions[\s\S]*currentSavedCompositionCount >= currentCompositionLimit[\s\S]*return;[\s\S]*createPowerPlaceComposition/, "Save-new should return before createPowerPlaceComposition when saved mandalas reach the current plan limit");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting[\s\S]*updatePowerPlaceComposition\(compositionDraft\.id/, "Update existing should keep using updatePowerPlaceComposition even when the save-new limit guard exists");
-assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft\.id/, "Power Place UI should compute the saved-count limit and disable save-new only for unsaved drafts at the limit");
-assert.match(powerPlaceBaseSource, /saveNewAriaLabel[\s\S]*disabled=\{!compositionDraft\.id && saveNewDisabled\}[\s\S]*aria-label=\{compositionDraft\.id \? "Сохранить мандалу" : saveNewAriaLabel\}[\s\S]*>Сохранить мандалу<\/button>/, "Save mandala button should remain visible but disabled with an explanatory label at the 7/7 limit for unsaved drafts");
+assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const createNewDisabled = savedCompositionCount >= savedCompositionLimit[\s\S]*const updateExistingDisabled = !compositionDraft\.id/, "Power Place UI should compute separate create-new and update-existing disabled flags");
+assert.match(powerPlaceBaseSource, /disabled=\{updateExistingDisabled\}[\s\S]*title=\{updateExistingDisabled[\s\S]*aria-label=\{updateExistingDisabled/, "Update button should show an explanatory title and aria-label when disabled");
+assert.match(powerPlaceBaseSource, /disabled=\{createNewDisabled\}[\s\S]*title=\{createNewDisabled[\s\S]*aria-label=\{createNewDisabled/, "Create-new button should show an explanatory title and aria-label when at limit");
+assert.doesNotMatch(powerPlaceBaseSource, /handleSaveCompositionClick/, "handleSaveCompositionClick must be removed — two explicit buttons replace it");
+assert.match(profileLitePageSource, /const handlePrintComposition[\s\S]*openPowerPlacePdfPrintView/, "handlePrintComposition must use the clean print window, not direct window.print");
+assert.doesNotMatch(profileLitePageSource, /handlePrintComposition[\s\S]*body\.classList\.add\("printMandalaOnly"\)/, "handlePrintComposition must not apply printMandalaOnly to the main body");
+assert.doesNotMatch(powerPlaceBaseSource, /const createNewDisabled\s*=.*!compositionDraft\.id/, "createNewDisabled definition must not depend on compositionDraft.id — only on the plan limit");
+assert.match(powerPlaceBaseSource, /powerPlaceUpdateButton/, "Update button must carry powerPlaceUpdateButton class for scoped targeting");
+assert.match(powerPlaceBaseSource, /powerPlaceCreateButton/, "Create-new button must carry powerPlaceCreateButton class for scoped targeting");
 assert.match(powerPlaceSource, /\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "Power Place UI should show count text like 7/7 сохранённых мест силы");
 for (const servicesManagerText of [
   "Черновики",
@@ -595,7 +604,8 @@ assert.match(profileLitePageSource, /setActiveTab\("services"\)/, "service trans
 assert.match(profileLitePageSource, /Мандала уже добавлена в услуги/, "add-to-services duplicate guard should show the required message");
 assert.match(profileLitePageSource, /Мандала добавлена в услуги/, "successful add-to-services should show the required confirmation message");
 assert.match(profileServicesClientSource, /composition_id: compositionId/, "add-to-services should pass composition_id through the shared upsert helper");
-assert.match(powerPlaceBaseSource, /Сохранить мандалу/, "Power Place actions should expose explicit save-only button text");
+assert.match(powerPlaceBaseSource, /Обновить/, "Power Place actions should expose the Обновить button text");
+assert.match(powerPlaceBaseSource, /Создать новую/, "Power Place actions should expose the Создать новую button text");
 assert.match(powerPlaceBaseSource, /Перенести в услуги/, "Power Place actions should expose explicit transfer-to-services button text");
 assert.match(powerPlaceBaseSource, /Опубликовать как услугу/, "Power Place actions should expose explicit publish-as-service button text");
 assert.match(powerPlaceBaseSource, /onPublishAsService/, "Power Place module should accept a dedicated publish-as-service handler");
