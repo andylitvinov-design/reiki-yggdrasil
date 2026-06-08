@@ -1,5 +1,86 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-07 — Add private Courses MVP with individual access
+
+- Branch: `codex/profile-courses-individual-access-mvp`.
+- Base: fresh `origin/main` at `0b0584c` (`docs: add courses technical integration details`).
+- Source of truth:
+  - GitHub issue #307;
+  - `docs/product/COURSES_PLATFORM_CONCEPT.md`;
+  - `docs/product/COURSES_PLATFORM_TECHNICAL_INTEGRATION.md`.
+- Changed files:
+  - `README.md`
+  - `STATE.md`
+  - `LOG.md`
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `src/lib/profileCoursesClient.js`
+  - `src/lib/profileLiteClient.js`
+  - `src/main.jsx`
+  - `src/pages/AdminPage.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/admin/AdminCoursesPanel.jsx`
+  - `src/pages/profile-lite/ProfileLiteCoursesModule.jsx`
+  - `src/profileCabinet.css`
+  - `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`
+  - `test/profileCoursesClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/profileLiteRoute.test.mjs`
+  - `vercel.json`
+- Migration:
+  - added private courses, course steps, course lessons, and course access tables;
+  - added status/position indexes and duplicate-active-grant protection for full-course and step grants;
+  - added updated-at triggers;
+  - added RLS through the existing `profile_cabinet_is_admin()` helper plus profile-owner reads for personally accessible published content;
+  - live Supabase migration was not applied.
+- Admin behavior:
+  - `/profile/admin` includes `Курсы и доступы`;
+  - course, step, and lesson editors are compact and preserve selected records after save;
+  - access manager grants full course or specific step access;
+  - current access list displays master label, course, step or `Весь курс`, status, and `Закрыть доступ`;
+  - revoke patches `status='revoked'`, no delete.
+- Master behavior:
+  - `/profile/courses` opens Profile Lite with active `Курсы` tab;
+  - master-side data loads after `profile.id` and session credential;
+  - course, step, and lesson effects are separate from materials/services;
+  - module shows only available courses, available published steps, and lessons inside the selected available step;
+  - lesson text renders as plain text, safe YouTube/Vimeo URLs embed, other safe public video URLs become external links, and safe `http/https` audio URLs render with `<audio controls>`.
+- Access model:
+  - individual access only;
+  - `account_plan` is not used for course access;
+  - full course access is `access_scope='course'` with `step_id=null`;
+  - step access is `access_scope='step'` with `step_id`;
+  - lessons inherit access from parent step;
+  - no per-lesson access was added.
+- Checks run:
+  - `node test/profileCoursesClient.test.mjs`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-services`
+  - `npm run test:profile-materials`
+  - `npm run test:profile-feed`
+  - `npm run test:public-master`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - final commands exited `0`;
+  - `npm install` failed with `ENOSPC`, so validation used a temporary symlink to the canonical checkout `node_modules`, then removed it;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local route verification:
+  - preview server: `http://127.0.0.1:4388/`;
+  - HTTP checks returned `200` for `/`, `/profile/courses`, `/profile/admin`, `/profile`, `/profile/services`, and `/masters`;
+  - visual/browser QA was not completed because Playwright MCP transport was closed and Chrome DevTools MCP reported a profile conflict.
+- Not verified:
+  - live Supabase migration application;
+  - real authenticated admin CRUD/grant/revoke;
+  - real authenticated master course access rows;
+  - Vercel preview, production/legacy live URLs, Google OAuth, desktop/mobile visual browser QA.
+- Risks:
+  - live courses need the new migration plus course/access rows before users see content;
+  - admin course writes depend on real DB admin membership;
+  - admins should store only public-safe media URLs in MVP lesson fields, not signed/private URLs.
+- Next PR:
+  - apply the migration to staging/test Supabase, seed one draft/published course with one step and one lesson, grant one test master access, and verify `/profile/courses` plus `/profile/admin` against real authenticated data.
+
 ## 2026-06-06 — Polish Public Master Page MVP
 
 - Branch: `codex/public-master-page-polish-20260606`.

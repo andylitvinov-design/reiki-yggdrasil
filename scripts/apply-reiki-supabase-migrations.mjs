@@ -20,7 +20,8 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260602120000_power_place_chess_compact_variant.sql",
   "supabase/migrations/20260529090000_master_services_orders_mvp.sql",
   "supabase/migrations/20260605153000_service_orders_client_phase4.sql",
-  "supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql"
+  "supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql",
+  "supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
@@ -39,7 +40,11 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_tradition_assets_image_path: false,
   profile_cabinet_media_storage_policy: false,
   profile_cabinet_services: false,
-  profile_cabinet_service_orders: false
+  profile_cabinet_service_orders: false,
+  profile_cabinet_courses: false,
+  profile_cabinet_course_steps: false,
+  profile_cabinet_course_lessons: false,
+  profile_cabinet_course_access: false
 });
 
 function redact(text = "", secrets = {}) {
@@ -278,7 +283,23 @@ select
   exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_service_orders'
-  ) as profile_cabinet_service_orders
+  ) as profile_cabinet_service_orders,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_courses'
+  ) as profile_cabinet_courses,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_course_steps'
+  ) as profile_cabinet_course_steps,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_course_lessons'
+  ) as profile_cabinet_course_lessons,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_course_access'
+  ) as profile_cabinet_course_access
 `.trim();
 }
 

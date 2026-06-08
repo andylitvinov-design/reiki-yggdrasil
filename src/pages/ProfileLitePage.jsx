@@ -4,6 +4,11 @@ import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import {
+  listAvailableCourseLessons,
+  listAvailableCoursesForProfile,
+  listAvailableCourseSteps
+} from "../lib/profileCoursesClient.js";
+import {
   createEmptyMaterialForm,
   createOwnMaterial,
   deleteOwnMaterial,
@@ -77,6 +82,7 @@ import ProfileLiteProfileModule from "./profile-lite/ProfileLiteProfileModule.js
 import ProfileLiteMandalasModule from "./profile-lite/ProfileLiteMandalasModule.jsx";
 import ProfileLiteMediaModule from "./profile-lite/ProfileLiteMediaModule.jsx";
 import ProfileLiteMaterialsModule from "./profile-lite/ProfileLiteMaterialsModule.jsx";
+import ProfileLiteCoursesModule from "./profile-lite/ProfileLiteCoursesModule.jsx";
 import ProfileLiteServicesModule from "./profile-lite/ProfileLiteServicesModule.jsx";
 import ProfileLiteOrdersModule from "./profile-lite/ProfileLiteOrdersModule.jsx";
 import ProfileLiteChatsModule from "./profile-lite/ProfileLiteChatsModule.jsx";
@@ -431,6 +437,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [materialForm, setMaterialForm] = useState(EMPTY_MATERIAL);
   const [materialFile, setMaterialFile] = useState(null);
 
+  const [courses, setCourses] = useState([]);
+  const [coursesStatus, setCoursesStatus] = useState("idle");
+  const [coursesError, setCoursesError] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [courseSteps, setCourseSteps] = useState([]);
+  const [selectedStepId, setSelectedStepId] = useState("");
+  const [courseLessons, setCourseLessons] = useState([]);
+  const [courseLessonsStatus, setCourseLessonsStatus] = useState("idle");
+  const [courseLessonsError, setCourseLessonsError] = useState("");
+
   const [mediaStatus, setMediaStatus] = useState("idle");
   const [mediaError, setMediaError] = useState("");
   const [clientGoalPhotos, setClientGoalPhotos] = useState([]);
@@ -488,6 +504,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const moduleStates = useMemo(() => ({
     profile: { status: profileStatus, count: profile ? 1 : 0, error: profileError },
     materials: { status: materialsStatus, count: materials.length, error: materialsError },
+    courses: { status: coursesStatus, count: courses.length, error: coursesError || courseLessonsError },
     media: { status: mediaStatus, count: clientGoalPhotos.length + traditionAssets.length, error: mediaError },
     mandalas: { status: mandalasStatus, count: powerPlaceCompositions.length, error: mandalasError },
     services: { status: servicesStatus, count: services.length, error: servicesError },
@@ -499,6 +516,10 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     chatsStatus,
     clientOrders.length,
     clientGoalPhotos.length,
+    courseLessonsError,
+    courses.length,
+    coursesError,
+    coursesStatus,
     materials.length,
     materialsError,
     materialsStatus,
@@ -534,6 +555,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setMaterials([]);
     setMaterialsStatus("idle");
     setMaterialsError("");
+    setCourses([]);
+    setCoursesStatus("idle");
+    setCoursesError("");
+    setSelectedCourseId("");
+    setCourseSteps([]);
+    setSelectedStepId("");
+    setCourseLessons([]);
+    setCourseLessonsStatus("idle");
+    setCourseLessonsError("");
     setClientGoalPhotos([]);
     setTraditionAssets([]);
     setMediaStatus("idle");
@@ -662,6 +692,99 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       cancelled = true;
     };
   }, [profile?.id, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCourses() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+        setCourses([]);
+        setSelectedCourseId("");
+        setCourseSteps([]);
+        setSelectedStepId("");
+        setCourseLessons([]);
+        setCoursesStatus("idle");
+        setCourseLessonsStatus("idle");
+        return;
+      }
+      setCoursesStatus("loading");
+      setCoursesError("");
+      try {
+        const rows = await listAvailableCoursesForProfile(profile.id, session);
+        if (cancelled) return;
+        setCourses(rows || []);
+        setSelectedCourseId((current) => (rows || []).some((course) => course.id === current) ? current : rows?.[0]?.id || "");
+        setCoursesStatus("success");
+      } catch (error) {
+        if (cancelled) return;
+        setCourses([]);
+        setSelectedCourseId("");
+        setCoursesStatus("needs-verification");
+        setCoursesError(moduleError(error, "profile_cabinet_courses request failed or migration/RLS not applied"));
+      }
+    }
+    void loadCourses();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCourseSteps() {
+      if (!profile?.id || !selectedCourseId || !hasProfileLiteSessionCredential(session)) {
+        setCourseSteps([]);
+        setSelectedStepId("");
+        setCourseLessons([]);
+        setCourseLessonsStatus("idle");
+        return;
+      }
+      try {
+        const rows = await listAvailableCourseSteps(profile.id, selectedCourseId, session);
+        if (cancelled) return;
+        setCourseSteps(rows || []);
+        setSelectedStepId((current) => (rows || []).some((step) => step.id === current) ? current : rows?.[0]?.id || "");
+      } catch (error) {
+        if (cancelled) return;
+        setCourseSteps([]);
+        setSelectedStepId("");
+        setCourseLessons([]);
+        setCoursesStatus("needs-verification");
+        setCoursesError(moduleError(error, "profile_cabinet_course_steps request failed or migration/RLS not applied"));
+      }
+    }
+    void loadCourseSteps();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, selectedCourseId, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadCourseLessons() {
+      if (!profile?.id || !selectedCourseId || !selectedStepId || !hasProfileLiteSessionCredential(session)) {
+        setCourseLessons([]);
+        setCourseLessonsStatus("idle");
+        return;
+      }
+      setCourseLessonsStatus("loading");
+      setCourseLessonsError("");
+      try {
+        const rows = await listAvailableCourseLessons(profile.id, selectedCourseId, selectedStepId, session);
+        if (cancelled) return;
+        setCourseLessons(rows || []);
+        setCourseLessonsStatus("success");
+      } catch (error) {
+        if (cancelled) return;
+        setCourseLessons([]);
+        setCourseLessonsStatus("needs-verification");
+        setCourseLessonsError(moduleError(error, "profile_cabinet_course_lessons request failed or migration/RLS not applied"));
+      }
+    }
+    void loadCourseLessons();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, selectedCourseId, selectedStepId, session]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1952,6 +2075,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     clientPhotoForm,
     compositionDraft,
     compositionMessage,
+    courseLessons,
+    courseLessonsError,
+    courseLessonsStatus,
+    courseSteps,
+    courses,
+    coursesError,
+    coursesStatus,
     form,
     materialFile,
     materialForm,
@@ -1977,6 +2107,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     profileStatus,
     saveMessage,
     saveStatus,
+    selectedCourseId,
+    selectedStepId,
     selectedThreadId,
     serviceActionStatus,
     serviceForm,
@@ -2046,6 +2178,17 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onDelete={handleGrimoireDelete}
         onMultiUpload={handleGrimoireMultiUpload}
         onUpdate={handleGrimoireUpdate}
+      />
+    ),
+    courses: (
+      <ProfileLiteCoursesModule
+        {...moduleProps}
+        onCourseSelect={(courseId) => {
+          setSelectedCourseId(courseId);
+          setSelectedStepId("");
+          setCourseLessons([]);
+        }}
+        onStepSelect={setSelectedStepId}
       />
     ),
     services: (

@@ -19,6 +19,7 @@ const expectedTabs = [
   ["profile", "Профиль"],
   ["media", "Фото / Медиа"],
   ["materials", "Гримуар"],
+  ["courses", "Курсы"],
   ["services", "Услуги"],
   ["orders", "Заказы"],
   ["chats", "Чаты"]
@@ -37,6 +38,7 @@ assert.deepEqual(
     ["profile", "/profile?tab=profile"],
     ["media", "/profile?tab=media"],
     ["materials", "/profile?tab=materials"],
+    ["courses", "/profile/courses"],
     ["services", "/profile/services"],
     ["orders", "/profile/orders"],
     ["chats", "/profile/chats"]
@@ -52,6 +54,7 @@ assert.equal(getProfileLiteTabById("orders").label, "Заказы");
 assert.equal(getProfileLiteTabById("settings").label, "Настройки");
 assert.equal(getProfileLiteTabById("diagnostics").label, "Диагностика");
 assert.equal(getProfileLiteRouteByTabId("mandalas"), "/profile/mandalas");
+assert.equal(getProfileLiteRouteByTabId("courses"), "/profile/courses");
 assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
 assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
 assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
@@ -61,6 +64,7 @@ assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/unknown", ""), "mandalas");
@@ -156,6 +160,7 @@ for (const file of [
   "ProfileLiteMandalasModule.jsx",
   "ProfileLiteMediaModule.jsx",
   "ProfileLiteMaterialsModule.jsx",
+  "ProfileLiteCoursesModule.jsx",
   "ProfileLitePowerPlaceModule.jsx",
   "ProfileLitePowerPlaceModuleBase.jsx",
   "ProfileLiteImagePicker.jsx",
@@ -179,6 +184,9 @@ const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteSer
 const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
 const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
+const profileCoursesClientSource = readFileSync("src/lib/profileCoursesClient.js", "utf8");
+const profileCoursesModuleSource = readFileSync(join(moduleDir, "ProfileLiteCoursesModule.jsx"), "utf8");
+const adminCoursesPanelSource = readFileSync("src/pages/admin/AdminCoursesPanel.jsx", "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
@@ -189,6 +197,27 @@ const layoutFinalFix = readFileSync("public/profile-lite-layout-final-fix.js", "
 for (const label of expectedTabs.map(([, label]) => label)) {
   assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
 }
+
+assert.match(profileLitePageSource, /listAvailableCoursesForProfile/, "ProfileLitePage should load private courses through profileCoursesClient");
+assert.match(profileLitePageSource, /listAvailableCourseSteps/, "ProfileLitePage should load course steps separately");
+assert.match(profileLitePageSource, /listAvailableCourseLessons/, "ProfileLitePage should load lessons separately");
+assert.match(profileLitePageSource, /courses:\s*\(\s*<ProfileLiteCoursesModule/, "ProfileLitePage should render the courses module by tab id");
+assert.match(profileLitePageSource, /setSelectedCourseId\(courseId\)[\s\S]*setSelectedStepId\(""\)[\s\S]*setCourseLessons\(\[\]\)/, "Course selection should reset selected step and lessons");
+assert.match(profileCoursesModuleSource, /Курсы Академии/, "Courses module should expose the RU course heading");
+assert.match(profileCoursesModuleSource, /Курсы пока не открыты\./, "Courses module should include empty course state");
+assert.match(profileCoursesModuleSource, /Для этого курса пока нет доступных ступеней\./, "Courses module should include empty step state");
+assert.match(profileCoursesModuleSource, /Уроки для этой ступени готовятся\./, "Courses module should include empty lesson state");
+assert.match(profileCoursesModuleSource, /safeVideoEmbedUrl/, "Courses module should only iframe recognized safe video URLs");
+assert.match(profileCoursesModuleSource, /<audio controls src=\{audioUrl\}/, "Courses module should render audio only after safe URL normalization");
+assert.doesNotMatch(profileCoursesModuleSource, /dangerouslySetInnerHTML/, "Courses lesson body must render as plain text");
+assert.match(adminCoursesPanelSource, /Курсы и доступы/, "Admin should expose courses and access section");
+assert.match(adminCoursesPanelSource, /Выдать доступ/, "Admin courses panel should grant access");
+assert.match(adminCoursesPanelSource, /Закрыть доступ/, "Admin courses panel should revoke access");
+assert.match(profileCoursesClientSource, /buildCourseAccessIndex/, "Course client should expose access index helper");
+assert.match(profileCoursesClientSource, /listAvailableCoursesForProfile/, "Course client should load courses for current profile");
+assert.match(profileCoursesClientSource, /listAvailableCourseSteps/, "Course client should load steps for current profile");
+assert.match(profileCoursesClientSource, /listAvailableCourseLessons/, "Course client should load lessons for current profile");
+assert.doesNotMatch(`${profileCoursesClientSource}\n${profileCoursesModuleSource}\n${adminCoursesPanelSource}`, /lesson_access|per[-_ ]lesson/i, "Courses MVP should not implement per-lesson access");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
