@@ -290,7 +290,7 @@ function innerCoverImageStyle(cover, displaySrc) {
 function slotScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.18, Math.max(0.7, scale));
+  return Math.min(1.85, Math.max(0.7, scale));
 }
 
 function chessSlotScaleValue(value) {
@@ -300,19 +300,19 @@ function chessSlotScaleValue(value) {
 function fieldScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 78;
-  return Math.min(92, Math.max(48, scale));
+  return Math.min(145, Math.max(48, scale));
 }
 
 function centerImageScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.45, Math.max(0.65, scale));
+  return Math.min(2, Math.max(0.65, scale));
 }
 
 function centerFrameScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.4, Math.max(0.72, scale));
+  return Math.min(1.85, Math.max(0.72, scale));
 }
 
 export function clampCenterImageOffset(value) {
@@ -509,7 +509,10 @@ function getGridRingPositions(rows, cols, skipIndex = -1) {
 
 const DEFAULT_MOTION_RADIUS = 25;
 const CLIENT_MOTION_RADIUS = 25;
-const ZODIAC_MOTION_RADIUS = 25;
+// Zodiac geometry (% of container)
+const ZODIAC_OUTER_SLOT_RADIUS = 39; // where zodiac/clock slots sit
+const ZODIAC_CENTER_EDGE_RADIUS = 14; // where the center photo edge reaches
+const ZODIAC_MOTION_RADIUS = Math.round((ZODIAC_OUTER_SLOT_RADIUS + ZODIAC_CENTER_EDGE_RADIUS) / 2); // = 27, midpoint
 const DAO_MOTION_RADIUS = 24;
 const CHESS_MOTION_RADIUS = 24;
 
@@ -672,11 +675,8 @@ export default function ProfileLitePowerPlaceModule({
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
-  const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft.id;
-  const saveNewTitle = saveNewDisabled
-    ? "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу."
-    : "Сохранить новую мандалу";
-  const saveNewAriaLabel = saveNewDisabled ? `Сохранить: ${saveNewTitle}` : saveNewTitle;
+  const createNewDisabled = savedCompositionCount >= savedCompositionLimit;
+  const updateExistingDisabled = !compositionDraft.id;
 
   useEffect(() => {
     if (!videoEnabled) return undefined;
@@ -696,16 +696,8 @@ export default function ProfileLitePowerPlaceModule({
   ]);
 
   const handleSaveNewClick = () => {
-    if (saveNewDisabled) return;
+    if (createNewDisabled) return;
     onSaveNew();
-  };
-
-  const handleSaveCompositionClick = () => {
-    if (compositionDraft.id) {
-      onUpdateExisting();
-      return;
-    }
-    handleSaveNewClick();
   };
 
   const writeCenterImageTransform = useCallback((offsetX, offsetY, zoom) => {
@@ -1573,12 +1565,33 @@ export default function ProfileLitePowerPlaceModule({
         Название мандалы
         <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
       </label>
-      <div className="powerPlaceActions">
-        <button className="cabinetPrimary powerPlaceSaveButton" type="button" onClick={handleSaveCompositionClick} disabled={!compositionDraft.id && saveNewDisabled} title={compositionDraft.id ? "Обновить сохранённую мандалу" : saveNewTitle} aria-label={compositionDraft.id ? "Сохранить мандалу" : saveNewAriaLabel}>Сохранить мандалу</button>
+      <div className="powerPlaceActions powerPlaceActions--save">
+        <button
+          className="cabinetPrimary powerPlaceUpdateButton"
+          type="button"
+          onClick={onUpdateExisting}
+          disabled={updateExistingDisabled}
+          title={updateExistingDisabled ? "Сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}
+          aria-label={updateExistingDisabled ? "Обновить: сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}>
+          Обновить
+        </button>
+        <button
+          className="cabinetSecondary powerPlaceCreateButton"
+          type="button"
+          onClick={handleSaveNewClick}
+          disabled={createNewDisabled}
+          title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}
+          aria-label={createNewDisabled ? "Создать новую: лимит сохранённых мандал достигнут" : "Создать новую мандалу"}>
+          Создать новую
+        </button>
+      </div>
+      <div className="powerPlaceActions powerPlaceActions--export">
+        <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
+        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
+      </div>
+      <div className="powerPlaceActions powerPlaceActions--service">
         <button className="cabinetSecondary" type="button" onClick={onSendToServices}>Перенести в услуги</button>
         <button className="cabinetSecondary" type="button" onClick={onPublishAsService}>Опубликовать как услугу</button>
-        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
-        <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
       </div>
       {compositionMessage && <div className="cabinetSuccess compactNotice profileLitePowerPlaceActionFeedback">{compositionMessage}</div>}
       <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>
@@ -1984,10 +1997,10 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.18", step: "0.01", field: "slot_scale" })}
-                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "96", step: "1", field: "field_scale" })}
-                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.4", step: "0.01", field: "__center_frame_scale" })}
-                {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "1.45", step: "0.01", field: "__center_image_scale" })}
+                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale" })}
+                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale" })}
+                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale" })}
+                {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "2", step: "0.01", field: "__center_image_scale" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">

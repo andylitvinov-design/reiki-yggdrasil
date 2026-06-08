@@ -35,19 +35,19 @@ function coverOffsetValue(value) {
 function innerFieldScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 78;
-  return Math.min(96, Math.max(48, parsed));
+  return Math.min(145, Math.max(48, parsed));
 }
 
 function centerImageScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 1;
-  return Math.min(1.45, Math.max(0.65, parsed));
+  return Math.min(2, Math.max(0.65, parsed));
 }
 
 function centerFrameScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 1;
-  return Math.min(1.4, Math.max(0.72, parsed));
+  return Math.min(1.85, Math.max(0.72, parsed));
 }
 
 function centerShapeValue(value) {

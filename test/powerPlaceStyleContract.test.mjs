@@ -18,8 +18,10 @@ assert.equal(innerFieldScaleValue(undefined), 78, "default scale should be 78");
 assert.equal(innerFieldScaleValue("bad"), 78, "non-numeric should return default 78");
 assert.equal(innerFieldScaleValue(48), 48, "min clamp at 48");
 assert.equal(innerFieldScaleValue(20), 48, "below min clamps to 48");
-assert.equal(innerFieldScaleValue(96), 96, "max now 96");
-assert.equal(innerFieldScaleValue(100), 96, "above 96 clamps to 96");
+assert.equal(innerFieldScaleValue(96), 96, "96 passes through without clamping");
+assert.equal(innerFieldScaleValue(100), 100, "100 now within new max 145");
+assert.equal(innerFieldScaleValue(145), 145, "max now 145");
+assert.equal(innerFieldScaleValue(200), 145, "above 145 clamps to 145");
 assert.equal(innerFieldScaleValue("92"), 92, "string value parsed correctly");
 
 // ─── innerFieldWidthDesktop — no 440px cap ───────────────────────────────────
@@ -254,6 +256,43 @@ assert.ok(
 assert.ok(
   moduleSource.includes(".daoUsinCore") && moduleSource.includes("border-radius: ${centerRadius}"),
   "dynamic style must apply centerRadius to daoUsinCore so square mode removes the DAO core circle"
+);
+
+// ─── Motion mode: zodiac geometry uses semantic radius constants ─────────────
+
+assert.ok(
+  baseSource.includes("ZODIAC_OUTER_SLOT_RADIUS"),
+  "ZODIAC_OUTER_SLOT_RADIUS must be a named constant to document outer slot ring position"
+);
+
+assert.ok(
+  baseSource.includes("ZODIAC_CENTER_EDGE_RADIUS"),
+  "ZODIAC_CENTER_EDGE_RADIUS must be a named constant to document center photo edge position"
+);
+
+const zodiacMotionRadiusMatch = baseSource.match(/const ZODIAC_MOTION_RADIUS\s*=\s*[^;]+;\s*/);
+assert.ok(zodiacMotionRadiusMatch, "ZODIAC_MOTION_RADIUS must be defined");
+
+assert.ok(
+  baseSource.includes("ZODIAC_OUTER_SLOT_RADIUS") && baseSource.includes("ZODIAC_CENTER_EDGE_RADIUS"),
+  "ZODIAC_MOTION_RADIUS must be derived from ZODIAC_OUTER_SLOT_RADIUS and ZODIAC_CENTER_EDGE_RADIUS"
+);
+
+// ─── Motion photo count-4: copies must be full-sized circles ─────────────────
+
+const motionCount4Block = (() => {
+  const idx = cssSource.indexOf(".profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {");
+  const end = cssSource.indexOf("}", idx);
+  return idx >= 0 ? cssSource.slice(idx, end + 1) : "";
+})();
+
+assert.ok(motionCount4Block.length > 0, "powerPlaceMotionPhoto--count-4 rule must exist");
+
+const count4PercentMatch = motionCount4Block.match(/clamp\([^,]+,\s*([\d.]+)%/);
+assert.ok(count4PercentMatch, "count-4 motion photo width must use a % clamp value");
+assert.ok(
+  Number(count4PercentMatch[1]) >= 11,
+  `count-4 motion photo must be at least 11% wide to be visible as a full circle (got ${count4PercentMatch[1]}%)`
 );
 
 console.log("powerPlaceStyleContract: all assertions passed");

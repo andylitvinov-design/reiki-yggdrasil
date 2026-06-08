@@ -2002,7 +2002,7 @@
 }
 
 .profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
-  width: clamp(34px, 10.5%, 62px);
+  width: clamp(40px, 13%, 72px);
 }
 
 .businessMandalaSheet {
@@ -2696,9 +2696,26 @@
 
 .profileLitePowerPlace .powerPlaceActions button:disabled {
   cursor: not-allowed;
-  opacity: 0.48;
+  opacity: 0.55;
   filter: grayscale(0.35);
   box-shadow: none;
+}
+
+.profileLitePowerPlace .powerPlaceActions--save,
+.profileLitePowerPlace .powerPlaceActions--export,
+.profileLitePowerPlace .powerPlaceActions--service {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 0;
+}
+
+.profileLitePowerPlace .powerPlaceActions--save button,
+.profileLitePowerPlace .powerPlaceActions--export button,
+.profileLitePowerPlace .powerPlaceActions--service button {
+  flex: 1 1 calc(50% - 8px);
 }
 
 .profileLitePowerPlace .powerPlaceActionsMeta {
@@ -5987,6 +6004,8 @@
 .profileLitePowerPlace .profileLitePowerPlaceActions {
   width: min(560px, 100%);
   justify-self: center;
+  display: grid;
+  gap: 10px;
 }
 
 .profileLitePowerPlace .profileLiteAdvancedJson {
@@ -7883,12 +7902,33 @@
   }
 
   .profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
-    width: clamp(26px, 9vw, 44px);
+    width: clamp(30px, 11vw, 52px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .profileLitePowerPlace .powerPlaceMotionPhoto {
     transition: none;
+  }
+}
+
+/* ── Mobile DAO scale overflow — allow inner mandala to exceed card width ── */
+@media (max-width: 640px) {
+  .profileLitePowerPlace .powerMandalaPanel {
+    overflow: hidden;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet {
+    width: min(var(--power-field-scale, 96%), 150vw) !important;
+    max-width: none !important;
+    flex: 0 0 auto;
+  }
+
+  .profileLitePowerPlace .daoElementImage {
+    width: min(86px, 100%);
+  }
+
+  .profileLitePowerPlace .daoCenterPhoto {
+    width: calc(28% * var(--power-center-frame-scale, 1));
   }
 }
