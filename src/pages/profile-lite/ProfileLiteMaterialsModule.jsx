@@ -326,7 +326,7 @@ export default function ProfileLiteMaterialsModule({
             <div className="mandalaEmptyState grimoireEmptyState">
               <div className="mandalaEmptySeal">✦</div>
               <b>Гримуар пуст</b>
-              <p>Напишите первую заметку или загрузите материал — его можно разобрать позже.</p>
+              <p>Загрузите первые фото, статьи или документы — их можно разобрать позже.</p>
             </div>
           )}
           {filteredMaterials.length > 0 && (
