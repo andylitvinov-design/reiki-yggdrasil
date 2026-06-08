@@ -510,16 +510,18 @@ function getGridRingPositions(rows, cols, skipIndex = -1) {
 const DEFAULT_MOTION_RADIUS = 25;
 const CLIENT_MOTION_RADIUS = 25;
 // Zodiac geometry (% of container)
-const ZODIAC_OUTER_SLOT_RADIUS = 39; // where zodiac/clock slots sit
-const ZODIAC_CENTER_EDGE_RADIUS = 14; // where the center photo edge reaches
-const ZODIAC_MOTION_RADIUS = Math.round((ZODIAC_OUTER_SLOT_RADIUS + ZODIAC_CENTER_EDGE_RADIUS) / 2); // = 27, midpoint
+const ZODIAC_OUTER_SLOT_RADIUS = 39;      // where zodiac/clock slots sit
+const ZODIAC_CENTER_EDGE_RADIUS = 14;     // where the center photo edge reaches
+const ZODIAC_COPY_CLEARANCE = 5;          // safe gap between copy outer edge and outer ring inner edge
+const ZODIAC_VIDEO_COPY_SAFE_RADIUS = 23; // safe inner ring: ZODIAC_CENTER_EDGE_RADIUS < 23 < ZODIAC_OUTER_SLOT_RADIUS
+const ZODIAC_MOTION_RADIUS = Math.round((ZODIAC_OUTER_SLOT_RADIUS + ZODIAC_CENTER_EDGE_RADIUS) / 2); // = 27, midpoint reference
 const DAO_MOTION_RADIUS = 24;
 const CHESS_MOTION_RADIUS = 24;
 
 function getMotionPositionsForComposition(draft, slots) {
   const type = draft?.constructor_type || "zodiac";
   if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, CLIENT_MOTION_RADIUS);
-  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, ZODIAC_MOTION_RADIUS);
+  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, ZODIAC_VIDEO_COPY_SAFE_RADIUS);
   if (type === "star") {
     return [
       { left: 50, top: 22 },
