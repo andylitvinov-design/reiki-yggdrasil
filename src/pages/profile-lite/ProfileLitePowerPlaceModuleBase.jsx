@@ -1000,9 +1000,11 @@ export default function ProfileLitePowerPlaceModule({
     "--power-center-image-scale": centerImageScale,
     "--power-center-frame-scale": centerFrameScale
   };
+  const centerImageAdj = slotImageAdjustmentFor("__center_image");
   const centerImageStyle = {
     ...(imageStyle(centralImage) || {}),
-    "--power-center-image-scale": centerImageScale
+    "--power-center-image-scale": centerImageScale,
+    ...(centralImage ? { filter: `brightness(${centerImageAdj.brightness}%) contrast(${centerImageAdj.contrast}%)` } : {})
   };
   const chessCoverStyle = {
     ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
@@ -1488,6 +1490,7 @@ export default function ProfileLitePowerPlaceModule({
           suppressCenterPickerClickRef.current = false;
           return;
         }
+        setSelectedSlotId("__center_image");
         openPicker("center");
       }}
       onPointerDown={handleCenterPointerDown}
@@ -1599,11 +1602,13 @@ export default function ProfileLitePowerPlaceModule({
   );
 
   const renderSlotPhotoEditor = () => {
+    const isCenterSlot = selectedSlotId === "__center_image";
     const { brightness, contrast } = slotImageAdjustmentFor(selectedSlotId);
-    const { zoom } = slotImageTransformFor(selectedSlotId);
+    const zoom = isCenterSlot ? centerImageZoom : slotImageTransformFor(selectedSlotId).zoom;
+    const editorLabel = isCenterSlot ? "Фото клиента / цели" : selectedSlot?.label || selectedSlotId;
     return (
       <div className="slotPhotoEditor" aria-label="Редактор мини-фото">
-        <p className="cabinetEyebrow">Редактирование: {selectedSlot?.label || selectedSlotId}</p>
+        <p className="cabinetEyebrow">Редактирование: {editorLabel}</p>
         <label className="slotPhotoEditorControl">
           Масштаб фото
           <input
@@ -1613,8 +1618,12 @@ export default function ProfileLitePowerPlaceModule({
             step="0.01"
             value={zoom}
             onChange={(e) => {
-              const t = slotImageTransformFor(selectedSlotId);
-              writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value));
+              if (isCenterSlot) {
+                writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, Number(e.target.value));
+              } else {
+                const t = slotImageTransformFor(selectedSlotId);
+                writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value));
+              }
             }}
           />
           <span>{Math.round(zoom * 100)}%</span>
@@ -1645,7 +1654,11 @@ export default function ProfileLitePowerPlaceModule({
           className="slotPhotoEditorReset cabinetSecondary"
           type="button"
           onClick={() => {
-            writeSlotImageTransform(selectedSlotId, 50, 50, 1);
+            if (isCenterSlot) {
+              writeCenterImageTransform(50, 50, 1);
+            } else {
+              writeSlotImageTransform(selectedSlotId, 50, 50, 1);
+            }
             writeSlotImageAdjustment(selectedSlotId, 100, 100);
           }}
         >
@@ -2402,7 +2415,7 @@ export default function ProfileLitePowerPlaceModule({
                 </div>
               </div>
 
-              {workspaceTab === "power-place" && selectedSlotId && selectedSlotImage && renderSlotPhotoEditor()}
+              {workspaceTab === "power-place" && selectedSlotId && (selectedSlotId === "__center_image" ? centralImage : selectedSlotImage) && renderSlotPhotoEditor()}
 
               {workspaceTab === "power-place" && renderPowerPlaceActions()}
 
