@@ -735,13 +735,40 @@ export default function ProfileLitePowerPlaceModule({
     onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
   }, [objectRefs, onCompositionObjectRefsChange]);
 
+  const slotAdjustments = cleanObjectRefs(objectRefs.__slot_adjustments);
+
+  function slotImageAdjustmentFor(slotId) {
+    const a = slotAdjustments[slotId];
+    const b = Number(a?.brightness);
+    const c = Number(a?.contrast);
+    return {
+      brightness: Number.isFinite(b) ? Math.round(Math.max(0, Math.min(200, b))) : 100,
+      contrast: Number.isFinite(c) ? Math.round(Math.max(0, Math.min(200, c))) : 100
+    };
+  }
+
+  const writeSlotImageAdjustment = useCallback((slotId, brightness, contrast) => {
+    const currentAdjustments = cleanObjectRefs(objectRefs.__slot_adjustments);
+    const nextAdjustments = {
+      ...currentAdjustments,
+      [slotId]: {
+        brightness: Math.round(Math.max(0, Math.min(200, brightness))),
+        contrast: Math.round(Math.max(0, Math.min(200, contrast)))
+      }
+    };
+    const nextRefs = { ...objectRefs, __slot_adjustments: nextAdjustments };
+    onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
+  }, [objectRefs, onCompositionObjectRefsChange]);
+
   function slotImageStyle(slotId, displaySrc) {
     if (!isImagePreview(displaySrc)) return imageStyle(displaySrc);
     const { x, y, zoom } = slotImageTransformFor(slotId);
+    const { brightness, contrast } = slotImageAdjustmentFor(slotId);
     return {
       backgroundImage: `url(${displaySrc})`,
       "--slot-bg-pos": `${x}% ${y}%`,
       "--slot-bg-zoom": String(zoom),
+      filter: `brightness(${brightness}%) contrast(${contrast}%)`,
       touchAction: "none"
     };
   }
@@ -1559,6 +1586,44 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
+  const renderSlotPhotoEditor = () => {
+    const { brightness, contrast } = slotImageAdjustmentFor(selectedSlotId);
+    return (
+      <div className="slotPhotoEditor" aria-label="Редактор мини-фото">
+        <p className="cabinetEyebrow">Редактирование: {selectedSlot?.label || selectedSlotId}</p>
+        <label className="slotPhotoEditorControl">
+          Яркость фото
+          <input
+            type="range"
+            min="0"
+            max="200"
+            value={brightness}
+            onChange={(e) => writeSlotImageAdjustment(selectedSlotId, Number(e.target.value), contrast)}
+          />
+          <span>{brightness}%</span>
+        </label>
+        <label className="slotPhotoEditorControl">
+          Контраст фото
+          <input
+            type="range"
+            min="0"
+            max="200"
+            value={contrast}
+            onChange={(e) => writeSlotImageAdjustment(selectedSlotId, brightness, Number(e.target.value))}
+          />
+          <span>{contrast}%</span>
+        </label>
+        <button
+          className="slotPhotoEditorReset cabinetSecondary"
+          type="button"
+          onClick={() => writeSlotImageAdjustment(selectedSlotId, 100, 100)}
+        >
+          Сбросить
+        </button>
+      </div>
+    );
+  };
+
   const renderPowerPlaceActions = () => (
     <div className="profileLitePowerPlaceActions">
       <label className="compositionTitleField">
@@ -2248,6 +2313,8 @@ export default function ProfileLitePowerPlaceModule({
                   )}
                 </div>
               </div>
+
+              {workspaceTab === "power-place" && selectedSlotId && selectedSlotImage && renderSlotPhotoEditor()}
 
               {workspaceTab === "power-place" && renderPowerPlaceActions()}
 

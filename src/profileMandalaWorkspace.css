@@ -2605,6 +2605,44 @@
   pointer-events: none;
 }
 
+.slotPhotoEditor {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 250, 238, 0.72);
+  margin-top: 12px;
+}
+
+.slotPhotoEditor .cabinetEyebrow {
+  margin: 0;
+}
+
+.slotPhotoEditorControl {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: #392512;
+}
+
+.slotPhotoEditorControl input[type="range"] {
+  width: 100%;
+  accent-color: #b8791d;
+}
+
+.slotPhotoEditorControl span {
+  font-size: 11px;
+  color: #744c17;
+  font-weight: 700;
+  justify-self: end;
+}
+
+.slotPhotoEditorReset {
+  justify-self: start;
+  margin-top: 2px;
+}
+
 .coverSelector {
   display: grid;
   gap: 10px;
