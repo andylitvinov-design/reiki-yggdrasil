@@ -483,6 +483,15 @@ assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_
 // Part B: CSS must define grab cursor for center photo
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerCenterPhoto\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for center photo with image");
 
+// Part B: pointer state reset correctness
+assert.match(powerPlaceBaseSource, /resetCenterPointerState/, "central pan/zoom: resetCenterPointerState helper must exist");
+assert.match(powerPlaceBaseSource, /resetCenterPointerState[\s\S]{0,400}centerDragRef\.current = \{[\s\S]*active: false/, "resetCenterPointerState must reset centerDragRef to inactive default");
+assert.match(powerPlaceBaseSource, /resetCenterPointerState[\s\S]{0,600}centerPinchRef\.current = \{[\s\S]*active: false[\s\S]*pointers: \[\]/, "resetCenterPointerState must reset centerPinchRef with empty pointers");
+assert.match(powerPlaceBaseSource, /releasePointerCapture[\s\S]{0,60}catch/, "pointer capture release must be guarded with try/catch");
+assert.match(powerPlaceBaseSource, /handleCenterPointerUp[\s\S]{0,800}suppressCenterPickerClickRef\.current = true[\s\S]{0,800}resetCenterPointerState/, "handleCenterPointerUp must set suppress flag then call resetCenterPointerState");
+assert.match(powerPlaceBaseSource, /handleCenterPointerCancel[\s\S]{0,300}resetCenterPointerState/, "handleCenterPointerCancel must call resetCenterPointerState");
+assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer state reset: pointer handlers must still not be applied to cover slots");
+
 // Part C: slot image pan/zoom must exist
 assert.match(powerPlaceBaseSource, /clampSlotImageOffset/, "slot pan/zoom: clampSlotImageOffset helper must exist");
 assert.match(powerPlaceBaseSource, /clampSlotImageZoom/, "slot pan/zoom: clampSlotImageZoom helper must exist");

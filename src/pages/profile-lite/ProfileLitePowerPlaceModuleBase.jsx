@@ -845,10 +845,29 @@ export default function ProfileLitePowerPlaceModule({
     };
   }
 
+  const resetCenterPointerState = useCallback((element, pointerId) => {
+    centerDragRef.current = { active: false, startX: 0, startY: 0, startOffsetX: 50, startOffsetY: 50, startPointerId: -1, moved: false, currentOffsetX: 50, currentOffsetY: 50 };
+    centerPinchRef.current = { active: false, pointers: [], startDist: 0, startZoom: 1, currentZoom: undefined };
+    if (element) {
+      element.style.cursor = "";
+      element.style.removeProperty("--power-center-bg-pos");
+      element.parentElement?.style.removeProperty("--power-center-image-scale");
+      if (pointerId != null && pointerId !== -1) {
+        try { element.releasePointerCapture(pointerId); } catch (_) { /* already released */ }
+      }
+    }
+  }, []);
+
   const handleCenterPointerDown = useCallback((e) => {
     if (!centralImage) return;
     const pinch = centerPinchRef.current;
-    if (pinch.pointers.length === 1) {
+    const drag = centerDragRef.current;
+    // If there is exactly one tracked pointer (stale from a previous partially-cleaned gesture),
+    // check whether it matches the incoming pointer — if not, reset before starting fresh.
+    if (pinch.pointers.length === 1 && !pinch.active && !drag.active) {
+      resetCenterPointerState(e.currentTarget);
+    }
+    if (pinch.pointers.length === 1 && pinch.pointers[0].id !== e.pointerId) {
       pinch.pointers.push({ id: e.pointerId, x: e.clientX, y: e.clientY });
       const [p1, p2] = pinch.pointers;
       pinch.startDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
@@ -858,7 +877,7 @@ export default function ProfileLitePowerPlaceModule({
       centerDragRef.current.active = false;
       return;
     }
-    e.currentTarget.setPointerCapture(e.pointerId);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) { /* capture unavailable */ }
     centerPinchRef.current = { active: false, pointers: [{ id: e.pointerId, x: e.clientX, y: e.clientY }], startDist: 0, startZoom: centerImageZoom, currentZoom: centerImageZoom };
     centerDragRef.current = {
       active: true,
@@ -872,7 +891,7 @@ export default function ProfileLitePowerPlaceModule({
       currentOffsetY: centerImageOffsetY
     };
     e.currentTarget.style.cursor = "grabbing";
-  }, [centralImage, centerImageOffsetX, centerImageOffsetY, centerImageZoom]);
+  }, [centralImage, centerImageOffsetX, centerImageOffsetY, centerImageZoom, resetCenterPointerState]);
 
   const handleCenterPointerMove = useCallback((e) => {
     const pinch = centerPinchRef.current;
@@ -908,40 +927,39 @@ export default function ProfileLitePowerPlaceModule({
 
   const handleCenterPointerUp = useCallback((e) => {
     const pinch = centerPinchRef.current;
+    // Always remove this pointer from pinch tracking regardless of active state.
+    const pPinchIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+    if (pPinchIdx !== -1) pinch.pointers.splice(pPinchIdx, 1);
+
     if (pinch.active) {
-      const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
-      if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
       if (pinch.pointers.length < 2) {
-        pinch.active = false;
+        const finalZoom = pinch.currentZoom ?? centerImageZoom;
+        suppressCenterPickerClickRef.current = true;
+        resetCenterPointerState(e.currentTarget, e.pointerId);
         e.currentTarget.parentElement?.style.removeProperty("--power-center-image-scale");
-        writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, pinch.currentZoom ?? centerImageZoom);
+        writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, finalZoom);
       }
       return;
     }
+
     const drag = centerDragRef.current;
     if (!drag.active || e.pointerId !== drag.startPointerId) return;
-    drag.active = false;
-    e.currentTarget.style.cursor = "";
-    e.currentTarget.style.removeProperty("--power-center-bg-pos");
-    if (drag.moved) {
-      writeCenterImageTransform(drag.currentOffsetX, drag.currentOffsetY, centerImageZoom);
+    const moved = drag.moved;
+    const offsetX = drag.currentOffsetX;
+    const offsetY = drag.currentOffsetY;
+    if (moved) suppressCenterPickerClickRef.current = true;
+    resetCenterPointerState(e.currentTarget, e.pointerId);
+    if (moved) {
+      writeCenterImageTransform(offsetX, offsetY, centerImageZoom);
     }
-    if (pinch.pointers.length > 0) {
-      const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
-      if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
-    }
-  }, [centerImageOffsetX, centerImageOffsetY, centerImageZoom, writeCenterImageTransform]);
+  }, [centerImageOffsetX, centerImageOffsetY, centerImageZoom, writeCenterImageTransform, resetCenterPointerState]);
 
   const handleCenterPointerCancel = useCallback((e) => {
     const drag = centerDragRef.current;
-    drag.active = false;
-    drag.moved = false;
-    centerPinchRef.current = { active: false, pointers: [], startDist: 0, startZoom: 1, currentZoom: undefined };
-    suppressCenterPickerClickRef.current = false;
-    e.currentTarget.style.cursor = "";
-    e.currentTarget.style.removeProperty("--power-center-bg-pos");
-    e.currentTarget.parentElement?.style.removeProperty("--power-center-image-scale");
-  }, []);
+    const moved = drag.moved;
+    resetCenterPointerState(e.currentTarget, e.pointerId);
+    if (!moved) suppressCenterPickerClickRef.current = false;
+  }, [resetCenterPointerState]);
 
   const handleCenterWheel = useCallback((e) => {
     if (!centralImage) return;
