@@ -509,7 +509,10 @@ function getGridRingPositions(rows, cols, skipIndex = -1) {
 
 const DEFAULT_MOTION_RADIUS = 25;
 const CLIENT_MOTION_RADIUS = 25;
-const ZODIAC_MOTION_RADIUS = 25;
+// Zodiac geometry (% of container)
+const ZODIAC_OUTER_SLOT_RADIUS = 39; // where zodiac/clock slots sit
+const ZODIAC_CENTER_EDGE_RADIUS = 14; // where the center photo edge reaches
+const ZODIAC_MOTION_RADIUS = Math.round((ZODIAC_OUTER_SLOT_RADIUS + ZODIAC_CENTER_EDGE_RADIUS) / 2); // = 27, midpoint
 const DAO_MOTION_RADIUS = 24;
 const CHESS_MOTION_RADIUS = 24;
 
