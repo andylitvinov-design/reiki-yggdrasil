@@ -66,7 +66,7 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
   const previewUrl = safePreviewUrl(material);
 
   return (
-    <article className={`grimoirePostCard${isUncategorized ? " grimoirePostCard--uncategorized" : ""}`} key={material.id || material.title}>
+    <article className={`grimoireRecordCard grimoirePostCard${isUncategorized ? " grimoireRecordCard--uncategorized grimoirePostCard--uncategorized" : ""}`} key={material.id || material.title}>
       <header className="grimoirePostHeader">
         <div className="grimoirePostAvatar" aria-hidden="true">✦</div>
         <div className="grimoirePostIdentity">
