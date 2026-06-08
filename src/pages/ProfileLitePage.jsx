@@ -1595,8 +1595,13 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionStartNewDraft = () => {
-    setCompositionDraft(withDefaultMotionSettings({ ...EMPTY_COMPOSITION }));
-    setCompositionMessage("Новая мандала. Настройте и сохраните.");
+    setCompositionDraft(withDefaultMotionSettings({
+      ...EMPTY_COMPOSITION,
+      object_refs: {},
+      object_ref_urls: {}
+    }));
+    setCompositionMessage("Новая мандала подготовлена. Настройте макет и нажмите «Создать новую».");
+    setMandalasError("");
   };
 
 

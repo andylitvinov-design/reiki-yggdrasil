@@ -1641,8 +1641,7 @@ export default function ProfileLitePowerPlaceModule({
           className="slotPhotoEditorReset cabinetSecondary"
           type="button"
           onClick={() => {
-            const t = slotImageTransformFor(selectedSlotId);
-            writeSlotImageTransform(selectedSlotId, t.x, t.y, 1);
+            writeSlotImageTransform(selectedSlotId, 50, 50, 1);
             writeSlotImageAdjustment(selectedSlotId, 100, 100);
           }}
         >
