@@ -656,11 +656,8 @@ export default function ProfileLitePowerPlaceModule({
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
-  const saveNewDisabled = savedCompositionCount >= savedCompositionLimit && !compositionDraft.id;
-  const saveNewTitle = saveNewDisabled
-    ? "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу."
-    : "Сохранить новую мандалу";
-  const saveNewAriaLabel = saveNewDisabled ? `Сохранить: ${saveNewTitle}` : saveNewTitle;
+  const createNewDisabled = savedCompositionCount >= savedCompositionLimit;
+  const updateExistingDisabled = !compositionDraft.id;
 
   useEffect(() => {
     if (!videoEnabled) return undefined;
@@ -680,16 +677,8 @@ export default function ProfileLitePowerPlaceModule({
   ]);
 
   const handleSaveNewClick = () => {
-    if (saveNewDisabled) return;
+    if (createNewDisabled) return;
     onSaveNew();
-  };
-
-  const handleSaveCompositionClick = () => {
-    if (compositionDraft.id) {
-      onUpdateExisting();
-      return;
-    }
-    handleSaveNewClick();
   };
 
   const writeCenterImageTransform = useCallback((offsetX, offsetY, zoom) => {
@@ -1360,12 +1349,33 @@ export default function ProfileLitePowerPlaceModule({
         Название мандалы
         <input className="compositionTitleInput" value={compositionDraft.title} onChange={(event) => onCompositionDraftChange("title", event.target.value)} placeholder="Название мандалы" />
       </label>
-      <div className="powerPlaceActions">
-        <button className="cabinetPrimary powerPlaceSaveButton" type="button" onClick={handleSaveCompositionClick} disabled={!compositionDraft.id && saveNewDisabled} title={compositionDraft.id ? "Обновить сохранённую мандалу" : saveNewTitle} aria-label={compositionDraft.id ? "Сохранить мандалу" : saveNewAriaLabel}>Сохранить мандалу</button>
+      <div className="powerPlaceActions powerPlaceActions--save">
+        <button
+          className="cabinetPrimary"
+          type="button"
+          onClick={onUpdateExisting}
+          disabled={updateExistingDisabled}
+          title={updateExistingDisabled ? "Сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}
+          aria-label={updateExistingDisabled ? "Сначала создайте новую мандалу или откройте сохранённую" : "Обновить текущую сохранённую мандалу"}>
+          Обновить
+        </button>
+        <button
+          className="cabinetSecondary"
+          type="button"
+          onClick={handleSaveNewClick}
+          disabled={createNewDisabled}
+          title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}
+          aria-label={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}>
+          Создать новую
+        </button>
+      </div>
+      <div className="powerPlaceActions powerPlaceActions--export">
+        <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
+        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
+      </div>
+      <div className="powerPlaceActions powerPlaceActions--service">
         <button className="cabinetSecondary" type="button" onClick={onSendToServices}>Перенести в услуги</button>
         <button className="cabinetSecondary" type="button" onClick={onPublishAsService}>Опубликовать как услугу</button>
-        <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
-        <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
       </div>
       {compositionMessage && <div className="cabinetSuccess compactNotice profileLitePowerPlaceActionFeedback">{compositionMessage}</div>}
       <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>

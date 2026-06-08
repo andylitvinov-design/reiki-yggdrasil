@@ -2701,6 +2701,16 @@
   box-shadow: none;
 }
 
+.profileLitePowerPlace .powerPlaceActions--save,
+.profileLitePowerPlace .powerPlaceActions--export,
+.profileLitePowerPlace .powerPlaceActions--service {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  margin-top: 0;
+}
+
 .profileLitePowerPlace .powerPlaceActionsMeta {
   width: 100%;
   min-width: 0;
