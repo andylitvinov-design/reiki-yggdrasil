@@ -7883,3 +7883,24 @@
     transition: none;
   }
 }
+
+/* ── Mobile DAO scale overflow — allow inner mandala to exceed card width ── */
+@media (max-width: 640px) {
+  .profileLitePowerPlace .powerMandalaPanel {
+    overflow: hidden;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet {
+    width: min(var(--power-field-scale, 96%), 150vw) !important;
+    max-width: none !important;
+    flex: 0 0 auto;
+  }
+
+  .profileLitePowerPlace .daoElementImage {
+    width: min(86px, 100%);
+  }
+
+  .profileLitePowerPlace .daoCenterPhoto {
+    width: calc(28% * var(--power-center-frame-scale, 1));
+  }
+}

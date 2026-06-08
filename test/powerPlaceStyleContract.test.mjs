@@ -18,8 +18,10 @@ assert.equal(innerFieldScaleValue(undefined), 78, "default scale should be 78");
 assert.equal(innerFieldScaleValue("bad"), 78, "non-numeric should return default 78");
 assert.equal(innerFieldScaleValue(48), 48, "min clamp at 48");
 assert.equal(innerFieldScaleValue(20), 48, "below min clamps to 48");
-assert.equal(innerFieldScaleValue(96), 96, "max now 96");
-assert.equal(innerFieldScaleValue(100), 96, "above 96 clamps to 96");
+assert.equal(innerFieldScaleValue(96), 96, "96 passes through without clamping");
+assert.equal(innerFieldScaleValue(100), 100, "100 now within new max 145");
+assert.equal(innerFieldScaleValue(145), 145, "max now 145");
+assert.equal(innerFieldScaleValue(200), 145, "above 145 clamps to 145");
 assert.equal(innerFieldScaleValue("92"), 92, "string value parsed correctly");
 
 // ─── innerFieldWidthDesktop — no 440px cap ───────────────────────────────────
