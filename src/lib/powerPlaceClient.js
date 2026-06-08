@@ -39,6 +39,7 @@ const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
 const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
+const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
@@ -122,6 +123,31 @@ function normalizeMotionSettings(value) {
   };
 }
 
+function clampSlotOffset(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(80, Math.max(20, n)) : 50;
+}
+
+function clampSlotZoom(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(1.8, Math.max(0.65, n)) : 1;
+}
+
+function normalizeSlotTransforms(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const result = {};
+  for (const [slotId, raw] of Object.entries(value)) {
+    const id = cleanText(slotId);
+    if (!id || !raw || typeof raw !== "object") continue;
+    result[id] = {
+      x: clampSlotOffset(raw.x),
+      y: clampSlotOffset(raw.y),
+      zoom: clampSlotZoom(raw.zoom)
+    };
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
 function cleanObjectRefs(value) {
   const refs = {};
   for (const [rawKey, rawItem] of Object.entries(cleanJsonObject(value))) {
@@ -129,6 +155,11 @@ function cleanObjectRefs(value) {
     if (!key) continue;
     if (key === MOTION_SETTINGS_REF_KEY) {
       refs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(rawItem);
+      continue;
+    }
+    if (key === SLOT_TRANSFORMS_REF_KEY) {
+      const normalized = normalizeSlotTransforms(rawItem);
+      if (normalized) refs[SLOT_TRANSFORMS_REF_KEY] = normalized;
       continue;
     }
     if (rawItem && typeof rawItem === "object") continue;
@@ -450,6 +481,10 @@ export function normalizePowerPlaceComposition(composition) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
   objectRefs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(sourceObjectRefs[MOTION_SETTINGS_REF_KEY]);
+  if (Object.hasOwn(sourceObjectRefs, SLOT_TRANSFORMS_REF_KEY)) {
+    const slotTransforms = normalizeSlotTransforms(sourceObjectRefs[SLOT_TRANSFORMS_REF_KEY]);
+    if (slotTransforms) objectRefs[SLOT_TRANSFORMS_REF_KEY] = slotTransforms;
+  }
 
   return {
     profile_id: cleanText(composition?.profile_id),
