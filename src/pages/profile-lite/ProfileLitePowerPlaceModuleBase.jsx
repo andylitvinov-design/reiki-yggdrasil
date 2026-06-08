@@ -171,7 +171,12 @@ const FALLBACK_COVERS = [
   { id: "cover-zodiac-map", label: "Карта мандалы", type: "placeholder", tone: "zodiac-map", src: "" },
   { id: "cover-gold", label: "Золотой поток", type: "placeholder", tone: "gold", src: "" },
   { id: "cover-forest", label: "Древо силы", type: "placeholder", tone: "forest", src: "" },
-  { id: "cover-night", label: "Ночная мандала", type: "placeholder", tone: "night", src: "" }
+  { id: "cover-night", label: "Ночная мандала", type: "placeholder", tone: "night", src: "" },
+  { id: "cover-gradient-gold", label: "Золото", type: "placeholder", tone: "gradient-gold", src: "" },
+  { id: "cover-gradient-forest", label: "Лес", type: "placeholder", tone: "gradient-forest", src: "" },
+  { id: "cover-gradient-night", label: "Ночь", type: "placeholder", tone: "gradient-night", src: "" },
+  { id: "cover-gradient-fire", label: "Огонь", type: "placeholder", tone: "gradient-fire", src: "" },
+  { id: "cover-gradient-water", label: "Вода", type: "placeholder", tone: "gradient-water", src: "" }
 ];
 const SOURCE_LIBRARY_CATEGORIES = [
   {
@@ -609,6 +614,7 @@ export default function ProfileLitePowerPlaceModule({
   onPublishToFeed,
   onSaveNew,
   onSendToServices,
+  onStartNewDraft,
   onUpdateExisting,
   onUploadedCentralPhoto,
   planLimits,
@@ -1590,9 +1596,25 @@ export default function ProfileLitePowerPlaceModule({
 
   const renderSlotPhotoEditor = () => {
     const { brightness, contrast } = slotImageAdjustmentFor(selectedSlotId);
+    const { zoom } = slotImageTransformFor(selectedSlotId);
     return (
       <div className="slotPhotoEditor" aria-label="Редактор мини-фото">
         <p className="cabinetEyebrow">Редактирование: {selectedSlot?.label || selectedSlotId}</p>
+        <label className="slotPhotoEditorControl">
+          Масштаб фото
+          <input
+            type="range"
+            min="0.65"
+            max="1.8"
+            step="0.01"
+            value={zoom}
+            onChange={(e) => {
+              const t = slotImageTransformFor(selectedSlotId);
+              writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value));
+            }}
+          />
+          <span>{Math.round(zoom * 100)}%</span>
+        </label>
         <label className="slotPhotoEditorControl">
           Яркость фото
           <input
@@ -1618,7 +1640,10 @@ export default function ProfileLitePowerPlaceModule({
         <button
           className="slotPhotoEditorReset cabinetSecondary"
           type="button"
-          onClick={() => writeSlotImageAdjustment(selectedSlotId, 100, 100)}
+          onClick={() => {
+            writeSlotImageTransform(selectedSlotId, 50, 50, 1);
+            writeSlotImageAdjustment(selectedSlotId, 100, 100);
+          }}
         >
           Сбросить
         </button>
@@ -2000,12 +2025,17 @@ export default function ProfileLitePowerPlaceModule({
                   onChange={(event) => {
                     const nextId = event.target.value;
                     if (!nextId) return;
+                    if (nextId === "__create_new__") {
+                      if (onStartNewDraft) onStartNewDraft();
+                      return;
+                    }
                     const nextComposition = powerPlaceCompositions.find((item) => String(item.id) === String(nextId));
                     if (nextComposition) onCompositionLoad(nextComposition);
                   }}
                   aria-label="Сохранённые мандалы"
                 >
                   <option value="">Сохранённые мандалы</option>
+                  <option value="__create_new__">Создать новую мандалу</option>
                   {powerPlaceCompositions.map((composition) => (
                     <option key={composition.id} value={composition.id}>
                       {composition.title || "Место силы"}
@@ -2067,7 +2097,6 @@ export default function ProfileLitePowerPlaceModule({
                 {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale" })}
                 {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale" })}
-                {renderScaleControl({ className: "photoScaleControl", label: "Размер фоток", value: centerImageScale, min: "0.65", max: "2", step: "0.01", field: "__center_image_scale" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">

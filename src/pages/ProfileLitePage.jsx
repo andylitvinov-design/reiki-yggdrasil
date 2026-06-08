@@ -449,8 +449,10 @@ function openPowerPlacePdfPrintView(title) {
   // before we clone it, so print/PDF always reflects the current unsaved layout.
   raf2(window)
     .then(() => {
-      const imageUrls = extractCssUrls(printArea);
-      const clonedArea = printArea.cloneNode(true);
+      const freshPrintArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
+      if (!freshPrintArea) throw new Error("Макет мандалы не найден.");
+      const imageUrls = extractCssUrls(freshPrintArea);
+      const clonedArea = freshPrintArea.cloneNode(true);
       clonedArea.classList.add("powerPlacePdfOnlyArea");
       printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
       return Promise.all([
@@ -1592,6 +1594,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
   };
 
+  const handleCompositionStartNewDraft = () => {
+    setCompositionDraft(withDefaultMotionSettings({
+      ...EMPTY_COMPOSITION,
+      object_refs: {},
+      object_ref_urls: {}
+    }));
+    setCompositionMessage("Новая мандала подготовлена. Настройте макет и нажмите «Создать новую».");
+    setMandalasError("");
+  };
+
 
   const openCompositionInMandalas = async (compositionId, fallbackMessage = "Мандала заказа открыта в конструкторе.") => {
     if (!compositionId || !hasProfileLiteSessionCredential(session)) return null;
@@ -2232,6 +2244,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onCompositionCoverSelect={handleCompositionCoverSelect}
         onCompositionDraftChange={handleCompositionDraftChange}
         onCompositionLoad={handleCompositionLoad}
+        onStartNewDraft={handleCompositionStartNewDraft}
         onCompositionObjectRefSelect={setCompositionObjectRef}
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
         onCoverFileUpload={handleCompositionCoverFileUpload}

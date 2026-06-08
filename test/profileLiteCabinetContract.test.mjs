@@ -239,7 +239,7 @@ for (const requiredPowerPlaceText of [
   "Отчёт",
   "Анализ",
   "Размер окон",
-  "Размер фоток",
+  "Масштаб фото",
   "Размер поля",
   "Размер центра",
   "Сохранённые мандалы",
@@ -313,9 +313,10 @@ assert.match(powerPlaceSource, /centerImageStyle/, "center photo renderer should
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Размер фоток[\s\S]*field: "__center_image_scale"/, "Power Place constructor controls should map slot-window, field, center, and photo-content sliders to distinct fields");
+assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"/, "Power Place constructor controls should map slot-window, field, and center sliders to distinct fields");
+assert.match(powerPlaceBaseSource, /Масштаб фото[\s\S]*writeSlotImageTransform/, "Масштаб фото slider must be in renderSlotPhotoEditor and call writeSlotImageTransform");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "sourceSlotScaleControl"/g) || []).length, 1, "Размер окон slider should render once from the base module");
-assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Размер фоток slider should render once from the base module");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 0, "top Размер фоток photoScaleControl slider must be removed from constructor controls");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four size sliders should share the requested desktop grid");

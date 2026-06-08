@@ -1197,3 +1197,45 @@ assert.equal(
   ], { [durableRef]: signedUrl })[0];
   assert.equal(hydrated.object_ref_urls[durableRef], signedUrl, "object_ref_urls must be keyed by durable storage ref");
 }
+
+// ─── gradient cover_ref persistence ──────────────────────────────────────────
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "cover-gradient-gold",
+    label: "Золото",
+    type: "placeholder",
+    tone: "gradient-gold",
+    src: ""
+  }),
+  {
+    id: "cover-gradient-gold",
+    label: "Золото",
+    type: "placeholder",
+    tone: "gradient-gold",
+    src: ""
+  },
+  "gradient placeholder covers should persist via tone"
+);
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "cover-gradient-water",
+    label: "Вода",
+    type: "placeholder",
+    tone: "gradient-water",
+    src: "",
+    inner: { id: "cover-gradient-water", type: "placeholder", tone: "gradient-water", src: "" },
+    outer: { id: "cover-gradient-fire", type: "placeholder", tone: "gradient-fire", src: "" }
+  }),
+  {
+    id: "cover-gradient-water",
+    label: "Вода",
+    type: "placeholder",
+    tone: "gradient-water",
+    src: "",
+    inner: { id: "cover-gradient-water", label: "Вода", type: "placeholder", tone: "gradient-water", src: "" },
+    outer: { id: "cover-gradient-fire", label: "Без фона", type: "placeholder", tone: "gradient-fire", src: "" }
+  },
+  "nested inner/outer gradient placeholder covers should persist via tone"
+);
