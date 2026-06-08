@@ -194,6 +194,7 @@ const motionLayerBlock = (() => {
 
 assert.ok(motionLayerBlock.includes("position: absolute"), "motion layer must be absolute inside the mandala sheet");
 assert.ok(motionLayerBlock.includes("pointer-events: none"), "motion layer must not block center editing, drag/drop, slots, save, or print actions");
+assert.ok(motionLayerBlock.includes("overflow: visible"), "motion layer must have overflow:visible so copies positioned near the boundary are not clipped");
 assert.ok(cssSource.includes("@media (prefers-reduced-motion: reduce)") && cssSource.includes("transition: none"), "motion photos should disable transitions for reduced motion");
 assert.ok(cssSource.includes("@media (max-width: 640px)") && cssSource.includes(".profileLitePowerPlace .powerPlaceMotionPhoto"), "motion photos should have mobile sizing rules");
 
@@ -277,6 +278,36 @@ assert.ok(
   baseSource.includes("ZODIAC_OUTER_SLOT_RADIUS") && baseSource.includes("ZODIAC_CENTER_EDGE_RADIUS"),
   "ZODIAC_MOTION_RADIUS must be derived from ZODIAC_OUTER_SLOT_RADIUS and ZODIAC_CENTER_EDGE_RADIUS"
 );
+
+// ─── Safe inner ring: ZODIAC_VIDEO_COPY_SAFE_RADIUS between center and outer ──
+
+assert.ok(
+  baseSource.includes("ZODIAC_VIDEO_COPY_SAFE_RADIUS"),
+  "ZODIAC_VIDEO_COPY_SAFE_RADIUS must be a named constant for the safe inner ring"
+);
+
+{
+  const safeRadiusMatch = baseSource.match(/const ZODIAC_VIDEO_COPY_SAFE_RADIUS\s*=\s*(\d+)/);
+  assert.ok(safeRadiusMatch, "ZODIAC_VIDEO_COPY_SAFE_RADIUS must have a numeric literal value");
+
+  const outerSlotRadiusMatch = baseSource.match(/const ZODIAC_OUTER_SLOT_RADIUS\s*=\s*(\d+)/);
+  const centerEdgeRadiusMatch = baseSource.match(/const ZODIAC_CENTER_EDGE_RADIUS\s*=\s*(\d+)/);
+  assert.ok(outerSlotRadiusMatch && centerEdgeRadiusMatch, "ZODIAC_OUTER_SLOT_RADIUS and ZODIAC_CENTER_EDGE_RADIUS must have numeric values");
+
+  const safeRadius = Number(safeRadiusMatch[1]);
+  const outerSlotRadius = Number(outerSlotRadiusMatch[1]);
+  const centerEdgeRadius = Number(centerEdgeRadiusMatch[1]);
+
+  assert.ok(
+    safeRadius < outerSlotRadius,
+    `ZODIAC_VIDEO_COPY_SAFE_RADIUS (${safeRadius}) must be less than ZODIAC_OUTER_SLOT_RADIUS (${outerSlotRadius}) so copies stay inside the outer ring`
+  );
+
+  assert.ok(
+    safeRadius > centerEdgeRadius,
+    `ZODIAC_VIDEO_COPY_SAFE_RADIUS (${safeRadius}) must be greater than ZODIAC_CENTER_EDGE_RADIUS (${centerEdgeRadius}) so copies clear the center photo`
+  );
+}
 
 // ─── Motion photo count-4: copies must be full-sized circles ─────────────────
 
