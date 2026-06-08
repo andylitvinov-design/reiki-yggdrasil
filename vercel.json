@@ -20,6 +20,10 @@
       "destination": "/"
     },
     {
+      "source": "/profile/courses",
+      "destination": "/"
+    },
+    {
       "source": "/profile/services",
       "destination": "/"
     },

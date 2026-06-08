@@ -199,6 +199,10 @@ function RootRouter() {
     return <ProfileLitePage initialTab="mandalas" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path === "/profile/courses") {
+    return <ProfileLitePage initialTab="courses" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
   if (path === "/profile/services") {
     return <ProfileLitePage initialTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
