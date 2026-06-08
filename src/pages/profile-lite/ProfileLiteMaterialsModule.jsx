@@ -1,39 +1,102 @@
-import React, { useState } from "react";
-import { GRIMOIRE_CATEGORIES, materialStatusText, publicationTypeLabel } from "../../lib/profileMaterialsClient.js";
+import React, { useMemo, useState } from "react";
+import {
+  createOwnMaterial,
+  detectMaterialTypeFromFile,
+  GRIMOIRE_CATEGORIES,
+  materialStatusText,
+  publicationTypeLabel,
+  stripFileExtension
+} from "../../lib/profileMaterialsClient.js";
 import { feedActivityTypeForMaterial } from "../../lib/profileActivityFeedClient.js";
+import { getCurrentUser, getOwnProfile, getStoredSession } from "../../lib/supabaseClient.js";
+import { uploadProfileMedia, validateGrimoireFile } from "../../lib/profileMediaClient.js";
+import ProfileLiteGrimoireComposer from "./ProfileLiteGrimoireComposer.jsx";
+import "./ProfileLiteGrimoireWorkspace.css";
+
+function safeText(value) {
+  return String(value || "").trim();
+}
+
+function safePreviewUrl(material) {
+  const url = safeText(material?.display_url || material?.displayUrl || "");
+  if (/^https?:\/\//i.test(url) && !url.includes("/storage/v1/object/sign/")) return url;
+  return "";
+}
+
+function materialDate(material) {
+  const value = material?.updated_at || material?.updatedAt || material?.created_at || material?.createdAt || "";
+  if (!value) return "черновик";
+  try {
+    return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
+  } catch {
+    return "черновик";
+  }
+}
+
+function localMaterialPayload({ profileId, title, description, type, imageUrl }) {
+  return {
+    profile_id: profileId,
+    type: type || "uncategorized",
+    title: title || "Запись гримуара",
+    description: description || "",
+    image_url: imageUrl || "",
+    step_id: "",
+    step_title: "",
+    setting_title: "",
+    setting_index: null,
+    status: "draft",
+    updated_at: new Date().toISOString()
+  };
+}
+
+function mergeMaterials(localMaterials, sourceMaterials) {
+  const seen = new Set();
+  return [...localMaterials, ...(sourceMaterials || [])].filter((item) => {
+    const key = item?.id || `${item?.title || ""}-${item?.updated_at || item?.updatedAt || ""}`;
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
   const isUncategorized = !material.type || material.type === "uncategorized";
   const noteText = material.description || "Комментарий ещё не добавлен";
   const canAddToFeed = Boolean(material.id && feedActivityTypeForMaterial(material));
+  const previewUrl = safePreviewUrl(material);
 
   return (
-    <article className={`grimoireRecordCard${isUncategorized ? " grimoireRecordCard--uncategorized" : ""}`} key={material.id || material.title}>
-      <div className={material.display_url || material.image_url ? "grimoireCardPreview hasImage" : "grimoireCardPreview"} style={material.display_url || material.image_url ? { backgroundImage: `url(${material.display_url || material.image_url})` } : undefined}>
-        {!(material.display_url || material.image_url) && <span className="grimoireCardIcon">◎</span>}
-      </div>
-      <div className="grimoireCardBody">
-        <div className="grimoireCardChips">
-          <span className={`grimoireChipType${isUncategorized ? " grimoireChipType--uncategorized" : ""}`}>{publicationTypeLabel(material.type)}</span>
-          <span className={`statusChip status-${material.status || "draft"}`}>{materialStatusText(material.status)}</span>
-          {isUncategorized && <span className="grimoireWorkBadge">Разберите позже</span>}
+    <article className={`grimoirePostCard${isUncategorized ? " grimoirePostCard--uncategorized" : ""}`} key={material.id || material.title}>
+      <header className="grimoirePostHeader">
+        <div className="grimoirePostAvatar" aria-hidden="true">✦</div>
+        <div className="grimoirePostIdentity">
+          <b>Мастерская</b>
+          <small>{publicationTypeLabel(material.type)} · {materialStatusText(material.status)} · {materialDate(material)}</small>
         </div>
-        <h3 className="grimoireCardTitle">{material.title || "Без названия"}</h3>
-        <p className={`grimoireCardNote${material.description ? "" : " grimoireCardNote--empty"}`}>{noteText}</p>
+        {isUncategorized && <span className="grimoirePostBadge">Неразобранное</span>}
+      </header>
+
+      <div className="grimoirePostBody">
+        <h3>{material.title || "Без названия"}</h3>
+        <p className={material.description ? "" : "grimoirePostEmptyText"}>{noteText}</p>
+        <div className={previewUrl ? "grimoirePostPreview hasImage" : "grimoirePostPreview"} style={previewUrl ? { backgroundImage: `url(${previewUrl})` } : undefined}>
+          {!previewUrl && <span className="grimoireCardIcon">◎</span>}
+        </div>
         {(material.step_id || material.step_title || material.setting_title) && (
-          <small className="grimoireCardMeta">{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
+          <small className="grimoirePostMeta">{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
         )}
       </div>
-      <div className="grimoireCardActions">
+
+      <footer className="grimoirePostActions">
         {canAddToFeed && <button className="grimoireActionBtn" type="button" onClick={() => onAddToFeed(material)}>Добавить в ленту</button>}
         <button className="grimoireActionBtn" type="button" onClick={() => onEdit(material)}>Редактировать</button>
         <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material)}>Удалить</button>
-      </div>
+      </footer>
     </article>
   );
 }
 
-function GrimoireEditModal({ material, onClose, onSave }) {
+function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
   const [form, setForm] = useState({
     title: material.title || "",
     description: material.description || "",
@@ -96,11 +159,14 @@ export default function ProfileLiteMaterialsModule({
   const [editingMaterial, setEditingMaterial] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadStatus, setUploadStatus] = useState("");
+  const [composerStatus, setComposerStatus] = useState("");
+  const [localMaterials, setLocalMaterials] = useState([]);
 
-  const uncategorizedCount = materials.filter((m) => !m.type || m.type === "uncategorized").length;
-  const readyCount = Math.max(materials.length - uncategorizedCount, 0);
+  const allMaterials = useMemo(() => mergeMaterials(localMaterials, materials), [localMaterials, materials]);
+  const uncategorizedCount = allMaterials.filter((m) => !m.type || m.type === "uncategorized").length;
+  const readyCount = Math.max(allMaterials.length - uncategorizedCount, 0);
 
-  const filteredMaterials = materials.filter((m) => {
+  const filteredMaterials = allMaterials.filter((m) => {
     if (activeFilter === "all") return true;
     if (activeFilter === "uncategorized") return !m.type || m.type === "uncategorized";
     return m.type === activeFilter;
@@ -123,6 +189,50 @@ export default function ProfileLiteMaterialsModule({
     setPendingFiles(event.dataTransfer?.files || []);
   };
 
+  const handleComposerCreate = async ({ title = "", description = "", type = "uncategorized", file = null, forceUncategorized = false } = {}) => {
+    const session = getStoredSession();
+    const cleanTitle = safeText(title);
+    const cleanDescription = safeText(description);
+    if (!cleanTitle && !cleanDescription && !file) throw new Error("Добавьте текст, название или файл.");
+    if (!session?.access_token) throw new Error("Нужно войти в кабинет.");
+
+    setComposerStatus("loading");
+    try {
+      const user = await getCurrentUser(session);
+      const profile = await getOwnProfile(user?.id, session);
+      if (!profile?.id) throw new Error("Сначала сохраните профиль мастера.");
+
+      let imageUrl = "";
+      let finalType = forceUncategorized ? "uncategorized" : (type || "uncategorized");
+      let finalTitle = cleanTitle;
+
+      if (file) {
+        validateGrimoireFile(file);
+        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+        imageUrl = uploaded.ref;
+        if (!finalTitle) finalTitle = stripFileExtension(file.name) || "Запись гримуара";
+        if (!forceUncategorized && (!type || type === "uncategorized")) finalType = detectMaterialTypeFromFile(file);
+      }
+
+      if (!finalTitle) finalTitle = cleanDescription.slice(0, 64) || "Запись гримуара";
+
+      const saved = await createOwnMaterial(localMaterialPayload({
+        profileId: profile.id,
+        title: finalTitle,
+        description: cleanDescription,
+        type: finalType,
+        imageUrl
+      }), session);
+
+      setLocalMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setComposerStatus("success");
+      return saved;
+    } catch (error) {
+      setComposerStatus("needs-verification");
+      throw error;
+    }
+  };
+
   const handleUploadSelectedFiles = async () => {
     if (!selectedFiles.length) return;
     setUploadStatus(`Загружаю ${selectedFiles.length} файл(ов)...`);
@@ -140,6 +250,7 @@ export default function ProfileLiteMaterialsModule({
     if (!confirmed) return;
     try {
       await onDelete(material);
+      setLocalMaterials((current) => current.filter((item) => item.id !== material.id));
     } catch (error) {
       alert("Не удалось удалить: " + String(error?.message || error));
     }
@@ -148,6 +259,7 @@ export default function ProfileLiteMaterialsModule({
   const handleEditSave = async (id, patch) => {
     try {
       await onUpdate(id, patch);
+      setLocalMaterials((current) => current.map((item) => item.id === id ? { ...item, ...patch, updated_at: new Date().toISOString() } : item));
       setEditingMaterial(null);
     } catch (error) {
       alert("Не удалось сохранить: " + String(error?.message || error));
@@ -161,10 +273,10 @@ export default function ProfileLiteMaterialsModule({
         <div>
           <p className="cabinetEyebrow">Гримуар</p>
           <h2>Гримуар мастера</h2>
-          <p>Соберите фото, статьи, практики, аудио и документы. Сначала загрузите всё без структуры, потом разложите по категориям.</p>
+          <p>Личная рабочая лента мастера: добавьте заметку, фото, статью или мандалу, а позже разберите и отправьте в публичную ленту.</p>
         </div>
         <div className="mandalaHeroStats">
-          <span><b>{materials.length}</b> Всего записей</span>
+          <span><b>{allMaterials.length}</b> Всего записей</span>
           <span><b>{uncategorizedCount}</b> Без категории</span>
           <span><b>{readyCount}</b> Готово к работе</span>
         </div>
@@ -175,30 +287,37 @@ export default function ProfileLiteMaterialsModule({
           <p className="cabinetEyebrow">Фильтр гримуара</p>
           <h3>Категория</h3>
           <div className="grimoireFilterList" aria-label="Фильтры гримуара">
-            {GRIMOIRE_CATEGORIES.map((cat) => (
-              <button
-                className={`grimoireFilterBtn${activeFilter === cat.value ? " active" : ""}`}
-                key={cat.value}
-                type="button"
-                onClick={() => setActiveFilter(cat.value)}
-              >
-                {cat.label}
-                {cat.value !== "all" && (
-                  <span className="grimoireFilterCount">
-                    {cat.value === "uncategorized"
-                      ? materials.filter((m) => !m.type || m.type === "uncategorized").length
-                      : materials.filter((m) => m.type === cat.value).length}
-                  </span>
-                )}
-              </button>
-            ))}
+            {GRIMOIRE_CATEGORIES.map((cat) => {
+              const isPriority = cat.value === "uncategorized";
+              const count = cat.value === "uncategorized"
+                ? allMaterials.filter((m) => !m.type || m.type === "uncategorized").length
+                : allMaterials.filter((m) => m.type === cat.value).length;
+              return (
+                <button
+                  className={`grimoireFilterBtn${activeFilter === cat.value ? " active" : ""}${isPriority ? " grimoireFilterBtn--priority" : ""}`}
+                  key={cat.value}
+                  type="button"
+                  onClick={() => setActiveFilter(cat.value)}
+                >
+                  {cat.label}
+                  {cat.value !== "all" && <span className="grimoireFilterCount">{count}</span>}
+                </button>
+              );
+            })}
           </div>
         </aside>
 
         <div className="workspaceCenterColumn">
+          <ProfileLiteGrimoireComposer
+            disabled={materialsStatus === "loading" || composerStatus === "loading"}
+            status={composerStatus || materialsStatus}
+            onCreate={handleComposerCreate}
+            onShowUncategorized={() => setActiveFilter("uncategorized")}
+          />
+
           <div className="grimoireCenterHeader">
             <p className="cabinetEyebrow">Записи гримуара</p>
-            <span className="cabinetStatus">{materialsStatus === "loading" ? "..." : filteredMaterials.length}</span>
+            <span className="cabinetStatus">{materialsStatus === "loading" || composerStatus === "loading" ? "..." : filteredMaterials.length}</span>
           </div>
           {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
           {materialsFeedMessage && <div className="cabinetNotice">{materialsFeedMessage}</div>}
@@ -207,11 +326,11 @@ export default function ProfileLiteMaterialsModule({
             <div className="mandalaEmptyState grimoireEmptyState">
               <div className="mandalaEmptySeal">✦</div>
               <b>Гримуар пуст</b>
-              <p>Загрузите первые фото, статьи или документы — их можно разобрать позже.</p>
+              <p>Напишите первую заметку или загрузите материал — его можно разобрать позже.</p>
             </div>
           )}
           {filteredMaterials.length > 0 && (
-            <div className="grimoireRecordsList">
+            <div className="grimoireRecordsList grimoirePostList">
               {filteredMaterials.map((material) => (
                 <GrimoireRecordCard
                   key={material.id || `${material.title}-${material.updated_at}`}
@@ -227,7 +346,7 @@ export default function ProfileLiteMaterialsModule({
 
         <div className="workspaceRightColumn grimoireUploaderColumn">
           <div className="cabinetCard grimoireUploaderCard">
-            <p className="cabinetEyebrow">Загрузить в гримуар</p>
+            <p className="cabinetEyebrow">Быстрая загрузка</p>
             <h3>Добавить записи</h3>
             <p className="grimoireUploaderHint">Загрузите один или несколько файлов. Категория и описание — необязательны при загрузке, их можно добавить после.</p>
             <label className="grimoireFileInputLabel" onDragOver={(event) => event.preventDefault()} onDrop={handleFileDrop}>
@@ -258,6 +377,22 @@ export default function ProfileLiteMaterialsModule({
             </button>
             {uploadStatus && <p className="grimoireUploadStatus">{uploadStatus}</p>}
             <p className="grimoireUploaderFormats">Поддерживаются: изображения, аудио, PDF, TXT, MD, DOC, DOCX · до 5 MB каждый</p>
+          </div>
+
+          <div className="cabinetCard grimoireQuickStatsCard">
+            <p className="cabinetEyebrow">Неразобранное</p>
+            <h3>{uncategorizedCount} материалов</h3>
+            <p>Быстрый вход в материалы, которые нужно назвать, описать и разложить.</p>
+            <button className="cabinetSecondary" type="button" onClick={() => setActiveFilter("uncategorized")}>Показать</button>
+          </div>
+
+          <div className="cabinetCard grimoireQuickActionsCard">
+            <p className="cabinetEyebrow">Быстрые действия</p>
+            <h3>Мастерская</h3>
+            <a href="/profile/mandalas">Создать мандалу</a>
+            <a href="/profile/services">Открыть услуги</a>
+            <a href="/feed">Лента сообщества</a>
+            <a href="/masters/demo-master">Публичная страница</a>
           </div>
         </div>
       </div>
