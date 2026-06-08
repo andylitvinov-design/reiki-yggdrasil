@@ -949,4 +949,69 @@ assert.match(
   "CSS must define thumb style for profileLiteMediaThumb"
 );
 
+// ─── DAO style selector contract ─────────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /DAO_STYLE_VARIANTS/,
+  "Base module must define DAO_STYLE_VARIANTS for the DAO style selector"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /daoStyleSelector/,
+  "Base module must render daoStyleSelector for DAO constructor type"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /compositionDraft\.constructor_type === "dao"/,
+  "DAO style selector must be gated on constructor_type === dao"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /compositionDraft\.__dao_style/,
+  "DAO style selector must read __dao_style from compositionDraft"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /__dao_style.*talisman|talisman.*__dao_style/,
+  "Base module must branch on talisman value of __dao_style"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /daoTalismanScroll/,
+  "Base module must render daoTalismanScroll div for talisman mode"
+);
+
+assert.match(
+  powerPlaceSource,
+  /DAO_STYLE_REF_KEY\s*=\s*"__dao_style"/,
+  "Wrapper module must define DAO_STYLE_REF_KEY as __dao_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /__dao_style:\s*daoStyle/,
+  "Wrapper module must pass daoStyle to enhancedDraft as __dao_style"
+);
+
+// Existing DAO slot IDs must not change: dao-water, dao-wood, dao-fire, dao-earth, dao-metal
+for (const element of ["water", "wood", "fire", "earth", "metal"]) {
+  assert.ok(
+    powerPlaceBaseSource.includes(`dao-\${element.id}`) || powerPlaceBaseSource.includes(`dao-${element}`),
+    `slot id pattern for dao-${element} must be preserved in base module`
+  );
+}
+
+// daoMandalaSheet (style-1) must still exist — not replaced
+assert.match(
+  powerPlaceBaseSource,
+  /daoMandalaSheet/,
+  "daoMandalaSheet must still be present for style-1 (existing style must not be removed)"
+);
+
 console.log("Profile Lite cabinet contract: all assertions passed.");

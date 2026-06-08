@@ -356,4 +356,71 @@ assert.ok(
   "renderSlotPhotoEditor must include Масштаб фото zoom slider"
 );
 
+// ─── DAO style selector: __dao_style stored in object_refs ───────────────────
+
+assert.ok(
+  moduleSource.includes('DAO_STYLE_REF_KEY = "__dao_style"'),
+  "DAO_STYLE_REF_KEY must be defined as __dao_style in the wrapper module"
+);
+
+assert.ok(
+  moduleSource.includes("__dao_style: daoStyle"),
+  "daoStyle must be passed through enhancedDraft as __dao_style"
+);
+
+// ─── DAO talisman: CSS and JSX contracts ─────────────────────────────────────
+
+assert.ok(
+  cssSource.includes(".daoTalismanScroll"),
+  ".daoTalismanScroll must be defined in CSS for the talisman layout"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanRoof"),
+  ".daoTalismanRoof must be defined in CSS for the talisman head/roof"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanSeal"),
+  ".daoTalismanSeal must be defined in CSS for the bottom seal"
+);
+
+assert.ok(
+  cssSource.includes(".daoTalismanSlot"),
+  ".daoTalismanSlot must be defined in CSS for talisman element slots"
+);
+
+assert.ok(
+  baseSource.includes("daoTalismanScroll"),
+  "Base module must render daoTalismanScroll for talisman style"
+);
+
+assert.ok(
+  baseSource.includes("DAO_STYLE_VARIANTS"),
+  "Base module must define DAO_STYLE_VARIANTS"
+);
+
+assert.ok(
+  baseSource.includes('"style-1"') && baseSource.includes('"talisman"'),
+  "DAO_STYLE_VARIANTS must include style-1 and talisman values"
+);
+
+assert.ok(
+  baseSource.includes("daoStyleSelector"),
+  "Base module must render daoStyleSelector for DAO constructor type"
+);
+
+assert.ok(
+  baseSource.includes("__dao_style") && baseSource.includes('"__dao_style"'),
+  "Base module must use __dao_style to read/write the DAO style"
+);
+
+// Slot IDs must remain unchanged in talisman mode
+for (const elementId of ["water", "wood", "fire", "earth", "metal"]) {
+  const slotIdPattern = new RegExp(`dao-\\$\\{element\\.id\\}|dao-${elementId}`);
+  assert.ok(
+    slotIdPattern.test(baseSource),
+    `talisman mode must keep dao-${elementId} slot id pattern`
+  );
+}
 console.log("powerPlaceStyleContract: all assertions passed");

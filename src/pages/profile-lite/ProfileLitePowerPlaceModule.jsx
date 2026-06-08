@@ -4,6 +4,7 @@ import { innerFieldWidthDesktop, innerFieldWidthMobile } from "../../lib/powerPl
 import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.jsx";
 
 const MANDALA_STYLE_REF_KEY = "__mandala_style";
+const DAO_STYLE_REF_KEY = "__dao_style";
 const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
@@ -537,6 +538,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageOffsetY = clampCenterImageOffset(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
   const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
+  const daoStyle = objectRefs[DAO_STYLE_REF_KEY] || "style-1";
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
@@ -574,6 +576,11 @@ export default function ProfileLitePowerPlaceModule(props) {
       return;
     }
 
+    if (field === DAO_STYLE_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [DAO_STYLE_REF_KEY]: value });
+      return;
+    }
+
     props.onCompositionDraftChange?.(field, value);
   }, [objectRefs, props, writeObjectRefs]);
 
@@ -583,6 +590,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     __center_image_scale: centerImageScale,
     __center_frame_scale: centerFrameScale,
     __mandala_style: mandalaStyle,
+    __dao_style: daoStyle,
     __center_image_offset_x: centerImageOffsetX,
     __center_image_offset_y: centerImageOffsetY,
     __center_image_zoom: centerImageZoom,
