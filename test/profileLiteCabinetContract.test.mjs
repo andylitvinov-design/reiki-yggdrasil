@@ -677,6 +677,74 @@ assert.match(grimoireModuleSource, /GRIMOIRE_CATEGORIES/, "Grimoire left column 
 assert.match(grimoireModuleSource, /grimoireFilterBtn/, "Grimoire filter buttons should use grimoireFilterBtn class");
 assert.match(grimoireModuleSource, /grimoireRecordCard/, "Grimoire records should use grimoireRecordCard class");
 assert.match(profileLitePageSource, /handleGrimoireMultiUpload/, "ProfileLitePage should expose handleGrimoireMultiUpload");
+
+// --- G: Power Place scale limits and print/PDF correctness ---
+
+assert.match(
+  powerPlaceClientSource,
+  /SLOT_SCALE_MAX\s*=\s*1\.85/,
+  "powerPlaceClient.js must define SLOT_SCALE_MAX = 1.85 to match UI slider max"
+);
+
+assert.match(
+  powerPlaceClientSource,
+  /FIELD_SCALE_MAX\s*=\s*145/,
+  "powerPlaceClient.js must define FIELD_SCALE_MAX = 145 to match UI slider max"
+);
+
+assert.match(
+  powerPlaceClientSource,
+  /CENTER_IMAGE_SCALE_MAX\s*=\s*2/,
+  "powerPlaceClient.js must define CENTER_IMAGE_SCALE_MAX = 2 to match UI slider max"
+);
+
+assert.match(
+  powerPlaceClientSource,
+  /CENTER_FRAME_SCALE_MAX\s*=\s*1\.85/,
+  "powerPlaceClient.js must define CENTER_FRAME_SCALE_MAX = 1.85 to match UI slider max"
+);
+
+assert.match(
+  profileLitePageSource,
+  /field === "__center_frame_scale"[\s\S]*object_refs[\s\S]*__center_frame_scale/,
+  "handleCompositionDraftChange must persist __center_frame_scale into object_refs"
+);
+
+assert.match(
+  profileLitePageSource,
+  /field === "__center_image_scale"[\s\S]*object_refs[\s\S]*__center_image_scale/,
+  "handleCompositionDraftChange must persist __center_image_scale into object_refs"
+);
+
+assert.match(
+  profileLitePageSource,
+  /raf2\(window\)[\s\S]*cloneNode/,
+  "openPowerPlacePdfPrintView must defer DOM clone with raf2(window) so React flushes slider state before print"
+);
+
+assert.doesNotMatch(
+  profileLitePageSource,
+  /handleDownloadComposition[\s\S]{0,200}refreshSavedCompositions/,
+  "handleDownloadComposition must not call refreshSavedCompositions — print uses current DOM, not saved data"
+);
+
+assert.doesNotMatch(
+  profileLitePageSource,
+  /handlePrintComposition[\s\S]{0,200}refreshSavedCompositions/,
+  "handlePrintComposition must not call refreshSavedCompositions — print uses current DOM, not saved data"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /powerPlacePrintArea[\s\S]*style=\{sourceSlotScaleStyle\}/,
+  ".powerPlacePrintArea must receive sourceSlotScaleStyle so CSS variables survive cloneNode into print window"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /sourceSlotScaleStyle[\s\S]*--power-source-slot-scale[\s\S]*--power-place-chess-slot-scale[\s\S]*--power-field-scale[\s\S]*--power-center-image-scale[\s\S]*--power-center-frame-scale/,
+  "sourceSlotScaleStyle must include all five layout CSS variables for print fidelity"
+);
 assert.match(profileLitePageSource, /handleGrimoireUpdate/, "ProfileLitePage should expose handleGrimoireUpdate");
 assert.match(profileLitePageSource, /handleGrimoireDelete/, "ProfileLitePage should expose handleGrimoireDelete");
 assert.match(profileLitePageSource, /deleteOwnMaterial/, "ProfileLitePage should import deleteOwnMaterial");

@@ -433,6 +433,15 @@ export function normalizeCoverRef(coverRef) {
   };
 }
 
+const SLOT_SCALE_MIN = 0.7;
+const SLOT_SCALE_MAX = 1.85;
+const FIELD_SCALE_MIN = 48;
+const FIELD_SCALE_MAX = 145;
+const CENTER_IMAGE_SCALE_MIN = 0.65;
+const CENTER_IMAGE_SCALE_MAX = 2;
+const CENTER_FRAME_SCALE_MIN = 0.72;
+const CENTER_FRAME_SCALE_MAX = 1.85;
+
 export function normalizePowerPlaceComposition(composition) {
   const constructorType = VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
     ? composition.constructor_type
@@ -453,16 +462,16 @@ export function normalizePowerPlaceComposition(composition) {
   const fieldLayout = normalizeFieldLayout(composition?.field_layout ?? sourceObjectRefs[FIELD_LAYOUT_REF_KEY]);
   const report = sourceObjectRefs[PROFILE_LITE_REPORT_REF_KEY];
   if (slotScale !== undefined || Object.hasOwn(sourceObjectRefs, SLOT_SCALE_REF_KEY)) {
-    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, 0.7, 1.18, 1);
+    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, SLOT_SCALE_MIN, SLOT_SCALE_MAX, 1);
   }
   if (fieldScale !== undefined || Object.hasOwn(sourceObjectRefs, INNER_FIELD_SCALE_REF_KEY)) {
-    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, 48, 92, 78);
+    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, FIELD_SCALE_MIN, FIELD_SCALE_MAX, 78);
   }
   if (centerImageScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_SCALE_REF_KEY)) {
-    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, 0.65, 1.45, 1);
+    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, CENTER_IMAGE_SCALE_MIN, CENTER_IMAGE_SCALE_MAX, 1);
   }
   if (centerFrameScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_FRAME_SCALE_REF_KEY)) {
-    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, 0.72, 1.4, 1);
+    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, CENTER_FRAME_SCALE_MIN, CENTER_FRAME_SCALE_MAX, 1);
   }
   if (Object.hasOwn(sourceObjectRefs, CENTER_SHAPE_REF_KEY)) {
     objectRefs[CENTER_SHAPE_REF_KEY] = normalizeCenterShape(sourceObjectRefs[CENTER_SHAPE_REF_KEY]);

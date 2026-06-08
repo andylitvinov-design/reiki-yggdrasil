@@ -1018,7 +1018,7 @@ assert.deepEqual(
     central_photo_id: ""
   }).object_refs,
   {
-    "__center_frame_scale": "1.4",
+    "__center_frame_scale": "1.85",
     "__center_image_scale": "1",
     "__center_shape": "square",
     "__inner_cover_offset_x": "20",
@@ -1075,8 +1075,82 @@ assert.equal(
     chess_variant: "plus-8",
     object_refs: { __slot_scale: "9" }
   }).object_refs.__slot_scale,
-  "1.18",
-  "shared slot scale persisted in object_refs should be clamped"
+  "1.85",
+  "shared slot scale persisted in object_refs should be clamped to new max"
+);
+
+// ── Scale limits: new enlarged maximums (PR #317/#318 fix) ───────────────────
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __slot_scale: "1.85" }
+  }).object_refs.__slot_scale,
+  "1.85",
+  "slot scale at new max 1.85 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __slot_scale: "2" }
+  }).object_refs.__slot_scale,
+  "1.85",
+  "slot scale above new max should clamp to 1.85"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __inner_field_scale: "145" }
+  }).object_refs.__inner_field_scale,
+  "145",
+  "field scale at new max 145 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __inner_field_scale: "200" }
+  }).object_refs.__inner_field_scale,
+  "145",
+  "field scale above new max should clamp to 145"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_image_scale: "2" }
+  }).object_refs.__center_image_scale,
+  "2",
+  "center image scale at new max 2 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_image_scale: "3" }
+  }).object_refs.__center_image_scale,
+  "2",
+  "center image scale above new max should clamp to 2"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_frame_scale: "1.85" }
+  }).object_refs.__center_frame_scale,
+  "1.85",
+  "center frame scale at new max 1.85 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_frame_scale: "3" }
+  }).object_refs.__center_frame_scale,
+  "1.85",
+  "center frame scale above new max should clamp to 1.85"
 );
 
 // ── Cover ref data contract ───────────────────────────────────────────────────

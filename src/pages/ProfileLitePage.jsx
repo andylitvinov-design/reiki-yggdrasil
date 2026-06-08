@@ -418,14 +418,11 @@ function openPowerPlacePdfPrintView(title) {
   if (!printArea) throw new Error("Макет мандалы не найден.");
 
   const filename = `${safeFilename(title || "power-place")}.pdf`;
-  // window.open must stay synchronous on the click event stack
+  // window.open must stay synchronous on the click event stack (popup blocker)
   const printWindow = window.open("", "_blank", "width=980,height=900");
   if (!printWindow) throw new Error("Разрешите всплывающее окно для печати в PDF.");
 
-  const imageUrls = extractCssUrls(printArea);
-
-  const clonedArea = printArea.cloneNode(true);
-  clonedArea.classList.add("powerPlacePdfOnlyArea");
+  // Write skeleton HTML synchronously so the popup isn't blank while waiting
   printWindow.document.open();
   printWindow.document.write(`<!doctype html>
 <html lang="ru">
@@ -446,13 +443,21 @@ function openPowerPlacePdfPrintView(title) {
   <main aria-label="Скачать PDF / Печать в PDF"></main>
 </body>
 </html>`);
-  printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
   printWindow.document.close();
 
-  Promise.all([
-    preloadImagesForPrint(imageUrls),
-    printWindow.document.fonts?.ready ?? Promise.resolve(),
-  ])
+  // Double RAF ensures React has flushed the latest slider state into the DOM
+  // before we clone it, so print/PDF always reflects the current unsaved layout.
+  raf2(window)
+    .then(() => {
+      const imageUrls = extractCssUrls(printArea);
+      const clonedArea = printArea.cloneNode(true);
+      clonedArea.classList.add("powerPlacePdfOnlyArea");
+      printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
+      return Promise.all([
+        preloadImagesForPrint(imageUrls),
+        printWindow.document.fonts?.ready ?? Promise.resolve(),
+      ]);
+    })
     .then(() => raf2(printWindow))
     .then(() => {
       const status = printWindow.document.getElementById("pdfStatus");
@@ -1398,6 +1403,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           object_refs: {
             ...(current.object_refs || {}),
             __center_image_scale: String(value)
+          }
+        };
+      }
+      if (field === "__center_frame_scale") {
+        return {
+          ...current,
+          __center_frame_scale: value,
+          object_refs: {
+            ...(current.object_refs || {}),
+            __center_frame_scale: String(value)
           }
         };
       }
