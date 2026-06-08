@@ -965,6 +965,12 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
+  /mandalaStyleSelector daoStyleSelector/,
+  "DAO style selector must carry mandalaStyleSelector class for shared pill button styling"
+);
+
+assert.match(
+  powerPlaceBaseSource,
   /compositionDraft\.constructor_type === "dao"/,
   "DAO style selector must be gated on constructor_type === dao"
 );
