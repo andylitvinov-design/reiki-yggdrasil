@@ -54,6 +54,14 @@ const DEFAULT_MOTION_SETTINGS = {
 };
 const HYDRATION_TIMEOUT_MS = 8000;
 
+const VALID_CLIENT_PHOTO_CATEGORIES = [
+  "all",
+  "client-1",
+  "client-2",
+  "client-3",
+  "pro-more-clients"
+];
+
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
   { value: "pro", label: "Pro" }
@@ -359,6 +367,8 @@ export function normalizeClientGoalPhoto(photo) {
   const imageBucket = cleanText(photo?.image_bucket) || PROFILE_MEDIA_BUCKET;
   if (!isPersistableImageRef(imageUrl) && !imagePath) throw powerPlaceError("Добавьте фото клиента или цели.");
 
+  const clientCategory = cleanText(photo?.client_category);
+
   return {
     profile_id: cleanText(photo?.profile_id),
     title: cleanText(photo?.title) || "Фото клиента / цели",
@@ -367,6 +377,7 @@ export function normalizeClientGoalPhoto(photo) {
     image_path: imagePath,
     mime_type: cleanText(photo?.mime_type),
     file_size_bytes: Number(photo?.file_size_bytes) || 0,
+    client_category: VALID_CLIENT_PHOTO_CATEGORIES.includes(clientCategory) ? clientCategory : "all",
     notes: cleanText(photo?.notes)
   };
 }

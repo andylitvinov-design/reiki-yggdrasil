@@ -107,7 +107,7 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_title: firstSettings[0]?.title || "",
   setting_index: firstSettings.length > 0 ? 1 : null
 });
-const EMPTY_CLIENT_PHOTO = { title: "", image_url: "", notes: "", file: null };
+const EMPTY_CLIENT_PHOTO = { title: "", image_url: "", notes: "", client_category: "all", file: null };
 const EMPTY_TRADITION_ASSET = {
   tradition_id: mysteryTraditions[0]?.id || "",
   title: "",
@@ -1155,7 +1155,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         profile_id: profile.id,
         title: clientPhotoForm.title,
         image_url: clientPhotoForm.image_url,
-        notes: clientPhotoForm.notes
+        client_category: clientPhotoForm.client_category || "all",
+        notes: ""
       };
       if (clientPhotoForm.file) {
         validateProfileMediaFile(clientPhotoForm.file);
@@ -1224,7 +1225,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     title = "",
     notes = "",
     destination = "clients",
-    material = null
+    material = null,
+    clientCategory = "all"
   }) => {
     if (destination === "materials") {
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
@@ -1276,6 +1278,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         image_path: uploaded.path,
         mime_type: uploaded.metadata.mimeType,
         file_size_bytes: uploaded.metadata.size,
+        client_category: clientCategory || "all",
         notes
       }, accountPlan, session);
       const savedImageRef = saved?.image_ref || uploaded.ref;
