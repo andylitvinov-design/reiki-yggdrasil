@@ -5,6 +5,7 @@ import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.j
 
 const MANDALA_STYLE_REF_KEY = "__mandala_style";
 const DAO_STYLE_REF_KEY = "__dao_style";
+const DAO_TALISMAN_NODE_COUNT_REF_KEY = "__dao_talisman_node_count";
 const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
@@ -68,7 +69,15 @@ function clampCenterImageZoom(value) {
 }
 
 function daoStyleValue(value) {
-  return value === "talisman" ? "talisman" : "style-1";
+  if (value === "talisman") return "talisman";
+  if (value === "talisman-2") return "talisman-2";
+  return "style-1";
+}
+
+function daoTalismanNodeCountValue(value) {
+  const n = Number(value);
+  if (n === 3 || n === 5 || n === 7 || n === 9) return n;
+  return 5;
 }
 
 function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom) {
@@ -543,6 +552,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
   const daoStyle = daoStyleValue(objectRefs[DAO_STYLE_REF_KEY]);
+  const daoTalismanNodeCount = daoTalismanNodeCountValue(objectRefs[DAO_TALISMAN_NODE_COUNT_REF_KEY]);
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
@@ -585,6 +595,11 @@ export default function ProfileLitePowerPlaceModule(props) {
       return;
     }
 
+    if (field === DAO_TALISMAN_NODE_COUNT_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [DAO_TALISMAN_NODE_COUNT_REF_KEY]: String(daoTalismanNodeCountValue(value)) });
+      return;
+    }
+
     props.onCompositionDraftChange?.(field, value);
   }, [objectRefs, props, writeObjectRefs]);
 
@@ -595,11 +610,12 @@ export default function ProfileLitePowerPlaceModule(props) {
     __center_frame_scale: centerFrameScale,
     __mandala_style: mandalaStyle,
     __dao_style: daoStyle,
+    __dao_talisman_node_count: daoTalismanNodeCount,
     __center_image_offset_x: centerImageOffsetX,
     __center_image_offset_y: centerImageOffsetY,
     __center_image_zoom: centerImageZoom,
     cover_ref: normalizeLayeredCoverRef(props.compositionDraft?.cover_ref)
-  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, innerFieldScale, mandalaStyle, props.compositionDraft]);
+  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, daoTalismanNodeCount, innerFieldScale, mandalaStyle, props.compositionDraft]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">

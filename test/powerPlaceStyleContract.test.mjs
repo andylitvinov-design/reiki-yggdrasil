@@ -374,8 +374,8 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes('return value === "talisman" ? "talisman" : "style-1"'),
-  "daoStyleValue must return talisman or style-1 — no other values"
+  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"style-1"'),
+  "daoStyleValue must handle style-1, talisman, and talisman-2 values"
 );
 
 // ─── DAO talisman: CSS and JSX contracts ─────────────────────────────────────
@@ -423,8 +423,8 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes('"style-1"') && baseSource.includes('"talisman"'),
-  "DAO_STYLE_VARIANTS must include style-1 and talisman values"
+  baseSource.includes('"style-1"') && baseSource.includes('"talisman"') && baseSource.includes('"talisman-2"'),
+  "DAO_STYLE_VARIANTS must include style-1, talisman, and talisman-2 values"
 );
 
 assert.ok(
