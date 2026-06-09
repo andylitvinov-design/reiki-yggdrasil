@@ -50,8 +50,16 @@ const MATERIAL_TYPES = [
   { value: "artifact", label: "Артефакт" },
   { value: "practice", label: "Практика" }
 ];
+const CLIENT_PHOTO_SUBCATEGORIES = [
+  { value: "all", label: "Все" },
+  { value: "client-1", label: "Клиент 1" },
+  { value: "client-2", label: "Клиент 2" },
+  { value: "client-3", label: "Клиент 3" },
+  { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
+];
 
 export default function ProfileLiteImagePicker({
+  accountPlan = "start",
   mode = "center",
   images = [],
   defaultLibraryTab = "clients",
@@ -65,6 +73,8 @@ export default function ProfileLiteImagePicker({
 }) {
   const [activeTab, setActiveTab] = useState(mode === "library" ? "upload" : "new");
   const [uploadDestination, setUploadDestination] = useState(defaultLibraryTab === "materials" ? "materials" : "clients");
+  const [uploadTitle, setUploadTitle] = useState("");
+  const [clientCategory, setClientCategory] = useState("all");
   const [materialGroup, setMaterialGroup] = useState("dao-ri");
   const [materialType, setMaterialType] = useState("mandala");
   const [materialStepId, setMaterialStepId] = useState(firstMaterialStep?.id || "");
@@ -76,6 +86,7 @@ export default function ProfileLiteImagePicker({
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
   const currentUploadError = uploadError || localUploadError;
   const isUploading = currentUploadStatus === "loading";
+  const isProAccount = accountPlan === "pro";
   const visibleImages = useMemo(() => {
     const validImages = images.filter((image) => image?.id || image?.src || image?.displaySrc);
     if (activeTab === "clients") return validImages.filter((image) => image.kind === "client-photo");
@@ -101,14 +112,16 @@ export default function ProfileLiteImagePicker({
     event.target.value = "";
     if (!file) return;
 
+    const activeUploadDestination = uploadDestination || defaultLibraryTab;
     setLocalUploadStatus("loading");
     setLocalUploadError("");
     try {
       await onUpload({
-        destination: uploadDestination || defaultLibraryTab,
+        destination: activeUploadDestination,
         file,
-        title: file.name || "",
+        title: activeUploadDestination === "clients" ? (uploadTitle.trim() || file.name || "") : file.name || "",
         notes: "",
+        clientCategory: activeUploadDestination === "clients" ? clientCategory || "all" : undefined,
         material: {
           group: materialGroup,
           type: materialType,
@@ -121,6 +134,8 @@ export default function ProfileLiteImagePicker({
         }
       });
       setLocalUploadStatus("success");
+      setUploadTitle("");
+      setClientCategory("all");
       onClose?.();
     } catch (error) {
       setLocalUploadStatus("error");
@@ -165,6 +180,46 @@ export default function ProfileLiteImagePicker({
               <button className={uploadDestination === "clients" ? "active" : ""} type="button" onClick={() => setUploadDestination("clients")}>Клиенты</button>
               <button className={uploadDestination === "materials" ? "active" : ""} type="button" onClick={() => setUploadDestination("materials")}>Материалы</button>
             </div>
+
+            {uploadDestination === "clients" && (
+              <div className="profileLiteUploadFields profileLiteUploadClientFields">
+                <label>
+                  Название фото
+                  <input
+                    value={uploadTitle}
+                    disabled={isUploading}
+                    onChange={(event) => setUploadTitle(event.target.value)}
+                    placeholder="Название фото"
+                  />
+                </label>
+                <label>
+                  Подкатегория
+                  <select
+                    value={clientCategory}
+                    disabled={isUploading}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      const option = CLIENT_PHOTO_SUBCATEGORIES.find((item) => item.value === nextValue);
+                      if (option?.proOnly && !isProAccount) return;
+                      setClientCategory(nextValue);
+                    }}
+                  >
+                    {CLIENT_PHOTO_SUBCATEGORIES.map((option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                        disabled={option.proOnly && !isProAccount}
+                      >
+                        {option.proOnly && !isProAccount ? `${option.label} — доступно в Pro` : option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {!isProAccount && (
+                  <p className="profileLiteMediaFormHint">Больше клиентов доступно в Pro.</p>
+                )}
+              </div>
+            )}
 
             {uploadDestination === "materials" && (
               <div className="profileLiteUploadFields profileLiteUploadMaterialFields">
