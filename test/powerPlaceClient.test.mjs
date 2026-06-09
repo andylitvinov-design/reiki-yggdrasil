@@ -305,6 +305,7 @@ assert.deepEqual(
     image_path: "",
     mime_type: "",
     file_size_bytes: 0,
+    client_category: "all",
     notes: "Задача клиента"
   }
 );
@@ -326,6 +327,7 @@ assert.deepEqual(
     image_path: "profile-1/client-goal/uuid-client.jpg",
     mime_type: "image/jpeg",
     file_size_bytes: 1234,
+    client_category: "all",
     notes: "Durable"
   }
 );

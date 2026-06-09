@@ -13,6 +13,18 @@ const CHANNELS_SUBCATEGORIES = [
   { value: "life", label: "Жизнь" }
 ];
 
+const CLIENT_PHOTO_SUBCATEGORIES = [
+  { value: "all", label: "Все" },
+  { value: "client-1", label: "Клиент 1" },
+  { value: "client-2", label: "Клиент 2" },
+  { value: "client-3", label: "Клиент 3" },
+  { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
+];
+
+function clientPhotoCategoryLabel(value) {
+  return CLIENT_PHOTO_SUBCATEGORIES.find((item) => item.value === value)?.label || "Все";
+}
+
 const SOURCE_LIBRARY_CATEGORIES = [
   {
     value: "dao-ri",
@@ -67,6 +79,7 @@ const SOURCE_LIBRARY_CATEGORIES = [
 ];
 
 export default function ProfileLiteMediaModule({
+  accountPlan,
   clientGoalPhotos,
   materials,
   mediaError,
@@ -79,6 +92,7 @@ export default function ProfileLiteMediaModule({
   clientPhotoForm,
   shellChrome
 }) {
+  const isProAccount = accountPlan === "pro";
   /* ── Filter state ───────────────────────────────────────────────── */
   const [filterGroup, setFilterGroup] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
@@ -294,7 +308,9 @@ export default function ProfileLiteMediaModule({
                     ◎
                   </div>
                   <h3>{photo.title || "Фото клиента / цели"}</h3>
-                  <p>{photo.notes || "Без заметки"}</p>
+                  {photo.client_category && photo.client_category !== "all" && (
+                    <p>{clientPhotoCategoryLabel(photo.client_category)}</p>
+                  )}
                   <button className="cabinetGhost" type="button" onClick={() => onClientPhotoDelete(photo)}>
                     Удалить
                   </button>
@@ -382,7 +398,7 @@ export default function ProfileLiteMediaModule({
                   </div>
                 )}
                 <label>
-                  Название
+                  Название фото
                   <input
                     value={clientPhotoForm.title}
                     onChange={(event) => onClientPhotoFieldChange("title", event.target.value)}
@@ -390,21 +406,30 @@ export default function ProfileLiteMediaModule({
                   />
                 </label>
                 <label>
-                  URL изображения
-                  <input
-                    value={clientPhotoForm.image_url}
-                    onChange={(event) => onClientPhotoFieldChange("image_url", event.target.value)}
-                    placeholder="https://..."
-                  />
+                  Подкатегория
+                  <select
+                    value={clientPhotoForm.client_category || "all"}
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      const option = CLIENT_PHOTO_SUBCATEGORIES.find((item) => item.value === nextValue);
+                      if (option?.proOnly && !isProAccount) return;
+                      onClientPhotoFieldChange("client_category", nextValue);
+                    }}
+                  >
+                    {CLIENT_PHOTO_SUBCATEGORIES.map((option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                        disabled={option.proOnly && !isProAccount}
+                      >
+                        {option.proOnly && !isProAccount ? `${option.label} — доступно в Pro` : option.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
-                <label>
-                  Заметка
-                  <textarea
-                    value={clientPhotoForm.notes}
-                    onChange={(event) => onClientPhotoFieldChange("notes", event.target.value)}
-                    rows={2}
-                  />
-                </label>
+                {!isProAccount && (
+                  <p className="profileLiteMediaFormHint">Больше клиентов доступно в Pro.</p>
+                )}
                 <label className="profileLiteFileInput">
                   <input
                     type="file"
@@ -413,9 +438,6 @@ export default function ProfileLiteMediaModule({
                   />
                   {clientPhotoForm.file ? `Выбрано: ${clientPhotoForm.file.name}` : "Загрузить файл"}
                 </label>
-                <p className="profileLiteMediaFormHint">
-                  Файл и URL — взаимоисключающие: выберите одно из двух.
-                </p>
                 <button className="cabinetPrimary" type="submit">
                   Сохранить фото
                 </button>
