@@ -1,4 +1,4 @@
-# Power Place Symbol Library — technical implementation plan
+# Power Place Symbol Library — detailed technical implementation plan
 
 Date: 2026-06-09  
 Project: Reiki Yggdrasil / Profile Lite / Power Place constructor  
@@ -7,28 +7,57 @@ Target branch for implementation: `main`
 Test/staging site: `https://2mentalica.vercel.app`  
 Production branches/domains: do not change in this task.
 
-## 1. Goal
+## 0. Source user request
 
-Add a new **Библиотека** module to the Power Place constructor. The module provides reusable symbolic images that can be inserted into Power Place key points / mini-mandala slots.
+Implement the requested Power Place UX changes:
 
-The library must support:
+1. Add a new module below the `Фон места силы` module: **Библиотека**.
+2. This module contains key symbols that can be inserted as images into Power Place key points / mini-mandala slots.
+3. The library has shelves that correspond to Power Place formats.
+4. At the top of the module there is a dropdown for choosing the shelf.
+5. The default active shelf is determined by the selected Power Place format.
+6. Under the shelf selector there are mini photos/symbols that can be selected and dragged into target cells on desktop.
+7. On mobile, improve the cell-click image picker. When a cell is clicked, a popup menu should show two-level source navigation:
+   - `Клиенты`
+     - `Все`
+     - `Клиент 1`
+     - `Клиент 2`
+     - `Клиент 3`
+   - `Материалы`
+     - category dropdown, default `Новые`
+   - `Символы`
+     - shelf dropdown
+   - `Загрузить своё`
+8. Reduce the photos/thumbnails in the bottom upload/image picker menu by about 3x.
+9. Make the close button at the top of the picker much clearer, because the current top of the menu is clipped/eaten on mobile.
 
-- shelves that match Power Place formats: `zodiac`, `star`, `chess`, `client`, `altar`, `business`, `dao`;
-- automatic default shelf based on the currently selected Power Place format;
-- manual shelf override by the master;
-- desktop click and drag/drop into mini-mandala slots;
-- mobile picker source section `Символы` with shelf selector;
-- no Supabase schema change for the first safe iteration.
+## 1. Non-negotiable constraints
+
+- Preserve public homepage `/`.
+- Preserve routes:
+  - `/`
+  - `/profile`
+  - `/profile/mandalas`
+  - `/masters`
+  - `/profile/admin`
+- Preserve RU-default UI.
+- Preserve existing Supabase auth/data/storage flows.
+- Preserve Vercel rewrites and do not touch production domain settings.
+- Preserve the accepted desktop three-column structure.
+- Do not rewrite the whole module.
+- Do not expose env values; use only env names.
+- Do not add a Supabase migration unless a static/local implementation is proven impossible.
+- Prefer static public SVG paths over `data:image`, because recent persistence logic strips unsafe data URLs.
 
 ## 2. Current code map
 
-### Main component
+### 2.1. Main Power Place component
 
 File: `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
 
-Current relevant structures:
+Known relevant code:
 
-- `CONSTRUCTOR_TYPES` defines Power Place formats:
+- `CONSTRUCTOR_TYPES` defines current Power Place formats:
   - `zodiac`
   - `star`
   - `chess`
@@ -36,82 +65,133 @@ Current relevant structures:
   - `altar`
   - `business`
   - `dao`
-- `slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft])` builds active mini-mandala targets.
-- `selectedSlotId` stores the current target slot.
-- `assignPowerPlaceSlotImage(slotKey, selectedRef, displayUrl, item)` is the central safe assignment helper.
-- `chooseImage(item)` already selects an image for center / cover / object slot depending on `pickerMode` and `selectedSlotId`.
-- `handleSavedImageDragStart(event, item)` and `getPowerPlaceSlotDropHandlers(slotKey)` already provide desktop drag/drop.
-- Left source sidebar currently renders saved images in `.powerLibrarySidebar` and filters them through `filteredSavedImages`.
-- Cover/background logic is handled through:
-  - `coverLayerMode`
-  - `openCoverPickerForLayer(layer)`
-  - `handleCompositionCoverSelect`
-  - `cover_ref.inner`
-  - `cover_ref.outer`
-  - `renderInMandalaCoverDropTargets()`
+- `slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft])` builds active mini-mandala cells.
+- `selectedSlotId` stores the target slot selected by the user.
+- `pickerMode` controls what the picker is selecting: center, cover, object, library.
+- `assignPowerPlaceSlotImage(slotKey, selectedRef, displayUrl, item)` is the central safe function for putting a selected image into:
+  - center image;
+  - inner cover;
+  - outer cover;
+  - object/mini-mandala slot.
+- `chooseImage(item)` routes picker choice into `assignPowerPlaceSlotImage`.
+- `handleSavedImageDragStart(event, item)` creates the drag payload.
+- `getPowerPlaceSlotDropHandlers(slotKey)` reads drag payload and calls `assignPowerPlaceSlotImage`.
+- `renderSourceSlot`, `renderObjectImageButton`, and `renderCenterPhotoWithMode` expose drop targets.
+- The left column currently uses `.powerLibrarySidebar` for saved images and filters.
 
-### Image picker
+Important: reuse these existing functions. Do not create a parallel slot assignment system.
+
+### 2.2. Existing background / cover flow
+
+File: `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+
+Find exact placement by searching:
+
+```text
+coverLayerMode
+openCoverPickerForLayer
+cover_ref.inner
+cover_ref.outer
+renderInMandalaCoverDropTargets
+Фон
+Фон места силы
+```
+
+The new `Библиотека` module must be rendered directly below the existing `Фон места силы` / cover module in the same side/control stack.
+
+If Codex cannot find a block literally named `Фон места силы`, report exact found cover/background block and place `Библиотека` below it.
+
+### 2.3. Image picker
 
 File: `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
 
-Current relevant structures:
+Current behavior:
 
-- Existing tabs: `Новые`, `Клиенты`, `Материалы`, `Загрузить фото`.
-- Upload destination supports `clients` and `materials`.
-- Client upload already uses only:
-  - `Название фото`
-  - `Подкатегория`
-- `CLIENT_PHOTO_SUBCATEGORIES` already contains:
-  - `Все`
-  - `Клиент 1`
-  - `Клиент 2`
-  - `Клиент 3`
-  - `Больше клиентов / Pro mode /` as Pro-only.
-- Close button is currently a small text `x`; mobile needs a clearer non-clipped close control.
+- current tabs are `Новые`, `Клиенты`, `Материалы`, `Загрузить фото`;
+- client upload already uses:
+  - `Название фото`;
+  - `Подкатегория`;
+- no notes field is needed for client upload;
+- `CLIENT_PHOTO_SUBCATEGORIES` already includes `Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`, and Pro-only `Больше клиентов / Pro mode /`;
+- close button is a small `x`, currently too weak for iPhone Safari.
 
-### Parent state / data flow
+### 2.4. Parent page / state
 
 File: `src/pages/ProfileLitePage.jsx`
 
 Relevant flow:
 
-- Loads `clientGoalPhotos`, `traditionAssets`, `materials`, `powerPlaceCompositions`.
-- Passes media and callbacks to Power Place module.
-- `handleLibraryClientPhotoUpload` handles picker upload into client photos or materials.
-- `setCompositionObjectRef(slotId, value, displayUrl)` stores object refs and `object_ref_urls`.
-- No new Supabase table is needed if the first symbol library is static/local.
+- loads `clientGoalPhotos`, `traditionAssets`, `materials`, `powerPlaceCompositions`;
+- passes data and callbacks into `ProfileLitePowerPlaceModuleBase.jsx`;
+- `handleLibraryClientPhotoUpload` handles upload destination `clients` and `materials`;
+- `setCompositionObjectRef(slotId, value, displayUrl)` stores `object_refs` and `object_ref_urls`;
+- `handleCompositionCoverSelect` stores cover refs and display refs;
+- existing persistence should already save `object_refs` and `object_ref_urls` through Power Place composition save/update.
 
-### CSS
+### 2.5. CSS
 
 File: `src/profileMandalaWorkspace.css`
 
-Needs targeted changes for:
+Add styles here only. Do not affect public master cards, course cards, service cards, or unrelated profile modules.
 
-- new module styles;
-- compact symbol grid;
-- smaller mobile picker thumbnails;
-- improved sticky/visible close button;
-- no horizontal overflow on mobile.
+Target classes to introduce:
+
+```text
+.powerSymbolLibraryPanel
+.powerSymbolLibraryHeader
+.powerSymbolLibraryGrid
+.powerSymbolLibraryItem
+.powerSymbolLibraryThumb
+.imagePickerSourceGroups
+.imagePickerSourceButton
+.imagePickerSecondLevel
+.imagePickerTinyGrid
+.profileLiteImagePickerCloseButton
+```
 
 ## 3. Architecture decision
 
-Use a **static local symbol library** for Phase 1.
+Use **static local symbol library** for Phase 1.
 
 Reason:
 
-- symbols are reusable product assets, not user-generated private media;
-- the current `object_refs` model can already store a string `src` and optional `displaySrc`;
-- the existing click/drag/drop assignment flow can be reused;
-- no RLS/storage migration risk;
-- no production data migration needed.
+- symbols are product/static assets, not user-generated private photos;
+- existing object slot flow can store URL strings already;
+- public static paths do not require Supabase signed URLs;
+- avoids Storage/RLS/migration risk;
+- can be replaced later by an admin-managed symbol library if needed.
 
-Create a new data file:
+### 3.1. Avoid `data:image` for persistent symbols
+
+Recent app state says persistence strips `data:image`, `data:video`, Supabase signed URLs, and unknown nested refs. Therefore symbol items should use durable public paths:
+
+```text
+/symbols/power-place/<shelf>/<symbol>.svg
+```
+
+Preferred file locations:
+
+```text
+public/symbols/power-place/zodiac/aries.svg
+public/symbols/power-place/star/star-top.svg
+public/symbols/power-place/chess/chess-node.svg
+public/symbols/power-place/client/client-node.svg
+public/symbols/power-place/altar/altar-flame.svg
+public/symbols/power-place/business/business-goal.svg
+public/symbols/power-place/dao/dao-water.svg
+```
+
+If final symbol artwork does not exist, create neutral draft SVG placeholders. Do not invent sacred meanings. Label placeholder metadata as `draft` or `needs review`.
+
+## 4. New data file
+
+Create:
 
 ```text
 src/data/powerPlaceSymbolLibrary.js
 ```
 
-Suggested exports:
+### 4.1. Required exports
 
 ```js
 export const POWER_PLACE_SYMBOL_SHELF_ORDER = [
@@ -133,66 +213,73 @@ export const POWER_PLACE_SYMBOL_SHELVES = [
   { value: "business", label: "Бизнес", constructorType: "business" },
   { value: "dao", label: "ДАО", constructorType: "dao" }
 ];
+```
 
-export const POWER_PLACE_SYMBOL_LIBRARY = [
-  {
-    id: "symbol-zodiac-aries-draft",
-    shelf: "zodiac",
-    label: "Овен",
-    meta: "Символ · Зодиак · draft",
-    kind: "symbol-library",
-    src: "data:image/svg+xml;utf8,...",
-    displaySrc: "data:image/svg+xml;utf8,..."
-  }
-];
+### 4.2. Symbol item contract
 
+```js
+{
+  id: "symbol-zodiac-aries-draft",
+  shelf: "zodiac",
+  label: "Овен",
+  meta: "Символ · Зодиак · draft",
+  kind: "symbol-library",
+  src: "/symbols/power-place/zodiac/aries.svg",
+  displaySrc: "/symbols/power-place/zodiac/aries.svg"
+}
+```
+
+Required fields:
+
+- `id` — stable unique id;
+- `shelf` — one of the shelf values;
+- `label` — visible Russian label;
+- `meta` — short status/category text;
+- `kind: "symbol-library"` — must be stable for filtering/tests;
+- `src` — persistent public path;
+- `displaySrc` — preview path, usually same as `src`.
+
+### 4.3. Helper functions
+
+```js
 export function symbolShelfForConstructorType(constructorType) {
   return POWER_PLACE_SYMBOL_SHELVES.find((shelf) => shelf.constructorType === constructorType)?.value || "zodiac";
 }
 
+export function normalizePowerPlaceSymbolShelf(value) {
+  const shelf = String(value || "").trim();
+  return POWER_PLACE_SYMBOL_SHELF_ORDER.includes(shelf) ? shelf : "zodiac";
+}
+
 export function listPowerPlaceSymbolsByShelf(shelfValue) {
-  return POWER_PLACE_SYMBOL_LIBRARY.filter((item) => item.shelf === shelfValue);
+  const shelf = normalizePowerPlaceSymbolShelf(shelfValue);
+  return POWER_PLACE_SYMBOL_LIBRARY.filter((item) => item.shelf === shelf);
+}
+
+export function listPowerPlaceSymbolsForConstructorType(constructorType) {
+  return listPowerPlaceSymbolsByShelf(symbolShelfForConstructorType(constructorType));
 }
 ```
 
-Important content rule:
+### 4.4. Minimum seed symbols
 
-- Do not invent sacred/course meanings.
-- If real author-approved symbol images do not exist yet, use neutral draft SVG placeholders.
-- Label placeholders as `draft` or `needs review`.
-- Later phases can replace `src` with real local asset paths, for example `/symbols/power-place/zodiac/aries.svg`.
+Add at least 2 draft symbols per shelf so the UI can be tested:
 
-## 4. Data item contract
+- `zodiac`: `Овен`, `Телец`;
+- `star`: `Верхний луч`, `Нижний луч`;
+- `chess`: `Узел`, `Переход`;
+- `client`: `Источник`, `Цель`;
+- `altar`: `Огонь`, `Чаша`;
+- `business`: `Цель`, `Связи`;
+- `dao`: `Вода`, `Дерево`.
 
-Every symbol item should be compatible with the current image item contract used by `chooseImage()` and drag/drop.
+All should be clearly draft/placeholder until final art is provided.
 
-Required fields:
+## 5. Task A — add module `Библиотека` below `Фон места силы`
 
-```js
-{
-  id: string,
-  label: string,
-  meta: string,
-  kind: "symbol-library",
-  src: string,
-  displaySrc: string,
-  shelf: string
-}
-```
+### 5.1. Import data helpers
 
-`src` and `displaySrc` can be the same for static symbols.
-
-Why this works:
-
-- `assignPowerPlaceSlotImage` accepts `item.src` and `item.displaySrc`.
-- `onCompositionObjectRefSelect(slotKey, ref, displaySrc)` persists the selected source into `object_refs` and `object_ref_urls`.
-- Static symbols do not require signed URLs.
-
-## 5. Component changes
-
-### 5.1. Imports
-
-In `ProfileLitePowerPlaceModuleBase.jsx`, import the new library helpers:
+In `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`:
 
 ```js
 import {
@@ -202,9 +289,9 @@ import {
 } from "../../data/powerPlaceSymbolLibrary.js";
 ```
 
-### 5.2. State
+### 5.2. Add state
 
-Add local state near the other UI state:
+Near other UI state:
 
 ```js
 const [activeSymbolShelf, setActiveSymbolShelf] = useState(() => symbolShelfForConstructorType(compositionDraft.constructor_type));
@@ -220,9 +307,13 @@ useEffect(() => {
 }, [compositionDraft.constructor_type, symbolShelfTouched]);
 ```
 
-This keeps the shelf synced with the selected format until the user manually chooses another shelf.
+Rationale:
 
-### 5.3. Derived symbols
+- default shelf follows constructor format;
+- if master manually changes shelf, do not override immediately;
+- if this manual override becomes confusing in QA, add a small button `По формату`, which sets `symbolShelfTouched(false)` and resets the shelf.
+
+### 5.3. Add derived list
 
 ```js
 const activeLibrarySymbols = useMemo(
@@ -231,43 +322,9 @@ const activeLibrarySymbols = useMemo(
 );
 ```
 
-### 5.4. Symbol selection
+### 5.4. Add renderer
 
-Use the existing `chooseImage(item)` and `handleSavedImageDragStart(event, item)`.
-
-For click:
-
-```jsx
-<button type="button" onClick={() => chooseImage(symbol)}>
-```
-
-For desktop drag:
-
-```jsx
-draggable={Boolean(symbol.src)}
-onDragStart={(event) => handleSavedImageDragStart(event, symbol)}
-```
-
-No new slot assignment function should be created unless absolutely necessary.
-
-## 6. New `Библиотека` module placement
-
-The user requested the module **below the module `Фон места силы`**.
-
-Implementation instruction:
-
-1. In `ProfileLitePowerPlaceModuleBase.jsx`, find the existing cover/background UI by searching:
-   - `coverLayerMode`
-   - `openCoverPickerForLayer`
-   - `cover_ref.inner`
-   - `cover_ref.outer`
-   - `renderInMandalaCoverDropTargets`
-   - visible Russian labels around background/cover.
-2. Add `renderSymbolLibraryModule()` directly after that background module in the same side/controls stack.
-3. Do not move the constructor center canvas.
-4. Do not collapse desktop three-column layout.
-
-Suggested JSX:
+Add inside component, close to other renderer helpers:
 
 ```jsx
 const renderSymbolLibraryModule = () => (
@@ -276,8 +333,9 @@ const renderSymbolLibraryModule = () => (
       <div>
         <p className="cabinetEyebrow">Библиотека</p>
         <h3>Ключевые символы</h3>
+        <small>{selectedSlot ? `Цель: ${selectedSlot.label}` : "Выберите ячейку или перетащите символ"}</small>
       </div>
-      <label className="powerLibrarySelectLabel">
+      <label className="powerLibrarySelectLabel powerSymbolShelfSelectLabel">
         Полка
         <select
           value={activeSymbolShelf}
@@ -292,7 +350,8 @@ const renderSymbolLibraryModule = () => (
         </select>
       </label>
     </div>
-    <div className="powerSymbolLibraryGrid">
+
+    <div className="powerSymbolLibraryGrid" data-power-symbol-library-grid="true">
       {activeLibrarySymbols.map((symbol) => (
         <button
           className="powerSymbolLibraryItem"
@@ -302,8 +361,13 @@ const renderSymbolLibraryModule = () => (
           onDragStart={(event) => handleSavedImageDragStart(event, symbol)}
           onClick={() => chooseImage(symbol)}
           title={symbol.label}
+          aria-label={`Выбрать символ ${symbol.label}`}
         >
-          <span className="powerSymbolLibraryThumb" style={imageStyle(symbol.displaySrc || symbol.src)} />
+          <span
+            className="powerSymbolLibraryThumb hasImage"
+            style={imageStyle(symbol.displaySrc || symbol.src)}
+            aria-hidden="true"
+          />
           <b>{symbol.label}</b>
           <small>{symbol.meta}</small>
         </button>
@@ -316,13 +380,146 @@ const renderSymbolLibraryModule = () => (
 );
 ```
 
-## 7. Mobile picker changes
+### 5.5. Place the renderer
 
-The current picker uses top tabs. For mobile and object slot selection, the picker needs clearer source groups.
+Insert `{renderSymbolLibraryModule()}` directly after the existing background/cover module.
 
-### 7.1. Props to add to `ProfileLiteImagePicker`
+If the cover module is inside the left source sidebar, the resulting order should be:
 
-Suggested props:
+```text
+Источники силы / Фото
+Фон места силы
+Библиотека
+```
+
+If the cover module is in a right/control panel, keep the new module in the same panel directly below it.
+
+### 5.6. Behavior on desktop
+
+- Clicking a symbol should call `chooseImage(symbol)`.
+- Dragging a symbol should use `handleSavedImageDragStart`.
+- Dropping into center/object/cover targets should work through existing `getPowerPlaceSlotDropHandlers`.
+- Do not add a new drag payload format.
+
+## 6. Task B — shelves match Power Place formats
+
+### 6.1. Default shelf mapping
+
+Mapping must be exact:
+
+```js
+zodiac -> zodiac
+star -> star
+chess -> chess
+client -> client
+altar -> altar
+business -> business
+dao -> dao
+```
+
+### 6.2. Format switch behavior
+
+When user switches format using existing constructor type buttons:
+
+```jsx
+onCompositionDraftChange("constructor_type", type.value)
+```
+
+Expected behavior:
+
+- if `symbolShelfTouched === false`, active library shelf follows the new format;
+- if `symbolShelfTouched === true`, user-selected shelf remains;
+- optional small reset button can be added:
+
+```jsx
+<button
+  className="cabinetSecondary tinyButton"
+  type="button"
+  onClick={() => {
+    setSymbolShelfTouched(false);
+    setActiveSymbolShelf(symbolShelfForConstructorType(compositionDraft.constructor_type));
+  }}
+>
+  По формату
+</button>
+```
+
+Use the reset button only if the UI feels unclear.
+
+## 7. Task C — desktop symbol drag/drop into mini-mandala cells
+
+### 7.1. Do not change existing drop handlers
+
+Existing cells already accept drop through:
+
+```js
+{...getPowerPlaceSlotDropHandlers(slot.id)}
+```
+
+and the center accepts:
+
+```js
+{...getPowerPlaceSlotDropHandlers("__center_image")}
+```
+
+Symbols must use the same drag payload as saved images.
+
+### 7.2. Drag item shape
+
+`handleSavedImageDragStart(event, symbol)` must receive an item like:
+
+```js
+{
+  id: "symbol-dao-water-draft",
+  label: "Вода",
+  title: "Вода",
+  meta: "Символ · ДАО · draft",
+  kind: "symbol-library",
+  src: "/symbols/power-place/dao/water.svg",
+  displaySrc: "/symbols/power-place/dao/water.svg",
+  shelf: "dao"
+}
+```
+
+If `buildPowerPlaceDragPayload(item)` filters by `kind`, update it to allow `symbol-library`.
+
+Search in `ProfileLitePowerPlaceModuleBase.jsx`:
+
+```text
+buildPowerPlaceDragPayload
+POWER_PLACE_DRAG_PAYLOAD_TYPE
+```
+
+Expected patch if kind is restricted:
+
+```js
+const allowedKinds = new Set(["client-photo", "material", "tradition-asset", "saved-mandala", "symbol-library"]);
+```
+
+Do not allow arbitrary missing `src` payloads.
+
+## 8. Task D — mobile popup source menu with two levels
+
+### 8.1. Required UX
+
+When user taps any mini-mandala cell on mobile, the picker should show:
+
+```text
+Клиенты | Материалы | Символы | Загрузить своё
+```
+
+Then below the active top-level source:
+
+- for `Клиенты`: second-level buttons/select with `Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`;
+- for `Материалы`: category dropdown, default `Новые`;
+- for `Символы`: shelf dropdown;
+- for `Загрузить своё`: existing upload UI.
+
+The same improved picker can be used on desktop too, but mobile clarity is the priority.
+
+### 8.2. Props to add to `ProfileLiteImagePicker.jsx`
+
+Add optional props with safe defaults:
 
 ```js
 symbolShelves = [],
@@ -331,78 +528,232 @@ defaultSymbolShelf = "zodiac",
 materialCategoryOptions = []
 ```
 
-Minimum safe props:
+Call site in `ProfileLitePowerPlaceModuleBase.jsx` should pass:
 
-- `symbolShelves`
-- `symbolImages`
-- `defaultSymbolShelf`
+```jsx
+symbolShelves={POWER_PLACE_SYMBOL_SHELVES}
+symbolImages={POWER_PLACE_SYMBOL_LIBRARY}
+defaultSymbolShelf={activeSymbolShelf}
+```
 
-### 7.2. Picker state
+If importing `POWER_PLACE_SYMBOL_LIBRARY` directly is undesirable, derive and pass a combined symbol list from the component.
+
+### 8.3. Picker source state
+
+Inside `ProfileLiteImagePicker.jsx`:
 
 ```js
-const [activePickerSource, setActivePickerSource] = useState("clients");
+const [activePickerSource, setActivePickerSource] = useState(mode === "library" ? "upload" : "clients");
 const [pickerClientCategory, setPickerClientCategory] = useState("all");
 const [pickerMaterialCategory, setPickerMaterialCategory] = useState("new");
 const [pickerSymbolShelf, setPickerSymbolShelf] = useState(defaultSymbolShelf);
 ```
 
-When the picker opens for object mode, default should be:
+Add sync effect:
 
-- source: `clients` or previous if retained;
-- symbol shelf: current constructor shelf.
-
-### 7.3. Required mobile source sections
-
-In picker body, show a compact source selector:
-
-```text
-Клиенты | Материалы | Символы | Загрузить своё
+```js
+useEffect(() => {
+  setPickerSymbolShelf(defaultSymbolShelf || "zodiac");
+}, [defaultSymbolShelf]);
 ```
 
-Then second-level controls:
+Need to import `useEffect` at top if currently only `useMemo` and `useState` are imported.
 
-#### Клиенты
+### 8.4. Source buttons
 
-- `Все`
-- `Клиент 1`
-- `Клиент 2`
-- `Клиент 3`
+Replace or supplement the current tab bar for object/center/cover modes:
 
-Filter images where `kind === "client-photo"` and `clientCategory` matches. If current item shape lacks `clientCategory`, Codex must verify exact field names from `powerPlaceClient.js` normalizers and use the available normalized field.
+```jsx
+<div className="imagePickerSourceGroups" role="tablist" aria-label="Источник изображения">
+  {[
+    { id: "clients", label: "Клиенты" },
+    { id: "materials", label: "Материалы" },
+    { id: "symbols", label: "Символы" },
+    { id: "upload", label: "Загрузить своё" }
+  ].map((source) => (
+    <button
+      className={activePickerSource === source.id ? "active" : ""}
+      key={source.id}
+      type="button"
+      role="tab"
+      aria-selected={activePickerSource === source.id}
+      onClick={() => setActivePickerSource(source.id)}
+    >
+      {source.label}
+    </button>
+  ))}
+</div>
+```
 
-#### Материалы
+For `mode === "library"`, keep upload-only behavior if that is currently intentional.
 
-- dropdown `Категория`
-- default value: `new` / label `Новые`
-- include existing material/tradition items.
+### 8.5. Clients second level
 
-#### Символы
+Use existing client subcategory constants but do not show Pro-only as active for non-Pro.
 
-- dropdown `Полка`
-- default = `defaultSymbolShelf`
-- grid = `symbolImages` filtered by shelf.
+```jsx
+{activePickerSource === "clients" && (
+  <div className="imagePickerSecondLevel" aria-label="Категория клиентов">
+    {CLIENT_PHOTO_SUBCATEGORIES.filter((option) => !option.proOnly).map((option) => (
+      <button
+        className={pickerClientCategory === option.value ? "active" : ""}
+        key={option.value}
+        type="button"
+        onClick={() => setPickerClientCategory(option.value)}
+      >
+        {option.label}
+      </button>
+    ))}
+  </div>
+)}
+```
 
-#### Загрузить своё
+Filter logic:
 
-- reuse existing upload form and `handleUpload`.
-- client upload remains title + subcategory only.
-- do not reintroduce notes field.
+```js
+function matchesClientCategory(image, category) {
+  if (category === "all") return true;
+  const value = image.clientCategory || image.client_category || image.category || "";
+  return value === category;
+}
+```
 
-### 7.4. Do not break desktop
+### 8.6. Materials category dropdown
 
-The new source sections may be used for all viewports if styled well, but the minimum requirement is that mobile is clear and functional.
+Default category must be `Новые`.
 
-## 8. Reducing picker thumbnails
+Suggested options:
 
-User request: reduce photo previews in the bottom/upload picker menu by about 3x.
+```js
+const DEFAULT_MATERIAL_CATEGORY_OPTIONS = [
+  { value: "new", label: "Новые" },
+  { value: "all", label: "Все материалы" },
+  { value: "mandala", label: "Мандалы" },
+  { value: "artifact", label: "Артефакты" },
+  { value: "practice", label: "Практики" },
+  { value: "tradition-asset", label: "Символы традиций" }
+];
+```
 
-Target only picker/modal thumbnails, not all cards.
+Render:
 
-Likely CSS targets:
+```jsx
+{activePickerSource === "materials" && (
+  <label className="imagePickerSecondLevelSelect">
+    Категория
+    <select value={pickerMaterialCategory} onChange={(event) => setPickerMaterialCategory(event.target.value)}>
+      {resolvedMaterialCategoryOptions.map((option) => (
+        <option key={option.value} value={option.value}>{option.label}</option>
+      ))}
+    </select>
+  </label>
+)}
+```
+
+Filter logic:
+
+```js
+function matchesMaterialCategory(image, category) {
+  if (category === "new") return true; // keep default broad until recency field is verified
+  if (category === "all") return true;
+  if (category === "tradition-asset") return image.kind === "tradition-asset";
+  return image.kind === "material" && (image.type === category || image.materialType === category || String(image.meta || "").toLowerCase().includes(category));
+}
+```
+
+If `created_at` or `updated_at` exists and reliable, Codex may sort `new` by newest first, but must not block the task on this.
+
+### 8.7. Symbols shelf dropdown
+
+```jsx
+{activePickerSource === "symbols" && (
+  <label className="imagePickerSecondLevelSelect">
+    Полка
+    <select value={pickerSymbolShelf} onChange={(event) => setPickerSymbolShelf(event.target.value)}>
+      {symbolShelves.map((shelf) => (
+        <option key={shelf.value} value={shelf.value}>{shelf.label}</option>
+      ))}
+    </select>
+  </label>
+)}
+```
+
+Visible symbol list:
+
+```js
+const visibleSymbolImages = symbolImages.filter((image) => image.shelf === pickerSymbolShelf);
+```
+
+### 8.8. Upload section
+
+When `activePickerSource === "upload"`, render existing upload panel.
+
+Do not change client upload fields beyond the user request:
+
+- keep `Название фото`;
+- keep `Подкатегория`;
+- no `notes` field;
+- Pro-only `Больше клиентов` remains disabled unless `accountPlan === "pro"`.
+
+### 8.9. Unified visible images
+
+Replace current `visibleImages` logic carefully.
+
+Suggested approach:
+
+```js
+const validImages = useMemo(
+  () => images.filter((image) => image?.id || image?.src || image?.displaySrc),
+  [images]
+);
+
+const visibleImages = useMemo(() => {
+  if (activePickerSource === "clients") {
+    return validImages
+      .filter((image) => image.kind === "client-photo")
+      .filter((image) => matchesClientCategory(image, pickerClientCategory));
+  }
+  if (activePickerSource === "materials") {
+    return validImages
+      .filter((image) => image.kind === "material" || image.kind === "tradition-asset")
+      .filter((image) => matchesMaterialCategory(image, pickerMaterialCategory));
+  }
+  if (activePickerSource === "symbols") {
+    return symbolImages.filter((image) => image.shelf === pickerSymbolShelf);
+  }
+  return [];
+}, [activePickerSource, validImages, pickerClientCategory, pickerMaterialCategory, pickerSymbolShelf, symbolImages]);
+```
+
+Keep old `activeTab` only if needed for backward compatibility. Avoid having two conflicting tab states visible at the same time.
+
+## 9. Task E — reduce picker photos/thumbnails by about 3x
+
+### 9.1. Scope
+
+Only affect picker/modal grids:
+
+- `.profileLiteImagePickerGrid`
+- `.profileLiteImagePickerCard`
+- `.profileLiteImagePickerSelect`
+- `.clientPhotoPickerCard.profileLiteImagePickerCard`
+- new `.imagePickerTinyGrid` if introduced.
+
+Do not affect:
+
+- public master cards;
+- saved mandala cards;
+- service cards;
+- Power Place canvas slot sizes.
+
+### 9.2. CSS target
+
+Add or adjust:
 
 ```css
-.profileLiteImagePickerGrid {
-  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+.profileLiteImagePickerGrid,
+.imagePickerTinyGrid {
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
   gap: 8px;
 }
 
@@ -413,13 +764,14 @@ Likely CSS targets:
 
 .profileLiteImagePickerSelect {
   padding: 6px;
+  gap: 4px;
 }
 
 .profileLiteImagePickerSelect > span,
 .profileLiteImagePickerCard .hasImage,
 .profileLiteImagePickerCard .needsSignedUrl {
-  min-height: 56px;
   height: 56px;
+  min-height: 56px;
   border-radius: 12px;
 }
 
@@ -429,207 +781,359 @@ Likely CSS targets:
 }
 
 .profileLiteImagePickerSelect small {
-  font-size: 0.65rem;
+  font-size: 0.64rem;
+  line-height: 1.05;
 }
 ```
 
-Codex must verify actual existing CSS before applying exact selectors.
+Codex must inspect existing CSS first and adapt selectors to avoid duplicate/conflicting declarations.
 
-## 9. Close button / safe-area fix
+### 9.3. Mobile-specific fallback
 
-Current picker close button is too small and the top of the modal can be clipped on iPhone Safari.
+```css
+@media (max-width: 640px) {
+  .profileLiteImagePickerGrid,
+  .imagePickerTinyGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 
-Add CSS similar to:
+  .profileLiteImagePickerSelect > span,
+  .profileLiteImagePickerCard .hasImage,
+  .profileLiteImagePickerCard .needsSignedUrl {
+    height: 52px;
+    min-height: 52px;
+  }
+}
+```
+
+## 10. Task F — make picker close button obvious and not clipped
+
+### 10.1. JSX change
+
+In `ProfileLiteImagePicker.jsx`, replace the current `x` close button with:
+
+```jsx
+<button
+  className="profileLiteImagePickerCloseButton"
+  type="button"
+  onClick={onClose}
+  disabled={isUploading}
+  aria-label="Закрыть выбор изображения"
+>
+  ×
+</button>
+```
+
+### 10.2. Safe-area CSS
+
+Add:
 
 ```css
 .clientPhotoPickerModal.profileLiteImagePicker {
   padding-top: max(16px, env(safe-area-inset-top));
   max-height: min(88vh, 760px);
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .clientPhotoPickerHeader {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 8;
   background: inherit;
   padding-top: 4px;
 }
 
-.clientPhotoPickerHeader button[aria-label*="Закрыть"] {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
+.profileLiteImagePickerCloseButton {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
   border-radius: 999px;
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
 }
 ```
 
-In JSX, change button text from `x` to `×`:
+### 10.3. iPhone Safari check
 
-```jsx
-<button type="button" onClick={onClose} disabled={isUploading} aria-label="Закрыть выбор изображения">×</button>
-```
+Manual QA at `390x900`:
 
-## 10. Persistence model
-
-No new DB field is required.
-
-When a symbol is dropped/selected into a slot:
-
-```js
-object_refs[slotId] = symbol.src
-object_ref_urls[symbol.src] = symbol.displaySrc
-```
-
-This matches existing saved photo/material behavior.
-
-Important:
-
-- Do not store `data:image` in Supabase if current persistence sanitizer strips it. Codex must verify `powerPlaceClient.js` stripping rules.
-- If data URIs are stripped from persistence, use static asset URLs under `/symbols/...` instead of data URIs.
-- Preferred durable Phase 1 path: commit SVG assets under `public/symbols/power-place/...` and use `/symbols/power-place/.../*.svg` as `src`.
-- If no real symbol graphics are ready, create neutral placeholder SVGs but mark them draft.
-
-## 11. Recommended safer asset approach
-
-Because recent state says persistence strips `data:image`, the safest implementation is:
-
-```text
-public/symbols/power-place/zodiac/aries.svg
-public/symbols/power-place/zodiac/taurus.svg
-...
-```
-
-Then library items use:
-
-```js
-src: "/symbols/power-place/zodiac/aries.svg",
-displaySrc: "/symbols/power-place/zodiac/aries.svg"
-```
-
-This avoids signed URL and data URI persistence problems.
-
-If adding many SVGs is too large for one task, add 2–4 draft placeholders per shelf first and document that final author-approved symbols are `needs content`.
-
-## 12. Suggested implementation phases
-
-### Phase 1 — Static library and desktop module
-
-Files:
-
-- `src/data/powerPlaceSymbolLibrary.js`
-- `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
-- `src/profileMandalaWorkspace.css`
-- optional: `public/symbols/power-place/**`
-- tests if needed.
-
-Scope:
-
-- add shelves;
-- add `Библиотека` module;
-- click/drag symbols into slots;
-- default shelf follows constructor format.
-
-Checks:
-
-- `npm run test:power-place`
-- `npm run test:profile-lite`
-- `npm run build`
-
-### Phase 2 — Mobile picker source groups
-
-Files:
-
-- `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
-- `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
-- `src/profileMandalaWorkspace.css`
-- tests if needed.
-
-Scope:
-
-- add `Клиенты / Материалы / Символы / Загрузить своё` source selector;
-- add client second-level categories;
-- add material category dropdown with `Новые` default;
-- add symbol shelf dropdown;
-- pass symbol images from Power Place module into picker.
-
-Checks:
-
-- `npm run test:profile-media`
-- `npm run test:profile-materials`
-- `npm run test:profile-lite`
-- `npm run build`
-
-### Phase 3 — UX polish
-
-Files:
-
-- `src/profileMandalaWorkspace.css`
-- maybe `ProfileLiteImagePicker.jsx`.
-
-Scope:
-
-- reduce picker thumbnails by about 3x;
-- close button visible and not clipped;
-- iPhone safe-area top padding;
+- picker top header visible;
+- close button fully visible;
+- close button tappable;
+- modal content scrolls inside, not page behind;
 - no horizontal overflow.
 
-Checks:
+## 11. Task G — Pro mode behavior for more clients
 
-- local browser QA at `390x900`;
-- local browser QA at desktop `1280x920`.
+Current requirement: Pro mode is not active without Pro subscription.
 
-## 13. Tests to update/add
+Implementation rule:
 
-Recommended tests:
+- `Больше клиентов / Pro mode /` must remain disabled unless `accountPlan === "pro"`.
+- In mobile source filter, do not show Pro-only as active if non-Pro.
+- In upload destination `clients`, current Pro-disabled option can remain visible with label `— доступно в Pro`.
+- Do not implement subscription/payment logic in this task.
 
-### `test/profileLiteCabinetContract.test.mjs`
+Recommended helper:
 
-Add assertions that source contains:
+```js
+const isProAccount = accountPlan === "pro";
+const visibleClientFilterOptions = CLIENT_PHOTO_SUBCATEGORIES.filter((option) => !option.proOnly || isProAccount);
+```
 
-- `powerPlaceSymbolLibrary`
-- `POWER_PLACE_SYMBOL_SHELVES`
-- `Библиотека`
-- `Ключевые символы`
-- `symbolShelfForConstructorType`
-- `kind: "symbol-library"`
+When selecting:
 
-### `test/powerPlaceStyleContract.test.mjs`
+```js
+if (option?.proOnly && !isProAccount) return;
+```
 
-Add assertions for CSS classes:
+## 12. Task H — ensure existing upload menu remains simplified
 
-- `.powerSymbolLibraryPanel`
-- `.powerSymbolLibraryGrid`
-- `.powerSymbolLibraryItem`
-- `.powerSymbolLibraryThumb`
-- visible close button selector for picker.
+User previously requested client upload fields only:
 
-### Optional new test
+- photo title;
+- subcategory;
+- no notes.
 
-`test/powerPlaceSymbolLibrary.test.mjs`
+Current `handleUpload` already sends `notes: ""`.
+
+Do not add visible notes field.
+
+For `destination === "clients"`, keep:
+
+```js
+title: uploadTitle.trim() || file.name || ""
+clientCategory: clientCategory || "all"
+notes: ""
+```
+
+For materials, do not remove existing needed metadata unless a separate grimoire simplification task requests it.
+
+## 13. Task I — tests
+
+### 13.1. Add symbol library unit test
+
+Create:
+
+```text
+test/powerPlaceSymbolLibrary.test.mjs
+```
+
+Test:
+
+```js
+import assert from "node:assert/strict";
+import {
+  POWER_PLACE_SYMBOL_LIBRARY,
+  POWER_PLACE_SYMBOL_SHELVES,
+  symbolShelfForConstructorType,
+  listPowerPlaceSymbolsByShelf
+} from "../src/data/powerPlaceSymbolLibrary.js";
+
+const expectedShelves = ["zodiac", "star", "chess", "client", "altar", "business", "dao"];
+
+for (const shelf of expectedShelves) {
+  assert.ok(POWER_PLACE_SYMBOL_SHELVES.some((item) => item.value === shelf), `missing shelf ${shelf}`);
+  assert.equal(symbolShelfForConstructorType(shelf), shelf);
+  assert.ok(listPowerPlaceSymbolsByShelf(shelf).length >= 1, `missing symbols for ${shelf}`);
+}
+
+for (const symbol of POWER_PLACE_SYMBOL_LIBRARY) {
+  assert.ok(symbol.id, "symbol id required");
+  assert.ok(expectedShelves.includes(symbol.shelf), `invalid shelf ${symbol.shelf}`);
+  assert.equal(symbol.kind, "symbol-library");
+  assert.ok(symbol.label, "symbol label required");
+  assert.ok(symbol.src?.startsWith("/symbols/power-place/"), `symbol src should be public path: ${symbol.src}`);
+  assert.ok(symbol.displaySrc, "symbol displaySrc required");
+}
+```
+
+Add this test to `package.json` if a dedicated script is appropriate, or include it under `test:power-place`.
+
+Preferred package script patch:
+
+```json
+"test:power-place": "node test/powerPlaceClient.test.mjs && node test/powerPlaceStyleContract.test.mjs && node test/printUtils.test.mjs && node test/powerPlaceSymbolLibrary.test.mjs"
+```
+
+### 13.2. Contract test update
+
+Update `test/profileLiteCabinetContract.test.mjs` to assert source contains:
+
+```text
+Библиотека
+Ключевые символы
+powerSymbolLibraryPanel
+symbolShelfForConstructorType
+symbol-library
+```
+
+### 13.3. CSS contract update
+
+Update `test/powerPlaceStyleContract.test.mjs` to assert CSS contains:
+
+```text
+.powerSymbolLibraryPanel
+.powerSymbolLibraryGrid
+.powerSymbolLibraryItem
+.powerSymbolLibraryThumb
+.profileLiteImagePickerCloseButton
+.imagePickerSourceGroups
+```
+
+## 14. Task J — manual QA
+
+### 14.1. Desktop QA
+
+Route: `/profile/mandalas`  
+Viewport: `1280x920`
 
 Check:
 
-- every shelf has at least one symbol or an explicit empty/draft status;
-- every symbol has `id`, `shelf`, `label`, `kind`, `src`, `displaySrc`;
-- `symbolShelfForConstructorType("star") === "star"`, etc.
+- `Библиотека` appears directly below `Фон места силы` / cover module.
+- Constructor format `Зодиак` selects shelf `Зодиак` by default.
+- Switching to `Звезда`, `Шахматы`, `Мандала`, `Алтарь`, `Бизнес`, `ДАО` updates default shelf when shelf has not been manually changed.
+- Manual shelf dropdown works.
+- Click a symbol after selecting a slot: symbol appears in that mini-mandala cell.
+- Drag symbol into a mini-mandala cell: symbol appears.
+- Existing saved photo drag/drop still works.
+- Existing center photo picker still works.
+- Existing background/cover picker still works.
+- Save new composition does not fail because of symbol refs.
+- Reload/open saved composition preserves symbol refs if saved.
 
-## 14. Commands
+### 14.2. Mobile QA
 
-Run before changes:
+Route: `/profile/mandalas`  
+Viewport: `390x900`
+
+Check:
+
+- Tap mini-mandala cell opens picker.
+- Picker header is not clipped.
+- Large `×` close button visible and tappable.
+- Source buttons visible:
+  - `Клиенты`
+  - `Материалы`
+  - `Символы`
+  - `Загрузить своё`
+- `Клиенты` second level shows:
+  - `Все`
+  - `Клиент 1`
+  - `Клиент 2`
+  - `Клиент 3`
+- Non-Pro users do not get active `Больше клиентов / Pro mode /`.
+- `Материалы` has category dropdown defaulting to `Новые`.
+- `Символы` has shelf dropdown defaulting to current constructor format.
+- Picker thumbnails are about 3x smaller than current large cards.
+- No horizontal overflow.
+
+### 14.3. Route regression QA
+
+Check all:
+
+- `/`
+- `/profile`
+- `/profile/mandalas`
+- `/masters`
+- `/profile/admin`
+
+Expected:
+
+- route returns 200 locally;
+- no React error overlay;
+- no horizontal overflow on mobile;
+- public homepage unchanged.
+
+## 15. Implementation phases
+
+### Phase 1 — static symbols and desktop module
+
+Files:
+
+```text
+src/data/powerPlaceSymbolLibrary.js
+public/symbols/power-place/**
+src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx
+src/profileMandalaWorkspace.css
+test/powerPlaceSymbolLibrary.test.mjs
+test/profileLiteCabinetContract.test.mjs
+test/powerPlaceStyleContract.test.mjs
+package.json if test script is updated
+```
+
+Deliverable:
+
+- visible `Библиотека` module;
+- shelf dropdown;
+- default shelf follows constructor format;
+- click/drag symbols to slots.
+
+### Phase 2 — mobile picker source groups
+
+Files:
+
+```text
+src/pages/profile-lite/ProfileLiteImagePicker.jsx
+src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx
+src/profileMandalaWorkspace.css
+test/profileLiteCabinetContract.test.mjs
+test/powerPlaceStyleContract.test.mjs
+```
+
+Deliverable:
+
+- mobile picker sources:
+  - `Клиенты`
+  - `Материалы`
+  - `Символы`
+  - `Загрузить своё`;
+- two-level controls;
+- symbol shelf dropdown in picker.
+
+### Phase 3 — picker visual polish
+
+Files:
+
+```text
+src/pages/profile-lite/ProfileLiteImagePicker.jsx
+src/profileMandalaWorkspace.css
+```
+
+Deliverable:
+
+- thumbnails about 3x smaller;
+- close button clear and not clipped;
+- safe-area handling.
+
+### Phase 4 — state/log update
+
+Files:
+
+```text
+STATE.md
+LOG.md
+```
+
+Add concise entries only after implementation is complete.
+
+## 16. Commands
+
+Before changes:
 
 ```bash
 git status --short
 git branch --show-current
+git worktree list
 git fetch origin
 ```
 
-Run after implementation:
+After changes:
 
 ```bash
 npm run test:power-place
@@ -641,104 +1145,40 @@ npm run check
 git diff --check
 ```
 
-If browser QA is available:
+If browser QA is possible:
 
 ```bash
 npm run dev -- --port 4390
 ```
 
-Check routes:
+## 17. Risks and mitigations
 
-- `/`
-- `/profile`
-- `/profile/mandalas`
-- `/masters`
-- `/profile/admin`
+| Risk | Mitigation |
+|---|---|
+| `data:image` is stripped from persistence | Use public `/symbols/power-place/...svg` paths |
+| New module breaks desktop layout | Add module in existing side/control stack; do not move center canvas |
+| Picker source tabs conflict with old `activeTab` | Keep one visible source state; preserve upload behavior |
+| Pro-only clients become selectable | Filter/disable Pro-only unless `accountPlan === "pro"` |
+| Symbol content looks final though it is placeholder | Label `draft` / `needs review` |
+| Existing saved photo drag/drop breaks | Reuse existing `handleSavedImageDragStart` and drop handlers |
+| Mobile modal still clipped | Add safe-area padding and sticky header |
+| Tests become too brittle | Assert stable class/function names, not exact layout text everywhere |
 
-## 15. Manual QA checklist
+## 18. Non-goals
 
-Desktop `/profile/mandalas`:
-
-- `Библиотека` appears below `Фон места силы`.
-- Shelf defaults to selected format:
-  - Зодиак -> Зодиак
-  - Звезда -> Звезда
-  - Шахматы -> Шахматы
-  - Мандала -> Мандала
-  - Алтарь -> Алтарь
-  - Бизнес -> Бизнес
-  - ДАО -> ДАО
-- Manual shelf switch works.
-- Clicking a symbol inserts it into selected mini-mandala slot.
-- Dragging a symbol into a mini-mandala slot works.
-- Existing saved photo drag/drop still works.
-- Existing cover/center photo picker still works.
-- Save/update still works with symbol refs.
-
-Mobile `390x900`:
-
-- Clicking a mini-mandala cell opens picker.
-- Picker top is not clipped.
-- Close button is visible and easy to tap.
-- Picker has source sections:
-  - Клиенты
-  - Материалы
-  - Символы
-  - Загрузить своё
-- Клиенты second-level categories work:
-  - Все
-  - Клиент 1
-  - Клиент 2
-  - Клиент 3
-- Материалы category dropdown defaults to `Новые`.
-- Символы shelf dropdown defaults to current format shelf.
-- Thumbnails are about 3x smaller than current large cards.
-- No horizontal overflow.
-
-Regression routes:
-
-- `/` renders.
-- `/profile` renders.
-- `/profile/mandalas` renders.
-- `/masters` renders.
-- `/profile/admin` renders.
-
-## 16. Risks
-
-- `data:image` persistence may be stripped by existing sanitizer. Prefer public static SVG paths.
-- Adding the library into the wrong column can break the accepted desktop layout.
-- Picker changes can break existing upload flows if `onUpload` contract changes.
-- Symbol labels/content can imply final sacred knowledge; mark placeholders as draft/needs review.
-- Mobile modal can still be clipped if safe-area padding is not applied to the right container.
-- Drag/drop is desktop-only; mobile should rely on tap picker.
-
-## 17. Non-goals
-
-Do not implement in this task:
+Do not implement now:
 
 - Supabase symbol library table;
-- admin symbol editor;
-- paid Pro symbol shelves;
+- admin symbol upload/editor;
+- Pro paid symbol shelves;
 - AI symbol generation;
 - production release;
 - changes to public homepage;
 - changes to Supabase auth redirects;
-- changes to Vercel rewrites except if route tests prove an existing issue unrelated to this task.
+- changes to Vercel project settings;
+- final sacred meanings for symbols without author approval.
 
-## 18. Codex report format after implementation
-
-Codex must report:
-
-1. Branch and base commit.
-2. Changed files.
-3. What was implemented by phase.
-4. Checks run and exact exit status.
-5. Manual/browser QA results.
-6. Risks remaining.
-7. What was not verified.
-8. Whether `STATE.md` and `LOG.md` were updated.
-
-## 19. Ready-to-copy Codex prompt
+## 19. Final Codex prompt
 
 ```text
 Repo: https://github.com/andylitvinov-design/reiki-yggdrasil
@@ -748,16 +1188,20 @@ Route: /profile/mandalas
 
 Implement the Power Place Symbol Library according to docs/product/POWER_PLACE_SYMBOL_LIBRARY_TECHNICAL_PLAN_2026-06-09.md.
 
-First read AGENTS.md, README.md, STATE.md, LOG.md, package.json, vercel.json, src/pages/ProfileLitePage.jsx, src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx, src/pages/profile-lite/ProfileLiteImagePicker.jsx, and src/profileMandalaWorkspace.css. If a file is missing, report not found.
+First read AGENTS.md, README.md, STATE.md, LOG.md, package.json, vercel.json, src/pages/ProfileLitePage.jsx, src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx, src/pages/profile-lite/ProfileLiteImagePicker.jsx, src/profileMandalaWorkspace.css, and this technical plan. If a file is missing, report not found.
 
-Do the work in small safe phases:
-1. Add static symbol library data and safe public SVG/draft assets if needed.
-2. Add the Библиотека module below Фон места силы in the Power Place controls.
-3. Reuse existing chooseImage / assignPowerPlaceSlotImage / drag-drop flow.
-4. Extend the mobile picker with Клиенты / Материалы / Символы / Загрузить своё source groups.
-5. Reduce picker thumbnails by about 3x and make the close button visible/non-clipped on iPhone Safari.
+Do the work in safe phases:
+1. Add static symbol library data in src/data/powerPlaceSymbolLibrary.js and public draft SVG assets under public/symbols/power-place/**. Use public paths, not data:image, because persistence may strip data URLs.
+2. Add the Библиотека module directly below the existing Фон места силы / cover module. Include shelf dropdown and mini symbol grid. Default shelf must follow compositionDraft.constructor_type until user manually changes shelf.
+3. Reuse existing chooseImage, assignPowerPlaceSlotImage, handleSavedImageDragStart, and getPowerPlaceSlotDropHandlers. Do not create a parallel drag/drop system.
+4. Extend ProfileLiteImagePicker with source groups: Клиенты, Материалы, Символы, Загрузить своё. Add second-level client filters, material category dropdown defaulting to Новые, and symbol shelf dropdown.
+5. Keep client upload simplified: Название фото + Подкатегория only; no notes field. Keep Больше клиентов / Pro mode / disabled for non-Pro users.
+6. Reduce picker thumbnails by about 3x only inside the image picker/modal. Do not shrink canvas slots or public cards.
+7. Replace the small x close button with a clear × close button and add safe-area/sticky header CSS so the top of the modal is not clipped on iPhone Safari.
+8. Add/update tests for symbol library data, component contract, and CSS contract.
+9. Update STATE.md and LOG.md after implementation.
 
-Do not change production branch/domains, public homepage, Supabase env values, auth redirect logic, or the desktop three-column structure. Do not add a Supabase migration unless you prove it is unavoidable. Prefer static public SVG paths over data:image because persistence may strip data URIs.
+Do not change production branch/domains, public homepage, Supabase env values, auth redirect logic, Vercel rewrites, or desktop three-column structure. Do not add Supabase migration unless you prove it is unavoidable.
 
 Run:
 npm run test:power-place
@@ -768,7 +1212,16 @@ npm run build
 npm run check
 git diff --check
 
-Manual QA: /, /profile, /profile/mandalas, /masters, /profile/admin; desktop 1280x920; mobile 390x900; verify no horizontal overflow, symbol shelf default follows constructor type, click/drag inserts symbols, and existing saved photo/upload flows still work.
+Manual QA:
+- desktop /profile/mandalas at 1280x920;
+- mobile /profile/mandalas at 390x900;
+- route sweep /, /profile, /profile/mandalas, /masters, /profile/admin;
+- verify no horizontal overflow;
+- verify Библиотека below Фон места силы;
+- verify shelf default follows constructor format;
+- verify click/drag symbols into slots;
+- verify existing saved photo/upload/cover/center flows still work;
+- verify mobile picker source groups and close button.
 
-Report changed files, checks run, manual QA, risks, and what was not verified. Update STATE.md/LOG.md if implementation changes product behavior.
+Report: branch/base commit, changed files, implementation by phase, checks run with exit status, manual QA, risks, what was not verified, and STATE/LOG update summary.
 ```
