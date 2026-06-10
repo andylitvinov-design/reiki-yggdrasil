@@ -854,7 +854,92 @@ Checkpoint: no `SUCCESS` until the user-requested behavior is visible or working
 
 ---
 
-## 28. Anti-Gaming Rules
+## 28. Cost-Control and Prompt Caching Layer
+
+`/delivery` includes cost-control by default.
+
+### Stable vs Dynamic Context
+
+Structure every `/delivery` run so stable context comes first and dynamic context follows.
+
+**Stable context (cache-friendly, read once, do not rewrite each run):**
+
+```txt
+AGENTS.md
+project rules
+architecture summary
+/delivery protocol (docs/delivery-loop-program.md)
+technical delivery details (docs/delivery-loop-technical-details.md)
+source loop patterns + live proof contract (docs/delivery-loop-source-patterns-and-live-proof.md)
+coding standards
+security guardrails
+PR/merge/deploy checklist
+secrets/env restrictions
+```
+
+**Dynamic context (placed after stable context, updated per run):**
+
+```txt
+current task
+current bug
+current files / diffs
+latest logs
+latest PR status
+latest CI status
+latest deployment status
+latest blocker
+```
+
+Rules:
+
+- Do not rewrite or rephrase the stable context each run.
+- Prefer diffs over full files.
+- Read only relevant files first. Do not scan the full repository unless necessary.
+- Do not resend full files when a diff is enough.
+- Keep a compact running state across loop steps:
+  - task
+  - acceptance criteria
+  - files changed
+  - checks run
+  - blockers
+  - next action
+
+### Model Routing (Universal)
+
+When model routing is available:
+
+- Use the cheapest capable model/tooling for routine checks: status reads, PR body edits, repetitive summaries, file listing.
+- Use stronger reasoning only for: architecture gate, hard debugging, security-sensitive review, final delivery-risk review.
+- Do not use expensive reasoning for: repetitive status checks, formatting, PR body edits, or routine summaries.
+
+Optional Claude Code guidance:
+
+- Sonnet: default for most delivery work.
+- Haiku: simple summaries, status checks, file listing — if available.
+- Opus: hard architecture decisions, hard debug, final delivery-risk reasoning gate — if available.
+
+### Loop Limits
+
+Stop and return `STATUS: BLOCKED` when:
+
+- The same issue has failed to fix after **3 attempts**. Do not retry a fourth time on the same root cause; report the exact blocker and required user action.
+- PR mergeability is blocked by external policy (branch protection, required review, admin lock).
+- The next action would touch: env vars, secrets, billing settings, production database, auth-sensitive settings, or any destructive operation.
+
+For destructive or sensitive operations: stop, describe the exact action required, and ask for explicit user approval before proceeding.
+
+Checkpoint:
+
+- [ ] Stable context is not reread or rewritten unnecessarily.
+- [ ] Dynamic context is placed after stable context.
+- [ ] Diffs are preferred over full files.
+- [ ] Loop limit of 3 same-issue attempts is respected.
+- [ ] Destructive/sensitive operations require explicit approval.
+- [ ] Final report includes COST CONTROL section.
+
+---
+
+## 29. Anti-Gaming Rules
 
 The agent must never:
 
@@ -988,6 +1073,18 @@ BLOCKERS:
 NEXT STEP:
 - None, if SUCCESS.
 - Required user action, if BLOCKED.
+
+COST CONTROL:
+- Stable project context reused:
+- Dynamic context separated:
+- Diffs preferred over full files:
+- Full repo scan avoided:
+- Repeated analysis avoided:
+- Loop attempts used:
+- Same-issue retry count:
+- Expensive reasoning used for:
+- Cost/token risk: low / medium / high
+- What was avoided to save cost:
 ```
 
 ---
@@ -1224,3 +1321,40 @@ PROJECT-SPECIFIC DELIVERY SETTINGS
 ```
 
 The appendix is project-specific. The `/delivery` protocol itself is universal.
+
+---
+
+## 35. reiki-yggdrasil Project Delivery Settings
+
+```txt
+PROJECT-SPECIFIC DELIVERY SETTINGS
+- Repository: andylitvinov-design/reiki-yggdrasil
+- Default branch: main
+- Target branch (features): main
+- Target branch (client releases): production
+- Package manager: npm
+- Framework: Vite + React (SPA, no SSR)
+- Build command: npm run build
+- Output directory: dist
+- Check command: npm run check
+- Lint: not available
+- Typecheck: not available
+- Tests: npm run check (runs all validate/test scripts then build)
+- Smoke test: LIVE_URL=https://2mentalica.vercel.app node scripts/live-smoke-test.mjs
+- CI provider: GitHub Actions (.github/workflows/ci.yml)
+- Deployment provider: Vercel (auto-deploy from GitHub)
+- Primary production/live URL: https://2mentalica.vercel.app  ← default /delivery target
+- Secondary production URL: https://mentalica.vercel.app
+- Legacy/fallback URL: https://reiki-yggdrasil.vercel.app
+- Preview URL: Vercel preview per PR (SSO-protected, verify via Vercel dashboard)
+- Default /delivery target: Primary production/live URL (https://2mentalica.vercel.app).
+  Secondary and legacy URLs cannot satisfy SUCCESS for production delivery by default.
+  They are allowed only when explicitly requested by the user or used as diagnostic fallback.
+- Required env vars (names only):
+    VITE_SUPABASE_URL
+    VITE_SUPABASE_ANON_KEY
+    VITE_ADMIN_EMAIL
+- PR policy: feature/* → main; releases: release/* → production
+- Merge policy: squash preferred; do not push directly to production
+- Docs to read first: AGENTS.md, README.md, STATE.md, docs/release-workflow.md, docs/deploy-fallback.md
+```

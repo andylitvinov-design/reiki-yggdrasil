@@ -1,0 +1,47 @@
+{
+  "projectName": "reiki-yggdrasil",
+  "repository": "andylitvinov-design/reiki-yggdrasil",
+  "defaultBranch": "main",
+  "targetBranch": "main",
+  "packageManager": "npm",
+  "framework": "vite-react",
+  "commands": {
+    "install": "npm ci",
+    "build": "npm run build",
+    "lint": null,
+    "typecheck": null,
+    "test": null,
+    "check": "npm run check",
+    "smokeLive": "node scripts/live-smoke-test.mjs"
+  },
+  "ci": {
+    "provider": "github-actions",
+    "required": true
+  },
+  "deployment": {
+    "provider": "vercel",
+    "productionUrl": "https://2mentalica.vercel.app",
+    "secondaryProductionUrl": "https://mentalica.vercel.app",
+    "legacyFallbackUrl": "https://reiki-yggdrasil.vercel.app",
+    "previewUrl": null,
+    "requiresDashboardAccess": true,
+    "autoDeployBranch": "main",
+    "defaultDeliveryTarget": "productionUrl"
+  },
+  "github": {
+    "usePullRequests": true,
+    "allowAutoMerge": false,
+    "requireHumanReview": false,
+    "branchProtectionExpected": false
+  },
+  "liveVerification": {
+    "required": true,
+    "method": "browser-or-smoke-test",
+    "defaultExpectedText": null,
+    "routes": ["/", "/masters", "/profile"]
+  },
+  "security": {
+    "neverPrintSecrets": true,
+    "blockedSecretNames": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_ADMIN_EMAIL"]
+  }
+}
