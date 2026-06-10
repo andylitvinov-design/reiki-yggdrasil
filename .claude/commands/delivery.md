@@ -1,6 +1,11 @@
 # /delivery
 
-Follow `docs/delivery-loop-program.md` and `docs/delivery-loop-technical-details.md`.
+Follow all three source-of-truth docs in order:
+
+1. `docs/delivery-loop-program.md` — full protocol, stop states, final report format
+2. `docs/delivery-loop-technical-details.md` — scripts, commands, CI/CD checks, agent decision table
+3. `docs/delivery-loop-source-patterns-and-live-proof.md` — embedded loop patterns and live proof contract
+4. `AGENTS.md` — project adapter and command registry
 
 Act as release owner for this project.
 
@@ -28,4 +33,27 @@ Required final status:
 - STATUS: BLOCKED — exact external blocker, evidence, and required user action.
 
 Do not stop after code, PR, checks, merge, or deploy.
-SUCCESS requires live proof.
+
+SUCCESS requires a completed live proof block:
+
+```txt
+LIVE PROOF:
+- Live URL:
+- Checked route/page:
+- Final deployed commit:
+- Expected live behavior:
+- Actual live behavior:
+- Evidence:
+```
+
+BLOCKED requires:
+
+```txt
+- Where the loop stopped:
+- What is complete:
+- What is not complete:
+- Exact blocker:
+- Evidence:
+- Required user action:
+- Next prompt to run after unblocking:
+```

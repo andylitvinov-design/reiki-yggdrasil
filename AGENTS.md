@@ -253,7 +253,11 @@ A client-facing release is complete only after `production` is updated and the c
 
 ### /delivery
 
-When the user invokes `/delivery`, follow `docs/delivery-loop-program.md` and `docs/delivery-loop-technical-details.md`.
+When the user invokes `/delivery`, follow all three source-of-truth docs in order:
+
+1. `docs/delivery-loop-program.md` — full protocol, stop states, final report format
+2. `docs/delivery-loop-technical-details.md` — scripts, commands, CI/CD checks, agent decision table
+3. `docs/delivery-loop-source-patterns-and-live-proof.md` — embedded loop patterns and live proof contract (mandatory)
 
 Act as a release owner, not only a coding assistant.
 
@@ -263,6 +267,18 @@ Stop only with:
 
 - `STATUS: SUCCESS` — task implemented, PR/merge completed if required, deployed, and verified on live.
 - `STATUS: BLOCKED` — real external blocker with exact evidence and required user action.
+
+`SUCCESS` requires a completed live proof block (from doc 3):
+
+```txt
+LIVE PROOF:
+- Live URL:
+- Checked route/page:
+- Final deployed commit:
+- Expected live behavior:
+- Actual live behavior:
+- Evidence:
+```
 
 Project adapter for this repo:
 
@@ -280,8 +296,6 @@ Project adapter for this repo:
 - Deployment: Vercel (auto-deploy from GitHub)
 - Live URL: `https://mentalica.vercel.app`
 - Legacy URL: `https://reiki-yggdrasil.vercel.app`
-
-`SUCCESS` requires live proof. See `docs/delivery-loop-source-patterns-and-live-proof.md` for the live proof contract.
 
 ### /pr
 
