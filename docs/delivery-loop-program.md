@@ -939,7 +939,75 @@ Checkpoint:
 
 ---
 
-## 29. Anti-Gaming Rules
+## 29. Autonomous Permission Scope
+
+When `/delivery` is invoked, the agent works autonomously inside the safe delivery scope and does not ask for confirmation on routine actions.
+
+### Allowed without asking
+
+```txt
+Read any project file.
+Edit files inside the current repository:
+  source files, docs, scripts, tests, CSS, config related to the task.
+Run local commands:
+  npm install / npm ci
+  npm run build
+  npm run check
+  npm test
+  npm run lint
+  npm run typecheck
+  git status / git diff / git add / git commit / git push
+  gh pr create / gh pr view / gh pr checks
+  gh run list / gh run view
+Create or update a PR.
+Push fixes to the same branch.
+Wait for CI; read CI logs; fix failed checks; re-push.
+Read deployment status.
+Check the live URL.
+```
+
+### Require explicit user approval before
+
+```txt
+Changing or reading secret/env values.
+Touching billing, payment, or subscription settings.
+Writing to production database.
+Destructive commands: rm -rf, git reset --hard, git clean -fd, force push.
+Deleting many files.
+Changing auth, OAuth, or security rules.
+Changing deployment provider settings.
+Merging to main — unless the user's invocation includes:
+  "full delivery to live" | "merge if green" | "deliver to production"
+Production deploy — if this project does not auto-deploy from main.
+```
+
+### Full-autonomy trigger
+
+If the user invokes `/delivery` with `"full delivery to live"`, `"merge if green"`, or `"deliver to production"`, the agent may:
+
+- merge the PR after all checks pass;
+- verify deployment and live URL without asking again.
+
+If any of the following are needed, return `STATUS: BLOCKED` immediately with the exact blocker:
+
+```txt
+branch protection blocks merge
+required human review is missing
+agent lacks merge permission
+env/secrets are missing
+destructive action is required
+```
+
+Checkpoint:
+
+- [ ] Routine delivery actions do not require confirmation.
+- [ ] Dangerous or external-permission actions block or ask.
+- [ ] Full-autonomy trigger is recognized and applied.
+- [ ] Final answer is still `STATUS: SUCCESS` or `STATUS: BLOCKED`.
+
+---
+
+## 30. Anti-Gaming Rules
 
 The agent must never:
 
@@ -962,7 +1030,7 @@ Checkpoint: if evidence is missing, status is `BLOCKED`, not `SUCCESS`.
 
 ---
 
-## 29. Stop States
+## 31. Stop States
 
 Every `/delivery` run must end in exactly one of two states.
 
@@ -1004,7 +1072,7 @@ Allowed only when a real external blocker prevents completion, such as:
 
 ---
 
-## 30. Final Report Format
+## 32. Final Report Format
 
 The agent must always end exactly with:
 
@@ -1089,7 +1157,7 @@ COST CONTROL:
 
 ---
 
-## 31. Implementation Plan Across Projects
+## 33. Implementation Plan Across Projects
 
 ### Phase 1 — Add Universal Protocol
 
@@ -1248,7 +1316,7 @@ Checkpoint at end:
 
 ---
 
-## 32. Definition of Done for /delivery Implementation
+## 34. Definition of Done for /delivery Implementation
 
 The `/delivery` system is fully implemented in a project when all are true:
 
@@ -1267,7 +1335,7 @@ The `/delivery` system is fully implemented in a project when all are true:
 
 ---
 
-## 33. Minimal Prompt for Future Use
+## 35. Minimal Prompt for Future Use
 
 ```txt
 /delivery
@@ -1289,7 +1357,7 @@ STATUS: BLOCKED — exact blocker, evidence, and required user action.
 
 ---
 
-## 34. Optional Project-Specific Appendix Template
+## 36. Optional Project-Specific Appendix Template
 
 Each repository may add a short appendix below this universal protocol.
 
@@ -1324,7 +1392,7 @@ The appendix is project-specific. The `/delivery` protocol itself is universal.
 
 ---
 
-## 35. reiki-yggdrasil Project Delivery Settings
+## 37. reiki-yggdrasil Project Delivery Settings
 
 ```txt
 PROJECT-SPECIFIC DELIVERY SETTINGS

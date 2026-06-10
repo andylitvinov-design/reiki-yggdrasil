@@ -37,6 +37,30 @@ Required final status:
 
 Do not stop after code, PR, checks, merge, or deploy.
 
+Autonomous Permission Scope — allowed without asking during /delivery:
+
+- Read any project file.
+- Edit files inside the repository (source, docs, scripts, tests, CSS, config) related to the task.
+- Run: npm install / npm ci / npm run build / npm run check / npm test / npm run lint / npm run typecheck.
+- Run: git status / git diff / git add / git commit / git push.
+- Run: gh pr create / gh pr view / gh pr checks / gh run list / gh run view.
+- Create or update PR; push fixes to the same branch; wait for CI; read logs; fix failed checks; re-push.
+- Read deployment status; check live URL.
+
+Require explicit user approval before:
+
+- Changing or reading secret/env values.
+- Touching billing, payment, or subscription settings.
+- Writing to production database.
+- Destructive commands: rm -rf, git reset --hard, git clean -fd, force push.
+- Deleting many files.
+- Changing auth, OAuth, or security rules.
+- Changing deployment provider settings.
+- Merging to main — unless the invocation includes "full delivery to live", "merge if green", or "deliver to production".
+- Production deploy if this project does not auto-deploy from main.
+
+Full-autonomy trigger: if the task includes "full delivery to live", "merge if green", or "deliver to production", the agent may merge after checks pass and verify live without asking again. If branch protection, required review, missing permission, env/secrets, or destructive action is needed, return STATUS: BLOCKED with the exact blocker.
+
 Cost-control rules:
 
 - Treat the stable docs (1-4 above) as cached/stable context. Do not duplicate the full protocol in dynamic prompts.

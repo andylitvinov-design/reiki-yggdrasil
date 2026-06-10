@@ -309,6 +309,33 @@ Project adapter for this repo:
 - Never touch env vars, secrets, billing, production database, or auth-sensitive settings without explicit user approval. Stop and describe the required action; do not proceed.
 - Final report must include a `COST CONTROL` section.
 
+**Autonomous Permission Scope:**
+
+During `/delivery`, the agent may perform the following without asking for confirmation:
+
+- Read any project file.
+- Edit files inside the current repository (source, docs, scripts, tests, CSS, config) related to the task.
+- Run: `npm install`, `npm ci`, `npm run build`, `npm run check`, `npm test`, `npm run lint`, `npm run typecheck`.
+- Run: `git status`, `git diff`, `git add`, `git commit`, `git push`.
+- Run: `gh pr create`, `gh pr view`, `gh pr checks`, `gh run list`, `gh run view`.
+- Create or update a PR; push fixes to the same branch.
+- Wait for CI; read CI logs; fix failed checks; re-push.
+- Read deployment status and live URL.
+
+The agent **must stop and ask** before:
+
+- Changing or reading secret/env values.
+- Touching billing, payment, or subscription settings.
+- Writing to production database.
+- Running destructive commands: `rm -rf`, `git reset --hard`, `git clean -fd`, force push.
+- Deleting many files.
+- Changing auth, OAuth, or security rules.
+- Changing deployment provider settings.
+- **Merging to `main`** — unless the user's invocation explicitly included one of: `"full delivery to live"`, `"merge if green"`, `"deliver to production"`.
+- Production deploy if this project does not auto-deploy from `main`.
+
+**Full-autonomy trigger:** If the user invokes `/delivery` with `"full delivery to live"`, `"merge if green"`, or `"deliver to production"`, the agent may merge the PR after all checks pass and verify deployment/live without asking again. If branch protection, required review, missing permission, env/secrets issue, or any destructive action is needed, return `STATUS: BLOCKED` with the exact blocker.
+
 ### /pr
 
 Create a clean, mergeable PR for the current branch. Do not merge.

@@ -1032,6 +1032,107 @@ Checkpoint:
 
 ---
 
+## 18b. Autonomous Permission Scope
+
+When `/delivery` is invoked, the agent works autonomously on all routine delivery actions and must not ask for confirmation on them.
+
+### Allowed without confirmation
+
+```bash
+# File operations
+read any project file
+edit project files (source, docs, scripts, tests, CSS, config) related to the task
+
+# npm
+npm install
+npm ci
+npm run build
+npm run check
+npm test
+npm run lint
+npm run typecheck
+
+# git
+git status
+git diff
+git add
+git commit
+git push
+
+# GitHub CLI
+gh pr create
+gh pr view
+gh pr checks
+gh run list
+gh run view
+
+# Delivery flow
+create or update PR
+push fixes to same branch
+wait for CI
+read CI logs
+fix failed checks and re-push
+read deployment status
+check live URL
+```
+
+### Require explicit user approval before
+
+```bash
+# Secrets
+changing or reading secret/env values
+
+# Billing
+touching billing, payment, or subscription settings
+
+# Database
+writing to production database
+
+# Destructive
+rm -rf
+git reset --hard
+git clean -fd
+git push --force
+deleting many files
+
+# Security
+changing auth, OAuth, or security rules
+changing deployment provider settings
+
+# Merge gate (default — requires explicit trigger)
+merging to main
+
+# Deploy gate
+production deploy — if this project does not auto-deploy from main
+```
+
+### Full-autonomy trigger
+
+If the user invokes `/delivery` with any of these phrases:
+
+```txt
+"full delivery to live"
+"merge if green"
+"deliver to production"
+```
+
+Then the agent may:
+
+- merge the PR after all checks pass;
+- verify deployment and live URL without asking again.
+
+If branch protection, required review, missing permission, env/secrets issue, or destructive action is needed, return `STATUS: BLOCKED` with the exact blocker — do not attempt to bypass.
+
+Checkpoint:
+
+- [ ] Routine delivery actions (read, edit, build, check, git, gh, PR) require no confirmation.
+- [ ] Secrets, billing, database, destructive, and auth actions always require approval.
+- [ ] Merge to main requires either explicit trigger phrase or user approval.
+- [ ] Full-autonomy trigger is recognized when present in the invocation.
+- [ ] Blocked by gate → STATUS: BLOCKED with exact blocker, not silent bypass.
+
+---
+
 ## 19. Security Guardrails in Code
 
 Agents must check for accidental secret exposure.

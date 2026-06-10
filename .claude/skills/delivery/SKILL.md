@@ -88,6 +88,34 @@ Must include:
 - Never disable tests, bypass branch protection, or hide failed checks.
 - Never print secret values — report secret names only.
 
+## Autonomous Permission Scope
+
+During `/delivery`, act without asking for confirmation on:
+
+- Reading any project file.
+- Editing files in the repository (source, docs, scripts, tests, CSS, config) related to the task.
+- Running: `npm install`, `npm ci`, `npm run build`, `npm run check`, `npm test`, `npm run lint`, `npm run typecheck`.
+- Running: `git status`, `git diff`, `git add`, `git commit`, `git push`.
+- Running: `gh pr create`, `gh pr view`, `gh pr checks`, `gh run list`, `gh run view`.
+- Creating or updating a PR; pushing fixes to the same branch; waiting for CI; reading logs; fixing failed checks; re-pushing.
+- Reading deployment status and live URL.
+
+Stop and require explicit user approval before:
+
+- Changing or reading secret/env values.
+- Touching billing, payment, or subscription settings.
+- Writing to production database.
+- Running: `rm -rf`, `git reset --hard`, `git clean -fd`, force push.
+- Deleting many files.
+- Changing auth, OAuth, or security rules.
+- Changing deployment provider settings.
+- **Merging to `main`** — unless the task explicitly includes `"full delivery to live"`, `"merge if green"`, or `"deliver to production"`.
+- Production deploy if this project does not auto-deploy from `main`.
+
+**Full-autonomy trigger:** If the task includes `"full delivery to live"`, `"merge if green"`, or `"deliver to production"`, merge after checks pass and verify live without asking. If branch protection, required review, missing permission, env/secrets, or destructive action is needed, return `STATUS: BLOCKED` with the exact blocker.
+
+---
+
 ## Cost-Control Rules
 
 - Use the stable source-of-truth docs as cached/stable context. Place them first. Do not duplicate the full protocol in dynamic prompts each loop step.
