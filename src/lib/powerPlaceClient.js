@@ -256,7 +256,10 @@ async function request(path, options = {}) {
   const data = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw powerPlaceError(data?.msg || data?.message || "Ошибка сохранения места силы.", data);
+    throw powerPlaceError(data?.msg || data?.message || "Ошибка сохранения места силы.", {
+      ...(data || {}),
+      status: response.status
+    });
   }
 
   return data;
@@ -345,9 +348,50 @@ async function hydrateCompositionRows(rows, session) {
   return hydrateCompositionRowsWithSignedUrls(rows, signedUrls);
 }
 
+// DB_COMPOSITION_COLUMNS is the strict whitelist of top-level columns accepted by
+// profile_cabinet_power_place_compositions. Client-only fields (field_layout,
+// slot_scale, field_scale, __center_image_scale, __center_frame_scale, zodiac_variant,
+// chess_slot_scale, object_ref_urls, display_src) must never appear here.
+const DB_COMPOSITION_COLUMNS = new Set([
+  "profile_id",
+  "title",
+  "constructor_type",
+  "geometry",
+  "zodiac_visible_count",
+  "altar_center_ratio",
+  "business_vertex_zone_count",
+  "star_variant",
+  "chess_variant",
+  "cover_ref",
+  "object_refs",
+  "central_photo_id",
+  "tradition_id",
+  "tradition_title",
+  "resource_comparison_mode",
+  "resource_without_mandala_comment",
+  "resource_with_mandala_comment"
+]);
+
+function buildCompositionDbPayload(normalized) {
+  return Object.fromEntries(
+    Object.entries(normalized).filter(([key]) => DB_COMPOSITION_COLUMNS.has(key))
+  );
+}
+
+function safePostgrestError(error) {
+  const msg = cleanText(error?.message || error?.details?.message || error?.details?.msg);
+  const code = cleanText(error?.details?.code);
+  const hint = cleanText(error?.details?.hint);
+  const sanitized = [msg, code && `(code: ${code})`, hint && `подсказка: ${hint}`]
+    .filter(Boolean).join(" ");
+  return sanitized || "Ошибка Supabase запроса.";
+}
+
 export const __testPowerPlaceClient = {
   collectCompositionStorageRefs,
-  hydrateCompositionRowsWithSignedUrls
+  hydrateCompositionRowsWithSignedUrls,
+  buildCompositionDbPayload,
+  DB_COMPOSITION_COLUMNS
 };
 
 export function normalizeAccountPlan(plan) {
@@ -658,7 +702,7 @@ export async function createPowerPlaceComposition(composition, plan, session = g
 
 export async function createPowerPlaceCompositionWithDependencies(composition, plan, session = getStoredSession(), dependencies = {}) {
   requireSession(session);
-  const payload = normalizePowerPlaceComposition(composition);
+  const payload = buildCompositionDbPayload(normalizePowerPlaceComposition(composition));
   const countRowsFailureMessage = "Не удалось проверить лимит сохранённых мандал перед сохранением. Проверьте подключение к Supabase и попробуйте снова.";
   const postFailureMessage = "Не удалось сохранить мандалу в Supabase. Проверьте доступ к таблице и попробуйте снова.";
   const hydrationFailureMessage = "Supabase вернул запись, но изображения мандалы не успели подготовиться. Запись добавлена без подписанных ссылок.";
@@ -686,7 +730,8 @@ export async function createPowerPlaceCompositionWithDependencies(composition, p
   } catch (error) {
     throw powerPlaceError(postFailureMessage, {
       stage: "POST",
-      error: safeErrorText(error)
+      error: safePostgrestError(error),
+      status: error?.details?.status
     });
   }
 
@@ -722,7 +767,7 @@ export async function updatePowerPlaceComposition(compositionId, composition, se
     method: "PATCH",
     session,
     prefer: "return=representation",
-    body: normalizePowerPlaceComposition(composition)
+    body: buildCompositionDbPayload(normalizePowerPlaceComposition(composition))
   });
 
   const hydrated = await hydrateCompositionRows(rows, session);

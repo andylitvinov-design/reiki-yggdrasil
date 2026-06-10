@@ -12,6 +12,8 @@ import {
   normalizeTraditionAsset
 } from "../src/lib/powerPlaceClient.js";
 
+const { buildCompositionDbPayload, DB_COMPOSITION_COLUMNS } = __testPowerPlaceClient;
+
 const storageRefs = {
   slot: "storage://profile-cabinet-media/profile-1/power-place/draft/chess-1.png",
   center: "storage://profile-cabinet-media/profile-1/client-goal/center.png",
@@ -1241,3 +1243,119 @@ assert.deepEqual(
   },
   "nested inner/outer gradient placeholder covers should persist via tone"
 );
+
+// ── buildCompositionDbPayload whitelist tests ────────────────────────────────
+
+{
+  const clientOnlyFields = [
+    "field_layout", "zodiac_variant", "chess_slot_scale", "slot_scale",
+    "field_scale", "__center_image_scale", "__center_frame_scale",
+    "object_ref_urls", "display_src", "id", "created_at", "updated_at"
+  ];
+  const compositionWithClientFields = {
+    profile_id: "profile-1",
+    title: "Test",
+    constructor_type: "client",
+    geometry: 4,
+    zodiac_visible_count: 12,
+    altar_center_ratio: "1",
+    business_vertex_zone_count: 1,
+    star_variant: "closed",
+    chess_variant: "classic-14",
+    cover_ref: null,
+    object_refs: { __field_layout: "square" },
+    central_photo_id: null,
+    tradition_id: "",
+    tradition_title: "",
+    resource_comparison_mode: "client_photo",
+    resource_without_mandala_comment: "",
+    resource_with_mandala_comment: "",
+    // client-only fields that must be stripped:
+    field_layout: "vertical",
+    zodiac_variant: "classic-12",
+    chess_slot_scale: 1.2,
+    slot_scale: 1.1,
+    field_scale: 82,
+    __center_image_scale: 1.18,
+    __center_frame_scale: 1.24,
+    object_ref_urls: { "storage://x": "https://signed.example/x.png" },
+    display_src: "https://signed.example/cover.png",
+    id: "should-be-stripped",
+    created_at: "2026-06-01T00:00:00Z",
+    updated_at: "2026-06-01T00:00:00Z"
+  };
+
+  const dbPayload = buildCompositionDbPayload(compositionWithClientFields);
+
+  for (const field of clientOnlyFields) {
+    assert.equal(
+      Object.hasOwn(dbPayload, field),
+      false,
+      `buildCompositionDbPayload must strip client-only field: ${field}`
+    );
+  }
+
+  for (const col of DB_COMPOSITION_COLUMNS) {
+    assert.equal(
+      Object.hasOwn(dbPayload, col),
+      true,
+      `buildCompositionDbPayload must preserve DB column: ${col}`
+    );
+  }
+}
+
+{
+  const normalized = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Whitelist test",
+    constructor_type: "chess",
+    chess_variant: "compact-5",
+    object_refs: { __field_layout: "vertical" },
+    central_photo_id: null
+  });
+  const dbPayload = buildCompositionDbPayload(normalized);
+
+  assert.equal(Object.hasOwn(dbPayload, "chess_variant"), true, "chess_variant must be in DB payload");
+  assert.equal(Object.hasOwn(dbPayload, "field_layout"), false, "field_layout must not be top-level in DB payload");
+  assert.equal(dbPayload.object_refs.__field_layout, "vertical", "field_layout persists inside object_refs");
+}
+
+{
+  const normalized = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Cover strip test",
+    constructor_type: "client",
+    geometry: 4,
+    cover_ref: {
+      id: "custom-cover",
+      type: "image",
+      src: storageRefs.legacyCover,
+      display_src: "https://signed.example/should-be-stripped.png",
+      inner: {
+        id: "custom-cover",
+        type: "image",
+        src: storageRefs.innerCover,
+        display_src: "https://signed.example/inner-stripped.png"
+      }
+    },
+    object_refs: { object_ref_urls: { "storage://x": "https://signed.example/x.png" } },
+    central_photo_id: null
+  });
+  const dbPayload = buildCompositionDbPayload(normalized);
+
+  assert.equal(Object.hasOwn(dbPayload, "object_ref_urls"), false, "object_ref_urls must be stripped from top-level DB payload");
+}
+
+assert.equal(
+  normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    constructor_type: "client",
+    geometry: 9,
+    object_refs: {},
+    central_photo_id: null
+  }).geometry,
+  9,
+  "geometry 9 (photo-mandala template) must be preserved by normalization"
+);
+
+console.log("powerPlaceClient tests passed");
