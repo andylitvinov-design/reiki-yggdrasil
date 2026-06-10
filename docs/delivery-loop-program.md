@@ -1224,3 +1224,36 @@ PROJECT-SPECIFIC DELIVERY SETTINGS
 ```
 
 The appendix is project-specific. The `/delivery` protocol itself is universal.
+
+---
+
+## 35. reiki-yggdrasil Project Delivery Settings
+
+```txt
+PROJECT-SPECIFIC DELIVERY SETTINGS
+- Repository: andylitvinov-design/reiki-yggdrasil
+- Default branch: main
+- Target branch (features): main
+- Target branch (client releases): production
+- Package manager: npm
+- Framework: Vite + React (SPA, no SSR)
+- Build command: npm run build
+- Output directory: dist
+- Check command: npm run check
+- Lint: not available
+- Typecheck: not available
+- Tests: npm run check (runs all validate/test scripts then build)
+- Smoke test: LIVE_URL=https://mentalica.vercel.app node scripts/live-smoke-test.mjs
+- CI provider: GitHub Actions (.github/workflows/ci.yml)
+- Deployment provider: Vercel (auto-deploy from GitHub)
+- Production/test URL: https://mentalica.vercel.app
+- Legacy URL: https://reiki-yggdrasil.vercel.app
+- Preview URL: Vercel preview per PR (SSO-protected, verify via Vercel dashboard)
+- Required env vars (names only):
+    VITE_SUPABASE_URL
+    VITE_SUPABASE_ANON_KEY
+    VITE_ADMIN_EMAIL
+- PR policy: feature/* → main; releases: release/* → production
+- Merge policy: squash preferred; do not push directly to production
+- Docs to read first: AGENTS.md, README.md, STATE.md, docs/release-workflow.md, docs/deploy-fallback.md
+```

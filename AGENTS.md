@@ -249,6 +249,56 @@ For the draft/clean release workflow, also verify before production release:
 A normal development task is complete when it is committed/merged to its target branch, checks are reported, and the relevant preview/test/live URL verification status is reported.
 A client-facing release is complete only after `production` is updated and the client live URL is verified.
 
+## Agent Command Registry
+
+### /delivery
+
+When the user invokes `/delivery`, follow `docs/delivery-loop-program.md` and `docs/delivery-loop-technical-details.md`.
+
+Act as a release owner, not only a coding assistant.
+
+Do not stop after code changes, PR creation, green checks, merge, or deployment.
+
+Stop only with:
+
+- `STATUS: SUCCESS` — task implemented, PR/merge completed if required, deployed, and verified on live.
+- `STATUS: BLOCKED` — real external blocker with exact evidence and required user action.
+
+Project adapter for this repo:
+
+- Repository: `andylitvinov-design/reiki-yggdrasil`
+- Default branch: `main`
+- Target branch (features): `main`
+- Target branch (client releases): `production`
+- Package manager: `npm`
+- Framework: Vite + React SPA
+- Build command: `npm run build`
+- Check command: `npm run check`
+- Lint: not available
+- Typecheck: not available
+- CI: GitHub Actions (`.github/workflows/ci.yml`)
+- Deployment: Vercel (auto-deploy from GitHub)
+- Live URL: `https://mentalica.vercel.app`
+- Legacy URL: `https://reiki-yggdrasil.vercel.app`
+
+`SUCCESS` requires live proof. See `docs/delivery-loop-source-patterns-and-live-proof.md` for the live proof contract.
+
+### /pr
+
+Create a clean, mergeable PR for the current branch. Do not merge.
+
+Verify: correct base branch, no conflicts, build and check pass, PR description includes task and evidence.
+
+### /fix-deploy
+
+Diagnose and fix a deployment or live mismatch. See `docs/deploy-fallback.md`.
+
+### /audit
+
+Inspect whether the task, PR, merge, deployment, and live state match the original request. Return `STATUS: SUCCESS` or `STATUS: BLOCKED` with evidence.
+
+---
+
 ## Report format
 
 After work, report:
