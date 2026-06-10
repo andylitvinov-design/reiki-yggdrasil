@@ -58,6 +58,14 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
 }));
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
+const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+
+const EMPTY_VISIBILITY_SETTINGS = {
+  center: true,
+  slots: true,
+  outer_cover: true,
+  inner_cover: true
+};
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -414,6 +422,17 @@ function normalizeMotionSettings(value) {
   };
 }
 
+function normalizeVisibilitySettings(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    ...EMPTY_VISIBILITY_SETTINGS,
+    center: source.center === false ? false : true,
+    slots: source.slots === false ? false : true,
+    outer_cover: source.outer_cover === false ? false : true,
+    inner_cover: source.inner_cover === false ? false : true
+  };
+}
+
 function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
 }
@@ -652,6 +671,7 @@ export default function ProfileLitePowerPlaceModule({
   const objectRefs = cleanObjectRefs(compositionDraft.object_refs);
   const slots = useMemo(() => buildSlotList(compositionDraft), [compositionDraft]);
   const motionSettings = normalizeMotionSettings(objectRefs[MOTION_SETTINGS_REF_KEY]);
+  const visibilitySettings = normalizeVisibilitySettings(objectRefs[VISIBILITY_SETTINGS_REF_KEY]);
   const motionMode = motionSettings.mode;
   const videoCount = motionSettings.count;
   const videoDirection = motionSettings.direction;
@@ -1764,6 +1784,37 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
+  const setVisibilitySetting = (key, value) => {
+    const next = { ...visibilitySettings, [key]: value };
+    onCompositionDraftChange(VISIBILITY_SETTINGS_REF_KEY, next);
+  };
+
+  const VISIBILITY_LAYERS = [
+    { key: "center", label: "Центр мандалы" },
+    { key: "slots", label: "Мини-мандалы" },
+    { key: "outer_cover", label: "Фон снаружи" },
+    { key: "inner_cover", label: "Фон внутри" }
+  ];
+
+  const renderVisibilitySettingsModule = () => (
+    <div className="visibilitySettingsPanel">
+      <p className="cabinetEyebrow">Показать/Скрыть</p>
+      <div className="visibilityToggleList" role="group" aria-label="Видимость слоёв">
+        {VISIBILITY_LAYERS.map(({ key, label }) => (
+          <label key={key} className={`visibilityToggleRow${visibilitySettings[key] ? "" : " power-place-layer-hidden"}`}>
+            <input
+              type="checkbox"
+              checked={!!visibilitySettings[key]}
+              onChange={(event) => setVisibilitySetting(key, event.target.checked)}
+              aria-label={label}
+            />
+            <span>{label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderFieldLayoutSelector = () => (
     <div className="mandalaFieldLayoutSwitch powerLayoutPanel compactFieldLayoutSwitch" aria-label="Расположение поля мандалы">
       <div className="layoutCenterCell" data-layout-cell="center" />
@@ -2133,7 +2184,7 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`.trim()} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
+                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
                   {renderInMandalaCoverDropTargets()}
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
@@ -2453,6 +2504,8 @@ export default function ProfileLitePowerPlaceModule({
         <div className="workspaceRightColumn">
           <aside className="powerCommandRail powerPlaceSettings">
             {renderFieldLayoutSelector()}
+
+            {renderVisibilitySettingsModule()}
 
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>

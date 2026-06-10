@@ -141,6 +141,7 @@ const EMPTY_COMPOSITION = {
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
@@ -1371,6 +1372,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleCompositionDraftChange = (field, value) => {
     setCompositionDraft((current) => {
+      if (field === VISIBILITY_SETTINGS_REF_KEY) {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [VISIBILITY_SETTINGS_REF_KEY]: value && typeof value === "object" ? value : {}
+          }
+        };
+      }
       if (field === PROFILE_LITE_REPORT_REF_KEY) {
         return {
           ...current,

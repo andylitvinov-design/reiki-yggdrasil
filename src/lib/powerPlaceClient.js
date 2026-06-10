@@ -40,6 +40,7 @@ const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
+const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
@@ -168,6 +169,12 @@ function cleanObjectRefs(value) {
     if (key === SLOT_TRANSFORMS_REF_KEY) {
       const normalized = normalizeSlotTransforms(rawItem);
       if (normalized) refs[SLOT_TRANSFORMS_REF_KEY] = normalized;
+      continue;
+    }
+    if (key === VISIBILITY_SETTINGS_REF_KEY) {
+      if (rawItem && typeof rawItem === "object" && !Array.isArray(rawItem)) {
+        refs[VISIBILITY_SETTINGS_REF_KEY] = rawItem;
+      }
       continue;
     }
     if (rawItem && typeof rawItem === "object") continue;

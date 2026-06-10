@@ -8316,3 +8316,100 @@
     width: calc(28% * var(--power-center-frame-scale, 1));
   }
 }
+
+/* ── Visibility settings panel ────────────────────────────────────────────── */
+.visibilitySettingsPanel {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--card-bg, #fffaee);
+  border: 1px solid rgba(184, 121, 29, 0.18);
+}
+
+.visibilitySettingsPanel .cabinetEyebrow {
+  margin-bottom: 8px;
+}
+
+.visibilityToggleList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.visibilityToggleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-main, #3b2200);
+  user-select: none;
+}
+
+.visibilityToggleRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent, #b87a1d);
+  flex-shrink: 0;
+}
+
+.visibilityToggleRow.power-place-layer-hidden span {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+/* ── Visibility hide rules ────────────────────────────────────────────────── */
+.powerMandalaPanel.power-place-hide-center .powerCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .altarCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .daoCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .chessCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .zodiacCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .starCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .clientCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .centerPhotoWrap,
+.powerMandalaPanel.power-place-hide-center .powerCenterFrame {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.powerMandalaPanel.power-place-hide-outer-cover {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.powerMandalaPanel.power-place-hide-inner-cover .zodiacMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .starMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .daoMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .power-place-chess,
+.powerMandalaPanel.power-place-hide-inner-cover .powerMandala,
+.powerMandalaPanel.power-place-hide-inner-cover .altarMandalaSheet {
+  background-image: none !important;
+}
+
+.powerMandalaPanel.power-place-hide-slots .powerSource,
+.powerMandalaPanel.power-place-hide-slots .altarTopSource,
+.powerMandalaPanel.power-place-hide-slots .altarSupportSource,
+.powerMandalaPanel.power-place-hide-slots .businessVertexZone,
+.powerMandalaPanel.power-place-hide-slots .zodiacPositionImage,
+.powerMandalaPanel.power-place-hide-slots .zodiacFieldPlusPositionImage,
+.powerMandalaPanel.power-place-hide-slots .starPositionImage,
+.powerMandalaPanel.power-place-hide-slots .daoElementImage,
+.powerMandalaPanel.power-place-hide-slots .daoTalismanSlot,
+.powerMandalaPanel.power-place-hide-slots .power-place-chess__slot {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Mobile order for visibility panel ───────────────────────────────────── */
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerLayoutPanel.compactFieldLayoutSwitch,
+  .profileLitePowerPlace .visibilitySettingsPanel,
+  .profileLitePowerPlace .coverPickerPanel,
+  .profileLitePowerPlace .reportSettingsPanel {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}

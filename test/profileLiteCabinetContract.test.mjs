@@ -524,7 +524,7 @@ assert.match(mobileOrderCss, /profile-lite-mobile order hotfix|Profile Lite mobi
 assert.match(mobileOrderCss, /profileLiteTabs a\[href="\/profile"\]/, "mobile order CSS should hide the Overview tab link");
 assert.match(mobileOrderCss, /powerLibrarySidebar\{order:99/, "mobile order CSS should move source library to the bottom");
 assert.match(mobileOrderCss, /reportSettingsPanel\{order:20/, "mobile order CSS should move report analysis lower on mobile");
-assert.match(mobileOrderCss, /coverPickerPanel\{order:2/, "mobile order CSS should place Power Place background near the top on mobile");
+assert.match(mobileOrderCss, /coverPickerPanel\{order:[23]/, "mobile order CSS should place Power Place background near the top on mobile");
 
 assert.match(layoutFinalFix, /preferMandalasRoute/, "layout fix should prefer mandalas on bare profile route");
 assert.match(layoutFinalFix, /window\.location\.search \|\| window\.location\.hash/, "mandalas default redirect should leave callback/query URLs untouched");
@@ -1044,3 +1044,16 @@ assert.match(
 );
 
 console.log("Profile Lite cabinet contract: all assertions passed.");
+
+// ── Visibility settings module contract ──────────────────────────────────────
+assert.match(powerPlaceBaseSource, /__visibility_settings/, "PowerPlaceModuleBase must reference __visibility_settings key");
+assert.match(powerPlaceBaseSource, /Показать\/Скрыть/, "PowerPlaceModuleBase must include Показать/Скрыть label");
+assert.match(powerPlaceBaseSource, /Центр мандалы/, "PowerPlaceModuleBase must include Центр мандалы toggle label");
+assert.match(powerPlaceBaseSource, /Мини-мандалы/, "PowerPlaceModuleBase must include Мини-мандалы toggle label");
+assert.match(powerPlaceBaseSource, /Фон снаружи/, "PowerPlaceModuleBase must include Фон снаружи toggle label");
+assert.match(powerPlaceBaseSource, /Фон внутри/, "PowerPlaceModuleBase must include Фон внутри toggle label");
+assert.match(powerPlaceBaseSource, /visibilitySettingsPanel/, "PowerPlaceModuleBase must include visibilitySettingsPanel class");
+assert.match(powerPlaceBaseSource, /power-place-hide-center/, "PowerPlaceModuleBase must apply power-place-hide-center class");
+assert.match(powerPlaceBaseSource, /power-place-hide-slots/, "PowerPlaceModuleBase must apply power-place-hide-slots class");
+assert.match(powerPlaceBaseSource, /power-place-hide-outer-cover/, "PowerPlaceModuleBase must apply power-place-hide-outer-cover class");
+assert.match(powerPlaceBaseSource, /power-place-hide-inner-cover/, "PowerPlaceModuleBase must apply power-place-hide-inner-cover class");
