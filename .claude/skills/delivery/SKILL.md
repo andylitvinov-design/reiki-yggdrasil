@@ -11,6 +11,10 @@ Source-of-truth docs (read all three before starting):
 
 Project adapter: see `AGENTS.md` → Agent Command Registry → `/delivery`.
 
+Default live target: `https://2mentalica.vercel.app` (primary production URL).
+SUCCESS requires live proof on this URL unless another target is explicitly requested.
+Secondary (`https://mentalica.vercel.app`) and legacy (`https://reiki-yggdrasil.vercel.app`) URLs cannot satisfy SUCCESS for production delivery by default.
+
 ---
 
 ## Execution Order

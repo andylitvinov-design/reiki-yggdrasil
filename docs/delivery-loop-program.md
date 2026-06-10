@@ -1243,12 +1243,16 @@ PROJECT-SPECIFIC DELIVERY SETTINGS
 - Lint: not available
 - Typecheck: not available
 - Tests: npm run check (runs all validate/test scripts then build)
-- Smoke test: LIVE_URL=https://mentalica.vercel.app node scripts/live-smoke-test.mjs
+- Smoke test: LIVE_URL=https://2mentalica.vercel.app node scripts/live-smoke-test.mjs
 - CI provider: GitHub Actions (.github/workflows/ci.yml)
 - Deployment provider: Vercel (auto-deploy from GitHub)
-- Production/test URL: https://mentalica.vercel.app
-- Legacy URL: https://reiki-yggdrasil.vercel.app
+- Primary production/live URL: https://2mentalica.vercel.app  ← default /delivery target
+- Secondary production URL: https://mentalica.vercel.app
+- Legacy/fallback URL: https://reiki-yggdrasil.vercel.app
 - Preview URL: Vercel preview per PR (SSO-protected, verify via Vercel dashboard)
+- Default /delivery target: Primary production/live URL (https://2mentalica.vercel.app).
+  Secondary and legacy URLs cannot satisfy SUCCESS for production delivery by default.
+  They are allowed only when explicitly requested by the user or used as diagnostic fallback.
 - Required env vars (names only):
     VITE_SUPABASE_URL
     VITE_SUPABASE_ANON_KEY

@@ -1,7 +1,7 @@
 const provider = process.env.DEPLOYMENT_PROVIDER || 'vercel';
 const expectedCommit = process.env.EXPECTED_COMMIT || '';
 const deploymentUrl = process.env.DEPLOYMENT_URL || '';
-const liveUrl = process.env.LIVE_URL || 'https://mentalica.vercel.app';
+const liveUrl = process.env.LIVE_URL || 'https://2mentalica.vercel.app';
 
 const result = {
   provider,

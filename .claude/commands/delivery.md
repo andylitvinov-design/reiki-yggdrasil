@@ -24,8 +24,11 @@ Project adapter for this repo:
 - Check: npm run check
 - CI: GitHub Actions
 - Deployment: Vercel (auto-deploy from GitHub)
-- Live URL: https://mentalica.vercel.app
-- Legacy URL: https://reiki-yggdrasil.vercel.app
+- Primary live URL: https://2mentalica.vercel.app  ← default SUCCESS target
+- Secondary production URL: https://mentalica.vercel.app
+- Legacy fallback URL: https://reiki-yggdrasil.vercel.app
+
+SUCCESS requires live proof on the primary live URL (https://2mentalica.vercel.app) unless another target is explicitly requested by the user.
 
 Required final status:
 

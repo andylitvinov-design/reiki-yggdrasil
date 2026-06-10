@@ -20,11 +20,13 @@
   },
   "deployment": {
     "provider": "vercel",
-    "productionUrl": "https://mentalica.vercel.app",
-    "legacyUrl": "https://reiki-yggdrasil.vercel.app",
+    "productionUrl": "https://2mentalica.vercel.app",
+    "secondaryProductionUrl": "https://mentalica.vercel.app",
+    "legacyFallbackUrl": "https://reiki-yggdrasil.vercel.app",
     "previewUrl": null,
     "requiresDashboardAccess": true,
-    "autoDeployBranch": "main"
+    "autoDeployBranch": "main",
+    "defaultDeliveryTarget": "productionUrl"
   },
   "github": {
     "usePullRequests": true,

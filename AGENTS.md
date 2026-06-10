@@ -294,8 +294,11 @@ Project adapter for this repo:
 - Typecheck: not available
 - CI: GitHub Actions (`.github/workflows/ci.yml`)
 - Deployment: Vercel (auto-deploy from GitHub)
-- Live URL: `https://mentalica.vercel.app`
-- Legacy URL: `https://reiki-yggdrasil.vercel.app`
+- **Primary production/live URL: `https://2mentalica.vercel.app`** ← default `/delivery` target
+- Secondary production URL: `https://mentalica.vercel.app`
+- Legacy/fallback URL: `https://reiki-yggdrasil.vercel.app`
+
+**Live target rule:** Unless the user explicitly specifies another target, `/delivery` SUCCESS requires LIVE PROOF on the primary production URL `https://2mentalica.vercel.app`. STATUS: SUCCESS after checking only secondary, legacy, preview, or fallback URLs is not valid unless the user explicitly selected that target.
 
 ### /pr
 
