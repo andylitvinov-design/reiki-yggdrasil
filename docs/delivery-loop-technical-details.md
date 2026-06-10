@@ -1099,36 +1099,31 @@ deleting many files
 changing auth, OAuth, or security rules
 changing deployment provider settings
 
-# Merge gate (default — requires explicit trigger)
-merging to main
-
 # Deploy gate
 production deploy — if this project does not auto-deploy from main
 ```
 
-### Full-autonomy trigger
+### Merge by default
 
-If the user invokes `/delivery` with any of these phrases:
+The agent merges after checks pass — no trigger phrase required.
 
-```txt
-"full delivery to live"
-"merge if green"
-"deliver to production"
-```
+Merge is allowed when all are true:
 
-Then the agent may:
+- PR implements the task; acceptance criteria satisfied.
+- Local checks passed; CI green (or absent by project policy).
+- PR is mergeable; no conflicts; no blocking policy reviews required.
+- No risky or destructive action needed.
+- User did not explicitly request PR-only mode (e.g. `/pr`).
 
-- merge the PR after all checks pass;
-- verify deployment and live URL without asking again.
+Use `/pr` to stop at a green, mergeable PR without merging.
 
-If branch protection, required review, missing permission, env/secrets issue, or destructive action is needed, return `STATUS: BLOCKED` with the exact blocker — do not attempt to bypass.
+If any condition above is NOT met, return `STATUS: BLOCKED` with the exact blocker — do not bypass.
 
 Checkpoint:
 
 - [ ] Routine delivery actions (read, edit, build, check, git, gh, PR) require no confirmation.
 - [ ] Secrets, billing, database, destructive, and auth actions always require approval.
-- [ ] Merge to main requires either explicit trigger phrase or user approval.
-- [ ] Full-autonomy trigger is recognized when present in the invocation.
+- [ ] Merge happens by default when all conditions are met; blocked conditions surface as STATUS: BLOCKED.
 - [ ] Blocked by gate → STATUS: BLOCKED with exact blocker, not silent bypass.
 
 ---

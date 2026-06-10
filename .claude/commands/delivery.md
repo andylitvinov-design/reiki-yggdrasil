@@ -56,10 +56,9 @@ Require explicit user approval before:
 - Deleting many files.
 - Changing auth, OAuth, or security rules.
 - Changing deployment provider settings.
-- Merging to main — unless the invocation includes "full delivery to live", "merge if green", or "deliver to production".
 - Production deploy if this project does not auto-deploy from main.
 
-Full-autonomy trigger: if the task includes "full delivery to live", "merge if green", or "deliver to production", the agent may merge after checks pass and verify live without asking again. If branch protection, required review, missing permission, env/secrets, or destructive action is needed, return STATUS: BLOCKED with the exact blocker.
+Merge by default: the agent merges the PR without asking when all are true — PR implements the task; acceptance criteria satisfied; local checks passed; CI green (or absent by project policy); PR is mergeable; no risky action required; branch policy does not require human review; user did not explicitly request PR-only mode. Use /pr to stop at a green PR without merging. If any condition is not met, return STATUS: BLOCKED with the exact blocker.
 
 Cost-control rules:
 

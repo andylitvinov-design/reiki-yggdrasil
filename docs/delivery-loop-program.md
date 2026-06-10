@@ -976,33 +976,31 @@ Destructive commands: rm -rf, git reset --hard, git clean -fd, force push.
 Deleting many files.
 Changing auth, OAuth, or security rules.
 Changing deployment provider settings.
-Merging to main — unless the user's invocation includes:
-  "full delivery to live" | "merge if green" | "deliver to production"
 Production deploy — if this project does not auto-deploy from main.
 ```
 
-### Full-autonomy trigger
+### Merge by default
 
-If the user invokes `/delivery` with `"full delivery to live"`, `"merge if green"`, or `"deliver to production"`, the agent may:
+The agent merges the PR without asking when ALL of the following are true:
 
-- merge the PR after all checks pass;
-- verify deployment and live URL without asking again.
+- The PR implements the requested task.
+- Acceptance criteria are satisfied.
+- Local checks passed.
+- CI / checks are green (or explicitly absent by project policy).
+- PR is mergeable (no conflicts, no blocking reviews required by policy).
+- No risky or destructive action is involved.
+- Branch policy does not require human review.
+- The user did not explicitly request PR-only mode (e.g. `/pr`).
 
-If any of the following are needed, return `STATUS: BLOCKED` immediately with the exact blocker:
+Use `/pr` to create a PR without merging.
 
-```txt
-branch protection blocks merge
-required human review is missing
-agent lacks merge permission
-env/secrets are missing
-destructive action is required
-```
+If any condition above is NOT met, return `STATUS: BLOCKED` with the exact blocker — do not bypass.
 
 Checkpoint:
 
 - [ ] Routine delivery actions do not require confirmation.
 - [ ] Dangerous or external-permission actions block or ask.
-- [ ] Full-autonomy trigger is recognized and applied.
+- [ ] Merge happens by default when all conditions are met.
 - [ ] Final answer is still `STATUS: SUCCESS` or `STATUS: BLOCKED`.
 
 ---
