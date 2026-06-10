@@ -1241,3 +1241,55 @@ assert.deepEqual(
   },
   "nested inner/outer gradient placeholder covers should persist via tone"
 );
+
+// ── __visibility_settings persistence ────────────────────────────────────────
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility test",
+    constructor_type: "zodiac",
+    object_refs: {
+      __visibility_settings: {
+        center: false,
+        slots: false,
+        outer_cover: false,
+        inner_cover: false
+      }
+    }
+  });
+  assert.deepEqual(
+    comp.object_refs.__visibility_settings,
+    { center: false, slots: false, outer_cover: false, inner_cover: false },
+    "__visibility_settings with all false must survive normalization"
+  );
+}
+
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility defaults",
+    constructor_type: "zodiac",
+    object_refs: {}
+  });
+  assert.equal(
+    comp.object_refs.__visibility_settings,
+    undefined,
+    "old composition without __visibility_settings should not inject the key"
+  );
+}
+
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility partial",
+    constructor_type: "zodiac",
+    object_refs: {
+      __visibility_settings: { center: false }
+    }
+  });
+  assert.deepEqual(
+    comp.object_refs.__visibility_settings,
+    { center: false },
+    "partial __visibility_settings should be preserved as-is through normalization"
+  );
+}

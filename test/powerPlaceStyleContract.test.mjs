@@ -476,3 +476,12 @@ for (const elementId of ["water", "wood", "fire", "earth", "metal"]) {
   );
 }
 console.log("powerPlaceStyleContract: all assertions passed");
+
+// ── Visibility settings CSS contract ─────────────────────────────────────────
+assert.ok(cssSource.includes(".visibilitySettingsPanel"), "CSS must define .visibilitySettingsPanel");
+assert.ok(cssSource.includes(".visibilityToggleRow"), "CSS must define .visibilityToggleRow");
+assert.ok(cssSource.includes(".power-place-layer-hidden"), "CSS must define .power-place-layer-hidden modifier class");
+assert.ok(cssSource.includes(".power-place-hide-slots"), "CSS must define .power-place-hide-slots rule");
+assert.ok(cssSource.includes(".power-place-hide-outer-cover"), "CSS must define .power-place-hide-outer-cover rule");
+assert.ok(cssSource.includes(".power-place-hide-inner-cover"), "CSS must define .power-place-hide-inner-cover rule");
+assert.ok(cssSource.includes(".power-place-hide-center"), "CSS must define .power-place-hide-center rule");
