@@ -37,6 +37,16 @@ Required final status:
 
 Do not stop after code, PR, checks, merge, or deploy.
 
+Cost-control rules:
+
+- Treat the stable docs (1-4 above) as cached/stable context. Do not duplicate the full protocol in dynamic prompts.
+- Put current task / logs / diffs / PR status after the stable protocol context.
+- Prefer diffs over full files. Do not scan the full repository unless necessary.
+- Stop after 3 failed fix attempts on the same issue — return STATUS: BLOCKED.
+- Never touch env vars, secrets, billing, production database, or auth-sensitive settings without explicit user approval.
+- Use cheapest capable model/tooling for routine status checks; use stronger reasoning only for architecture, hard debug, or final delivery-risk review.
+- Final report must include COST CONTROL section.
+
 SUCCESS requires a completed live proof block:
 
 ```txt

@@ -300,6 +300,15 @@ Project adapter for this repo:
 
 **Live target rule:** Unless the user explicitly specifies another target, `/delivery` SUCCESS requires LIVE PROOF on the primary production URL `https://2mentalica.vercel.app`. STATUS: SUCCESS after checking only secondary, legacy, preview, or fallback URLs is not valid unless the user explicitly selected that target.
 
+**Cost-control rules:**
+
+- `/delivery` includes cost-control by default.
+- Do not reread or resend unchanged large context. Place stable project context (protocol docs, AGENTS.md, rules) first; place current task/diffs/logs after.
+- Prefer diffs over full files. Read only relevant files first.
+- Stop after **3 failed fix attempts** on the same issue — return `STATUS: BLOCKED` with the 3 attempts listed.
+- Never touch env vars, secrets, billing, production database, or auth-sensitive settings without explicit user approval. Stop and describe the required action; do not proceed.
+- Final report must include a `COST CONTROL` section.
+
 ### /pr
 
 Create a clean, mergeable PR for the current branch. Do not merge.

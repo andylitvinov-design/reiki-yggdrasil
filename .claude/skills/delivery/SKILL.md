@@ -87,3 +87,27 @@ Must include:
 - If evidence is missing, status is BLOCKED, not SUCCESS.
 - Never disable tests, bypass branch protection, or hide failed checks.
 - Never print secret values — report secret names only.
+
+## Cost-Control Rules
+
+- Use the stable source-of-truth docs as cached/stable context. Place them first. Do not duplicate the full protocol in dynamic prompts each loop step.
+- Put current task / logs / diffs / PR status after the stable protocol context.
+- Prefer diffs over full files. Read only relevant files first. Do not scan the full repository unless necessary.
+- Stop after **3 failed fix attempts** on the same issue — return `STATUS: BLOCKED` with the 3 attempts described.
+- Never touch env vars, secrets, billing, production database, or auth-sensitive settings without explicit user approval. Stop and describe the required action.
+- Use cheapest capable model/tooling for routine status checks, file listing, PR body edits, and repetitive summaries.
+- Use stronger reasoning only for architecture gate, hard debugging, security-sensitive review, or final delivery-risk review.
+- Final report must include:
+
+```txt
+COST CONTROL:
+- Stable project context reused:
+- Dynamic context separated:
+- Diffs preferred over full files:
+- Full repo scan avoided:
+- Loop attempts used:
+- Same-issue retry count:
+- Expensive reasoning used for:
+- Cost/token risk: low / medium / high
+- What was avoided to save cost:
+```

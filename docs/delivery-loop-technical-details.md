@@ -952,6 +952,86 @@ Checkpoint:
 
 ---
 
+## 18a. Loop Limits and Cost-Control Rules
+
+### Loop Limits
+
+Stop and return `STATUS: BLOCKED` when:
+
+- The same issue has failed to fix after **3 attempts**. Do not attempt a fourth fix on the same root cause. Report the exact blocker, the 3 attempts made, and the required user action.
+- PR mergeability is blocked by external policy (branch protection, required review, admin lock) — this is an immediate blocker, not a fixable loop.
+
+### Sensitive and Destructive Operation Gate
+
+Stop immediately before any of the following and ask for explicit user approval:
+
+```txt
+env vars or secrets (read by name only; never write or expose values)
+billing or subscription settings
+production database (writes, migrations, schema changes, drops)
+auth-sensitive settings (OAuth credentials, JWT secrets, session config)
+destructive git operations (force push, reset --hard, branch -D on protected branches)
+infrastructure changes (DNS, CDN, firewall rules, deployment provider settings)
+removing branch protection or required reviews
+```
+
+Correct wording before a sensitive action:
+
+```txt
+STATUS: BLOCKED
+Blocker: Next required action is sensitive/destructive: [describe exact action].
+Evidence: [what was found].
+Required user action: explicitly approve this action, or perform it manually.
+Next prompt: /delivery after approving [action].
+```
+
+### Prompt Caching and Context Discipline
+
+- Place stable project context first in each run (AGENTS.md, protocol docs, rules).
+- Place dynamic context after stable context (current task, diffs, logs, PR status).
+- Do not reread or resend unchanged large files — use diffs.
+- Do not scan the full repository unless necessary.
+- Keep a compact running state: task, criteria, files changed, checks run, blockers, next action.
+
+### Model Routing (Universal)
+
+When model routing is available:
+
+- Cheapest capable model/tooling for: status reads, PR body edits, file listing, repetitive summaries.
+- Stronger reasoning only for: architecture gate, hard debugging, security-sensitive review, final delivery-risk review.
+
+Optional Claude Code guidance:
+
+- Sonnet: default.
+- Haiku: simple status/summary/file listing — if available.
+- Opus: hard architecture/debug/final risk reasoning — if available.
+
+### Final Report Addition
+
+Every `/delivery` final report must include:
+
+```txt
+COST CONTROL:
+- Stable project context reused:
+- Dynamic context separated:
+- Diffs preferred over full files:
+- Full repo scan avoided:
+- Loop attempts used:
+- Same-issue retry count:
+- Expensive reasoning used for:
+- Cost/token risk: low / medium / high
+- What was avoided to save cost:
+```
+
+Checkpoint:
+
+- [ ] Same-issue fix loop stops after 3 attempts.
+- [ ] Sensitive/destructive operations require explicit approval before proceeding.
+- [ ] Stable context is placed first; dynamic context follows.
+- [ ] Final report includes COST CONTROL section.
+
+---
+
 ## 19. Security Guardrails in Code
 
 Agents must check for accidental secret exposure.
