@@ -632,3 +632,42 @@ assert.ok(
 );
 
 console.log("Zodiac 2 CSS contract: all assertions passed.");
+
+// ─── Zodiac style CSS contract ────────────────────────────────────────────────
+
+assert.ok(
+  cssSource.includes(".zodiac-style-stars"),
+  "CSS must define .zodiac-style-stars rule for 8-ray star shape"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacRibbonSheet"),
+  "CSS must define .zodiacRibbonSheet for Лента style"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacRibbonTrack"),
+  "CSS must define .zodiacRibbonTrack for the horizontal ribbon scroll container"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacRibbonCell"),
+  "CSS must define .zodiacRibbonCell for individual ribbon divisions"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacRibbonCellImage"),
+  "CSS must define .zodiacRibbonCellImage for ribbon cell photo circles"
+);
+
+assert.ok(
+  moduleSource.includes(".zodiacRibbonCellImage[style]"),
+  "Wrapper module dynamic CSS must include .zodiacRibbonCellImage[style] for pan/zoom support"
+);
+
+assert.ok(
+  moduleSource.includes(".zodiacRibbonCell.hasImage"),
+  "Wrapper module dynamic CSS must include .zodiacRibbonCell.hasImage for background cleanup"
+);
+
+console.log("Zodiac style CSS contract: all assertions passed.");

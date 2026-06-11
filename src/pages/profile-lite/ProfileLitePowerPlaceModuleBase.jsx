@@ -172,6 +172,16 @@ const ZODIAC_2_INNER_SLOTS = Array.from({ length: 12 }, (_, index) => ({
   label: `Внутренняя мандала ${index + 1}`,
   classPrefix: "inner"
 }));
+export const ZODIAC_STYLE_REF_KEY = "__zodiac_style";
+export const ZODIAC_STYLE_VARIANTS = [
+  { value: "sun", label: "Солнце" },
+  { value: "stars", label: "Звёзды" },
+  { value: "ribbon", label: "Лента" }
+];
+export function zodiacStyleValue(value) {
+  if (value === "stars" || value === "ribbon") return value;
+  return "sun";
+}
 
 function isZodiac2Variant(value) {
   return String(value || "") === ZODIAC_2_VARIANT;
@@ -732,6 +742,7 @@ export default function ProfileLitePowerPlaceModule({
   const chessVariant = compositionDraft.chess_variant || "classic-14";
   const zodiacVariant = compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count || 12}`;
   const isZodiac2 = compositionDraft.constructor_type === "zodiac" && isZodiac2Variant(zodiacVariant);
+  const zodiacStyle = zodiacStyleValue(compositionDraft.__zodiac_style);
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
@@ -2226,6 +2237,14 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
+                {compositionDraft.constructor_type === "zodiac" && (
+                  <div className="zodiacStyleSelector" aria-label="Стиль зодиака">
+                    <span>Стиль зодиака</span>
+                    {ZODIAC_STYLE_VARIANTS.map((variant) => (
+                      <button className={zodiacStyle === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange(ZODIAC_STYLE_REF_KEY, variant.value)} type="button">{variant.label}</button>
+                    ))}
+                  </div>
+                )}
                 {compositionDraft.constructor_type === "star" && (
                   <div className="starVariantSelector" aria-label="Формат звезды">
                     <span>Вариант звезды</span>
@@ -2320,93 +2339,131 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
-                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
-                        {renderCenterPhotoWithMode("zodiacCenterPhoto")}
-                        {renderPowerPlaceMotionLayer()}
-                        <div className="zodiacClockFace" aria-hidden="true">
-                          <span>ЗОДИАК</span>
-                        </div>
-                        {isZodiac2 && slots.filter((slot) => slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
-                          const src = objectRefs[slot.id] || "";
-                          const displaySrc = objectRefUrls[src] || src;
-                          return (
-                            <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
-                              <button
-                                className={`zodiacInnerPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                                onClick={() => {
-                                  if (suppressSlotPickerClickRef.current[slot.id]) {
-                                    suppressSlotPickerClickRef.current[slot.id] = false;
-                                    return;
-                                  }
-                                  openObjectPicker(slot.id);
-                                }}
-                                style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
-                                type="button"
-                                title={slot.label}
-                                aria-label={`Выбрать внутреннюю мандалу ${slot.label}`}
-                                {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
-                                {...getPowerPlaceSlotDropHandlers(slot.id)}
-                              >
-                                {!src && <span>{index + 1}</span>}
-                              </button>
-                            </div>
-                          );
-                        })}
-                        {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus") && !slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
-                          const src = objectRefs[slot.id] || "";
-                          const displaySrc = objectRefUrls[src] || src;
-                          return (
-                            <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
-                              <button
-                                className={`zodiacPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                                onClick={() => {
-                                  if (suppressSlotPickerClickRef.current[slot.id]) {
-                                    suppressSlotPickerClickRef.current[slot.id] = false;
-                                    return;
-                                  }
-                                  openObjectPicker(slot.id);
-                                }}
-                                style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
-                                type="button"
-                                title={slot.label}
-                                aria-label={`Выбрать знак ${slot.label}`}
-                                {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
-                                {...getPowerPlaceSlotDropHandlers(slot.id)}
-                              >
-                                {!src && <span>{index + 1}</span>}
-                              </button>
-                              <b>{slot.label}</b>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {slots.filter((slot) => slot.id.startsWith("zodiac-plus")).map((slot, index) => {
-                        const src = objectRefs[slot.id] || "";
-                        const displaySrc = objectRefUrls[src] || src;
-                        return (
-                          <div className={`zodiacFieldPlusPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
-                            <button
-                              className={`zodiacFieldPlusPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                              onClick={() => {
-                                if (suppressSlotPickerClickRef.current[slot.id]) {
-                                  suppressSlotPickerClickRef.current[slot.id] = false;
-                                  return;
-                                }
-                                openObjectPicker(slot.id);
-                              }}
-                              style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
-                              type="button"
-                              title={slot.label}
-                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
-                              {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
-                              {...getPowerPlaceSlotDropHandlers(slot.id)}
-                            >
-                              {!src && <span>{index + 1}</span>}
-                            </button>
-                            <b>{slot.label}</b>
+                      {zodiacStyle === "ribbon" ? (
+                        <div className={`zodiacRibbonSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                          {renderCenterPhotoWithMode("zodiacCenterPhoto")}
+                          {renderPowerPlaceMotionLayer()}
+                          <div className="zodiacRibbonTrack">
+                            {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus") && !slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
+                              const src = objectRefs[slot.id] || "";
+                              const displaySrc = objectRefUrls[src] || src;
+                              return (
+                                <div className={`zodiacRibbonCell${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`} key={slot.id}>
+                                  <button
+                                    className={`zodiacRibbonCellImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                    onClick={() => {
+                                      if (suppressSlotPickerClickRef.current[slot.id]) {
+                                        suppressSlotPickerClickRef.current[slot.id] = false;
+                                        return;
+                                      }
+                                      openObjectPicker(slot.id);
+                                    }}
+                                    style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
+                                    type="button"
+                                    title={slot.label}
+                                    aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                                    {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
+                                    {...getPowerPlaceSlotDropHandlers(slot.id)}
+                                  >
+                                    {!src && <span>{index + 1}</span>}
+                                  </button>
+                                  <b>{slot.label}</b>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
+                        </div>
+                      ) : (
+                        <>
+                          <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                            {renderCenterPhotoWithMode("zodiacCenterPhoto")}
+                            {renderPowerPlaceMotionLayer()}
+                            <div className="zodiacClockFace" aria-hidden="true">
+                              <span>ЗОДИАК</span>
+                            </div>
+                            {isZodiac2 && slots.filter((slot) => slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
+                              const src = objectRefs[slot.id] || "";
+                              const displaySrc = objectRefUrls[src] || src;
+                              return (
+                                <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
+                                  <button
+                                    className={`zodiacInnerPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                    onClick={() => {
+                                      if (suppressSlotPickerClickRef.current[slot.id]) {
+                                        suppressSlotPickerClickRef.current[slot.id] = false;
+                                        return;
+                                      }
+                                      openObjectPicker(slot.id);
+                                    }}
+                                    style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
+                                    type="button"
+                                    title={slot.label}
+                                    aria-label={`Выбрать внутреннюю мандалу ${slot.label}`}
+                                    {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
+                                    {...getPowerPlaceSlotDropHandlers(slot.id)}
+                                  >
+                                    {!src && <span>{index + 1}</span>}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus") && !slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
+                              const src = objectRefs[slot.id] || "";
+                              const displaySrc = objectRefUrls[src] || src;
+                              return (
+                                <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                                  <button
+                                    className={`zodiacPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                    onClick={() => {
+                                      if (suppressSlotPickerClickRef.current[slot.id]) {
+                                        suppressSlotPickerClickRef.current[slot.id] = false;
+                                        return;
+                                      }
+                                      openObjectPicker(slot.id);
+                                    }}
+                                    style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
+                                    type="button"
+                                    title={slot.label}
+                                    aria-label={`Выбрать знак ${slot.label}`}
+                                    {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
+                                    {...getPowerPlaceSlotDropHandlers(slot.id)}
+                                  >
+                                    {!src && <span>{index + 1}</span>}
+                                  </button>
+                                  <b>{slot.label}</b>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {slots.filter((slot) => slot.id.startsWith("zodiac-plus")).map((slot, index) => {
+                            const src = objectRefs[slot.id] || "";
+                            const displaySrc = objectRefUrls[src] || src;
+                            return (
+                              <div className={`zodiacFieldPlusPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
+                                <button
+                                  className={`zodiacFieldPlusPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                  onClick={() => {
+                                    if (suppressSlotPickerClickRef.current[slot.id]) {
+                                      suppressSlotPickerClickRef.current[slot.id] = false;
+                                      return;
+                                    }
+                                    openObjectPicker(slot.id);
+                                  }}
+                                  style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
+                                  type="button"
+                                  title={slot.label}
+                                  aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                                  {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
+                                  {...getPowerPlaceSlotDropHandlers(slot.id)}
+                                >
+                                  {!src && <span>{index + 1}</span>}
+                                </button>
+                                <b>{slot.label}</b>
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
                     <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>

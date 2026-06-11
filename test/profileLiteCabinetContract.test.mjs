@@ -1177,3 +1177,79 @@ assert.doesNotMatch(
 }
 
 console.log("Zodiac 2 format contract: all assertions passed.");
+
+// ── Zodiac style selector contract ───────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_REF_KEY/,
+  "Base module must define ZODIAC_STYLE_REF_KEY constant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_REF_KEY\s*=\s*"__zodiac_style"/,
+  "ZODIAC_STYLE_REF_KEY must equal __zodiac_style"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_VARIANTS/,
+  "Base module must define ZODIAC_STYLE_VARIANTS array"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_VARIANTS[\s\S]*"sun"[\s\S]*"stars"[\s\S]*"ribbon"/,
+  "ZODIAC_STYLE_VARIANTS must include sun, stars, and ribbon values in order"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function zodiacStyleValue\(/,
+  "Base module must define zodiacStyleValue normalizer function"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiacStyleSelector/,
+  "Base module must render zodiacStyleSelector UI"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /Стиль зодиака/,
+  "Zodiac style selector must include Стиль зодиака label"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /constructor_type.*===.*"zodiac"[\s\S]*zodiacStyleSelector|zodiacStyleSelector[\s\S]*constructor_type.*===.*"zodiac"/,
+  "Zodiac style selector must be gated on constructor_type === zodiac"
+);
+
+assert.match(
+  powerPlaceSource,
+  /ZODIAC_STYLE_REF_KEY\s*=\s*"__zodiac_style"/,
+  "Wrapper module must define ZODIAC_STYLE_REF_KEY as __zodiac_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /__zodiac_style:\s*zodiacStyle/,
+  "Wrapper module must pass zodiacStyle to enhancedDraft as __zodiac_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /function zodiacStyleValue\(/,
+  "Wrapper module must define zodiacStyleValue normalizer"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /constructor_type.*===.*"zodiac-style"|"zodiac-style".*===.*constructor_type/,
+  "zodiac style must NOT introduce a new constructor_type"
+);
+
+console.log("Zodiac style selector contract: all assertions passed.");

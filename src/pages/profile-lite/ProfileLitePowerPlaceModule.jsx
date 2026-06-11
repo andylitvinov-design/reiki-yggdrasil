@@ -5,6 +5,7 @@ import BaseProfileLitePowerPlaceModule from "./ProfileLitePowerPlaceModuleBase.j
 
 const MANDALA_STYLE_REF_KEY = "__mandala_style";
 const DAO_STYLE_REF_KEY = "__dao_style";
+const ZODIAC_STYLE_REF_KEY = "__zodiac_style";
 const DAO_TALISMAN_NODE_COUNT_REF_KEY = "__dao_talisman_node_count";
 const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
@@ -74,6 +75,11 @@ function daoStyleValue(value) {
   return "style-1";
 }
 
+function zodiacStyleValue(value) {
+  if (value === "stars" || value === "ribbon") return value;
+  return "sun";
+}
+
 function daoTalismanNodeCountValue(value) {
   const n = Number(value);
   if (n === 3 || n === 5 || n === 7 || n === 9) return n;
@@ -114,6 +120,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacPositionImage[style],
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style],
 .profileLitePowerPlace .zodiacInnerPositionImage[style],
+.profileLitePowerPlace .zodiacRibbonCellImage[style],
 .profileLitePowerPlace .starPositionImage[style],
 .profileLitePowerPlace .daoElementImage.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage,
@@ -124,6 +131,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacPositionImage[style],
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style],
 .powerPlacePdfOnlyArea .zodiacInnerPositionImage[style],
+.powerPlacePdfOnlyArea .zodiacRibbonCellImage[style],
 .powerPlacePdfOnlyArea .starPositionImage[style],
 .powerPlacePdfOnlyArea .daoElementImage.hasImage {
   background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
@@ -151,6 +159,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::after,
 .profileLitePowerPlace .zodiacInnerPositionImage[style]::before,
 .profileLitePowerPlace .zodiacInnerPositionImage[style]::after,
+.profileLitePowerPlace .zodiacRibbonCellImage[style]::before,
+.profileLitePowerPlace .zodiacRibbonCellImage[style]::after,
 .profileLitePowerPlace .starPositionImage[style]::before,
 .profileLitePowerPlace .starPositionImage[style]::after,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::before,
@@ -171,6 +181,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style]::after,
 .powerPlacePdfOnlyArea .zodiacInnerPositionImage[style]::before,
 .powerPlacePdfOnlyArea .zodiacInnerPositionImage[style]::after,
+.powerPlacePdfOnlyArea .zodiacRibbonCellImage[style]::before,
+.powerPlacePdfOnlyArea .zodiacRibbonCellImage[style]::after,
 .powerPlacePdfOnlyArea .starPositionImage[style]::before,
 .powerPlacePdfOnlyArea .starPositionImage[style]::after {
   display: none !important;
@@ -182,11 +194,13 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacPosition.hasImage,
 .profileLitePowerPlace .zodiacFieldPlusPosition.hasImage,
 .profileLitePowerPlace .zodiacInnerPosition.hasImage,
+.profileLitePowerPlace .zodiacRibbonCell.hasImage,
 .profileLitePowerPlace .starPosition.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
 .powerPlacePdfOnlyArea .zodiacPosition.hasImage,
 .powerPlacePdfOnlyArea .zodiacFieldPlusPosition.hasImage,
 .powerPlacePdfOnlyArea .zodiacInnerPosition.hasImage,
+.powerPlacePdfOnlyArea .zodiacRibbonCell.hasImage,
 .powerPlacePdfOnlyArea .starPosition.hasImage {
   background: transparent !important;
   box-shadow: none !important;
@@ -196,6 +210,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .altarMandalaSheet[style],
 .profileLitePowerPlace .businessMandalaSheet[style],
 .profileLitePowerPlace .zodiacMandalaSheet[style],
+.profileLitePowerPlace .zodiacRibbonSheet[style],
 .profileLitePowerPlace .starMandalaSheet[style],
 .profileLitePowerPlace .daoMandalaSheet[style],
 .profileLitePowerPlace .power-place-chess[style],
@@ -203,6 +218,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .altarMandalaSheet[style],
 .powerPlacePdfOnlyArea .businessMandalaSheet[style],
 .powerPlacePdfOnlyArea .zodiacMandalaSheet[style],
+.powerPlacePdfOnlyArea .zodiacRibbonSheet[style],
 .powerPlacePdfOnlyArea .starMandalaSheet[style],
 .powerPlacePdfOnlyArea .daoMandalaSheet[style],
 .powerPlacePdfOnlyArea .power-place-chess[style] {
@@ -294,6 +310,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .powerMandalaPanel[style] > .altarMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel[style] > .businessMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel[style] > .zodiacMandalaSheet,
+.profileLitePowerPlace .powerMandalaPanel[style] > .zodiacRibbonSheet,
 .profileLitePowerPlace .powerMandalaPanel[style] > .starMandalaSheet,
 .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .power-place-chess,
@@ -301,6 +318,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .altarMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .businessMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacMandalaSheet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .zodiacRibbonSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .starMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet {
   position: absolute !important;
@@ -560,6 +578,7 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
   const daoStyle = daoStyleValue(objectRefs[DAO_STYLE_REF_KEY]);
+  const zodiacStyle = zodiacStyleValue(objectRefs[ZODIAC_STYLE_REF_KEY]);
   const daoTalismanNodeCount = daoTalismanNodeCountValue(objectRefs[DAO_TALISMAN_NODE_COUNT_REF_KEY]);
   const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
   const fitStyleText = useMemo(
@@ -608,6 +627,11 @@ export default function ProfileLitePowerPlaceModule(props) {
       return;
     }
 
+    if (field === ZODIAC_STYLE_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [ZODIAC_STYLE_REF_KEY]: zodiacStyleValue(value) });
+      return;
+    }
+
     props.onCompositionDraftChange?.(field, value);
   }, [objectRefs, props, writeObjectRefs]);
 
@@ -619,6 +643,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     __mandala_style: mandalaStyle,
     __dao_style: daoStyle,
     __dao_talisman_node_count: daoTalismanNodeCount,
+    __zodiac_style: zodiacStyle,
     __center_image_offset_x: centerImageOffsetX,
     __center_image_offset_y: centerImageOffsetY,
     __center_image_zoom: centerImageZoom,
