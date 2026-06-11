@@ -4508,6 +4508,107 @@
   background: rgba(255, 244, 218, 0.92);
 }
 
+.powerSymbolLibraryPanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 248, 232, 0.78);
+}
+
+.powerSymbolLibraryHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(128px, 0.6fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.powerSymbolLibraryHeader small {
+  display: block;
+  color: #6b5537;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.powerSymbolLibraryHeader label {
+  display: grid;
+  gap: 5px;
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.powerSymbolLibraryHeader select {
+  width: 100%;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fffdf7;
+  color: #2c1d0c;
+  font: inherit;
+  font-weight: 850;
+}
+
+.powerSymbolLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.powerSymbolLibraryItem {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 8px;
+  padding: 7px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #4a3012;
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+}
+
+.powerSymbolLibraryItem:active {
+  cursor: grabbing;
+}
+
+.powerSymbolLibraryItem:hover,
+.powerSymbolLibraryItem:focus-visible {
+  border-color: rgba(184, 121, 29, 0.54);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.18);
+}
+
+.powerSymbolLibraryThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
+    #fffaf0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.powerSymbolLibraryItem b,
+.powerSymbolLibraryItem small {
+  overflow-wrap: anywhere;
+}
+
+.powerSymbolLibraryItem b {
+  font-size: 12px;
+}
+
+.powerSymbolLibraryItem small {
+  color: #756149;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
 
 /* 2026-05-29 — Zodiac 8+ layout.
    8 = normal circular zodiac.
@@ -6181,6 +6282,7 @@
   width: min(820px, calc(100vw - 24px));
   max-width: 100%;
   overflow-x: hidden;
+  padding-top: max(16px, env(safe-area-inset-top));
 }
 
 .profileLiteImagePicker .clientPhotoPickerHeader > button:disabled,
@@ -6189,11 +6291,93 @@
   cursor: wait;
 }
 
+.profileLiteImagePicker .clientPhotoPickerHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: -16px -16px 0;
+  padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+  background: rgba(255, 250, 240, 0.97);
+  border-bottom: 1px solid rgba(147, 93, 22, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.profileLiteImagePickerCloseButton {
+  width: 44px !important;
+  min-width: 44px;
+  height: 44px !important;
+  border-color: rgba(147, 72, 18, 0.36) !important;
+  background: #fff8e8 !important;
+  color: #3b2610 !important;
+  font-size: 34px !important;
+  font-weight: 900;
+  line-height: 0.9 !important;
+}
+
 .imagePickerModeBar {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.imagePickerSourceGroups {
+  align-items: stretch;
+}
+
+.imagePickerSourceButton {
+  min-height: 38px;
+}
+
+.imagePickerSecondLevel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(147, 93, 22, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.imagePickerSecondLevel button {
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #5b3a12;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.imagePickerSecondLevel button.active {
+  background: linear-gradient(180deg, #3a250e, #98600e);
+  border-color: rgba(255, 216, 128, 0.58);
+  color: #fff2ce;
+}
+
+.imagePickerSecondLevel button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.imagePickerSecondLevelSelect {
+  display: grid;
+  grid-template-columns: minmax(74px, max-content) minmax(0, 1fr);
+  align-items: center;
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.imagePickerSecondLevelSelect select {
+  width: 100%;
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #fffdf8;
+  color: #3b2610;
+  font: inherit;
 }
 
 .imagePickerDestinationTabs {
@@ -6249,7 +6433,7 @@
 }
 
 .profileLiteImagePickerGrid {
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
   justify-content: stretch;
   max-width: 100%;
 }
@@ -6268,9 +6452,9 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  gap: 7px;
+  gap: 4px;
   border: 0;
-  padding: 9px;
+  padding: 5px;
   background: transparent;
   color: #4a3012;
   text-align: left;
@@ -6279,11 +6463,11 @@
 .profileLiteImagePickerSelect > span:first-child {
   width: 100%;
   height: auto;
-  min-height: 116px;
+  min-height: 38px;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: 7px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
     repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.12) 0 8px, rgba(255, 255, 255, 0.18) 8px 16px);
@@ -6312,6 +6496,8 @@
 .profileLiteImagePickerCard b,
 .profileLiteImagePickerCard small {
   text-align: left;
+  font-size: 10px;
+  line-height: 1.18;
 }
 
 .profileLiteImagePickerDiagnostic {
@@ -6352,6 +6538,12 @@
     width: calc(100vw - 18px);
     max-height: calc(100vh - 18px);
     padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .profileLiteImagePicker .clientPhotoPickerHeader {
+    margin: -12px -12px 0;
+    padding: max(12px, env(safe-area-inset-top)) 12px 10px;
   }
 
   .imagePickerModeBar {
@@ -6368,7 +6560,7 @@
   }
 
   .profileLiteImagePickerGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .profileLiteImagePickerSelect {
@@ -6376,7 +6568,7 @@
   }
 
   .profileLiteImagePickerSelect > span:first-child {
-    min-height: 104px;
+    min-height: 34px;
   }
 }
 

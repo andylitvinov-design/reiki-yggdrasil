@@ -198,6 +198,38 @@ assert.ok(motionLayerBlock.includes("overflow: visible"), "motion layer must hav
 assert.ok(cssSource.includes("@media (prefers-reduced-motion: reduce)") && cssSource.includes("transition: none"), "motion photos should disable transitions for reduced motion");
 assert.ok(cssSource.includes("@media (max-width: 640px)") && cssSource.includes(".profileLitePowerPlace .powerPlaceMotionPhoto"), "motion photos should have mobile sizing rules");
 
+// ─── Symbol library and scoped mobile picker CSS ─────────────────────────────
+
+for (const selector of [
+  ".powerSymbolLibraryPanel",
+  ".powerSymbolLibraryHeader",
+  ".powerSymbolLibraryGrid",
+  ".powerSymbolLibraryItem",
+  ".powerSymbolLibraryThumb",
+  ".imagePickerSourceGroups",
+  ".imagePickerSourceButton",
+  ".imagePickerSecondLevel",
+  ".profileLiteImagePickerCloseButton"
+]) {
+  assert.ok(cssSource.includes(selector), `${selector} must be defined for the symbol library / picker UX`);
+}
+
+const pickerGridBlock = (() => {
+  const idx = cssSource.indexOf(".profileLiteImagePickerGrid {");
+  const end = cssSource.indexOf("}", idx);
+  return idx >= 0 ? cssSource.slice(idx, end + 1) : "";
+})();
+
+assert.ok(pickerGridBlock.includes("minmax(58px"), "image picker thumbnails should be reduced only inside profileLiteImagePickerGrid");
+assert.ok(
+  cssSource.includes(".profileLiteImagePicker .clientPhotoPickerHeader") && cssSource.includes("position: sticky") && cssSource.includes("env(safe-area-inset-top)"),
+  "image picker header should be sticky and safe-area aware for mobile Safari"
+);
+assert.ok(
+  cssSource.includes(".profileLiteImagePickerSelect > span:first-child") && cssSource.includes("min-height: 38px"),
+  "image picker preview square should be about 3x smaller than the old 116px preview"
+);
+
 // ─── Base module: inner surface JSX uses CSS variable for image covers ─────────
 
 const baseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");

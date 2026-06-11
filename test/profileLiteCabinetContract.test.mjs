@@ -236,6 +236,10 @@ for (const requiredPowerPlaceText of [
   "Фон места силы",
   "Фон внутри",
   "Фон снаружи",
+  "Библиотека",
+  "Полка",
+  "Символы",
+  "Загрузить своё",
   "Отчёт",
   "Анализ",
   "Размер окон",
@@ -251,7 +255,7 @@ for (const requiredPowerPlaceText of [
   "Скачать PDF",
   "Печать"
 ]) {
-  assert.match(powerPlaceSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include UX text: ${requiredPowerPlaceText}`);
+  assert.match(`${powerPlaceSource}\n${moduleSource}`, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include UX text: ${requiredPowerPlaceText}`);
 }
 
 for (const requiredClass of [
@@ -266,8 +270,13 @@ for (const requiredClass of [
   "powerLibrarySidebar",
   "powerPlaceSettings",
   "coverPickerPanel",
+  "powerSymbolLibraryPanel",
+  "powerSymbolLibraryGrid",
   "objectImageEditor",
-  "clientPhotoPickerModal"
+  "clientPhotoPickerModal",
+  "profileLiteImagePickerCloseButton",
+  "imagePickerSourceGroups",
+  "imagePickerSecondLevel"
 ]) {
   assert.match(`${powerPlaceSource}\n${profileMandalaCss}`, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
 }
@@ -279,6 +288,9 @@ assert.match(powerPlaceSource, /function buildPowerPlaceDragPayload\(/, "Power P
 assert.match(powerPlaceSource, /function parsePowerPlaceDragPayload\(/, "Power Place drops should parse drag payloads defensively");
 assert.match(powerPlaceSource, /const assignPowerPlaceSlotImage = \(/, "Power Place slot assignment should be shared by dropdowns, picker, and drops");
 assert.match(powerPlaceSource, /const getPowerPlaceSlotDropHandlers = \(/, "Power Place slots should expose shared drop target handlers");
+assert.match(powerPlaceSource, /listPowerPlaceSymbolsByShelf/, "Power Place module should load symbols from the static symbol library");
+assert.match(powerPlaceSource, /handleSavedImageDragStart\(event, item\)/, "Power Place symbol library should reuse the existing source drag payload");
+assert.match(powerPlaceSource, /onClick=\{\(\) => chooseImage\(item\)\}/, "Power Place symbol clicks should reuse the existing image selection path");
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
 assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "inner"[\s\S]*dragOverSlotId === "cover_ref\.inner"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("inner"\)\}[\s\S]*aria-label="Фон внутри\. Можно перетащить фото"[\s\S]*title="Фон внутри\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "existing inner cover tab should be the cover_ref.inner drop target without opening the picker");

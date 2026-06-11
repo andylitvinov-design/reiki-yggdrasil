@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Draft client circle symbol">
+  <rect width="120" height="120" rx="20" fill="#fff8e8"/>
+  <circle cx="60" cy="60" r="37" fill="none" stroke="#2f2418" stroke-width="7"/>
+  <circle cx="60" cy="60" r="18" fill="#f5c66a" stroke="#b8791d" stroke-width="5"/>
+  <text x="60" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#7b5b24">draft</text>
+</svg>

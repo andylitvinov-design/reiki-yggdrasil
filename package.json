@@ -13,7 +13,7 @@
     "test:profile-services": "node test/profileServicesClient.test.mjs",
     "test:public-master": "node test/profilePublicMasterClient.test.mjs",
     "test:profile-feed": "node test/profileActivityFeedClient.test.mjs",
-    "test:power-place": "node test/powerPlaceClient.test.mjs && node test/powerPlaceStyleContract.test.mjs && node test/printUtils.test.mjs",
+    "test:power-place": "node test/powerPlaceClient.test.mjs && node test/powerPlaceSymbolLibrary.test.mjs && node test/powerPlaceStyleContract.test.mjs && node test/printUtils.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
     "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
