@@ -585,3 +585,50 @@ assert.ok(cssSource.includes(".power-place-hide-slots"), "CSS must define .power
 assert.ok(cssSource.includes(".power-place-hide-outer-cover"), "CSS must define .power-place-hide-outer-cover rule");
 assert.ok(cssSource.includes(".power-place-hide-inner-cover"), "CSS must define .power-place-hide-inner-cover rule");
 assert.ok(cssSource.includes(".power-place-hide-center"), "CSS must define .power-place-hide-center rule");
+
+// ── Zodiac 2 CSS contract ─────────────────────────────────────────────────────
+
+assert.ok(
+  cssSource.includes(".zodiacMandalaSheet.zodiac-2-format"),
+  "CSS must define .zodiacMandalaSheet.zodiac-2-format rule block"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacInnerPosition"),
+  "CSS must define .zodiacInnerPosition for inner ring slot wrappers"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacInnerPositionImage"),
+  "CSS must define .zodiacInnerPositionImage for inner ring slot buttons"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacInnerPosition.inner-1"),
+  "CSS must define absolute position for .zodiacInnerPosition.inner-1"
+);
+
+assert.ok(
+  cssSource.includes(".zodiacInnerPosition.inner-12"),
+  "CSS must define absolute position for .zodiacInnerPosition.inner-12"
+);
+
+assert.ok(
+  cssSource.includes("zodiac-2-format") && cssSource.includes("zodiacInnerPositionImage"),
+  "CSS must include both zodiac-2-format and zodiacInnerPositionImage rules"
+);
+
+{
+  const mobileStart = cssSource.lastIndexOf("@media (max-width: 640px)");
+  assert.ok(
+    mobileStart !== -1 && cssSource.slice(mobileStart).includes("zodiacInnerPositionImage"),
+    "CSS must include mobile sizing for .zodiacInnerPositionImage in a max-width:640px media query"
+  );
+}
+
+assert.ok(
+  moduleSource.includes(".zodiacInnerPositionImage[style]"),
+  "Wrapper module dynamic CSS must include .zodiacInnerPositionImage[style] selector for pan/zoom support"
+);
+
+console.log("Zodiac 2 CSS contract: all assertions passed.");
