@@ -1068,6 +1068,40 @@ assert.match(
   "daoMandalaSheet must still be present for style-1 (existing style must not be removed)"
 );
 
+// DAO fulu style variants (issue #336)
+for (const value of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
+  assert.ok(
+    powerPlaceBaseSource.includes(`"${value}"`),
+    `DAO_STYLE_VARIANTS must include ${value}`
+  );
+}
+
+assert.ok(
+  powerPlaceBaseSource.includes("DAO_FULU_STYLE_VALUES"),
+  "Base module must define DAO_FULU_STYLE_VALUES constant"
+);
+
+assert.ok(
+  powerPlaceBaseSource.includes("renderDaoFuluStyle"),
+  "Base module must define renderDaoFuluStyle helper"
+);
+
+// Fulu styles must use dao-${element.id} slot ID pattern (dao-water etc.) — not duplicate IDs
+for (const element of ["water", "wood", "fire", "earth", "metal"]) {
+  assert.ok(
+    powerPlaceBaseSource.includes(`dao-\${element.id}`) || powerPlaceBaseSource.includes(`dao-${element}`),
+    `fulu style must preserve dao-${element} slot id via DAO_ELEMENTS.map`
+  );
+}
+
+// daoStyleValue in wrapper must handle all 4 new values
+for (const value of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
+  assert.ok(
+    powerPlaceSource.includes(`"${value}"`),
+    `daoStyleValue in wrapper module must handle ${value}`
+  );
+}
+
 console.log("Profile Lite cabinet contract: all assertions passed.");
 
 // ── Visibility settings module contract ──────────────────────────────────────

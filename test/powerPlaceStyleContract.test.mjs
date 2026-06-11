@@ -433,6 +433,48 @@ assert.ok(
 );
 
 assert.ok(
+  baseSource.includes('"fu-paper-slip"') && baseSource.includes('"cloud-register"') &&
+  baseSource.includes('"thunder-tablet"') && baseSource.includes('"taofu-charm"'),
+  "DAO_STYLE_VARIANTS must include fu-paper-slip, cloud-register, thunder-tablet, taofu-charm"
+);
+
+assert.ok(
+  baseSource.includes("DAO_FULU_STYLE_VALUES"),
+  "Base module must define DAO_FULU_STYLE_VALUES constant for the 4 new fulu styles"
+);
+
+for (const cls of [
+  ".daoFuluStyleFrame",
+  ".daoFuluStyleHeader",
+  ".daoFuluPureMarks",
+  ".daoFuluBody",
+  ".daoFuluCenterArea",
+  ".daoFuluSlot",
+  ".daoFuluSealBox",
+  ".daoFuluCloudCorner",
+  ".daoFuluFooter"
+]) {
+  assert.ok(cssSource.includes(cls), `CSS must define ${cls} for fulu style shared base`);
+}
+
+for (const style of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
+  assert.ok(
+    cssSource.includes(`.daoMandalaSheet.dao-style-${style}`),
+    `CSS must define .daoMandalaSheet.dao-style-${style}`
+  );
+}
+
+assert.ok(
+  cssSource.includes(".powerPlacePdfOnlyArea .daoMandalaSheet.dao-style-fu-paper-slip"),
+  "print area must include fulu style print rules"
+);
+
+assert.ok(
+  baseSource.includes("renderDaoFuluStyle"),
+  "Base module must define renderDaoFuluStyle helper for fulu styles"
+);
+
+assert.ok(
   baseSource.includes("daoStyleSelector"),
   "Base module must render daoStyleSelector for DAO constructor type"
 );
