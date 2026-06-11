@@ -633,6 +633,7 @@ function coverKindClass(cover, layer) {
 }
 
 export default function ProfileLitePowerPlaceModule({
+  accountPlan = "start",
   clientGoalPhotos,
   compositionDraft,
   compositionMessage,
