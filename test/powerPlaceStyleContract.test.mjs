@@ -344,6 +344,57 @@ assert.ok(
   "print area must include gradient-gold coverage for PDF export"
 );
 
+// ─── Gradient tones: inner surface rules use !important ───────────────────────
+
+for (const tone of ["gradient-gold", "gradient-forest", "gradient-night", "gradient-fire", "gradient-water"]) {
+  const ruleIdx = cssSource.indexOf(`.zodiacMandalaSheet.cover-${tone}`);
+  assert.ok(ruleIdx >= 0, `CSS must define .zodiacMandalaSheet.cover-${tone} for inner surface`);
+  const ruleBlock = cssSource.slice(ruleIdx, cssSource.indexOf("}", ruleIdx) + 1);
+  assert.ok(
+    ruleBlock.includes("!important"),
+    `.zodiacMandalaSheet.cover-${tone} background must use !important to override dynamic rules`
+  );
+}
+
+// ─── Gradient swatch buttons: JSX and CSS coverage ────────────────────────────
+
+assert.ok(
+  baseSource.includes("coverVariantSwatch"),
+  "Base module must render coverVariantSwatch class for gradient options"
+);
+
+assert.ok(
+  baseSource.includes("isGradientCover"),
+  "Base module must detect gradient covers with isGradientCover"
+);
+
+assert.ok(
+  baseSource.includes("coverVariantSwatchPreview"),
+  "Base module must render coverVariantSwatchPreview span"
+);
+
+assert.ok(
+  baseSource.includes("coverVariantSwatchLabel"),
+  "Base module must render coverVariantSwatchLabel span"
+);
+
+for (const tone of ["gradient-gold", "gradient-forest", "gradient-night", "gradient-fire", "gradient-water"]) {
+  assert.ok(
+    cssSource.includes(`.coverVariantSwatch--${tone}`),
+    `CSS must define .coverVariantSwatch--${tone} swatch color rule`
+  );
+}
+
+assert.ok(
+  cssSource.includes(".coverVariantSwatchPreview"),
+  "CSS must define .coverVariantSwatchPreview base style"
+);
+
+assert.ok(
+  cssSource.includes(".coverVariantSwatch.active"),
+  "CSS must define active state for .coverVariantSwatch"
+);
+
 // ─── Top photoScaleControl removed; slot photo editor has Масштаб фото ────────
 
 assert.ok(

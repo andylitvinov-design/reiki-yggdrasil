@@ -2602,20 +2602,41 @@ export default function ProfileLitePowerPlaceModule({
                 </button>
               </div>
               <div className="coverVariantList coverVariantsGrid" aria-label="Варианты фона" data-cover-layer-target={coverLayerSaveTarget}>
-                {coverOptions.map((cover) => cover.shortcutId ? (
-                  <span className="coverVariantShortcut" key={cover.id}>
-                    <button className={activeCover?.src === cover.src ? "active" : ""} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
+                {coverOptions.map((cover) => {
+                  if (cover.shortcutId) {
+                    return (
+                      <span className="coverVariantShortcut" key={cover.id}>
+                        <button className={activeCover?.src === cover.src ? "active" : ""} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
+                          {cover.label}
+                        </button>
+                        <button className="coverShortcutHideButton" type="button" onClick={(event) => hideCoverShortcut(cover, event)} aria-label={`Скрыть ${cover.label}`}>
+                          ×
+                        </button>
+                      </span>
+                    );
+                  }
+                  const isGradientCover = String(cover.tone || "").startsWith("gradient-");
+                  if (isGradientCover) {
+                    return (
+                      <button
+                        className={`coverVariantSwatch coverVariantSwatch--${cover.tone}${activeCover?.id === cover.id ? " active" : ""}`}
+                        key={cover.id}
+                        onClick={() => onCompositionCoverSelect(coverLayerMode, cover)}
+                        type="button"
+                        title={cover.label}
+                        aria-label={cover.label}
+                      >
+                        <span className="coverVariantSwatchPreview" aria-hidden="true" />
+                        <span className="coverVariantSwatchLabel">{cover.label}</span>
+                      </button>
+                    );
+                  }
+                  return (
+                    <button className={activeCover?.id === cover.id ? "active" : ""} key={cover.id} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
                       {cover.label}
                     </button>
-                    <button className="coverShortcutHideButton" type="button" onClick={(event) => hideCoverShortcut(cover, event)} aria-label={`Скрыть ${cover.label}`}>
-                      ×
-                    </button>
-                  </span>
-                ) : (
-                  <button className={activeCover?.id === cover.id ? "active" : ""} key={cover.id} onClick={() => onCompositionCoverSelect(coverLayerMode, cover)} type="button">
-                    {cover.label}
-                  </button>
-                ))}
+                  );
+                })}
               </div>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
