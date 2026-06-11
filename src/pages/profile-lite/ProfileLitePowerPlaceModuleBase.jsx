@@ -22,8 +22,10 @@ const MANDALA_STYLE_VARIANTS = [
 ];
 const DAO_STYLE_VARIANTS = [
   { value: "style-1", label: "Стиль 1" },
-  { value: "talisman", label: "Талисман" }
+  { value: "talisman-1", label: "Талисман 1" },
+  { value: "talisman-2", label: "Талисман 2" }
 ];
+const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
 const ZODIAC_VARIANTS = [
   { value: "classic-2", label: "2", visibleCount: 2 },
   { value: "classic-4", label: "4", visibleCount: 4 },
@@ -2169,6 +2171,13 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
+                {compositionDraft.constructor_type === "dao" && (compositionDraft.__dao_style || "style-1") === "talisman-2" && (
+                  <div className="mandalaStyleSelector daoTalisman2NodeSelector" aria-label="Узлов в Талисмане 2">
+                    {DAO_TALISMAN_NODE_COUNTS.map((n) => (
+                      <button className={(compositionDraft.__dao_talisman_node_count || 5) === n ? "active" : ""} key={n} onClick={() => onCompositionDraftChange("__dao_talisman_node_count", n)} type="button">{n}</button>
+                    ))}
+                  </div>
+                )}
                 {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale" })}
                 {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale" })}
@@ -2381,8 +2390,55 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet${(compositionDraft.__dao_style || "style-1") === "talisman" ? " dao-talisman" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
-                      {(compositionDraft.__dao_style || "style-1") === "talisman" ? (
+                    <div className={`daoMandalaSheet${(compositionDraft.__dao_style || "style-1") === "talisman-1" ? " dao-talisman" : (compositionDraft.__dao_style || "style-1") === "talisman-2" ? " dao-talisman-2" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                      {(compositionDraft.__dao_style || "style-1") === "talisman-2" ? (
+                        <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
+                          <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
+                            <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
+                            <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
+                          </div>
+                          <div className="daoTalisman2Body">
+                            {Array.from(
+                              { length: compositionDraft.__dao_talisman_node_count || 5 },
+                              (_, index) => ({
+                                id: `dao-talisman-2-${index + 1}`,
+                                label: `Узел ${index + 1}`
+                              })
+                            ).map((node) => {
+                              const slotId = node.id;
+                              const src = objectRefs[slotId] || "";
+                              const displaySrc = objectRefUrls[src] || src;
+                              return (
+                                <div className="daoTalisman2Node" key={node.id}>
+                                  <button
+                                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                                    onClick={() => {
+                                      if (suppressSlotPickerClickRef.current[slotId]) {
+                                        suppressSlotPickerClickRef.current[slotId] = false;
+                                        return;
+                                      }
+                                      openObjectPicker(slotId);
+                                    }}
+                                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                                    type="button"
+                                    title={node.label}
+                                    aria-label={`Выбрать элемент ${node.label}`}
+                                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                                  >
+                                    {!src && <span>◎</span>}
+                                  </button>
+                                  <b>{node.label}</b>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {renderPowerPlaceMotionLayer()}
+                          <div className="daoTalismanSeal" aria-hidden="true">
+                            <span className="daoTalismanSealCircle">印</span>
+                          </div>
+                        </div>
+                      ) : (compositionDraft.__dao_style || "style-1") === "talisman-1" ? (
                         <div className="daoTalismanScroll" aria-label="Даосский талисман">
                           <div className="daoTalismanRoof" aria-hidden="true">
                             <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>

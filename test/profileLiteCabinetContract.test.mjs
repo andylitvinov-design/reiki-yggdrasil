@@ -983,8 +983,8 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /__dao_style.*talisman|talisman.*__dao_style/,
-  "Base module must branch on talisman value of __dao_style"
+  /__dao_style.*talisman-1|talisman-1.*__dao_style/,
+  "Base module must branch on talisman-1 value of __dao_style"
 );
 
 assert.match(
@@ -1028,13 +1028,38 @@ assert.match(
   );
 }
 
-// Existing DAO slot IDs must not change: dao-water, dao-wood, dao-fire, dao-earth, dao-metal
+// Talisman 1 DAO slot IDs must use dao-${element.id} pattern (dao-water, dao-wood, etc.)
 for (const element of ["water", "wood", "fire", "earth", "metal"]) {
   assert.ok(
     powerPlaceBaseSource.includes(`dao-\${element.id}`) || powerPlaceBaseSource.includes(`dao-${element}`),
-    `slot id pattern for dao-${element} must be preserved in base module`
+    `slot id pattern for dao-${element} must be preserved in talisman-1 mode`
   );
 }
+
+// Talisman 2 must use dao-talisman-2-${index + 1} node IDs
+assert.ok(
+  powerPlaceBaseSource.includes("dao-talisman-2-${index + 1}") || powerPlaceBaseSource.includes("`dao-talisman-2-${index + 1}`"),
+  "Talisman 2 must generate slot IDs as dao-talisman-2-${index + 1}"
+);
+
+// Talisman 2 must not use DAO_ELEMENTS.slice
+assert.ok(
+  !powerPlaceBaseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
+  "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
+);
+
+// Legacy "talisman" value must map to talisman-1 in wrapper daoStyleValue
+assert.ok(
+  powerPlaceSource.includes('"talisman" || value === "talisman-1"') ||
+  (powerPlaceSource.includes('"talisman"') && powerPlaceSource.includes('"talisman-1"')),
+  "daoStyleValue must map legacy 'talisman' to 'talisman-1'"
+);
+
+// DAO_STYLE_VARIANTS must use talisman-1, not talisman
+assert.ok(
+  powerPlaceBaseSource.includes('"talisman-1"') && !powerPlaceBaseSource.includes('{ value: "talisman"'),
+  "DAO_STYLE_VARIANTS must use talisman-1 value, not legacy talisman"
+);
 
 // daoMandalaSheet (style-1) must still exist — not replaced
 assert.match(

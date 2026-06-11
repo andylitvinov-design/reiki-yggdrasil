@@ -2181,7 +2181,7 @@
   transform-origin: center;
 }
 
-/* ── DAO Talisman scroll style ──────────────────────────────────────────── */
+/* ── DAO Talisman 1 — Wu Xing circular scroll frame ────────────────────── */
 
 /* Outer surface stays .daoMandalaSheet so field_scale, print/PDF, cover
    contracts are inherited. .dao-talisman overrides shape and aspect-ratio.
@@ -2189,18 +2189,55 @@
 
 .daoMandalaSheet.dao-talisman {
   aspect-ratio: 9 / 16 !important;
-  border-radius: 10px 10px 14px 14px !important;
+  border-radius: 12px 12px 8px 8px !important;
   width: min(320px, 92%) !important;
   margin: 0 auto;
   background:
-    linear-gradient(180deg, rgba(240, 210, 80, 0.38) 0%, rgba(253, 245, 195, 0.92) 18%, rgba(255, 252, 220, 0.97) 50%, rgba(253, 245, 195, 0.92) 82%, rgba(240, 210, 80, 0.38) 100%),
-    repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(184, 121, 29, 0.06) 28px, rgba(184, 121, 29, 0.06) 29px) !important;
-  border: 2px solid rgba(139, 90, 15, 0.50) !important;
-  box-shadow: inset 0 0 0 3px rgba(245, 210, 100, 0.22), 0 6px 24px rgba(100, 60, 10, 0.15) !important;
+    linear-gradient(180deg,
+      rgba(120, 60, 10, 0.55) 0%,
+      rgba(120, 60, 10, 0.55) 3.5%,
+      rgba(253, 240, 190, 0.97) 3.5%,
+      rgba(255, 252, 220, 0.98) 50%,
+      rgba(253, 240, 190, 0.97) 96.5%,
+      rgba(120, 60, 10, 0.55) 96.5%,
+      rgba(120, 60, 10, 0.55) 100%),
+    repeating-linear-gradient(0deg, transparent, transparent 26px, rgba(184, 121, 29, 0.05) 26px, rgba(184, 121, 29, 0.05) 27px) !important;
+  border-top: 6px solid rgba(100, 45, 5, 0.82) !important;
+  border-bottom: 6px solid rgba(100, 45, 5, 0.82) !important;
+  border-left: 3px solid rgba(160, 90, 15, 0.65) !important;
+  border-right: 3px solid rgba(160, 90, 15, 0.65) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(245, 210, 100, 0.18),
+    inset -3px 0 0 rgba(245, 210, 100, 0.18),
+    inset 0 4px 12px rgba(100, 60, 10, 0.12),
+    0 8px 32px rgba(80, 40, 5, 0.22) !important;
   overflow: hidden !important;
+  position: relative;
 }
 
-/* Fill the parchment outer surface */
+/* Left and right side rails */
+.daoMandalaSheet.dao-talisman::before,
+.daoMandalaSheet.dao-talisman::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+  z-index: 10;
+}
+.daoMandalaSheet.dao-talisman::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(160, 90, 15, 0.22) 0%, rgba(245, 210, 100, 0.06) 100%);
+  border-right: 1px solid rgba(139, 90, 15, 0.28);
+}
+.daoMandalaSheet.dao-talisman::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(160, 90, 15, 0.22) 0%, rgba(245, 210, 100, 0.06) 100%);
+  border-left: 1px solid rgba(139, 90, 15, 0.28);
+}
+
+/* Parchment inner scroll container */
 .daoTalismanScroll {
   position: relative;
   display: flex;
@@ -2232,24 +2269,27 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 8px 12px 6px;
-  background: linear-gradient(180deg, rgba(200, 150, 30, 0.18) 0%, transparent 100%);
-  border-bottom: 1px solid rgba(139, 90, 15, 0.25);
+  padding: 10px 14px 7px;
+  background: linear-gradient(180deg, rgba(180, 120, 20, 0.28) 0%, rgba(200, 150, 30, 0.10) 60%, transparent 100%);
+  border-bottom: 1.5px solid rgba(139, 90, 15, 0.35);
+  position: relative;
+  z-index: 5;
 }
 
 .daoTalismanPureMarks {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 900;
-  letter-spacing: 0.38em;
-  color: rgba(160, 90, 10, 0.85);
+  letter-spacing: 0.42em;
+  color: rgba(140, 70, 8, 0.92);
   line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 230, 160, 0.5);
 }
 
 .daoTalismanThreePure {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
-  color: rgba(139, 90, 15, 0.52);
-  letter-spacing: 0.22em;
+  color: rgba(120, 70, 10, 0.62);
+  letter-spacing: 0.28em;
   line-height: 1;
 }
 
@@ -2276,7 +2316,7 @@
   height: min(72px, 28%) !important;
 }
 
-/* Individual slot positions */
+/* Individual slot positions — evenly around center (Wu Xing circle) */
 .daoTalismanSlot {
   position: absolute;
   z-index: 3;
@@ -2296,32 +2336,32 @@
 
 /* wood: upper right */
 .daoTalismanSlot--wood {
-  top: 16%;
+  top: 18%;
   right: 4%;
 }
 
 /* metal: upper left */
 .daoTalismanSlot--metal {
-  top: 16%;
+  top: 18%;
   left: 4%;
 }
 
 /* fire: lower right */
 .daoTalismanSlot--fire {
-  bottom: 16%;
+  bottom: 18%;
   right: 4%;
 }
 
 /* earth: lower left */
 .daoTalismanSlot--earth {
-  bottom: 16%;
+  bottom: 18%;
   left: 4%;
 }
 
 .daoTalismanSlot b {
   font-size: 9px;
   font-weight: 700;
-  color: rgba(100, 55, 10, 0.70);
+  color: rgba(100, 55, 10, 0.78);
   white-space: nowrap;
   text-align: center;
   line-height: 1;
@@ -2342,36 +2382,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 0 7px;
-  background: linear-gradient(0deg, rgba(200, 150, 30, 0.18) 0%, transparent 100%);
-  border-top: 1px solid rgba(139, 90, 15, 0.25);
+  padding: 6px 0 9px;
+  background: linear-gradient(0deg, rgba(180, 120, 20, 0.28) 0%, rgba(200, 150, 30, 0.10) 60%, transparent 100%);
+  border-top: 1.5px solid rgba(139, 90, 15, 0.35);
+  position: relative;
+  z-index: 5;
 }
 
 .daoTalismanSealCircle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  border: 1.5px solid rgba(160, 30, 15, 0.55);
-  font-size: 14px;
+  border: 2px solid rgba(160, 30, 15, 0.62);
+  font-size: 15px;
   font-weight: 900;
-  color: rgba(160, 30, 15, 0.72);
-  background: rgba(255, 240, 210, 0.6);
+  color: rgba(150, 25, 10, 0.82);
+  background: rgba(255, 235, 200, 0.72);
+  box-shadow: 0 1px 4px rgba(160, 30, 15, 0.18);
 }
 
-/* ─── Print / PDF rules for talisman ───────────────────────────────────── */
+/* ─── Print / PDF rules for Талисман 1 ─────────────────────────────────── */
 
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman {
   aspect-ratio: 9 / 16 !important;
-  border-radius: 10px 10px 14px 14px !important;
+  border-radius: 12px 12px 8px 8px !important;
   width: min(320px, 92%) !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
 
-/* ─── Mobile sizing ─────────────────────────────────────────────────────── */
+/* ─── Mobile sizing for Талисман 1 ──────────────────────────────────────── */
 
 @media (max-width: 640px) {
   .daoMandalaSheet.dao-talisman {
@@ -2396,7 +2439,155 @@
   }
 }
 
-/* ── end DAO Talisman scroll ────────────────────────────────────────────── */
+/* ── DAO Talisman 2 — vertical Taoist formula scroll ───────────────────── */
+
+.daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(280px, 88%) !important;
+  margin: 0 auto;
+  background:
+    linear-gradient(180deg,
+      rgba(100, 40, 5, 0.70) 0%,
+      rgba(100, 40, 5, 0.70) 5%,
+      rgba(252, 238, 185, 0.98) 5%,
+      rgba(255, 250, 215, 0.99) 50%,
+      rgba(252, 238, 185, 0.98) 95%,
+      rgba(100, 40, 5, 0.70) 95%,
+      rgba(100, 40, 5, 0.70) 100%),
+    repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(184, 121, 29, 0.04) 18px, rgba(184, 121, 29, 0.04) 19px) !important;
+  border-top: 7px solid rgba(90, 35, 4, 0.88) !important;
+  border-bottom: 7px solid rgba(90, 35, 4, 0.88) !important;
+  border-left: 3px solid rgba(150, 80, 12, 0.65) !important;
+  border-right: 3px solid rgba(150, 80, 12, 0.65) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(240, 200, 90, 0.16),
+    inset -3px 0 0 rgba(240, 200, 90, 0.16),
+    0 10px 36px rgba(70, 30, 4, 0.28) !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Left and right side rails */
+.daoMandalaSheet.dao-talisman-2::before,
+.daoMandalaSheet.dao-talisman-2::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  pointer-events: none;
+  z-index: 10;
+}
+.daoMandalaSheet.dao-talisman-2::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(150, 80, 12, 0.20) 0%, transparent 100%);
+  border-right: 1px solid rgba(139, 90, 15, 0.24);
+}
+.daoMandalaSheet.dao-talisman-2::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(150, 80, 12, 0.20) 0%, transparent 100%);
+  border-left: 1px solid rgba(139, 90, 15, 0.24);
+}
+
+/* Talisman 2 inner scroll shares the base class for the roof/seal shared elements */
+.daoTalisman2Scroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Roof: slightly taller for Talisman 2 to feel header-heavy */
+.daoTalisman2Roof {
+  flex-shrink: 0;
+  padding: 11px 14px 8px !important;
+  background: linear-gradient(180deg, rgba(160, 100, 15, 0.32) 0%, rgba(200, 150, 30, 0.12) 65%, transparent 100%) !important;
+  border-bottom: 2px solid rgba(130, 75, 10, 0.40) !important;
+}
+
+/* Vertical column of nodes */
+.daoTalisman2Body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 6px 0;
+  position: relative;
+}
+
+/* Central spine line behind the nodes */
+.daoTalisman2Body::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent 0%, rgba(139, 90, 15, 0.18) 15%, rgba(139, 90, 15, 0.22) 85%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Each node row */
+.daoTalisman2Node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  z-index: 2;
+}
+
+.daoTalisman2Node b {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(100, 55, 10, 0.78);
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoTalisman2Node .daoElementImage {
+  width: min(46px, 80%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+}
+
+/* ─── Print / PDF rules for Талисман 2 ─────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(280px, 88%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ─── Mobile sizing for Талисман 2 ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-talisman-2 {
+    width: min(220px, 86%) !important;
+  }
+
+  .daoTalisman2Node .daoElementImage {
+    width: min(36px, 76%);
+  }
+
+  .daoTalisman2Node b {
+    font-size: 8px;
+  }
+}
+
+/* ── end DAO Talisman styles ────────────────────────────────────────────── */
 
 .zodiacMandalaSheet {
   border-radius: 50%;
