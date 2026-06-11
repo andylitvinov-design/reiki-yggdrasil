@@ -113,7 +113,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .businessVertexZone.hasImage,
 .profileLitePowerPlace .zodiacPositionImage[style],
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style],
-.profileLitePowerPlace .zodiacInnerPositionImage[style],
 .profileLitePowerPlace .starPositionImage[style],
 .profileLitePowerPlace .daoElementImage.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage,
@@ -123,7 +122,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .businessVertexZone.hasImage,
 .powerPlacePdfOnlyArea .zodiacPositionImage[style],
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style],
-.powerPlacePdfOnlyArea .zodiacInnerPositionImage[style],
 .powerPlacePdfOnlyArea .starPositionImage[style],
 .powerPlacePdfOnlyArea .daoElementImage.hasImage {
   background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
@@ -149,8 +147,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacPositionImage[style]::after,
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::before,
 .profileLitePowerPlace .zodiacFieldPlusPositionImage[style]::after,
-.profileLitePowerPlace .zodiacInnerPositionImage[style]::before,
-.profileLitePowerPlace .zodiacInnerPositionImage[style]::after,
 .profileLitePowerPlace .starPositionImage[style]::before,
 .profileLitePowerPlace .starPositionImage[style]::after,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::before,
@@ -169,8 +165,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacPositionImage[style]::after,
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style]::before,
 .powerPlacePdfOnlyArea .zodiacFieldPlusPositionImage[style]::after,
-.powerPlacePdfOnlyArea .zodiacInnerPositionImage[style]::before,
-.powerPlacePdfOnlyArea .zodiacInnerPositionImage[style]::after,
 .powerPlacePdfOnlyArea .starPositionImage[style]::before,
 .powerPlacePdfOnlyArea .starPositionImage[style]::after {
   display: none !important;
@@ -181,12 +175,10 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
 .profileLitePowerPlace .zodiacPosition.hasImage,
 .profileLitePowerPlace .zodiacFieldPlusPosition.hasImage,
-.profileLitePowerPlace .zodiacInnerPosition.hasImage,
 .profileLitePowerPlace .starPosition.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
 .powerPlacePdfOnlyArea .zodiacPosition.hasImage,
 .powerPlacePdfOnlyArea .zodiacFieldPlusPosition.hasImage,
-.powerPlacePdfOnlyArea .zodiacInnerPosition.hasImage,
 .powerPlacePdfOnlyArea .starPosition.hasImage {
   background: transparent !important;
   box-shadow: none !important;

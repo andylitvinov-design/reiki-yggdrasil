@@ -31,15 +31,14 @@ const DAO_STYLE_VARIANTS = [
   { value: "talisman-2", label: "Талисман 2" }
 ];
 const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
-const ZODIAC_2_VARIANT = "zodiac-2-12";
 const ZODIAC_VARIANTS = [
   { value: "classic-2", label: "2", visibleCount: 2 },
   { value: "classic-4", label: "4", visibleCount: 4 },
   { value: "classic-6", label: "6", visibleCount: 6 },
   { value: "classic-8", label: "8", visibleCount: 8 },
   { value: "plus-8", label: "8+", visibleCount: 8 },
-  { value: "classic-12", label: "Зодиак 1", visibleCount: 12 },
-  { value: ZODIAC_2_VARIANT, label: "Зодиак 2", visibleCount: 12 }
+  { value: "classic-12", label: "12", visibleCount: 12 },
+  { value: "plus-12", label: "12+", visibleCount: 12 }
 ];
 const STAR_VARIANTS = [
   { value: "closed", label: "Закрытая" },
@@ -166,16 +165,6 @@ const ZODIAC_PLUS_SLOT_LAYOUT = {
     { id: "zodiac-plus-corner-br", className: "plus-corner-br", label: "Угол низ-прав", classPrefix: "plus" }
   ]
 };
-const ZODIAC_2_INNER_SLOTS = Array.from({ length: 12 }, (_, index) => ({
-  id: `zodiac-inner-${index + 1}`,
-  className: `inner-${index + 1}`,
-  label: `Внутренняя мандала ${index + 1}`,
-  classPrefix: "inner"
-}));
-
-function isZodiac2Variant(value) {
-  return String(value || "") === ZODIAC_2_VARIANT;
-}
 const CHANNELS_SUBCATEGORIES = [
   { value: "sefirot", label: "Сефирот", thirdLevels: [{ value: "major-arcana", label: "Большие арканы" }, { value: "minor-arcana", label: "Малые арканы" }, { value: "sephirot-siphers", label: "Сиферы" }] },
   { value: "runes", label: "Руны", thirdLevels: [{ value: "first-at", label: "Первый атт" }, { value: "second-at", label: "Второй атт" }, { value: "third-at", label: "Третий атт" }] },
@@ -466,17 +455,14 @@ function buildSlotList(draft) {
   if (type === "zodiac") {
     const visibleCount = Number(draft.zodiac_visible_count) || 12;
     const variant = draft.zodiac_variant || (visibleCount === 8 ? "classic-8" : visibleCount === 12 ? "classic-12" : `classic-${visibleCount}`);
-    const zodiac2 = isZodiac2Variant(variant);
-    const isPlusVariant = !zodiac2 && variant.startsWith("plus");
-    const baseVisibleCount = zodiac2 ? 12 : visibleCount;
-    const signSlots = ZODIAC_SIGNS.slice(0, isPlusVariant ? 8 : baseVisibleCount).map((sign, index) => ({
+    const isPlusVariant = variant.startsWith("plus");
+    const signSlots = ZODIAC_SIGNS.slice(0, isPlusVariant ? 8 : visibleCount).map((sign, index) => ({
       id: `zodiac-${index + 1}`,
       label: sign.label,
       className: sign.className,
       classPrefix: "classic"
     }));
 
-    if (zodiac2) return [...signSlots, ...ZODIAC_2_INNER_SLOTS];
     if (!isPlusVariant) return signSlots;
     if (visibleCount === 8) return signSlots;
     return [...signSlots, ...(ZODIAC_PLUS_SLOT_LAYOUT[visibleCount] || ZODIAC_PLUS_SLOT_LAYOUT[8])];
@@ -729,8 +715,6 @@ export default function ProfileLitePowerPlaceModule({
   const centerImageOffsetY = clampCenterImageOffset(compositionDraft.__center_image_offset_y ?? objectRefs.__center_image_offset_y);
   const centerImageZoom = clampCenterImageZoom(compositionDraft.__center_image_zoom ?? objectRefs.__center_image_zoom);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
-  const zodiacVariant = compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count || 12}`;
-  const isZodiac2 = compositionDraft.constructor_type === "zodiac" && isZodiac2Variant(zodiacVariant);
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
@@ -2215,8 +2199,8 @@ export default function ProfileLitePowerPlaceModule({
                   </div>
                 )}
                 {compositionDraft.constructor_type === "zodiac" && (
-                  <div className="zodiacCountSelector" aria-label="Формат зодиака">
-                    <span>Формат зодиака</span>
+                  <div className="zodiacCountSelector" aria-label="Количество видимых позиций зодиака">
+                    <span>Позиции зодиака</span>
                     {ZODIAC_VARIANTS.map((variant) => (
                       <button className={(compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count}`) === variant.value ? "active" : ""} key={variant.value} onClick={() => {
                         onCompositionDraftChange("zodiac_variant", variant.value);
@@ -2319,39 +2303,13 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
-                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                      <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${(compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                         {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                         {renderPowerPlaceMotionLayer()}
                         <div className="zodiacClockFace" aria-hidden="true">
                           <span>ЗОДИАК</span>
                         </div>
-                        {isZodiac2 && slots.filter((slot) => slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
-                          const src = objectRefs[slot.id] || "";
-                          const displaySrc = objectRefUrls[src] || src;
-                          return (
-                            <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
-                              <button
-                                className={`zodiacInnerPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
-                                onClick={() => {
-                                  if (suppressSlotPickerClickRef.current[slot.id]) {
-                                    suppressSlotPickerClickRef.current[slot.id] = false;
-                                    return;
-                                  }
-                                  openObjectPicker(slot.id);
-                                }}
-                                style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
-                                type="button"
-                                title={slot.label}
-                                aria-label={`Выбрать внутреннюю мандалу ${slot.label}`}
-                                {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
-                                {...getPowerPlaceSlotDropHandlers(slot.id)}
-                              >
-                                {!src && <span>{index + 1}</span>}
-                              </button>
-                            </div>
-                          );
-                        })}
-                        {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus") && !slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
+                        {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus")).map((slot, index) => {
                           const src = objectRefs[slot.id] || "";
                           const displaySrc = objectRefUrls[src] || src;
                           return (
