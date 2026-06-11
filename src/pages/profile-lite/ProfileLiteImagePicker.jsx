@@ -1,9 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../../data/reikiStepSettings.js";
+import {
+  POWER_PLACE_SYMBOL_SHELVES,
+  listPowerPlaceSymbolsByShelf,
+  symbolShelfForConstructorType
+} from "../../data/powerPlaceSymbolLibrary.js";
 
 function isDisplayUrl(value) {
-  return Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("data:image/")));
+  return Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("data:image/") || value.startsWith("/")));
 }
 
 function isStorageRef(value) {
@@ -50,6 +55,13 @@ const MATERIAL_TYPES = [
   { value: "artifact", label: "Артефакт" },
   { value: "practice", label: "Практика" }
 ];
+const MATERIAL_PICKER_CATEGORIES = [
+  { value: "new", label: "Новые" },
+  { value: "dao-ri", label: "ДАО РИ" },
+  { value: "god-channels", label: "Мистерии" },
+  { value: "channels", label: "Каналы" },
+  { value: "form", label: "Форма" }
+];
 const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "all", label: "Все" },
   { value: "client-1", label: "Клиент 1" },
@@ -62,6 +74,7 @@ export default function ProfileLiteImagePicker({
   accountPlan = "start",
   mode = "center",
   images = [],
+  constructorType = "zodiac",
   defaultLibraryTab = "clients",
   selectedImageRef = "",
   onSelect = async () => {},
@@ -71,10 +84,12 @@ export default function ProfileLiteImagePicker({
   uploadStatus = "idle",
   uploadError = ""
 }) {
-  const [activeTab, setActiveTab] = useState(mode === "library" ? "upload" : "new");
+  const [activeTab, setActiveTab] = useState(mode === "library" ? "upload" : "clients");
   const [uploadDestination, setUploadDestination] = useState(defaultLibraryTab === "materials" ? "materials" : "clients");
   const [uploadTitle, setUploadTitle] = useState("");
   const [clientCategory, setClientCategory] = useState("all");
+  const [materialPickerCategory, setMaterialPickerCategory] = useState("new");
+  const [symbolShelf, setSymbolShelf] = useState(() => symbolShelfForConstructorType(constructorType));
   const [materialGroup, setMaterialGroup] = useState("dao-ri");
   const [materialType, setMaterialType] = useState("mandala");
   const [materialStepId, setMaterialStepId] = useState(firstMaterialStep?.id || "");
@@ -87,19 +102,34 @@ export default function ProfileLiteImagePicker({
   const currentUploadError = uploadError || localUploadError;
   const isUploading = currentUploadStatus === "loading";
   const isProAccount = accountPlan === "pro";
+  const symbolImages = useMemo(() => listPowerPlaceSymbolsByShelf(symbolShelf), [symbolShelf]);
   const visibleImages = useMemo(() => {
     const validImages = images.filter((image) => image?.id || image?.src || image?.displaySrc);
-    if (activeTab === "clients") return validImages.filter((image) => image.kind === "client-photo");
-    if (activeTab === "materials") return validImages.filter((image) => image.kind === "material" || image.kind === "tradition-asset");
+    if (activeTab === "clients") {
+      return validImages.filter((image) => (
+        image.kind === "client-photo"
+        && (clientCategory === "all" || image.clientCategory === clientCategory || image.client_category === clientCategory)
+      ));
+    }
+    if (activeTab === "materials") {
+      const materialImages = validImages.filter((image) => image.kind === "material" || image.kind === "tradition-asset");
+      if (materialPickerCategory === "new") return materialImages;
+      return materialImages.filter((image) => {
+        const text = `${image.group || ""} ${image.material_group || ""} ${image.meta || ""} ${image.label || ""}`.toLowerCase();
+        if (materialPickerCategory === "god-channels") return image.kind === "tradition-asset" || /мистер|mystery|god/.test(text);
+        return text.includes(materialPickerCategory);
+      });
+    }
+    if (activeTab === "symbols") return symbolImages;
     return validImages;
-  }, [activeTab, images]);
+  }, [activeTab, clientCategory, images, materialPickerCategory, symbolImages]);
   const tabLabels = mode === "library"
-    ? [{ id: "upload", label: "Загрузить фото" }]
+    ? [{ id: "upload", label: "Загрузить своё" }]
     : [
-      { id: "new", label: "Новые" },
       { id: "clients", label: "Клиенты" },
       { id: "materials", label: "Материалы" },
-      { id: "upload", label: "Загрузить фото" }
+      { id: "symbols", label: "Символы" },
+      { id: "upload", label: "Загрузить своё" }
     ];
 
   const handleSelect = async (image) => {
@@ -154,13 +184,13 @@ export default function ProfileLiteImagePicker({
             <h2 id="profileLiteImagePickerTitle">{modeTitle(mode)}</h2>
             <small>Сохранённые фото доступны сразу. Storage refs без signed URL показываются как placeholder.</small>
           </div>
-          <button type="button" onClick={onClose} disabled={isUploading} aria-label="Закрыть выбор изображения">x</button>
+          <button className="profileLiteImagePickerCloseButton" type="button" onClick={onClose} disabled={isUploading} aria-label="Закрыть выбор изображения">×</button>
         </div>
 
-        <div className="clientPhotoPickerModeTabs imagePickerModeBar" role="tablist" aria-label="Режим выбора фото">
+        <div className="clientPhotoPickerModeTabs imagePickerModeBar imagePickerSourceGroups" role="tablist" aria-label="Источник изображения">
           {tabLabels.map((tab) => (
             <button
-              className={activeTab === tab.id ? "active" : ""}
+              className={`imagePickerSourceButton${activeTab === tab.id ? " active" : ""}`}
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
@@ -171,6 +201,47 @@ export default function ProfileLiteImagePicker({
             </button>
           ))}
         </div>
+
+        {activeTab === "clients" && (
+          <div className="imagePickerSecondLevel" aria-label="Категории клиентов">
+            {CLIENT_PHOTO_SUBCATEGORIES.map((option) => (
+              <button
+                key={option.value}
+                className={clientCategory === option.value ? "active" : ""}
+                type="button"
+                disabled={option.proOnly && !isProAccount}
+                onClick={() => {
+                  if (option.proOnly && !isProAccount) return;
+                  setClientCategory(option.value);
+                }}
+              >
+                {option.proOnly && !isProAccount ? `${option.label} — Pro` : option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {activeTab === "materials" && (
+          <label className="imagePickerSecondLevel imagePickerSecondLevelSelect">
+            Категория
+            <select value={materialPickerCategory} onChange={(event) => setMaterialPickerCategory(event.target.value)}>
+              {MATERIAL_PICKER_CATEGORIES.map((category) => (
+                <option key={category.value} value={category.value}>{category.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {activeTab === "symbols" && (
+          <label className="imagePickerSecondLevel imagePickerSecondLevelSelect">
+            Полка
+            <select value={symbolShelf} onChange={(event) => setSymbolShelf(event.target.value)}>
+              {POWER_PLACE_SYMBOL_SHELVES.map((shelf) => (
+                <option key={shelf.value} value={shelf.value}>{shelf.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {currentUploadError && <div className="cabinetError compactNotice">{currentUploadError}</div>}
 
@@ -299,7 +370,7 @@ export default function ProfileLiteImagePicker({
           {visibleImages.length === 0 && (
             <div className="clientPhotoPickerEmpty">
               <b>В этой категории пока нет сохранённых изображений.</b>
-              <p>Откройте вкладку «Загрузить фото».</p>
+              <p>Откройте вкладку «Загрузить своё».</p>
             </div>
           )}
         </div>}

@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
+import {
+  POWER_PLACE_SYMBOL_SHELVES,
+  listPowerPlaceSymbolsByShelf,
+  symbolShelfForConstructorType
+} from "../../data/powerPlaceSymbolLibrary.js";
 import ProfileLiteImagePicker from "./ProfileLiteImagePicker.jsx";
 import "../../profileMandalaWorkspace.css";
 
@@ -252,7 +257,7 @@ function objectRefText(value) {
 }
 
 function isImagePreview(value) {
-  return Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("data:image/")));
+  return Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("data:image/") || value.startsWith("/")));
 }
 
 function imageStyle(src) {
@@ -662,6 +667,10 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const [dragOverSlotId, setDragOverSlotId] = useState("");
+  const [symbolShelfState, setSymbolShelfState] = useState(() => ({
+    value: symbolShelfForConstructorType(compositionDraft?.constructor_type),
+    manual: false
+  }));
   const [motionStep, setMotionStep] = useState(0);
   const [videoExportMessage, setVideoExportMessage] = useState("");
   const suppressCenterPickerClickRef = useRef(false);
@@ -711,6 +720,16 @@ export default function ProfileLitePowerPlaceModule({
   const savedCompositionLimit = planLimits.compositions;
   const createNewDisabled = savedCompositionCount >= savedCompositionLimit;
   const updateExistingDisabled = !compositionDraft.id;
+  const defaultSymbolShelf = symbolShelfForConstructorType(compositionDraft.constructor_type);
+  const activeSymbolShelf = symbolShelfState.value || defaultSymbolShelf;
+  const activeSymbolShelfItems = useMemo(() => listPowerPlaceSymbolsByShelf(activeSymbolShelf), [activeSymbolShelf]);
+
+  useEffect(() => {
+    if (symbolShelfState.manual) return;
+    setSymbolShelfState((current) => current.value === defaultSymbolShelf
+      ? current
+      : { value: defaultSymbolShelf, manual: false });
+  }, [defaultSymbolShelf, symbolShelfState.manual]);
 
   useEffect(() => {
     if (!videoEnabled) return undefined;
@@ -1064,6 +1083,7 @@ export default function ProfileLitePowerPlaceModule({
       displaySrc: photo.display_url || photo.signed_url || photo.image_url,
       signingError: photo.media_signing_error || "",
       kind: "client-photo",
+      clientCategory: photo.client_category || "all",
       photoId: photo.id,
       favorite: Boolean(photo.favorite || photo.is_favorite || photo.pinned),
       updatedAt: photo.updated_at || photo.created_at || ""
@@ -1076,6 +1096,7 @@ export default function ProfileLitePowerPlaceModule({
       displaySrc: asset.display_url || asset.signed_url || asset.image_url,
       signingError: asset.media_signing_error || "",
       kind: "tradition-asset",
+      group: "god-channels",
       traditionId: asset.tradition_id || "",
       favorite: Boolean(asset.favorite || asset.is_favorite || asset.pinned),
       updatedAt: asset.updated_at || asset.created_at || ""
@@ -1088,6 +1109,7 @@ export default function ProfileLitePowerPlaceModule({
       displaySrc: item.display_url || item.signed_url || item.image_url,
       signingError: item.media_signing_error || "",
       kind: "material",
+      group: item.material_group || item.group || "",
       stepId: item.step_id || "",
       type: item.type || "",
       favorite: Boolean(item.favorite || item.is_favorite || item.pinned),
@@ -1313,6 +1335,45 @@ export default function ProfileLitePowerPlaceModule({
           </div>
         </>
       )}
+    </div>
+  );
+
+  const renderSymbolLibraryModule = () => (
+    <div className="powerSymbolLibraryPanel">
+      <div className="powerSymbolLibraryHeader">
+        <div>
+          <p className="cabinetEyebrow">Библиотека</p>
+          <small>Draft символы вставляются в выбранную ячейку. На desktop можно перетащить символ на мини-мандалу.</small>
+        </div>
+        <label>
+          Полка
+          <select
+            value={activeSymbolShelf}
+            onChange={(event) => setSymbolShelfState({ value: event.target.value, manual: true })}
+          >
+            {POWER_PLACE_SYMBOL_SHELVES.map((shelf) => (
+              <option key={shelf.value} value={shelf.value}>{shelf.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="powerSymbolLibraryGrid" aria-label="Символы места силы">
+        {activeSymbolShelfItems.map((item) => (
+          <button
+            className="powerSymbolLibraryItem"
+            key={item.id}
+            type="button"
+            draggable
+            onDragStart={(event) => handleSavedImageDragStart(event, item)}
+            onClick={() => chooseImage(item)}
+            title={`${item.label}. ${item.meta}`}
+          >
+            <span className="powerSymbolLibraryThumb" style={imageStyle(item.displaySrc || item.src)} aria-hidden="true" />
+            <b>{item.label}</b>
+            <small>{item.meta}</small>
+          </button>
+        ))}
+      </div>
     </div>
   );
 
@@ -2641,6 +2702,8 @@ export default function ProfileLitePowerPlaceModule({
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
 
+            {renderSymbolLibraryModule()}
+
             {renderReportModule()}
 
             <div className="objectImageEditor">
@@ -2689,8 +2752,10 @@ export default function ProfileLitePowerPlaceModule({
 
       {pickerMode && (
         <ProfileLiteImagePicker
+          accountPlan={accountPlan}
           mode={pickerMode}
           images={savedImages}
+          constructorType={compositionDraft.constructor_type}
           defaultLibraryTab="clients"
           selectedImageRef={pickerMode === "center" ? centralImageRef : pickerMode === "cover" ? visibleCover?.src || "" : selectedSlotImage}
           onSelect={chooseImage}

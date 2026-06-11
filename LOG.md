@@ -1,5 +1,53 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-11 — Add Power Place static symbol library and picker source navigation
+
+- Branch: `codex/power-place-symbol-library`.
+- Base: fresh `origin/main` at `1f1e5a7` (`feat: add gradient swatch buttons and fix inner cover gradient visibility (#340)`).
+- Source of truth:
+  - `docs/product/POWER_PLACE_SYMBOL_LIBRARY_TECHNICAL_PLAN_2026-06-09.md`.
+- Changed files:
+  - `package.json`
+  - `src/data/powerPlaceSymbolLibrary.js`
+  - `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceSymbolLibrary.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `public/symbols/power-place/**`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added static symbol shelves for every Power Place constructor format: `zodiac`, `star`, `chess`, `client`, `altar`, `business`, `dao`;
+  - added minimum two draft SVG public symbols per shelf with `kind: "symbol-library"` and no `data:image` refs;
+  - inserted `Библиотека` below `Фон Места Силы`, reusing existing image selection and drag/drop paths;
+  - made the shelf default follow `compositionDraft.constructor_type` until the user manually chooses another shelf;
+  - updated mobile picker sources to `Клиенты / Материалы / Символы / Загрузить своё`;
+  - added second-level client filtering, materials category dropdown default `Новые`, and symbol shelf dropdown;
+  - kept client upload metadata to title plus subcategory;
+  - reduced only picker thumbnails and added a sticky safe-area picker header with a large `×` close button.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4392/`;
+  - no-env `/profile/mandalas` rendered the safe Supabase-not-configured fallback;
+  - mobile `390x900` screenshot saved as `profile-mandalas-mobile-390x900-symbol-library.png`;
+  - browser console warnings/errors were `0`.
+- Not verified:
+  - real authenticated Supabase builder session, live Storage/RLS drag/drop, Vercel preview/test deployment, and `https://2mentalica.vercel.app/profile/mandalas`.
+- Risks:
+  - SVGs are draft placeholders and require artwork/content review;
+  - live QA requires deployment plus configured staging Supabase.
+
 ## 2026-06-08 — Implement Power Place Фото / Видео mode Phase 1-3
 
 - Branch: `codex/power-place-video-mode-20260608`.
