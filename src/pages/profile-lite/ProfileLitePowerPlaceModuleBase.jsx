@@ -22,7 +22,7 @@ const MANDALA_STYLE_VARIANTS = [
 ];
 const DAO_STYLE_VARIANTS = [
   { value: "style-1", label: "Стиль 1" },
-  { value: "talisman", label: "Талисман 1" },
+  { value: "talisman-1", label: "Талисман 1" },
   { value: "talisman-2", label: "Талисман 2" }
 ];
 const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
@@ -2339,7 +2339,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet${(compositionDraft.__dao_style || "style-1") === "talisman" ? " dao-talisman" : (compositionDraft.__dao_style || "style-1") === "talisman-2" ? " dao-talisman-2" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`daoMandalaSheet${(compositionDraft.__dao_style || "style-1") === "talisman-1" ? " dao-talisman" : (compositionDraft.__dao_style || "style-1") === "talisman-2" ? " dao-talisman-2" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {(compositionDraft.__dao_style || "style-1") === "talisman-2" ? (
                         <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
                           <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
@@ -2347,12 +2347,18 @@ export default function ProfileLitePowerPlaceModule({
                             <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
                           </div>
                           <div className="daoTalisman2Body">
-                            {DAO_ELEMENTS.slice(0, compositionDraft.__dao_talisman_node_count || 5).map((element) => {
-                              const slotId = `dao-${element.id}`;
+                            {Array.from(
+                              { length: compositionDraft.__dao_talisman_node_count || 5 },
+                              (_, index) => ({
+                                id: `dao-talisman-2-${index + 1}`,
+                                label: `Узел ${index + 1}`
+                              })
+                            ).map((node) => {
+                              const slotId = node.id;
                               const src = objectRefs[slotId] || "";
                               const displaySrc = objectRefUrls[src] || src;
                               return (
-                                <div className="daoTalisman2Node" key={element.id}>
+                                <div className="daoTalisman2Node" key={node.id}>
                                   <button
                                     className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {
@@ -2364,14 +2370,14 @@ export default function ProfileLitePowerPlaceModule({
                                     }}
                                     style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
                                     type="button"
-                                    title={element.label}
-                                    aria-label={`Выбрать элемент ${element.label}`}
+                                    title={node.label}
+                                    aria-label={`Выбрать элемент ${node.label}`}
                                     {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
                                     {...getPowerPlaceSlotDropHandlers(slotId)}
                                   >
                                     {!src && <span>◎</span>}
                                   </button>
-                                  <b>{element.label}</b>
+                                  <b>{node.label}</b>
                                 </div>
                               );
                             })}
@@ -2381,7 +2387,7 @@ export default function ProfileLitePowerPlaceModule({
                             <span className="daoTalismanSealCircle">印</span>
                           </div>
                         </div>
-                      ) : (compositionDraft.__dao_style || "style-1") === "talisman" ? (
+                      ) : (compositionDraft.__dao_style || "style-1") === "talisman-1" ? (
                         <div className="daoTalismanScroll" aria-label="Даосский талисман">
                           <div className="daoTalismanRoof" aria-hidden="true">
                             <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>

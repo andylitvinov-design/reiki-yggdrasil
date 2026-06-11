@@ -374,8 +374,13 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"style-1"'),
-  "daoStyleValue must handle style-1, talisman, and talisman-2 values"
+  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && moduleSource.includes('"style-1"'),
+  "daoStyleValue must handle style-1, legacy talisman→talisman-1 mapping, talisman-1, and talisman-2 values"
+);
+
+assert.ok(
+  moduleSource.includes('"talisman" || value === "talisman-1"') || (moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && /talisman.*talisman-1|talisman-1.*talisman/.test(moduleSource)),
+  "daoStyleValue must map legacy 'talisman' to 'talisman-1'"
 );
 
 // ─── DAO talisman: CSS and JSX contracts ─────────────────────────────────────
@@ -423,8 +428,8 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes('"style-1"') && baseSource.includes('"talisman"') && baseSource.includes('"talisman-2"'),
-  "DAO_STYLE_VARIANTS must include style-1, talisman, and talisman-2 values"
+  baseSource.includes('"style-1"') && baseSource.includes('"talisman-1"') && baseSource.includes('"talisman-2"'),
+  "DAO_STYLE_VARIANTS must include style-1, talisman-1, and talisman-2 values"
 );
 
 assert.ok(
@@ -467,12 +472,24 @@ assert.ok(
   "print area must include talisman-specific print/PDF rules"
 );
 
-// Slot IDs must remain unchanged in talisman mode
+// Talisman 1 slot IDs: dao-${element.id} pattern (dao-water, dao-wood, etc.)
 for (const elementId of ["water", "wood", "fire", "earth", "metal"]) {
   const slotIdPattern = new RegExp(`dao-\\$\\{element\\.id\\}|dao-${elementId}`);
   assert.ok(
     slotIdPattern.test(baseSource),
-    `talisman mode must keep dao-${elementId} slot id pattern`
+    `talisman-1 mode must keep dao-${elementId} slot id pattern`
   );
 }
+
+// Talisman 2 must use dao-talisman-2-${index + 1} nodes, not DAO_ELEMENTS.slice
+assert.ok(
+  baseSource.includes("dao-talisman-2-${index + 1}") || baseSource.includes("`dao-talisman-2-${index + 1}`"),
+  "Talisman 2 must generate slot IDs as dao-talisman-2-${index + 1}"
+);
+
+assert.ok(
+  !baseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
+  "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
+);
+
 console.log("powerPlaceStyleContract: all assertions passed");

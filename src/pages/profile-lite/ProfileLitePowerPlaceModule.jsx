@@ -69,7 +69,7 @@ function clampCenterImageZoom(value) {
 }
 
 function daoStyleValue(value) {
-  if (value === "talisman") return "talisman";
+  if (value === "talisman" || value === "talisman-1") return "talisman-1";
   if (value === "talisman-2") return "talisman-2";
   return "style-1";
 }
