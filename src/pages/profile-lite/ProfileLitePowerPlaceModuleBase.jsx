@@ -28,8 +28,13 @@ const MANDALA_STYLE_VARIANTS = [
 const DAO_STYLE_VARIANTS = [
   { value: "style-1", label: "Стиль 1" },
   { value: "talisman-1", label: "Талисман 1" },
-  { value: "talisman-2", label: "Талисман 2" }
+  { value: "talisman-2", label: "Талисман 2" },
+  { value: "fu-paper-slip", label: "Фу-лист" },
+  { value: "cloud-register", label: "Облачный реестр" },
+  { value: "thunder-tablet", label: "Громовая табличка" },
+  { value: "taofu-charm", label: "Таофу" }
 ];
+const DAO_FULU_STYLES = new Set(["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]);
 const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
 const ZODIAC_2_VARIANT = "zodiac-2-12";
 const ZODIAC_VARIANTS = [
@@ -2551,7 +2556,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet${(compositionDraft.__dao_style || "style-1") === "talisman-1" ? " dao-talisman" : (compositionDraft.__dao_style || "style-1") === "talisman-2" ? " dao-talisman-2" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`daoMandalaSheet${{"talisman-1": " dao-talisman", "talisman-2": " dao-talisman-2", "fu-paper-slip": " dao-fu-paper-slip", "cloud-register": " dao-cloud-register", "thunder-tablet": " dao-thunder-tablet", "taofu-charm": " dao-taofu-charm"}[compositionDraft.__dao_style || "style-1"] || ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {(compositionDraft.__dao_style || "style-1") === "talisman-2" ? (
                         <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
                           <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
@@ -2642,6 +2647,49 @@ export default function ProfileLitePowerPlaceModule({
                           {renderPowerPlaceMotionLayer()}
                           <div className="daoTalismanSeal" aria-hidden="true">
                             <span className="daoTalismanSealCircle">印</span>
+                          </div>
+                        </div>
+                      ) : DAO_FULU_STYLES.has(compositionDraft.__dao_style || "style-1") ? (
+                        <div className="daoFuluScroll" aria-label="Даосский талисман">
+                          <div className="daoFuluHeader" aria-hidden="true">
+                            <span className="daoFuluPureMarks" aria-hidden="true">✓ ✓ ✓</span>
+                          </div>
+                          <div className="daoFuluBody">
+                            <div className="daoFuluCenterArea">
+                              {renderCenterPhotoWithMode("daoCenterPhoto")}
+                            </div>
+                            {DAO_ELEMENTS.map((element) => {
+                              const slotId = `dao-${element.id}`;
+                              const src = objectRefs[slotId] || "";
+                              const displaySrc = objectRefUrls[src] || src;
+                              return (
+                                <div className={`daoFuluSlot daoFuluSlot--${element.className}`} key={element.id}>
+                                  <button
+                                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                                    onClick={() => {
+                                      if (suppressSlotPickerClickRef.current[slotId]) {
+                                        suppressSlotPickerClickRef.current[slotId] = false;
+                                        return;
+                                      }
+                                      openObjectPicker(slotId);
+                                    }}
+                                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                                    type="button"
+                                    title={element.label}
+                                    aria-label={`Выбрать элемент ${element.label}`}
+                                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                                  >
+                                    {!src && <span>◎</span>}
+                                  </button>
+                                  <b>{element.label}</b>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {renderPowerPlaceMotionLayer()}
+                          <div className="daoFuluFooter" aria-hidden="true">
+                            <span className="daoFuluSealBox" aria-hidden="true" />
                           </div>
                         </div>
                       ) : (

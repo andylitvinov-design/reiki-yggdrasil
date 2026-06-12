@@ -2589,6 +2589,260 @@
 
 /* ── end DAO Talisman styles ────────────────────────────────────────────── */
 
+/* ══════════════════════════════════════════════════════════════════════════
+   DAO Fulu styles — 4 tall vertical talisman/document forms
+   All share aspect-ratio ~1:2.6, width ~60% of panel on mobile.
+   Inner layout: .daoFuluScroll flex column, slots positioned absolute.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared fulu outer shape ─────────────────────────────────────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip,
+.daoMandalaSheet.dao-cloud-register,
+.daoMandalaSheet.dao-thunder-tablet,
+.daoMandalaSheet.dao-taofu-charm {
+  aspect-ratio: 5 / 13 !important;
+  width: min(280px, 62%) !important;
+  margin: 0 auto;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* ── Фу-лист — simple parchment rectangle, double border ──────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip {
+  border-radius: 4px 4px 4px 4px !important;
+  background: rgba(255, 252, 228, 0.97) !important;
+  border: 3px solid rgba(100, 60, 10, 0.72) !important;
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 252, 228, 0.9),
+    inset 0 0 0 7px rgba(100, 60, 10, 0.3),
+    0 6px 28px rgba(60, 35, 5, 0.18) !important;
+}
+
+/* ── Облачный реестр — soft cloud corners, lighter line ─────────────────── */
+
+.daoMandalaSheet.dao-cloud-register {
+  border-radius: 18px 18px 10px 10px !important;
+  background: rgba(248, 252, 240, 0.97) !important;
+  border: 2px solid rgba(80, 110, 60, 0.55) !important;
+  box-shadow:
+    inset 0 0 0 4px rgba(200, 230, 180, 0.3),
+    0 6px 28px rgba(40, 70, 30, 0.15) !important;
+}
+
+.daoMandalaSheet.dao-cloud-register::before,
+.daoMandalaSheet.dao-cloud-register::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.daoMandalaSheet.dao-cloud-register::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(80, 110, 60, 0.12) 0%, transparent 100%);
+}
+
+.daoMandalaSheet.dao-cloud-register::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(80, 110, 60, 0.12) 0%, transparent 100%);
+}
+
+/* ── Громовая табличка — firm geometric, stepped shoulders ──────────────── */
+
+.daoMandalaSheet.dao-thunder-tablet {
+  border-radius: 2px 2px 2px 2px !important;
+  background: rgba(240, 235, 215, 0.97) !important;
+  border: 4px solid rgba(50, 40, 15, 0.82) !important;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 240, 180, 0.45),
+    inset -2px -2px 0 rgba(50, 40, 15, 0.2),
+    0 8px 32px rgba(30, 20, 5, 0.22) !important;
+}
+
+/* stepped top bar */
+.daoMandalaSheet.dao-thunder-tablet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 8px;
+  background: rgba(50, 40, 15, 0.72);
+  z-index: 11;
+  pointer-events: none;
+}
+
+/* ── Таофу — plaque silhouette, heavier border, small top panel ─────────── */
+
+.daoMandalaSheet.dao-taofu-charm {
+  border-radius: 6px 6px 3px 3px !important;
+  background: rgba(252, 245, 220, 0.97) !important;
+  border: 5px solid rgba(80, 45, 8, 0.78) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(200, 150, 50, 0.3),
+    0 8px 32px rgba(60, 35, 5, 0.22) !important;
+}
+
+/* ── Shared inner layout ────────────────────────────────────────────────── */
+
+.daoFuluScroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Header with ✓ ✓ ✓ */
+
+.daoFuluHeader {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px 6px;
+  background: linear-gradient(180deg, rgba(160, 110, 20, 0.22) 0%, transparent 100%);
+  border-bottom: 1.5px solid rgba(120, 80, 15, 0.3);
+  position: relative;
+  z-index: 5;
+}
+
+.daoFuluPureMarks {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.42em;
+  color: rgba(130, 65, 8, 0.9);
+  line-height: 1;
+}
+
+/* Body: center photo + 5 positioned slots */
+
+.daoFuluBody {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.daoFuluCenterArea {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.daoFuluCenterArea .daoCenterPhoto {
+  width: min(62px, 26%) !important;
+  height: min(62px, 26%) !important;
+}
+
+/* Slot base */
+
+.daoFuluSlot {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 22%;
+}
+
+.daoFuluSlot b {
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(90, 50, 8, 0.78);
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoFuluSlot .daoElementImage {
+  width: min(44px, 88%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+}
+
+/* Slot positions — wood upper-left, fire upper-right, earth bottom-center,
+   metal lower-right, water lower-left */
+
+.daoFuluSlot--wood  { top: 8%;    left: 4%; }
+.daoFuluSlot--fire  { top: 8%;    right: 4%; }
+.daoFuluSlot--earth { bottom: 14%; left: 50%; transform: translateX(-50%); }
+.daoFuluSlot--metal { bottom: 32%; right: 4%; }
+.daoFuluSlot--water { bottom: 32%; left: 4%; }
+
+/* Footer: empty decorative seal box */
+
+.daoFuluFooter {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0 9px;
+  background: linear-gradient(0deg, rgba(160, 110, 20, 0.22) 0%, transparent 100%);
+  border-top: 1.5px solid rgba(120, 80, 15, 0.3);
+  position: relative;
+  z-index: 5;
+}
+
+.daoFuluSealBox {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  border: 2px solid rgba(130, 40, 15, 0.5);
+  background: rgba(255, 235, 195, 0.6);
+}
+
+/* ── Print / PDF ────────────────────────────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-fu-paper-slip,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-cloud-register,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-thunder-tablet,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-taofu-charm {
+  aspect-ratio: 5 / 13 !important;
+  width: min(280px, 62%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ── Mobile sizing for fulu styles ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-fu-paper-slip,
+  .daoMandalaSheet.dao-cloud-register,
+  .daoMandalaSheet.dao-thunder-tablet,
+  .daoMandalaSheet.dao-taofu-charm {
+    width: min(200px, 60%) !important;
+  }
+
+  .daoFuluSlot .daoElementImage {
+    width: min(34px, 82%);
+  }
+
+  .daoFuluCenterArea .daoCenterPhoto {
+    width: min(48px, 26%) !important;
+    height: min(48px, 26%) !important;
+  }
+
+  .daoFuluPureMarks {
+    font-size: 12px;
+  }
+}
+
+/* ── end DAO Fulu styles ─────────────────────────────────────────────────── */
+
 .zodiacMandalaSheet {
   border-radius: 50%;
   background:
