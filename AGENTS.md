@@ -300,6 +300,11 @@ Project adapter for this repo:
 
 **Live target rule:** Unless the user explicitly specifies another target, `/delivery` SUCCESS requires LIVE PROOF on the primary production URL `https://2mentalica.vercel.app`. STATUS: SUCCESS after checking only secondary, legacy, preview, or fallback URLs is not valid unless the user explicitly selected that target.
 
+**Result verification gate:** STATUS: SUCCESS also requires the Final Result
+Verification Gate from `.claude/commands/delivery.md`: the original request
+contract must be checked requirement by requirement, and every required item
+must be `PASS`.
+
 **Cost-control rules:**
 
 - `/delivery` includes cost-control by default.

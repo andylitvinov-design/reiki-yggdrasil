@@ -30,6 +30,40 @@ Project adapter for this repo:
 
 SUCCESS requires live proof on the primary live URL (https://2mentalica.vercel.app) unless another target is explicitly requested by the user.
 
+## FINAL RESULT VERIFICATION GATE
+
+Implementation is not completion. Verification against the original request is
+completion.
+
+Before saying `STATUS: SUCCESS`, `done`, `fixed`, `implemented`, `ready`, or
+`ready to merge`, extract the Original Request Contract from the user's task:
+
+- explicit requirements;
+- edge cases;
+- small UI details;
+- explicit exclusions and do-not-touch rules;
+- required live/staging/mobile/desktop proof.
+
+Verify every contract item:
+
+| Requirement | Status | Evidence | Verification method |
+|---|---|---|---|
+
+Allowed statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`.
+
+Do not use completion language if any required item is `PARTIAL`, `FAIL`, or
+`NOT VERIFIED`. Say `Implemented but not verified.` or
+`Cannot verify because ...` instead.
+
+After implementation, reread the original task and compare it with the diff:
+requirements covered, UI details covered, no unrelated files changed,
+mobile/desktop layout preserved, existing behavior preserved, regression risks
+identified, PR mergeable, and live/staging proof complete when applicable.
+
+If the gate fails, repair and rerun it. After 2 failed gate repair attempts,
+stop with `STATUS: BLOCKED` and report the remaining gap, why it was not fixed,
+the next file/function to inspect, and any required user action.
+
 Required final status:
 
 - STATUS: SUCCESS — task implemented, PR merged (or direct-to-main confirmed), deployed, and verified live.
@@ -57,6 +91,14 @@ LIVE PROOF:
 - Expected live behavior:
 - Actual live behavior:
 - Evidence:
+```
+
+SUCCESS also requires a completed result verification block:
+
+```txt
+RESULT VERIFICATION:
+| Requirement | Status | Evidence | Verification method |
+|---|---|---|---|
 ```
 
 BLOCKED requires:

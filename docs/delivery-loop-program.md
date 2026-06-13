@@ -43,6 +43,38 @@ The agent must not stop at code changes, PR creation, green CI, merge, deploymen
 
 The task is complete only when the requested behavior is verified on the target live environment, or when a real external blocker prevents completion.
 
+## FINAL RESULT VERIFICATION GATE
+
+Implementation is not completion. Verification against the original request is
+completion.
+
+Every `/delivery` run must extract an Original Request Contract from the user's
+task before the final report:
+
+- explicit requirements;
+- edge cases;
+- small UI details;
+- explicit exclusions and do-not-touch rules;
+- required live/staging/mobile/desktop proof.
+
+Every contract item must be verified requirement by requirement:
+
+| Requirement | Status | Evidence | Verification method |
+|---|---|---|---|
+
+Allowed statuses are `PASS`, `PARTIAL`, `FAIL`, and `NOT VERIFIED`.
+
+The agent must not say `done`, `fixed`, `implemented`, `ready`,
+`ready to merge`, or `STATUS: SUCCESS` if any required item is `PARTIAL`,
+`FAIL`, or `NOT VERIFIED`. Use `Implemented but not verified.` or
+`Cannot verify because ...` instead.
+
+After implementation, the agent must reread the original task and compare it
+with the diff, local checks, PR state, deployment state, and live proof. If a
+gap is found, repair and rerun the gate. After 2 failed gate repair attempts,
+stop with `STATUS: BLOCKED` and report the remaining gap, reason, next
+file/function to inspect, and any required user action.
+
 ---
 
 ## 2. Problem This Solves
