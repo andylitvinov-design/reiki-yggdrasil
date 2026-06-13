@@ -461,6 +461,13 @@ assert.ok(
   "daoStyleValue must handle style-1, legacy talisman→talisman-1 mapping, talisman-1, and talisman-2 values"
 );
 
+for (const fuluVal of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
+  assert.ok(
+    moduleSource.includes(`"${fuluVal}"`),
+    `daoStyleValue must preserve and return "${fuluVal}" unchanged`
+  );
+}
+
 assert.ok(
   moduleSource.includes('"talisman" || value === "talisman-1"') || (moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && /talisman.*talisman-1|talisman-1.*talisman/.test(moduleSource)),
   "daoStyleValue must map legacy 'talisman' to 'talisman-1'"
@@ -614,6 +621,28 @@ for (const cls of ["dao-fu-paper-slip", "dao-cloud-register", "dao-thunder-table
 assert.ok(
   baseSource.includes("daoFuluScroll") && !baseSource.match(/daoFuluScroll[\s\S]{0,2000}三清/),
   "daoFuluScroll rendering block must not include 三清 ritual text"
+);
+
+assert.ok(
+  moduleSource.includes("aspect-ratio: 1 / 2.85") || moduleSource.includes("aspect-ratio: 1/2.85"),
+  "profileLiteFitFixStyles must include aspect-ratio 1/2.85 override for fulu DAO styles"
+);
+
+assert.ok(
+  moduleSource.includes("dao-fu-paper-slip") && moduleSource.includes("dao-cloud-register") &&
+  moduleSource.includes("dao-thunder-tablet") && moduleSource.includes("dao-taofu-charm"),
+  "profileLiteFitFixStyles must include overrides for all 4 fulu DAO CSS classes"
+);
+
+assert.ok(
+  cssSource.includes("field-layout-square .daoMandalaSheet.dao-fu-paper-slip") ||
+  cssSource.includes("field-layout-square .daoMandalaSheet.dao-cloud-register"),
+  "CSS must override field-layout-square for fulu DAO styles to prevent square aspect-ratio"
+);
+
+assert.ok(
+  cssSource.includes("clamp(30px") && cssSource.includes("daoElementImage"),
+  "CSS must cap .daoElementImage size for fulu DAO styles using clamp()"
 );
 
 console.log("powerPlaceStyleContract: all assertions passed");

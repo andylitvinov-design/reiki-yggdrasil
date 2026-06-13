@@ -72,6 +72,12 @@ function clampCenterImageZoom(value) {
 function daoStyleValue(value) {
   if (value === "talisman" || value === "talisman-1") return "talisman-1";
   if (value === "talisman-2") return "talisman-2";
+  if (
+    value === "fu-paper-slip" ||
+    value === "cloud-register" ||
+    value === "thunder-tablet" ||
+    value === "taofu-charm"
+  ) return value;
   return "style-1";
 }
 
@@ -333,6 +339,34 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   overflow: hidden !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-fu-paper-slip,
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-taofu-charm,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-fu-paper-slip,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-taofu-charm {
+  width: min(260px, 64%) !important;
+  max-width: min(260px, 64%) !important;
+  aspect-ratio: 1 / 2.85 !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+}
+@media (max-width: 640px) {
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-fu-paper-slip,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-taofu-charm,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-fu-paper-slip,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-taofu-charm {
+    width: min(230px, 62vw) !important;
+    max-width: min(230px, 62vw) !important;
+    aspect-ratio: 1 / 2.8 !important;
+  }
+}
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .power-place-chess,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .powerMandala,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .altarMandalaSheet,
@@ -362,6 +396,28 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .starMandalaSheet,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet {
   aspect-ratio: 9 / 19.5 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-fu-paper-slip,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-cloud-register,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-thunder-tablet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-taofu-charm,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-fu-paper-slip,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-cloud-register,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-thunder-tablet,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-taofu-charm,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-fu-paper-slip,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-cloud-register,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-thunder-tablet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-taofu-charm,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-fu-paper-slip,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-cloud-register,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-thunder-tablet,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-taofu-charm {
+  aspect-ratio: 1 / 2.85 !important;
+  width: min(260px, 64%) !important;
+  max-width: min(260px, 64%) !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
 }
 .profileLitePowerPlace .powerCenterPhoto,
 .powerPlacePdfOnlyArea .powerCenterPhoto {
