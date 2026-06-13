@@ -88,6 +88,37 @@ Must include:
 - Never disable tests, bypass branch protection, or hide failed checks.
 - Never print secret values — report secret names only.
 
+## Final Result Verification Gate
+
+Implementation is not completion. Verification against the original request is
+completion.
+
+Before any completion claim or `STATUS: SUCCESS`:
+
+1. Reread the original user task.
+2. Extract the Original Request Contract:
+   - explicit requirements;
+   - edge cases;
+   - small UI details;
+   - exclusions and do-not-touch rules;
+   - required live/staging/mobile/desktop proof.
+3. Compare the contract with the final diff and live proof.
+4. Verify every requirement in this table:
+
+| Requirement | Status | Evidence | Verification method |
+|---|---|---|---|
+
+Allowed statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`.
+
+Only `PASS` allows completion. If any required item is `PARTIAL`, `FAIL`, or
+`NOT VERIFIED`, do not say `done`, `fixed`, `implemented`, `ready`, or
+`ready to merge`. Say `Implemented but not verified.` or
+`Cannot verify because ...`.
+
+If the gate fails, repair and rerun it. Stop after 2 failed gate repair attempts
+and report what still fails, why it was not fixed, the next file/function to
+inspect, and any required user action.
+
 ## Cost-Control Rules
 
 - Use the stable source-of-truth docs as cached/stable context. Place them first. Do not duplicate the full protocol in dynamic prompts each loop step.

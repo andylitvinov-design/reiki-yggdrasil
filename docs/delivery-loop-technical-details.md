@@ -24,6 +24,28 @@ The parent document defines the protocol. This document defines the practical te
 
 The goal is to make `/delivery` operational, repeatable, and hard to fake.
 
+## FINAL RESULT VERIFICATION GATE
+
+The delivery technical layer must include result verification against the
+original request. Implementation is not completion; verification against the
+original request is completion.
+
+Minimum machine-readable fields for the added `result_verification` status
+section:
+
+- `original_request_contract`
+- `requirements`
+- `evidence`
+- `verification_method`
+- `status`
+- `not_verified_items`
+- `merge_readiness`
+- `repair_attempts`
+
+Allowed requirement statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`.
+`PARTIAL`, `FAIL`, and `NOT VERIFIED` block completion language and block
+`STATUS: SUCCESS`.
+
 ---
 
 ## 2. Target Architecture

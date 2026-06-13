@@ -58,6 +58,31 @@ Which final commit is deployed?
 
 If any of these are unknown, the result is not `SUCCESS`.
 
+## FINAL RESULT VERIFICATION GATE
+
+Live proof is required, but it is not enough by itself. The agent must also
+prove that the live result matches the original user request.
+
+Before final status, extract the Original Request Contract:
+
+- explicit requirements;
+- edge cases;
+- small UI details;
+- explicit exclusions and do-not-touch rules;
+- required live/staging/mobile/desktop proof.
+
+Then verify each item:
+
+| Requirement | Status | Evidence | Verification method |
+|---|---|---|---|
+
+Allowed statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`.
+
+If any required item is `PARTIAL`, `FAIL`, or `NOT VERIFIED`, final status is
+not `SUCCESS`. Say `Implemented but not verified.` or
+`Cannot verify because ...`, then repair if still within the 2-attempt gate
+repair limit.
+
 ---
 
 ## 3. Final Live Proof Contract
