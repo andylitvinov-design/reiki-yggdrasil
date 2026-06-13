@@ -203,9 +203,11 @@ assert.ok(cssSource.includes("@media (max-width: 640px)") && cssSource.includes(
 for (const selector of [
   ".powerSymbolLibraryPanel",
   ".powerSymbolLibraryHeader",
+  ".powerSymbolLibraryModeToggle",
   ".powerSymbolLibraryGrid",
   ".powerSymbolLibraryItem",
   ".powerSymbolLibraryThumb",
+  ".powerSymbolLibraryEmpty",
   ".imagePickerSourceGroups",
   ".imagePickerSourceButton",
   ".imagePickerSecondLevel",
@@ -213,6 +215,33 @@ for (const selector of [
 ]) {
   assert.ok(cssSource.includes(selector), `${selector} must be defined for the symbol library / picker UX`);
 }
+
+assert.ok(
+  cssSource.includes(".powerSymbolLibraryModeToggle button.active"),
+  "symbol library mode toggle must have an active state"
+);
+
+const baseModuleSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+
+assert.ok(
+  baseModuleSource.includes("const [libraryMode, setLibraryMode] = useState(\"symbols\")"),
+  "symbol library must default to symbols mode"
+);
+
+assert.ok(
+  baseModuleSource.includes("Фоны вставляются во внешний фон места силы."),
+  "background library mode must show the requested RU hint"
+);
+
+assert.ok(
+  baseModuleSource.includes("assignPowerPlaceSlotImage(\"cover_ref.outer\""),
+  "background library clicks must target the outer cover ref"
+);
+
+assert.ok(
+  baseModuleSource.includes("payload.type === \"power-place-background\" && slotKey !== \"cover_ref.outer\""),
+  "background drag payloads must not be dropped into regular mini-mandala slots"
+);
 
 const pickerGridBlock = (() => {
   const idx = cssSource.indexOf(".profileLiteImagePickerGrid {");

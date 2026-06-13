@@ -3,6 +3,7 @@ import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 import {
   POWER_PLACE_SYMBOL_SHELVES,
+  listPowerPlaceBackgroundsByShelf,
   listPowerPlaceSymbolsByShelf,
   symbolShelfForConstructorType
 } from "../../data/powerPlaceSymbolLibrary.js";
@@ -300,7 +301,13 @@ function buildPowerPlaceDragPayload(item) {
     name: String(item?.name || item?.label || item?.title || ""),
     src: String(item?.displaySrc || item?.display_url || item?.src || ""),
     object_ref: objectRef,
-    type: item?.kind === "client-photo" ? "profile-media" : item?.kind === "saved-mandala" ? "saved-mandala" : String(item?.kind || "profile-media"),
+    type: item?.kind === "client-photo"
+      ? "profile-media"
+      : item?.kind === "saved-mandala"
+        ? "saved-mandala"
+        : item?.kind === "power-place-background"
+          ? "power-place-background"
+          : String(item?.kind || "profile-media"),
     photoId: item?.photoId ? String(item.photoId) : ""
   };
 }
@@ -320,7 +327,7 @@ function parsePowerPlaceDragPayload(dataTransfer) {
       name: String(parsed?.name || parsed?.title || "").trim(),
       src: String(parsed?.src || "").trim(),
       object_ref: objectRef,
-      type: ["saved-mandala", "profile-media", "client-photo", "tradition-asset", "material"].includes(parsed?.type) ? parsed.type : "profile-media",
+      type: ["saved-mandala", "profile-media", "client-photo", "tradition-asset", "material", "power-place-background"].includes(parsed?.type) ? parsed.type : "profile-media",
       photoId: String(parsed?.photoId || "").trim()
     };
   } catch {
@@ -697,6 +704,7 @@ export default function ProfileLitePowerPlaceModule({
   const [activeSourceThirdLevel, setActiveSourceThirdLevel] = useState("");
   const [hiddenCoverShortcutIds, setHiddenCoverShortcutIds] = useState([]);
   const [dragOverSlotId, setDragOverSlotId] = useState("");
+  const [libraryMode, setLibraryMode] = useState("symbols");
   const [symbolShelfState, setSymbolShelfState] = useState(() => ({
     value: symbolShelfForConstructorType(compositionDraft?.constructor_type),
     manual: false
@@ -756,6 +764,7 @@ export default function ProfileLitePowerPlaceModule({
   const defaultSymbolShelf = symbolShelfForConstructorType(compositionDraft.constructor_type);
   const activeSymbolShelf = symbolShelfState.value || defaultSymbolShelf;
   const activeSymbolShelfItems = useMemo(() => listPowerPlaceSymbolsByShelf(activeSymbolShelf), [activeSymbolShelf]);
+  const activeBackgroundShelfItems = useMemo(() => listPowerPlaceBackgroundsByShelf(activeSymbolShelf), [activeSymbolShelf]);
 
   useEffect(() => {
     if (symbolShelfState.manual) return;
@@ -1371,44 +1380,80 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
-  const renderSymbolLibraryModule = () => (
-    <div className="powerSymbolLibraryPanel">
-      <div className="powerSymbolLibraryHeader">
-        <div>
-          <p className="cabinetEyebrow">Библиотека</p>
-          <small>Draft символы вставляются в выбранную ячейку. На desktop можно перетащить символ на мини-мандалу.</small>
+  const renderSymbolLibraryModule = () => {
+    const isBackgroundMode = libraryMode === "backgrounds";
+    const activeItems = isBackgroundMode ? activeBackgroundShelfItems : activeSymbolShelfItems;
+
+    return (
+      <div className="powerSymbolLibraryPanel">
+        <div className="powerSymbolLibraryHeader">
+          <div>
+            <p className="cabinetEyebrow">Библиотека</p>
+            <div className="powerSymbolLibraryModeToggle" role="group" aria-label="Режим библиотеки">
+              <button
+                className={!isBackgroundMode ? "active" : ""}
+                type="button"
+                onClick={() => setLibraryMode("symbols")}
+              >
+                Символы
+              </button>
+              <button
+                className={isBackgroundMode ? "active" : ""}
+                type="button"
+                onClick={() => setLibraryMode("backgrounds")}
+              >
+                Фон
+              </button>
+            </div>
+            <small>
+              {isBackgroundMode
+                ? "Фоны вставляются во внешний фон места силы."
+                : "Draft символы вставляются в выбранную ячейку. На desktop можно перетащить символ на мини-мандалу."}
+            </small>
+          </div>
+          <label>
+            Полка
+            <select
+              value={activeSymbolShelf}
+              onChange={(event) => setSymbolShelfState({ value: event.target.value, manual: true })}
+            >
+              {POWER_PLACE_SYMBOL_SHELVES.map((shelf) => (
+                <option key={shelf.value} value={shelf.value}>{shelf.label}</option>
+              ))}
+            </select>
+          </label>
         </div>
-        <label>
-          Полка
-          <select
-            value={activeSymbolShelf}
-            onChange={(event) => setSymbolShelfState({ value: event.target.value, manual: true })}
-          >
-            {POWER_PLACE_SYMBOL_SHELVES.map((shelf) => (
-              <option key={shelf.value} value={shelf.value}>{shelf.label}</option>
-            ))}
-          </select>
-        </label>
+        <div className="powerSymbolLibraryGrid" aria-label={isBackgroundMode ? "Фоны места силы" : "Символы места силы"}>
+          {activeItems.map((item) => (
+            <button
+              className="powerSymbolLibraryItem"
+              key={item.id}
+              type="button"
+              draggable
+              onDragStart={(event) => handleSavedImageDragStart(event, item)}
+              onClick={() => {
+                if (isBackgroundMode) {
+                  assignPowerPlaceSlotImage("cover_ref.outer", item.src || "", item.displaySrc || item.src || "", item);
+                  return;
+                }
+                chooseImage(item);
+              }}
+              title={`${item.label}. ${item.meta}`}
+            >
+              <span className="powerSymbolLibraryThumb" style={imageStyle(item.displaySrc || item.src)} aria-hidden="true" />
+              <b>{item.label}</b>
+              <small>{item.meta}</small>
+            </button>
+          ))}
+          {activeItems.length === 0 && (
+            <p className="powerSymbolLibraryEmpty">
+              {isBackgroundMode ? "Фоны для этой полки требуют проверки ассетов." : "Символы для этой полки не найдены."}
+            </p>
+          )}
+        </div>
       </div>
-      <div className="powerSymbolLibraryGrid" aria-label="Символы места силы">
-        {activeSymbolShelfItems.map((item) => (
-          <button
-            className="powerSymbolLibraryItem"
-            key={item.id}
-            type="button"
-            draggable
-            onDragStart={(event) => handleSavedImageDragStart(event, item)}
-            onClick={() => chooseImage(item)}
-            title={`${item.label}. ${item.meta}`}
-          >
-            <span className="powerSymbolLibraryThumb" style={imageStyle(item.displaySrc || item.src)} aria-hidden="true" />
-            <b>{item.label}</b>
-            <small>{item.meta}</small>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const filteredSavedImages = useMemo(() => {
     if (!activeSourceCategory) return latestSavedImages;
@@ -1503,6 +1548,7 @@ export default function ProfileLitePowerPlaceModule({
       setDragOverSlotId("");
       const payload = parsePowerPlaceDragPayload(event.dataTransfer);
       if (!payload) return;
+      if (payload.type === "power-place-background" && slotKey !== "cover_ref.outer") return;
       assignPowerPlaceSlotImage(slotKey, payload.object_ref, payload.src || payload.object_ref, payload);
     }
   });
@@ -2772,6 +2818,8 @@ export default function ProfileLitePowerPlaceModule({
 
             {renderVisibilitySettingsModule()}
 
+            {renderSymbolLibraryModule()}
+
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
@@ -2849,8 +2897,6 @@ export default function ProfileLitePowerPlaceModule({
               </div>
               <button className="coverPickerButton" type="button" onClick={() => openPicker("cover")}>Выбрать фото</button>
             </div>
-
-            {renderSymbolLibraryModule()}
 
             {renderReportModule()}
 

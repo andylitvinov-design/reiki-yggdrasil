@@ -3,9 +3,11 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  POWER_PLACE_BACKGROUND_LIBRARY,
   POWER_PLACE_SYMBOL_LIBRARY,
   POWER_PLACE_SYMBOL_SHELF_ORDER,
   POWER_PLACE_SYMBOL_SHELVES,
+  listPowerPlaceBackgroundsByShelf,
   listPowerPlaceSymbolsByShelf,
   normalizePowerPlaceSymbolShelf,
   symbolShelfForConstructorType
@@ -32,8 +34,18 @@ for (const shelf of POWER_PLACE_SYMBOL_SHELF_ORDER) {
     assert.match(`${symbol.meta} ${symbol.label}`, /draft|needs review/i, `${symbol.id} must be marked draft / needs review`);
     assert.equal(existsSync(join(process.cwd(), "public", symbol.src.replace(/^\//, ""))), true, `${symbol.src} asset should exist`);
   }
+
+  const shelfBackgrounds = listPowerPlaceBackgroundsByShelf(shelf);
+  for (const background of shelfBackgrounds) {
+    assert.equal(background.shelf, shelf, `${background.id} should stay on requested background shelf`);
+    assert.equal(background.kind, "power-place-background", `${background.id} must use background drag kind`);
+    assert.equal(background.displaySrc, background.src, `${background.id} preview path should match durable src`);
+    assert.equal(existsSync(join(process.cwd(), "public", background.src.replace(/^\//, ""))), true, `${background.src} background asset should exist`);
+  }
 }
 
 assert.equal(POWER_PLACE_SYMBOL_LIBRARY.length >= POWER_PLACE_SYMBOL_SHELF_ORDER.length * 2, true, "library should include minimum shelf coverage");
+assert.equal(Array.isArray(POWER_PLACE_BACKGROUND_LIBRARY), true, "background library should export a stable array even when assets are not present");
+assert.deepEqual(listPowerPlaceBackgroundsByShelf("unknown"), listPowerPlaceBackgroundsByShelf("zodiac"), "unknown background shelf should normalize safely");
 assert.equal(normalizePowerPlaceSymbolShelf("unknown"), "zodiac", "unknown shelf should normalize safely");
 assert.equal(symbolShelfForConstructorType("unknown"), "zodiac", "unknown constructor type should fall back safely");

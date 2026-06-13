@@ -147,6 +147,8 @@ export const POWER_PLACE_SYMBOL_LIBRARY = [
   }
 ];
 
+export const POWER_PLACE_BACKGROUND_LIBRARY = [];
+
 export function normalizePowerPlaceSymbolShelf(value) {
   const shelf = String(value || "").trim();
   return POWER_PLACE_SYMBOL_SHELF_ORDER.includes(shelf) ? shelf : "zodiac";
@@ -159,6 +161,11 @@ export function symbolShelfForConstructorType(constructorType) {
 export function listPowerPlaceSymbolsByShelf(shelfValue) {
   const shelf = normalizePowerPlaceSymbolShelf(shelfValue);
   return POWER_PLACE_SYMBOL_LIBRARY.filter((item) => item.shelf === shelf);
+}
+
+export function listPowerPlaceBackgroundsByShelf(shelfValue) {
+  const shelf = normalizePowerPlaceSymbolShelf(shelfValue);
+  return POWER_PLACE_BACKGROUND_LIBRARY.filter((item) => item.shelf === shelf);
 }
 
 export function listPowerPlaceSymbolsForConstructorType(constructorType) {
