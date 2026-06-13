@@ -69,9 +69,17 @@ function clampCenterImageZoom(value) {
   return Math.min(1.8, Math.max(0.65, parsed));
 }
 
+const DAO_FULU_STYLE_VALUES_SET = new Set([
+  "fu-paper-slip",
+  "cloud-register",
+  "thunder-tablet",
+  "taofu-charm"
+]);
+
 function daoStyleValue(value) {
   if (value === "talisman" || value === "talisman-1") return "talisman-1";
   if (value === "talisman-2") return "talisman-2";
+  if (DAO_FULU_STYLE_VALUES_SET.has(value)) return value;
   return "style-1";
 }
 
