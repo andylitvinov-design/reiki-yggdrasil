@@ -9,6 +9,15 @@ Follow all three source-of-truth docs in order:
 
 Act as release owner for this project.
 
+`/delivery` is sufficient by itself. The user does not need to add phrases like
+"I explicitly delegate PR creation, checks, merge, deployment, and live
+verification." The command means full safe release-owner delegation by default:
+
+```
+task → acceptance criteria → implementation → result quality gate → local checks
+→ PR → PR health → merge if permitted → deploy → live proof → final report
+```
+
 Input format:
 
 Task:

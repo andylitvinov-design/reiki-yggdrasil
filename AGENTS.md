@@ -253,6 +253,11 @@ A client-facing release is complete only after `production` is updated and the c
 
 ### /delivery
 
+`/delivery` is sufficient by itself. No extra delegation language is required.
+The command means full safe release-owner delegation: task → acceptance criteria
+→ implementation → result quality gate → local checks → PR → PR health → merge
+if permitted → deploy → live proof → final report.
+
 When the user invokes `/delivery`, follow all three source-of-truth docs in order:
 
 1. `docs/delivery-loop-program.md` — full protocol, stop states, final report format
