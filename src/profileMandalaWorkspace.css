@@ -2601,11 +2601,14 @@
 .daoMandalaSheet.dao-cloud-register,
 .daoMandalaSheet.dao-thunder-tablet,
 .daoMandalaSheet.dao-taofu-charm {
-  aspect-ratio: 5 / 13 !important;
-  width: min(280px, 62%) !important;
+  aspect-ratio: 1 / 2.85 !important;
+  height: min(520px, calc(100% - 48px)) !important;
+  width: auto !important;
+  max-width: 58% !important;
   margin: 0 auto;
-  overflow: hidden !important;
+  overflow: visible !important;
   position: relative;
+  align-self: center !important;
 }
 
 /* ── Фу-лист — simple parchment rectangle, double border ──────────────── */
@@ -2811,8 +2814,10 @@
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-cloud-register,
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-thunder-tablet,
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-taofu-charm {
-  aspect-ratio: 5 / 13 !important;
-  width: min(280px, 62%) !important;
+  aspect-ratio: 1 / 2.85 !important;
+  height: min(520px, calc(100% - 48px)) !important;
+  width: auto !important;
+  max-width: 58% !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
@@ -2824,7 +2829,10 @@
   .daoMandalaSheet.dao-cloud-register,
   .daoMandalaSheet.dao-thunder-tablet,
   .daoMandalaSheet.dao-taofu-charm {
-    width: min(200px, 60%) !important;
+    height: min(430px, calc(100% - 44px)) !important;
+    width: auto !important;
+    max-width: 54vw !important;
+    aspect-ratio: 1 / 2.85 !important;
   }
 
   .daoFuluSlot .daoElementImage {
@@ -2832,13 +2840,19 @@
   }
 
   .daoFuluCenterArea .daoCenterPhoto {
-    width: min(48px, 26%) !important;
-    height: min(48px, 26%) !important;
+    width: clamp(34px, 10vw, 52px) !important;
+    height: clamp(34px, 10vw, 52px) !important;
   }
 
   .daoFuluPureMarks {
     font-size: 12px;
   }
+
+  .daoFuluSlot--wood  { top: 10%;    left: 8%; }
+  .daoFuluSlot--fire  { top: 10%;    right: 8%; }
+  .daoFuluSlot--water { bottom: 22%; left: 8%; }
+  .daoFuluSlot--metal { bottom: 22%; right: 8%; }
+  .daoFuluSlot--earth { bottom: 10%; left: 50%; transform: translateX(-50%); }
 }
 
 /* ── Slot image size cap for fulu styles ────────────────────────────────── */
