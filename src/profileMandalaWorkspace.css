@@ -2841,6 +2841,41 @@
   }
 }
 
+/* ── Slot image size cap for fulu styles ────────────────────────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip .daoElementImage,
+.daoMandalaSheet.dao-cloud-register .daoElementImage,
+.daoMandalaSheet.dao-thunder-tablet .daoElementImage,
+.daoMandalaSheet.dao-taofu-charm .daoElementImage {
+  width: clamp(30px, 8vw, 46px) !important;
+  min-width: 30px;
+  aspect-ratio: 1;
+}
+
+/* ── Field-layout overrides: keep fulu styles tall, never square ─────────── */
+
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-taofu-charm {
+  width: min(260px, 64%) !important;
+  aspect-ratio: 1 / 2.85 !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+}
+
 /* ── end DAO Fulu styles ─────────────────────────────────────────────────── */
 
 .zodiacMandalaSheet {
