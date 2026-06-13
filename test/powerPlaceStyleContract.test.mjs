@@ -575,6 +575,47 @@ assert.ok(
   "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
 );
 
+// ── DAO Fulu style variants contract ─────────────────────────────────────────
+
+for (const value of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
+  assert.ok(
+    baseSource.includes(`"${value}"`),
+    `DAO_STYLE_VARIANTS must include ${value}`
+  );
+}
+
+assert.ok(
+  baseSource.includes("DAO_FULU_STYLES"),
+  "Base module must define DAO_FULU_STYLES set for new fulu style variants"
+);
+
+assert.ok(
+  cssSource.includes(".daoFuluScroll"),
+  "CSS must define .daoFuluScroll for fulu inner scroll layout"
+);
+
+assert.ok(
+  cssSource.includes(".daoFuluPureMarks"),
+  "CSS must define .daoFuluPureMarks for fulu header marks"
+);
+
+assert.ok(
+  cssSource.includes(".daoFuluSlot--water") && cssSource.includes(".daoFuluSlot--fire"),
+  "CSS must define .daoFuluSlot-- positions for all fulu element slots"
+);
+
+for (const cls of ["dao-fu-paper-slip", "dao-cloud-register", "dao-thunder-tablet", "dao-taofu-charm"]) {
+  assert.ok(
+    cssSource.includes(`.daoMandalaSheet.${cls}`),
+    `CSS must define .daoMandalaSheet.${cls} modifier`
+  );
+}
+
+assert.ok(
+  baseSource.includes("daoFuluScroll") && !baseSource.match(/daoFuluScroll[\s\S]{0,2000}三清/),
+  "daoFuluScroll rendering block must not include 三清 ritual text"
+);
+
 console.log("powerPlaceStyleContract: all assertions passed");
 
 // ── Visibility settings CSS contract ─────────────────────────────────────────
