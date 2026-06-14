@@ -2651,6 +2651,13 @@ export default function ProfileLitePowerPlaceModule({
                         </div>
                       ) : DAO_FULU_STYLES.has(compositionDraft.__dao_style || "style-1") ? (
                         <div className="daoFuluScroll" aria-label="Даосский талисман">
+                          <div className="daoFuluFallbackPaper" aria-hidden="true" />
+                          <div className="daoFuluContourLayer" aria-hidden="true">
+                            <span className="daoFuluTopHead" />
+                            <span className="daoFuluSideRail daoFuluSideRail--left" />
+                            <span className="daoFuluSideRail daoFuluSideRail--right" />
+                            <span className="daoFuluBottomBase" />
+                          </div>
                           <div className="daoFuluHeader" aria-hidden="true">
                             <span className="daoFuluPureMarks" aria-hidden="true">✓ ✓ ✓</span>
                           </div>

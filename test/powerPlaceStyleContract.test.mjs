@@ -252,6 +252,11 @@ assert.ok(
 );
 
 assert.ok(
+  baseSource.includes('style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}'),
+  "DAO inner surface must keep coverDisplaySrc flowing into innerCoverImageStyle on the outer daoMandalaSheet"
+);
+
+assert.ok(
   baseSource.includes('"--power-inner-cover-image"'),
   "Base module innerCoverImageStyle must set --power-inner-cover-image CSS variable"
 );
@@ -260,6 +265,37 @@ assert.ok(
   !baseSource.includes("style={imageStyle(coverDisplaySrc(innerCover))}"),
   "Base module must not use imageStyle() directly for inner surface elements (use innerCoverImageStyle instead)"
 );
+
+// ─── DAO fulu: outer shape must not override custom cover images ─────────────
+
+for (const selector of [
+  ".daoMandalaSheet.dao-fu-paper-slip",
+  ".daoMandalaSheet.dao-cloud-register",
+  ".daoMandalaSheet.dao-thunder-tablet",
+  ".daoMandalaSheet.dao-taofu-charm"
+]) {
+  assert.ok(cssSource.includes(selector), `${selector} must remain defined`);
+  const idx = cssSource.indexOf(`${selector} {`);
+  const end = cssSource.indexOf("}", idx);
+  const block = idx >= 0 ? cssSource.slice(idx, end + 1) : "";
+  assert.ok(block.length > 0, `${selector} standalone rule must exist`);
+  assert.doesNotMatch(
+    block,
+    /background\s*:[^;]+!important/i,
+    `${selector} must not set background: ... !important on the outer element that receives innerCoverImageStyle`
+  );
+}
+
+for (const selector of [
+  ".daoFuluScroll",
+  ".daoFuluFallbackPaper",
+  ".daoFuluContourLayer",
+  ".daoFuluTopHead",
+  ".daoFuluSideRail",
+  ".daoFuluBottomBase"
+]) {
+  assert.ok(cssSource.includes(selector), `${selector} must be defined for non-destructive fulu fallback/contour rendering`);
+}
 
 // ─── Chess cover-none is fully transparent (outer background shows through) ────
 
