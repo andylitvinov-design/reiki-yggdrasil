@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-11
 
+## 2026-06-14 — DAO background reference assets restored
+
+- Branch: `codex/restore-dao-reference-backgrounds`, based on fresh `origin/main` at `c21ad5c`.
+- Scope: `/profile/mandalas` Power Place background library assets only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase migrations, Vercel routing, env values, save/update persistence, symbol mode behavior, or layout structure changes.
+- Source references:
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-fu-paper-slip.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-lu-register-document.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-lingpai-command-tablet.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-taofu-wood-charm.svg`.
+- Changed:
+  - replaced the four generated DAO background placeholder SVGs under `public/symbols/power-place/dao/backgrounds/` with the saved reference contour SVGs;
+  - preserved durable public runtime paths and labels `Фу-лист`, `Облачный реестр`, `Громовая табличка`, `Таофу`;
+  - kept `kind: "power-place-background"` and `shelf: "dao"`;
+  - updated background metadata/tests from draft placeholders to reference backgrounds.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - local mocked Supabase/session browser QA at `http://localhost:4399/profile/mandalas` passed desktop `1280x920` and mobile `390x900`: `Библиотека` above `ФОН МЕСТА СИЛЫ`, background mode `ДАО` showed all 4 reference backgrounds, desktop clicks updated only the outer cover `4/4`, selected mini-cell did not receive a background, horizontal overflow was `0`, and console errors were `0`.
+- Risks:
+  - source SVG descriptions still state they are decorative draft references, not ritual formulas;
+  - live `https://2mentalica.vercel.app/profile/mandalas` verification depends on merge/deploy.
+
 ## 2026-06-11 — Power Place static symbol library and mobile picker sources
 
 - Branch: `codex/power-place-symbol-library`, based on fresh `origin/main` at `1f1e5a7`.

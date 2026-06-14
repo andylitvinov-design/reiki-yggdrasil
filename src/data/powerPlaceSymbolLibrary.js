@@ -149,37 +149,37 @@ export const POWER_PLACE_SYMBOL_LIBRARY = [
 
 export const POWER_PLACE_BACKGROUND_LIBRARY = [
   {
-    id: "background-dao-fu-paper-slip-draft",
+    id: "background-dao-fu-paper-slip-reference",
     shelf: "dao",
     label: "Фу-лист",
-    meta: "Фон · ДАО · draft / needs review",
+    meta: "Фон · ДАО · reference",
     kind: "power-place-background",
     src: "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg"
   },
   {
-    id: "background-dao-cloud-register-draft",
+    id: "background-dao-cloud-register-reference",
     shelf: "dao",
     label: "Облачный реестр",
-    meta: "Фон · ДАО · draft / needs review",
+    meta: "Фон · ДАО · reference",
     kind: "power-place-background",
     src: "/symbols/power-place/dao/backgrounds/cloud-register.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/cloud-register.svg"
   },
   {
-    id: "background-dao-thunder-tablet-draft",
+    id: "background-dao-thunder-tablet-reference",
     shelf: "dao",
     label: "Громовая табличка",
-    meta: "Фон · ДАО · draft / needs review",
+    meta: "Фон · ДАО · reference",
     kind: "power-place-background",
     src: "/symbols/power-place/dao/backgrounds/thunder-tablet.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/thunder-tablet.svg"
   },
   {
-    id: "background-dao-taofu-charm-draft",
+    id: "background-dao-taofu-charm-reference",
     shelf: "dao",
     label: "Таофу",
-    meta: "Фон · ДАО · draft / needs review",
+    meta: "Фон · ДАО · reference",
     kind: "power-place-background",
     src: "/symbols/power-place/dao/backgrounds/taofu-charm.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/taofu-charm.svg"
