@@ -298,13 +298,21 @@ assert.match(profileLitePageSource, /const moduleProps = \{[\s\S]*accountPlan,[\
 assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8"), /accountPlan = "start"[\s\S]*const isProAccount = accountPlan === "pro"[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "ProfileLiteImagePicker should keep Pro-only client options disabled unless accountPlan is exactly pro");
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
-assert.match(powerPlaceBaseSource, /DAO_FULU_STYLES\.has\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
+assert.match(powerPlaceBaseSource, /const daoStyle = compositionDraft\.__dao_style \|\| "style-1"/, "DAO style should be computed once before rendering");
+assert.match(powerPlaceBaseSource, /const isDaoFulu = DAO_FULU_STYLES\.has\(daoStyle\)/, "DAO fulu detection should use computed daoStyle");
+assert.match(powerPlaceBaseSource, /function isDaoFuluContourAsset\(src\)/, "DAO renderer should detect built-in fulu contour assets");
+assert.match(powerPlaceBaseSource, /function renderDaoFulu\(\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
 assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true" \/>/, "DAO fulu render branch should include exactly one self-contained contour layer");
 for (const removedFuluLayer of ["daoFuluFallbackPaper", "daoFuluTopHead", "daoFuluSideRail", "daoFuluBottomBase", "daoFuluHeader", "daoFuluFooter", "daoFuluSealBox", "daoFuluPureMarks"]) {
   assert.doesNotMatch(powerPlaceBaseSource, new RegExp(removedFuluLayer), `DAO fulu render branch must not render ${removedFuluLayer}`);
   assert.doesNotMatch(profileMandalaCss, new RegExp(removedFuluLayer), `DAO fulu CSS must not define ${removedFuluLayer}`);
 }
-assert.match(powerPlaceBaseSource, /className=\{\`daoMandalaSheet[\s\S]*dao-fu-paper-slip[\s\S]*dao-cloud-register[\s\S]*dao-thunder-tablet[\s\S]*dao-taofu-charm[\s\S]*style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet should keep all fulu style classes while receiving the inner cover image style and fulu contour image variable");
+assert.doesNotMatch(powerPlaceBaseSource, /style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet must not merge user cover and fulu contour variables blindly");
+assert.match(powerPlaceBaseSource, /const daoBaseCoverStyle[\s\S]*!isDaoFulu[\s\S]*!innerCoverIsFuluContour[\s\S]*innerCoverImageStyle\(innerCover, innerCoverSrc\)/, "Non-fulu DAO styles should ignore built-in fulu contours as inner covers");
+assert.match(powerPlaceBaseSource, /const daoFuluStyle[\s\S]*daoFuluContourStyle\(daoStyle\)[\s\S]*"--dao-fulu-user-cover-image"/, "Fulu style should separate contour and subtle user cover variables");
+assert.match(powerPlaceBaseSource, /className=\{daoClassName\} style=\{daoOuterStyle\}/, "DAO outer sheet should receive the isolated DAO class and style objects");
+assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-fulu/, "CSS should define shared dao-fulu holder");
+assert.match(profileMandalaCss, /--dao-fulu-user-cover-image/, "CSS should consume --dao-fulu-user-cover-image");
 for (const assetPath of [
   "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
   "/symbols/power-place/dao/fulu/cloud-register.svg",
@@ -1016,14 +1024,14 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /__dao_style.*talisman-1|talisman-1.*__dao_style/,
-  "Base module must branch on talisman-1 value of __dao_style"
+  /const isDaoTalisman1 = daoStyle === "talisman-1"/,
+  "Base module must branch on talisman-1 through computed daoStyle"
 );
 
 assert.match(
   powerPlaceBaseSource,
-  /daoTalismanScroll/,
-  "Base module must render daoTalismanScroll div for talisman mode"
+  /function renderDaoTalisman1\(\)[\s\S]*daoTalismanScroll/,
+  "Base module must render daoTalismanScroll only inside talisman-1 helper"
 );
 
 assert.match(
@@ -1051,13 +1059,13 @@ assert.match(
   "daoMandalaSheet must receive dao-talisman modifier class in talisman mode"
 );
 
-// daoTalismanScroll must appear after daoMandalaSheet in source (nested, not standalone root)
+// daoTalismanScroll is rendered by helper inside daoMandalaSheet selection.
 {
   const mandalaSheetIdx = powerPlaceBaseSource.indexOf("daoMandalaSheet");
   const talismanScrollIdx = powerPlaceBaseSource.indexOf("daoTalismanScroll");
   assert.ok(
-    mandalaSheetIdx >= 0 && talismanScrollIdx > mandalaSheetIdx,
-    "daoTalismanScroll must be nested inside daoMandalaSheet (daoMandalaSheet must appear first in source)"
+    mandalaSheetIdx >= 0 && talismanScrollIdx >= 0 && /className=\{daoClassName\} style=\{daoOuterStyle\}[\s\S]*renderDaoTalisman1\(\)/.test(powerPlaceBaseSource),
+    "daoTalismanScroll must be routed through the daoMandalaSheet helper selection"
   );
 }
 
@@ -1080,6 +1088,22 @@ assert.ok(
   !powerPlaceBaseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
   "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
 );
+
+{
+  const style1Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoStyle1()"), powerPlaceBaseSource.indexOf("function renderDaoTalisman1()"));
+  const talisman1Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoTalisman1()"), powerPlaceBaseSource.indexOf("function renderDaoTalisman2()"));
+  const talisman2Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoTalisman2()"), powerPlaceBaseSource.indexOf("function renderDaoFulu()"));
+  const fuluBranch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoFulu()"), powerPlaceBaseSource.indexOf("const daoClassName"));
+
+  assert.match(style1Branch, /daoUsinCore/, "style-1 helper must keep classic DAO core");
+  assert.doesNotMatch(style1Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalisman2Scroll/, "style-1 helper must not render other DAO style layers");
+  assert.match(talisman1Branch, /daoTalismanScroll[\s\S]*daoTalismanBody/, "talisman-1 helper must keep its circular frame/body");
+  assert.doesNotMatch(talisman1Branch, /daoFuluContourLayer|daoTalisman2Scroll|daoUsinCore/, "talisman-1 helper must not render other DAO style layers");
+  assert.match(talisman2Branch, /daoTalisman2Scroll[\s\S]*dao-talisman-2-\$\{index \+ 1\}/, "talisman-2 helper must keep generated vertical nodes");
+  assert.doesNotMatch(talisman2Branch, /daoFuluContourLayer|daoTalismanBody|daoUsinCore/, "talisman-2 helper must not render other DAO style layers");
+  assert.match(fuluBranch, /daoFuluContourLayer/, "fulu helper must render the contour layer");
+  assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu helper must not render old DAO or talisman layers");
+}
 
 // Legacy "talisman" value must map to talisman-1 in wrapper daoStyleValue
 assert.ok(

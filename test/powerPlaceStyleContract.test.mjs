@@ -308,8 +308,51 @@ assert.ok(
 );
 
 assert.ok(
-  /style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/.test(baseSource),
-  "DAO inner surface must keep coverDisplaySrc flowing into innerCoverImageStyle while adding the fulu contour CSS variable"
+  baseSource.includes("function isDaoFuluContourAsset(src)") &&
+  baseSource.includes("/symbols/power-place/dao/fulu/"),
+  "Base module must define isDaoFuluContourAsset(src) for separating fulu contour assets from user covers"
+);
+
+assert.ok(
+  baseSource.includes('const daoStyle = compositionDraft.__dao_style || "style-1"') &&
+  baseSource.includes("const isDaoStyle1 = daoStyle === \"style-1\"") &&
+  baseSource.includes("const isDaoTalisman1 = daoStyle === \"talisman-1\"") &&
+  baseSource.includes("const isDaoTalisman2 = daoStyle === \"talisman-2\"") &&
+  baseSource.includes("const isDaoFulu = DAO_FULU_STYLES.has(daoStyle)") &&
+  baseSource.includes("const innerCoverSrc = coverDisplaySrc(innerCover)") &&
+  baseSource.includes("const innerCoverIsFuluContour = isDaoFuluContourAsset(innerCoverSrc)"),
+  "DAO style state must be computed once before render branches"
+);
+
+assert.ok(
+  baseSource.includes("const daoBaseCoverStyle") &&
+  baseSource.includes("const daoFuluStyle") &&
+  baseSource.includes("const daoOuterStyle"),
+  "DAO renderer must split base cover, fulu, and outer style objects"
+);
+
+assert.ok(
+  !/style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/.test(baseSource),
+  "DAO outer surface must not blindly merge generic inner cover and fulu contour styles"
+);
+
+assert.ok(
+  /daoBaseCoverStyle[\s\S]*!isDaoFulu[\s\S]*!innerCoverIsFuluContour[\s\S]*innerCoverImageStyle\(innerCover, innerCoverSrc\)/.test(baseSource),
+  "Non-fulu DAO styles must ignore built-in fulu SVG contours as generic inner covers"
+);
+
+assert.ok(
+  /daoFuluStyle[\s\S]*daoFuluContourStyle\(daoStyle\)[\s\S]*"--dao-fulu-user-cover-image"/.test(baseSource),
+  "Fulu styles must pass contour and user cover through separate CSS variables"
+);
+
+for (const helperName of ["renderDaoStyle1", "renderDaoTalisman1", "renderDaoTalisman2", "renderDaoFulu"]) {
+  assert.ok(baseSource.includes(`function ${helperName}()`), `DAO renderer must define ${helperName}()`);
+}
+
+assert.ok(
+  /isDaoTalisman2 \? renderDaoTalisman2\(\)[\s\S]*isDaoTalisman1 \? renderDaoTalisman1\(\)[\s\S]*isDaoFulu \? renderDaoFulu\(\)[\s\S]*renderDaoStyle1\(\)/.test(baseSource),
+  "DAO render selection must route every style to its own helper branch"
 );
 
 assert.ok(
@@ -362,6 +405,8 @@ for (const selector of [
 
 assert.ok(cssSource.includes(".daoFuluScroll"), ".daoFuluScroll must remain as the fulu content wrapper");
 assert.ok(cssSource.includes(".daoFuluContourLayer"), ".daoFuluContourLayer must remain as the single visual contour system");
+assert.ok(cssSource.includes(".dao-fulu"), "CSS must define shared .dao-fulu modifier for fulu technical holder");
+assert.ok(cssSource.includes("--dao-fulu-user-cover-image"), "CSS must consume --dao-fulu-user-cover-image for subtle user cover layer");
 
 for (const selector of [
   ".daoFuluFallbackPaper",
@@ -382,6 +427,20 @@ assert.equal(
   1,
   "Fulu styles must render exactly one contour layer"
 );
+
+const style1Branch = baseSource.slice(baseSource.indexOf("function renderDaoStyle1()"), baseSource.indexOf("function renderDaoTalisman1()"));
+const talisman1Branch = baseSource.slice(baseSource.indexOf("function renderDaoTalisman1()"), baseSource.indexOf("function renderDaoTalisman2()"));
+const talisman2Branch = baseSource.slice(baseSource.indexOf("function renderDaoTalisman2()"), baseSource.indexOf("function renderDaoFulu()"));
+const fuluBranch = baseSource.slice(baseSource.indexOf("function renderDaoFulu()"), baseSource.indexOf("const daoClassName"));
+
+assert.ok(style1Branch.includes("daoUsinCore"), "style-1 branch must render classic daoUsinCore");
+assert.doesNotMatch(style1Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalisman2Scroll/, "style-1 branch must not render talisman or fulu layers");
+assert.ok(talisman1Branch.includes("daoTalismanScroll") && talisman1Branch.includes("daoTalismanBody"), "talisman-1 branch must render its circular talisman frame");
+assert.doesNotMatch(talisman1Branch, /daoFuluContourLayer|daoTalisman2Scroll|daoUsinCore/, "talisman-1 branch must not render fulu, talisman-2, or style-1 layers");
+assert.ok(talisman2Branch.includes("daoTalisman2Scroll") && talisman2Branch.includes("dao-talisman-2-${index + 1}"), "talisman-2 branch must render vertical generated nodes");
+assert.doesNotMatch(talisman2Branch, /daoFuluContourLayer|daoTalismanBody|daoUsinCore/, "talisman-2 branch must not render fulu, talisman-1 body, or style-1 layers");
+assert.ok(fuluBranch.includes("daoFuluContourLayer"), "fulu branch must render the single contour layer");
+assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu branch must not render talisman or style-1 layers");
 
 assert.ok(
   cssSource.includes("background-image: var(--dao-fulu-contour-image)") &&

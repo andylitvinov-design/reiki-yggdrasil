@@ -2594,11 +2594,13 @@
    The SVG contour is the only visible talisman frame for these styles.
    ══════════════════════════════════════════════════════════════════════════ */
 
+.daoMandalaSheet.dao-fulu,
 .daoMandalaSheet.dao-fu-paper-slip,
 .daoMandalaSheet.dao-cloud-register,
 .daoMandalaSheet.dao-thunder-tablet,
 .daoMandalaSheet.dao-taofu-charm {
   --dao-fulu-contour-image: none;
+  --dao-fulu-user-cover-image: none;
   --dao-fulu-color: rgba(104, 54, 16, 0.78);
   aspect-ratio: 1 / 2.85 !important;
   height: min(520px, calc(100% - 48px)) !important;
@@ -2659,13 +2661,12 @@
   filter: drop-shadow(0 12px 18px rgba(70, 36, 10, 0.12));
 }
 
-.daoMandalaSheet.has-custom-inner-cover .daoFuluScroll::before {
-  content: "";
+.daoFuluUserCoverLayer {
   position: absolute;
   inset: 7% 15%;
   z-index: 0;
   pointer-events: none;
-  background-image: var(--power-inner-cover-image);
+  background-image: var(--dao-fulu-user-cover-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
