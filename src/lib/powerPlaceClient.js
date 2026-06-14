@@ -417,29 +417,34 @@ export function normalizeCoverRef(coverRef) {
     const src = cleanText(value);
     return isPersistableImageRef(src) ? src : "";
   };
+  const cleanCoverFit = (...values) => values.some((value) => cleanText(value) === "contain") ? "contain" : "";
 
   const normalizeLayer = (layer, fallback = {}) => {
     const source = cleanJsonObject(layer);
     const layerId = cleanText(source.id) || cleanText(fallback.id) || "no-cover";
     const rawType = cleanText(source.type) || cleanText(fallback.type);
     const type = rawType === "image" ? "image" : rawType === "none" ? "none" : "placeholder";
+    const fit = cleanCoverFit(source.fit, source.cover_fit, source.coverFit, fallback.fit, fallback.cover_fit, fallback.coverFit);
 
     return {
       id: layerId,
       label: cleanText(source.label) || cleanText(fallback.label) || (type === "none" ? "Без фона" : "Заставка места силы"),
       type,
       tone: cleanText(source.tone) || cleanText(fallback.tone),
-      src: cleanCoverSrc(source.src) || cleanCoverSrc(fallback.src)
+      src: cleanCoverSrc(source.src) || cleanCoverSrc(fallback.src),
+      ...(fit ? { fit, cover_fit: fit } : {})
     };
   };
 
   const type = cleanText(cover.type) === "image" ? "image" : cleanText(cover.type) === "none" ? "none" : "placeholder";
+  const fit = cleanCoverFit(cover.fit, cover.cover_fit, cover.coverFit);
   const legacy = {
     id,
     label: cleanText(cover.label) || "Заставка места силы",
     type,
     tone: cleanText(cover.tone),
-    src: cleanCoverSrc(cover.src)
+    src: cleanCoverSrc(cover.src),
+    ...(fit ? { fit, cover_fit: fit } : {})
   };
 
   if (!cover.inner && !cover.outer) return legacy;

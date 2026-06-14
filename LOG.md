@@ -1,5 +1,42 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-14 — Fix DAO reference background contain fit
+
+- Branch: `codex/fix-dao-background-contain-fit`.
+- Base: fresh `origin/main` at `3ec0b47` (`Merge pull request #360 from andylitvinov-design/codex/restore-dao-reference-backgrounds`).
+- Changed files:
+  - `src/data/powerPlaceSymbolLibrary.js`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/lib/powerPlaceClient.js`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceSymbolLibrary.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `fit: "contain"` to the four DAO background library records: `Фу-лист`, `Облачный реестр`, `Громовая табличка`, `Таофу`;
+  - preserved cover fit metadata through library clicks, drag/drop payloads, active cover state, and additive `cover_ref.outer.fit` / `cover_ref.outer.cover_fit` normalization;
+  - added scoped outer-cover CSS selector `.profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain` with `background-size: auto, contain, auto`, no-repeat, centered layers.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite plugin timing warning.
+- Local browser QA:
+  - mocked Supabase/session dev server: `http://localhost:4407`;
+  - desktop `1280x920`: DAO format, `Библиотека → Фон → ДАО`, all 4 DAO backgrounds clicked; each computed `background-size: auto, contain, auto`, `background-repeat: no-repeat`, centered layer positions, DAO background asset present, selected mini-cell background unchanged, horizontal overflow `0`, console errors `0`;
+  - mobile `390x900`: all 4 DAO backgrounds visible, DAO background applied with contain sizing, horizontal overflow `0`, console errors `0`.
+- Not verified yet:
+  - preview/live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
 ## 2026-06-14 — Restore DAO background reference assets
 
 - Branch: `codex/restore-dao-reference-backgrounds`.

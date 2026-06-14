@@ -154,6 +154,7 @@ export const POWER_PLACE_BACKGROUND_LIBRARY = [
     label: "Фу-лист",
     meta: "Фон · ДАО · reference",
     kind: "power-place-background",
+    fit: "contain",
     src: "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg"
   },
@@ -163,6 +164,7 @@ export const POWER_PLACE_BACKGROUND_LIBRARY = [
     label: "Облачный реестр",
     meta: "Фон · ДАО · reference",
     kind: "power-place-background",
+    fit: "contain",
     src: "/symbols/power-place/dao/backgrounds/cloud-register.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/cloud-register.svg"
   },
@@ -172,6 +174,7 @@ export const POWER_PLACE_BACKGROUND_LIBRARY = [
     label: "Громовая табличка",
     meta: "Фон · ДАО · reference",
     kind: "power-place-background",
+    fit: "contain",
     src: "/symbols/power-place/dao/backgrounds/thunder-tablet.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/thunder-tablet.svg"
   },
@@ -181,6 +184,7 @@ export const POWER_PLACE_BACKGROUND_LIBRARY = [
     label: "Таофу",
     meta: "Фон · ДАО · reference",
     kind: "power-place-background",
+    fit: "contain",
     src: "/symbols/power-place/dao/backgrounds/taofu-charm.svg",
     displaySrc: "/symbols/power-place/dao/backgrounds/taofu-charm.svg"
   }

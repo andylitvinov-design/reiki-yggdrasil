@@ -309,9 +309,14 @@ function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
 }
 
+function coverFitValue(value) {
+  return String(value || "").trim() === "contain" ? "contain" : "";
+}
+
 function buildPowerPlaceDragPayload(item) {
   const objectRef = String(item?.src || item?.object_ref || "");
   if (!objectRef) return null;
+  const fit = coverFitValue(item?.fit || item?.cover_fit || item?.coverFit);
 
   return {
     id: String(item?.id || ""),
@@ -326,7 +331,8 @@ function buildPowerPlaceDragPayload(item) {
         : item?.kind === "power-place-background"
           ? "power-place-background"
           : String(item?.kind || "profile-media"),
-    photoId: item?.photoId ? String(item.photoId) : ""
+    photoId: item?.photoId ? String(item.photoId) : "",
+    ...(fit ? { fit, cover_fit: fit } : {})
   };
 }
 
@@ -339,6 +345,7 @@ function parsePowerPlaceDragPayload(dataTransfer) {
     const parsed = JSON.parse(raw);
     const objectRef = String(parsed?.object_ref || "").trim();
     if (!objectRef) return null;
+    const fit = coverFitValue(parsed?.fit || parsed?.cover_fit || parsed?.coverFit);
     return {
       id: String(parsed?.id || "").trim(),
       title: String(parsed?.title || parsed?.name || "").trim(),
@@ -346,7 +353,8 @@ function parsePowerPlaceDragPayload(dataTransfer) {
       src: String(parsed?.src || "").trim(),
       object_ref: objectRef,
       type: ["saved-mandala", "profile-media", "client-photo", "tradition-asset", "material", "power-place-background"].includes(parsed?.type) ? parsed.type : "profile-media",
-      photoId: String(parsed?.photoId || "").trim()
+      photoId: String(parsed?.photoId || "").trim(),
+      ...(fit ? { fit, cover_fit: fit } : {})
     };
   } catch {
     return null;
@@ -677,6 +685,12 @@ function coverKindClass(cover, layer) {
   return "";
 }
 
+function outerCoverFitClass(cover) {
+  return cover?.type === "image" && coverFitValue(cover?.fit || cover?.cover_fit || cover?.coverFit) === "contain"
+    ? "outer-cover-fit-contain"
+    : "";
+}
+
 function coverToneClass(cover) {
   if (!cover || cover.type === "none" || cover.id === "no-cover") return "cover-none";
   if (cover.type === "image") return "cover-image";
@@ -774,6 +788,7 @@ export default function ProfileLitePowerPlaceModule({
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
+  const outerCoverFitClassName = outerCoverFitClass(outerCover);
   const sourceSlotScale = slotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
@@ -1522,12 +1537,14 @@ export default function ProfileLitePowerPlaceModule({
 
     if (slotKey === "cover_ref.inner" || slotKey === "cover_ref.outer") {
       const layer = slotKey === "cover_ref.outer" ? "outer" : "inner";
+      const fit = coverFitValue(item?.fit || item?.cover_fit || item?.coverFit);
       onCompositionCoverSelect(layer, {
         id: item?.id || (layer === "outer" ? "custom-outer-cover" : "custom-cover"),
         label: item?.label || item?.title || item?.name || "Своё изображение",
         type: "image",
         src: ref,
-        display_src: displaySrc
+        display_src: displaySrc,
+        ...(fit ? { fit, cover_fit: fit } : {})
       });
       return;
     }
@@ -2354,7 +2371,7 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
+                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass} ${outerCoverFitClassName}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
                   {renderInMandalaCoverDropTargets()}
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
