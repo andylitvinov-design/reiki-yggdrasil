@@ -21,6 +21,23 @@ Last updated: 2026-06-11
 - Not verified yet:
   - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
 
+## 2026-06-14 — DAO fulu single-contour render contract
+
+- Branch: `codex/fix-dao-fulu-single-contour`, based on fresh `origin/main` at `3ec0b47`.
+- Scope: `/profile/mandalas` DAO fulu visual styles only; no Supabase schema, routes, save/update/create-new, print/PDF actions, drag/drop, picker, pan/zoom, object ref keys, Mandala styles, or classic DAO `style-1` changes.
+- Changed:
+  - kept the four DAO style values `fu-paper-slip`, `cloud-register`, `thunder-tablet`, and `taofu-charm`;
+  - replaced the public `/symbols/power-place/dao/fulu/*.svg` assets with empty outline-only talisman contours;
+  - removed the fulu fallback paper, side rails, top/base bars, header marks, footer seal, and style pseudo-element overlays from the fulu render/CSS path;
+  - kept one `daoFuluContourLayer` as the only visible fulu frame, with existing center/node slot ids and interactions inside the empty talisman area.
+- Verification:
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run build` retained the existing Vite large-chunk warning;
+  - local CSS/DOM browser harness at `http://localhost:4408/profile/mandalas` checked `Фу-лист`, `Облачный реестр`, `Громовая табличка`, and `Таофу`: one contour layer each, removed overlay classes `0`, outer sheet border `0px`, transparent sheet background, slots inside sheet, desktop/mobile harness overflow `0`.
+- Not verified yet:
+  - real authenticated builder UI in local/staging Supabase;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
 ## 2026-06-14 — DAO background reference assets restored
 
 - Branch: `codex/restore-dao-reference-backgrounds`, based on fresh `origin/main` at `c21ad5c`.
