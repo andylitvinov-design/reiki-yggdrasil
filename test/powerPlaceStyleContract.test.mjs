@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -281,14 +281,30 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes('style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}'),
-  "DAO inner surface must keep coverDisplaySrc flowing into innerCoverImageStyle on the outer daoMandalaSheet"
+  /style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/.test(baseSource),
+  "DAO inner surface must keep coverDisplaySrc flowing into innerCoverImageStyle while adding the fulu contour CSS variable"
 );
 
 assert.ok(
   baseSource.includes('"--power-inner-cover-image"'),
   "Base module innerCoverImageStyle must set --power-inner-cover-image CSS variable"
 );
+
+assert.ok(
+  baseSource.includes("DAO_FULU_STYLE_VALUES"),
+  "Base module must define DAO_FULU_STYLE_VALUES for fulu contour assets"
+);
+
+for (const [styleValue, assetPath] of [
+  ["fu-paper-slip", "/symbols/power-place/dao/fulu/fu-paper-slip.svg"],
+  ["cloud-register", "/symbols/power-place/dao/fulu/cloud-register.svg"],
+  ["thunder-tablet", "/symbols/power-place/dao/fulu/thunder-tablet.svg"],
+  ["taofu-charm", "/symbols/power-place/dao/fulu/taofu-charm.svg"]
+]) {
+  assert.ok(baseSource.includes(`"${styleValue}"`), `DAO_FULU_STYLE_VALUES must include ${styleValue}`);
+  assert.ok(baseSource.includes(`contourAsset: "${assetPath}"`), `DAO_FULU_STYLE_VALUES must map ${styleValue} to ${assetPath}`);
+  assert.equal(existsSync(join(__dir, `../public${assetPath}`)), true, `${assetPath} must exist in public assets`);
+}
 
 assert.ok(
   !baseSource.includes("style={imageStyle(coverDisplaySrc(innerCover))}"),
@@ -325,6 +341,14 @@ for (const selector of [
 ]) {
   assert.ok(cssSource.includes(selector), `${selector} must be defined for non-destructive fulu fallback/contour rendering`);
 }
+
+assert.ok(
+  cssSource.includes("background-image: var(--dao-fulu-contour-image)") &&
+  cssSource.includes("background-size: contain") &&
+  cssSource.includes("background-repeat: no-repeat") &&
+  cssSource.includes("background-position: center"),
+  ".daoFuluContourLayer must render the style-specific SVG contour through --dao-fulu-contour-image"
+);
 
 // ─── Chess cover-none is fully transparent (outer background shows through) ────
 
