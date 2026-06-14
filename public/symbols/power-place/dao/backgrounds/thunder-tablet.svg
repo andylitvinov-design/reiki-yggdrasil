@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO lingpai command tablet outline</title>
+  <desc id="desc">Reference contour for a Daoist command-tablet-inspired vertical talisman shape. Decorative draft only, not a ritual formula.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 12l19 22 12 0 6 14v298H23V48l6-14h12z" />
+    <path d="M60 21l14 17 10 0 5 12v286H31V50l5-12h10z" />
+    <path d="M35 55h50" />
+    <path d="M41 68l5 6 10-13" />
+    <path d="M56 68l5 6 10-13" />
+    <path d="M71 68l5 6 10-13" />
+    <path d="M40 91q7 0 7-7h26q0 7 7 7" />
+    <path d="M40 321q7 0 7 7h26q0-7 7-7" />
+    <path d="M38 38c5-9 12-9 17-1" />
+    <path d="M82 38c-5-9-12-9-17-1" />
+  </g>
+</svg>

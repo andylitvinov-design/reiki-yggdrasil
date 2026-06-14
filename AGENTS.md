@@ -249,6 +249,87 @@ For the draft/clean release workflow, also verify before production release:
 A normal development task is complete when it is committed/merged to its target branch, checks are reported, and the relevant preview/test/live URL verification status is reported.
 A client-facing release is complete only after `production` is updated and the client live URL is verified.
 
+## Agent Command Registry
+
+### /delivery
+
+When the user invokes `/delivery`, follow all three source-of-truth docs in order:
+
+1. `docs/delivery-loop-program.md` — full protocol, stop states, final report format
+2. `docs/delivery-loop-technical-details.md` — scripts, commands, CI/CD checks, agent decision table
+3. `docs/delivery-loop-source-patterns-and-live-proof.md` — embedded loop patterns and live proof contract (mandatory)
+
+Act as a release owner, not only a coding assistant.
+
+Do not stop after code changes, PR creation, green checks, merge, or deployment.
+
+Stop only with:
+
+- `STATUS: SUCCESS` — task implemented, PR/merge completed if required, deployed, and verified on live.
+- `STATUS: BLOCKED` — real external blocker with exact evidence and required user action.
+
+`SUCCESS` requires a completed live proof block (from doc 3):
+
+```txt
+LIVE PROOF:
+- Live URL:
+- Checked route/page:
+- Final deployed commit:
+- Expected live behavior:
+- Actual live behavior:
+- Evidence:
+```
+
+Project adapter for this repo:
+
+- Repository: `andylitvinov-design/reiki-yggdrasil`
+- Default branch: `main`
+- Target branch (features): `main`
+- Target branch (client releases): `production`
+- Package manager: `npm`
+- Framework: Vite + React SPA
+- Build command: `npm run build`
+- Check command: `npm run check`
+- Lint: not available
+- Typecheck: not available
+- CI: GitHub Actions (`.github/workflows/ci.yml`)
+- Deployment: Vercel (auto-deploy from GitHub)
+- **Primary production/live URL: `https://2mentalica.vercel.app`** ← default `/delivery` target
+- Secondary production URL: `https://mentalica.vercel.app`
+- Legacy/fallback URL: `https://reiki-yggdrasil.vercel.app`
+
+**Live target rule:** Unless the user explicitly specifies another target, `/delivery` SUCCESS requires LIVE PROOF on the primary production URL `https://2mentalica.vercel.app`. STATUS: SUCCESS after checking only secondary, legacy, preview, or fallback URLs is not valid unless the user explicitly selected that target.
+
+**Result verification gate:** STATUS: SUCCESS also requires the Final Result
+Verification Gate from `.claude/commands/delivery.md`: the original request
+contract must be checked requirement by requirement, and every required item
+must be `PASS`.
+
+**Cost-control rules:**
+
+- `/delivery` includes cost-control by default.
+- Do not reread or resend unchanged large context. Place stable project context (protocol docs, AGENTS.md, rules) first; place current task/diffs/logs after.
+- Prefer diffs over full files. Read only relevant files first.
+- Stop after **3 failed fix attempts** on the same issue — return `STATUS: BLOCKED` with the 3 attempts listed.
+- Never touch env vars, secrets, billing, production database, or auth-sensitive settings without explicit user approval. Stop and describe the required action; do not proceed.
+- Final report must include a `COST CONTROL` section.
+
+### /pr
+
+Create a clean, mergeable PR for the current branch. Do not merge.
+
+Verify: correct base branch, no conflicts, build and check pass, PR description includes task and evidence.
+
+### /fix-deploy
+
+Diagnose and fix a deployment or live mismatch. See `docs/deploy-fallback.md`.
+
+### /audit
+
+Inspect whether the task, PR, merge, deployment, and live state match the original request. Return `STATUS: SUCCESS` or `STATUS: BLOCKED` with evidence.
+
+---
+
 ## Report format
 
 After work, report:

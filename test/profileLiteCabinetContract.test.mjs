@@ -236,10 +236,14 @@ for (const requiredPowerPlaceText of [
   "Фон места силы",
   "Фон внутри",
   "Фон снаружи",
+  "Библиотека",
+  "Полка",
+  "Символы",
+  "Загрузить своё",
   "Отчёт",
   "Анализ",
   "Размер окон",
-  "Размер фоток",
+  "Масштаб фото",
   "Размер поля",
   "Размер центра",
   "Сохранённые мандалы",
@@ -251,7 +255,7 @@ for (const requiredPowerPlaceText of [
   "Скачать PDF",
   "Печать"
 ]) {
-  assert.match(powerPlaceSource, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include UX text: ${requiredPowerPlaceText}`);
+  assert.match(`${powerPlaceSource}\n${moduleSource}`, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include UX text: ${requiredPowerPlaceText}`);
 }
 
 for (const requiredClass of [
@@ -266,8 +270,13 @@ for (const requiredClass of [
   "powerLibrarySidebar",
   "powerPlaceSettings",
   "coverPickerPanel",
+  "powerSymbolLibraryPanel",
+  "powerSymbolLibraryGrid",
   "objectImageEditor",
-  "clientPhotoPickerModal"
+  "clientPhotoPickerModal",
+  "profileLiteImagePickerCloseButton",
+  "imagePickerSourceGroups",
+  "imagePickerSecondLevel"
 ]) {
   assert.match(`${powerPlaceSource}\n${profileMandalaCss}`, new RegExp(requiredClass), `Lite Power Place should reuse visual workshop class ${requiredClass}`);
 }
@@ -279,8 +288,28 @@ assert.match(powerPlaceSource, /function buildPowerPlaceDragPayload\(/, "Power P
 assert.match(powerPlaceSource, /function parsePowerPlaceDragPayload\(/, "Power Place drops should parse drag payloads defensively");
 assert.match(powerPlaceSource, /const assignPowerPlaceSlotImage = \(/, "Power Place slot assignment should be shared by dropdowns, picker, and drops");
 assert.match(powerPlaceSource, /const getPowerPlaceSlotDropHandlers = \(/, "Power Place slots should expose shared drop target handlers");
+assert.match(powerPlaceSource, /listPowerPlaceSymbolsByShelf/, "Power Place module should load symbols from the static symbol library");
+assert.match(powerPlaceSource, /handleSavedImageDragStart\(event, item\)/, "Power Place symbol library should reuse the existing source drag payload");
+assert.match(powerPlaceSource, /onClick=\{\(\) => chooseImage\(item\)\}/, "Power Place symbol clicks should reuse the existing image selection path");
+assert.match(powerPlaceBaseSource, /export default function ProfileLitePowerPlaceModule\(\{[\s\S]*accountPlan = "start"[\s\S]*\}\) \{/, "Power Place base module should default accountPlan so opening the image picker cannot throw when the parent omits it");
+assert.match(powerPlaceBaseSource, /<ProfileLiteImagePicker[\s\S]*accountPlan=\{accountPlan\}/, "Power Place image picker should receive the safe accountPlan prop");
+assert.match(profileLitePageSource, /const accountPlan = normalizeAccountPlan\(form\.account_plan \|\| profile\?\.account_plan\)/, "ProfileLitePage should derive accountPlan only from the real profile form/row");
+assert.match(profileLitePageSource, /const moduleProps = \{[\s\S]*accountPlan,[\s\S]*compositionDraft/, "ProfileLitePage should pass the real normalized accountPlan when it is available");
+assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8"), /accountPlan = "start"[\s\S]*const isProAccount = accountPlan === "pro"[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "ProfileLiteImagePicker should keep Pro-only client options disabled unless accountPlan is exactly pro");
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
+assert.match(powerPlaceBaseSource, /DAO_FULU_STYLES\.has\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
+assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true">[\s\S]*<span className="daoFuluTopHead" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--left" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--right" \/>[\s\S]*<span className="daoFuluBottomBase" \/>[\s\S]*<\/div>/, "DAO fulu render branch should include an explicit overlay contour layer");
+assert.match(powerPlaceBaseSource, /className=\{\`daoMandalaSheet[\s\S]*dao-fu-paper-slip[\s\S]*dao-cloud-register[\s\S]*dao-thunder-tablet[\s\S]*dao-taofu-charm[\s\S]*style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet should keep all fulu style classes while receiving the inner cover image style and fulu contour image variable");
+for (const assetPath of [
+  "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
+  "/symbols/power-place/dao/fulu/cloud-register.svg",
+  "/symbols/power-place/dao/fulu/thunder-tablet.svg",
+  "/symbols/power-place/dao/fulu/taofu-charm.svg"
+]) {
+  assert.equal(existsSync(join("public", assetPath)), true, `${assetPath} should exist for DAO fulu contours`);
+  assert.match(powerPlaceBaseSource, new RegExp(assetPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `DAO fulu style values should map ${assetPath}`);
+}
 assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "inner"[\s\S]*dragOverSlotId === "cover_ref\.inner"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("inner"\)\}[\s\S]*aria-label="Фон внутри\. Можно перетащить фото"[\s\S]*title="Фон внутри\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "existing inner cover tab should be the cover_ref.inner drop target without opening the picker");
 assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "outer"[\s\S]*dragOverSlotId === "cover_ref\.outer"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("outer"\)\}[\s\S]*aria-label="Фон снаружи\. Можно перетащить фото"[\s\S]*title="Фон снаружи\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)/, "existing outer cover tab should be the cover_ref.outer drop target without opening the picker");
 assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid saved source cards should be draggable");
@@ -313,9 +342,10 @@ assert.match(powerPlaceSource, /centerImageStyle/, "center photo renderer should
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Размер фоток[\s\S]*field: "__center_image_scale"/, "Power Place constructor controls should map slot-window, field, center, and photo-content sliders to distinct fields");
+assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"/, "Power Place constructor controls should map slot-window, field, and center sliders to distinct fields");
+assert.match(powerPlaceBaseSource, /Масштаб фото[\s\S]*writeSlotImageTransform/, "Масштаб фото slider must be in renderSlotPhotoEditor and call writeSlotImageTransform");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "sourceSlotScaleControl"/g) || []).length, 1, "Размер окон slider should render once from the base module");
-assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Размер фоток slider should render once from the base module");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 0, "top Размер фоток photoScaleControl slider must be removed from constructor controls");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four size sliders should share the requested desktop grid");
@@ -523,7 +553,7 @@ assert.match(mobileOrderCss, /profile-lite-mobile order hotfix|Profile Lite mobi
 assert.match(mobileOrderCss, /profileLiteTabs a\[href="\/profile"\]/, "mobile order CSS should hide the Overview tab link");
 assert.match(mobileOrderCss, /powerLibrarySidebar\{order:99/, "mobile order CSS should move source library to the bottom");
 assert.match(mobileOrderCss, /reportSettingsPanel\{order:20/, "mobile order CSS should move report analysis lower on mobile");
-assert.match(mobileOrderCss, /coverPickerPanel\{order:2/, "mobile order CSS should place Power Place background near the top on mobile");
+assert.match(mobileOrderCss, /coverPickerPanel\{order:[23]/, "mobile order CSS should place Power Place background near the top on mobile");
 
 assert.match(layoutFinalFix, /preferMandalasRoute/, "layout fix should prefer mandalas on bare profile route");
 assert.match(layoutFinalFix, /window\.location\.search \|\| window\.location\.hash/, "mandalas default redirect should leave callback/query URLs untouched");
@@ -677,6 +707,74 @@ assert.match(grimoireModuleSource, /GRIMOIRE_CATEGORIES/, "Grimoire left column 
 assert.match(grimoireModuleSource, /grimoireFilterBtn/, "Grimoire filter buttons should use grimoireFilterBtn class");
 assert.match(grimoireModuleSource, /grimoireRecordCard/, "Grimoire records should use grimoireRecordCard class");
 assert.match(profileLitePageSource, /handleGrimoireMultiUpload/, "ProfileLitePage should expose handleGrimoireMultiUpload");
+
+// --- G: Power Place scale limits and print/PDF correctness ---
+
+assert.match(
+  powerPlaceClientSource,
+  /SLOT_SCALE_MAX\s*=\s*1\.85/,
+  "powerPlaceClient.js must define SLOT_SCALE_MAX = 1.85 to match UI slider max"
+);
+
+assert.match(
+  powerPlaceClientSource,
+  /FIELD_SCALE_MAX\s*=\s*145/,
+  "powerPlaceClient.js must define FIELD_SCALE_MAX = 145 to match UI slider max"
+);
+
+assert.match(
+  powerPlaceClientSource,
+  /CENTER_IMAGE_SCALE_MAX\s*=\s*2/,
+  "powerPlaceClient.js must define CENTER_IMAGE_SCALE_MAX = 2 to match UI slider max"
+);
+
+assert.match(
+  powerPlaceClientSource,
+  /CENTER_FRAME_SCALE_MAX\s*=\s*1\.85/,
+  "powerPlaceClient.js must define CENTER_FRAME_SCALE_MAX = 1.85 to match UI slider max"
+);
+
+assert.match(
+  profileLitePageSource,
+  /field === "__center_frame_scale"[\s\S]*object_refs[\s\S]*__center_frame_scale/,
+  "handleCompositionDraftChange must persist __center_frame_scale into object_refs"
+);
+
+assert.match(
+  profileLitePageSource,
+  /field === "__center_image_scale"[\s\S]*object_refs[\s\S]*__center_image_scale/,
+  "handleCompositionDraftChange must persist __center_image_scale into object_refs"
+);
+
+assert.match(
+  profileLitePageSource,
+  /raf2\(window\)[\s\S]*cloneNode/,
+  "openPowerPlacePdfPrintView must defer DOM clone with raf2(window) so React flushes slider state before print"
+);
+
+assert.doesNotMatch(
+  profileLitePageSource,
+  /handleDownloadComposition[\s\S]{0,200}refreshSavedCompositions/,
+  "handleDownloadComposition must not call refreshSavedCompositions — print uses current DOM, not saved data"
+);
+
+assert.doesNotMatch(
+  profileLitePageSource,
+  /handlePrintComposition[\s\S]{0,200}refreshSavedCompositions/,
+  "handlePrintComposition must not call refreshSavedCompositions — print uses current DOM, not saved data"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /powerPlacePrintArea[\s\S]*style=\{sourceSlotScaleStyle\}/,
+  ".powerPlacePrintArea must receive sourceSlotScaleStyle so CSS variables survive cloneNode into print window"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /sourceSlotScaleStyle[\s\S]*--power-source-slot-scale[\s\S]*--power-place-chess-slot-scale[\s\S]*--power-field-scale[\s\S]*--power-center-image-scale[\s\S]*--power-center-frame-scale/,
+  "sourceSlotScaleStyle must include all five layout CSS variables for print fidelity"
+);
 assert.match(profileLitePageSource, /handleGrimoireUpdate/, "ProfileLitePage should expose handleGrimoireUpdate");
 assert.match(profileLitePageSource, /handleGrimoireDelete/, "ProfileLitePage should expose handleGrimoireDelete");
 assert.match(profileLitePageSource, /deleteOwnMaterial/, "ProfileLitePage should import deleteOwnMaterial");
@@ -880,4 +978,303 @@ assert.match(
   "CSS must define thumb style for profileLiteMediaThumb"
 );
 
+// ─── DAO style selector contract ─────────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /DAO_STYLE_VARIANTS/,
+  "Base module must define DAO_STYLE_VARIANTS for the DAO style selector"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /daoStyleSelector/,
+  "Base module must render daoStyleSelector for DAO constructor type"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /mandalaStyleSelector daoStyleSelector/,
+  "DAO style selector must carry mandalaStyleSelector class for shared pill button styling"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /compositionDraft\.constructor_type === "dao"/,
+  "DAO style selector must be gated on constructor_type === dao"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /compositionDraft\.__dao_style/,
+  "DAO style selector must read __dao_style from compositionDraft"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /__dao_style.*talisman-1|talisman-1.*__dao_style/,
+  "Base module must branch on talisman-1 value of __dao_style"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /daoTalismanScroll/,
+  "Base module must render daoTalismanScroll div for talisman mode"
+);
+
+assert.match(
+  powerPlaceSource,
+  /DAO_STYLE_REF_KEY\s*=\s*"__dao_style"/,
+  "Wrapper module must define DAO_STYLE_REF_KEY as __dao_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /__dao_style:\s*daoStyle/,
+  "Wrapper module must pass daoStyle to enhancedDraft as __dao_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /function daoStyleValue\(/,
+  "Wrapper module must define daoStyleValue normalizer"
+);
+
+// Talisman must be nested inside daoMandalaSheet — outer surface preserved
+assert.match(
+  powerPlaceBaseSource,
+  /dao-talisman/,
+  "daoMandalaSheet must receive dao-talisman modifier class in talisman mode"
+);
+
+// daoTalismanScroll must appear after daoMandalaSheet in source (nested, not standalone root)
+{
+  const mandalaSheetIdx = powerPlaceBaseSource.indexOf("daoMandalaSheet");
+  const talismanScrollIdx = powerPlaceBaseSource.indexOf("daoTalismanScroll");
+  assert.ok(
+    mandalaSheetIdx >= 0 && talismanScrollIdx > mandalaSheetIdx,
+    "daoTalismanScroll must be nested inside daoMandalaSheet (daoMandalaSheet must appear first in source)"
+  );
+}
+
+// Talisman 1 DAO slot IDs must use dao-${element.id} pattern (dao-water, dao-wood, etc.)
+for (const element of ["water", "wood", "fire", "earth", "metal"]) {
+  assert.ok(
+    powerPlaceBaseSource.includes(`dao-\${element.id}`) || powerPlaceBaseSource.includes(`dao-${element}`),
+    `slot id pattern for dao-${element} must be preserved in talisman-1 mode`
+  );
+}
+
+// Talisman 2 must use dao-talisman-2-${index + 1} node IDs
+assert.ok(
+  powerPlaceBaseSource.includes("dao-talisman-2-${index + 1}") || powerPlaceBaseSource.includes("`dao-talisman-2-${index + 1}`"),
+  "Talisman 2 must generate slot IDs as dao-talisman-2-${index + 1}"
+);
+
+// Talisman 2 must not use DAO_ELEMENTS.slice
+assert.ok(
+  !powerPlaceBaseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
+  "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
+);
+
+// Legacy "talisman" value must map to talisman-1 in wrapper daoStyleValue
+assert.ok(
+  powerPlaceSource.includes('"talisman" || value === "talisman-1"') ||
+  (powerPlaceSource.includes('"talisman"') && powerPlaceSource.includes('"talisman-1"')),
+  "daoStyleValue must map legacy 'talisman' to 'talisman-1'"
+);
+
+// DAO_STYLE_VARIANTS must use talisman-1, not talisman
+assert.ok(
+  powerPlaceBaseSource.includes('"talisman-1"') && !powerPlaceBaseSource.includes('{ value: "talisman"'),
+  "DAO_STYLE_VARIANTS must use talisman-1 value, not legacy talisman"
+);
+
+// daoMandalaSheet (style-1) must still exist — not replaced
+assert.match(
+  powerPlaceBaseSource,
+  /daoMandalaSheet/,
+  "daoMandalaSheet must still be present for style-1 (existing style must not be removed)"
+);
+
 console.log("Profile Lite cabinet contract: all assertions passed.");
+
+// ── Visibility settings module contract ──────────────────────────────────────
+assert.match(powerPlaceBaseSource, /__visibility_settings/, "PowerPlaceModuleBase must reference __visibility_settings key");
+assert.doesNotMatch(powerPlaceBaseSource, /renderVisibilitySettingsModule/, "PowerPlaceModuleBase must not render a separate right-sidebar visibility module");
+assert.doesNotMatch(powerPlaceBaseSource, /Показать\/Скрыть/, "PowerPlaceModuleBase must not include the old separate Показать/Скрыть panel label");
+assert.doesNotMatch(powerPlaceBaseSource, /visibilitySettingsPanel/, "PowerPlaceModuleBase must not include the old visibilitySettingsPanel class");
+assert.match(powerPlaceBaseSource, /inlineVisibilityScaleToggle/, "PowerPlaceModuleBase must render visibility toggles inline with scale controls");
+assert.match(powerPlaceBaseSource, /Центр мандалы/, "PowerPlaceModuleBase must include Центр мандалы toggle label");
+assert.match(powerPlaceBaseSource, /Мини-мандалы/, "PowerPlaceModuleBase must include Мини-мандалы toggle label");
+assert.match(powerPlaceBaseSource, /Фон снаружи/, "PowerPlaceModuleBase must include Фон снаружи toggle label");
+assert.match(powerPlaceBaseSource, /Фон внутри/, "PowerPlaceModuleBase must include Фон внутри toggle label");
+assert.match(powerPlaceBaseSource, /label: "Размер окон"[\s\S]*visibilityKey: "slots"[\s\S]*visibilityLabel: "Мини-мандалы"/, "Размер окон must inline the slots visibility toggle");
+assert.match(powerPlaceBaseSource, /label: "Размер поля"[\s\S]*visibilityKey: "inner_cover"[\s\S]*visibilityLabel: "Фон внутри"/, "Размер поля must inline the inner cover visibility toggle");
+assert.match(powerPlaceBaseSource, /label: "Размер центра"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Размер центра must inline the center visibility toggle");
+assert.match(powerPlaceBaseSource, /coverOuterVisibilityToggle[\s\S]*setVisibilitySetting\("outer_cover"/, "outer cover visibility must remain next to the cover selector");
+assert.match(powerPlaceBaseSource, /power-place-hide-center/, "PowerPlaceModuleBase must apply power-place-hide-center class");
+assert.match(powerPlaceBaseSource, /power-place-hide-slots/, "PowerPlaceModuleBase must apply power-place-hide-slots class");
+assert.match(powerPlaceBaseSource, /power-place-hide-outer-cover/, "PowerPlaceModuleBase must apply power-place-hide-outer-cover class");
+assert.match(powerPlaceBaseSource, /power-place-hide-inner-cover/, "PowerPlaceModuleBase must apply power-place-hide-inner-cover class");
+assert.match(powerPlaceBaseSource, /function coverToneClass\(cover\)/, "PowerPlaceModuleBase must centralize cover class generation");
+assert.doesNotMatch(powerPlaceBaseSource, /cover-\$\{innerCover\?\.tone \|\| "gold"\}/, "Без фона must not fall back to cover-gold");
+assert.match(powerPlaceBaseSource, /coverToneClass\(innerCover\)/, "inner cover render paths must use coverToneClass");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandala\.cover-none,[\s\S]*\.profileLitePowerPlace \.power-place-chess\.cover-none,[\s\S]*background: transparent !important;[\s\S]*background-image: none !important;[\s\S]*background-color: transparent !important;/, "cover-none must be fully transparent in the scoped Power Place CSS");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.power-place-hide-inner-cover \.businessMandalaSheet,[\s\S]*background: transparent !important;[\s\S]*background-color: transparent !important;/, "hidden inner cover must clear full background on all inner constructor surfaces");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.inlineVisibilityScaleToggle/, "inline visibility toggle CSS must exist");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl > input\[type="range"\]/, "slider range inputs must remain aligned without stretching inline checkboxes");
+
+// ── Zodiac 2 format contract ──────────────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_2_VARIANT/,
+  "Base module must define ZODIAC_2_VARIANT constant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiac-2-12/,
+  "Base module must use zodiac-2-12 as the Zodiac 2 variant value"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /Зодиак 2/,
+  "ZODIAC_VARIANTS must include a Зодиак 2 label for the selector UI"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /Зодиак 1/,
+  "ZODIAC_VARIANTS must include a Зодиак 1 label (renamed from classic-12)"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_2_INNER_SLOTS/,
+  "Base module must define ZODIAC_2_INNER_SLOTS array"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiac-inner-\$\{|`zodiac-inner-|"zodiac-inner-/,
+  "ZODIAC_2_INNER_SLOTS must generate slot ids with zodiac-inner- prefix"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /isZodiac2Variant/,
+  "Base module must define isZodiac2Variant helper function"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiac-2-format/,
+  "Zodiac JSX must apply zodiac-2-format class on zodiacMandalaSheet when isZodiac2"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiacInnerPosition/,
+  "Zodiac JSX must render zodiacInnerPosition elements for inner ring slots"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiac-inner-[\s\S]*zodiac-inner-/,
+  "Inner slot render must filter slots starting with zodiac-inner-"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /constructor_type.*===.*"zodiac2"|"zodiac2".*===.*constructor_type/,
+  "zodiac2 must NOT be a separate constructor_type — it must remain within zodiac"
+);
+
+{
+  const outerFilterMatch = powerPlaceBaseSource.match(/slot\.id\.startsWith\(["']zodiac-inner-["']\)/);
+  assert.ok(
+    outerFilterMatch,
+    "Outer zodiac slot map must exclude zodiac-inner- slots via startsWith filter"
+  );
+}
+
+console.log("Zodiac 2 format contract: all assertions passed.");
+
+// ── Zodiac style selector contract ───────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_REF_KEY/,
+  "Base module must define ZODIAC_STYLE_REF_KEY constant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_REF_KEY\s*=\s*"__zodiac_style"/,
+  "ZODIAC_STYLE_REF_KEY must equal __zodiac_style"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_VARIANTS/,
+  "Base module must define ZODIAC_STYLE_VARIANTS array"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_STYLE_VARIANTS[\s\S]*"sun"[\s\S]*"stars"[\s\S]*"ribbon"/,
+  "ZODIAC_STYLE_VARIANTS must include sun, stars, and ribbon values in order"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function zodiacStyleValue\(/,
+  "Base module must define zodiacStyleValue normalizer function"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /zodiacStyleSelector/,
+  "Base module must render zodiacStyleSelector UI"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /Стиль зодиака/,
+  "Zodiac style selector must include Стиль зодиака label"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /constructor_type.*===.*"zodiac"[\s\S]*zodiacStyleSelector|zodiacStyleSelector[\s\S]*constructor_type.*===.*"zodiac"/,
+  "Zodiac style selector must be gated on constructor_type === zodiac"
+);
+
+assert.match(
+  powerPlaceSource,
+  /ZODIAC_STYLE_REF_KEY\s*=\s*"__zodiac_style"/,
+  "Wrapper module must define ZODIAC_STYLE_REF_KEY as __zodiac_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /__zodiac_style:\s*zodiacStyle/,
+  "Wrapper module must pass zodiacStyle to enhancedDraft as __zodiac_style"
+);
+
+assert.match(
+  powerPlaceSource,
+  /function zodiacStyleValue\(/,
+  "Wrapper module must define zodiacStyleValue normalizer"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /constructor_type.*===.*"zodiac-style"|"zodiac-style".*===.*constructor_type/,
+  "zodiac style must NOT introduce a new constructor_type"
+);
+
+console.log("Zodiac style selector contract: all assertions passed.");

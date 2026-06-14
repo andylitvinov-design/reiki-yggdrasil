@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO lu register document outline with seal box</title>
+  <desc id="desc">Reference contour for a Daoist register-like long ritual document. Decorative draft only, not a ritual formula.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="12" width="80" height="336" />
+    <rect x="26" y="19" width="68" height="322" />
+    <path d="M32 31c6-10 14-10 19-2" />
+    <path d="M88 31c-6-10-14-10-19-2" />
+    <path d="M29 47h62" />
+    <path d="M39 37l5 6 10-13" />
+    <path d="M55 37l5 6 10-13" />
+    <path d="M71 37l5 6 10-13" />
+    <path d="M32 63q5 0 5-5h46q0 5 5 5" />
+    <path d="M32 315q5 0 5 5h46q0-5 5-5" />
+    <rect x="45" y="296" width="30" height="30" />
+    <rect x="49" y="300" width="22" height="22" />
+    <path d="M26 324c6-7 12-7 18 0" />
+    <path d="M94 324c-6-7-12-7-18 0" />
+  </g>
+</svg>

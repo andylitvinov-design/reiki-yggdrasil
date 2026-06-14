@@ -107,7 +107,7 @@ const EMPTY_MATERIAL = createEmptyMaterialForm({
   setting_title: firstSettings[0]?.title || "",
   setting_index: firstSettings.length > 0 ? 1 : null
 });
-const EMPTY_CLIENT_PHOTO = { title: "", image_url: "", notes: "", file: null };
+const EMPTY_CLIENT_PHOTO = { title: "", image_url: "", notes: "", client_category: "all", file: null };
 const EMPTY_TRADITION_ASSET = {
   tradition_id: mysteryTraditions[0]?.id || "",
   title: "",
@@ -141,6 +141,7 @@ const EMPTY_COMPOSITION = {
 };
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
+const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
@@ -418,14 +419,11 @@ function openPowerPlacePdfPrintView(title) {
   if (!printArea) throw new Error("Макет мандалы не найден.");
 
   const filename = `${safeFilename(title || "power-place")}.pdf`;
-  // window.open must stay synchronous on the click event stack
+  // window.open must stay synchronous on the click event stack (popup blocker)
   const printWindow = window.open("", "_blank", "width=980,height=900");
   if (!printWindow) throw new Error("Разрешите всплывающее окно для печати в PDF.");
 
-  const imageUrls = extractCssUrls(printArea);
-
-  const clonedArea = printArea.cloneNode(true);
-  clonedArea.classList.add("powerPlacePdfOnlyArea");
+  // Write skeleton HTML synchronously so the popup isn't blank while waiting
   printWindow.document.open();
   printWindow.document.write(`<!doctype html>
 <html lang="ru">
@@ -446,13 +444,23 @@ function openPowerPlacePdfPrintView(title) {
   <main aria-label="Скачать PDF / Печать в PDF"></main>
 </body>
 </html>`);
-  printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
   printWindow.document.close();
 
-  Promise.all([
-    preloadImagesForPrint(imageUrls),
-    printWindow.document.fonts?.ready ?? Promise.resolve(),
-  ])
+  // Double RAF ensures React has flushed the latest slider state into the DOM
+  // before we clone it, so print/PDF always reflects the current unsaved layout.
+  raf2(window)
+    .then(() => {
+      const freshPrintArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
+      if (!freshPrintArea) throw new Error("Макет мандалы не найден.");
+      const imageUrls = extractCssUrls(freshPrintArea);
+      const clonedArea = freshPrintArea.cloneNode(true);
+      clonedArea.classList.add("powerPlacePdfOnlyArea");
+      printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
+      return Promise.all([
+        preloadImagesForPrint(imageUrls),
+        printWindow.document.fonts?.ready ?? Promise.resolve(),
+      ]);
+    })
     .then(() => raf2(printWindow))
     .then(() => {
       const status = printWindow.document.getElementById("pdfStatus");
@@ -1148,7 +1156,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         profile_id: profile.id,
         title: clientPhotoForm.title,
         image_url: clientPhotoForm.image_url,
-        notes: clientPhotoForm.notes
+        client_category: clientPhotoForm.client_category || "all",
+        notes: ""
       };
       if (clientPhotoForm.file) {
         validateProfileMediaFile(clientPhotoForm.file);
@@ -1217,7 +1226,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     title = "",
     notes = "",
     destination = "clients",
-    material = null
+    material = null,
+    clientCategory = "all"
   }) => {
     if (destination === "materials") {
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
@@ -1269,6 +1279,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         image_path: uploaded.path,
         mime_type: uploaded.metadata.mimeType,
         file_size_bytes: uploaded.metadata.size,
+        client_category: clientCategory || "all",
         notes
       }, accountPlan, session);
       const savedImageRef = saved?.image_ref || uploaded.ref;
@@ -1361,6 +1372,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const handleCompositionDraftChange = (field, value) => {
     setCompositionDraft((current) => {
+      if (field === VISIBILITY_SETTINGS_REF_KEY) {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [VISIBILITY_SETTINGS_REF_KEY]: value && typeof value === "object" ? value : {}
+          }
+        };
+      }
       if (field === PROFILE_LITE_REPORT_REF_KEY) {
         return {
           ...current,
@@ -1398,6 +1418,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           object_refs: {
             ...(current.object_refs || {}),
             __center_image_scale: String(value)
+          }
+        };
+      }
+      if (field === "__center_frame_scale") {
+        return {
+          ...current,
+          __center_frame_scale: value,
+          object_refs: {
+            ...(current.object_refs || {}),
+            __center_frame_scale: String(value)
           }
         };
       }
@@ -1575,6 +1605,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       object_ref_urls: composition.object_ref_urls || {}
     }));
     setCompositionMessage("Сохранённая мандала открыта в конструкторе.");
+  };
+
+  const handleCompositionStartNewDraft = () => {
+    setCompositionDraft(withDefaultMotionSettings({
+      ...EMPTY_COMPOSITION,
+      object_refs: {},
+      object_ref_urls: {}
+    }));
+    setCompositionMessage("Новая мандала подготовлена. Настройте макет и нажмите «Создать новую».");
+    setMandalasError("");
   };
 
 
@@ -2217,6 +2257,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onCompositionCoverSelect={handleCompositionCoverSelect}
         onCompositionDraftChange={handleCompositionDraftChange}
         onCompositionLoad={handleCompositionLoad}
+        onStartNewDraft={handleCompositionStartNewDraft}
         onCompositionObjectRefSelect={setCompositionObjectRef}
         onCompositionObjectRefsChange={handleCompositionObjectRefsChange}
         onCoverFileUpload={handleCompositionCoverFileUpload}

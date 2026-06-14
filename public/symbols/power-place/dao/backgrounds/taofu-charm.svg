@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO taofu peach-wood charm outline</title>
+  <desc id="desc">Reference contour for a peach-wood charm inspired vertical plaque shape. Decorative draft only, not a ritual formula.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 14h58v32h7v300H24V46h7z" />
+    <path d="M36 24h48v18H36z" />
+    <path d="M41 33l5 6 10-13" />
+    <path d="M56 33l5 6 10-13" />
+    <path d="M71 33l5 6 10-13" />
+    <path d="M35 70q8 0 8-8h34q0 8 8 8" />
+    <path d="M35 320q8 0 8 8h34q0-8 8-8" />
+    <path d="M32 52q5 12 0 24" />
+    <path d="M88 52q-5 12 0 24" />
+    <path d="M31 334h58" />
+  </g>
+</svg>

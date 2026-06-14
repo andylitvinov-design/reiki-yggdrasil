@@ -1981,8 +1981,9 @@
 .profileLitePowerPlace .powerPlaceMotionLayer {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 8;
   pointer-events: none;
+  overflow: visible;
 }
 
 .profileLitePowerPlace .powerPlaceMotionPhoto {
@@ -2002,7 +2003,7 @@
 }
 
 .profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
-  width: clamp(40px, 13%, 72px);
+  width: clamp(34px, 11.5%, 60px);
 }
 
 .businessMandalaSheet {
@@ -2179,6 +2180,847 @@
   transform: scale(var(--power-source-slot-scale));
   transform-origin: center;
 }
+
+/* ── DAO Talisman 1 — Wu Xing circular scroll frame ────────────────────── */
+
+/* Outer surface stays .daoMandalaSheet so field_scale, print/PDF, cover
+   contracts are inherited. .dao-talisman overrides shape and aspect-ratio.
+   .daoTalismanScroll is nested inside and provides the vertical layout. */
+
+.daoMandalaSheet.dao-talisman {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(320px, 92%) !important;
+  margin: 0 auto;
+  background:
+    linear-gradient(180deg,
+      rgba(120, 60, 10, 0.55) 0%,
+      rgba(120, 60, 10, 0.55) 3.5%,
+      rgba(253, 240, 190, 0.97) 3.5%,
+      rgba(255, 252, 220, 0.98) 50%,
+      rgba(253, 240, 190, 0.97) 96.5%,
+      rgba(120, 60, 10, 0.55) 96.5%,
+      rgba(120, 60, 10, 0.55) 100%),
+    repeating-linear-gradient(0deg, transparent, transparent 26px, rgba(184, 121, 29, 0.05) 26px, rgba(184, 121, 29, 0.05) 27px) !important;
+  border-top: 6px solid rgba(100, 45, 5, 0.82) !important;
+  border-bottom: 6px solid rgba(100, 45, 5, 0.82) !important;
+  border-left: 3px solid rgba(160, 90, 15, 0.65) !important;
+  border-right: 3px solid rgba(160, 90, 15, 0.65) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(245, 210, 100, 0.18),
+    inset -3px 0 0 rgba(245, 210, 100, 0.18),
+    inset 0 4px 12px rgba(100, 60, 10, 0.12),
+    0 8px 32px rgba(80, 40, 5, 0.22) !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Left and right side rails */
+.daoMandalaSheet.dao-talisman::before,
+.daoMandalaSheet.dao-talisman::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+  z-index: 10;
+}
+.daoMandalaSheet.dao-talisman::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(160, 90, 15, 0.22) 0%, rgba(245, 210, 100, 0.06) 100%);
+  border-right: 1px solid rgba(139, 90, 15, 0.28);
+}
+.daoMandalaSheet.dao-talisman::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(160, 90, 15, 0.22) 0%, rgba(245, 210, 100, 0.06) 100%);
+  border-left: 1px solid rgba(139, 90, 15, 0.28);
+}
+
+/* Parchment inner scroll container */
+.daoTalismanScroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Subtle central axis — decorative only */
+.daoTalismanAxis {
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  bottom: 12%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent 0%, rgba(139, 90, 15, 0.15) 20%, rgba(139, 90, 15, 0.18) 80%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Header / roof ─────────────────────────────────────────────────────── */
+
+.daoTalismanRoof {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 14px 7px;
+  background: linear-gradient(180deg, rgba(180, 120, 20, 0.28) 0%, rgba(200, 150, 30, 0.10) 60%, transparent 100%);
+  border-bottom: 1.5px solid rgba(139, 90, 15, 0.35);
+  position: relative;
+  z-index: 5;
+}
+
+.daoTalismanPureMarks {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.42em;
+  color: rgba(140, 70, 8, 0.92);
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 230, 160, 0.5);
+}
+
+.daoTalismanThreePure {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(120, 70, 10, 0.62);
+  letter-spacing: 0.28em;
+  line-height: 1;
+}
+
+/* ─── Body: center photo + 4 corner slots + top slot ───────────────────── */
+
+.daoTalismanBody {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Center photo — visually dominant, centered in body */
+.daoTalismanCenterArea {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.daoTalismanCenterArea .daoCenterPhoto {
+  width: min(72px, 28%) !important;
+  height: min(72px, 28%) !important;
+}
+
+/* Individual slot positions — evenly around center (Wu Xing circle) */
+.daoTalismanSlot {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 24%;
+}
+
+/* water: top center */
+.daoTalismanSlot--water {
+  top: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* wood: upper right */
+.daoTalismanSlot--wood {
+  top: 18%;
+  right: 4%;
+}
+
+/* metal: upper left */
+.daoTalismanSlot--metal {
+  top: 18%;
+  left: 4%;
+}
+
+/* fire: lower right */
+.daoTalismanSlot--fire {
+  bottom: 18%;
+  right: 4%;
+}
+
+/* earth: lower left */
+.daoTalismanSlot--earth {
+  bottom: 18%;
+  left: 4%;
+}
+
+.daoTalismanSlot b {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(100, 55, 10, 0.78);
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoTalismanSlot .daoElementImage {
+  width: min(52px, 90%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+}
+
+/* ─── Bottom seal ───────────────────────────────────────────────────────── */
+
+.daoTalismanSeal {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0 9px;
+  background: linear-gradient(0deg, rgba(180, 120, 20, 0.28) 0%, rgba(200, 150, 30, 0.10) 60%, transparent 100%);
+  border-top: 1.5px solid rgba(139, 90, 15, 0.35);
+  position: relative;
+  z-index: 5;
+}
+
+.daoTalismanSealCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(160, 30, 15, 0.62);
+  font-size: 15px;
+  font-weight: 900;
+  color: rgba(150, 25, 10, 0.82);
+  background: rgba(255, 235, 200, 0.72);
+  box-shadow: 0 1px 4px rgba(160, 30, 15, 0.18);
+}
+
+/* ─── Print / PDF rules for Талисман 1 ─────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(320px, 92%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ─── Mobile sizing for Талисман 1 ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-talisman {
+    width: min(240px, 88%) !important;
+  }
+
+  .daoTalismanSlot .daoElementImage {
+    width: min(38px, 88%);
+  }
+
+  .daoTalismanCenterArea .daoCenterPhoto {
+    width: min(56px, 28%) !important;
+    height: min(56px, 28%) !important;
+  }
+
+  .daoTalismanSlot b {
+    font-size: 8px;
+  }
+
+  .daoTalismanPureMarks {
+    font-size: 13px;
+  }
+}
+
+/* ── DAO Talisman 2 — vertical Taoist formula scroll ───────────────────── */
+
+.daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(280px, 88%) !important;
+  margin: 0 auto;
+  background:
+    linear-gradient(180deg,
+      rgba(100, 40, 5, 0.70) 0%,
+      rgba(100, 40, 5, 0.70) 5%,
+      rgba(252, 238, 185, 0.98) 5%,
+      rgba(255, 250, 215, 0.99) 50%,
+      rgba(252, 238, 185, 0.98) 95%,
+      rgba(100, 40, 5, 0.70) 95%,
+      rgba(100, 40, 5, 0.70) 100%),
+    repeating-linear-gradient(90deg, transparent, transparent 18px, rgba(184, 121, 29, 0.04) 18px, rgba(184, 121, 29, 0.04) 19px) !important;
+  border-top: 7px solid rgba(90, 35, 4, 0.88) !important;
+  border-bottom: 7px solid rgba(90, 35, 4, 0.88) !important;
+  border-left: 3px solid rgba(150, 80, 12, 0.65) !important;
+  border-right: 3px solid rgba(150, 80, 12, 0.65) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(240, 200, 90, 0.16),
+    inset -3px 0 0 rgba(240, 200, 90, 0.16),
+    0 10px 36px rgba(70, 30, 4, 0.28) !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Left and right side rails */
+.daoMandalaSheet.dao-talisman-2::before,
+.daoMandalaSheet.dao-talisman-2::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  pointer-events: none;
+  z-index: 10;
+}
+.daoMandalaSheet.dao-talisman-2::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(150, 80, 12, 0.20) 0%, transparent 100%);
+  border-right: 1px solid rgba(139, 90, 15, 0.24);
+}
+.daoMandalaSheet.dao-talisman-2::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(150, 80, 12, 0.20) 0%, transparent 100%);
+  border-left: 1px solid rgba(139, 90, 15, 0.24);
+}
+
+/* Talisman 2 inner scroll shares the base class for the roof/seal shared elements */
+.daoTalisman2Scroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Roof: slightly taller for Talisman 2 to feel header-heavy */
+.daoTalisman2Roof {
+  flex-shrink: 0;
+  padding: 11px 14px 8px !important;
+  background: linear-gradient(180deg, rgba(160, 100, 15, 0.32) 0%, rgba(200, 150, 30, 0.12) 65%, transparent 100%) !important;
+  border-bottom: 2px solid rgba(130, 75, 10, 0.40) !important;
+}
+
+/* Vertical column of nodes */
+.daoTalisman2Body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 6px 0;
+  position: relative;
+}
+
+/* Central spine line behind the nodes */
+.daoTalisman2Body::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent 0%, rgba(139, 90, 15, 0.18) 15%, rgba(139, 90, 15, 0.22) 85%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Each node row */
+.daoTalisman2Node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  z-index: 2;
+}
+
+.daoTalisman2Node b {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(100, 55, 10, 0.78);
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoTalisman2Node .daoElementImage {
+  width: min(46px, 80%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+}
+
+/* ─── Print / PDF rules for Талисман 2 ─────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(280px, 88%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ─── Mobile sizing for Талисман 2 ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-talisman-2 {
+    width: min(220px, 86%) !important;
+  }
+
+  .daoTalisman2Node .daoElementImage {
+    width: min(36px, 76%);
+  }
+
+  .daoTalisman2Node b {
+    font-size: 8px;
+  }
+}
+
+/* ── end DAO Talisman styles ────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DAO Fulu styles — 4 tall vertical talisman/document forms
+   All share aspect-ratio ~1:2.6, width ~60% of panel on mobile.
+   Inner layout: .daoFuluScroll flex column, slots positioned absolute.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared fulu outer shape ─────────────────────────────────────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip,
+.daoMandalaSheet.dao-cloud-register,
+.daoMandalaSheet.dao-thunder-tablet,
+.daoMandalaSheet.dao-taofu-charm {
+  --dao-fulu-contour-image: none;
+  --dao-fulu-ink: rgba(92, 48, 10, 0.82);
+  --dao-fulu-soft-ink: rgba(126, 74, 18, 0.42);
+  --dao-fulu-paper: linear-gradient(180deg, rgba(255, 252, 228, 0.96), rgba(246, 229, 184, 0.9));
+  --dao-fulu-seal: rgba(132, 36, 18, 0.72);
+  --dao-fulu-rail-width: 5px;
+  aspect-ratio: 1 / 2.85 !important;
+  height: min(520px, calc(100% - 48px)) !important;
+  width: auto !important;
+  max-width: 58% !important;
+  margin: 0 auto;
+  overflow: visible !important;
+  position: relative;
+  align-self: center !important;
+}
+
+/* ── Фу-лист — simple parchment rectangle, double border ──────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip {
+  --dao-fulu-paper: linear-gradient(180deg, rgba(255, 252, 228, 0.97), rgba(246, 229, 184, 0.91));
+  --dao-fulu-ink: rgba(100, 60, 10, 0.74);
+  --dao-fulu-soft-ink: rgba(100, 60, 10, 0.34);
+  --dao-fulu-rail-width: 4px;
+  border-radius: 4px !important;
+  border: 1px solid rgba(100, 60, 10, 0.22) !important;
+  box-shadow:
+    0 6px 22px rgba(60, 35, 5, 0.12) !important;
+}
+
+/* ── Облачный реестр — soft cloud corners, lighter line ─────────────────── */
+
+.daoMandalaSheet.dao-cloud-register {
+  --dao-fulu-paper: radial-gradient(circle at 24% 8%, rgba(255, 255, 247, 0.95) 0 18%, transparent 19%),
+    radial-gradient(circle at 76% 8%, rgba(255, 255, 247, 0.92) 0 18%, transparent 19%),
+    linear-gradient(180deg, rgba(248, 252, 240, 0.96), rgba(221, 239, 205, 0.86));
+  --dao-fulu-ink: rgba(80, 110, 60, 0.58);
+  --dao-fulu-soft-ink: rgba(80, 110, 60, 0.24);
+  --dao-fulu-rail-width: 6px;
+  border-radius: 24px 24px 12px 12px !important;
+  border: 1px solid rgba(80, 110, 60, 0.18) !important;
+  box-shadow:
+    0 6px 22px rgba(40, 70, 30, 0.1) !important;
+}
+
+.daoMandalaSheet.dao-cloud-register::before,
+.daoMandalaSheet.dao-cloud-register::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.daoMandalaSheet.dao-cloud-register::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(80, 110, 60, 0.06) 0%, transparent 100%);
+}
+
+.daoMandalaSheet.dao-cloud-register::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(80, 110, 60, 0.06) 0%, transparent 100%);
+}
+
+/* ── Громовая табличка — firm geometric, stepped shoulders ──────────────── */
+
+.daoMandalaSheet.dao-thunder-tablet {
+  --dao-fulu-paper: linear-gradient(180deg, rgba(240, 235, 215, 0.96), rgba(213, 202, 166, 0.9));
+  --dao-fulu-ink: rgba(50, 40, 15, 0.84);
+  --dao-fulu-soft-ink: rgba(50, 40, 15, 0.36);
+  --dao-fulu-rail-width: 7px;
+  border-radius: 2px !important;
+  clip-path: polygon(17% 0, 83% 0, 83% 4%, 96% 4%, 96% 11%, 100% 11%, 100% 89%, 96% 89%, 96% 96%, 83% 96%, 83% 100%, 17% 100%, 17% 96%, 4% 96%, 4% 89%, 0 89%, 0 11%, 4% 11%, 4% 4%, 17% 4%);
+  border: 1px solid rgba(50, 40, 15, 0.18) !important;
+  box-shadow:
+    0 8px 24px rgba(30, 20, 5, 0.14) !important;
+}
+
+/* stepped top bar */
+.daoMandalaSheet.dao-thunder-tablet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 8px;
+  background: rgba(50, 40, 15, 0.1);
+  z-index: 11;
+  pointer-events: none;
+}
+
+.daoMandalaSheet.dao-thunder-tablet .daoFuluTopHead,
+.daoMandalaSheet.dao-thunder-tablet .daoFuluBottomBase {
+  clip-path: polygon(16% 0, 84% 0, 84% 32%, 100% 32%, 100% 100%, 0 100%, 0 32%, 16% 32%);
+}
+
+/* ── Таофу — plaque silhouette, heavier border, small top panel ─────────── */
+
+.daoMandalaSheet.dao-taofu-charm {
+  --dao-fulu-paper: linear-gradient(180deg, rgba(252, 245, 220, 0.96), rgba(237, 211, 157, 0.88));
+  --dao-fulu-ink: rgba(80, 45, 8, 0.8);
+  --dao-fulu-soft-ink: rgba(160, 62, 24, 0.34);
+  --dao-fulu-seal: rgba(132, 32, 16, 0.82);
+  --dao-fulu-rail-width: 6px;
+  border-radius: 6px 6px 3px 3px !important;
+  border: 1px solid rgba(80, 45, 8, 0.2) !important;
+  box-shadow:
+    0 8px 24px rgba(60, 35, 5, 0.14) !important;
+}
+
+/* ── Shared inner layout ────────────────────────────────────────────────── */
+
+.daoFuluScroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.daoFuluFallbackPaper,
+.daoFuluContourLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.daoFuluFallbackPaper {
+  z-index: 0;
+  background: var(--dao-fulu-paper);
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 252, 228, 0.45),
+    inset 0 0 0 7px var(--dao-fulu-soft-ink);
+}
+
+.daoMandalaSheet.has-custom-inner-cover .daoFuluFallbackPaper {
+  opacity: 0;
+}
+
+.daoFuluContourLayer {
+  z-index: 4;
+  background-image: var(--dao-fulu-contour-image);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.daoFuluTopHead,
+.daoFuluBottomBase,
+.daoFuluSideRail {
+  position: absolute;
+  display: block;
+  background: var(--dao-fulu-ink);
+  opacity: 0.12;
+}
+
+.daoFuluTopHead {
+  top: 3%;
+  left: 12%;
+  right: 12%;
+  height: 7px;
+  box-shadow: 0 18px 0 var(--dao-fulu-soft-ink);
+}
+
+.daoFuluBottomBase {
+  left: 16%;
+  right: 16%;
+  bottom: 4%;
+  height: 8px;
+}
+
+.daoFuluSideRail {
+  top: 9%;
+  bottom: 10%;
+  width: var(--dao-fulu-rail-width);
+  border-radius: 999px;
+}
+
+.daoFuluSideRail--left {
+  left: 8%;
+}
+
+.daoFuluSideRail--right {
+  right: 8%;
+}
+
+.daoMandalaSheet.dao-cloud-register .daoFuluSideRail {
+  width: 4px;
+  opacity: 0.48;
+  filter: blur(0.2px);
+}
+
+.daoMandalaSheet.dao-cloud-register .daoFuluTopHead,
+.daoMandalaSheet.dao-cloud-register .daoFuluBottomBase {
+  border-radius: 999px;
+  opacity: 0.54;
+}
+
+.daoMandalaSheet.dao-taofu-charm .daoFuluTopHead {
+  top: 5%;
+  left: 10%;
+  right: 10%;
+  height: 15%;
+  background:
+    linear-gradient(90deg, transparent 0 35%, var(--dao-fulu-seal) 36% 64%, transparent 65%),
+    linear-gradient(180deg, rgba(132, 32, 16, 0.2), rgba(132, 32, 16, 0.08));
+  border: 2px solid var(--dao-fulu-seal);
+  box-shadow: none;
+}
+
+.daoMandalaSheet.dao-taofu-charm .daoFuluBottomBase {
+  left: 10%;
+  right: 10%;
+  bottom: 5%;
+  height: 13%;
+  background:
+    linear-gradient(90deg, transparent 0 35%, var(--dao-fulu-seal) 36% 64%, transparent 65%),
+    linear-gradient(0deg, rgba(132, 32, 16, 0.2), rgba(132, 32, 16, 0.08));
+  border: 2px solid var(--dao-fulu-seal);
+}
+
+/* Header with ✓ ✓ ✓ */
+
+.daoFuluHeader {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px 6px;
+  background: linear-gradient(180deg, rgba(160, 110, 20, 0.22) 0%, transparent 100%);
+  border-bottom: 1.5px solid rgba(120, 80, 15, 0.3);
+  position: relative;
+  z-index: 5;
+}
+
+.daoFuluPureMarks {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.42em;
+  color: rgba(130, 65, 8, 0.9);
+  line-height: 1;
+}
+
+/* Body: center photo + 5 positioned slots */
+
+.daoFuluBody {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  z-index: 5;
+}
+
+.daoFuluCenterArea {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.daoFuluCenterArea .daoCenterPhoto {
+  width: min(62px, 26%) !important;
+  height: min(62px, 26%) !important;
+}
+
+/* Slot base */
+
+.daoFuluSlot {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 19%;
+}
+
+.daoFuluSlot b {
+  max-width: 58px;
+  font-size: 7px;
+  font-weight: 700;
+  color: rgba(90, 50, 8, 0.78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoFuluSlot .daoElementImage {
+  width: min(34px, 82%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 246, 218, 0.68),
+    0 2px 8px rgba(55, 28, 8, 0.16);
+  background-color: rgba(255, 244, 212, 0.86);
+}
+
+/* Slot positions — wood upper-left, fire upper-right, earth bottom-center,
+   metal lower-right, water lower-left */
+
+.daoFuluSlot--wood  { top: 8%;    left: 4%; }
+.daoFuluSlot--fire  { top: 8%;    right: 4%; }
+.daoFuluSlot--earth { bottom: 14%; left: 50%; transform: translateX(-50%); }
+.daoFuluSlot--metal { bottom: 32%; right: 4%; }
+.daoFuluSlot--water { bottom: 32%; left: 4%; }
+
+/* Footer: empty decorative seal box */
+
+.daoFuluFooter {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0 9px;
+  background: linear-gradient(0deg, rgba(160, 110, 20, 0.22) 0%, transparent 100%);
+  border-top: 1.5px solid rgba(120, 80, 15, 0.3);
+  position: relative;
+  z-index: 5;
+}
+
+.daoFuluSealBox {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  border: 2px solid rgba(130, 40, 15, 0.5);
+  background: rgba(255, 235, 195, 0.6);
+}
+
+/* ── Print / PDF ────────────────────────────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-fu-paper-slip,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-cloud-register,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-thunder-tablet,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-taofu-charm {
+  aspect-ratio: 1 / 2.85 !important;
+  height: min(520px, calc(100% - 48px)) !important;
+  width: auto !important;
+  max-width: 58% !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ── Mobile sizing for fulu styles ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-fu-paper-slip,
+  .daoMandalaSheet.dao-cloud-register,
+  .daoMandalaSheet.dao-thunder-tablet,
+  .daoMandalaSheet.dao-taofu-charm {
+    height: min(430px, calc(100% - 44px)) !important;
+    width: auto !important;
+    max-width: 54vw !important;
+    aspect-ratio: 1 / 2.85 !important;
+  }
+
+  .daoFuluSlot .daoElementImage {
+    width: min(34px, 82%);
+  }
+
+  .daoFuluCenterArea .daoCenterPhoto {
+    width: clamp(34px, 10vw, 52px) !important;
+    height: clamp(34px, 10vw, 52px) !important;
+  }
+
+  .daoFuluPureMarks {
+    font-size: 12px;
+  }
+
+  .daoFuluSlot--wood  { top: 10%;    left: 8%; }
+  .daoFuluSlot--fire  { top: 10%;    right: 8%; }
+  .daoFuluSlot--water { bottom: 22%; left: 8%; }
+  .daoFuluSlot--metal { bottom: 22%; right: 8%; }
+  .daoFuluSlot--earth { bottom: 10%; left: 50%; transform: translateX(-50%); }
+}
+
+/* ── Slot image size cap for fulu styles ────────────────────────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip .daoElementImage,
+.daoMandalaSheet.dao-cloud-register .daoElementImage,
+.daoMandalaSheet.dao-thunder-tablet .daoElementImage,
+.daoMandalaSheet.dao-taofu-charm .daoElementImage {
+  width: clamp(30px, 8vw, 46px) !important;
+  min-width: 30px;
+  aspect-ratio: 1;
+}
+
+/* ── Field-layout overrides: keep fulu styles tall, never square ─────────── */
+
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-taofu-charm {
+  width: min(260px, 64%) !important;
+  aspect-ratio: 1 / 2.85 !important;
+  overflow: visible !important;
+}
+
+/* ── end DAO Fulu styles ─────────────────────────────────────────────────── */
 
 .zodiacMandalaSheet {
   border-radius: 50%;
@@ -2605,6 +3447,44 @@
   pointer-events: none;
 }
 
+.slotPhotoEditor {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 250, 238, 0.72);
+  margin-top: 12px;
+}
+
+.slotPhotoEditor .cabinetEyebrow {
+  margin: 0;
+}
+
+.slotPhotoEditorControl {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: #392512;
+}
+
+.slotPhotoEditorControl input[type="range"] {
+  width: 100%;
+  accent-color: #b8791d;
+}
+
+.slotPhotoEditorControl span {
+  font-size: 11px;
+  color: #744c17;
+  font-weight: 700;
+  justify-self: end;
+}
+
+.slotPhotoEditorReset {
+  justify-self: start;
+  margin-top: 2px;
+}
+
 .coverSelector {
   display: grid;
   gap: 10px;
@@ -2655,6 +3535,93 @@
   background:
     radial-gradient(circle at 60% 28%, rgba(245, 198, 106, 0.62), transparent 20%),
     linear-gradient(135deg, #09070c, #241a3d 58%, #8a5a13);
+}
+
+.coverPreview.tone-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520);
+}
+
+.coverPreview.tone-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d);
+}
+
+.coverPreview.tone-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a);
+}
+
+.coverPreview.tone-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00);
+}
+
+.coverPreview.tone-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499);
+}
+
+/* ─── Gradient cover swatch buttons ─────────────────────────────────────────── */
+
+.coverVariantSwatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 6px;
+  border: 2px solid rgba(184, 121, 29, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  min-width: 52px;
+  vertical-align: top;
+}
+
+.coverVariantSwatch:hover {
+  border-color: rgba(184, 121, 29, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.coverVariantSwatch.active {
+  border-color: rgba(245, 198, 106, 0.9);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.4);
+  background: rgba(255, 250, 235, 0.95);
+}
+
+.coverVariantSwatchPreview {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.coverVariantSwatchLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #5b3b12;
+  text-align: center;
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.coverVariantSwatch--gradient-gold .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520);
+}
+
+.coverVariantSwatch--gradient-forest .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d);
+}
+
+.coverVariantSwatch--gradient-night .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a);
+}
+
+.coverVariantSwatch--gradient-fire .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00);
+}
+
+.coverVariantSwatch--gradient-water .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499);
 }
 
 .coverUploadButton {
@@ -3222,6 +4189,114 @@
     radial-gradient(circle at 50% 45%, rgba(255, 243, 204, 0.86) 0 18%, rgba(67, 46, 91, 0.42) 42%, rgba(28, 19, 44, 0.72) 100%),
     repeating-conic-gradient(from 0deg, rgba(232, 179, 68, 0.16) 0 8deg, transparent 9deg 18deg);
 }
+
+.powerMandala.cover-gradient-gold,
+.altarMandalaSheet.cover-gradient-gold,
+.businessMandalaSheet.cover-gradient-gold,
+.zodiacMandalaSheet.cover-gradient-gold,
+.starMandalaSheet.cover-gradient-gold,
+.power-place-chess.cover-gradient-gold,
+.daoMandalaSheet.cover-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520) !important;
+}
+
+.powerMandala.cover-gradient-forest,
+.altarMandalaSheet.cover-gradient-forest,
+.businessMandalaSheet.cover-gradient-forest,
+.zodiacMandalaSheet.cover-gradient-forest,
+.starMandalaSheet.cover-gradient-forest,
+.power-place-chess.cover-gradient-forest,
+.daoMandalaSheet.cover-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d) !important;
+}
+
+.powerMandala.cover-gradient-night,
+.altarMandalaSheet.cover-gradient-night,
+.businessMandalaSheet.cover-gradient-night,
+.zodiacMandalaSheet.cover-gradient-night,
+.starMandalaSheet.cover-gradient-night,
+.power-place-chess.cover-gradient-night,
+.daoMandalaSheet.cover-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a) !important;
+}
+
+.powerMandala.cover-gradient-fire,
+.altarMandalaSheet.cover-gradient-fire,
+.businessMandalaSheet.cover-gradient-fire,
+.zodiacMandalaSheet.cover-gradient-fire,
+.starMandalaSheet.cover-gradient-fire,
+.power-place-chess.cover-gradient-fire,
+.daoMandalaSheet.cover-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00) !important;
+}
+
+.powerMandala.cover-gradient-water,
+.altarMandalaSheet.cover-gradient-water,
+.businessMandalaSheet.cover-gradient-water,
+.zodiacMandalaSheet.cover-gradient-water,
+.starMandalaSheet.cover-gradient-water,
+.power-place-chess.cover-gradient-water,
+.daoMandalaSheet.cover-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499) !important;
+}
+
+/* gradient tones in print/PDF area */
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-gold,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-gold,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-forest,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-forest,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-night,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-night,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-fire,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-fire,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-water,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-water,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499) !important;
+}
+
+/* outer panel gradient tones */
+.powerMandalaPanel.outer-cover-gradient-gold { background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520); }
+.powerMandalaPanel.outer-cover-gradient-forest { background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d); }
+.powerMandalaPanel.outer-cover-gradient-night { background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a); }
+.powerMandalaPanel.outer-cover-gradient-fire { background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00); }
+.powerMandalaPanel.outer-cover-gradient-water { background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499); }
 
 .powerMandala.cover-gold,
 .altarMandalaSheet.cover-gold,
@@ -3866,6 +4941,193 @@
   background: rgba(255, 244, 218, 0.92);
 }
 
+.powerSymbolLibraryPanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 248, 232, 0.78);
+}
+
+.powerSymbolLibraryHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(128px, 0.6fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.powerSymbolLibraryHeader small {
+  display: block;
+  color: #6b5537;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.powerSymbolLibraryModeToggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  width: min(100%, 210px);
+  margin: 4px 0 6px;
+  padding: 3px;
+  border: 1px solid rgba(150, 97, 31, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 252, 245, 0.82);
+}
+
+.powerSymbolLibraryModeToggle button {
+  min-width: 0;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  color: #6a4a1d;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.powerSymbolLibraryModeToggle button.active {
+  background: linear-gradient(180deg, rgba(255, 243, 211, 0.96), rgba(238, 201, 122, 0.72));
+  color: #2c1d0c;
+  box-shadow: inset 0 0 0 1px rgba(184, 121, 29, 0.2);
+}
+
+.powerSymbolLibraryHeader label {
+  display: grid;
+  gap: 5px;
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.powerSymbolLibraryHeader select {
+  width: 100%;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fffdf7;
+  color: #2c1d0c;
+  font: inherit;
+  font-weight: 850;
+}
+
+.powerSymbolLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.powerSymbolLibraryItem {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 8px;
+  padding: 7px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #4a3012;
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+}
+
+.powerSymbolLibraryItem:active {
+  cursor: grabbing;
+}
+
+.powerSymbolLibraryItem:hover,
+.powerSymbolLibraryItem:focus-visible {
+  border-color: rgba(184, 121, 29, 0.54);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.18);
+}
+
+.powerSymbolLibraryThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
+    #fffaf0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.powerSymbolLibraryItem b,
+.powerSymbolLibraryItem small {
+  overflow-wrap: anywhere;
+}
+
+.powerSymbolLibraryItem b {
+  font-size: 12px;
+}
+
+.powerSymbolLibraryItem small {
+  color: #756149;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.powerSymbolLibraryEmpty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px;
+  border: 1px dashed rgba(150, 97, 31, 0.2);
+  border-radius: 8px;
+  color: #6b5537;
+  font-size: 12px;
+  line-height: 1.35;
+  background: rgba(255, 253, 247, 0.62);
+}
+
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerSymbolLibraryPanel {
+    order: 2 !important;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .profileLitePowerPlace .coverPickerPanel {
+    order: 3 !important;
+  }
+
+  .profileLitePowerPlace .profileLitePowerPlaceActions {
+    order: 4 !important;
+  }
+
+  .profileLitePowerPlace .reportSettingsPanel {
+    order: 5 !important;
+  }
+
+  .profileLitePowerPlace .mandalaModeSidebar {
+    order: 6 !important;
+  }
+
+  .profileLitePowerPlace .objectImageEditor {
+    order: 7 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .powerSymbolLibraryHeader {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .powerSymbolLibraryModeToggle {
+    width: 100%;
+  }
+
+  .powerSymbolLibraryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 
 /* 2026-05-29 — Zodiac 8+ layout.
    8 = normal circular zodiac.
@@ -4100,19 +5362,30 @@
     linear-gradient(180deg, #fffaf0, #f2dfbd) !important;
 }
 
-/* Inner "Без фона": remove the decorative mandala map and make the inside light/transparent. */
+/* Inner "Без фона": remove the decorative mandala map and make the inside transparent. */
+.profileLitePowerPlace .powerMandala.cover-none,
+.profileLitePowerPlace .altarMandalaSheet.cover-none,
+.profileLitePowerPlace .businessMandalaSheet.cover-none,
+.profileLitePowerPlace .zodiacMandalaSheet.cover-none,
+.profileLitePowerPlace .starMandalaSheet.cover-none,
+.profileLitePowerPlace .power-place-chess.cover-none,
+.profileLitePowerPlace .daoMandalaSheet.cover-none,
 .powerMandala.cover-none,
 .altarMandalaSheet.cover-none,
 .businessMandalaSheet.cover-none,
 .zodiacMandalaSheet.cover-none,
 .daoMandalaSheet.cover-none,
 .starMandalaSheet.cover-none {
-  background: rgba(255, 255, 255, 0.18) !important;
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
   box-shadow: none !important;
 }
 
 .power-place-chess.cover-none {
   background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
   box-shadow: none !important;
 }
 
@@ -5539,6 +6812,7 @@
   width: min(820px, calc(100vw - 24px));
   max-width: 100%;
   overflow-x: hidden;
+  padding-top: max(16px, env(safe-area-inset-top));
 }
 
 .profileLiteImagePicker .clientPhotoPickerHeader > button:disabled,
@@ -5547,11 +6821,93 @@
   cursor: wait;
 }
 
+.profileLiteImagePicker .clientPhotoPickerHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: -16px -16px 0;
+  padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+  background: rgba(255, 250, 240, 0.97);
+  border-bottom: 1px solid rgba(147, 93, 22, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.profileLiteImagePickerCloseButton {
+  width: 44px !important;
+  min-width: 44px;
+  height: 44px !important;
+  border-color: rgba(147, 72, 18, 0.36) !important;
+  background: #fff8e8 !important;
+  color: #3b2610 !important;
+  font-size: 34px !important;
+  font-weight: 900;
+  line-height: 0.9 !important;
+}
+
 .imagePickerModeBar {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.imagePickerSourceGroups {
+  align-items: stretch;
+}
+
+.imagePickerSourceButton {
+  min-height: 38px;
+}
+
+.imagePickerSecondLevel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(147, 93, 22, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.imagePickerSecondLevel button {
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #5b3a12;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.imagePickerSecondLevel button.active {
+  background: linear-gradient(180deg, #3a250e, #98600e);
+  border-color: rgba(255, 216, 128, 0.58);
+  color: #fff2ce;
+}
+
+.imagePickerSecondLevel button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.imagePickerSecondLevelSelect {
+  display: grid;
+  grid-template-columns: minmax(74px, max-content) minmax(0, 1fr);
+  align-items: center;
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.imagePickerSecondLevelSelect select {
+  width: 100%;
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #fffdf8;
+  color: #3b2610;
+  font: inherit;
 }
 
 .imagePickerDestinationTabs {
@@ -5607,7 +6963,7 @@
 }
 
 .profileLiteImagePickerGrid {
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
   justify-content: stretch;
   max-width: 100%;
 }
@@ -5626,9 +6982,9 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  gap: 7px;
+  gap: 4px;
   border: 0;
-  padding: 9px;
+  padding: 5px;
   background: transparent;
   color: #4a3012;
   text-align: left;
@@ -5637,11 +6993,11 @@
 .profileLiteImagePickerSelect > span:first-child {
   width: 100%;
   height: auto;
-  min-height: 116px;
+  min-height: 38px;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: 7px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
     repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.12) 0 8px, rgba(255, 255, 255, 0.18) 8px 16px);
@@ -5670,6 +7026,8 @@
 .profileLiteImagePickerCard b,
 .profileLiteImagePickerCard small {
   text-align: left;
+  font-size: 10px;
+  line-height: 1.18;
 }
 
 .profileLiteImagePickerDiagnostic {
@@ -5710,6 +7068,12 @@
     width: calc(100vw - 18px);
     max-height: calc(100vh - 18px);
     padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .profileLiteImagePicker .clientPhotoPickerHeader {
+    margin: -12px -12px 0;
+    padding: max(12px, env(safe-area-inset-top)) 12px 10px;
   }
 
   .imagePickerModeBar {
@@ -5726,7 +7090,7 @@
   }
 
   .profileLiteImagePickerGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .profileLiteImagePickerSelect {
@@ -5734,7 +7098,7 @@
   }
 
   .profileLiteImagePickerSelect > span:first-child {
-    min-height: 104px;
+    min-height: 34px;
   }
 }
 
@@ -6119,18 +7483,37 @@
   min-width: 0;
 }
 
-.profileLitePowerPlace .sourceSlotScaleControl span,
-.profileLitePowerPlace .innerFieldScaleControl span,
-.profileLitePowerPlace .centerFrameScaleControl span,
-.profileLitePowerPlace .photoScaleControl span {
+.profileLitePowerPlace .inlineVisibilityScaleToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+  color: var(--text-main, #3b2200);
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .inlineVisibilityScaleToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--accent, #b87a1d);
+}
+
+.profileLitePowerPlace .inlineVisibilityScaleToggle span {
   min-width: 0;
   white-space: nowrap;
 }
 
-.profileLitePowerPlace .sourceSlotScaleControl input,
-.profileLitePowerPlace .innerFieldScaleControl input,
-.profileLitePowerPlace .centerFrameScaleControl input,
-.profileLitePowerPlace .photoScaleControl input {
+.profileLitePowerPlace .inlineVisibilityScaleToggle.power-place-layer-hidden span,
+.profileLitePowerPlace .coverOuterVisibilityToggle.power-place-layer-hidden span {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.profileLitePowerPlace .sourceSlotScaleControl > input[type="range"],
+.profileLitePowerPlace .innerFieldScaleControl > input[type="range"],
+.profileLitePowerPlace .centerFrameScaleControl > input[type="range"],
+.profileLitePowerPlace .photoScaleControl > input[type="range"] {
   width: 100%;
   min-width: 0;
 }
@@ -6264,6 +7647,31 @@
   border-color: rgba(245, 198, 106, 0.72);
   background: linear-gradient(180deg, #2a1a09, #8c570d);
   color: #fff0cd;
+}
+
+.profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 6px;
+  border: 2px solid rgba(184, 121, 29, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #5b3b12;
+  min-width: 52px;
+}
+
+.profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch:hover {
+  border-color: rgba(184, 121, 29, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch.active {
+  border-color: rgba(245, 198, 106, 0.9);
+  background: rgba(255, 250, 235, 0.95);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.4);
+  color: #3b2208;
 }
 
 .profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
@@ -6879,6 +8287,23 @@
   box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.18);
 }
 
+.profileLitePowerPlace .coverOuterVisibilityToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--text-main, #3b2200);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .coverOuterVisibilityToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--accent, #b87a1d);
+}
+
 .profileLitePowerPlace .coverLayerTabs button,
 .profileLitePowerPlace .coverPickerButton,
 .profileLitePowerPlace .coverUploadButton,
@@ -7003,6 +8428,14 @@
     border-radius: 12px !important;
     font-size: 12px !important;
     line-height: 1.15 !important;
+  }
+
+  .profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch {
+    min-height: unset !important;
+    padding: 4px 4px 6px !important;
+    border-radius: 10px !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
   }
 
   .profileLitePowerPlace .workspaceTabs,
@@ -7930,5 +9363,275 @@
 
   .profileLitePowerPlace .daoCenterPhoto {
     width: calc(28% * var(--power-center-frame-scale, 1));
+  }
+}
+
+/* ── Visibility hide rules ────────────────────────────────────────────────── */
+.powerMandalaPanel.power-place-hide-center .powerCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .altarCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .daoCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .chessCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .zodiacCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .starCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .clientCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .centerPhotoWrap,
+.powerMandalaPanel.power-place-hide-center .powerCenterFrame {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.powerMandalaPanel.power-place-hide-outer-cover {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.powerMandalaPanel.power-place-hide-inner-cover .zodiacMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .starMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .daoMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .businessMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .power-place-chess,
+.powerMandalaPanel.power-place-hide-inner-cover .powerMandala,
+.powerMandalaPanel.power-place-hide-inner-cover .altarMandalaSheet {
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.powerMandalaPanel.power-place-hide-slots .powerSource,
+.powerMandalaPanel.power-place-hide-slots .altarTopSource,
+.powerMandalaPanel.power-place-hide-slots .altarSupportSource,
+.powerMandalaPanel.power-place-hide-slots .businessVertexZone,
+.powerMandalaPanel.power-place-hide-slots .zodiacPositionImage,
+.powerMandalaPanel.power-place-hide-slots .zodiacFieldPlusPositionImage,
+.powerMandalaPanel.power-place-hide-slots .starPositionImage,
+.powerMandalaPanel.power-place-hide-slots .daoElementImage,
+.powerMandalaPanel.power-place-hide-slots .daoTalismanSlot,
+.powerMandalaPanel.power-place-hide-slots .power-place-chess__slot {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Mobile order for visibility panel ───────────────────────────────────── */
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerLayoutPanel.compactFieldLayoutSwitch,
+  .profileLitePowerPlace .coverPickerPanel,
+  .profileLitePowerPlace .reportSettingsPanel {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* ── Зодиак 2 format ─────────────────────────────────────────────────────── */
+.zodiacMandalaSheet.zodiac-2-format {
+  overflow: hidden;
+}
+
+.zodiacMandalaSheet.zodiac-2-format .zodiacClockFace {
+  inset: 12%;
+  opacity: 0.8;
+}
+
+.zodiacInnerPosition {
+  position: absolute;
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 13%;
+  transform: translate(-50%, -50%);
+}
+
+.zodiacInnerPositionImage {
+  width: min(48px, 100%);
+  aspect-ratio: 1;
+  transform: scale(var(--power-source-slot-scale));
+  transform-origin: center;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 117, 0.74);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #242b3c 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0;
+  box-shadow: 0 0 16px rgba(128, 114, 54, 0.22);
+}
+
+.zodiacInnerPosition.hasImage .zodiacInnerPositionImage span {
+  display: none;
+}
+
+.zodiacInnerPosition.inner-1  { left: 50%; top: 24%; }
+.zodiacInnerPosition.inner-2  { left: 63%; top: 27%; }
+.zodiacInnerPosition.inner-3  { left: 73%; top: 37%; }
+.zodiacInnerPosition.inner-4  { left: 76%; top: 50%; }
+.zodiacInnerPosition.inner-5  { left: 73%; top: 63%; }
+.zodiacInnerPosition.inner-6  { left: 63%; top: 73%; }
+.zodiacInnerPosition.inner-7  { left: 50%; top: 76%; }
+.zodiacInnerPosition.inner-8  { left: 37%; top: 73%; }
+.zodiacInnerPosition.inner-9  { left: 27%; top: 63%; }
+.zodiacInnerPosition.inner-10 { left: 24%; top: 50%; }
+.zodiacInnerPosition.inner-11 { left: 27%; top: 37%; }
+.zodiacInnerPosition.inner-12 { left: 37%; top: 27%; }
+
+.zodiacMandalaSheet.zodiac-2-format .zodiacPositionImage {
+  width: min(60px, 100%);
+}
+
+@media (max-width: 640px) {
+  .zodiacInnerPosition {
+    width: 12%;
+  }
+
+  .zodiacInnerPositionImage {
+    width: min(34px, 100%);
+    font-size: 9px;
+  }
+
+  .zodiacMandalaSheet.zodiac-2-format .zodiacPositionImage {
+    width: min(48px, 100%);
+  }
+}
+
+/* ─── Zodiac style: Звёзды ──────────────────────────────────────────────────── */
+
+.zodiacMandalaSheet.zodiac-style-stars .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-style-stars .zodiacInnerPositionImage,
+.zodiacMandalaSheet.zodiac-style-stars .zodiacFieldPlusPositionImage {
+  clip-path: polygon(
+    50% 0%, 61% 35%, 93% 7%, 65% 39%, 100% 50%,
+    65% 61%, 93% 93%, 61% 65%, 50% 100%,
+    39% 65%, 7% 93%, 35% 61%, 0% 50%,
+    35% 39%, 7% 7%, 39% 35%
+  );
+  border-radius: 0 !important;
+  overflow: visible;
+}
+
+/* ─── Zodiac style: Лента ───────────────────────────────────────────────────── */
+
+.zodiacRibbonSheet {
+  position: relative;
+  width: 100%;
+  aspect-ratio: auto !important;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #f5e8c4;
+}
+
+.zodiacRibbonSheet .zodiacCenterPhoto {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.zodiacRibbonTrack {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  flex: 1;
+  align-items: stretch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 121, 29, 0.4) transparent;
+}
+
+.zodiacRibbonCell {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px 4px;
+  border-right: 1px solid rgba(184, 121, 29, 0.22);
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.zodiacRibbonCell:last-child {
+  border-right: none;
+}
+
+.zodiacRibbonCell.selected,
+.zodiacRibbonCell.power-place-slot--drag-over {
+  background: rgba(245, 198, 86, 0.14);
+}
+
+.zodiacRibbonCell b {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6b4712;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 64px;
+}
+
+.zodiacRibbonCellImage {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(184, 121, 29, 0.38);
+  background-color: rgba(255, 246, 215, 0.72);
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto;
+  background-repeat: no-repeat;
+  background-position: var(--slot-bg-pos, center);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: rgba(184, 121, 29, 0.72);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.zodiacRibbonCellImage.selected {
+  border-color: rgba(245, 198, 106, 0.9);
+  box-shadow: 0 0 0 3px rgba(255, 246, 215, 0.48), 0 0 14px rgba(245, 198, 86, 0.52);
+}
+
+.zodiacRibbonCellImage.power-place-slot--drag-over {
+  border-color: #f5c656;
+  box-shadow: 0 0 0 2px rgba(245, 198, 86, 0.5);
+}
+
+.zodiacRibbonCell.hasImage .zodiacRibbonCellImage {
+  border-color: rgba(245, 198, 86, 0.6);
+}
+
+@media (max-width: 640px) {
+  .zodiacInnerPositionImage {
+    width: min(34px, 100%);
+  }
+
+  .zodiacRibbonCellImage {
+    width: 48px;
+    height: 48px;
+  }
+
+  .zodiacRibbonCell b {
+    max-width: 48px;
+    font-size: 8px;
   }
 }

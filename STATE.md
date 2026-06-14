@@ -1,6 +1,61 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-08
+Last updated: 2026-06-11
+
+## 2026-06-14 — DAO background reference assets restored
+
+- Branch: `codex/restore-dao-reference-backgrounds`, based on fresh `origin/main` at `c21ad5c`.
+- Scope: `/profile/mandalas` Power Place background library assets only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase migrations, Vercel routing, env values, save/update persistence, symbol mode behavior, or layout structure changes.
+- Source references:
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-fu-paper-slip.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-lu-register-document.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-lingpai-command-tablet.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-taofu-wood-charm.svg`.
+- Changed:
+  - replaced the four generated DAO background placeholder SVGs under `public/symbols/power-place/dao/backgrounds/` with the saved reference contour SVGs;
+  - preserved durable public runtime paths and labels `Фу-лист`, `Облачный реестр`, `Громовая табличка`, `Таофу`;
+  - kept `kind: "power-place-background"` and `shelf: "dao"`;
+  - updated background metadata/tests from draft placeholders to reference backgrounds.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - local mocked Supabase/session browser QA at `http://localhost:4399/profile/mandalas` passed desktop `1280x920` and mobile `390x900`: `Библиотека` above `ФОН МЕСТА СИЛЫ`, background mode `ДАО` showed all 4 reference backgrounds, desktop clicks updated only the outer cover `4/4`, selected mini-cell did not receive a background, horizontal overflow was `0`, and console errors were `0`.
+- Risks:
+  - source SVG descriptions still state they are decorative draft references, not ritual formulas;
+  - live `https://2mentalica.vercel.app/profile/mandalas` verification depends on merge/deploy.
+
+## 2026-06-11 — Power Place static symbol library and mobile picker sources
+
+- Branch: `codex/power-place-symbol-library`, based on fresh `origin/main` at `1f1e5a7`.
+- Scope: `/profile/mandalas` Power Place constructor and image picker only; no homepage, production branch/domain, Supabase env/auth redirects, Vercel rewrites, Supabase migration, or save/update persistence contract changes.
+- Changed:
+  - added static `src/data/powerPlaceSymbolLibrary.js` with shelves `zodiac`, `star`, `chess`, `client`, `altar`, `business`, `dao`;
+  - added 14 draft SVG public assets under `public/symbols/power-place/**`, all marked `draft / needs review` and stored as durable `/symbols/...svg` paths;
+  - added the `Библиотека` module directly below `Фон Места Силы`, with `Полка` dropdown defaulting from `compositionDraft.constructor_type`;
+  - manual shelf selection is preserved when the Power Place format changes in the same session;
+  - symbol clicks use existing `chooseImage` / `assignPowerPlaceSlotImage`, and desktop drag uses existing `handleSavedImageDragStart` plus slot drop handlers;
+  - updated mobile picker sources to `Клиенты`, `Материалы`, `Символы`, `Загрузить своё`;
+  - added client second level `Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`, and disabled `Больше клиентов / Pro mode /` unless `accountPlan === "pro"`;
+  - added materials category dropdown default `Новые` and symbols `Полка` dropdown defaulting from constructor type;
+  - kept client upload fields to `Название фото` and `Подкатегория`;
+  - reduced only image-picker thumbnails with scoped `.profileLiteImagePicker*` CSS and added a sticky safe-area header plus large `×` close button.
+- Verification:
+  - `npm install` exited `0`;
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4392/`;
+  - `/profile/mandalas` opened and rendered the expected Supabase-not-configured fallback in the no-env local session;
+  - mobile viewport `390x900` screenshot saved to `profile-mandalas-mobile-390x900-symbol-library.png`;
+  - browser console warnings/errors: `0`.
+- Not verified:
+  - real authenticated builder UI with staging Supabase data/session;
+  - real drag/drop into mini-mandala cells in browser against authenticated data;
+  - Vercel preview/test site deployment and live `https://2mentalica.vercel.app/profile/mandalas` verification.
+- Risks:
+  - symbol artwork is placeholder-only and intentionally needs review;
+  - live visual QA still depends on the staging/test Supabase env and deployment after merge.
 
 ## 2026-06-08 — Power Place Фото / Видео mode Phase 1-3
 

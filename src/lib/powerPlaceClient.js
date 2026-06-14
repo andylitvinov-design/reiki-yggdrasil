@@ -40,6 +40,7 @@ const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
+const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
@@ -53,6 +54,14 @@ const DEFAULT_MOTION_SETTINGS = {
   video_background_ref: ""
 };
 const HYDRATION_TIMEOUT_MS = 8000;
+
+const VALID_CLIENT_PHOTO_CATEGORIES = [
+  "all",
+  "client-1",
+  "client-2",
+  "client-3",
+  "pro-more-clients"
+];
 
 export const ACCOUNT_PLANS = [
   { value: "start", label: "Start" },
@@ -160,6 +169,12 @@ function cleanObjectRefs(value) {
     if (key === SLOT_TRANSFORMS_REF_KEY) {
       const normalized = normalizeSlotTransforms(rawItem);
       if (normalized) refs[SLOT_TRANSFORMS_REF_KEY] = normalized;
+      continue;
+    }
+    if (key === VISIBILITY_SETTINGS_REF_KEY) {
+      if (rawItem && typeof rawItem === "object" && !Array.isArray(rawItem)) {
+        refs[VISIBILITY_SETTINGS_REF_KEY] = rawItem;
+      }
       continue;
     }
     if (rawItem && typeof rawItem === "object") continue;
@@ -359,6 +374,8 @@ export function normalizeClientGoalPhoto(photo) {
   const imageBucket = cleanText(photo?.image_bucket) || PROFILE_MEDIA_BUCKET;
   if (!isPersistableImageRef(imageUrl) && !imagePath) throw powerPlaceError("Добавьте фото клиента или цели.");
 
+  const clientCategory = cleanText(photo?.client_category);
+
   return {
     profile_id: cleanText(photo?.profile_id),
     title: cleanText(photo?.title) || "Фото клиента / цели",
@@ -367,6 +384,7 @@ export function normalizeClientGoalPhoto(photo) {
     image_path: imagePath,
     mime_type: cleanText(photo?.mime_type),
     file_size_bytes: Number(photo?.file_size_bytes) || 0,
+    client_category: VALID_CLIENT_PHOTO_CATEGORIES.includes(clientCategory) ? clientCategory : "all",
     notes: cleanText(photo?.notes)
   };
 }
@@ -433,6 +451,15 @@ export function normalizeCoverRef(coverRef) {
   };
 }
 
+const SLOT_SCALE_MIN = 0.7;
+const SLOT_SCALE_MAX = 1.85;
+const FIELD_SCALE_MIN = 48;
+const FIELD_SCALE_MAX = 145;
+const CENTER_IMAGE_SCALE_MIN = 0.65;
+const CENTER_IMAGE_SCALE_MAX = 2;
+const CENTER_FRAME_SCALE_MIN = 0.72;
+const CENTER_FRAME_SCALE_MAX = 1.85;
+
 export function normalizePowerPlaceComposition(composition) {
   const constructorType = VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
     ? composition.constructor_type
@@ -453,16 +480,16 @@ export function normalizePowerPlaceComposition(composition) {
   const fieldLayout = normalizeFieldLayout(composition?.field_layout ?? sourceObjectRefs[FIELD_LAYOUT_REF_KEY]);
   const report = sourceObjectRefs[PROFILE_LITE_REPORT_REF_KEY];
   if (slotScale !== undefined || Object.hasOwn(sourceObjectRefs, SLOT_SCALE_REF_KEY)) {
-    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, 0.7, 1.18, 1);
+    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, SLOT_SCALE_MIN, SLOT_SCALE_MAX, 1);
   }
   if (fieldScale !== undefined || Object.hasOwn(sourceObjectRefs, INNER_FIELD_SCALE_REF_KEY)) {
-    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, 48, 92, 78);
+    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, FIELD_SCALE_MIN, FIELD_SCALE_MAX, 78);
   }
   if (centerImageScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_SCALE_REF_KEY)) {
-    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, 0.65, 1.45, 1);
+    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, CENTER_IMAGE_SCALE_MIN, CENTER_IMAGE_SCALE_MAX, 1);
   }
   if (centerFrameScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_FRAME_SCALE_REF_KEY)) {
-    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, 0.72, 1.4, 1);
+    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, CENTER_FRAME_SCALE_MIN, CENTER_FRAME_SCALE_MAX, 1);
   }
   if (Object.hasOwn(sourceObjectRefs, CENTER_SHAPE_REF_KEY)) {
     objectRefs[CENTER_SHAPE_REF_KEY] = normalizeCenterShape(sourceObjectRefs[CENTER_SHAPE_REF_KEY]);

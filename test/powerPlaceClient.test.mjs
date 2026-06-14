@@ -305,6 +305,7 @@ assert.deepEqual(
     image_path: "",
     mime_type: "",
     file_size_bytes: 0,
+    client_category: "all",
     notes: "Задача клиента"
   }
 );
@@ -326,6 +327,7 @@ assert.deepEqual(
     image_path: "profile-1/client-goal/uuid-client.jpg",
     mime_type: "image/jpeg",
     file_size_bytes: 1234,
+    client_category: "all",
     notes: "Durable"
   }
 );
@@ -1018,7 +1020,7 @@ assert.deepEqual(
     central_photo_id: ""
   }).object_refs,
   {
-    "__center_frame_scale": "1.4",
+    "__center_frame_scale": "1.85",
     "__center_image_scale": "1",
     "__center_shape": "square",
     "__inner_cover_offset_x": "20",
@@ -1075,8 +1077,82 @@ assert.equal(
     chess_variant: "plus-8",
     object_refs: { __slot_scale: "9" }
   }).object_refs.__slot_scale,
-  "1.18",
-  "shared slot scale persisted in object_refs should be clamped"
+  "1.85",
+  "shared slot scale persisted in object_refs should be clamped to new max"
+);
+
+// ── Scale limits: new enlarged maximums (PR #317/#318 fix) ───────────────────
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __slot_scale: "1.85" }
+  }).object_refs.__slot_scale,
+  "1.85",
+  "slot scale at new max 1.85 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __slot_scale: "2" }
+  }).object_refs.__slot_scale,
+  "1.85",
+  "slot scale above new max should clamp to 1.85"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __inner_field_scale: "145" }
+  }).object_refs.__inner_field_scale,
+  "145",
+  "field scale at new max 145 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __inner_field_scale: "200" }
+  }).object_refs.__inner_field_scale,
+  "145",
+  "field scale above new max should clamp to 145"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_image_scale: "2" }
+  }).object_refs.__center_image_scale,
+  "2",
+  "center image scale at new max 2 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_image_scale: "3" }
+  }).object_refs.__center_image_scale,
+  "2",
+  "center image scale above new max should clamp to 2"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_frame_scale: "1.85" }
+  }).object_refs.__center_frame_scale,
+  "1.85",
+  "center frame scale at new max 1.85 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_frame_scale: "3" }
+  }).object_refs.__center_frame_scale,
+  "1.85",
+  "center frame scale above new max should clamp to 1.85"
 );
 
 // ── Cover ref data contract ───────────────────────────────────────────────────
@@ -1122,4 +1198,98 @@ assert.equal(
     }
   ], { [durableRef]: signedUrl })[0];
   assert.equal(hydrated.object_ref_urls[durableRef], signedUrl, "object_ref_urls must be keyed by durable storage ref");
+}
+
+// ─── gradient cover_ref persistence ──────────────────────────────────────────
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "cover-gradient-gold",
+    label: "Золото",
+    type: "placeholder",
+    tone: "gradient-gold",
+    src: ""
+  }),
+  {
+    id: "cover-gradient-gold",
+    label: "Золото",
+    type: "placeholder",
+    tone: "gradient-gold",
+    src: ""
+  },
+  "gradient placeholder covers should persist via tone"
+);
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "cover-gradient-water",
+    label: "Вода",
+    type: "placeholder",
+    tone: "gradient-water",
+    src: "",
+    inner: { id: "cover-gradient-water", type: "placeholder", tone: "gradient-water", src: "" },
+    outer: { id: "cover-gradient-fire", type: "placeholder", tone: "gradient-fire", src: "" }
+  }),
+  {
+    id: "cover-gradient-water",
+    label: "Вода",
+    type: "placeholder",
+    tone: "gradient-water",
+    src: "",
+    inner: { id: "cover-gradient-water", label: "Вода", type: "placeholder", tone: "gradient-water", src: "" },
+    outer: { id: "cover-gradient-fire", label: "Без фона", type: "placeholder", tone: "gradient-fire", src: "" }
+  },
+  "nested inner/outer gradient placeholder covers should persist via tone"
+);
+
+// ── __visibility_settings persistence ────────────────────────────────────────
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility test",
+    constructor_type: "zodiac",
+    object_refs: {
+      __visibility_settings: {
+        center: false,
+        slots: false,
+        outer_cover: false,
+        inner_cover: false
+      }
+    }
+  });
+  assert.deepEqual(
+    comp.object_refs.__visibility_settings,
+    { center: false, slots: false, outer_cover: false, inner_cover: false },
+    "__visibility_settings with all false must survive normalization"
+  );
+}
+
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility defaults",
+    constructor_type: "zodiac",
+    object_refs: {}
+  });
+  assert.equal(
+    comp.object_refs.__visibility_settings,
+    undefined,
+    "old composition without __visibility_settings should not inject the key"
+  );
+}
+
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility partial",
+    constructor_type: "zodiac",
+    object_refs: {
+      __visibility_settings: { center: false }
+    }
+  });
+  assert.deepEqual(
+    comp.object_refs.__visibility_settings,
+    { center: false },
+    "partial __visibility_settings should be preserved as-is through normalization"
+  );
 }

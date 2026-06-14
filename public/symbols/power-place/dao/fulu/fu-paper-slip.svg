@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1800" role="img" aria-labelledby="title desc">
+  <title id="title">DAO fulu contour - Fu paper slip</title>
+  <desc id="desc">Decorative vertical talisman contour with abstract rails and seal areas; no ritual formulas or sacred text.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0bf" stop-opacity="0.34"/>
+      <stop offset="0.55" stop-color="#f6d38a" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#7b2c12" stop-opacity="0.12"/>
+    </linearGradient>
+    <filter id="softShadow" x="-12%" y="-8%" width="124%" height="116%">
+      <feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#3a1608" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <g filter="url(#softShadow)">
+    <path d="M180 84c116 18 178-28 270-8 96 21 164-27 272 5 0 0-28 336-20 819 8 476 42 814 42 814-116-20-184 28-294 6-108-21-180 27-294 4 0 0 38-344 42-823 4-486-18-817-18-817z" fill="url(#paper)" stroke="#8b3614" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M250 192c84 14 132-18 204-6 76 13 124-18 196-5M254 1605c82 14 130-18 202-6 76 13 126-18 196-5" fill="none" stroke="#c67a22" stroke-width="12" stroke-linecap="round"/>
+    <path d="M244 300v1140M656 300v1140" fill="none" stroke="#913113" stroke-width="10" stroke-linecap="round" opacity="0.78"/>
+    <path d="M326 354c82 70 120 148 114 234-4 70-42 128-116 174 96 42 146 108 148 196 2 78-36 154-114 228M548 420c-112 28-196 78-250 150M584 710c-92-20-180-6-264 42M590 1010c-98 6-184 38-258 96" fill="none" stroke="#7d260f" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="316" y="1368" width="268" height="128" rx="18" fill="none" stroke="#a12618" stroke-width="16"/>
+    <path d="M360 1432h180" stroke="#d49a35" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>
