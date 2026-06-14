@@ -103,6 +103,23 @@ assert.ok(
   "has-custom-inner-cover must set cover sizing and repeat"
 );
 
+const outerContainFitBlock = (() => {
+  const idx = cssSource.indexOf(".profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain {");
+  const end = cssSource.indexOf("}", idx);
+  return idx >= 0 ? cssSource.slice(idx, end + 1) : "";
+})();
+
+assert.ok(outerContainFitBlock, "outer cover contain-fit selector must be defined");
+assert.ok(outerContainFitBlock.includes("background-size: auto, contain, auto"), "contain-fit outer covers must size only the image layer as contain");
+assert.ok(outerContainFitBlock.includes("background-repeat: no-repeat"), "contain-fit outer covers must not repeat the image");
+assert.ok(outerContainFitBlock.includes("background-position: center, center, center"), "contain-fit outer covers must stay centered");
+
+const globalBackgroundSizeContainRules = [...cssSource.matchAll(/(^|\n)([^{}]+)\{[^{}]*background-size:\s*contain/g)]
+  .map((match) => match[2].trim())
+  .filter((selector) => selector.includes("powerMandalaPanel"))
+  .filter((selector) => !selector.includes("outer-cover-fit-contain"));
+assert.deepEqual(globalBackgroundSizeContainRules, [], "powerMandalaPanel background-size contain must stay scoped to outer-cover-fit-contain");
+
 // ─── Dynamic style: inner field uses absolute centering (no top/left bias) ────
 // The dynamic CSS in ProfileLitePowerPlaceModule must use position:absolute +
 // translate(-50%,-50%) so the inner surface expands symmetrically from center.
@@ -236,6 +253,16 @@ assert.ok(
 assert.ok(
   baseModuleSource.includes("assignPowerPlaceSlotImage(\"cover_ref.outer\""),
   "background library clicks must target the outer cover ref"
+);
+
+assert.ok(
+  baseModuleSource.includes("outerCoverFitClassName") && baseModuleSource.includes("outer-cover-fit-contain"),
+  "outer cover contain fit metadata must add a panel class"
+);
+
+assert.ok(
+  baseModuleSource.includes("coverFitValue(item?.fit || item?.cover_fit || item?.coverFit)"),
+  "cover image assignment must preserve contain fit metadata from library items"
 );
 
 assert.ok(

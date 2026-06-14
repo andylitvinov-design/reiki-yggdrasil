@@ -1494,14 +1494,20 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   const handleCompositionCoverSelect = (layer, cover) => {
-    const normalizeLayer = (item, fallbackId) => ({
-      id: item?.id || fallbackId,
-      label: item?.label || "Без фона",
-      type: item?.type || "none",
-      tone: item?.tone || "",
-      src: item?.src || "",
-      display_src: item?.display_src || item?.displaySrc || item?.src || ""
-    });
+    const normalizeCoverFit = (item) =>
+      item?.fit === "contain" || item?.cover_fit === "contain" || item?.coverFit === "contain" ? "contain" : "";
+    const normalizeLayer = (item, fallbackId) => {
+      const fit = normalizeCoverFit(item);
+      return {
+        id: item?.id || fallbackId,
+        label: item?.label || "Без фона",
+        type: item?.type || "none",
+        tone: item?.tone || "",
+        src: item?.src || "",
+        display_src: item?.display_src || item?.displaySrc || item?.src || "",
+        ...(fit ? { fit, cover_fit: fit } : {})
+      };
+    };
 
     setCompositionDraft((current) => {
       const currentCover = current.cover_ref || {};

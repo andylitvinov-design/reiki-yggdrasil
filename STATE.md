@@ -2,6 +2,25 @@
 
 Last updated: 2026-06-11
 
+## 2026-06-14 — DAO background reference assets fit the outer cover
+
+- Branch: `codex/fix-dao-background-contain-fit`, based on fresh `origin/main` at `3ec0b47`.
+- Scope: `/profile/mandalas` Power Place DAO background library fit behavior only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase migrations, Vercel routing, env values, symbol mode behavior, inner cover behavior, or layout structure changes.
+- Changed:
+  - marked the four DAO reference backgrounds `Фу-лист`, `Облачный реестр`, `Громовая табличка`, and `Таофу` with `fit: "contain"`;
+  - preserved fit metadata through library click/drag payloads, cover state, and additive `cover_ref.outer.fit` / `cover_ref.outer.cover_fit` normalization;
+  - added scoped `.profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain` CSS so only opt-in outer covers use contain sizing.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite plugin timing warning.
+- Local browser QA:
+  - mocked Supabase/session dev server: `http://localhost:4407`;
+  - desktop `1280x920`: selected DAO, `Библиотека → Фон → ДАО`, clicked all 4 backgrounds; each applied to the outer cover with `background-size: auto, contain, auto`, centered/no-repeat layers, DAO asset present, selected mini-cell background unchanged, horizontal overflow `0`, console errors `0`;
+  - mobile `390x900`: all 4 DAO backgrounds visible, `Фу-лист` and the other DAO backgrounds applied with contain sizing, horizontal overflow `0`, console errors `0`.
+- Not verified yet:
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
 ## 2026-06-14 — DAO background reference assets restored
 
 - Branch: `codex/restore-dao-reference-backgrounds`, based on fresh `origin/main` at `c21ad5c`.

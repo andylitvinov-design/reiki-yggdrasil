@@ -50,9 +50,25 @@ assert.deepEqual(listPowerPlaceBackgroundsByShelf("unknown"), listPowerPlaceBack
 assert.equal(listPowerPlaceBackgroundsByShelf("dao").length, 4, "DAO shelf should include exactly four reference background assets");
 assert.deepEqual(listPowerPlaceBackgroundsByShelf("zodiac"), [], "non-DAO background shelves can remain empty until assets are verified");
 
+const expectedDaoBackgrounds = [
+  ["Фу-лист", "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg"],
+  ["Облачный реестр", "/symbols/power-place/dao/backgrounds/cloud-register.svg"],
+  ["Громовая табличка", "/symbols/power-place/dao/backgrounds/thunder-tablet.svg"],
+  ["Таофу", "/symbols/power-place/dao/backgrounds/taofu-charm.svg"]
+];
+
+for (const [label, src] of expectedDaoBackgrounds) {
+  const background = listPowerPlaceBackgroundsByShelf("dao").find((item) => item.label === label);
+  assert.ok(background, `${label} DAO background should exist`);
+  assert.equal(background.src, src, `${label} should keep its durable public SVG path`);
+  assert.equal(background.displaySrc, src, `${label} display path should match durable src`);
+  assert.equal(background.fit, "contain", `${label} DAO reference background should opt into contain fit`);
+  assert.equal(existsSync(join(process.cwd(), "public", src.replace(/^\//, ""))), true, `${src} asset should exist`);
+}
+
 for (const background of POWER_PLACE_BACKGROUND_LIBRARY) {
   assert.equal(background.kind, "power-place-background", `${background.id} must use background kind`);
-  assert.match(background.src, /^\/symbols\/power-place\/[^/]+\/backgrounds\/[^/]+\.(svg|png|jpe?g|webp)$/, `${background.id} must use a durable public background image path`);
+  assert.match(background.src, /^\/symbols\/power-place\/[^/]+\/backgrounds\/[^/]+\.svg$/, `${background.id} must use a durable public SVG background path`);
   assert.equal(background.displaySrc, background.src, `${background.id} display path must match src`);
   assert.match(background.meta, /^Фон · ДАО · reference$/, `${background.id} must keep DAO reference background meta`);
 }

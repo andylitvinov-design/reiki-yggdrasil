@@ -8261,6 +8261,12 @@
   background-repeat: no-repeat;
 }
 
+.profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain {
+  background-size: auto, contain, auto !important;
+  background-repeat: no-repeat !important;
+  background-position: center, center, center !important;
+}
+
 .profileLitePowerPlace .has-custom-inner-cover {
   background-size: cover;
   background-position: center;

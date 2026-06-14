@@ -1176,6 +1176,32 @@ assert.equal(
 }
 
 {
+  const daoOuterRef = "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg";
+  const comp = normalizePowerPlaceCompositionWithoutDefaultMotion({
+    profile_id: "profile-1",
+    title: "DAO contain fit",
+    constructor_type: "dao",
+    cover_ref: {
+      id: "custom-cover",
+      type: "none",
+      src: "",
+      inner: { id: "no-cover", type: "none", src: "" },
+      outer: {
+        id: "background-dao-fu-paper-slip-reference",
+        label: "Фу-лист",
+        type: "image",
+        src: daoOuterRef,
+        fit: "contain",
+        cover_fit: "contain"
+      }
+    }
+  });
+  assert.equal(comp.cover_ref.outer?.src, daoOuterRef, "DAO library outer cover src must survive normalization");
+  assert.equal(comp.cover_ref.outer?.fit, "contain", "DAO library outer cover fit must survive normalization");
+  assert.equal(comp.cover_ref.outer?.cover_fit, "contain", "DAO library outer cover cover_fit alias must survive normalization");
+}
+
+{
   // Cover upload flow uses image_ref / image_url (durable storage ref), not data:image.
   // Verify the upload handler source pattern in ProfileLitePage.
   const { readFileSync } = await import("node:fs");
