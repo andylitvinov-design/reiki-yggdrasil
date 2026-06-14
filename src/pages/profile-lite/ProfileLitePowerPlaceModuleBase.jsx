@@ -36,6 +36,24 @@ const DAO_STYLE_VARIANTS = [
   { value: "taofu-charm", label: "Таофу" }
 ];
 const DAO_FULU_STYLES = new Set(["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]);
+const DAO_FULU_STYLE_VALUES = {
+  "fu-paper-slip": {
+    className: "dao-fu-paper-slip",
+    contourAsset: "/symbols/power-place/dao/fulu/fu-paper-slip.svg"
+  },
+  "cloud-register": {
+    className: "dao-cloud-register",
+    contourAsset: "/symbols/power-place/dao/fulu/cloud-register.svg"
+  },
+  "thunder-tablet": {
+    className: "dao-thunder-tablet",
+    contourAsset: "/symbols/power-place/dao/fulu/thunder-tablet.svg"
+  },
+  "taofu-charm": {
+    className: "dao-taofu-charm",
+    contourAsset: "/symbols/power-place/dao/fulu/taofu-charm.svg"
+  }
+};
 const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
 const ZODIAC_2_VARIANT = "zodiac-2-12";
 const ZODIAC_VARIANTS = [
@@ -342,6 +360,11 @@ function innerCoverImageStyle(cover, displaySrc) {
     return { "--power-inner-cover-image": `url(${displaySrc})` };
   }
   return imageStyle(displaySrc);
+}
+
+function daoFuluContourStyle(styleValue) {
+  const asset = DAO_FULU_STYLE_VALUES[styleValue]?.contourAsset;
+  return asset ? { "--dao-fulu-contour-image": `url("${asset}")` } : {};
 }
 
 function slotScaleValue(value) {
@@ -2602,7 +2625,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet${{"talisman-1": " dao-talisman", "talisman-2": " dao-talisman-2", "fu-paper-slip": " dao-fu-paper-slip", "cloud-register": " dao-cloud-register", "thunder-tablet": " dao-thunder-tablet", "taofu-charm": " dao-taofu-charm"}[compositionDraft.__dao_style || "style-1"] || ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`daoMandalaSheet${{"talisman-1": " dao-talisman", "talisman-2": " dao-talisman-2", "fu-paper-slip": " dao-fu-paper-slip", "cloud-register": " dao-cloud-register", "thunder-tablet": " dao-thunder-tablet", "taofu-charm": " dao-taofu-charm"}[compositionDraft.__dao_style || "style-1"] || ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={{ ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}), ...daoFuluContourStyle(compositionDraft.__dao_style || "style-1") }}>
                       {(compositionDraft.__dao_style || "style-1") === "talisman-2" ? (
                         <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
                           <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">

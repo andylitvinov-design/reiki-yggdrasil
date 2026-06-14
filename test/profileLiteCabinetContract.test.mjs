@@ -300,7 +300,16 @@ assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
 assert.match(powerPlaceBaseSource, /DAO_FULU_STYLES\.has\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
 assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true">[\s\S]*<span className="daoFuluTopHead" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--left" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--right" \/>[\s\S]*<span className="daoFuluBottomBase" \/>[\s\S]*<\/div>/, "DAO fulu render branch should include an explicit overlay contour layer");
-assert.match(powerPlaceBaseSource, /className=\{\`daoMandalaSheet[\s\S]*dao-fu-paper-slip[\s\S]*dao-cloud-register[\s\S]*dao-thunder-tablet[\s\S]*dao-taofu-charm[\s\S]*style=\{innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)\}/, "DAO outer sheet should keep all fulu style classes while receiving the inner cover image style");
+assert.match(powerPlaceBaseSource, /className=\{\`daoMandalaSheet[\s\S]*dao-fu-paper-slip[\s\S]*dao-cloud-register[\s\S]*dao-thunder-tablet[\s\S]*dao-taofu-charm[\s\S]*style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet should keep all fulu style classes while receiving the inner cover image style and fulu contour image variable");
+for (const assetPath of [
+  "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
+  "/symbols/power-place/dao/fulu/cloud-register.svg",
+  "/symbols/power-place/dao/fulu/thunder-tablet.svg",
+  "/symbols/power-place/dao/fulu/taofu-charm.svg"
+]) {
+  assert.equal(existsSync(join("public", assetPath)), true, `${assetPath} should exist for DAO fulu contours`);
+  assert.match(powerPlaceBaseSource, new RegExp(assetPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `DAO fulu style values should map ${assetPath}`);
+}
 assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "inner"[\s\S]*dragOverSlotId === "cover_ref\.inner"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("inner"\)\}[\s\S]*aria-label="Фон внутри\. Можно перетащить фото"[\s\S]*title="Фон внутри\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "existing inner cover tab should be the cover_ref.inner drop target without opening the picker");
 assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "outer"[\s\S]*dragOverSlotId === "cover_ref\.outer"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("outer"\)\}[\s\S]*aria-label="Фон снаружи\. Можно перетащить фото"[\s\S]*title="Фон снаружи\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)/, "existing outer cover tab should be the cover_ref.outer drop target without opening the picker");
 assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid saved source cards should be draggable");
