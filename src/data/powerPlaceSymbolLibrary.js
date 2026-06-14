@@ -147,7 +147,44 @@ export const POWER_PLACE_SYMBOL_LIBRARY = [
   }
 ];
 
-export const POWER_PLACE_BACKGROUND_LIBRARY = [];
+export const POWER_PLACE_BACKGROUND_LIBRARY = [
+  {
+    id: "background-dao-fu-paper-slip-draft",
+    shelf: "dao",
+    label: "Фу-лист",
+    meta: "Фон · ДАО · draft / needs review",
+    kind: "power-place-background",
+    src: "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg",
+    displaySrc: "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg"
+  },
+  {
+    id: "background-dao-cloud-register-draft",
+    shelf: "dao",
+    label: "Облачный реестр",
+    meta: "Фон · ДАО · draft / needs review",
+    kind: "power-place-background",
+    src: "/symbols/power-place/dao/backgrounds/cloud-register.svg",
+    displaySrc: "/symbols/power-place/dao/backgrounds/cloud-register.svg"
+  },
+  {
+    id: "background-dao-thunder-tablet-draft",
+    shelf: "dao",
+    label: "Громовая табличка",
+    meta: "Фон · ДАО · draft / needs review",
+    kind: "power-place-background",
+    src: "/symbols/power-place/dao/backgrounds/thunder-tablet.svg",
+    displaySrc: "/symbols/power-place/dao/backgrounds/thunder-tablet.svg"
+  },
+  {
+    id: "background-dao-taofu-charm-draft",
+    shelf: "dao",
+    label: "Таофу",
+    meta: "Фон · ДАО · draft / needs review",
+    kind: "power-place-background",
+    src: "/symbols/power-place/dao/backgrounds/taofu-charm.svg",
+    displaySrc: "/symbols/power-place/dao/backgrounds/taofu-charm.svg"
+  }
+];
 
 export function normalizePowerPlaceSymbolShelf(value) {
   const shelf = String(value || "").trim();
