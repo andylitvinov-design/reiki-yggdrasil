@@ -2725,21 +2725,12 @@ export default function ProfileLitePowerPlaceModule({
                             <span className="daoTalismanSealCircle">印</span>
                           </div>
                         </div>
-                      ) : DAO_FULU_STYLES.has(compositionDraft.__dao_style || "style-1") ? (
-                        <div className="daoFuluScroll" aria-label="Даосский талисман">
-                          <div className="daoFuluFallbackPaper" aria-hidden="true" />
-                          <div className="daoFuluContourLayer" aria-hidden="true">
-                            <span className="daoFuluTopHead" />
-                            <span className="daoFuluSideRail daoFuluSideRail--left" />
-                            <span className="daoFuluSideRail daoFuluSideRail--right" />
-                            <span className="daoFuluBottomBase" />
-                          </div>
-                          <div className="daoFuluHeader" aria-hidden="true">
-                            <span className="daoFuluPureMarks" aria-hidden="true">✓ ✓ ✓</span>
-                          </div>
-                          <div className="daoFuluBody">
-                            <div className="daoFuluCenterArea">
-                              {renderCenterPhotoWithMode("daoCenterPhoto")}
+	                      ) : DAO_FULU_STYLES.has(compositionDraft.__dao_style || "style-1") ? (
+	                        <div className="daoFuluScroll" aria-label="Даосский талисман">
+	                          <div className="daoFuluContourLayer" aria-hidden="true" />
+	                          <div className="daoFuluBody">
+	                            <div className="daoFuluCenterArea">
+	                              {renderCenterPhotoWithMode("daoCenterPhoto")}
                             </div>
                             {DAO_ELEMENTS.map((element) => {
                               const slotId = `dao-${element.id}`;
@@ -2768,13 +2759,10 @@ export default function ProfileLitePowerPlaceModule({
                                   <b>{element.label}</b>
                                 </div>
                               );
-                            })}
-                          </div>
-                          {renderPowerPlaceMotionLayer()}
-                          <div className="daoFuluFooter" aria-hidden="true">
-                            <span className="daoFuluSealBox" aria-hidden="true" />
-                          </div>
-                        </div>
+	                            })}
+	                          </div>
+	                          {renderPowerPlaceMotionLayer()}
+	                        </div>
                       ) : (
                         <>
                           {renderCenterPhotoWithMode("daoCenterPhoto")}

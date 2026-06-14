@@ -299,7 +299,11 @@ assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8")
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
 assert.match(powerPlaceBaseSource, /DAO_FULU_STYLES\.has\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
-assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true">[\s\S]*<span className="daoFuluTopHead" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--left" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--right" \/>[\s\S]*<span className="daoFuluBottomBase" \/>[\s\S]*<\/div>/, "DAO fulu render branch should include an explicit overlay contour layer");
+assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true" \/>/, "DAO fulu render branch should include exactly one self-contained contour layer");
+for (const removedFuluLayer of ["daoFuluFallbackPaper", "daoFuluTopHead", "daoFuluSideRail", "daoFuluBottomBase", "daoFuluHeader", "daoFuluFooter", "daoFuluSealBox", "daoFuluPureMarks"]) {
+  assert.doesNotMatch(powerPlaceBaseSource, new RegExp(removedFuluLayer), `DAO fulu render branch must not render ${removedFuluLayer}`);
+  assert.doesNotMatch(profileMandalaCss, new RegExp(removedFuluLayer), `DAO fulu CSS must not define ${removedFuluLayer}`);
+}
 assert.match(powerPlaceBaseSource, /className=\{\`daoMandalaSheet[\s\S]*dao-fu-paper-slip[\s\S]*dao-cloud-register[\s\S]*dao-thunder-tablet[\s\S]*dao-taofu-charm[\s\S]*style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet should keep all fulu style classes while receiving the inner cover image style and fulu contour image variable");
 for (const assetPath of [
   "/symbols/power-place/dao/fulu/fu-paper-slip.svg",

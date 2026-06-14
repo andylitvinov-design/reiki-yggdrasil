@@ -331,6 +331,8 @@ for (const [styleValue, assetPath] of [
   assert.ok(baseSource.includes(`"${styleValue}"`), `DAO_FULU_STYLE_VALUES must include ${styleValue}`);
   assert.ok(baseSource.includes(`contourAsset: "${assetPath}"`), `DAO_FULU_STYLE_VALUES must map ${styleValue} to ${assetPath}`);
   assert.equal(existsSync(join(__dir, `../public${assetPath}`)), true, `${assetPath} must exist in public assets`);
+  const assetSource = readFileSync(join(__dir, `../public${assetPath}`), "utf8");
+  assert.doesNotMatch(assetSource, /<circle\b|<defs\b|fill="url\(|filter=/, `${assetPath} must stay an empty outline contour without filled decorative internals`);
 }
 
 assert.ok(
@@ -358,16 +360,28 @@ for (const selector of [
   );
 }
 
+assert.ok(cssSource.includes(".daoFuluScroll"), ".daoFuluScroll must remain as the fulu content wrapper");
+assert.ok(cssSource.includes(".daoFuluContourLayer"), ".daoFuluContourLayer must remain as the single visual contour system");
+
 for (const selector of [
-  ".daoFuluScroll",
   ".daoFuluFallbackPaper",
-  ".daoFuluContourLayer",
   ".daoFuluTopHead",
   ".daoFuluSideRail",
-  ".daoFuluBottomBase"
+  ".daoFuluBottomBase",
+  ".daoFuluHeader",
+  ".daoFuluFooter",
+  ".daoFuluSealBox",
+  ".daoFuluPureMarks"
 ]) {
-  assert.ok(cssSource.includes(selector), `${selector} must be defined for non-destructive fulu fallback/contour rendering`);
+  assert.equal(cssSource.includes(selector), false, `${selector} must not remain in CSS for fulu styles`);
+  assert.equal(baseSource.includes(selector.slice(1)), false, `${selector} must not be rendered for fulu styles`);
 }
+
+assert.equal(
+  (baseSource.match(/className="daoFuluContourLayer"/g) || []).length,
+  1,
+  "Fulu styles must render exactly one contour layer"
+);
 
 assert.ok(
   cssSource.includes("background-image: var(--dao-fulu-contour-image)") &&
@@ -718,8 +732,8 @@ assert.ok(
 );
 
 assert.ok(
-  cssSource.includes(".daoFuluPureMarks"),
-  "CSS must define .daoFuluPureMarks for fulu header marks"
+  cssSource.includes(".daoFuluContourLayer"),
+  "CSS must define .daoFuluContourLayer as the single fulu visual frame"
 );
 
 assert.ok(
