@@ -1,34 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
-  <title id="title">DAO background draft - Cloud register</title>
-  <desc id="desc">Original lightweight gold and ink background inspired by layered Dao cloud-register forms.</desc>
-  <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#fff8df"/>
-      <stop offset="0.42" stop-color="#e8bd5d"/>
-      <stop offset="1" stop-color="#20333a"/>
-    </linearGradient>
-    <radialGradient id="centerGlow" cx="49%" cy="48%" r="66%">
-      <stop offset="0" stop-color="#fff6c8" stop-opacity="0.86"/>
-      <stop offset="0.52" stop-color="#d89d2f" stop-opacity="0.34"/>
-      <stop offset="1" stop-color="#08151a" stop-opacity="0"/>
-    </radialGradient>
-    <pattern id="grain" width="80" height="80" patternUnits="userSpaceOnUse">
-      <path d="M0 34c16-14 33-14 50 0s34 14 50 0" fill="none" stroke="#fff0b8" stroke-width="4" opacity="0.2"/>
-      <path d="M-18 66c19-16 41-16 65 0s47 16 70 0" fill="none" stroke="#5d3513" stroke-width="4" opacity="0.18"/>
-    </pattern>
-  </defs>
-  <rect width="1600" height="1200" fill="url(#sky)"/>
-  <rect width="1600" height="1200" fill="url(#centerGlow)"/>
-  <rect width="1600" height="1200" fill="url(#grain)"/>
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M229 386c69-78 144-78 225 0 42-65 105-94 188-87 88 8 148 54 179 138 69-55 143-59 224-10 67 40 100 101 99 181 75-29 146-18 212 34 64 51 92 116 84 195" stroke="#43180b" stroke-width="42" opacity="0.65"/>
-    <path d="M197 472c89-65 172-53 249 38 52-73 118-101 199-83 81 18 134 69 159 153 82-52 159-46 232 18 48 43 72 95 70 157 107-32 201-4 283 84" stroke="#ffe39a" stroke-width="16" opacity="0.75"/>
-    <path d="M343 738c94-74 183-74 266 0 58-84 131-109 219-74 89 34 137 103 145 207 86-42 165-29 239 39" stroke="#46200c" stroke-width="38" opacity="0.5"/>
-    <path d="M341 819c104-53 196-43 276 29 63-58 134-76 213-54 78 22 130 72 157 151 83-31 158-19 225 36" stroke="#fff1b5" stroke-width="14" opacity="0.62"/>
-  </g>
-  <g opacity="0.54">
-    <circle cx="797" cy="565" r="128" fill="none" stroke="#3e190c" stroke-width="28"/>
-    <path d="M797 438v255M670 565h255" stroke="#3e190c" stroke-width="28" stroke-linecap="round"/>
-    <circle cx="797" cy="565" r="55" fill="#f5c66a" opacity="0.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO lu register document outline with seal box</title>
+  <desc id="desc">Reference contour for a Daoist register-like long ritual document. Decorative draft only, not a ritual formula.</desc>
+  <g fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="12" width="80" height="336" />
+    <rect x="26" y="19" width="68" height="322" />
+    <path d="M32 31c6-10 14-10 19-2" />
+    <path d="M88 31c-6-10-14-10-19-2" />
+    <path d="M29 47h62" />
+    <path d="M39 37l5 6 10-13" />
+    <path d="M55 37l5 6 10-13" />
+    <path d="M71 37l5 6 10-13" />
+    <path d="M32 63q5 0 5-5h46q0 5 5 5" />
+    <path d="M32 315q5 0 5 5h46q0-5 5-5" />
+    <rect x="45" y="296" width="30" height="30" />
+    <rect x="49" y="300" width="22" height="22" />
+    <path d="M26 324c6-7 12-7 18 0" />
+    <path d="M94 324c-6-7-12-7-18 0" />
   </g>
 </svg>

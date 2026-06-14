@@ -1,5 +1,40 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-14 — Restore DAO background reference assets
+
+- Branch: `codex/restore-dao-reference-backgrounds`.
+- Base: fresh `origin/main` at `c21ad5c` (`Add Power Place library background mode`).
+- Changed files:
+  - `public/symbols/power-place/dao/backgrounds/fu-paper-slip.svg`
+  - `public/symbols/power-place/dao/backgrounds/cloud-register.svg`
+  - `public/symbols/power-place/dao/backgrounds/thunder-tablet.svg`
+  - `public/symbols/power-place/dao/backgrounds/taofu-charm.svg`
+  - `src/data/powerPlaceSymbolLibrary.js`
+  - `test/powerPlaceSymbolLibrary.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - replaced generated draft DAO background placeholders with the saved reference contour assets from `origin/docs/dao-fulu-scroll-shape-examples-20260609`;
+  - preserved runtime public paths, RU labels, `kind: "power-place-background"`, and `shelf: "dao"`;
+  - updated tests to accept durable image extensions and assert reference background metadata.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings.
+- Browser QA:
+  - mocked Supabase/session dev server: `http://localhost:4399`;
+  - desktop `1280x920`: `Библиотека` above `ФОН МЕСТА СИЛЫ`, background mode `ДАО` showed `Фу-лист`, `Облачный реестр`, `Громовая табличка`, `Таофу`, all 4 clicks updated the outer cover, selected mini-cell did not receive a background, horizontal overflow `0`, console errors `0`;
+  - mobile `390x900`: `Библиотека` above `ФОН МЕСТА СИЛЫ`, 4 DAO backgrounds visible, horizontal overflow `0`, console errors `0`.
+- Not verified yet:
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
 ## 2026-06-11 — Add Power Place static symbol library and picker source navigation
 
 - Branch: `codex/power-place-symbol-library`.
