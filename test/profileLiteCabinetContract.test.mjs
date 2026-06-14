@@ -1101,16 +1101,29 @@ console.log("Profile Lite cabinet contract: all assertions passed.");
 
 // ── Visibility settings module contract ──────────────────────────────────────
 assert.match(powerPlaceBaseSource, /__visibility_settings/, "PowerPlaceModuleBase must reference __visibility_settings key");
-assert.match(powerPlaceBaseSource, /Показать\/Скрыть/, "PowerPlaceModuleBase must include Показать/Скрыть label");
+assert.doesNotMatch(powerPlaceBaseSource, /renderVisibilitySettingsModule/, "PowerPlaceModuleBase must not render a separate right-sidebar visibility module");
+assert.doesNotMatch(powerPlaceBaseSource, /Показать\/Скрыть/, "PowerPlaceModuleBase must not include the old separate Показать/Скрыть panel label");
+assert.doesNotMatch(powerPlaceBaseSource, /visibilitySettingsPanel/, "PowerPlaceModuleBase must not include the old visibilitySettingsPanel class");
+assert.match(powerPlaceBaseSource, /inlineVisibilityScaleToggle/, "PowerPlaceModuleBase must render visibility toggles inline with scale controls");
 assert.match(powerPlaceBaseSource, /Центр мандалы/, "PowerPlaceModuleBase must include Центр мандалы toggle label");
 assert.match(powerPlaceBaseSource, /Мини-мандалы/, "PowerPlaceModuleBase must include Мини-мандалы toggle label");
 assert.match(powerPlaceBaseSource, /Фон снаружи/, "PowerPlaceModuleBase must include Фон снаружи toggle label");
 assert.match(powerPlaceBaseSource, /Фон внутри/, "PowerPlaceModuleBase must include Фон внутри toggle label");
-assert.match(powerPlaceBaseSource, /visibilitySettingsPanel/, "PowerPlaceModuleBase must include visibilitySettingsPanel class");
+assert.match(powerPlaceBaseSource, /label: "Размер окон"[\s\S]*visibilityKey: "slots"[\s\S]*visibilityLabel: "Мини-мандалы"/, "Размер окон must inline the slots visibility toggle");
+assert.match(powerPlaceBaseSource, /label: "Размер поля"[\s\S]*visibilityKey: "inner_cover"[\s\S]*visibilityLabel: "Фон внутри"/, "Размер поля must inline the inner cover visibility toggle");
+assert.match(powerPlaceBaseSource, /label: "Размер центра"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Размер центра must inline the center visibility toggle");
+assert.match(powerPlaceBaseSource, /coverOuterVisibilityToggle[\s\S]*setVisibilitySetting\("outer_cover"/, "outer cover visibility must remain next to the cover selector");
 assert.match(powerPlaceBaseSource, /power-place-hide-center/, "PowerPlaceModuleBase must apply power-place-hide-center class");
 assert.match(powerPlaceBaseSource, /power-place-hide-slots/, "PowerPlaceModuleBase must apply power-place-hide-slots class");
 assert.match(powerPlaceBaseSource, /power-place-hide-outer-cover/, "PowerPlaceModuleBase must apply power-place-hide-outer-cover class");
 assert.match(powerPlaceBaseSource, /power-place-hide-inner-cover/, "PowerPlaceModuleBase must apply power-place-hide-inner-cover class");
+assert.match(powerPlaceBaseSource, /function coverToneClass\(cover\)/, "PowerPlaceModuleBase must centralize cover class generation");
+assert.doesNotMatch(powerPlaceBaseSource, /cover-\$\{innerCover\?\.tone \|\| "gold"\}/, "Без фона must not fall back to cover-gold");
+assert.match(powerPlaceBaseSource, /coverToneClass\(innerCover\)/, "inner cover render paths must use coverToneClass");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandala\.cover-none,[\s\S]*\.profileLitePowerPlace \.power-place-chess\.cover-none,[\s\S]*background: transparent !important;[\s\S]*background-image: none !important;[\s\S]*background-color: transparent !important;/, "cover-none must be fully transparent in the scoped Power Place CSS");
+assert.match(profileMandalaCss, /\.powerMandalaPanel\.power-place-hide-inner-cover \.businessMandalaSheet,[\s\S]*background: transparent !important;[\s\S]*background-color: transparent !important;/, "hidden inner cover must clear full background on all inner constructor surfaces");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.inlineVisibilityScaleToggle/, "inline visibility toggle CSS must exist");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl > input\[type="range"\]/, "slider range inputs must remain aligned without stretching inline checkboxes");
 
 // ── Zodiac 2 format contract ──────────────────────────────────────────────────
 

@@ -737,8 +737,8 @@ assert.ok(
 console.log("powerPlaceStyleContract: all assertions passed");
 
 // ── Visibility settings CSS contract ─────────────────────────────────────────
-assert.ok(cssSource.includes(".visibilitySettingsPanel"), "CSS must define .visibilitySettingsPanel");
-assert.ok(cssSource.includes(".visibilityToggleRow"), "CSS must define .visibilityToggleRow");
+assert.ok(cssSource.includes(".inlineVisibilityScaleToggle"), "CSS must define inline scale visibility toggles");
+assert.ok(cssSource.includes(".coverOuterVisibilityToggle"), "CSS must define outer cover visibility toggle near the cover selector");
 assert.ok(cssSource.includes(".power-place-layer-hidden"), "CSS must define .power-place-layer-hidden modifier class");
 assert.ok(cssSource.includes(".power-place-hide-slots"), "CSS must define .power-place-hide-slots rule");
 assert.ok(cssSource.includes(".power-place-hide-outer-cover"), "CSS must define .power-place-hide-outer-cover rule");

@@ -677,6 +677,12 @@ function coverKindClass(cover, layer) {
   return "";
 }
 
+function coverToneClass(cover) {
+  if (!cover || cover.type === "none" || cover.id === "no-cover") return "cover-none";
+  if (cover.type === "image") return "cover-image";
+  return `cover-${cover.tone || "none"}`;
+}
+
 export default function ProfileLitePowerPlaceModule({
   accountPlan = "start",
   clientGoalPhotos,
@@ -1933,9 +1939,19 @@ export default function ProfileLitePowerPlaceModule({
     </div>
   );
 
-  const renderScaleControl = ({ className, label, value, min, max, step, field }) => (
+  const renderScaleControl = ({ className, label, value, min, max, step, field, visibilityKey, visibilityLabel }) => (
     <div className={className} aria-label={label}>
-      <span>{label}</span>
+      <label className={`inlineVisibilityScaleToggle${visibilityKey && !visibilitySettings[visibilityKey] ? " power-place-layer-hidden" : ""}`}>
+        {visibilityKey && (
+          <input
+            type="checkbox"
+            checked={!!visibilitySettings[visibilityKey]}
+            onChange={(event) => setVisibilitySetting(visibilityKey, event.target.checked)}
+            aria-label={visibilityLabel || label}
+          />
+        )}
+        <span>{label}</span>
+      </label>
       <button type="button" onClick={() => onCompositionDraftChange(field, Number((Number(value) - Number(step)).toFixed(2)))} aria-label={`Уменьшить ${label.toLowerCase()}`}>-</button>
       <input
         type="range"
@@ -1953,32 +1969,6 @@ export default function ProfileLitePowerPlaceModule({
     const next = { ...visibilitySettings, [key]: value };
     onCompositionDraftChange(VISIBILITY_SETTINGS_REF_KEY, next);
   };
-
-  const VISIBILITY_LAYERS = [
-    { key: "center", label: "Центр мандалы" },
-    { key: "slots", label: "Мини-мандалы" },
-    { key: "outer_cover", label: "Фон снаружи" },
-    { key: "inner_cover", label: "Фон внутри" }
-  ];
-
-  const renderVisibilitySettingsModule = () => (
-    <div className="visibilitySettingsPanel">
-      <p className="cabinetEyebrow">Показать/Скрыть</p>
-      <div className="visibilityToggleList" role="group" aria-label="Видимость слоёв">
-        {VISIBILITY_LAYERS.map(({ key, label }) => (
-          <label key={key} className={`visibilityToggleRow${visibilitySettings[key] ? "" : " power-place-layer-hidden"}`}>
-            <input
-              type="checkbox"
-              checked={!!visibilitySettings[key]}
-              onChange={(event) => setVisibilitySetting(key, event.target.checked)}
-              aria-label={label}
-            />
-            <span>{label}</span>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
 
   const renderFieldLayoutSelector = () => (
     <div className="mandalaFieldLayoutSwitch powerLayoutPanel compactFieldLayoutSwitch" aria-label="Расположение поля мандалы">
@@ -2349,9 +2339,9 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale" })}
-                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale" })}
-                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale" })}
+                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale", visibilityKey: "slots", visibilityLabel: "Мини-мандалы" })}
+                {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale", visibilityKey: "inner_cover", visibilityLabel: "Фон внутри" })}
+                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
@@ -2371,13 +2361,13 @@ export default function ProfileLitePowerPlaceModule({
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} cover-${innerCover?.tone || "gold"} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} ${coverToneClass(innerCover)} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       {renderPowerPlaceMotionLayer()}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
                           slot,
@@ -2395,7 +2385,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
-                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
                       {renderPowerPlaceMotionLayer()}
                       <div className="businessTriangleLines" aria-hidden="true" />
@@ -2414,7 +2404,7 @@ export default function ProfileLitePowerPlaceModule({
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
                       {zodiacStyle === "ribbon" ? (
-                        <div className={`zodiacRibbonSheet cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                        <div className={`zodiacRibbonSheet ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                           {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                           {renderPowerPlaceMotionLayer()}
                           <div className="zodiacRibbonTrack">
@@ -2449,7 +2439,7 @@ export default function ProfileLitePowerPlaceModule({
                         </div>
                       ) : (
                         <>
-                          <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                          <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                             {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                             {renderPowerPlaceMotionLayer()}
                             <div className="zodiacClockFace" aria-hidden="true">
@@ -2540,7 +2530,7 @@ export default function ProfileLitePowerPlaceModule({
                       )}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -2591,7 +2581,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </div>
                   ) : compositionDraft.constructor_type === "chess" ? (
-                    <div className={`power-place-chess power-place-chess--${chessVariant} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={chessCoverStyle}>
+                    <div className={`power-place-chess power-place-chess--${chessVariant} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={chessCoverStyle}>
                       <div className="power-place-chess__board" aria-label="Шахматная раскладка">
                         {chessVariant === "plus-8" || chessVariant === "compact-5" ? (
                           <>
@@ -2625,7 +2615,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : (
-                    <div className={`daoMandalaSheet${{"talisman-1": " dao-talisman", "talisman-2": " dao-talisman-2", "fu-paper-slip": " dao-fu-paper-slip", "cloud-register": " dao-cloud-register", "thunder-tablet": " dao-thunder-tablet", "taofu-charm": " dao-taofu-charm"}[compositionDraft.__dao_style || "style-1"] || ""} cover-${innerCover?.tone || "gold"} ${innerCoverClass}`.trim()} style={{ ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}), ...daoFuluContourStyle(compositionDraft.__dao_style || "style-1") }}>
+                    <div className={`daoMandalaSheet${{"talisman-1": " dao-talisman", "talisman-2": " dao-talisman-2", "fu-paper-slip": " dao-fu-paper-slip", "cloud-register": " dao-cloud-register", "thunder-tablet": " dao-thunder-tablet", "taofu-charm": " dao-taofu-charm"}[compositionDraft.__dao_style || "style-1"] || ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={{ ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}), ...daoFuluContourStyle(compositionDraft.__dao_style || "style-1") }}>
                       {(compositionDraft.__dao_style || "style-1") === "talisman-2" ? (
                         <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
                           <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
@@ -2846,8 +2836,6 @@ export default function ProfileLitePowerPlaceModule({
           <aside className="powerCommandRail powerPlaceSettings">
             {renderFieldLayoutSelector()}
 
-            {renderVisibilitySettingsModule()}
-
             {renderSymbolLibraryModule()}
 
             <div className="coverSelector coverPickerPanel">
@@ -2874,6 +2862,15 @@ export default function ProfileLitePowerPlaceModule({
                   Фон снаружи
                 </button>
               </div>
+              <label className={`coverOuterVisibilityToggle${visibilitySettings.outer_cover ? "" : " power-place-layer-hidden"}`}>
+                <input
+                  type="checkbox"
+                  checked={!!visibilitySettings.outer_cover}
+                  onChange={(event) => setVisibilitySetting("outer_cover", event.target.checked)}
+                  aria-label="Фон снаружи"
+                />
+                <span>Фон снаружи</span>
+              </label>
               <div className="coverPreviewWrap">
                 <button
                   type="button"
