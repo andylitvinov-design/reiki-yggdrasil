@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  <title id="title">DAO background draft - Thunder tablet</title>
+  <desc id="desc">Original lightweight dark-gold background inspired by a Dao thunder tablet.</desc>
+  <defs>
+    <linearGradient id="tablet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#201716"/>
+      <stop offset="0.44" stop-color="#5e3a17"/>
+      <stop offset="1" stop-color="#0e1215"/>
+    </linearGradient>
+    <radialGradient id="goldBloom" cx="50%" cy="34%" r="72%">
+      <stop offset="0" stop-color="#ffe38c" stop-opacity="0.62"/>
+      <stop offset="0.48" stop-color="#a6661f" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#080b0d" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="tabletShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="34" stdDeviation="38" flood-color="#000000" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="1600" fill="#080c0f"/>
+  <rect width="1200" height="1600" fill="url(#goldBloom)"/>
+  <g filter="url(#tabletShadow)">
+    <path d="M314 134c117 40 208 40 286 0 78 40 171 40 286 0 43 330 43 663 0 998-110 23-203 63-286 119-83-56-176-96-286-119-43-335-43-668 0-998z" fill="url(#tablet)" stroke="#e9bb5b" stroke-width="12"/>
+    <path d="M388 239c90 23 160 20 212-9 55 29 125 32 212 9M386 1059c86 18 157 51 214 99 57-48 128-81 214-99" fill="none" stroke="#e9bb5b" stroke-width="12" opacity="0.62"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M622 306 492 570h146l-101 246 214-316H609l86-194z" stroke="#ffde84" stroke-width="34" fill="#5a240c" opacity="0.92"/>
+      <path d="M486 884h228M454 966h292M500 1045h200" stroke="#f6c96a" stroke-width="28" opacity="0.78"/>
+      <path d="M421 428c-60 60-84 129-72 207M779 428c60 60 84 129 72 207" stroke="#b8791d" stroke-width="22" opacity="0.68"/>
+      <path d="M407 745c-47 31-80 74-98 129M793 745c47 31 80 74 98 129" stroke="#b8791d" stroke-width="22" opacity="0.62"/>
+    </g>
+    <g fill="#ffe095" opacity="0.74">
+      <circle cx="421" cy="310" r="10"/>
+      <circle cx="779" cy="310" r="10"/>
+      <circle cx="421" cy="1138" r="10"/>
+      <circle cx="779" cy="1138" r="10"/>
+    </g>
+  </g>
+</svg>
