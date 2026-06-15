@@ -497,6 +497,46 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   width: calc(28% * var(--power-center-frame-scale, 1)) !important;
   height: auto !important;
 }
+.profileLitePowerPlace .daoTalisman2CenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoTalisman2CenterArea .daoCenterPhoto {
+  width: clamp(58px, 100%, 88px) !important;
+  height: clamp(58px, 100%, 88px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.profileLitePowerPlace .daoStyle2CenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoStyle2CenterArea .daoCenterPhoto {
+  width: clamp(74px, 100%, 108px) !important;
+  height: clamp(74px, 100%, 108px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.profileLitePowerPlace .daoFuluCenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoFuluCenterArea .daoCenterPhoto {
+  width: clamp(52px, 32%, 78px) !important;
+  height: clamp(52px, 32%, 78px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.profileLitePowerPlace .daoFuOutlineCenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoFuOutlineCenterArea .daoCenterPhoto {
+  width: clamp(52px, 35%, 86px) !important;
+  height: clamp(52px, 35%, 86px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
 .profileLitePowerPlace .powerMandalaPanel[style] .zodiacClockFace,
 .profileLitePowerPlace .powerMandalaPanel[style] .daoUsinCore,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] .zodiacClockFace,

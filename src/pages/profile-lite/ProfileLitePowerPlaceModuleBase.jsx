@@ -1218,7 +1218,10 @@ export default function ProfileLitePowerPlaceModule({
     }
     : {};
   const daoFieldLayerStyle = !innerCoverIsFuluContour && isImagePreview(innerCoverSrc)
-    ? { "--dao-field-cover-image": `url(${innerCoverSrc})` }
+    ? {
+      "--dao-field-cover-image": `url(${innerCoverSrc})`,
+      "--dao-field-cover-opacity": 0.18
+    }
     : {};
   const daoStyleGeometry = isDaoTalisman1
     ? { width: "min(336px, 82%) !important", maxWidth: "min(336px, 82%) !important", aspectRatio: "9 / 16" }
@@ -2112,6 +2115,58 @@ export default function ProfileLitePowerPlaceModule({
     );
   }
 
+  function renderDaoFuOutlineLayout() {
+    const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
+
+    return (
+      <div className="daoFuOutlineScroll" aria-label="Даосский контур" data-node-count={nodeCount}>
+        {renderDaoFuReferenceOutline()}
+        <div className="daoFuOutlineBody">
+          <div className="daoFuOutlineCenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          <div className="daoFuOutlineNodeColumn" data-node-count={nodeCount}>
+            {Array.from(
+              { length: nodeCount },
+              (_, index) => ({
+                id: `${daoStyle}-${index + 1}`,
+                label: `Окно ${index + 1}`
+              })
+            ).map((node) => {
+              const slotId = node.id;
+              const src = objectRefs[slotId] || "";
+              const displaySrc = objectRefUrls[src] || src;
+              return (
+                <div className="daoFuOutlineSlot" key={node.id}>
+                  <button
+                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                    onClick={() => {
+                      if (suppressSlotPickerClickRef.current[slotId]) {
+                        suppressSlotPickerClickRef.current[slotId] = false;
+                        return;
+                      }
+                      openObjectPicker(slotId);
+                    }}
+                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                    type="button"
+                    title={node.label}
+                    aria-label={`Выбрать элемент ${node.label}`}
+                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                  >
+                    {!src && <span>◎</span>}
+                  </button>
+                  <b>{node.label}</b>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {renderPowerPlaceMotionLayer()}
+      </div>
+    );
+  }
+
   function renderDaoStyle2() {
     const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
 
@@ -2808,7 +2863,7 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && (isDaoTalisman2 || isDaoFulu || isDaoStyle2) && (
+                {compositionDraft.constructor_type === "dao" && (isDaoTalisman2 || isDaoFulu || isDaoStyle2 || isDaoFuOutline) && (
                   <div className="mandalaStyleSelector daoTalisman2NodeSelector" aria-label="Узлов в вертикальном талисмане">
                     {DAO_TALISMAN_NODE_COUNTS.map((n) => (
                       <button className={(compositionDraft.__dao_talisman_node_count || 5) === n ? "active" : ""} key={n} onClick={() => onCompositionDraftChange("__dao_talisman_node_count", n)} type="button">{n}</button>
@@ -3140,7 +3195,7 @@ export default function ProfileLitePowerPlaceModule({
                         : isDaoTalisman2 ? renderDaoTalisman2()
                           : isDaoTalisman1 ? renderDaoTalisman1()
                             : isDaoFulu ? renderDaoFulu()
-                              : isDaoFuOutline ? renderDaoFuReferenceOutline()
+                              : isDaoFuOutline ? renderDaoFuOutlineLayout()
                                 : isDaoStyle2 ? renderDaoStyle2()
                                   : isDaoStyle1 ? renderDaoStyle1()
                                     : renderDaoStyle1()}
