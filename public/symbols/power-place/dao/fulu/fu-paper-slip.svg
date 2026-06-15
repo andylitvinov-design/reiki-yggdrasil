@@ -1,18 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
-  <title id="title">DAO fu paper slip abstract contour</title>
-  <desc id="desc">Decorative Daoist-inspired fu paper slip with abstract pseudo-calligraphic marks only; not a ritual formula or sacred text.</desc>
+  <title id="title">DAO fu paper slip contour</title>
+  <desc id="desc">Decorative Daoist-inspired paper slip silhouette with contour frame only; not a ritual formula or sacred text.</desc>
   <path d="M22 12h76v336H22z" fill="#fff0b8" opacity=".76"/>
-  <path d="M28 20h64v320H28z" fill="#fff8d4" opacity=".32"/>
-  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#7a3f15" stroke-linecap="round" stroke-linejoin="round">
     <path d="M23 14h74v332H23z" stroke-width="2.4"/>
-    <path d="M28 20h64v320H28z" stroke-width="1.25" opacity=".62"/>
-    <path d="M28 49h64M34 67q6 0 6-7h40q0 7 6 7" stroke-width="1.9"/>
-    <path d="M38 25c-6 0-8 5-10 9M82 25c6 0 8 5 10 9M40 35c-5 0-7 4-9 8M80 35c5 0 7 4 9 8" stroke-width="1.55" opacity=".72"/>
-    <path d="M60 84c-8 14 9 18 0 34c-5 9-15 12-14 24c2 16 27 10 27 28c0 13-17 17-15 31" stroke-width="3.1" opacity=".72"/>
-    <path d="M48 108c11 3 24-2 33-11M42 151c10 8 25 7 38-1M51 208c9-4 20-2 29 5" stroke-width="2" opacity=".6"/>
-    <path d="M38 236h44M45 250h30M40 268h40" stroke-width="1.45" opacity=".58"/>
-    <path d="M45 291h30v30H45zM51 297h18v18H51z" stroke-width="1.75" opacity=".78"/>
-    <path d="M54 302l12 8M66 302l-12 8" stroke-width="1.35" opacity=".68"/>
-    <path d="M34 326q6 0 6 6h40q0-6 6-6M47 335h26" stroke-width="1.9"/>
+    <path d="M29 21h62v318H29z" stroke-width="1.25" opacity=".58"/>
   </g>
 </svg>
