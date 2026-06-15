@@ -448,7 +448,7 @@ function openPowerPlacePdfPrintView(title) {
 
   // Double RAF ensures React has flushed the latest slider state into the DOM
   // before we clone it, so print/PDF always reflects the current unsaved layout.
-  raf2(window)
+  return raf2(window)
     .then(() => {
       const freshPrintArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
       if (!freshPrintArea) throw new Error("Макет мандалы не найден.");
@@ -1906,18 +1906,18 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
-  const handleDownloadComposition = () => {
+  const handleDownloadComposition = async () => {
     try {
-      openPowerPlacePdfPrintView(compositionDraft.title || "power-place");
+      await openPowerPlacePdfPrintView(compositionDraft.title || "power-place");
       setCompositionMessage("Скачать PDF / Печать в PDF: в открывшемся окне выберите Save as PDF.");
     } catch (error) {
       setCompositionMessage(moduleError(error, "PDF preview failed"));
     }
   };
 
-  const handlePrintComposition = () => {
+  const handlePrintComposition = async () => {
     try {
-      openPowerPlacePdfPrintView(compositionDraft.title || "power-place");
+      await openPowerPlacePdfPrintView(compositionDraft.title || "power-place");
       setCompositionMessage("Открылось окно печати. Выберите принтер или Save as PDF.");
     } catch (error) {
       setCompositionMessage(moduleError(error, "Печать недоступна"));

@@ -2,6 +2,30 @@
 
 Last updated: 2026-06-15
 
+## 2026-06-15 — Mobile Power Place UX fix
+
+- Branch: `codex/mobile-power-place-ux-373`, based on fresh `origin/main` at `e81b254`.
+- Scope: `/profile/mandalas` Power Place mobile layout only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase schema/RLS/migrations, env names/values, Vercel routing/domains, or `production` branch changes.
+- Changed:
+  - moved `Внутрь / Снаружи` cover layer drop targets out of `.powerPlacePrintArea` / `.powerMandalaPanel`;
+  - rendered those targets as a horizontal control below the mandala preview while preserving `cover_ref.inner` / `cover_ref.outer` picker and drag/drop handlers;
+  - moved the title/save/update/create/print/PDF/service action card after the right-side modules in source order so mobile shows it after `Библиотека`, `Фон Места Силы`, and `Отчёт`;
+  - hid the visible `Публичная проекция` form behind `SHOW_POWER_PLACE_FEED_PROJECTION = false` while leaving feed handlers/form code in place;
+  - made `openPowerPlacePdfPrintView()` return its double-RAF/image/font promise and made print/PDF handlers await it, so async clone/load failures surface in the UI message.
+- Verification:
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm install` was attempted first but failed locally with `ENOSPC`; verification used the canonical checkout `node_modules` symlink because the machine had about 126 MB free;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings.
+- Local browser QA:
+  - mocked Supabase/session dev server with dummy local env names: `http://localhost:4423/profile/mandalas`;
+  - mobile `390x844` and `390x900`: DAO rendered, `Внутрь / Снаружи` appeared horizontally below the mandala preview, the controls were not inside `.powerPlacePrintArea`, actions appeared after `Библиотека`, `Фон Места Силы`, and `Отчёт`, `Публичная проекция` was hidden, service buttons remained visible, horizontal overflow was `0`, and console errors were `0`;
+  - mobile Print and Download PDF popup captures both cloned `.powerPlacePrintArea` with latest `--power-source-slot-scale: 1.85`, `--power-field-scale: 145%`, and `--power-center-frame-scale: 1.85`, and the clones did not include `.powerMandalaCoverDropTargets`;
+  - desktop `1280x920`: DAO rendered, three-column widths were `260 / 620 / 340`, horizontal overflow was `0`, and console errors were `0`.
+- Not verified yet:
+  - deployed `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy;
+  - real authenticated Supabase drag/drop against staging Storage/RLS.
+
 ## 2026-06-15 — DAO talisman visual authenticity v3
 
 - Branch: `codex/dao-talisman-authenticity-v3`, based on fresh `origin/main` at `c3f6cf5`.

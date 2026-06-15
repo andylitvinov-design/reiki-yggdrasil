@@ -91,6 +91,7 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const SHOW_POWER_PLACE_FEED_PROJECTION = false;
 
 const EMPTY_VISIBILITY_SETTINGS = {
   center: true,
@@ -2082,46 +2083,48 @@ export default function ProfileLitePowerPlaceModule({
       </div>
       {compositionMessage && <div className="cabinetSuccess compactNotice profileLitePowerPlaceActionFeedback">{compositionMessage}</div>}
       <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>
-      <div className="powerPlaceFeedProjection" aria-label="Публичная проекция для ленты">
-        <div className="cabinetFormHeader">
-          <div>
-            <p className="cabinetEyebrow">публичная проекция</p>
-            <h3>Опубликовать в ленту</h3>
+      {SHOW_POWER_PLACE_FEED_PROJECTION && (
+        <div className="powerPlaceFeedProjection" aria-label="Публичная проекция для ленты">
+          <div className="cabinetFormHeader">
+            <div>
+              <p className="cabinetEyebrow">публичная проекция</p>
+              <h3>Опубликовать в ленту</h3>
+            </div>
+            <span className="cabinetStatus">{powerPlaceFeedStatus}</span>
           </div>
-          <span className="cabinetStatus">{powerPlaceFeedStatus}</span>
-        </div>
-        <label>
-          Название для ленты
-          <input
-            value={powerPlaceFeedForm.title}
-            onChange={(event) => onFeedFormChange?.("title", event.target.value)}
-            placeholder={compositionDraft.title || "Место силы"}
-          />
-        </label>
-        <label>
-          Публичное описание
-          <textarea
-            value={powerPlaceFeedForm.body}
-            onChange={(event) => onFeedFormChange?.("body", event.target.value)}
-            rows={3}
-            placeholder="Опишите только публичный смысл мандалы, без клиентских фото и приватных заметок"
-          />
-        </label>
-        <div className="powerPlaceFeedProjectionGrid">
           <label>
-            Категория
-            <input value={powerPlaceFeedForm.category} onChange={(event) => onFeedFormChange?.("category", event.target.value)} placeholder="mandalas" />
+            Название для ленты
+            <input
+              value={powerPlaceFeedForm.title}
+              onChange={(event) => onFeedFormChange?.("title", event.target.value)}
+              placeholder={compositionDraft.title || "Место силы"}
+            />
           </label>
           <label>
-            Теги
-            <input value={powerPlaceFeedForm.tags} onChange={(event) => onFeedFormChange?.("tags", event.target.value)} placeholder="мандала, рэйки" />
+            Публичное описание
+            <textarea
+              value={powerPlaceFeedForm.body}
+              onChange={(event) => onFeedFormChange?.("body", event.target.value)}
+              rows={3}
+              placeholder="Опишите только публичный смысл мандалы, без клиентских фото и приватных заметок"
+            />
           </label>
+          <div className="powerPlaceFeedProjectionGrid">
+            <label>
+              Категория
+              <input value={powerPlaceFeedForm.category} onChange={(event) => onFeedFormChange?.("category", event.target.value)} placeholder="mandalas" />
+            </label>
+            <label>
+              Теги
+              <input value={powerPlaceFeedForm.tags} onChange={(event) => onFeedFormChange?.("tags", event.target.value)} placeholder="мандала, рэйки" />
+            </label>
+          </div>
+          <button className="cabinetSecondary" type="button" onClick={() => onPublishToFeed?.(compositionDraft)} disabled={!compositionDraft.id || powerPlaceFeedStatus === "loading"}>
+            Опубликовать в ленту
+          </button>
+          {!compositionDraft.id && <p className="cabinetMuted">Сначала сохраните мандалу. В ленту отправляется только эта публичная форма, без приватных данных композиции.</p>}
         </div>
-        <button className="cabinetSecondary" type="button" onClick={() => onPublishToFeed?.(compositionDraft)} disabled={!compositionDraft.id || powerPlaceFeedStatus === "loading"}>
-          Опубликовать в ленту
-        </button>
-        {!compositionDraft.id && <p className="cabinetMuted">Сначала сохраните мандалу. В ленту отправляется только эта публичная форма, без приватных данных композиции.</p>}
-      </div>
+      )}
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
   );
@@ -2542,7 +2545,6 @@ export default function ProfileLitePowerPlaceModule({
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
                 <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass} ${outerCoverFitClassName}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
-                  {renderInMandalaCoverDropTargets()}
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
@@ -2813,9 +2815,9 @@ export default function ProfileLitePowerPlaceModule({
                 </div>
               </div>
 
-              {workspaceTab === "power-place" && selectedSlotId && (selectedSlotId === "__center_image" ? centralImage : selectedSlotImage) && renderSlotPhotoEditor()}
+              {renderInMandalaCoverDropTargets()}
 
-              {workspaceTab === "power-place" && renderPowerPlaceActions()}
+              {workspaceTab === "power-place" && selectedSlotId && (selectedSlotId === "__center_image" ? centralImage : selectedSlotImage) && renderSlotPhotoEditor()}
 
               {reportAdded && (
                 <section className="powerReportOutput" aria-label="Отчёт по мандале">
@@ -2972,6 +2974,8 @@ export default function ProfileLitePowerPlaceModule({
             </div>
           </aside>
         </div>
+
+        {workspaceTab === "power-place" && renderPowerPlaceActions()}
 
         {workspaceTab === "power-place" && (
           <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>
