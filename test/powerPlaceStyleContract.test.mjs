@@ -385,8 +385,22 @@ for (const [styleValue, assetPath] of [
   assert.ok(baseSource.includes(`contourAsset: "${assetPath}"`), `DAO_FULU_STYLE_VALUES must map ${styleValue} to ${assetPath}`);
   assert.equal(existsSync(join(__dir, `../public${assetPath}`)), true, `${assetPath} must exist in public assets`);
   const assetSource = readFileSync(join(__dir, `../public${assetPath}`), "utf8");
-  assert.doesNotMatch(assetSource, /<circle\b|<defs\b|fill="url\(|filter=/, `${assetPath} must stay an empty outline contour without filled decorative internals`);
+  assert.match(assetSource, /<title[^>]*>DAO /, `${assetPath} must keep a descriptive DAO title`);
+  assert.match(assetSource, /abstract|pseudo-calligraphic|registry|angular|strict/i, `${assetPath} must describe its distinct decorative talisman direction`);
+  assert.doesNotMatch(assetSource, /<text\b|[\u3400-\u9fff]/u, `${assetPath} must not include readable sacred script or copied Chinese text`);
+  assert.doesNotMatch(assetSource, /<circle\b|<defs\b|fill="url\(|filter=/, `${assetPath} must avoid glossy icon effects and generated filter/gradient internals`);
+  assert.match(assetSource, /<path\b[^>]*fill="#/, `${assetPath} must include a paper-like filled slip surface`);
+  assert.ok((assetSource.match(/<path\b/g) || []).length >= 8, `${assetPath} must contain decorative abstract linework, not only an empty outline`);
 }
+
+const fuluAssetSources = [
+  "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
+  "/symbols/power-place/dao/fulu/cloud-register.svg",
+  "/symbols/power-place/dao/fulu/thunder-tablet.svg",
+  "/symbols/power-place/dao/fulu/taofu-charm.svg"
+].map((assetPath) => readFileSync(join(__dir, `../public${assetPath}`), "utf8"));
+
+assert.equal(new Set(fuluAssetSources).size, 4, "All four DAO fulu SVG files must remain visually/source distinct");
 
 assert.ok(
   !baseSource.includes("style={imageStyle(coverDisplaySrc(innerCover))}"),
@@ -458,6 +472,13 @@ assert.ok(
   cssSource.includes("background-repeat: no-repeat") &&
   cssSource.includes("background-position: center"),
   ".daoFuluContourLayer must render the style-specific SVG contour through --dao-fulu-contour-image"
+);
+
+assert.ok(
+  cssSource.includes(".daoMandalaSheet .daoElementImage") &&
+  cssSource.includes(".daoTalisman2Node .daoElementImage") &&
+  cssSource.includes(".daoFuluSlot .daoElementImage"),
+  "DAO node flattening must stay scoped to DAO sheet, talisman-2, and fulu selectors"
 );
 
 // ─── Chess cover-none is fully transparent (outer background shows through) ────
