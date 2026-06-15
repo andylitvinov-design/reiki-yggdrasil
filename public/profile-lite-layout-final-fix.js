@@ -159,6 +159,29 @@
     report.appendChild(analysis);
   }
 
+  function isolatedDaoGeometry(sheet) {
+    if (!sheet?.classList?.contains('daoMandalaSheet')) return null;
+    const isMobile = window.innerWidth <= 640;
+    if (sheet.classList.contains('dao-talisman')) {
+      const width = isMobile ? 'min(190px, 64%)' : 'min(336px, 82%)';
+      return { width, maxWidth: width };
+    }
+    if (sheet.classList.contains('dao-talisman-2')) {
+      const width = isMobile ? 'min(190px, 64%)' : 'min(292px, 78%)';
+      return { width, maxWidth: width };
+    }
+    if (
+      sheet.classList.contains('dao-fu-paper-slip') ||
+      sheet.classList.contains('dao-cloud-register') ||
+      sheet.classList.contains('dao-thunder-tablet') ||
+      sheet.classList.contains('dao-taofu-charm')
+    ) {
+      const width = isMobile ? 'min(220px, 58vw)' : 'min(248px, 60%)';
+      return { width, maxWidth: width };
+    }
+    return null;
+  }
+
   function applyState() {
     injectStyle();
     mergeReportAndAnalysis();
@@ -173,9 +196,10 @@
       panel.classList.toggle('center-shape-circle', shape === 'circle');
       panel.classList.toggle('center-shape-square', shape !== 'circle');
       panel.querySelectorAll(INNER_SELECTOR).forEach((inner) => {
+        const daoGeometry = isolatedDaoGeometry(inner);
         inner.style.setProperty('overflow', 'visible', 'important');
-        inner.style.setProperty('width', `${scale}%`, 'important');
-        inner.style.setProperty('max-width', `${scale}%`, 'important');
+        inner.style.setProperty('width', daoGeometry?.width || `${scale}%`, 'important');
+        inner.style.setProperty('max-width', daoGeometry?.maxWidth || `${scale}%`, 'important');
       });
     });
 

@@ -2190,7 +2190,7 @@
 .daoMandalaSheet.dao-talisman {
   aspect-ratio: 9 / 16 !important;
   border-radius: 12px 12px 8px 8px !important;
-  width: min(320px, 92%) !important;
+  width: min(336px, 92%) !important;
   margin: 0 auto;
   background:
     linear-gradient(180deg,
@@ -2252,8 +2252,8 @@
 .daoTalismanAxis {
   position: absolute;
   left: 50%;
-  top: 12%;
-  bottom: 12%;
+  top: 18%;
+  bottom: 18%;
   width: 1px;
   transform: translateX(-50%);
   background: linear-gradient(180deg, transparent 0%, rgba(139, 90, 15, 0.15) 20%, rgba(139, 90, 15, 0.18) 80%, transparent 100%);
@@ -2302,60 +2302,87 @@
   width: 100%;
 }
 
+.daoTalismanBody::before,
+.daoTalismanBody::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.daoTalismanBody::before {
+  width: min(76%, 218px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(130, 70, 12, 0.24);
+  box-shadow:
+    inset 0 0 0 12px rgba(255, 245, 210, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.34);
+}
+
+.daoTalismanBody::after {
+  width: min(52%, 150px);
+  aspect-ratio: 1;
+  border: 1px dashed rgba(140, 80, 18, 0.20);
+}
+
 /* Center photo — visually dominant, centered in body */
 .daoTalismanCenterArea {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2;
+  z-index: 4;
 }
 
 .daoTalismanCenterArea .daoCenterPhoto {
-  width: min(72px, 28%) !important;
-  height: min(72px, 28%) !important;
+  width: clamp(52px, 22%, 70px) !important;
+  height: clamp(52px, 22%, 70px) !important;
 }
 
 /* Individual slot positions — evenly around center (Wu Xing circle) */
 .daoTalismanSlot {
   position: absolute;
-  z-index: 3;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
-  width: 24%;
+  width: 22%;
 }
 
 /* water: top center */
 .daoTalismanSlot--water {
-  top: 4%;
+  top: 5%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 /* wood: upper right */
 .daoTalismanSlot--wood {
-  top: 18%;
-  right: 4%;
+  top: 25%;
+  right: 6%;
 }
 
 /* metal: upper left */
 .daoTalismanSlot--metal {
-  top: 18%;
-  left: 4%;
+  top: 25%;
+  left: 6%;
 }
 
 /* fire: lower right */
 .daoTalismanSlot--fire {
-  bottom: 18%;
-  right: 4%;
+  bottom: 15%;
+  right: 13%;
 }
 
 /* earth: lower left */
 .daoTalismanSlot--earth {
-  bottom: 18%;
-  left: 4%;
+  bottom: 15%;
+  left: 13%;
 }
 
 .daoTalismanSlot b {
@@ -2363,12 +2390,15 @@
   font-weight: 700;
   color: rgba(100, 55, 10, 0.78);
   white-space: nowrap;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: center;
   line-height: 1;
 }
 
 .daoTalismanSlot .daoElementImage {
-  width: min(52px, 90%);
+  width: clamp(38px, 82%, 50px);
   aspect-ratio: 1;
   border-radius: 50%;
   transform: scale(var(--power-source-slot-scale, 1));
@@ -2409,7 +2439,7 @@
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman {
   aspect-ratio: 9 / 16 !important;
   border-radius: 12px 12px 8px 8px !important;
-  width: min(320px, 92%) !important;
+  width: min(336px, 92%) !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
@@ -2418,20 +2448,21 @@
 
 @media (max-width: 640px) {
   .daoMandalaSheet.dao-talisman {
-    width: min(240px, 88%) !important;
+    width: min(252px, 88%) !important;
   }
 
   .daoTalismanSlot .daoElementImage {
-    width: min(38px, 88%);
+    width: clamp(30px, 78%, 36px);
   }
 
   .daoTalismanCenterArea .daoCenterPhoto {
-    width: min(56px, 28%) !important;
-    height: min(56px, 28%) !important;
+    width: clamp(42px, 20%, 54px) !important;
+    height: clamp(42px, 20%, 54px) !important;
   }
 
   .daoTalismanSlot b {
     font-size: 8px;
+    max-width: 54px;
   }
 
   .daoTalismanPureMarks {
@@ -2444,7 +2475,7 @@
 .daoMandalaSheet.dao-talisman-2 {
   aspect-ratio: 9 / 16 !important;
   border-radius: 12px 12px 8px 8px !important;
-  width: min(280px, 88%) !important;
+  width: min(292px, 88%) !important;
   margin: 0 auto;
   background:
     linear-gradient(180deg,
@@ -2517,7 +2548,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  padding: 6px 0;
+  padding: 12px 0;
   position: relative;
 }
 
@@ -2526,11 +2557,27 @@
   content: "";
   position: absolute;
   left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
+  top: 4%;
+  bottom: 4%;
+  width: 2px;
   transform: translateX(-50%);
   background: linear-gradient(180deg, transparent 0%, rgba(139, 90, 15, 0.18) 15%, rgba(139, 90, 15, 0.22) 85%, transparent 100%);
+  pointer-events: none;
+}
+
+.daoTalisman2Body::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  bottom: 9%;
+  width: 34%;
+  min-width: 54px;
+  max-width: 86px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(140, 76, 14, 0.16);
+  border-top: 0;
+  border-bottom: 0;
   pointer-events: none;
 }
 
@@ -2542,6 +2589,12 @@
   gap: 3px;
   position: relative;
   z-index: 2;
+  width: 34%;
+  min-width: 58px;
+  max-width: 88px;
+  padding: 2px 0;
+  border-radius: 999px;
+  background: rgba(255, 247, 220, 0.38);
 }
 
 .daoTalisman2Node b {
@@ -2549,12 +2602,15 @@
   font-weight: 700;
   color: rgba(100, 55, 10, 0.78);
   white-space: nowrap;
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: center;
   line-height: 1;
 }
 
 .daoTalisman2Node .daoElementImage {
-  width: min(46px, 80%);
+  width: clamp(32px, 72%, 44px);
   aspect-ratio: 1;
   border-radius: 50%;
   transform: scale(var(--power-source-slot-scale, 1));
@@ -2566,7 +2622,7 @@
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman-2 {
   aspect-ratio: 9 / 16 !important;
   border-radius: 12px 12px 8px 8px !important;
-  width: min(280px, 88%) !important;
+  width: min(292px, 88%) !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
@@ -2575,15 +2631,25 @@
 
 @media (max-width: 640px) {
   .daoMandalaSheet.dao-talisman-2 {
-    width: min(220px, 86%) !important;
+    width: min(232px, 86%) !important;
   }
 
   .daoTalisman2Node .daoElementImage {
-    width: min(36px, 76%);
+    width: clamp(26px, 68%, 34px);
   }
 
   .daoTalisman2Node b {
     font-size: 8px;
+    max-width: 58px;
+  }
+
+  .daoTalisman2Body {
+    padding: 8px 0;
+  }
+
+  .daoTalisman2Scroll[data-node-count="9"] .daoTalisman2Node {
+    gap: 1px;
+    padding: 1px 0;
   }
 }
 
@@ -2602,10 +2668,10 @@
   --dao-fulu-contour-image: none;
   --dao-fulu-user-cover-image: none;
   --dao-fulu-color: rgba(104, 54, 16, 0.78);
-  aspect-ratio: 1 / 2.85 !important;
-  height: min(520px, calc(100% - 48px)) !important;
+  aspect-ratio: 1 / 2.9 !important;
+  height: min(536px, calc(100% - 42px)) !important;
   width: auto !important;
-  max-width: 58% !important;
+  max-width: 56% !important;
   margin: 0 auto;
   overflow: visible !important;
   position: relative;
@@ -2650,7 +2716,7 @@
 
 .daoFuluContourLayer {
   position: absolute;
-  inset: 0;
+  inset: 1.5% 0;
   pointer-events: none;
   z-index: 1;
   background-image: var(--dao-fulu-contour-image);
@@ -2663,19 +2729,20 @@
 
 .daoFuluUserCoverLayer {
   position: absolute;
-  inset: 7% 15%;
+  inset: 12% 18% 15%;
   z-index: 0;
   pointer-events: none;
   background-image: var(--dao-fulu-user-cover-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.16;
+  opacity: 0.12;
+  mix-blend-mode: multiply;
 }
 
 .daoFuluBody {
   position: absolute;
-  inset: 12% 16% 13%;
+  inset: 15% 20% 16%;
   z-index: 2;
 }
 
@@ -2688,8 +2755,8 @@
 }
 
 .daoFuluCenterArea .daoCenterPhoto {
-  width: min(62px, 26%) !important;
-  height: min(62px, 26%) !important;
+  width: clamp(40px, 22%, 56px) !important;
+  height: clamp(40px, 22%, 56px) !important;
 }
 
 /* Slot base */
@@ -2701,11 +2768,11 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 19%;
+  width: 18%;
 }
 
 .daoFuluSlot b {
-  max-width: 58px;
+  max-width: 50px;
   font-size: 7px;
   font-weight: 700;
   color: rgba(90, 50, 8, 0.78);
@@ -2717,25 +2784,26 @@
 }
 
 .daoFuluSlot .daoElementImage {
-  width: min(34px, 82%);
+  width: clamp(26px, 76%, 34px);
   aspect-ratio: 1;
   border-radius: 50%;
   transform: scale(var(--power-source-slot-scale, 1));
   transform-origin: center;
   box-shadow:
     inset 0 0 0 1px rgba(255, 246, 218, 0.68),
-    0 2px 8px rgba(55, 28, 8, 0.16);
-  background-color: rgba(255, 244, 212, 0.86);
+    inset 0 0 0 2px rgba(130, 58, 20, 0.08),
+    0 1px 5px rgba(55, 28, 8, 0.12);
+  background-color: rgba(255, 244, 212, 0.78);
 }
 
 /* Slot positions — wood upper-left, fire upper-right, earth bottom-center,
    metal lower-right, water lower-left */
 
-.daoFuluSlot--wood  { top: 2%;    left: 6%; }
-.daoFuluSlot--fire  { top: 2%;    right: 6%; }
-.daoFuluSlot--earth { bottom: 4%; left: 50%; transform: translateX(-50%); }
-.daoFuluSlot--metal { bottom: 24%; right: 6%; }
-.daoFuluSlot--water { bottom: 24%; left: 6%; }
+.daoFuluSlot--wood  { top: 4%;    left: 4%; }
+.daoFuluSlot--fire  { top: 4%;    right: 4%; }
+.daoFuluSlot--earth { bottom: 6%; left: 50%; transform: translateX(-50%); }
+.daoFuluSlot--metal { bottom: 26%; right: 4%; }
+.daoFuluSlot--water { bottom: 26%; left: 4%; }
 
 /* ── Print / PDF ────────────────────────────────────────────────────────── */
 
@@ -2743,10 +2811,10 @@
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-cloud-register,
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-thunder-tablet,
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-taofu-charm {
-  aspect-ratio: 1 / 2.85 !important;
-  height: min(520px, calc(100% - 48px)) !important;
+  aspect-ratio: 1 / 2.9 !important;
+  height: min(536px, calc(100% - 42px)) !important;
   width: auto !important;
-  max-width: 58% !important;
+  max-width: 56% !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
@@ -2760,28 +2828,33 @@
   .daoMandalaSheet.dao-taofu-charm {
     height: min(430px, calc(100% - 44px)) !important;
     width: auto !important;
-    max-width: 54vw !important;
-    aspect-ratio: 1 / 2.85 !important;
+    max-width: 58vw !important;
+    aspect-ratio: 1 / 2.9 !important;
   }
 
   .daoFuluSlot .daoElementImage {
-    width: min(34px, 82%);
+    width: clamp(24px, 72%, 30px);
   }
 
   .daoFuluCenterArea .daoCenterPhoto {
-    width: clamp(34px, 10vw, 52px) !important;
-    height: clamp(34px, 10vw, 52px) !important;
+    width: clamp(32px, 9vw, 48px) !important;
+    height: clamp(32px, 9vw, 48px) !important;
   }
 
   .daoFuluBody {
-    inset: 13% 15% 13%;
+    inset: 16% 19% 16%;
   }
 
-  .daoFuluSlot--wood  { top: 4%;    left: 8%; }
-  .daoFuluSlot--fire  { top: 4%;    right: 8%; }
-  .daoFuluSlot--water { bottom: 20%; left: 8%; }
-  .daoFuluSlot--metal { bottom: 20%; right: 8%; }
-  .daoFuluSlot--earth { bottom: 6%; left: 50%; transform: translateX(-50%); }
+  .daoFuluSlot b {
+    max-width: 42px;
+    font-size: 6.5px;
+  }
+
+  .daoFuluSlot--wood  { top: 5%;    left: 5%; }
+  .daoFuluSlot--fire  { top: 5%;    right: 5%; }
+  .daoFuluSlot--water { bottom: 23%; left: 5%; }
+  .daoFuluSlot--metal { bottom: 23%; right: 5%; }
+  .daoFuluSlot--earth { bottom: 7%; left: 50%; transform: translateX(-50%); }
 }
 
 /* ── Slot image size cap for fulu styles ────────────────────────────────── */
@@ -2790,8 +2863,8 @@
 .daoMandalaSheet.dao-cloud-register .daoElementImage,
 .daoMandalaSheet.dao-thunder-tablet .daoElementImage,
 .daoMandalaSheet.dao-taofu-charm .daoElementImage {
-  width: clamp(30px, 8vw, 46px) !important;
-  min-width: 30px;
+  width: clamp(26px, 6vw, 36px) !important;
+  min-width: 26px;
   aspect-ratio: 1;
 }
 
@@ -2814,7 +2887,8 @@
 .powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-thunder-tablet,
 .powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-taofu-charm {
   width: min(260px, 64%) !important;
-  aspect-ratio: 1 / 2.85 !important;
+  max-width: min(260px, 64%) !important;
+  aspect-ratio: 1 / 2.9 !important;
   overflow: visible !important;
 }
 
@@ -9167,6 +9241,44 @@
 
   .profileLitePowerPlace .daoCenterPhoto {
     width: calc(28% * var(--power-center-frame-scale, 1));
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-talisman {
+    width: min(190px, 64%) !important;
+    max-width: min(190px, 64%) !important;
+    aspect-ratio: 9 / 16 !important;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-talisman-2 {
+    width: min(190px, 64%) !important;
+    max-width: min(190px, 64%) !important;
+    aspect-ratio: 9 / 16 !important;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-fu-paper-slip,
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-cloud-register,
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-thunder-tablet,
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-taofu-charm {
+    width: min(220px, 58vw) !important;
+    max-width: min(220px, 58vw) !important;
+    aspect-ratio: 1 / 2.9 !important;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-talisman-2 .daoTalisman2Node .daoElementImage {
+    width: clamp(26px, 68%, 34px) !important;
+    min-width: 26px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-talisman .daoTalismanSlot .daoElementImage {
+    width: clamp(30px, 78%, 36px) !important;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-fu-paper-slip .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-cloud-register .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-thunder-tablet .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-taofu-charm .daoElementImage {
+    width: clamp(24px, 72%, 30px) !important;
+    min-width: 24px;
   }
 }
 
