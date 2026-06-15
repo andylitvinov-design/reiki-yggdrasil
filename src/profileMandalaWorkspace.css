@@ -1803,6 +1803,44 @@
   color: #fff;
 }
 
+.profileLitePowerPlace .daoLayoutTemplateOptions {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 251, 241, 0.68);
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptionRow {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptionRow > span,
+.profileLitePowerPlace .daoLayoutTemplateCheckbox {
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptionRow > span {
+  min-width: 104px;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateCheckbox input {
+  accent-color: #9d1d13;
+}
+
 .altarMandalaSheet {
   position: relative;
   width: min(500px, 100%);
@@ -2670,6 +2708,191 @@
   border-radius: 0;
   opacity: 0.18;
   mix-blend-mode: multiply;
+}
+
+/* ── DAO layout template — empty configurable talisman silhouette ─────────── */
+
+.daoMandalaSheet.dao-layout-template {
+  aspect-ratio: 9 / 16 !important;
+  border: 0 !important;
+  border-radius: 42% 42% 30% 30% / 18% 18% 12% 12% !important;
+  width: min(292px, 88%) !important;
+  margin: 0 auto;
+  overflow: visible !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.daoLayoutTemplateScroll {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.daoLayoutTemplateBody {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 15%;
+  bottom: 7%;
+  border: 4px solid rgba(150, 25, 12, 0.92);
+  border-bottom: 0;
+  border-radius: 45% 45% 34% 34% / 18% 18% 12% 12%;
+  background: transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 220, 190, 0.18),
+    0 8px 24px rgba(90, 18, 8, 0.08);
+}
+
+.daoLayoutTemplateBody::before,
+.daoLayoutTemplateBody::after {
+  content: "";
+  position: absolute;
+  top: 7%;
+  bottom: 0;
+  width: 24%;
+  pointer-events: none;
+}
+
+.daoLayoutTemplateBody::before {
+  left: -4px;
+  border-left: 3px solid rgba(190, 44, 22, 0.72);
+  border-radius: 100% 0 0 34% / 50% 0 0 12%;
+}
+
+.daoLayoutTemplateBody::after {
+  right: -4px;
+  border-right: 3px solid rgba(190, 44, 22, 0.72);
+  border-radius: 0 100% 34% 0 / 0 50% 12% 0;
+}
+
+.daoLayoutTemplateCrown {
+  position: absolute;
+  left: 50%;
+  top: 3%;
+  z-index: 4;
+  width: 58%;
+  height: 15%;
+  transform: translateX(-50%);
+}
+
+.daoLayoutTemplateRoofLine {
+  position: absolute;
+  top: 50%;
+  width: 52%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(155, 28, 13, 0.94);
+  transform-origin: center;
+}
+
+.daoLayoutTemplateRoofLine.roof-left {
+  left: 1%;
+  transform: rotate(-26deg);
+}
+
+.daoLayoutTemplateRoofLine.roof-right {
+  right: 1%;
+  transform: rotate(26deg);
+}
+
+.daoLayoutTemplateRoofNode,
+.daoLayoutTemplateSideNode {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid rgba(152, 24, 12, 0.94);
+  background: rgba(255, 247, 226, 0.82);
+  box-shadow: 0 2px 8px rgba(110, 18, 7, 0.12);
+}
+
+.daoLayoutTemplateRoofNode {
+  width: 15px;
+  height: 15px;
+}
+
+.daoLayoutTemplateRoofNode.node-left {
+  left: 3%;
+  top: 58%;
+}
+
+.daoLayoutTemplateRoofNode.node-top {
+  left: 50%;
+  top: 13%;
+  transform: translateX(-50%);
+}
+
+.daoLayoutTemplateRoofNode.node-right {
+  right: 3%;
+  top: 58%;
+}
+
+.daoLayoutTemplateCheck {
+  position: absolute;
+  top: 34%;
+  width: 22px;
+  height: 14px;
+  border-left: 4px solid rgba(155, 28, 13, 0.94);
+  border-bottom: 4px solid rgba(155, 28, 13, 0.94);
+  border-radius: 0 0 0 5px;
+  transform: rotate(-42deg);
+}
+
+.daoLayoutTemplateCheck.check-1 { left: 11%; }
+.daoLayoutTemplateCheck.check-2 { left: 50%; transform: translateX(-50%) rotate(-42deg); }
+.daoLayoutTemplateCheck.check-3 { right: 11%; }
+
+.daoLayoutTemplateSideNode {
+  width: 20px;
+  height: 20px;
+  z-index: 5;
+}
+
+.daoLayoutTemplateSideNode.left {
+  left: -18px;
+}
+
+.daoLayoutTemplateSideNode.right {
+  right: -18px;
+}
+
+.daoLayoutTemplateSideNode.node-1 { top: 26%; }
+.daoLayoutTemplateSideNode.node-2 { top: 58%; }
+.daoLayoutTemplateSideNode.node-3 { top: 42%; }
+
+.daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-1 { top: 22%; }
+.daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-2 { top: 48%; }
+.daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-3 { top: 74%; }
+
+.daoLayoutTemplateScroll.side-nodes-hidden .daoLayoutTemplateSideNode {
+  display: none;
+}
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-layout-template {
+  aspect-ratio: 9 / 16 !important;
+  width: min(292px, 88%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-layout-template {
+    width: min(246px, 88%) !important;
+  }
+
+  .daoLayoutTemplateBody {
+    border-width: 3px;
+  }
+
+  .daoLayoutTemplateSideNode {
+    width: 17px;
+    height: 17px;
+  }
+
+  .daoLayoutTemplateRoofNode {
+    width: 13px;
+    height: 13px;
+  }
 }
 
 /* ─── Print / PDF rules for Талисман 2 ─────────────────────────────────── */

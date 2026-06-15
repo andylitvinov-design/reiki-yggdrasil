@@ -253,7 +253,14 @@ for (const requiredPowerPlaceText of [
   "Перенести в услуги",
   "Опубликовать как услугу",
   "Скачать PDF",
-  "Печать"
+  "Печать",
+  "ДАО: Макет",
+  "Верхушка",
+  "Крыша",
+  "3 галочки",
+  "Боковые точки",
+  "Показывать",
+  "Количество точек"
 ]) {
   assert.match(`${powerPlaceSource}\n${moduleSource}`, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include UX text: ${requiredPowerPlaceText}`);
 }
@@ -458,7 +465,7 @@ assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
 assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
-assert.doesNotMatch(powerPlaceSource, /Макет|макет/, "Profile Lite Power Place UI should not show the word Макет");
+assert.doesNotMatch(powerPlaceSource.replaceAll("ДАО: Макет", ""), /Макет|макет/, "Profile Lite Power Place UI should not show stray Макет labels outside the DAO template style");
 assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "resource comparison mini-block should not be visible in the React report/settings UI");
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
@@ -1055,6 +1062,11 @@ assert.match(
   powerPlaceSource,
   /function daoStyleValue\(/,
   "Wrapper module must define daoStyleValue normalizer"
+);
+
+assert.ok(
+  powerPlaceSource.includes('value === "dao-layout-template"'),
+  "Wrapper module must preserve the DAO layout template style instead of falling back to style-1"
 );
 
 // Talisman must be nested inside daoMandalaSheet — outer surface preserved

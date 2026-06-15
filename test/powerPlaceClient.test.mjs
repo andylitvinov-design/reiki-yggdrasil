@@ -589,7 +589,12 @@ assert.deepEqual(
       "dao-water": "https://example.com/water.jpg",
       "dao-fire": "https://example.com/fire.jpg",
       "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
-      "dao-metal": "data:image/png;base64,local"
+      "dao-metal": "data:image/png;base64,local",
+      __dao_layout_template_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      }
     },
     central_photo_id: "photo-4",
     resource_comparison_mode: "bad"
@@ -609,6 +614,11 @@ assert.deepEqual(
       "dao-water": "https://example.com/water.jpg",
       "dao-fire": "https://example.com/fire.jpg",
       "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
+      __dao_layout_template_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      },
       __field_layout: "square"
     },
     central_photo_id: "photo-4",
