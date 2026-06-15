@@ -41,11 +41,14 @@ const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
 const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
 const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
+const VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS = ["roof_double_line", "three_checks"];
+const VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS = [2, 3];
 const DEFAULT_MOTION_SETTINGS = {
   mode: "photo",
   count: 1,
@@ -132,6 +135,18 @@ function normalizeMotionSettings(value) {
   };
 }
 
+function normalizeDaoLayoutTemplateOptions(value) {
+  const source = cleanJsonObject(value);
+  const topCrown = cleanText(source.topCrown);
+  const sideNodeCount = Number(source.sideNodeCount);
+
+  return {
+    topCrown: VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS.includes(topCrown) ? topCrown : "roof_double_line",
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS.includes(sideNodeCount) ? sideNodeCount : 2
+  };
+}
+
 function clampSlotOffset(v) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.min(80, Math.max(20, n)) : 50;
@@ -175,6 +190,10 @@ function cleanObjectRefs(value) {
       if (rawItem && typeof rawItem === "object" && !Array.isArray(rawItem)) {
         refs[VISIBILITY_SETTINGS_REF_KEY] = rawItem;
       }
+      continue;
+    }
+    if (key === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+      refs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(rawItem);
       continue;
     }
     if (rawItem && typeof rawItem === "object") continue;
@@ -513,6 +532,9 @@ export function normalizePowerPlaceComposition(composition) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
   objectRefs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(sourceObjectRefs[MOTION_SETTINGS_REF_KEY]);
+  if (Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY)) {
+    objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(sourceObjectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
+  }
   if (Object.hasOwn(sourceObjectRefs, SLOT_TRANSFORMS_REF_KEY)) {
     const slotTransforms = normalizeSlotTransforms(sourceObjectRefs[SLOT_TRANSFORMS_REF_KEY]);
     if (slotTransforms) objectRefs[SLOT_TRANSFORMS_REF_KEY] = slotTransforms;

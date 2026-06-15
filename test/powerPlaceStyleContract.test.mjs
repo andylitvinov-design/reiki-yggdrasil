@@ -376,6 +376,35 @@ assert.ok(
   "Base module must define DAO_FULU_STYLE_VALUES for fulu contour assets"
 );
 
+assert.ok(
+  baseSource.includes('const DAO_LAYOUT_TEMPLATE_STYLE_ID = "dao-layout-template"') &&
+  baseSource.includes('label: "ДАО: Макет"') &&
+  baseSource.includes('const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options"'),
+  "DAO layout template style must be registered with a stable style id, RU label, and object_refs option key"
+);
+
+assert.ok(
+  baseSource.includes("function normalizeDaoLayoutTemplateOptions(value)") &&
+  baseSource.includes('source.topCrown === "three_checks"') &&
+  baseSource.includes("sideNodesVisible") &&
+  baseSource.includes("sideNodeCount"),
+  "DAO layout template options must be normalized for top ornament and side node controls"
+);
+
+assert.ok(
+  baseSource.includes("function renderDaoLayoutTemplate()") &&
+  baseSource.includes("daoLayoutTemplateRoofLine") &&
+  baseSource.includes("daoLayoutTemplateCheck") &&
+  baseSource.includes("daoLayoutTemplateSideNode") &&
+  !/renderDaoLayoutTemplate[\s\S]*[三清印]/u.test(baseSource),
+  "DAO layout template renderer must provide roof/check variants without Chinese/Japanese characters"
+);
+
+assert.ok(
+  /isDaoLayoutTemplate \? renderDaoLayoutTemplate\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)/.test(baseSource),
+  "DAO render selection must route dao-layout-template to its own helper before other talisman branches"
+);
+
 for (const [styleValue, assetPath] of [
   ["fu-paper-slip", "/symbols/power-place/dao/fulu/fu-paper-slip.svg"],
   ["cloud-register", "/symbols/power-place/dao/fulu/cloud-register.svg"],
