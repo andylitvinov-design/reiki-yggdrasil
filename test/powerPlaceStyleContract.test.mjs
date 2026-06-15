@@ -317,7 +317,8 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes('const daoStyle = compositionDraft.__dao_style || "style-1"') &&
+  baseSource.includes('const legacyDaoLayoutStyle = compositionDraft.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID') &&
+  baseSource.includes('const daoStyle = legacyDaoLayoutStyle ? "style-1" : compositionDraft.__dao_style || "style-1"') &&
   baseSource.includes("const isDaoStyle1 = daoStyle === \"style-1\"") &&
   baseSource.includes("const isDaoTalisman1 = daoStyle === \"talisman-1\"") &&
   baseSource.includes("const isDaoTalisman2 = daoStyle === \"talisman-2\"") &&
@@ -442,9 +443,10 @@ for (const selector of [
 
 assert.ok(
   baseSource.includes('const DAO_LAYOUT_TEMPLATE_STYLE_ID = "dao-layout-template"') &&
-  baseSource.includes('label: "ДАО: Макет"') &&
+  baseSource.includes('{ value: "dao-layout", label: "ДАО-Макет" }') &&
+  baseSource.includes('const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options"') &&
   baseSource.includes('const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options"'),
-  "DAO layout template style must be registered with a stable style id, RU label, and object_refs option key"
+  "DAO layout format must keep the legacy style id and register new plus legacy object_refs option keys"
 );
 
 assert.ok(
@@ -456,17 +458,17 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes("function renderDaoLayoutTemplate()") &&
+  baseSource.includes("function renderDaoLayoutOverlay()") &&
   baseSource.includes("daoLayoutTemplateRoofLine") &&
   baseSource.includes("daoLayoutTemplateCheck") &&
   baseSource.includes("daoLayoutTemplateSideNode") &&
-  !/renderDaoLayoutTemplate[\s\S]*[三清印]/u.test(baseSource),
-  "DAO layout template renderer must provide roof/check variants without Chinese/Japanese characters"
+  !/renderDaoLayoutOverlay[\s\S]*[三清印]/u.test(baseSource),
+  "DAO layout overlay renderer must provide roof/check variants without Chinese/Japanese characters"
 );
 
 assert.ok(
-  /isDaoLayoutTemplate \? renderDaoLayoutTemplate\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)/.test(baseSource),
-  "DAO render selection must route dao-layout-template to its own helper before other talisman branches"
+  /isDaoTalisman2 \? renderDaoTalisman2\(\)[\s\S]*isDaoLayoutTemplate && renderDaoLayoutOverlay\(\)/.test(baseSource),
+  "DAO render selection must render the selected DAO base style before the layout overlay"
 );
 
 for (const [styleValue, assetPath] of [

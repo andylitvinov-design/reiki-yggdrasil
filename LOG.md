@@ -1,5 +1,54 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-15 — Split DAO-Макет into its own format and restore photo layers
+
+- Branch: `codex/dao-layout-format-20260615`.
+- Base: `origin/main` at `31b8574` after PR #379 (`0bf0daf`) and PR #378.
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `supabase/migrations/20260615123000_power_place_dao_layout_format.sql`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added `dao-layout` / `ДАО-Макет` as a separate constructor format next to `dao` / `ДАО`;
+  - removed `ДАО: Макет` from the normal DAO style picker while keeping legacy `dao-layout-template` runtime support;
+  - made `ДАО-Макет` use all existing DAO styles as base styles;
+  - moved the roof/checks/side-node layout frame into a non-interactive overlay drawn after the selected DAO base style;
+  - restored center photo and DAO mini-window slots by rendering the normal DAO layer under the overlay;
+  - added new persistence key `object_refs.__dao_layout_options` and kept reading legacy `object_refs.__dao_layout_template_options`;
+  - normalized legacy `object_refs.__dao_style: "dao-layout-template"` to runtime `constructor_type: "dao-layout"` with base DAO style `style-1`;
+  - added a minimal Supabase check-constraint migration for `constructor_type='dao-layout'`.
+- Checks run:
+  - `npm install`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `node test/powerPlaceClient.test.mjs`
+  - `node test/powerPlaceStyleContract.test.mjs`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - no-env dev route `http://localhost:5173/profile/mandalas` showed the expected Supabase-not-configured gate with console errors `0`;
+  - mock Supabase plus env-backed dev route `http://localhost:5174/profile/mandalas` rendered the constructor;
+  - desktop/mock QA confirmed `ДАО-Макет`, DAO style picker, layout options, center layer, five DAO slots, overlay `pointer-events: none`, horizontal overflow `0`, and console errors `0`;
+  - saved mock `dao-layout` composition loaded center image and two saved mini-window images while keeping five slots and the overlay;
+  - mobile emulation `390x900` confirmed center image, mini-window images, overlay, horizontal overflow `0`, and console errors `0`;
+  - normal `ДАО` confirmed layout options hidden.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+- Risk:
+  - staging/live Supabase must apply the new constraint migration before new `dao-layout` saves succeed.
+
 ## 2026-06-15 — Add DAO reference fu outline styles
 
 - Branch: `codex/dao-fu-reference-outlines`.

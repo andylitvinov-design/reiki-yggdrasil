@@ -17,7 +17,8 @@ const CONSTRUCTOR_TYPES = [
   { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес" },
-  { value: "dao", label: "ДАО" }
+  { value: "dao", label: "ДАО" },
+  { value: "dao-layout", label: "ДАО-Макет" }
 ];
 
 const GEOMETRIES = [2, 4, 6, 8, 12];
@@ -27,6 +28,7 @@ const MANDALA_STYLE_VARIANTS = [
   { value: "style-3", label: "Стиль 3" }
 ];
 const DAO_LAYOUT_TEMPLATE_STYLE_ID = "dao-layout-template";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
 const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 const DAO_LAYOUT_TEMPLATE_TOP_CROWNS = [
   { value: "roof_double_line", label: "Крыша" },
@@ -38,7 +40,6 @@ const DAO_STYLE_VARIANTS = [
   { value: "style-2", label: "Стиль 2" },
   { value: "talisman-1", label: "Талисман 1" },
   { value: "talisman-2", label: "Талисман 2" },
-  { value: DAO_LAYOUT_TEMPLATE_STYLE_ID, label: "ДАО: Макет" },
   { value: "fu-paper-slip", label: "Фу-лист" },
   { value: "cloud-register", label: "Облачный реестр" },
   { value: "thunder-tablet", label: "Громовая табличка" },
@@ -566,6 +567,10 @@ function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
 }
 
+function isDaoConstructorType(type) {
+  return type === "dao" || type === "dao-layout";
+}
+
 function buildSlotList(draft) {
   const type = draft.constructor_type || "zodiac";
   if (type === "client") {
@@ -618,7 +623,7 @@ function buildSlotList(draft) {
       }))
     );
   }
-  if (type === "dao") return DAO_ELEMENTS.map((element) => ({
+  if (isDaoConstructorType(type)) return DAO_ELEMENTS.map((element) => ({
     id: `dao-${element.id}`,
     label: element.label,
     className: element.className
@@ -691,7 +696,7 @@ function getMotionPositionsForComposition(draft, slots) {
       { left: 27, top: 40 }
     ];
   }
-  if (type === "dao") return clockPositions(5, DAO_MOTION_RADIUS, -90);
+  if (isDaoConstructorType(type)) return clockPositions(5, DAO_MOTION_RADIUS, -90);
   if (type === "business") {
     return [
       { left: 50, top: 24 },
@@ -847,15 +852,17 @@ export default function ProfileLitePowerPlaceModule({
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
   const outerCoverFitClassName = outerCoverFitClass(outerCover);
-  const daoStyle = compositionDraft.__dao_style || "style-1";
+  const isDaoLayoutFormat = compositionDraft.constructor_type === "dao-layout";
+  const legacyDaoLayoutStyle = compositionDraft.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID;
+  const daoStyle = legacyDaoLayoutStyle ? "style-1" : compositionDraft.__dao_style || "style-1";
   const isDaoStyle1 = daoStyle === "style-1";
   const isDaoStyle2 = daoStyle === "style-2";
   const isDaoTalisman1 = daoStyle === "talisman-1";
   const isDaoTalisman2 = daoStyle === "talisman-2";
-  const isDaoLayoutTemplate = daoStyle === DAO_LAYOUT_TEMPLATE_STYLE_ID;
+  const isDaoLayoutTemplate = isDaoLayoutFormat || legacyDaoLayoutStyle;
   const isDaoFulu = DAO_FULU_STYLES.has(daoStyle);
   const isDaoFuOutline = DAO_FU_OUTLINE_STYLES.has(daoStyle);
-  const daoLayoutTemplateOptions = normalizeDaoLayoutTemplateOptions(objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
+  const daoLayoutTemplateOptions = normalizeDaoLayoutTemplateOptions(objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
   const innerCoverSrc = coverDisplaySrc(innerCover);
   const innerCoverIsFuluContour = isDaoFuluContourAsset(innerCoverSrc);
   const sourceSlotScale = slotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
@@ -1227,13 +1234,11 @@ export default function ProfileLitePowerPlaceModule({
     ? { width: "min(336px, 82%) !important", maxWidth: "min(336px, 82%) !important", aspectRatio: "9 / 16" }
     : isDaoTalisman2
       ? { width: "min(292px, 78%) !important", maxWidth: "min(292px, 78%) !important", aspectRatio: "9 / 16" }
-      : isDaoLayoutTemplate
-        ? { width: "min(292px, 78%) !important", maxWidth: "min(292px, 78%) !important", aspectRatio: "9 / 16" }
-        : isDaoFulu || isDaoStyle2
-          ? { width: "min(248px, 60%) !important", maxWidth: "min(248px, 60%) !important", aspectRatio: "1 / 2.9" }
-          : isDaoFuOutline
-            ? DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].geometry
-            : {};
+      : isDaoFulu || isDaoStyle2
+        ? { width: "min(248px, 60%) !important", maxWidth: "min(248px, 60%) !important", aspectRatio: "1 / 2.9" }
+        : isDaoFuOutline
+          ? DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].geometry
+          : {};
   const daoOuterStyle = {
     ...daoBaseCoverStyle,
     ...daoFuluStyle,
@@ -2219,13 +2224,13 @@ export default function ProfileLitePowerPlaceModule({
     );
   }
 
-  function renderDaoLayoutTemplate() {
+  function renderDaoLayoutOverlay() {
     const sideNodes = Array.from({ length: daoLayoutTemplateOptions.sideNodeCount }, (_, index) => index + 1);
 
     return (
       <div
-        className={`daoLayoutTemplateScroll top-crown-${daoLayoutTemplateOptions.topCrown}${daoLayoutTemplateOptions.sideNodesVisible ? "" : " side-nodes-hidden"}`}
-        aria-label="ДАО: пустой талисман"
+        className={`daoLayoutTemplateOverlay top-crown-${daoLayoutTemplateOptions.topCrown}${daoLayoutTemplateOptions.sideNodesVisible ? "" : " side-nodes-hidden"}`}
+        aria-label="ДАО-Макет: контур"
       >
         <div className="daoLayoutTemplateCrown" aria-hidden="true">
           {daoLayoutTemplateOptions.topCrown === "three_checks" ? (
@@ -2856,21 +2861,21 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && (
+                {isDaoConstructorType(compositionDraft.constructor_type) && (
                   <div className="mandalaStyleSelector daoStyleSelector" aria-label="Стиль ДАО">
                     {DAO_STYLE_VARIANTS.map((variant) => (
                       <button className={(compositionDraft.__dao_style || "style-1") === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("__dao_style", variant.value)} type="button">{variant.label}</button>
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && (isDaoTalisman2 || isDaoFulu || isDaoStyle2 || isDaoFuOutline) && (
+                {isDaoConstructorType(compositionDraft.constructor_type) && (isDaoTalisman2 || isDaoFulu || isDaoStyle2 || isDaoFuOutline) && (
                   <div className="mandalaStyleSelector daoTalisman2NodeSelector" aria-label="Узлов в вертикальном талисмане">
                     {DAO_TALISMAN_NODE_COUNTS.map((n) => (
                       <button className={(compositionDraft.__dao_talisman_node_count || 5) === n ? "active" : ""} key={n} onClick={() => onCompositionDraftChange("__dao_talisman_node_count", n)} type="button">{n}</button>
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && isDaoLayoutTemplate && (
+                {isDaoLayoutTemplate && (
                   <div className="daoLayoutTemplateOptions" aria-label="Параметры ДАО">
                     <div className="daoLayoutTemplateOptionRow">
                       <span>Верхушка</span>
@@ -2879,7 +2884,7 @@ export default function ProfileLitePowerPlaceModule({
                           <button
                             className={daoLayoutTemplateOptions.topCrown === option.value ? "active" : ""}
                             key={option.value}
-                            onClick={() => onCompositionDraftChange(DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, topCrown: option.value })}
+                            onClick={() => onCompositionDraftChange(DAO_LAYOUT_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, topCrown: option.value })}
                             type="button"
                           >
                             {option.label}
@@ -2892,7 +2897,7 @@ export default function ProfileLitePowerPlaceModule({
                       <label className="daoLayoutTemplateCheckbox">
                         <input
                           checked={daoLayoutTemplateOptions.sideNodesVisible}
-                          onChange={(event) => onCompositionDraftChange(DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, sideNodesVisible: event.target.checked })}
+                          onChange={(event) => onCompositionDraftChange(DAO_LAYOUT_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, sideNodesVisible: event.target.checked })}
                           type="checkbox"
                         />
                         Показывать
@@ -2905,7 +2910,7 @@ export default function ProfileLitePowerPlaceModule({
                           <button
                             className={daoLayoutTemplateOptions.sideNodeCount === count ? "active" : ""}
                             key={count}
-                            onClick={() => onCompositionDraftChange(DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, sideNodeCount: count })}
+                            onClick={() => onCompositionDraftChange(DAO_LAYOUT_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, sideNodeCount: count })}
                             type="button"
                           >
                             {count}
@@ -3189,16 +3194,20 @@ export default function ProfileLitePowerPlaceModule({
                         )}
                       </div>
                     </div>
-                  ) : (
+                  ) : isDaoConstructorType(compositionDraft.constructor_type) ? (
                     <div className={daoClassName} style={daoOuterStyle}>
-                      {isDaoLayoutTemplate ? renderDaoLayoutTemplate()
-                        : isDaoTalisman2 ? renderDaoTalisman2()
+                      {isDaoTalisman2 ? renderDaoTalisman2()
                           : isDaoTalisman1 ? renderDaoTalisman1()
                             : isDaoFulu ? renderDaoFulu()
                               : isDaoFuOutline ? renderDaoFuOutlineLayout()
                                 : isDaoStyle2 ? renderDaoStyle2()
                                   : isDaoStyle1 ? renderDaoStyle1()
                                     : renderDaoStyle1()}
+                      {isDaoLayoutTemplate && renderDaoLayoutOverlay()}
+                    </div>
+                  ) : (
+                    <div className={daoClassName} style={daoOuterStyle}>
+                      {renderDaoStyle1()}
                     </div>
                   )}
                 </div>

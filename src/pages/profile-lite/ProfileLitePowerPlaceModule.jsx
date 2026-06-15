@@ -18,6 +18,8 @@ const CENTER_SHAPE_REF_KEY = "__center_shape";
 const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
 const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 
 const CONSTRUCTOR_LABELS = {
   zodiac: "Зодиак",
@@ -26,7 +28,8 @@ const CONSTRUCTOR_LABELS = {
   client: "Мандала",
   altar: "Алтарь",
   business: "Бизнес",
-  dao: "ДАО"
+  dao: "ДАО",
+  "dao-layout": "ДАО-Макет"
 };
 
 function coverOffsetValue(value) {
@@ -73,7 +76,6 @@ function daoStyleValue(value) {
   if (value === "style-2") return "style-2";
   if (value === "talisman" || value === "talisman-1") return "talisman-1";
   if (value === "talisman-2") return "talisman-2";
-  if (value === "dao-layout-template") return "dao-layout-template";
   if (
     value === "fu-paper-slip" ||
     value === "cloud-register" ||
@@ -87,6 +89,16 @@ function daoStyleValue(value) {
     value === "dao-fu-soft-shoulder-banner"
   ) return value;
   return "style-1";
+}
+
+function normalizeDaoLayoutOptions(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const sideNodeCount = Number(source.sideNodeCount);
+  return {
+    topCrown: source.topCrown === "three_checks" ? "three_checks" : "roof_double_line",
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: sideNodeCount === 3 ? 3 : 2
+  };
 }
 
 function zodiacStyleValue(value) {
@@ -715,10 +727,13 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageOffsetY = clampCenterImageOffset(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
   const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
+  const legacyDaoLayoutStyle = objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template";
+  const constructorType = legacyDaoLayoutStyle ? "dao-layout" : props.compositionDraft?.constructor_type;
   const daoStyle = daoStyleValue(objectRefs[DAO_STYLE_REF_KEY]);
+  const daoLayoutOptions = normalizeDaoLayoutOptions(objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
   const zodiacStyle = zodiacStyleValue(objectRefs[ZODIAC_STYLE_REF_KEY]);
   const daoTalismanNodeCount = daoTalismanNodeCountValue(objectRefs[DAO_TALISMAN_NODE_COUNT_REF_KEY]);
-  const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
+  const formatLabel = CONSTRUCTOR_LABELS[constructorType || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
     [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom]
@@ -734,7 +749,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [props.compositionDraft?.constructor_type, props.compositionDraft?.chess_variant, props.compositionDraft?.field_layout, props.compositionDraft?.cover_ref]);
+  }, [constructorType, props.compositionDraft?.chess_variant, props.compositionDraft?.field_layout, props.compositionDraft?.cover_ref]);
 
   const writeObjectRefs = useCallback((nextRefs) => {
     props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
@@ -757,6 +772,14 @@ export default function ProfileLitePowerPlaceModule(props) {
 
     if (field === DAO_STYLE_REF_KEY) {
       writeObjectRefs({ ...objectRefs, [DAO_STYLE_REF_KEY]: daoStyleValue(value) });
+      if (constructorType === "dao-layout" && props.compositionDraft?.constructor_type !== "dao-layout") {
+        props.onCompositionDraftChange?.("constructor_type", "dao-layout");
+      }
+      return;
+    }
+
+    if (field === DAO_LAYOUT_OPTIONS_REF_KEY || field === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [DAO_LAYOUT_OPTIONS_REF_KEY]: normalizeDaoLayoutOptions(value) });
       return;
     }
 
@@ -770,11 +793,27 @@ export default function ProfileLitePowerPlaceModule(props) {
       return;
     }
 
+    if (field === "constructor_type") {
+      const nextRefs = { ...objectRefs };
+      if (value === "dao-layout" && objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template") {
+        nextRefs[DAO_STYLE_REF_KEY] = "style-1";
+      }
+      if (value === "dao-layout" && !nextRefs[DAO_LAYOUT_OPTIONS_REF_KEY]) {
+        nextRefs[DAO_LAYOUT_OPTIONS_REF_KEY] = daoLayoutOptions;
+      }
+      if (value === "dao-layout" || objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template") {
+        writeObjectRefs(nextRefs);
+      }
+      props.onCompositionDraftChange?.(field, value);
+      return;
+    }
+
     props.onCompositionDraftChange?.(field, value);
-  }, [objectRefs, props, writeObjectRefs]);
+  }, [constructorType, daoLayoutOptions, objectRefs, props, writeObjectRefs]);
 
   const enhancedDraft = useMemo(() => ({
     ...props.compositionDraft,
+    constructor_type: constructorType,
     field_scale: innerFieldScale,
     __center_image_scale: centerImageScale,
     __center_frame_scale: centerFrameScale,
@@ -786,7 +825,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     __center_image_offset_y: centerImageOffsetY,
     __center_image_zoom: centerImageZoom,
     cover_ref: normalizeLayeredCoverRef(props.compositionDraft?.cover_ref)
-  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, daoTalismanNodeCount, innerFieldScale, mandalaStyle, props.compositionDraft]);
+  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, constructorType, daoStyle, daoTalismanNodeCount, innerFieldScale, mandalaStyle, props.compositionDraft, zodiacStyle]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
