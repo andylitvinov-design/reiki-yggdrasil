@@ -78,7 +78,13 @@ function daoStyleValue(value) {
     value === "fu-paper-slip" ||
     value === "cloud-register" ||
     value === "thunder-tablet" ||
-    value === "taofu-charm"
+    value === "taofu-charm" ||
+    value === "dao-fu-wide-gate-roof" ||
+    value === "dao-fu-narrow-banner-roof" ||
+    value === "dao-fu-grand-gate-p" ||
+    value === "dao-fu-bottle-p" ||
+    value === "dao-fu-node-column" ||
+    value === "dao-fu-soft-shoulder-banner"
   ) return value;
   return "style-1";
 }

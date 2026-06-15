@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-15 — Add DAO reference fu outline styles
+
+- Branch: `codex/dao-fu-reference-outlines`.
+- Base: fresh `origin/main` at `803d924` (`Fix DAO talisman follow-up regressions`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - added six requested DAO style-library options with stable IDs and RU labels;
+  - rendered them as empty red contour SVG/React shapes matching the reference categories: wide gate roof, narrow banner roof, grand gate P, bottle/cylinder P, side-node column, and soft-shoulder banner;
+  - kept interiors transparent and omitted internal Chinese/Japanese text, copied calligraphy, pseudo-script, trigrams, seals, and sigils;
+  - placed the Latin `P` only between the triangular roof and the top of the body/cylinder for the two P variants;
+  - updated the Profile Lite wrapper normalizer so saved/reopened `object_refs.__dao_style` values do not fall back to `style-1`.
+- Checks run:
+  - `npm install` (failed: local disk `ENOSPC` while writing `node_modules`)
+  - `npm run test:power-place`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - final validation used a temporary symlink to `/Users/andriilitvinov/projects/MYPROJECTS/reiki-yggdrasil/node_modules` because the machine had about 116 MB free;
+  - all final commands except `npm install` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - mocked Supabase/session dev server with dummy local env names: `http://localhost:4424/profile/mandalas`;
+  - DAO style selector showed all six new labels;
+  - each new style selected and rendered a `.daoFuReferenceOutline` SVG with no center photo, no slot buttons, no CJK text, and no background image;
+  - `dao-fu-grand-gate-p` and `dao-fu-bottle-p` kept `P` in the roof/body gap (`pTopRatio` about `0.176` and `0.192`);
+  - desktop `1280x920` and mobile `390x900` rendered without console warnings/errors; mobile horizontal overflow was `0`;
+  - local smoke routes `/`, `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` rendered without framework overlay.
+- Not verified yet:
+  - `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy;
+  - real authenticated staging Supabase save/reopen with the new DAO style IDs.
+
 ## 2026-06-15 — Mobile Power Place UX fix
 
 - Branch: `codex/mobile-power-place-ux-373`.

@@ -2,6 +2,28 @@
 
 Last updated: 2026-06-15
 
+## 2026-06-15 — DAO reference fu outline style library
+
+- Branch: `codex/dao-fu-reference-outlines`, based on fresh `origin/main` at `803d924`.
+- Scope: `/profile/mandalas` DAO style library only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase schema/RLS/migrations, env values, Vercel routing/domains, object-ref storage rewrite, or production branch changes.
+- Changed:
+  - added six selectable DAO outline style IDs: `dao-fu-wide-gate-roof`, `dao-fu-narrow-banner-roof`, `dao-fu-grand-gate-p`, `dao-fu-bottle-p`, `dao-fu-node-column`, and `dao-fu-soft-shoulder-banner`;
+  - rendered the new styles as empty transparent red SVG contours with roofs, side nodes/stubs, rectangular/banner/cylinder bodies, and no internal Chinese/Japanese text, copied calligraphy, trigrams, seals, or sigils;
+  - placed the Latin `P` only in the top gap between roof and body for `dao-fu-grand-gate-p` and `dao-fu-bottle-p`;
+  - extended the Profile Lite DAO style normalizer so saved compositions can reopen these new stable `__dao_style` values.
+- Verification:
+  - `npm install` was attempted first but failed locally with `ENOSPC`; verification used the canonical checkout `node_modules` symlink because the machine had about 116 MB free;
+  - `npm run test:power-place`, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - mocked Supabase/session dev server with dummy local env names: `http://localhost:4424/profile/mandalas`;
+  - desktop `1280x920` and mobile `390x900`: DAO selector showed all six new labels, each variant selected and rendered `.daoFuReferenceOutline`, no CJK text appeared, no center/slot buttons appeared inside the empty contours, the two `P` variants kept `P` in the top roof/body gap, mobile horizontal overflow was `0`, and console warnings/errors were `0`;
+  - routes `/`, `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` rendered without framework overlay in the local mocked browser session.
+- Not verified yet:
+  - deployed `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy;
+  - real authenticated staging Supabase save/reopen of compositions using the new DAO style IDs.
+
 ## 2026-06-15 — Mobile Power Place UX fix
 
 - Branch: `codex/mobile-power-place-ux-373`, based on fresh `origin/main` at `e81b254`.

@@ -376,6 +376,48 @@ assert.ok(
   "Base module must define DAO_FULU_STYLE_VALUES for fulu contour assets"
 );
 
+const expectedDaoFuOutlineVariants = [
+  ["dao-fu-wide-gate-roof", "ДАО: широкие врата"],
+  ["dao-fu-narrow-banner-roof", "ДАО: узкий свиток"],
+  ["dao-fu-grand-gate-p", "ДАО: большие врата P"],
+  ["dao-fu-bottle-p", "ДАО: сосуд P"],
+  ["dao-fu-node-column", "ДАО: колонна с узлами"],
+  ["dao-fu-soft-shoulder-banner", "ДАО: мягкий свиток"]
+];
+
+for (const [styleValue, label] of expectedDaoFuOutlineVariants) {
+  assert.ok(baseSource.includes(`value: "${styleValue}"`), `${styleValue} must be selectable in DAO_STYLE_VARIANTS`);
+  assert.ok(baseSource.includes(`label: "${label}"`), `${styleValue} must keep the requested Russian label`);
+  assert.ok(baseSource.includes(`"${styleValue}": {`), `${styleValue} must have a stable DAO_FU_OUTLINE_STYLE_VALUES record`);
+  assert.ok(moduleSource.includes(`value === "${styleValue}"`), `${styleValue} must be accepted by ProfileLitePowerPlaceModule daoStyleValue()`);
+}
+
+assert.ok(baseSource.includes("const DAO_FU_OUTLINE_STYLES = new Set"), "DAO outline styles must be grouped for stable rendering checks");
+assert.ok(baseSource.includes("function renderDaoFuReferenceOutline()"), "DAO outline styles must render through a dedicated helper");
+assert.ok(baseSource.includes("isDaoFuOutline ? renderDaoFuReferenceOutline()"), "DAO render selection must route outline styles to the outline helper");
+assert.ok(baseSource.includes("!isDaoFulu && !isDaoFuOutline && !innerCoverIsFuluContour"), "DAO outline styles must keep user/background covers out of the empty contour interiors");
+assert.ok(baseSource.includes("className: \"daoFuReferenceOutline\""), "DAO outline SVG must use a stable class for visual QA");
+assert.ok(baseSource.includes("className=\"daoFuTopSignP\"") && baseSource.includes("y=\"116\""), "P variants must position the Latin P as a top sign in the roof/body gap");
+
+const daoFuOutlineHelperSource = (() => {
+  const start = baseSource.indexOf("function renderDaoFuReferenceOutline()");
+  const end = baseSource.indexOf("const daoClassName", start);
+  return start >= 0 && end > start ? baseSource.slice(start, end) : "";
+})();
+
+assert.ok(daoFuOutlineHelperSource, "new DAO outline SVG helper source must be extractable");
+assert.doesNotMatch(daoFuOutlineHelperSource, /[\u3400-\u9fff]/u, "new DAO outline SVG helper must not add Chinese/Japanese text or internal calligraphy");
+assert.doesNotMatch(daoFuOutlineHelperSource, /trigram|seal|sigil/i, "new DAO outline SVG helper must not add internal trigrams, seals, or sigils");
+
+for (const selector of [
+  ".daoMandalaSheet.dao-fu-outline",
+  ".daoFuReferenceOutline",
+  ".daoFuReferenceOutline .daoFuTopSignP",
+  ".daoMandalaSheet.dao-fu-bottle-p .daoFuTopSignP"
+]) {
+  assert.ok(cssSource.includes(selector), `${selector} must be styled for the new DAO outline variants`);
+}
+
 assert.ok(
   baseSource.includes('const DAO_LAYOUT_TEMPLATE_STYLE_ID = "dao-layout-template"') &&
   baseSource.includes('label: "ДАО: Макет"') &&
