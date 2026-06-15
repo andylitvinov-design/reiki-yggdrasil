@@ -11,6 +11,7 @@ import {
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const cssSource = readFileSync(join(__dir, "../src/profileMandalaWorkspace.css"), "utf8");
+const symbolLibrarySource = readFileSync(join(__dir, "../src/data/powerPlaceSymbolLibrary.js"), "utf8");
 
 // ─── innerFieldScaleValue ────────────────────────────────────────────────────
 
@@ -457,7 +458,8 @@ assert.equal(
 const style1Branch = baseSource.slice(baseSource.indexOf("function renderDaoStyle1()"), baseSource.indexOf("function renderDaoTalisman1()"));
 const talisman1Branch = baseSource.slice(baseSource.indexOf("function renderDaoTalisman1()"), baseSource.indexOf("function renderDaoTalisman2()"));
 const talisman2Branch = baseSource.slice(baseSource.indexOf("function renderDaoTalisman2()"), baseSource.indexOf("function renderDaoFulu()"));
-const fuluBranch = baseSource.slice(baseSource.indexOf("function renderDaoFulu()"), baseSource.indexOf("const daoClassName"));
+const fuluBranch = baseSource.slice(baseSource.indexOf("function renderDaoFulu()"), baseSource.indexOf("function renderDaoStyle2()"));
+const style2Branch = baseSource.slice(baseSource.indexOf("function renderDaoStyle2()"), baseSource.indexOf("const daoClassName"));
 
 assert.ok(style1Branch.includes("daoUsinCore"), "style-1 branch must render classic daoUsinCore");
 assert.doesNotMatch(style1Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalisman2Scroll/, "style-1 branch must not render talisman or fulu layers");
@@ -467,6 +469,8 @@ assert.ok(talisman2Branch.includes("daoTalisman2Scroll") && talisman2Branch.incl
 assert.doesNotMatch(talisman2Branch, /daoFuluContourLayer|daoTalismanBody|daoUsinCore/, "talisman-2 branch must not render fulu, talisman-1 body, or style-1 layers");
 assert.ok(fuluBranch.includes("daoFuluContourLayer"), "fulu branch must render the single contour layer");
 assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu branch must not render talisman or style-1 layers");
+assert.ok(style2Branch.includes("daoStyle2Scroll") && style2Branch.includes("dao-style-2-${index + 1}"), "style-2 branch must render its own vertical mini-window row");
+assert.doesNotMatch(style2Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalismanBody|daoTalisman2Scroll|daoUsinCore/, "style-2 branch must not render fulu, talisman, talisman-2, or style-1 layers");
 
 assert.ok(
   cssSource.includes("background-image: var(--dao-fulu-contour-image)") &&
@@ -500,6 +504,31 @@ assert.ok(
 assert.ok(
   cssSource.includes("width: min(calc(var(--power-field-scale, 96%) * 2.28), 58vw)"),
   "mobile fulu width must keep responding to Размер поля through --power-field-scale"
+);
+
+assert.ok(
+  baseSource.includes("renderDaoStyle2") &&
+  baseSource.includes("isDaoStyle2 ? renderDaoStyle2()") &&
+  baseSource.includes('isDaoStyle2 ? " dao-style-2"'),
+  "Base module must add and route an isolated DAO style-2 render branch"
+);
+
+assert.ok(
+  baseSource.includes("--dao-field-cover-image") &&
+  baseSource.includes("daoFieldCoverLayer") &&
+  cssSource.includes(".daoFieldCoverLayer") &&
+  cssSource.includes(".daoStyle2UserCoverLayer") &&
+  cssSource.includes("width: var(--power-field-scale, 78%)") &&
+  cssSource.includes("background-image: var(--dao-field-cover-image)"),
+  "DAO Размер поля must scale a borderless inner/user cover layer through --power-field-scale"
+);
+
+assert.ok(
+  cssSource.includes(".daoStyle2CenterArea .daoCenterPhoto") &&
+  cssSource.includes("width: clamp(74px, 100%, 108px)") &&
+  cssSource.includes(".daoFuluCenterArea .daoCenterPhoto") &&
+  cssSource.includes(".daoTalisman2CenterArea .daoCenterPhoto"),
+  "vertical DAO styles must keep central photo prominent near the upper axis"
 );
 
 // ─── Chess cover-none is fully transparent (outer background shows through) ────
@@ -698,8 +727,8 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && moduleSource.includes('"style-1"'),
-  "daoStyleValue must handle style-1, legacy talisman→talisman-1 mapping, talisman-1, and talisman-2 values"
+  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"style-2"') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && moduleSource.includes('"style-1"'),
+  "daoStyleValue must handle style-1, style-2, legacy talisman→talisman-1 mapping, talisman-1, and talisman-2 values"
 );
 
 for (const fuluVal of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
@@ -759,8 +788,8 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes('"style-1"') && baseSource.includes('"talisman-1"') && baseSource.includes('"talisman-2"'),
-  "DAO_STYLE_VARIANTS must include style-1, talisman-1, and talisman-2 values"
+  baseSource.includes('"style-1"') && baseSource.includes('"style-2"') && baseSource.includes('"talisman-1"') && baseSource.includes('"talisman-2"'),
+  "DAO_STYLE_VARIANTS must include style-1, style-2, talisman-1, and talisman-2 values"
 );
 
 assert.ok(
@@ -836,6 +865,46 @@ for (const value of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu
     `DAO_STYLE_VARIANTS must include ${value}`
   );
 }
+
+const daoIdeographSymbolIds = [
+  "symbol-dao-ideograph-water",
+  "symbol-dao-ideograph-wood",
+  "symbol-dao-ideograph-fire",
+  "symbol-dao-ideograph-earth",
+  "symbol-dao-ideograph-metal",
+  "symbol-dao-ideograph-health",
+  "symbol-dao-ideograph-wealth",
+  "symbol-dao-ideograph-love"
+];
+const daoIdeographAssets = [
+  "water.svg",
+  "wood.svg",
+  "fire.svg",
+  "earth.svg",
+  "metal.svg",
+  "health.svg",
+  "wealth.svg",
+  "love.svg"
+];
+
+for (const id of daoIdeographSymbolIds) {
+  assert.ok(symbolLibrarySource.includes(`id: "${id}"`), `DAO symbol library must include ${id}`);
+}
+
+for (const asset of daoIdeographAssets) {
+  assert.equal(
+    existsSync(join(__dir, `../public/symbols/power-place/dao/dao-ideograph-${asset}`)),
+    true,
+    `DAO ideograph asset must exist: ${asset}`
+  );
+}
+
+assert.ok(
+  symbolLibrarySource.includes('shelf: "dao"') &&
+  symbolLibrarySource.includes("/symbols/power-place/dao/dao-ideograph-") &&
+  !symbolLibrarySource.includes('kind: "power-place-background",\n    src: "/symbols/power-place/dao/dao-ideograph-'),
+  "DAO ideographs must be registered as DAO symbols, not DAO backgrounds"
+);
 
 assert.ok(
   baseSource.includes("DAO_FULU_STYLES"),

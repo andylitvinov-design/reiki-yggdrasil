@@ -302,6 +302,7 @@ assert.match(powerPlaceBaseSource, /const daoStyle = compositionDraft\.__dao_sty
 assert.match(powerPlaceBaseSource, /const isDaoFulu = DAO_FULU_STYLES\.has\(daoStyle\)/, "DAO fulu detection should use computed daoStyle");
 assert.match(powerPlaceBaseSource, /function isDaoFuluContourAsset\(src\)/, "DAO renderer should detect built-in fulu contour assets");
 assert.match(powerPlaceBaseSource, /function renderDaoFulu\(\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
+assert.match(powerPlaceBaseSource, /function renderDaoStyle2\(\)[\s\S]*daoStyle2Scroll[\s\S]*dao-style-2-\$\{index \+ 1\}/, "DAO style-2 should keep a dedicated vertical mini-window render branch");
 assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true" \/>/, "DAO fulu render branch should include exactly one self-contained contour layer");
 for (const removedFuluLayer of ["daoFuluFallbackPaper", "daoFuluTopHead", "daoFuluSideRail", "daoFuluBottomBase", "daoFuluHeader", "daoFuluFooter", "daoFuluSealBox", "daoFuluPureMarks"]) {
   assert.doesNotMatch(powerPlaceBaseSource, new RegExp(removedFuluLayer), `DAO fulu render branch must not render ${removedFuluLayer}`);
@@ -312,7 +313,9 @@ assert.match(powerPlaceBaseSource, /const daoBaseCoverStyle[\s\S]*!isDaoFulu[\s\
 assert.match(powerPlaceBaseSource, /const daoFuluStyle[\s\S]*daoFuluContourStyle\(daoStyle\)[\s\S]*"--dao-fulu-user-cover-image"/, "Fulu style should separate contour and subtle user cover variables");
 assert.match(powerPlaceBaseSource, /className=\{daoClassName\} style=\{daoOuterStyle\}/, "DAO outer sheet should receive the isolated DAO class and style objects");
 assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-fulu/, "CSS should define shared dao-fulu holder");
+assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-style-2/, "CSS should define shared dao-style-2 holder");
 assert.match(profileMandalaCss, /--dao-fulu-user-cover-image/, "CSS should consume --dao-fulu-user-cover-image");
+assert.match(profileMandalaCss, /--dao-field-cover-image[\s\S]*\.daoFieldCoverLayer|\.daoFieldCoverLayer[\s\S]*--dao-field-cover-image/, "CSS should consume borderless DAO field-cover layer for Размер поля");
 for (const assetPath of [
   "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
   "/symbols/power-place/dao/fulu/cloud-register.svg",
