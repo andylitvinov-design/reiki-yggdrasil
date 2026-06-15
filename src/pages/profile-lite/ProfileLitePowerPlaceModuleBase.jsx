@@ -1159,9 +1159,17 @@ export default function ProfileLitePowerPlaceModule({
         : {})
     }
     : {};
+  const daoStyleGeometry = isDaoTalisman1
+    ? { width: "min(336px, 82%) !important", maxWidth: "min(336px, 82%) !important", aspectRatio: "9 / 16" }
+    : isDaoTalisman2
+      ? { width: "min(292px, 78%) !important", maxWidth: "min(292px, 78%) !important", aspectRatio: "9 / 16" }
+      : isDaoFulu
+        ? { width: "min(248px, 60%) !important", maxWidth: "min(248px, 60%) !important", aspectRatio: "1 / 2.9" }
+        : {};
   const daoOuterStyle = {
     ...daoBaseCoverStyle,
-    ...daoFuluStyle
+    ...daoFuluStyle,
+    ...daoStyleGeometry
   };
 
   const savedImages = useMemo(() => uniqueImageSources([
@@ -1836,15 +1844,17 @@ export default function ProfileLitePowerPlaceModule({
   }
 
   function renderDaoTalisman2() {
+    const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
+
     return (
-      <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
+      <div className="daoTalismanScroll daoTalisman2Scroll" data-node-count={nodeCount} aria-label="Даосский вертикальный свиток">
         <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
           <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
           <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
         </div>
         <div className="daoTalisman2Body">
           {Array.from(
-            { length: compositionDraft.__dao_talisman_node_count || 5 },
+            { length: nodeCount },
             (_, index) => ({
               id: `dao-talisman-2-${index + 1}`,
               label: `Узел ${index + 1}`

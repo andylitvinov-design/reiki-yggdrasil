@@ -125,6 +125,8 @@ assert.deepEqual(globalBackgroundSizeContainRules, [], "powerMandalaPanel backgr
 // translate(-50%,-50%) so the inner surface expands symmetrically from center.
 
 const moduleSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx"), "utf8");
+const layoutFinalFixSource = readFileSync(join(__dir, "../public/profile-lite-layout-final-fix.js"), "utf8");
+const mobileFieldBoostSource = readFileSync(join(__dir, "../public/profile-power-place-mobile-field-boost.js"), "utf8");
 
 assert.ok(
   moduleSource.includes("position: absolute !important") && moduleSource.includes("translate(-50%, -50%)"),
@@ -344,6 +346,14 @@ assert.ok(
 assert.ok(
   /daoFuluStyle[\s\S]*daoFuluContourStyle\(daoStyle\)[\s\S]*"--dao-fulu-user-cover-image"/.test(baseSource),
   "Fulu styles must pass contour and user cover through separate CSS variables"
+);
+
+assert.ok(
+  baseSource.includes("const daoStyleGeometry") &&
+  baseSource.includes('aspectRatio: "9 / 16"') &&
+  baseSource.includes('aspectRatio: "1 / 2.9"') &&
+  /daoOuterStyle[\s\S]*daoStyleGeometry/.test(baseSource),
+  "DAO outer style must override field-scale geometry for talisman and fulu variants"
 );
 
 for (const helperName of ["renderDaoStyle1", "renderDaoTalisman1", "renderDaoTalisman2", "renderDaoFulu"]) {
@@ -767,6 +777,11 @@ assert.ok(
 );
 
 assert.ok(
+  baseSource.includes("data-node-count={nodeCount}") && cssSource.includes('.daoTalisman2Scroll[data-node-count="9"]'),
+  "Talisman 2 must expose node-count hooks for 3/5/7/9 vertical spacing"
+);
+
+assert.ok(
   !baseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
   "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
 );
@@ -813,9 +828,31 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes("aspect-ratio: 1 / 2.85") || moduleSource.includes("aspect-ratio: 1/2.85"),
-  "profileLiteFitFixStyles must include aspect-ratio 1/2.85 override for fulu DAO styles"
+  moduleSource.includes("aspect-ratio: 1 / 2.9") || moduleSource.includes("aspect-ratio: 1/2.9"),
+  "profileLiteFitFixStyles must include aspect-ratio 1/2.9 override for fulu DAO styles"
 );
+
+assert.ok(
+  moduleSource.includes(".daoMandalaSheet.dao-talisman") &&
+  moduleSource.includes(".daoMandalaSheet.dao-talisman-2") &&
+  moduleSource.includes("aspect-ratio: 9 / 16"),
+  "profileLiteFitFixStyles must preserve tall 9/16 proportions for talisman-1 and talisman-2"
+);
+
+assert.ok(
+  cssSource.includes(".profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-talisman-2") &&
+  cssSource.includes(".profileLitePowerPlace .daoMandalaSheet.dao-talisman-2 .daoTalisman2Node .daoElementImage"),
+  "mobile DAO scale overrides must preserve talisman-2 proportions and node caps"
+);
+
+for (const scriptSource of [layoutFinalFixSource, mobileFieldBoostSource]) {
+  assert.ok(
+    scriptSource.includes("isolatedDaoGeometry") &&
+    scriptSource.includes("dao-talisman-2") &&
+    scriptSource.includes("dao-fu-paper-slip"),
+    "public layout hotfix scripts must not overwrite isolated DAO talisman/fulu geometry with generic field scale"
+  );
+}
 
 assert.ok(
   moduleSource.includes("dao-fu-paper-slip") && moduleSource.includes("dao-cloud-register") &&
