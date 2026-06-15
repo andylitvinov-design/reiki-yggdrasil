@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-15
 
+## 2026-06-15 — DAO layout vertical stack refinement
+
+- Branch: `codex/dao-layout-stack-refine-20260615`, based on `origin/main` at `e601811` after PR #381.
+- Scope: `ДАО-Макет` composition only; normal `ДАО`, public homepage, Vercel routing/domains, env values, Supabase RLS, and database schema were not changed.
+- Root cause:
+  - `dao-layout` reused the normal DAO renderer, so the standalone center photo could remain visually independent from the layout outline.
+  - The vertical DAO option contract was still tied to the normal `[3, 5, 7, 9]` count set instead of the requested `ДАО-Макет` inner mini-mandala order.
+- Changed:
+  - added a dedicated `ДАО-Макет` inner stack: central client photo first, then mini-mandalas `3`, `4`, `5`, `7`;
+  - rendered a Latin `P` marker in the upper standalone marker position above the outline body;
+  - shifted the `ДАО-Макет` outline body downward and sized the desktop/mobile stack so the center photo and mini-mandalas stay inside the body;
+  - preserved `object_refs.__dao_layout_options` and legacy `object_refs.__dao_layout_template_options` behavior;
+  - kept normal `ДАО` render branches and the old DAO count selector unchanged.
+- Verification:
+  - `npm install`, focused contract tests, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - local mocked browser QA on `http://localhost:5185/profile/mandalas` confirmed desktop and mobile geometry: `P` above body, center photo area inside body, slot order `3,4,5,7`, vertical order continuous, horizontal overflow `0`, console errors `0`;
+  - center image selection through the mocked picker rendered inside the `ДАО-Макет` body.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+- Risks:
+  - headless local picker QA did not complete mini-slot image selection because of modal hit-testing; saved/ref persistence for mini slots is covered by `test/powerPlaceClient.test.mjs`.
+
 ## 2026-06-15 — DAO layout format split and mobile photo/window restore
 
 - Branch: `codex/dao-layout-format-20260615`, based on `origin/main` at `31b8574` after PR #379 (`0bf0daf`) and PR #378.

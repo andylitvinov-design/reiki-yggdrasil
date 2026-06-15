@@ -643,8 +643,10 @@ assert.deepEqual(
     object_refs: {
       __dao_style: "talisman-2",
       __center_image: "https://example.com/center.jpg",
-      "dao-water": "https://example.com/water.jpg",
-      "dao-fire": "https://example.com/fire.jpg",
+      "dao-talisman-2-3": "https://example.com/mini-3.jpg",
+      "dao-talisman-2-4": "https://example.com/mini-4.jpg",
+      "dao-talisman-2-5": "https://example.com/mini-5.jpg",
+      "dao-talisman-2-7": "https://example.com/mini-7.jpg",
       __dao_layout_options: {
         topCrown: "three_checks",
         sideNodesVisible: false,
@@ -656,8 +658,10 @@ assert.deepEqual(
   {
     __dao_style: "talisman-2",
     __center_image: "https://example.com/center.jpg",
-    "dao-water": "https://example.com/water.jpg",
-    "dao-fire": "https://example.com/fire.jpg",
+    "dao-talisman-2-3": "https://example.com/mini-3.jpg",
+    "dao-talisman-2-4": "https://example.com/mini-4.jpg",
+    "dao-talisman-2-5": "https://example.com/mini-5.jpg",
+    "dao-talisman-2-7": "https://example.com/mini-7.jpg",
     __dao_layout_options: {
       topCrown: "three_checks",
       sideNodesVisible: false,
