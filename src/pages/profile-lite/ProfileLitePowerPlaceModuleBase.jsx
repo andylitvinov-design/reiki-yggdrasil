@@ -33,7 +33,13 @@ const DAO_STYLE_VARIANTS = [
   { value: "fu-paper-slip", label: "Фу-лист" },
   { value: "cloud-register", label: "Облачный реестр" },
   { value: "thunder-tablet", label: "Громовая табличка" },
-  { value: "taofu-charm", label: "Таофу" }
+  { value: "taofu-charm", label: "Таофу" },
+  { value: "dao-fu-wide-gate-roof", label: "ДАО: широкие врата" },
+  { value: "dao-fu-narrow-banner-roof", label: "ДАО: узкий свиток" },
+  { value: "dao-fu-grand-gate-p", label: "ДАО: большие врата P" },
+  { value: "dao-fu-bottle-p", label: "ДАО: сосуд P" },
+  { value: "dao-fu-node-column", label: "ДАО: колонна с узлами" },
+  { value: "dao-fu-soft-shoulder-banner", label: "ДАО: мягкий свиток" }
 ];
 const DAO_FULU_STYLES = new Set(["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]);
 const DAO_FULU_STYLE_VALUES = {
@@ -54,6 +60,33 @@ const DAO_FULU_STYLE_VALUES = {
     contourAsset: "/symbols/power-place/dao/fulu/taofu-charm.svg"
   }
 };
+const DAO_FU_OUTLINE_STYLE_VALUES = {
+  "dao-fu-wide-gate-roof": {
+    className: "dao-fu-wide-gate-roof",
+    geometry: { width: "min(372px, 88%) !important", maxWidth: "min(372px, 88%) !important", aspectRatio: "5 / 7" }
+  },
+  "dao-fu-narrow-banner-roof": {
+    className: "dao-fu-narrow-banner-roof",
+    geometry: { width: "min(230px, 62%) !important", maxWidth: "min(230px, 62%) !important", aspectRatio: "3 / 7" }
+  },
+  "dao-fu-grand-gate-p": {
+    className: "dao-fu-grand-gate-p",
+    geometry: { width: "min(410px, 92%) !important", maxWidth: "min(410px, 92%) !important", aspectRatio: "5 / 6.5" }
+  },
+  "dao-fu-bottle-p": {
+    className: "dao-fu-bottle-p",
+    geometry: { width: "min(276px, 68%) !important", maxWidth: "min(276px, 68%) !important", aspectRatio: "3 / 5.8" }
+  },
+  "dao-fu-node-column": {
+    className: "dao-fu-node-column",
+    geometry: { width: "min(292px, 72%) !important", maxWidth: "min(292px, 72%) !important", aspectRatio: "3 / 6.2" }
+  },
+  "dao-fu-soft-shoulder-banner": {
+    className: "dao-fu-soft-shoulder-banner",
+    geometry: { width: "min(260px, 68%) !important", maxWidth: "min(260px, 68%) !important", aspectRatio: "3 / 6.5" }
+  }
+};
+const DAO_FU_OUTLINE_STYLES = new Set(Object.keys(DAO_FU_OUTLINE_STYLE_VALUES));
 const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
 const ZODIAC_2_VARIANT = "zodiac-2-12";
 const ZODIAC_VARIANTS = [
@@ -799,6 +832,7 @@ export default function ProfileLitePowerPlaceModule({
   const isDaoTalisman1 = daoStyle === "talisman-1";
   const isDaoTalisman2 = daoStyle === "talisman-2";
   const isDaoFulu = DAO_FULU_STYLES.has(daoStyle);
+  const isDaoFuOutline = DAO_FU_OUTLINE_STYLES.has(daoStyle);
   const innerCoverSrc = coverDisplaySrc(innerCover);
   const innerCoverIsFuluContour = isDaoFuluContourAsset(innerCoverSrc);
   const sourceSlotScale = slotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
@@ -1149,7 +1183,7 @@ export default function ProfileLitePowerPlaceModule({
     ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
     ...sourceSlotScaleStyle
   };
-  const daoBaseCoverStyle = !isDaoFulu && !innerCoverIsFuluContour
+  const daoBaseCoverStyle = !isDaoFulu && !isDaoFuOutline && !innerCoverIsFuluContour
     ? innerCoverImageStyle(innerCover, innerCoverSrc) || {}
     : {};
   const daoFuluStyle = isDaoFulu
@@ -1166,7 +1200,9 @@ export default function ProfileLitePowerPlaceModule({
       ? { width: "min(292px, 78%) !important", maxWidth: "min(292px, 78%) !important", aspectRatio: "9 / 16" }
       : isDaoFulu
         ? { width: "min(248px, 60%) !important", maxWidth: "min(248px, 60%) !important", aspectRatio: "1 / 2.9" }
-        : {};
+        : isDaoFuOutline
+          ? DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].geometry
+          : {};
   const daoOuterStyle = {
     ...daoBaseCoverStyle,
     ...daoFuluStyle,
@@ -1953,7 +1989,99 @@ export default function ProfileLitePowerPlaceModule({
     );
   }
 
-  const daoClassName = `daoMandalaSheet${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoFulu ? " dao-fulu" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim();
+  function renderDaoFuReferenceOutline() {
+    const common = {
+      className: "daoFuReferenceOutline",
+      viewBox: "0 0 300 440",
+      role: "img",
+      "aria-label": DAO_STYLE_VARIANTS.find((variant) => variant.value === daoStyle)?.label || "ДАО фу-талисман"
+    };
+    const node = (cx, cy, r = 7) => <circle cx={cx} cy={cy} r={r} key={`${cx}-${cy}-${r}`} />;
+    const roof = (leftX = 70, leftY = 75, topX = 150, topY = 32, rightX = 230, rightY = 75) => (
+      <g className="daoFuRoof">
+        <path d={`M ${leftX} ${leftY} L ${topX} ${topY} L ${rightX} ${rightY}`} />
+        {[node(leftX, leftY), node(topX, topY), node(rightX, rightY)]}
+      </g>
+    );
+    const topSignP = (
+      <text className="daoFuTopSignP" x="150" y="116" textAnchor="middle">P</text>
+    );
+
+    if (daoStyle === "dao-fu-wide-gate-roof") {
+      return (
+        <svg {...common}>
+          {roof(52, 76, 150, 28, 248, 76)}
+          <path d="M 86 110 L 214 110 L 224 142 L 236 154 L 236 392" />
+          <path d="M 86 110 L 76 142 L 64 154 L 64 392" />
+          <path d="M 64 136 H 30" />
+          <path d="M 236 136 H 270" />
+          {node(30, 136, 7)}
+          {node(270, 136, 7)}
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-narrow-banner-roof") {
+      return (
+        <svg {...common}>
+          {roof(94, 72, 150, 30, 206, 72)}
+          <path d="M 102 116 L 198 116 L 208 136 L 208 396" />
+          <path d="M 102 116 L 92 136 L 92 396" />
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-grand-gate-p") {
+      return (
+        <svg {...common}>
+          {roof(46, 70, 150, 30, 254, 70)}
+          <path className="daoFuCurvedRoofLine" d="M 48 93 C 92 96 126 80 150 62 C 174 80 208 96 252 93" />
+          <path d="M 40 130 H 260" />
+          {topSignP}
+          <path d="M 38 130 L 52 142 L 52 398" />
+          <path d="M 262 130 L 248 142 L 248 398" />
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-bottle-p") {
+      return (
+        <svg {...common}>
+          {roof(96, 68, 150, 32, 204, 68)}
+          {topSignP}
+          <path d="M 100 176 C 100 132 200 132 200 176 L 200 286 C 200 346 178 388 158 414" />
+          <path d="M 100 176 L 100 286 C 100 346 122 388 142 414" />
+          {[node(72, 234, 7), node(72, 286, 7), node(228, 234, 7), node(228, 286, 7)]}
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-node-column") {
+      return (
+        <svg {...common}>
+          {roof(72, 74, 150, 36, 228, 74)}
+          <path className="daoFuCurvedRoofLine" d="M 70 96 C 106 96 132 86 150 66 C 168 86 194 96 230 96" />
+          <path d="M 64 120 Q 64 134 52 140 L 52 398" />
+          <path d="M 236 120 Q 236 134 248 140 L 248 398" />
+          <path d="M 64 120 H 236" />
+          {[160, 216, 272].flatMap((y) => [node(52, y, 7), node(248, y, 7)])}
+        </svg>
+      );
+    }
+
+    return (
+      <svg {...common}>
+        {roof(88, 72, 150, 32, 212, 72)}
+        <path d="M 100 124 Q 92 132 92 146 L 92 398" />
+        <path d="M 200 124 Q 208 132 208 146 L 208 398" />
+        <path d="M 100 124 Q 150 114 200 124" />
+        <path d="M 92 174 Q 104 162 104 148" />
+        <path d="M 208 174 Q 196 162 196 148" />
+      </svg>
+    );
+  }
+
+  const daoClassName = `daoMandalaSheet${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoFulu ? " dao-fulu" : ""}${isDaoFuOutline ? " dao-fu-outline" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""}${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim();
 
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
@@ -2848,8 +2976,9 @@ export default function ProfileLitePowerPlaceModule({
                       {isDaoTalisman2 ? renderDaoTalisman2()
                         : isDaoTalisman1 ? renderDaoTalisman1()
                           : isDaoFulu ? renderDaoFulu()
-                            : isDaoStyle1 ? renderDaoStyle1()
-                              : renderDaoStyle1()}
+                            : isDaoFuOutline ? renderDaoFuReferenceOutline()
+                              : isDaoStyle1 ? renderDaoStyle1()
+                                : renderDaoStyle1()}
                     </div>
                   )}
                 </div>
