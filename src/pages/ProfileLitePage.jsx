@@ -143,11 +143,14 @@ const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const FIELD_LAYOUT_REF_KEY = "__field_layout";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
 const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
 const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
+const VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS = ["roof_double_line", "three_checks"];
+const VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS = [2, 3];
 const EMPTY_PROFILE_LITE_REPORT = {
   mode: "without_report",
   added: false,
@@ -328,6 +331,16 @@ function normalizeMotionSettings(value) {
     direction,
     step_seconds: VALID_VIDEO_STEP_SECONDS.includes(stepSeconds) ? stepSeconds : EMPTY_MOTION_SETTINGS.step_seconds,
     video_background_ref: safeVideoBackgroundRef
+  };
+}
+
+function normalizeDaoLayoutTemplateOptions(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const sideNodeCount = Number(source.sideNodeCount);
+  return {
+    topCrown: VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS.includes(String(source.topCrown || "").trim()) ? String(source.topCrown).trim() : "roof_double_line",
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS.includes(sideNodeCount) ? sideNodeCount : 2
   };
 }
 
@@ -1387,6 +1400,15 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
           object_refs: {
             ...(current.object_refs || {}),
             [PROFILE_LITE_REPORT_REF_KEY]: normalizeProfileLiteReport(value)
+          }
+        };
+      }
+      if (field === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+        return {
+          ...current,
+          object_refs: {
+            ...(current.object_refs || {}),
+            [DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]: normalizeDaoLayoutTemplateOptions(value)
           }
         };
       }

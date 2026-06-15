@@ -73,6 +73,7 @@ function daoStyleValue(value) {
   if (value === "style-2") return "style-2";
   if (value === "talisman" || value === "talisman-1") return "talisman-1";
   if (value === "talisman-2") return "talisman-2";
+  if (value === "dao-layout-template") return "dao-layout-template";
   if (
     value === "fu-paper-slip" ||
     value === "cloud-register" ||
