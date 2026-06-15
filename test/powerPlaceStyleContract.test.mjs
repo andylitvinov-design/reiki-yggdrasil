@@ -386,11 +386,13 @@ for (const [styleValue, assetPath] of [
   assert.equal(existsSync(join(__dir, `../public${assetPath}`)), true, `${assetPath} must exist in public assets`);
   const assetSource = readFileSync(join(__dir, `../public${assetPath}`), "utf8");
   assert.match(assetSource, /<title[^>]*>DAO /, `${assetPath} must keep a descriptive DAO title`);
-  assert.match(assetSource, /abstract|pseudo-calligraphic|registry|angular|strict/i, `${assetPath} must describe its distinct decorative talisman direction`);
+  assert.match(assetSource, /contour|silhouette|outline|frame/i, `${assetPath} must describe its distinct contour-only talisman direction`);
+  assert.doesNotMatch(assetSource, /pseudo-calligraphic|registry marks|angular marks|decorative abstract linework/i, `${assetPath} must not describe internal pseudo-calligraphy`);
   assert.doesNotMatch(assetSource, /<text\b|[\u3400-\u9fff]/u, `${assetPath} must not include readable sacred script or copied Chinese text`);
   assert.doesNotMatch(assetSource, /<circle\b|<defs\b|fill="url\(|filter=/, `${assetPath} must avoid glossy icon effects and generated filter/gradient internals`);
   assert.match(assetSource, /<path\b[^>]*fill="#/, `${assetPath} must include a paper-like filled slip surface`);
-  assert.ok((assetSource.match(/<path\b/g) || []).length >= 8, `${assetPath} must contain decorative abstract linework, not only an empty outline`);
+  assert.ok((assetSource.match(/<path\b/g) || []).length <= 4, `${assetPath} must stay contour-only without dense internal mark paths`);
+  assert.ok((assetSource.match(/stroke-width=/g) || []).length <= 3, `${assetPath} must not keep internal pseudo-calligraphy strokes`);
 }
 
 const fuluAssetSources = [
@@ -479,6 +481,25 @@ assert.ok(
   cssSource.includes(".daoTalisman2Node .daoElementImage") &&
   cssSource.includes(".daoFuluSlot .daoElementImage"),
   "DAO node flattening must stay scoped to DAO sheet, talisman-2, and fulu selectors"
+);
+
+assert.ok(
+  fuluBranch.includes("compositionDraft.__dao_talisman_node_count") &&
+  fuluBranch.includes("daoFuluNodeColumn") &&
+  fuluBranch.includes("dao-fulu-${index + 1}"),
+  "fulu branch must reuse the shared DAO talisman node count while keeping distinct fulu slot IDs"
+);
+
+assert.ok(
+  cssSource.includes(".daoFuluNodeColumn") &&
+  cssSource.includes(".daoFuluSlot") &&
+  cssSource.includes("flex-direction: column"),
+  "fulu mini windows must render as a vertical column"
+);
+
+assert.ok(
+  cssSource.includes("width: min(calc(var(--power-field-scale, 96%) * 2.28), 58vw)"),
+  "mobile fulu width must keep responding to Размер поля through --power-field-scale"
 );
 
 // ─── Chess cover-none is fully transparent (outer background shows through) ────
@@ -832,8 +853,8 @@ assert.ok(
 );
 
 assert.ok(
-  cssSource.includes(".daoFuluSlot--water") && cssSource.includes(".daoFuluSlot--fire"),
-  "CSS must define .daoFuluSlot-- positions for all fulu element slots"
+  cssSource.includes(".daoFuluNodeColumn") && !cssSource.includes(".daoFuluSlot--water") && !cssSource.includes(".daoFuluSlot--fire"),
+  "CSS must use a counted vertical .daoFuluNodeColumn instead of fixed five-position fulu slots"
 );
 
 for (const cls of ["dao-fu-paper-slip", "dao-cloud-register", "dao-thunder-tablet", "dao-taofu-charm"]) {

@@ -1085,6 +1085,17 @@ assert.ok(
   "Talisman 2 must generate slot IDs as dao-talisman-2-${index + 1}"
 );
 
+assert.ok(
+  powerPlaceBaseSource.includes("dao-fulu-${index + 1}") || powerPlaceBaseSource.includes("`dao-fulu-${index + 1}`"),
+  "Fulu styles must generate vertical slot IDs as dao-fulu-${index + 1}"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /isDaoTalisman2 \|\| isDaoFulu[\s\S]*DAO_TALISMAN_NODE_COUNTS\.map/,
+  "DAO node-count selector must be visible for talisman-2 and fulu styles"
+);
+
 // Talisman 2 must not use DAO_ELEMENTS.slice
 assert.ok(
   !powerPlaceBaseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
@@ -1104,8 +1115,21 @@ assert.ok(
   assert.match(talisman2Branch, /daoTalisman2Scroll[\s\S]*dao-talisman-2-\$\{index \+ 1\}/, "talisman-2 helper must keep generated vertical nodes");
   assert.doesNotMatch(talisman2Branch, /daoFuluContourLayer|daoTalismanBody|daoUsinCore/, "talisman-2 helper must not render other DAO style layers");
   assert.match(fuluBranch, /daoFuluContourLayer/, "fulu helper must render the contour layer");
+  assert.match(fuluBranch, /compositionDraft\.__dao_talisman_node_count[\s\S]*daoFuluNodeColumn/, "fulu helper must render the counted vertical node column");
   assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu helper must not render old DAO or talisman layers");
 }
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLitePowerPlace \.powerMandalaPanel \.daoMandalaSheet\.dao-fu-paper-slip,[\s\S]*width: min\(calc\(var\(--power-field-scale, 96%\) \* 2\.28\), 58vw\) !important;/,
+  "mobile fulu styles must keep Размер поля wired to actual rendered width"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.daoFuluCenterArea \.daoCenterPhoto \{[\s\S]*width: clamp\(52px, 32%, 78px\) !important;/,
+  "fulu center photo must stay readable instead of collapsing into a tiny stamp"
+);
 
 // Legacy "talisman" value must map to talisman-1 in wrapper daoStyleValue
 assert.ok(

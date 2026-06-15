@@ -1,15 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
-  <title id="title">DAO cloud register abstract contour</title>
-  <desc id="desc">Decorative Daoist-inspired cloud register with abstract registry marks only; not a ritual formula or sacred text.</desc>
+  <title id="title">DAO cloud register contour</title>
+  <desc id="desc">Decorative Daoist-inspired cloud register silhouette with contour frame only; not a ritual formula or sacred text.</desc>
   <path d="M20 17c10-8 22-6 28 3c7-12 18-12 25 0c8-8 20-8 27-1v324H20z" fill="#f5edc4" opacity=".72"/>
-  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <g fill="none" stroke="#486836" stroke-linecap="round" stroke-linejoin="round">
     <path d="M20 24c9-12 22-11 29-1c6-15 18-15 25 0c7-10 20-11 26 1v322H20z" stroke-width="2.25"/>
-    <path d="M27 42c8-7 18-7 26 0c8-7 18-7 26 0c5-5 11-5 16 0v294H27z" stroke-width="1.25" opacity=".58"/>
-    <path d="M31 61c8 6 17 6 25 0c9 7 20 7 30 0M35 78q4 0 4-5h42q0 5 4 5" stroke-width="1.75"/>
-    <path d="M43 112c-16 8-13 28 4 26c18-2 20-25 5-28M75 122c15 7 14 25-2 26c-17 1-19-19-5-25" stroke-width="1.75" opacity=".55"/>
-    <path d="M60 96c5 24-8 39-2 63c4 17 21 22 20 40c-1 19-28 20-27 42" stroke-width="2.85" opacity=".62"/>
-    <path d="M40 178c13 7 28 7 42-1M40 219c12-6 25-5 39 3M42 257h36" stroke-width="1.7" opacity=".56"/>
-    <path d="M44 294h32v31H44zM50 300h20v19H50z" stroke-width="1.7" opacity=".72"/>
-    <path d="M30 323c6-7 12-7 18 0M90 323c-6-7-12-7-18 0M38 334h44" stroke-width="1.75"/>
+    <path d="M27 43c8-7 18-7 26 0c8-7 18-7 26 0c5-5 11-5 16 0v293H27z" stroke-width="1.25" opacity=".58"/>
   </g>
 </svg>
