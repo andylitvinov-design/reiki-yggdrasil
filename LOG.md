@@ -1,5 +1,45 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-15 — Mobile Power Place UX fix
+
+- Branch: `codex/mobile-power-place-ux-373`.
+- Base: fresh `origin/main` at `e81b254` (`Polish DAO talisman visual authenticity (#372)`).
+- Issue: `#373` Mobile Power Place UX fix.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - removed `Внутрь / Снаружи` from inside the mandala printable visual panel and placed the controls below the preview;
+  - made the cover layer controls horizontal and preserved their inner/outer picker plus drag/drop handlers;
+  - moved the Power Place title/save/update/create/print/PDF/service action card after `Библиотека`, `Фон Места Силы`, and `Отчёт` in the mobile flow;
+  - hid the visible `Публичная проекция` form without deleting feed-service plumbing;
+  - made print/PDF await the fresh `.powerPlacePrintArea` clone pipeline after the existing double RAF, image preload, and font readiness steps.
+- Checks run:
+  - `npm install` (failed: local disk `ENOSPC` while writing `node_modules`)
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final validation commands except `npm install` exited `0`;
+  - validation used a temporary symlink to `/Users/andriilitvinov/projects/MYPROJECTS/reiki-yggdrasil/node_modules` because the worktree could not complete a fresh install with about 126 MB free;
+  - `npm run build` / `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings.
+- Local browser QA:
+  - mocked Supabase/session dev server with dummy local env names: `http://localhost:4423/profile/mandalas`;
+  - mobile `390x844` and `390x900`: DAO rendered, cover layer controls were horizontal below the preview and outside `.powerPlacePrintArea`, the action card appeared after `Библиотека`, `Фон Места Силы`, and `Отчёт`, `Публичная проекция` was hidden, service buttons stayed visible, horizontal overflow `0`, console errors `0`;
+  - mobile Print and Download PDF popup captures cloned `.powerPlacePrintArea` after changing `Размер окон`, `Размер поля`, and `Размер центра`; clones included the updated scale CSS variables and excluded `.powerMandalaCoverDropTargets`;
+  - desktop `1280x920`: DAO rendered, desktop three-column layout remained present at widths `260 / 620 / 340`, horizontal overflow `0`, console errors `0`.
+- Not verified yet:
+  - live/test `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy;
+  - real authenticated staging Supabase drag/drop and Storage/RLS behavior.
+
 ## 2026-06-15 — DAO talisman visual authenticity v3
 
 - Branch: `codex/dao-talisman-authenticity-v3`.
