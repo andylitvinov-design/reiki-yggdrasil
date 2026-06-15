@@ -2716,24 +2716,19 @@
   mix-blend-mode: multiply;
 }
 
-/* ── DAO layout template — empty configurable talisman silhouette ─────────── */
+/* ── DAO layout template — configurable talisman outline overlay ─────────── */
 
 .daoMandalaSheet.dao-layout-template {
-  aspect-ratio: 9 / 16 !important;
-  border: 0 !important;
-  border-radius: 42% 42% 30% 30% / 18% 18% 12% 12% !important;
-  width: min(292px, 88%) !important;
-  margin: 0 auto;
+  position: relative;
   overflow: visible !important;
-  background: transparent !important;
-  box-shadow: none !important;
 }
 
-.daoLayoutTemplateScroll {
-  position: relative;
-  width: 100%;
-  height: 100%;
+.daoLayoutTemplateOverlay {
+  position: absolute;
+  inset: -8% -5% -6%;
+  z-index: 14;
   overflow: visible;
+  pointer-events: none;
 }
 
 .daoLayoutTemplateBody {
@@ -2870,20 +2865,19 @@
 .daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-2 { top: 48%; }
 .daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-3 { top: 74%; }
 
-.daoLayoutTemplateScroll.side-nodes-hidden .daoLayoutTemplateSideNode {
+.daoLayoutTemplateOverlay.side-nodes-hidden .daoLayoutTemplateSideNode {
   display: none;
 }
 
 .powerPlacePdfOnlyArea .daoMandalaSheet.dao-layout-template {
-  aspect-ratio: 9 / 16 !important;
-  width: min(292px, 88%) !important;
+  overflow: visible !important;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
 }
 
 @media (max-width: 640px) {
-  .daoMandalaSheet.dao-layout-template {
-    width: min(246px, 88%) !important;
+  .daoLayoutTemplateOverlay {
+    inset: -7% -4% -5%;
   }
 
   .daoLayoutTemplateBody {

@@ -2,6 +2,43 @@
 
 Last updated: 2026-06-15
 
+## 2026-06-15 — DAO layout format split and mobile photo/window restore
+
+- Branch: `codex/dao-layout-format-20260615`, based on `origin/main` at `31b8574` after PR #379 (`0bf0daf`) and PR #378.
+- Scope: Profile Lite Power Place DAO constructor runtime, persistence normalization, focused tests, and one minimal Supabase constraint migration; public homepage, `/profile`, `/masters`, `/profile/admin`, env values, Vercel routing, and non-DAO formats were not changed.
+- Root cause:
+  - PR #379 registered `dao-layout-template` as a DAO style and routed it to `renderDaoLayoutTemplate()` before the normal DAO style branches.
+  - That branch rendered only the empty talisman outline, so the central photo and mini-mandala window layer were replaced instead of overlaid.
+- Changed:
+  - added separate constructor format `dao-layout` with UI label `ДАО-Макет`;
+  - kept normal `dao` / `ДАО` behavior separate and without the layout-options block;
+  - `ДАО-Макет` uses the same DAO style picker library as `ДАО`;
+  - layout options render only for `dao-layout` or legacy saved `dao-layout-template`;
+  - layout outline is drawn by `.daoLayoutTemplateOverlay` with `pointer-events: none`, after the selected DAO base style;
+  - center photo, DAO element window slots, inner/outer cover layers, and scale controls remain visible under the overlay;
+  - new persistence key is `object_refs.__dao_layout_options`;
+  - legacy `object_refs.__dao_layout_template_options` is still read;
+  - legacy saved `object_refs.__dao_style: "dao-layout-template"` normalizes at runtime to `constructor_type: "dao-layout"` with base `__dao_style: "style-1"`;
+  - added migration `20260615123000_power_place_dao_layout_format.sql` to allow `constructor_type='dao-layout'` in the existing check constraint.
+- Verification:
+  - `npm install` exited `0`;
+  - `node test/profileLiteCabinetContract.test.mjs`, `node test/powerPlaceClient.test.mjs`, and `node test/powerPlaceStyleContract.test.mjs` exited `0`;
+  - `npm run check` exited `0`;
+  - `npm run build` exited `0`;
+  - retained known warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large-chunk warning.
+- Local browser QA:
+  - no-env dev server at `http://localhost:5173/profile/mandalas` showed the expected Supabase-not-configured gate and console errors `0`;
+  - mock Supabase server at `http://127.0.0.1:5999` plus env-backed dev server at `http://localhost:5174/profile/mandalas`;
+  - desktop/mock QA confirmed `ДАО-Макет` format option, DAO style picker, layout options, five DAO slot buttons, center layer, overlay `pointer-events: none`, horizontal overflow `0`, and console errors `0`;
+  - saved mock `dao-layout` composition with center and DAO window refs loaded with center image `hasImage=true`, five slots, two saved mini-window images, overlay present, and console errors `0`;
+  - mobile emulation `390x900` confirmed `ДАО-Макет`, center image `hasImage=true`, five slots, two saved mini-window images, overlay present, `pointer-events: none`, horizontal overflow `0`, and console errors `0`;
+  - normal `ДАО` confirmed heading `ДАО`, five DAO slots, and layout options hidden.
+- Not verified:
+  - real authenticated Supabase save/update/reload against live staging data;
+  - Vercel deployment and live `https://2mentalica.vercel.app` behavior until PR is merged/deployed.
+- Risks:
+  - live Supabase must apply the new check-constraint migration before newly saved `dao-layout` compositions can persist; old saved `dao-layout-template` rows still render through runtime normalization.
+
 ## 2026-06-15 — DAO reference fu outline style library
 
 - Branch: `codex/dao-fu-reference-outlines`, based on fresh `origin/main` at `803d924`.

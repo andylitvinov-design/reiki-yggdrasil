@@ -254,7 +254,7 @@ for (const requiredPowerPlaceText of [
   "Опубликовать как услугу",
   "Скачать PDF",
   "Печать",
-  "ДАО: Макет",
+  "ДАО-Макет",
   "Верхушка",
   "Крыша",
   "3 галочки",
@@ -305,7 +305,7 @@ assert.match(profileLitePageSource, /const moduleProps = \{[\s\S]*accountPlan,[\
 assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8"), /accountPlan = "start"[\s\S]*const isProAccount = accountPlan === "pro"[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "ProfileLiteImagePicker should keep Pro-only client options disabled unless accountPlan is exactly pro");
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
-assert.match(powerPlaceBaseSource, /const daoStyle = compositionDraft\.__dao_style \|\| "style-1"/, "DAO style should be computed once before rendering");
+assert.match(powerPlaceBaseSource, /const legacyDaoLayoutStyle = compositionDraft\.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID[\s\S]*const daoStyle = legacyDaoLayoutStyle \? "style-1" : compositionDraft\.__dao_style \|\| "style-1"/, "DAO style should be computed once before rendering with legacy layout normalization");
 assert.match(powerPlaceBaseSource, /const isDaoFulu = DAO_FULU_STYLES\.has\(daoStyle\)/, "DAO fulu detection should use computed daoStyle");
 assert.match(powerPlaceBaseSource, /function isDaoFuluContourAsset\(src\)/, "DAO renderer should detect built-in fulu contour assets");
 assert.match(powerPlaceBaseSource, /function renderDaoFulu\(\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
@@ -469,7 +469,8 @@ assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
 assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
-assert.doesNotMatch(powerPlaceSource.replaceAll("ДАО: Макет", ""), /Макет|макет/, "Profile Lite Power Place UI should not show stray Макет labels outside the DAO template style");
+assert.match(powerPlaceSource, /"dao-layout": "ДАО-Макет"/, "Profile Lite Power Place UI should expose ДАО-Макет as a dedicated format label");
+assert.doesNotMatch(powerPlaceBaseSource, /\{ value: DAO_LAYOUT_TEMPLATE_STYLE_ID, label: "ДАО: Макет" \}/, "ДАО-Макет must not remain registered as a normal DAO style");
 assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "resource comparison mini-block should not be visible in the React report/settings UI");
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
@@ -1028,8 +1029,8 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /compositionDraft\.constructor_type === "dao"/,
-  "DAO style selector must be gated on constructor_type === dao"
+  /isDaoConstructorType\(compositionDraft\.constructor_type\)/,
+  "DAO style selector must be gated on DAO and DAO layout constructor types"
 );
 
 assert.match(
@@ -1069,8 +1070,9 @@ assert.match(
 );
 
 assert.ok(
-  powerPlaceSource.includes('value === "dao-layout-template"'),
-  "Wrapper module must preserve the DAO layout template style instead of falling back to style-1"
+  powerPlaceSource.includes('objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template"') &&
+    powerPlaceSource.includes('const constructorType = legacyDaoLayoutStyle ? "dao-layout"'),
+  "Wrapper module must normalize the legacy DAO layout template style into the dao-layout format"
 );
 
 // Talisman must be nested inside daoMandalaSheet — outer surface preserved

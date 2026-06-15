@@ -619,6 +619,11 @@ assert.deepEqual(
         sideNodesVisible: false,
         sideNodeCount: 3
       },
+      __dao_layout_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      },
       __field_layout: "square"
     },
     central_photo_id: "photo-4",
@@ -628,6 +633,51 @@ assert.deepEqual(
     resource_without_mandala_comment: "",
     resource_with_mandala_comment: ""
   }
+);
+
+assert.deepEqual(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    profile_id: "profile-1",
+    title: " ДАО Макет ",
+    constructor_type: "dao-layout",
+    object_refs: {
+      __dao_style: "talisman-2",
+      __center_image: "https://example.com/center.jpg",
+      "dao-water": "https://example.com/water.jpg",
+      "dao-fire": "https://example.com/fire.jpg",
+      __dao_layout_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      }
+    },
+    central_photo_id: "photo-5"
+  }).object_refs,
+  {
+    __dao_style: "talisman-2",
+    __center_image: "https://example.com/center.jpg",
+    "dao-water": "https://example.com/water.jpg",
+    "dao-fire": "https://example.com/fire.jpg",
+    __dao_layout_options: {
+      topCrown: "three_checks",
+      sideNodesVisible: false,
+      sideNodeCount: 3
+    },
+    __field_layout: "square"
+  }
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    profile_id: "profile-1",
+    constructor_type: "dao",
+    object_refs: {
+      __dao_style: "dao-layout-template",
+      __dao_layout_template_options: { topCrown: "three_checks", sideNodeCount: 3 }
+    }
+  }).constructor_type,
+  "dao-layout",
+  "legacy dao-layout-template style should normalize to dao-layout format"
 );
 
 assert.deepEqual(

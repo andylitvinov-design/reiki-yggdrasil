@@ -16,7 +16,7 @@ const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
 const VALID_PLANS = ["start", "pro"];
-const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac", "star", "chess"];
+const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "dao-layout", "zodiac", "star", "chess"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 9, 12];
 const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
@@ -41,6 +41,7 @@ const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
 const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
@@ -192,8 +193,8 @@ function cleanObjectRefs(value) {
       }
       continue;
     }
-    if (key === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
-      refs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(rawItem);
+    if (key === DAO_LAYOUT_OPTIONS_REF_KEY || key === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+      refs[key] = normalizeDaoLayoutTemplateOptions(rawItem);
       continue;
     }
     if (rawItem && typeof rawItem === "object") continue;
@@ -485,9 +486,13 @@ const CENTER_FRAME_SCALE_MIN = 0.72;
 const CENTER_FRAME_SCALE_MAX = 1.85;
 
 export function normalizePowerPlaceComposition(composition) {
-  const constructorType = VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
-    ? composition.constructor_type
-    : "client";
+  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
+  const legacyDaoLayout = sourceObjectRefs.__dao_style === "dao-layout-template";
+  const constructorType = legacyDaoLayout
+    ? "dao-layout"
+    : VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
+      ? composition.constructor_type
+      : "client";
   const geometry = Number(composition?.geometry);
   const ratio = cleanText(composition?.altar_center_ratio);
   const businessZoneCount = Number(composition?.business_vertex_zone_count);
@@ -495,7 +500,6 @@ export function normalizePowerPlaceComposition(composition) {
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
   const chessVariant = cleanText(composition?.chess_variant);
-  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
   const slotScale = composition?.slot_scale ?? sourceObjectRefs[SLOT_SCALE_REF_KEY];
   const fieldScale = composition?.field_scale ?? sourceObjectRefs[INNER_FIELD_SCALE_REF_KEY];
   const centerImageScale = composition?.__center_image_scale ?? sourceObjectRefs[CENTER_IMAGE_SCALE_REF_KEY];
@@ -532,8 +536,11 @@ export function normalizePowerPlaceComposition(composition) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
   objectRefs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(sourceObjectRefs[MOTION_SETTINGS_REF_KEY]);
-  if (Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY)) {
-    objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(sourceObjectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
+  if (legacyDaoLayout) {
+    objectRefs.__dao_style = "style-1";
+  }
+  if (Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_OPTIONS_REF_KEY) || Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY)) {
+    objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(sourceObjectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || sourceObjectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
   }
   if (Object.hasOwn(sourceObjectRefs, SLOT_TRANSFORMS_REF_KEY)) {
     const slotTransforms = normalizeSlotTransforms(sourceObjectRefs[SLOT_TRANSFORMS_REF_KEY]);
