@@ -624,6 +624,20 @@ assert.ok(
 );
 
 assert.ok(
+  daoFuOutlineLayoutSource.includes('className="daoFieldCoverLayer daoFuOutlineFieldLayer"') &&
+  daoFuOutlineLayoutSource.indexOf("daoFuOutlineFieldLayer") < daoFuOutlineLayoutSource.indexOf("renderDaoFuReferenceOutline()"),
+  "new DAO outline layouts must render the shared field/background image layer behind the red contour overlay"
+);
+
+assert.ok(
+  cssSource.includes(".daoFuOutlineFieldLayer") &&
+  cssSource.includes("width: var(--power-field-scale, 78%)") &&
+  cssSource.includes("background-image: var(--dao-field-cover-image, none)") &&
+  !/\.daoMandalaSheet\.dao-fu-outline\s*\{[\s\S]*?--dao-field-cover-image:\s*none;/.test(cssSource),
+  "new DAO outline styles must keep the selected field image and Размер поля scale wired through shared CSS variables"
+);
+
+assert.ok(
   cssSource.includes(".daoStyle2CenterArea .daoCenterPhoto") &&
   cssSource.includes("aspect-ratio: 1 / 1") &&
   cssSource.includes("border-radius: 50%") &&

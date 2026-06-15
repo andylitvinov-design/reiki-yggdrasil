@@ -3330,7 +3330,6 @@
 /* ─── DAO reference fu outlines — empty red contour templates ───────────── */
 
 .daoMandalaSheet.dao-fu-outline {
-  --dao-field-cover-image: none;
   --dao-fu-outline-red: #e00000;
   width: min(340px, 88%) !important;
   max-width: min(340px, 88%) !important;
@@ -3342,6 +3341,21 @@
   box-shadow: none !important;
   background: transparent !important;
   clip-path: none !important;
+}
+
+.daoFuOutlineFieldLayer {
+  z-index: 0;
+  width: var(--power-field-scale, 78%);
+  height: calc(var(--power-field-scale, 78%) * 1.55);
+  max-width: 92%;
+  max-height: 88%;
+  background-image: var(--dao-field-cover-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--dao-field-cover-opacity, 0);
+  mix-blend-mode: multiply;
+  pointer-events: none;
 }
 
 .daoFuOutlineScroll {
