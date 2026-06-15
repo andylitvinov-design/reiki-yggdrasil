@@ -1,5 +1,42 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-15 — DAO talisman visual authenticity v3
+
+- Branch: `codex/dao-talisman-authenticity-v3`.
+- Base: fresh `origin/main` at `c3f6cf5` (`Polish DAO talisman visual QA`).
+- Changed files:
+  - `public/symbols/power-place/dao/fulu/fu-paper-slip.svg`
+  - `public/symbols/power-place/dao/fulu/cloud-register.svg`
+  - `public/symbols/power-place/dao/fulu/thunder-tablet.svg`
+  - `public/symbols/power-place/dao/fulu/taofu-charm.svg`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - made fulu SVG assets more paper-like and distinct with abstract pseudo-calligraphic marks, seal boxes, cloud/angle/strict charm differences, and no readable sacred script;
+  - reduced DAO node gloss and size by using flatter seal-like red-gold styling scoped to DAO sheets, talisman-2 nodes, and fulu slots;
+  - refined talisman-1 circular seal spacing and talisman-2 vertical spacing for 3/5/7/9 node layouts;
+  - updated the power-place style contract to enforce distinct fulu assets, abstract/no-sacred-text SVG content, paper-like surfaces, and scoped node CSS.
+- Checks run:
+  - `npm install`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm run build`
+  - `npm run check`
+  - `git diff --check`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4412`;
+  - `/profile/mandalas` reached the expected no-Supabase fallback locally, so visual QA used an in-page CSS/DOM harness with the built app CSS;
+  - desktop `1280x920` and mobile `390x900`: all DAO style surfaces rendered, four fulu contours appeared only in fulu styles, style-1/talisman styles had no fulu contamination, talisman-2 rendered 3/5/7/9 nodes, horizontal overflow was `0`, and console warnings/errors were `0`.
+- Not verified yet:
+  - real authenticated builder UI in staging/test Supabase;
+  - Vercel preview/test deployment and `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
 ## 2026-06-14 — Fix DAO reference background contain fit
 
 - Branch: `codex/fix-dao-background-contain-fit`.

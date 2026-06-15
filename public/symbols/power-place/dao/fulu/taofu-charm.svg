@@ -1,13 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
-  <title id="title">DAO taofu peach-wood charm empty contour</title>
-  <desc id="desc">Reference outline for a peach-wood charm inspired vertical plaque shape. Decorative draft only, not a ritual formula.</desc>
-  <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M31 14h58v32h7v300H24V46h7z" />
-    <path d="M36 24h48v18H36z" />
-    <path d="M35 70q8 0 8-8h34q0 8 8 8" />
-    <path d="M35 320q8 0 8 8h34q0-8 8-8" />
-    <path d="M32 52q5 12 0 24" />
-    <path d="M88 52q-5 12 0 24" />
-    <path d="M31 334h58" />
+  <title id="title">DAO taofu strict charm abstract contour</title>
+  <desc id="desc">Decorative Daoist-inspired narrow taofu charm with abstract pseudo-calligraphic marks only; not a ritual formula or sacred text.</desc>
+  <path d="M31 13h58v32h7v301H24V45h7z" fill="#f8e8a6" opacity=".72"/>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 14h58v32h7v300H24V46h7z" stroke-width="2.5"/>
+    <path d="M36 24h48v18H36zM33 55h54" stroke-width="1.8"/>
+    <path d="M36 70q8 0 8-8h32q0 8 8 8" stroke-width="1.9"/>
+    <path d="M35 92h50M42 111h36" stroke-width="1.45" opacity=".58"/>
+    <path d="M60 132v88M48 152h24M52 178h16M45 204h30" stroke-width="2.35" opacity=".72"/>
+    <path d="M50 132c-13 17-10 33 5 39M70 132c13 17 10 33-5 39" stroke-width="1.8" opacity=".62"/>
+    <path d="M43 242h34M48 258h24" stroke-width="1.5" opacity=".54"/>
+    <path d="M39 288h42v36H39zM47 296h26v20H47z" stroke-width="1.95" opacity=".82"/>
+    <path d="M54 302h12M60 296v20" stroke-width="1.55" opacity=".76"/>
+    <path d="M35 320q8 0 8 8h34q0-8 8-8M31 334h58" stroke-width="2"/>
+    <path d="M32 52q5 12 0 24M88 52q-5 12 0 24" stroke-width="1.45" opacity=".56"/>
   </g>
 </svg>

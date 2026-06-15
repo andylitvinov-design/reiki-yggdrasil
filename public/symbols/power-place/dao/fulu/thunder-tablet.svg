@@ -1,13 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
-  <title id="title">DAO thunder command tablet empty contour</title>
-  <desc id="desc">Reference outline for a Daoist command-tablet-inspired vertical talisman shape. Decorative draft only, not a ritual formula.</desc>
-  <g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M60 12l19 22h12l6 14v298H23V48l6-14h12z" />
-    <path d="M60 21l14 17h10l5 12v286H31V50l5-12h10z" />
-    <path d="M35 55h50" />
-    <path d="M40 91q7 0 7-7h26q0 7 7 7" />
-    <path d="M40 321q7 0 7 7h26q0-7 7-7" />
-    <path d="M38 38c5-9 12-9 17-1" />
-    <path d="M82 38c-5-9-12-9-17-1" />
+  <title id="title">DAO thunder command tablet abstract contour</title>
+  <desc id="desc">Decorative Daoist-inspired thunder command tablet with abstract angular marks only; not a ritual formula or sacred text.</desc>
+  <path d="M60 11l20 22h12l7 16v297H21V49l7-16h12z" fill="#f1df9c" opacity=".7"/>
+  <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 12l20 22h12l7 16v296H21V50l7-16h12z" stroke-width="2.55"/>
+    <path d="M60 22l14 17h10l5 12v284H31V51l5-12h10z" stroke-width="1.35" opacity=".66"/>
+    <path d="M35 56h50M40 91q7 0 7-7h26q0 7 7 7" stroke-width="2"/>
+    <path d="M38 38c5-9 12-9 17-1M82 38c-5-9-12-9-17-1" stroke-width="1.65" opacity=".72"/>
+    <path d="M68 101l-18 43h18l-14 39l24-51H61z" stroke-width="3.3" opacity=".78"/>
+    <path d="M43 117l-11 18l14 7l-10 23M83 144l-13 18l15 9l-12 26" stroke-width="2.1" opacity=".66"/>
+    <path d="M40 219h40M45 236h29M39 255h42" stroke-width="1.65" opacity=".58"/>
+    <path d="M43 292h34v31H43zM50 298h20v19H50z" stroke-width="1.8" opacity=".78"/>
+    <path d="M40 321q7 0 7 7h26q0-7 7-7" stroke-width="2"/>
   </g>
 </svg>
