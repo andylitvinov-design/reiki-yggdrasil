@@ -2723,6 +2723,81 @@
   overflow: visible !important;
 }
 
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack {
+  position: absolute;
+  left: 50%;
+  top: 31%;
+  bottom: 11%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(138px, 48%);
+  transform: translateX(-50%);
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  margin-bottom: 4px;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  z-index: 2;
+  width: 42px;
+  padding: 0;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage {
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot b {
+  display: none;
+}
+
 .daoLayoutTemplateOverlay {
   position: absolute;
   inset: -8% -5% -6%;
@@ -2735,7 +2810,7 @@
   position: absolute;
   left: 10%;
   right: 10%;
-  top: 15%;
+  top: 23%;
   bottom: 7%;
   border: 4px solid rgba(150, 25, 12, 0.92);
   border-bottom: 0;
@@ -2776,6 +2851,24 @@
   width: 58%;
   height: 15%;
   transform: translateX(-50%);
+}
+
+.daoLayoutTemplateTopMarker {
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 34px;
+  transform: translateX(-50%);
+  color: rgba(136, 22, 12, 0.96);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.72);
 }
 
 .daoLayoutTemplateRoofLine {
@@ -2880,8 +2973,51 @@
     inset: -7% -4% -5%;
   }
 
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack {
+    top: 39%;
+    bottom: 11%;
+    width: min(118px, 50%);
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea {
+    width: 58px;
+    margin-bottom: 2px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto {
+    width: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack {
+    gap: 2px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot {
+    width: 32px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage {
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+  }
+
   .daoLayoutTemplateBody {
+    top: 23%;
     border-width: 3px;
+  }
+
+  .daoLayoutTemplateTopMarker {
+    top: 15%;
+    font-size: 28px;
   }
 
   .daoLayoutTemplateSideNode {

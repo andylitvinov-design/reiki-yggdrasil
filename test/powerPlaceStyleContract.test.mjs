@@ -459,16 +459,40 @@ assert.ok(
 
 assert.ok(
   baseSource.includes("function renderDaoLayoutOverlay()") &&
+  baseSource.includes("daoLayoutTemplateTopMarker") &&
   baseSource.includes("daoLayoutTemplateRoofLine") &&
   baseSource.includes("daoLayoutTemplateCheck") &&
   baseSource.includes("daoLayoutTemplateSideNode") &&
   !/renderDaoLayoutOverlay[\s\S]*[三清印]/u.test(baseSource),
-  "DAO layout overlay renderer must provide roof/check variants without Chinese/Japanese characters"
+  "DAO layout overlay renderer must provide P marker plus roof/check variants without Chinese/Japanese characters"
 );
 
 assert.ok(
-  /isDaoTalisman2 \? renderDaoTalisman2\(\)[\s\S]*isDaoLayoutTemplate && renderDaoLayoutOverlay\(\)/.test(baseSource),
-  "DAO render selection must render the selected DAO base style before the layout overlay"
+  baseSource.includes("const DAO_LAYOUT_MINI_SLOT_NUMBERS = [3, 4, 5, 7]") &&
+  baseSource.includes("const DAO_LAYOUT_INNER_SLOTS = DAO_LAYOUT_MINI_SLOT_NUMBERS.map") &&
+  baseSource.includes("function renderDaoLayoutInnerStack()") &&
+  baseSource.includes('data-slot-order={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}'),
+  "DAO layout must use explicit 3,4,5,7 mini slots rendered as one ordered inner stack"
+);
+
+assert.ok(
+  /isDaoLayoutTemplate \? renderDaoLayoutInnerStack\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)[\s\S]*isDaoLayoutTemplate && renderDaoLayoutOverlay\(\)/.test(baseSource),
+  "DAO layout render selection must use its dedicated inner stack before falling back to normal DAO style renderers"
+);
+
+assert.ok(
+  cssSource.includes(".daoLayoutTemplateInnerStack") &&
+  cssSource.includes(".daoLayoutTemplateCenterArea .daoCenterPhoto") &&
+  cssSource.includes(".daoLayoutTemplateMiniStack") &&
+  cssSource.includes(".daoLayoutTemplateMiniSlot") &&
+  cssSource.includes(".daoLayoutTemplateTopMarker"),
+  "DAO layout CSS must style P marker, centered client photo, and continuous mini-mandala stack"
+);
+
+assert.match(
+  cssSource,
+  /\.daoLayoutTemplateBody \{[\s\S]*top: 23%;/,
+  "DAO layout body must be shifted downward to leave room for the P marker above"
 );
 
 for (const [styleValue, assetPath] of [

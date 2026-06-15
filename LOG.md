@@ -1,5 +1,45 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-15 — Refine DAO-Макет P marker and inner vertical stack
+
+- Branch: `codex/dao-layout-stack-refine-20260615`.
+- Base: fresh `origin/main` at `e601811` (`Split DAO layout into format (#381)`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Changed:
+  - rendered a Latin `P` as the top `ДАО-Макет` decree marker above the outline body;
+  - gave `ДАО-Макет` a dedicated inner stack instead of reusing the normal DAO standalone center layer;
+  - placed the central client photo inside the upper part of the outline body;
+  - rendered mini-mandalas `3`, `4`, `5`, `7` below the center photo as one continuous vertical sequence;
+  - shifted the layout body down and added desktop/mobile CSS sizing for the center and mini slots;
+  - preserved normal `ДАО`, existing DAO styles, `object_refs.__dao_layout_options`, and legacy `object_refs.__dao_layout_template_options`.
+- Checks run:
+  - `npm install`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `node test/powerPlaceClient.test.mjs`
+  - `node test/powerPlaceStyleContract.test.mjs`
+  - `npm run check`
+  - `npm run build`
+  - `git diff --check`
+- Check notes:
+  - all commands exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - mocked Supabase/session dev server: `http://localhost:5185/profile/mandalas`;
+  - desktop `1280x920` and mobile `390x900` measured `P` above the body, center area inside the body, `data-slot-order="3,4,5,7"`, continuous mini-slot vertical order, horizontal overflow `0`, and console errors `0`;
+  - mocked picker placed the center image inside the body;
+  - mini-slot image picker selection was not completed in headless QA because the modal backdrop intercepted automation clicks, but saved mini refs for `3/4/5/7` are covered by persistence tests.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
 ## 2026-06-15 — Split DAO-Макет into its own format and restore photo layers
 
 - Branch: `codex/dao-layout-format-20260615`.

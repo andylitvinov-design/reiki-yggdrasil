@@ -1120,6 +1120,23 @@ assert.match(
   "DAO node-count selector must be visible for talisman-2 and fulu styles"
 );
 
+assert.ok(
+  powerPlaceBaseSource.includes("const DAO_LAYOUT_MINI_SLOT_NUMBERS = [3, 4, 5, 7]"),
+  "ДАО-Макет must use mini-mandala slots 3,4,5,7 instead of the normal DAO count list"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function renderDaoLayoutInnerStack\(\)[\s\S]*daoLayoutTemplateCenterArea[\s\S]*renderCenterPhotoWithMode\("daoCenterPhoto"\)[\s\S]*DAO_LAYOUT_INNER_SLOTS\.map/,
+  "ДАО-Макет must render the central client photo inside the talisman before the mini-mandala stack"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /isDaoLayoutTemplate \? renderDaoLayoutInnerStack\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)/,
+  "ДАО-Макет must use its own stack without changing the normal ДАО talisman-2 branch"
+);
+
 // Talisman 2 must not use DAO_ELEMENTS.slice
 assert.ok(
   !powerPlaceBaseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
