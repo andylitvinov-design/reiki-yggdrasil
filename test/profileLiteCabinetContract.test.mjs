@@ -312,6 +312,7 @@ assert.match(powerPlaceBaseSource, /function renderDaoFulu\(\)[\s\S]*<div classN
 assert.match(powerPlaceBaseSource, /function renderDaoStyle2\(\)[\s\S]*daoStyle2Scroll[\s\S]*dao-style-2-\$\{index \+ 1\}/, "DAO style-2 should keep a dedicated vertical mini-window render branch");
 assert.match(powerPlaceBaseSource, /function renderDaoFuReferenceOutline\(\)[\s\S]*className: "daoFuReferenceOutline"/, "DAO outline contour helper should remain the pure SVG contour helper");
 assert.match(powerPlaceBaseSource, /function renderDaoFuOutlineLayout\(\)[\s\S]*daoFuOutlineScroll[\s\S]*daoFuOutlineCenterArea[\s\S]*renderCenterPhotoWithMode\("daoCenterPhoto"\)[\s\S]*daoFuOutlineNodeColumn[\s\S]*`\$\{daoStyle\}-\$\{index \+ 1\}`/, "DAO outline styles should render a working center-photo and mini-window layout with style-specific slot ids");
+assert.match(powerPlaceBaseSource, /function renderDaoFuOutlineLayout\(\)[\s\S]*<div className="daoFieldCoverLayer daoFuOutlineFieldLayer" aria-hidden="true" \/>\s*\{renderDaoFuReferenceOutline\(\)\}/, "DAO outline styles must reuse the shared field background layer before the talisman contour overlay");
 assert.match(powerPlaceBaseSource, /function renderDaoFuOutlineLayout\(\)[\s\S]*openObjectPicker\(slotId\)[\s\S]*slotImageStyle\(slotId, displaySrc\)[\s\S]*getSlotImagePanZoomHandlers\(slotId\)[\s\S]*getPowerPlaceSlotDropHandlers\(slotId\)/, "DAO outline slots should keep picker, saved pan/zoom, and drag/drop behavior");
 assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true" \/>/, "DAO fulu render branch should include exactly one self-contained contour layer");
 for (const removedFuluLayer of ["daoFuluFallbackPaper", "daoFuluTopHead", "daoFuluSideRail", "daoFuluBottomBase", "daoFuluHeader", "daoFuluFooter", "daoFuluSealBox", "daoFuluPureMarks"]) {
@@ -327,6 +328,8 @@ assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-style-2/, "CSS should de
 assert.match(profileMandalaCss, /--dao-fulu-user-cover-image/, "CSS should consume --dao-fulu-user-cover-image");
 assert.match(profileMandalaCss, /--dao-field-cover-image[\s\S]*\.daoFieldCoverLayer|\.daoFieldCoverLayer[\s\S]*--dao-field-cover-image/, "CSS should consume borderless DAO field-cover layer for Размер поля");
 assert.match(profileMandalaCss, /\.daoFieldCoverLayer \{[\s\S]*background-image: var\(--dao-field-cover-image, none\)[\s\S]*opacity: var\(--dao-field-cover-opacity, 0\)/, "DAO field cover layer should be invisible without a real uploaded image");
+assert.match(profileMandalaCss, /\.daoFuOutlineFieldLayer \{[\s\S]*width: var\(--power-field-scale, 78%\)[\s\S]*background-image: var\(--dao-field-cover-image, none\)/, "DAO outline field layer must scale the selected field background with Размер поля");
+assert.doesNotMatch(profileMandalaCss, /\.daoMandalaSheet\.dao-fu-outline \{[\s\S]*--dao-field-cover-image: none;/, "DAO outline styles must not reset the shared field background image variable");
 for (const assetPath of [
   "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
   "/symbols/power-place/dao/fulu/cloud-register.svg",

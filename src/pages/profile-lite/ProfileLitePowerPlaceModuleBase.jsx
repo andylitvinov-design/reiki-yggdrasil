@@ -2125,6 +2125,7 @@ export default function ProfileLitePowerPlaceModule({
 
     return (
       <div className="daoFuOutlineScroll" aria-label="Даосский контур" data-node-count={nodeCount}>
+        <div className="daoFieldCoverLayer daoFuOutlineFieldLayer" aria-hidden="true" />
         {renderDaoFuReferenceOutline()}
         <div className="daoFuOutlineBody">
           <div className="daoFuOutlineCenterArea">
