@@ -28,6 +28,7 @@ const MANDALA_STYLE_VARIANTS = [
 ];
 const DAO_STYLE_VARIANTS = [
   { value: "style-1", label: "Стиль 1" },
+  { value: "style-2", label: "Стиль 2" },
   { value: "talisman-1", label: "Талисман 1" },
   { value: "talisman-2", label: "Талисман 2" },
   { value: "fu-paper-slip", label: "Фу-лист" },
@@ -796,6 +797,7 @@ export default function ProfileLitePowerPlaceModule({
   const outerCoverFitClassName = outerCoverFitClass(outerCover);
   const daoStyle = compositionDraft.__dao_style || "style-1";
   const isDaoStyle1 = daoStyle === "style-1";
+  const isDaoStyle2 = daoStyle === "style-2";
   const isDaoTalisman1 = daoStyle === "talisman-1";
   const isDaoTalisman2 = daoStyle === "talisman-2";
   const isDaoFulu = DAO_FULU_STYLES.has(daoStyle);
@@ -1157,19 +1159,23 @@ export default function ProfileLitePowerPlaceModule({
       ...daoFuluContourStyle(daoStyle),
       ...(!innerCoverIsFuluContour && isImagePreview(innerCoverSrc)
         ? { "--dao-fulu-user-cover-image": `url(${innerCoverSrc})` }
-        : {})
+      : {})
     }
+    : {};
+  const daoFieldLayerStyle = !innerCoverIsFuluContour && isImagePreview(innerCoverSrc)
+    ? { "--dao-field-cover-image": `url(${innerCoverSrc})` }
     : {};
   const daoStyleGeometry = isDaoTalisman1
     ? { width: "min(336px, 82%) !important", maxWidth: "min(336px, 82%) !important", aspectRatio: "9 / 16" }
     : isDaoTalisman2
       ? { width: "min(292px, 78%) !important", maxWidth: "min(292px, 78%) !important", aspectRatio: "9 / 16" }
-      : isDaoFulu
+      : isDaoFulu || isDaoStyle2
         ? { width: "min(248px, 60%) !important", maxWidth: "min(248px, 60%) !important", aspectRatio: "1 / 2.9" }
         : {};
   const daoOuterStyle = {
     ...daoBaseCoverStyle,
     ...daoFuluStyle,
+    ...daoFieldLayerStyle,
     ...daoStyleGeometry
   };
 
@@ -1825,6 +1831,7 @@ export default function ProfileLitePowerPlaceModule({
   function renderDaoTalisman1() {
     return (
       <div className="daoTalismanScroll" aria-label="Даосский талисман">
+        <div className="daoFieldCoverLayer" aria-hidden="true" />
         <div className="daoTalismanRoof" aria-hidden="true">
           <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
           <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
@@ -1849,6 +1856,7 @@ export default function ProfileLitePowerPlaceModule({
 
     return (
       <div className="daoTalismanScroll daoTalisman2Scroll" data-node-count={nodeCount} aria-label="Даосский вертикальный свиток">
+        <div className="daoFieldCoverLayer" aria-hidden="true" />
         <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
           <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
           <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
@@ -1953,7 +1961,59 @@ export default function ProfileLitePowerPlaceModule({
     );
   }
 
-  const daoClassName = `daoMandalaSheet${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoFulu ? " dao-fulu" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim();
+  function renderDaoStyle2() {
+    const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
+
+    return (
+      <div className="daoStyle2Scroll" aria-label="Даосский стиль 2" data-node-count={nodeCount}>
+        <div className="daoStyle2UserCoverLayer" aria-hidden="true" />
+        <div className="daoStyle2Body">
+          <div className="daoStyle2CenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          <div className="daoStyle2NodeColumn" data-node-count={nodeCount}>
+            {Array.from(
+              { length: nodeCount },
+              (_, index) => ({
+                id: `dao-style-2-${index + 1}`,
+                label: `Окно ${index + 1}`
+              })
+            ).map((node) => {
+              const slotId = node.id;
+              const src = objectRefs[slotId] || "";
+              const displaySrc = objectRefUrls[src] || src;
+              return (
+                <div className="daoStyle2Slot" key={node.id}>
+                  <button
+                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                    onClick={() => {
+                      if (suppressSlotPickerClickRef.current[slotId]) {
+                        suppressSlotPickerClickRef.current[slotId] = false;
+                        return;
+                      }
+                      openObjectPicker(slotId);
+                    }}
+                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                    type="button"
+                    title={node.label}
+                    aria-label={`Выбрать элемент ${node.label}`}
+                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                  >
+                    {!src && <span>◎</span>}
+                  </button>
+                  <b>{node.label}</b>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {renderPowerPlaceMotionLayer()}
+      </div>
+    );
+  }
+
+  const daoClassName = `daoMandalaSheet${isDaoStyle2 ? " dao-style-2" : ""}${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoFulu ? " dao-fulu" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim();
 
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
@@ -2562,7 +2622,7 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && (isDaoTalisman2 || isDaoFulu) && (
+                {compositionDraft.constructor_type === "dao" && (isDaoTalisman2 || isDaoFulu || isDaoStyle2) && (
                   <div className="mandalaStyleSelector daoTalisman2NodeSelector" aria-label="Узлов в вертикальном талисмане">
                     {DAO_TALISMAN_NODE_COUNTS.map((n) => (
                       <button className={(compositionDraft.__dao_talisman_node_count || 5) === n ? "active" : ""} key={n} onClick={() => onCompositionDraftChange("__dao_talisman_node_count", n)} type="button">{n}</button>
@@ -2848,8 +2908,9 @@ export default function ProfileLitePowerPlaceModule({
                       {isDaoTalisman2 ? renderDaoTalisman2()
                         : isDaoTalisman1 ? renderDaoTalisman1()
                           : isDaoFulu ? renderDaoFulu()
-                            : isDaoStyle1 ? renderDaoStyle1()
-                              : renderDaoStyle1()}
+                            : isDaoStyle2 ? renderDaoStyle2()
+                              : isDaoStyle1 ? renderDaoStyle1()
+                                : renderDaoStyle1()}
                     </div>
                   )}
                 </div>
