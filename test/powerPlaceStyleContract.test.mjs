@@ -458,14 +458,15 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes("function renderDaoLayoutOverlay()") &&
+  baseSource.includes("function renderDaoLayoutOverlay(") &&
   baseSource.includes("daoLayoutTemplateTopMarker") &&
   baseSource.includes("daoLayoutTemplateRoofLine") &&
   baseSource.includes("daoLayoutTemplateCheck") &&
-  baseSource.includes("daoLayoutTemplateSideNode") &&
-  !/renderDaoLayoutOverlay[\s\S]*[三清印]/u.test(baseSource),
+  baseSource.includes("daoLayoutTemplateSideNode"),
   "DAO layout overlay renderer must provide P marker plus roof/check variants without Chinese/Japanese characters"
 );
+const daoLayoutOverlaySource = baseSource.slice(baseSource.indexOf("function renderDaoLayoutOverlay("), baseSource.indexOf("function renderDaoTalismanOverlay("));
+assert.doesNotMatch(daoLayoutOverlaySource, /[三清印]/u, "DAO layout overlay renderer must not include Chinese/Japanese marker text");
 
 assert.ok(
   baseSource.includes("const DAO_LAYOUT_MINI_SLOT_NUMBERS = [3, 4, 5, 7]") &&
@@ -476,8 +477,53 @@ assert.ok(
 );
 
 assert.ok(
-  /isDaoLayoutTemplate \? renderDaoLayoutInnerStack\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)[\s\S]*isDaoLayoutTemplate && renderDaoLayoutOverlay\(\)/.test(baseSource),
-  "DAO layout render selection must use its dedicated inner stack before falling back to normal DAO style renderers"
+  baseSource.includes("const DAO_SHARED_STAGE_STYLE_VALUES = new Set") &&
+  baseSource.includes("function renderDaoSharedStage(") &&
+  baseSource.includes("function renderDaoFieldBackgroundLayer(") &&
+  baseSource.includes("function renderDaoInnerContentStack(") &&
+  baseSource.includes("function renderDaoTalismanOverlay("),
+  "DAO layout, new DAO styles, and shared DAO variants must use one shared stage/layer renderer"
+);
+
+assert.ok(
+  /isDaoSharedStageStyle \? renderDaoSharedStage\(\)[\s\S]*isDaoLayoutTemplate \? renderDaoSharedStage\(\)/.test(baseSource) ||
+  /isDaoLayoutTemplate \|\| isDaoSharedStageStyle[\s\S]*renderDaoSharedStage\(\)/.test(baseSource),
+  "DAO render selection must route DAO-Макет and new DAO styles through the shared stage before legacy branches"
+);
+
+for (const styleValue of [
+  "dao-fu-wide-gate-roof",
+  "dao-fu-narrow-banner-roof",
+  "dao-fu-grand-gate-p",
+  "dao-fu-bottle-p",
+  "dao-fu-node-column",
+  "dao-fu-soft-shoulder-banner"
+]) {
+  assert.ok(
+    baseSource.includes(`"${styleValue}"`) &&
+    baseSource.includes("DAO_SHARED_STAGE_STYLE_VALUES") &&
+    baseSource.includes(`layoutZone: "${styleValue}"`),
+    `${styleValue} must be registered as a shared DAO stage style with a style-aware safe zone`
+  );
+}
+
+assert.ok(
+  baseSource.includes("DAO_SHARED_STAGE_MINI_SLOTS = DAO_LAYOUT_INNER_SLOTS") &&
+  baseSource.includes('data-slot-order={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}'),
+  "new DAO shared-stage styles and DAO-Макет must use the same 3,4,5,7 mini slot order"
+);
+
+assert.ok(
+  baseSource.includes('topMarker: "P"') &&
+  baseSource.includes('daoStyle === "dao-fu-grand-gate-p"') &&
+  baseSource.includes('daoStyle === "dao-fu-bottle-p"'),
+  "P-based DAO styles must render Latin P as a top marker in the shared overlay"
+);
+
+assert.doesNotMatch(
+  baseSource.slice(baseSource.indexOf("function renderDaoTalismanOverlay("), baseSource.indexOf("const daoClassName")),
+  /renderCenterPhotoWithMode/,
+  "DAO top marker overlay must not render the client photo; client photo belongs inside the talisman body"
 );
 
 assert.ok(
@@ -647,14 +693,15 @@ assert.ok(
   "DAO Размер поля must scale a real borderless inner/user cover layer while staying invisible without an image"
 );
 
+const daoSharedStageSource = baseSource.slice(baseSource.indexOf("function renderDaoSharedStage("), baseSource.indexOf("const daoClassName"));
 assert.ok(
-  daoFuOutlineLayoutSource.includes('className="daoFieldCoverLayer daoFuOutlineFieldLayer"') &&
-  daoFuOutlineLayoutSource.indexOf("daoFuOutlineFieldLayer") < daoFuOutlineLayoutSource.indexOf("renderDaoFuReferenceOutline()"),
+  daoSharedStageSource.includes('renderDaoFieldBackgroundLayer("daoSharedFieldLayer")') &&
+  daoSharedStageSource.indexOf("renderDaoFieldBackgroundLayer") < daoSharedStageSource.indexOf("renderDaoTalismanOverlay"),
   "new DAO outline layouts must render the shared field/background image layer behind the red contour overlay"
 );
 
 assert.ok(
-  cssSource.includes(".daoFuOutlineFieldLayer") &&
+  cssSource.includes(".daoSharedFieldLayer") &&
   cssSource.includes("width: var(--power-field-scale, 78%)") &&
   cssSource.includes("background-image: var(--dao-field-cover-image, none)") &&
   !/\.daoMandalaSheet\.dao-fu-outline\s*\{[\s\S]*?--dao-field-cover-image:\s*none;/.test(cssSource),

@@ -2718,43 +2718,89 @@
 
 /* ── DAO layout template — configurable talisman outline overlay ─────────── */
 
-.daoMandalaSheet.dao-layout-template {
+.daoMandalaSheet.dao-layout-template,
+.daoMandalaSheet.dao-shared-stage {
   position: relative;
   overflow: visible !important;
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack {
+.daoSharedStage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: visible;
+  isolation: isolate;
+  --dao-shared-stack-top: 31%;
+  --dao-shared-stack-bottom: 11%;
+  --dao-shared-stack-width: min(138px, 48%);
+  --dao-shared-center-size: 58px;
+  --dao-shared-mini-size: 38px;
+  --dao-shared-mini-gap: 3px;
+  --dao-shared-marker-top: 15%;
+}
+
+.daoSharedStage--dao-fu-wide-gate-roof,
+.daoSharedStage--dao-fu-grand-gate-p {
+  --dao-shared-stack-top: 30%;
+  --dao-shared-stack-bottom: 10%;
+  --dao-shared-stack-width: min(150px, 42%);
+  --dao-shared-center-size: 60px;
+  --dao-shared-mini-size: 38px;
+}
+
+.daoSharedStage--dao-fu-narrow-banner-roof,
+.daoSharedStage--dao-fu-bottle-p,
+.daoSharedStage--dao-fu-node-column,
+.daoSharedStage--dao-fu-soft-shoulder-banner {
+  --dao-shared-stack-top: 32%;
+  --dao-shared-stack-bottom: 10%;
+  --dao-shared-stack-width: min(116px, 48%);
+  --dao-shared-center-size: 54px;
+  --dao-shared-mini-size: 34px;
+  --dao-shared-mini-gap: 2px;
+}
+
+.daoSharedStage .daoSharedFieldLayer {
+  z-index: 0;
+  max-width: 82%;
+  max-height: 80%;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateInnerStack {
   position: absolute;
   left: 50%;
-  top: 31%;
-  bottom: 11%;
+  top: var(--dao-shared-stack-top, 31%);
+  bottom: var(--dao-shared-stack-bottom, 11%);
   z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: min(138px, 48%);
+  width: var(--dao-shared-stack-width, min(138px, 48%));
   transform: translateX(-50%);
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea {
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea {
   display: grid;
   place-items: center;
-  width: 78px;
+  width: calc(var(--dao-shared-center-size, 58px) + 20px);
   margin-bottom: 4px;
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto {
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea .daoCenterPhoto {
   position: relative;
   left: auto;
   top: auto;
   transform: none;
-  width: 58px !important;
-  min-width: 58px !important;
-  max-width: 58px !important;
-  height: 58px !important;
-  min-height: 58px !important;
-  max-height: 58px !important;
+  width: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  min-width: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  max-width: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  height: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  min-height: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  max-height: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: 50% !important;
   background-size: cover;
@@ -2762,40 +2808,63 @@
   background-repeat: no-repeat;
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack {
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniStack {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: var(--dao-shared-mini-gap, 3px);
   width: 100%;
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot {
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
   position: relative;
   z-index: 2;
-  width: 42px;
+  width: calc(var(--dao-shared-mini-size, 38px) + 4px);
   padding: 0;
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage {
-  width: 38px !important;
-  min-width: 38px !important;
-  max-width: 38px !important;
-  height: 38px !important;
-  min-height: 38px !important;
-  max-height: 38px !important;
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot .daoElementImage {
+  width: var(--dao-shared-mini-size, 38px) !important;
+  min-width: var(--dao-shared-mini-size, 38px) !important;
+  max-width: var(--dao-shared-mini-size, 38px) !important;
+  height: var(--dao-shared-mini-size, 38px) !important;
+  min-height: var(--dao-shared-mini-size, 38px) !important;
+  max-height: var(--dao-shared-mini-size, 38px) !important;
   aspect-ratio: 1 / 1 !important;
   border-radius: 50% !important;
   transform: scale(var(--power-source-slot-scale, 1));
   transform-origin: center;
 }
 
-.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot b {
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot b,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot b {
   display: none;
+}
+
+.daoSharedTalismanOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.daoSharedTalismanOverlay .daoFuReferenceOutline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.daoSharedTopMarker {
+  top: var(--dao-shared-marker-top, 15%);
 }
 
 .daoLayoutTemplateOverlay {
@@ -2973,41 +3042,76 @@
     inset: -7% -4% -5%;
   }
 
-  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack {
-    top: 39%;
-    bottom: 11%;
-    width: min(118px, 50%);
+  .daoSharedStage {
+    --dao-shared-stack-top: 39%;
+    --dao-shared-stack-bottom: 11%;
+    --dao-shared-stack-width: min(118px, 50%);
+    --dao-shared-center-size: 46px;
+    --dao-shared-mini-size: 30px;
+    --dao-shared-mini-gap: 2px;
   }
 
-  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea {
-    width: 58px;
+  .daoSharedStage--dao-fu-wide-gate-roof,
+  .daoSharedStage--dao-fu-grand-gate-p {
+    --dao-shared-stack-top: 37%;
+    --dao-shared-stack-bottom: 10%;
+    --dao-shared-stack-width: min(118px, 44%);
+    --dao-shared-center-size: 46px;
+    --dao-shared-mini-size: 30px;
+  }
+
+  .daoSharedStage--dao-fu-narrow-banner-roof,
+  .daoSharedStage--dao-fu-bottle-p,
+  .daoSharedStage--dao-fu-node-column,
+  .daoSharedStage--dao-fu-soft-shoulder-banner {
+    --dao-shared-stack-top: 38%;
+    --dao-shared-stack-bottom: 10%;
+    --dao-shared-stack-width: min(92px, 48%);
+    --dao-shared-center-size: 42px;
+    --dao-shared-mini-size: 27px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateInnerStack {
+    top: var(--dao-shared-stack-top, 39%);
+    bottom: var(--dao-shared-stack-bottom, 11%);
+    width: var(--dao-shared-stack-width, min(118px, 50%));
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea {
+    width: calc(var(--dao-shared-center-size, 46px) + 12px);
     margin-bottom: 2px;
   }
 
-  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto {
-    width: 46px !important;
-    min-width: 46px !important;
-    max-width: 46px !important;
-    height: 46px !important;
-    min-height: 46px !important;
-    max-height: 46px !important;
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea .daoCenterPhoto {
+    width: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    min-width: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    max-width: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    height: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    min-height: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    max-height: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
   }
 
-  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack {
-    gap: 2px;
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniStack {
+    gap: var(--dao-shared-mini-gap, 2px);
   }
 
-  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot {
-    width: 32px;
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot {
+    width: calc(var(--dao-shared-mini-size, 30px) + 2px);
   }
 
-  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage {
-    width: 30px !important;
-    min-width: 30px !important;
-    max-width: 30px !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    max-height: 30px !important;
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot .daoElementImage {
+    width: var(--dao-shared-mini-size, 30px) !important;
+    min-width: var(--dao-shared-mini-size, 30px) !important;
+    max-width: var(--dao-shared-mini-size, 30px) !important;
+    height: var(--dao-shared-mini-size, 30px) !important;
+    min-height: var(--dao-shared-mini-size, 30px) !important;
+    max-height: var(--dao-shared-mini-size, 30px) !important;
   }
 
   .daoLayoutTemplateBody {
