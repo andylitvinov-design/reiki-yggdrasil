@@ -359,6 +359,39 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   overflow: hidden !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage {
+  height: min(500px, 88%) !important;
+  width: auto !important;
+  max-width: 92% !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-wide-gate-roof,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-wide-gate-roof {
+  aspect-ratio: 5 / 7 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-narrow-banner-roof,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-narrow-banner-roof {
+  aspect-ratio: 3 / 7 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-grand-gate-p,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-grand-gate-p {
+  aspect-ratio: 5 / 6.5 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-bottle-p,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-bottle-p {
+  aspect-ratio: 3 / 5.8 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-node-column,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-node-column {
+  aspect-ratio: 3 / 6.2 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-soft-shoulder-banner,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-soft-shoulder-banner {
+  aspect-ratio: 3 / 6.5 !important;
+}
 .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman {
   width: min(336px, 82%) !important;

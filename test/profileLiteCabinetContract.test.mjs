@@ -311,9 +311,9 @@ assert.match(powerPlaceBaseSource, /function isDaoFuluContourAsset\(src\)/, "DAO
 assert.match(powerPlaceBaseSource, /function renderDaoFulu\(\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
 assert.match(powerPlaceBaseSource, /function renderDaoStyle2\(\)[\s\S]*daoStyle2Scroll[\s\S]*dao-style-2-\$\{index \+ 1\}/, "DAO style-2 should keep a dedicated vertical mini-window render branch");
 assert.match(powerPlaceBaseSource, /function renderDaoFuReferenceOutline\(\)[\s\S]*className: "daoFuReferenceOutline"/, "DAO outline contour helper should remain the pure SVG contour helper");
-assert.match(powerPlaceBaseSource, /function renderDaoFuOutlineLayout\(\)[\s\S]*daoFuOutlineScroll[\s\S]*daoFuOutlineCenterArea[\s\S]*renderCenterPhotoWithMode\("daoCenterPhoto"\)[\s\S]*daoFuOutlineNodeColumn[\s\S]*`\$\{daoStyle\}-\$\{index \+ 1\}`/, "DAO outline styles should render a working center-photo and mini-window layout with style-specific slot ids");
-assert.match(powerPlaceBaseSource, /function renderDaoFuOutlineLayout\(\)[\s\S]*<div className="daoFieldCoverLayer daoFuOutlineFieldLayer" aria-hidden="true" \/>\s*\{renderDaoFuReferenceOutline\(\)\}/, "DAO outline styles must reuse the shared field background layer before the talisman contour overlay");
-assert.match(powerPlaceBaseSource, /function renderDaoFuOutlineLayout\(\)[\s\S]*openObjectPicker\(slotId\)[\s\S]*slotImageStyle\(slotId, displaySrc\)[\s\S]*getSlotImagePanZoomHandlers\(slotId\)[\s\S]*getPowerPlaceSlotDropHandlers\(slotId\)/, "DAO outline slots should keep picker, saved pan/zoom, and drag/drop behavior");
+assert.match(powerPlaceBaseSource, /const DAO_SHARED_STAGE_STYLE_VALUES = new Set[\s\S]*function renderDaoSharedStage\(\)[\s\S]*renderDaoFieldBackgroundLayer\("daoSharedFieldLayer"\)[\s\S]*renderDaoInnerContentStack\(\)[\s\S]*renderDaoTalismanOverlay\(config\)/, "DAO outline styles should render through the shared stage/layer stack");
+assert.match(powerPlaceBaseSource, /function renderDaoInnerContentStack\(\)[\s\S]*DAO_SHARED_STAGE_MINI_SLOTS\.map[\s\S]*DAO_LAYOUT_MINI_SLOT_NUMBERS\[index\][\s\S]*openObjectPicker\(slotId\)[\s\S]*slotImageStyle\(slotId, displaySrc\)[\s\S]*getSlotImagePanZoomHandlers\(slotId\)[\s\S]*getPowerPlaceSlotDropHandlers\(slotId\)/, "shared DAO slots should keep picker, saved pan/zoom, drag/drop, and 3,4,5,7 visual slots");
+assert.match(powerPlaceBaseSource, /function renderDaoTalismanOverlay\(config = \{\}\)[\s\S]*renderDaoFuReferenceOutline\(\)[\s\S]*daoSharedTopMarker/, "new DAO outline overlays should use the shared contour layer plus an optional top marker");
 assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true" \/>/, "DAO fulu render branch should include exactly one self-contained contour layer");
 for (const removedFuluLayer of ["daoFuluFallbackPaper", "daoFuluTopHead", "daoFuluSideRail", "daoFuluBottomBase", "daoFuluHeader", "daoFuluFooter", "daoFuluSealBox", "daoFuluPureMarks"]) {
   assert.doesNotMatch(powerPlaceBaseSource, new RegExp(removedFuluLayer), `DAO fulu render branch must not render ${removedFuluLayer}`);
@@ -328,7 +328,8 @@ assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-style-2/, "CSS should de
 assert.match(profileMandalaCss, /--dao-fulu-user-cover-image/, "CSS should consume --dao-fulu-user-cover-image");
 assert.match(profileMandalaCss, /--dao-field-cover-image[\s\S]*\.daoFieldCoverLayer|\.daoFieldCoverLayer[\s\S]*--dao-field-cover-image/, "CSS should consume borderless DAO field-cover layer for Размер поля");
 assert.match(profileMandalaCss, /\.daoFieldCoverLayer \{[\s\S]*background-image: var\(--dao-field-cover-image, none\)[\s\S]*opacity: var\(--dao-field-cover-opacity, 0\)/, "DAO field cover layer should be invisible without a real uploaded image");
-assert.match(profileMandalaCss, /\.daoFuOutlineFieldLayer \{[\s\S]*width: var\(--power-field-scale, 78%\)[\s\S]*background-image: var\(--dao-field-cover-image, none\)/, "DAO outline field layer must scale the selected field background with Размер поля");
+assert.match(profileMandalaCss, /\.daoSharedStage \.daoSharedFieldLayer \{[\s\S]*z-index: 0;/, "shared DAO field layer should sit behind the talisman overlay");
+assert.match(profileMandalaCss, /\.daoFieldCoverLayer \{[\s\S]*width: var\(--power-field-scale, 78%\)[\s\S]*background-image: var\(--dao-field-cover-image, none\)/, "DAO shared field layer must scale the selected field background with Размер поля");
 assert.doesNotMatch(profileMandalaCss, /\.daoMandalaSheet\.dao-fu-outline \{[\s\S]*--dao-field-cover-image: none;/, "DAO outline styles must not reset the shared field background image variable");
 for (const assetPath of [
   "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
@@ -1127,14 +1128,14 @@ assert.ok(
 
 assert.match(
   powerPlaceBaseSource,
-  /function renderDaoLayoutInnerStack\(\)[\s\S]*daoLayoutTemplateCenterArea[\s\S]*renderCenterPhotoWithMode\("daoCenterPhoto"\)[\s\S]*DAO_LAYOUT_INNER_SLOTS\.map/,
-  "ДАО-Макет must render the central client photo inside the talisman before the mini-mandala stack"
+  /function renderDaoInnerContentStack\(\)[\s\S]*daoLayoutTemplateCenterArea[\s\S]*renderCenterPhotoWithMode\("daoCenterPhoto"\)[\s\S]*DAO_SHARED_STAGE_MINI_SLOTS\.map/,
+  "ДАО-Макет and shared DAO styles must render the central client photo inside the talisman before the mini-mandala stack"
 );
 
 assert.match(
   powerPlaceBaseSource,
-  /isDaoLayoutTemplate \? renderDaoLayoutInnerStack\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)/,
-  "ДАО-Макет must use its own stack without changing the normal ДАО talisman-2 branch"
+  /isDaoLayoutTemplate \|\| isDaoSharedStageStyle \? renderDaoSharedStage\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)/,
+  "ДАО-Макет and new DAO styles must use the shared stack without changing the legacy talisman-2 branch"
 );
 
 // Talisman 2 must not use DAO_ELEMENTS.slice
@@ -1148,7 +1149,7 @@ assert.ok(
   const talisman1Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoTalisman1()"), powerPlaceBaseSource.indexOf("function renderDaoTalisman2()"));
   const talisman2Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoTalisman2()"), powerPlaceBaseSource.indexOf("function renderDaoFulu()"));
   const fuluBranch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoFulu()"), powerPlaceBaseSource.indexOf("function renderDaoFuOutlineLayout()"));
-  const outlineBranch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoFuOutlineLayout()"), powerPlaceBaseSource.indexOf("const daoClassName"));
+  const outlineBranch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoSharedStage()"), powerPlaceBaseSource.indexOf("const daoClassName"));
 
   assert.match(style1Branch, /daoUsinCore/, "style-1 helper must keep classic DAO core");
   assert.doesNotMatch(style1Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalisman2Scroll/, "style-1 helper must not render other DAO style layers");
@@ -1159,7 +1160,7 @@ assert.ok(
   assert.match(fuluBranch, /daoFuluContourLayer/, "fulu helper must render the contour layer");
   assert.match(fuluBranch, /compositionDraft\.__dao_talisman_node_count[\s\S]*daoFuluNodeColumn/, "fulu helper must render the counted vertical node column");
   assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu helper must not render old DAO or talisman layers");
-  assert.match(outlineBranch, /renderDaoFuReferenceOutline\(\)[\s\S]*daoFuOutlineNodeColumn/, "DAO outline helper must render contour plus counted mini-window column");
+  assert.match(outlineBranch, /renderDaoFieldBackgroundLayer\("daoSharedFieldLayer"\)[\s\S]*renderDaoInnerContentStack\(\)[\s\S]*renderDaoTalismanOverlay\(config\)/, "DAO outline helper must render field, inner stack, and contour through the shared stage");
   assert.doesNotMatch(outlineBranch, /daoFuluContourLayer|daoTalismanScroll|daoTalismanBody|daoUsinCore/, "DAO outline helper must not render old DAO, fulu, or talisman layers");
 }
 
@@ -1177,7 +1178,7 @@ assert.match(
 
 assert.match(
   profileMandalaCss,
-  /\.daoFuOutlineCenterArea \.daoCenterPhoto \{[\s\S]*width: clamp\(52px, 35%, 86px\) !important;[\s\S]*aspect-ratio: 1 \/ 1 !important;[\s\S]*border-radius: 50% !important;/,
+  /\.daoMandalaSheet\.dao-shared-stage \.daoLayoutTemplateCenterArea \.daoCenterPhoto \{[\s\S]*aspect-ratio: 1 \/ 1 !important;[\s\S]*border-radius: 50% !important;/,
   "DAO outline center photo must be readable, round, and square"
 );
 

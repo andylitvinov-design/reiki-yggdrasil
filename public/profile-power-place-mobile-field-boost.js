@@ -59,6 +59,9 @@
 
   function isolatedDaoGeometry(sheet) {
     if (!sheet?.classList?.contains("daoMandalaSheet")) return null;
+    if (sheet.classList.contains("dao-shared-stage")) {
+      return { width: "auto", maxWidth: "92%" };
+    }
     if (sheet.classList.contains("dao-talisman")) {
       return { width: "min(190px, 64%)", maxWidth: "min(190px, 64%)" };
     }
