@@ -7,6 +7,8 @@ const PUBLICATIONS_TABLE = "profile_cabinet_publications";
 const PUBLIC_MATERIAL_FIELDS = [
   "id",
   "type",
+  "material_group",
+  "material_type",
   "title",
   "description",
   "image_url",
@@ -14,6 +16,8 @@ const PUBLIC_MATERIAL_FIELDS = [
   "step_title",
   "setting_title",
   "setting_index",
+  "category",
+  "subcategory",
   "status",
   "created_at",
   "updated_at",
@@ -131,6 +135,8 @@ export function materialStatusText(status) {
 export function normalizeMaterialForm(form, requestedStatus = form?.status) {
   return {
     type: cleanType(form?.type),
+    material_group: cleanText(form?.material_group ?? form?.materialGroup ?? form?.group),
+    material_type: cleanText(form?.material_type ?? form?.materialType ?? form?.type),
     title: cleanText(form?.title),
     description: cleanText(form?.description),
     image_url: cleanText(form?.image_url),
@@ -138,6 +144,8 @@ export function normalizeMaterialForm(form, requestedStatus = form?.status) {
     step_title: cleanText(form?.step_title),
     setting_title: cleanText(form?.setting_title),
     setting_index: cleanSettingIndex(form?.setting_index),
+    category: cleanText(form?.category),
+    subcategory: cleanText(form?.subcategory ?? form?.material_subcategory ?? form?.setting_title),
     status: cleanStatus(requestedStatus)
   };
 }

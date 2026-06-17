@@ -55,13 +55,8 @@ const MATERIAL_TYPES = [
   { value: "artifact", label: "Артефакт" },
   { value: "practice", label: "Практика" }
 ];
-const MATERIAL_PICKER_CATEGORIES = [
-  { value: "new", label: "Новые" },
-  { value: "dao-ri", label: "ДАО РИ" },
-  { value: "god-channels", label: "Мистерии" },
-  { value: "channels", label: "Каналы" },
-  { value: "form", label: "Форма" }
-];
+const ALL_MATERIAL_FILTER = "all";
+const ALL_MATERIAL_OPTION = { value: ALL_MATERIAL_FILTER, label: "Все" };
 const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "all", label: "Все" },
   { value: "client-1", label: "Клиент 1" },
@@ -69,6 +64,61 @@ const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "client-3", label: "Клиент 3" },
   { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
 ];
+
+function cleanText(value) {
+  return String(value || "").trim();
+}
+
+function normalizeSearchText(value) {
+  return cleanText(value).toLowerCase();
+}
+
+function fieldValues(...values) {
+  return values
+    .flatMap((value) => Array.isArray(value) ? value : [value])
+    .map(cleanText)
+    .filter(Boolean);
+}
+
+function normalizeMaterialImageMetadata(image) {
+  const group = fieldValues(image?.materialGroup, image?.material_group, image?.group);
+  const type = fieldValues(image?.materialType, image?.material_type, image?.type);
+  const stepId = fieldValues(image?.stepId, image?.step_id);
+  const stepTitle = fieldValues(image?.stepTitle, image?.step_title, image?.category);
+  const settingTitle = fieldValues(image?.settingTitle, image?.setting_title, image?.subcategory, image?.material_subcategory);
+  const legacyText = normalizeSearchText([image?.label, image?.meta].filter(Boolean).join(" "));
+
+  return {
+    group,
+    type,
+    stepId,
+    stepTitle,
+    settingTitle,
+    legacyText
+  };
+}
+
+function matchesMaterialField(values, selectedValue, legacyText = "", legacyLabels = []) {
+  if (!selectedValue || selectedValue === ALL_MATERIAL_FILTER) return true;
+  const normalizedSelected = normalizeSearchText(selectedValue);
+  if (!values.length) return true;
+  if (values.some((value) => normalizeSearchText(value) === normalizedSelected)) return true;
+  if (legacyLabels.some((label) => legacyText.includes(normalizeSearchText(label)))) return true;
+  return legacyText.includes(normalizedSelected);
+}
+
+function matchesMaterialFilter(image, filters) {
+  const metadata = normalizeMaterialImageMetadata(image);
+  const selectedStep = materialStepOptions.find((step) => step.id === filters.stepId);
+  const selectedSetting = selectedStep?.settings?.find((setting) => setting.title === filters.settingTitle);
+
+  return (
+    matchesMaterialField(metadata.group, filters.group, metadata.legacyText, MATERIAL_GROUPS.map((group) => group.label)) &&
+    matchesMaterialField(metadata.type, filters.type, metadata.legacyText, MATERIAL_TYPES.map((type) => type.label)) &&
+    matchesMaterialField([...metadata.stepId, ...metadata.stepTitle], filters.stepId, metadata.legacyText, [selectedStep?.title, selectedStep?.label, selectedStep?.levelName]) &&
+    matchesMaterialField(metadata.settingTitle, filters.settingTitle, metadata.legacyText, [selectedSetting?.title])
+  );
+}
 
 export default function ProfileLiteImagePicker({
   accountPlan = "start",
@@ -88,7 +138,6 @@ export default function ProfileLiteImagePicker({
   const [uploadDestination, setUploadDestination] = useState(defaultLibraryTab === "materials" ? "materials" : "clients");
   const [uploadTitle, setUploadTitle] = useState("");
   const [clientCategory, setClientCategory] = useState("all");
-  const [materialPickerCategory, setMaterialPickerCategory] = useState("new");
   const [symbolShelf, setSymbolShelf] = useState(() => symbolShelfForConstructorType(constructorType));
   const [materialGroup, setMaterialGroup] = useState("dao-ri");
   const [materialType, setMaterialType] = useState("mandala");
@@ -96,6 +145,11 @@ export default function ProfileLiteImagePicker({
   const activeMaterialStep = materialStepOptions.find((step) => step.id === materialStepId) || firstMaterialStep;
   const [materialSettingTitle, setMaterialSettingTitle] = useState(activeMaterialStep?.settings?.[0]?.title || "");
   const activeSetting = activeMaterialStep?.settings?.find((setting) => setting.title === materialSettingTitle) || activeMaterialStep?.settings?.[0] || null;
+  const [materialFilterGroup, setMaterialFilterGroup] = useState(ALL_MATERIAL_FILTER);
+  const [materialFilterType, setMaterialFilterType] = useState(ALL_MATERIAL_FILTER);
+  const [materialFilterStepId, setMaterialFilterStepId] = useState(ALL_MATERIAL_FILTER);
+  const activeMaterialFilterStep = materialStepOptions.find((step) => step.id === materialFilterStepId) || null;
+  const [materialFilterSettingTitle, setMaterialFilterSettingTitle] = useState(ALL_MATERIAL_FILTER);
   const [localUploadStatus, setLocalUploadStatus] = useState("idle");
   const [localUploadError, setLocalUploadError] = useState("");
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
@@ -112,17 +166,18 @@ export default function ProfileLiteImagePicker({
       ));
     }
     if (activeTab === "materials") {
-      const materialImages = validImages.filter((image) => image.kind === "material" || image.kind === "tradition-asset");
-      if (materialPickerCategory === "new") return materialImages;
-      return materialImages.filter((image) => {
-        const text = `${image.group || ""} ${image.material_group || ""} ${image.meta || ""} ${image.label || ""}`.toLowerCase();
-        if (materialPickerCategory === "god-channels") return image.kind === "tradition-asset" || /мистер|mystery|god/.test(text);
-        return text.includes(materialPickerCategory);
-      });
+      return validImages
+        .filter((image) => image.kind === "material" || image.kind === "tradition-asset")
+        .filter((image) => matchesMaterialFilter(image, {
+          group: materialFilterGroup,
+          type: materialFilterType,
+          stepId: materialFilterStepId,
+          settingTitle: materialFilterSettingTitle
+        }));
     }
     if (activeTab === "symbols") return symbolImages;
     return validImages;
-  }, [activeTab, clientCategory, images, materialPickerCategory, symbolImages]);
+  }, [activeTab, clientCategory, images, materialFilterGroup, materialFilterSettingTitle, materialFilterStepId, materialFilterType, symbolImages]);
   const tabLabels = mode === "library"
     ? [{ id: "upload", label: "Загрузить своё" }]
     : [
@@ -222,14 +277,37 @@ export default function ProfileLiteImagePicker({
         )}
 
         {activeTab === "materials" && (
-          <label className="imagePickerSecondLevel imagePickerSecondLevelSelect">
-            Категория
-            <select value={materialPickerCategory} onChange={(event) => setMaterialPickerCategory(event.target.value)}>
-              {MATERIAL_PICKER_CATEGORIES.map((category) => (
-                <option key={category.value} value={category.value}>{category.label}</option>
-              ))}
-            </select>
-          </label>
+          <div className="profileLiteUploadFields imagePickerStructuredControls">
+            <label>
+              Группа
+              <select value={materialFilterGroup} onChange={(event) => setMaterialFilterGroup(event.target.value)}>
+                {[ALL_MATERIAL_OPTION, ...MATERIAL_GROUPS].map((group) => <option key={group.value} value={group.value}>{group.label}</option>)}
+              </select>
+            </label>
+            <label>
+              Тип материала
+              <select value={materialFilterType} onChange={(event) => setMaterialFilterType(event.target.value)}>
+                {[ALL_MATERIAL_OPTION, ...MATERIAL_TYPES].map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+              </select>
+            </label>
+            <label>
+              Категория / ступень
+              <select value={materialFilterStepId} onChange={(event) => {
+                setMaterialFilterStepId(event.target.value);
+                setMaterialFilterSettingTitle(ALL_MATERIAL_FILTER);
+              }}>
+                {[ALL_MATERIAL_OPTION, ...materialStepOptions].map((step) => <option key={step.id || step.value} value={step.id || step.value}>{step.label}</option>)}
+              </select>
+            </label>
+            <label>
+              Подкатегория
+              <select value={materialFilterSettingTitle} onChange={(event) => setMaterialFilterSettingTitle(event.target.value)}>
+                {[ALL_MATERIAL_OPTION, ...((activeMaterialFilterStep?.settings || []).map((setting) => ({ value: setting.title, label: setting.title })))].map((setting) => (
+                  <option key={setting.value} value={setting.value}>{setting.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
         )}
 
         {activeTab === "symbols" && (

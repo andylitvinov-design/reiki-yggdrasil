@@ -1,6 +1,26 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-15
+Last updated: 2026-06-17
+
+## 2026-06-17 — Profile Lite material picker taxonomy fix
+
+- Branch: `codex/fix-profile-lite-material-picker-categories`, based on `origin/main` at `b5f2136`.
+- Scope: `/profile/mandalas` Profile Lite image picker, material publication metadata client, saved-image mapping, focused tests, and Supabase migration only.
+- Changed:
+  - saved Materials picker keeps the top tabs `Клиенты`, `Материалы`, `Символы`, `Загрузить своё`;
+  - Materials tab now filters by the same four fields as material upload: `Группа`, `Тип материала`, `Категория / ступень`, `Подкатегория`;
+  - material image metadata is normalized from snake_case and camelCase fields: `material_group` / `materialGroup` / `group`, `material_type` / `materialType` / `type`, `step_id` / `stepId`, `step_title` / `stepTitle`, `setting_title` / `settingTitle`, `category`, `subcategory`;
+  - legacy rows without structured metadata remain visible under `Все` and non-strict fallback matching;
+  - `profile_cabinet_publications` gets `material_group`, `material_type`, `category`, and `subcategory` columns in migration `20260617120000_profile_cabinet_publication_material_taxonomy.sql`.
+- Verification:
+  - focused material and Profile Lite contract tests passed;
+  - `npm run check` and `npm run build` passed using the clean worktree with the canonical `node_modules` symlink after local disk space blocked a fresh install;
+  - mocked local browser QA on `/profile/mandalas` confirmed desktop and 390px mobile picker controls, selected `Каналы / Мандала / RY-L01-S01 / Лечение`, old material fallback under `Все`, horizontal overflow `0`, and no console warnings/errors.
+- Not verified:
+  - real authenticated upload/reload against live Supabase data;
+  - live `https://2mentalica.vercel.app` behavior before deploy.
+- Risk:
+  - live Supabase must apply the new migration before new material taxonomy columns can be written there.
 
 ## 2026-06-15 — DAO layout vertical stack refinement
 

@@ -1273,13 +1273,17 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         const materialPayload = buildMaterialPayload({
           ...EMPTY_MATERIAL,
           type: material?.type || "mandala",
+          material_group: material?.group || material?.material_group || "",
+          material_type: material?.type || material?.material_type || "mandala",
           title: title || file.name || "Материал",
           description: [material?.group, material?.category, material?.subcategory].filter(Boolean).join(" · "),
           image_url: uploaded.ref,
           step_id: material?.step_id || "",
           step_title: material?.step_title || "",
           setting_title: material?.setting_title || "",
-          setting_index: material?.setting_index ?? null
+          setting_index: material?.setting_index ?? null,
+          category: material?.category || "",
+          subcategory: material?.subcategory || ""
         }, profile.id, "draft");
         const saved = await createOwnMaterial(materialPayload, session);
         setMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));

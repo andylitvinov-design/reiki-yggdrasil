@@ -33,12 +33,18 @@ assert.deepEqual(
       setting_index: "2",
       title: " Мандала здоровья ",
       description: " Описание ",
-      image_url: " https://example.com/image.jpg "
+      image_url: " https://example.com/image.jpg ",
+      material_group: " channels ",
+      material_type: " mandala ",
+      category: " Reiki 1 ",
+      subcategory: " Лечение "
     },
     "pending"
   ),
   {
     type: "uncategorized",
+    material_group: "channels",
+    material_type: "mandala",
     title: "Мандала здоровья",
     description: "Описание",
     image_url: "https://example.com/image.jpg",
@@ -46,6 +52,8 @@ assert.deepEqual(
     step_title: "Здоровье",
     setting_title: "Лечение",
     setting_index: 2,
+    category: "Reiki 1",
+    subcategory: "Лечение",
     status: "pending"
   }
 );
