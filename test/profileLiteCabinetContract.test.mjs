@@ -1230,6 +1230,36 @@ assert.match(profileMandalaCss, /\.powerMandalaPanel\.power-place-hide-inner-cov
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.inlineVisibilityScaleToggle/, "inline visibility toggle CSS must exist");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl > input\[type="range"\]/, "slider range inputs must remain aligned without stretching inline checkboxes");
 
+// ── Power Place preview slot labels ──────────────────────────────────────────
+
+for (const [pattern, label] of [
+  [/<b>\{slot\.label\}<\/b>/, "generic slot labels"],
+  [/<b>\{element\.label\}<\/b>/, "DAO element labels"],
+  [/<b>\{node\.label\}<\/b>/, "DAO node labels"],
+  [/<b>\{resolvedSlot\.label\}<\/b>/, "DAO shared mini-slot labels"],
+  [/<b>\{`Окно \$\{slotNumber\}`\}<\/b>/, "DAO outline window labels"],
+  [/<b>\{vertex\.label\}<\/b>/, "business vertex labels"]
+]) {
+  assert.doesNotMatch(
+    powerPlaceBaseSource,
+    pattern,
+    `Power Place preview must not render visible ${label} inside the composition`
+  );
+}
+
+for (const requiredAccessiblePattern of [
+  /title=\{slot\.label\}/,
+  /aria-label=\{`Выбрать \$\{slot\.label\.toLowerCase\(\)\}`\}/,
+  /title=\{element\.label\}/,
+  /aria-label=\{`Выбрать элемент \$\{element\.label\}`\}/
+]) {
+  assert.match(
+    powerPlaceBaseSource,
+    requiredAccessiblePattern,
+    "Power Place preview must keep title and aria-label names for slot buttons"
+  );
+}
+
 // ── Zodiac 2 format contract ──────────────────────────────────────────────────
 
 assert.match(
