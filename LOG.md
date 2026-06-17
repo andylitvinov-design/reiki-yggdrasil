@@ -1,5 +1,51 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-17 — Fix Profile Lite material picker taxonomy
+
+- Branch: `codex/fix-profile-lite-material-picker-categories`.
+- Base: fresh `origin/main` at `b5f2136` (`Remove Power Place preview slot labels (#388)`).
+- Changed files:
+  - `src/lib/profileMaterialsClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/profileMaterials.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - material uploads passed `group`, `type`, `step_id`, `step_title`, `setting_title`, `category`, and `subcategory`, but the publication payload/client and saved-image mapping did not preserve the full taxonomy for the picker after save/reload;
+  - the saved Materials picker still used a simplified category selector instead of the upload taxonomy.
+- Changed:
+  - persisted `material_group`, `material_type`, `category`, and `subcategory` for material publications;
+  - added a migration for those publication metadata columns;
+  - mapped saved material rows back into picker image objects with group/type/step/setting/category/subcategory metadata;
+  - changed the saved Materials tab to four filters matching upload: `Группа`, `Тип материала`, `Категория / ступень`, `Подкатегория`;
+  - kept top tabs `Клиенты`, `Материалы`, `Символы`, `Загрузить своё`;
+  - kept legacy/unstructured material rows visible through `Все` and non-strict fallback matching.
+- Checks run:
+  - `node test/profileMaterials.test.mjs`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm install` failed in the clean worktree because disk free space was about 177 MiB and npm left an empty partial `node_modules`;
+  - linked the clean worktree to the canonical repo `node_modules` after the main checkout install had succeeded;
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - final `npm run check` and `npm run build` exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Local browser QA:
+  - mock Supabase: `http://127.0.0.1:4370`;
+  - clean dev server: `http://127.0.0.1:4369/profile/mandalas`;
+  - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - desktop 1280x920 confirmed object picker top tabs, four saved Materials filters, `Все` showing structured and legacy materials, selected `Каналы / Мандала / RY-L01-S01 / Лечение` showing the matching material, horizontal overflow `0`;
+  - mobile 390x900 confirmed modal width inside viewport, no clipped controls, horizontal overflow `0`;
+  - console warnings/errors: none.
+- Not verified:
+  - real authenticated Supabase upload/reload;
+  - live `https://2mentalica.vercel.app` before merge/deploy.
+
 ## 2026-06-15 — Refine DAO-Макет P marker and inner vertical stack
 
 - Branch: `codex/dao-layout-stack-refine-20260615`.

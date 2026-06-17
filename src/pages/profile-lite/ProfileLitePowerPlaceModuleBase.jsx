@@ -1320,7 +1320,13 @@ export default function ProfileLitePowerPlaceModule({
       signingError: item.media_signing_error || "",
       kind: "material",
       group: item.material_group || item.group || "",
+      materialGroup: item.material_group || item.group || "",
+      materialType: item.material_type || item.type || "",
       stepId: item.step_id || "",
+      stepTitle: item.step_title || item.stepTitle || "",
+      settingTitle: item.setting_title || item.settingTitle || "",
+      category: item.category || "",
+      subcategory: item.subcategory || item.material_subcategory || "",
       type: item.type || "",
       favorite: Boolean(item.favorite || item.is_favorite || item.pinned),
       updatedAt: item.updated_at || item.created_at || ""

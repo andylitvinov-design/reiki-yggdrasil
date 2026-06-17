@@ -189,6 +189,7 @@ const profileCoursesModuleSource = readFileSync(join(moduleDir, "ProfileLiteCour
 const adminCoursesPanelSource = readFileSync("src/pages/admin/AdminCoursesPanel.jsx", "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
 const grimoireWorkspaceCss = readFileSync(join(moduleDir, "ProfileLiteGrimoireWorkspace.css"), "utf8");
@@ -503,6 +504,15 @@ assert.match(powerPlaceSource, /className={`coverPreview[\s\S]*onClick=\{\(\) =>
 assert.doesNotMatch(powerPlaceSource, /zodiac-plus-\$\{compositionDraft\.zodiac_visible_count \|\| 12\}[\s\S]*visibleCount === 8[\s\S]*ZODIAC_PLUS_SLOT_LAYOUT\[8\]/, "Zodiac 8+ must not append the old four plus slots");
 
 assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwnMaterial/, "image picker material uploads should use the existing material publication save flow");
+assert.match(profileLitePageSource, /material_group:\s*material\?\.group \|\| material\?\.material_group/, "image picker material upload should persist the selected material group");
+assert.match(profileLitePageSource, /category:\s*material\?\.category/, "image picker material upload should persist the selected step/category");
+assert.match(profileLitePageSource, /subcategory:\s*material\?\.subcategory/, "image picker material upload should persist the selected material subcategory");
+assert.match(powerPlaceBaseSource, /materialGroup:\s*item\.material_group \|\| item\.group/, "saved material images should preserve material group metadata for picker filters");
+assert.match(powerPlaceBaseSource, /materialType:\s*item\.material_type \|\| item\.type/, "saved material images should preserve material type metadata for picker filters");
+assert.match(powerPlaceBaseSource, /settingTitle:\s*item\.setting_title \|\| item\.settingTitle/, "saved material images should preserve setting/subcategory metadata for picker filters");
+assert.match(imagePickerSource, /materialFilterGroup[\s\S]*materialFilterType[\s\S]*materialFilterStepId[\s\S]*materialFilterSettingTitle/, "saved Materials picker should use four-level material filters");
+assert.match(imagePickerSource, /normalizeMaterialImageMetadata/, "saved Materials picker should normalize material metadata before filtering");
+assert.match(imagePickerSource, /matchesMaterialFilter/, "saved Materials picker should use normalized metadata for non-strict filter matching");
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
