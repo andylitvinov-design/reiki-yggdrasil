@@ -1893,7 +1893,6 @@ export default function ProfileLitePowerPlaceModule({
         >
           {!src && <span>◎</span>}
         </button>
-        <b>{element.label}</b>
       </div>
     );
   }
@@ -1978,7 +1977,6 @@ export default function ProfileLitePowerPlaceModule({
                 >
                   {!src && <span>◎</span>}
                 </button>
-                <b>{node.label}</b>
               </div>
             );
           })}
@@ -2033,7 +2031,6 @@ export default function ProfileLitePowerPlaceModule({
                   >
                     {!src && <span>◎</span>}
                   </button>
-                  <b>{node.label}</b>
                 </div>
               );
             })}
@@ -2188,7 +2185,6 @@ export default function ProfileLitePowerPlaceModule({
                 >
                   {!src && <span>{slotNumber}</span>}
                 </button>
-                <b>{resolvedSlot.label}</b>
               </div>
             );
           })}
@@ -2232,7 +2228,6 @@ export default function ProfileLitePowerPlaceModule({
                   >
                     {!src && <span>◎</span>}
                   </button>
-                  <b>{`Окно ${slotNumber}`}</b>
                 </div>
               );
             })}
@@ -2288,7 +2283,6 @@ export default function ProfileLitePowerPlaceModule({
                   >
                     {!src && <span>◎</span>}
                   </button>
-                  <b>{node.label}</b>
                 </div>
               );
             })}
@@ -3083,7 +3077,6 @@ export default function ProfileLitePowerPlaceModule({
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
                         <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
-                          <b>{vertex.label}</b>
                           <div className="businessVertexZones">
                             {Array.from({ length: Number(compositionDraft.business_vertex_zone_count) === 3 ? 3 : 1 }, (_, index) => {
                               const slot = { id: `business-${vertex.id}-${index + 1}`, label: Number(compositionDraft.business_vertex_zone_count) === 3 ? `${vertex.label} · зона ${index + 1}` : vertex.label };
@@ -3123,7 +3116,6 @@ export default function ProfileLitePowerPlaceModule({
                                   >
                                     {!src && <span>{index + 1}</span>}
                                   </button>
-                                  <b>{slot.label}</b>
                                 </div>
                               );
                             })}
@@ -3186,7 +3178,6 @@ export default function ProfileLitePowerPlaceModule({
                                   >
                                     {!src && <span>{index + 1}</span>}
                                   </button>
-                                  <b>{slot.label}</b>
                                 </div>
                               );
                             })}
@@ -3214,7 +3205,6 @@ export default function ProfileLitePowerPlaceModule({
                                 >
                                   {!src && <span>{index + 1}</span>}
                                 </button>
-                                <b>{slot.label}</b>
                               </div>
                             );
                           })}
@@ -3267,7 +3257,6 @@ export default function ProfileLitePowerPlaceModule({
                             >
                               {!src && <span>{index + 1}</span>}
                             </button>
-                            <b>{slot.label}</b>
                           </div>
                         );
                       })}
