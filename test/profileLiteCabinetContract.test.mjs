@@ -785,6 +785,18 @@ assert.match(
   "openPowerPlacePdfPrintView must defer DOM clone with raf2(window) so React flushes slider state before print"
 );
 
+assert.match(
+  profileLitePageSource,
+  /freshPrintPanel\s*=\s*document\.querySelector\("\.profileLitePowerPlace \.powerMandalaPanel"\)[\s\S]*freshPrintPanel\.cloneNode/,
+  "openPowerPlacePdfPrintView must clone the live .powerMandalaPanel instead of a stale duplicate print area"
+);
+
+assert.doesNotMatch(
+  profileLitePageSource,
+  /powerPlacePdfOnlyArea/,
+  "openPowerPlacePdfPrintView must not route through the legacy .powerPlacePdfOnlyArea print branch"
+);
+
 assert.doesNotMatch(
   profileLitePageSource,
   /handleDownloadComposition[\s\S]{0,200}refreshSavedCompositions/,

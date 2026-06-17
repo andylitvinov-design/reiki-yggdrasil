@@ -446,8 +446,8 @@ function raf2(win) {
 }
 
 function openPowerPlacePdfPrintView(title) {
-  const printArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
-  if (!printArea) throw new Error("Макет мандалы не найден.");
+  const printPanel = document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || document.querySelector(".powerMandalaPanel");
+  if (!printPanel) throw new Error("Макет мандалы не найден.");
 
   const filename = `${safeFilename(title || "power-place")}.pdf`;
   // window.open must stay synchronous on the click event stack (popup blocker)
@@ -463,16 +463,18 @@ function openPowerPlacePdfPrintView(title) {
   <title>${escapeHtml(filename)}</title>
   ${collectPrintableStyles()}
   <style>
-    body{margin:0;background:#fffaf0;color:#2f2418}
-    body.printMandalaOnly .powerPlacePdfOnlyArea{position:static!important;width:100%!important;min-height:auto!important;height:auto!important;break-inside:avoid;page-break-inside:avoid}
+    html,body{margin:0;padding:0;background:#fffaf0;color:#2f2418}
+    body{font-family:Georgia,"Times New Roman",serif}
     @page{size:auto;margin:10mm}
+    .powerPlacePrintWindow{min-height:100vh;display:grid;justify-items:center;align-content:start;gap:12px;padding:16px;background:#fffaf0}
+    .powerPlacePrintWindow .powerMandalaPanel{break-inside:avoid;page-break-inside:avoid;margin:0 auto!important}
     #pdfStatus{position:fixed;top:0;left:0;right:0;padding:12px;background:#f5f0e8;text-align:center;font-family:sans-serif;font-size:14px;color:#5a4030;z-index:9999}
-    @media print{html,body{margin:0!important;padding:0!important;background:#fff!important}#pdfStatus{display:none!important}.powerPlacePdfOnlyArea{break-inside:avoid;page-break-inside:avoid;margin:0 auto!important}}
+    @media print{html,body{background:#fff!important}#pdfStatus{display:none!important}.powerPlacePrintWindow{min-height:auto;padding:0;background:#fff!important}}
   </style>
 </head>
-<body class="printMandalaOnly">
+<body>
   <div id="pdfStatus">Подготовка PDF: загружаем изображения…</div>
-  <main aria-label="Скачать PDF / Печать в PDF"></main>
+  <main class="profileLitePowerPlace powerPlacePrintWindow" aria-label="Скачать PDF / Печать в PDF"></main>
 </body>
 </html>`);
   printWindow.document.close();
@@ -481,12 +483,26 @@ function openPowerPlacePdfPrintView(title) {
   // before we clone it, so print/PDF always reflects the current unsaved layout.
   return raf2(window)
     .then(() => {
-      const freshPrintArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
-      if (!freshPrintArea) throw new Error("Макет мандалы не найден.");
-      const imageUrls = extractCssUrls(freshPrintArea);
-      const clonedArea = freshPrintArea.cloneNode(true);
-      clonedArea.classList.add("powerPlacePdfOnlyArea");
-      printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
+      const freshPrintPanel = document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || document.querySelector(".powerMandalaPanel");
+      if (!freshPrintPanel) throw new Error("Макет мандалы не найден.");
+
+      const freshPrintTitle = document.querySelector(".profileLitePowerPlace .powerPlaceExternalTitle");
+      const imageUrls = extractCssUrls(freshPrintPanel);
+      const clonedPanel = freshPrintPanel.cloneNode(true);
+      const panelRect = freshPrintPanel.getBoundingClientRect();
+      const panelWidth = Math.max(320, Math.round(panelRect.width || 0));
+      const panelHeight = Math.max(320, Math.round(panelRect.height || 0));
+
+      clonedPanel.style.width = `${panelWidth}px`;
+      clonedPanel.style.maxWidth = `${panelWidth}px`;
+      clonedPanel.style.minHeight = `${panelHeight}px`;
+      clonedPanel.style.height = `${panelHeight}px`;
+
+      const printRoot = printWindow.document.querySelector("main");
+      if (freshPrintTitle && printRoot) {
+        printRoot.appendChild(printWindow.document.importNode(freshPrintTitle, true));
+      }
+      printRoot?.appendChild(printWindow.document.importNode(clonedPanel, true));
       return Promise.all([
         preloadImagesForPrint(imageUrls),
         printWindow.document.fonts?.ready ?? Promise.resolve(),
