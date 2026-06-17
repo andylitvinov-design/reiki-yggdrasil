@@ -22,6 +22,18 @@ Follow all source-of-truth docs in order:
 
 These docs are the local source of truth. Do not browse or fetch external loop repos. If a local doc is missing, report `needs verification` and do not invent replacement rules.
 
+## Central Project Memory
+
+Before implementation, load the central project memory when available:
+
+1. `andylitvinov-design/ai-projects-brain/START-HERE-FOR-AGENTS.md`
+2. `projects/index.md` to resolve `project_key`
+3. the relevant project capsule files, especially `PROJECT.md`, `STATE.md`, `CHECKS.md`, `CODEX_BRIEF.md`, `DECISIONS.md`, and `RISKS.md`
+
+Do not duplicate long project-specific rules inside this command. Use central memory for durable project context and use these repo-local delivery docs for exact commands, checks, and release flow.
+
+If central memory is unavailable, continue with the local source-of-truth docs and mark `central memory: NOT VERIFIED` in the final report.
+
 Act as release owner for this project.
 
 Input format:
@@ -44,6 +56,17 @@ Project adapter for this repo:
 - Legacy fallback URL: https://reiki-yggdrasil.vercel.app
 
 SUCCESS requires live proof on the primary live URL (https://2mentalica.vercel.app) unless another target is explicitly requested by the user.
+
+## Verification Environment Mode
+
+Classify final verification as one of:
+
+- `PUBLIC_LIVE` — public unauthenticated live behavior can be checked on the deployed site.
+- `PREVIEW_DEPLOYMENT` — preview/staging deployment is the best available target.
+- `LOCAL_AUTH_SIMULATION` — private/auth-only behavior must be checked locally with safe dev, fixture, or demo state.
+- `OWNER_REQUIRED` — no safe local/preview proof can reproduce the requested behavior; owner verification is required.
+
+If a feature is behind Google/Supabase/private cabinet/auth-only state, do not request or use real credentials and do not claim authenticated live proof unless actually verified. Use local dev/fixture/demo proof when live auth is unavailable and mark authenticated live proof as `NOT VERIFIED` if owner session is required.
 
 ## FINAL RESULT VERIFICATION GATE
 
@@ -177,9 +200,11 @@ LIVE PROOF:
 - Evidence:
 ```
 
-SUCCESS also requires a completed result verification block:
+SUCCESS also requires a completed verification environment line and result verification block:
 
 ```txt
+VERIFICATION MODE: PUBLIC_LIVE / PREVIEW_DEPLOYMENT / LOCAL_AUTH_SIMULATION / OWNER_REQUIRED
+
 RESULT VERIFICATION:
 | Requirement | Status | Evidence | Verification method |
 |---|---|---|---|
