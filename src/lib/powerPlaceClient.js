@@ -384,8 +384,8 @@ export function normalizeAccountPlan(plan) {
 
 export function getPlanLimits(plan) {
   return normalizeAccountPlan(plan) === "pro"
-    ? { compositions: 20, clientPhotos: 30 }
-    : { compositions: 7, clientPhotos: 25 };
+    ? { compositions: 25, clientPhotos: 30 }
+    : { compositions: 25, clientPhotos: 25 };
 }
 
 export function normalizeClientGoalPhoto(photo) {
@@ -768,4 +768,28 @@ export async function updatePowerPlaceComposition(compositionId, composition, se
 
   const hydrated = await hydrateCompositionRows(rows, session);
   return hydrated?.[0] || null;
+}
+
+export async function deletePowerPlaceComposition(compositionId, profileId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanCompositionId = cleanText(compositionId);
+  const cleanProfileId = cleanText(profileId);
+  if (!cleanCompositionId || !cleanProfileId) throw powerPlaceError("Не удалось определить мандалу.");
+
+  try {
+    await request(
+      `/rest/v1/${COMPOSITIONS_TABLE}?id=eq.${encodeURIComponent(cleanCompositionId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`,
+      {
+        method: "DELETE",
+        session
+      }
+    );
+  } catch (error) {
+    throw powerPlaceError("Не удалось удалить мандалу.", {
+      stage: "DELETE",
+      error: safeErrorText(error)
+    });
+  }
+
+  return true;
 }

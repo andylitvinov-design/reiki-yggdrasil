@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 
+import { supabaseEnv } from "../src/lib/supabaseClient.js";
 import {
   __testPowerPlaceClient,
   clonePowerPlaceCompositionForOrder,
   createPowerPlaceCompositionWithDependencies,
+  deletePowerPlaceComposition,
   getPlanLimits,
   normalizeAccountPlan,
   normalizeClientGoalPhoto,
@@ -268,9 +270,51 @@ await assert.rejects(
 assert.equal(normalizeAccountPlan("pro"), "pro");
 assert.equal(normalizeAccountPlan("unknown"), "start");
 
-assert.deepEqual(getPlanLimits("start"), { compositions: 7, clientPhotos: 25 });
-assert.deepEqual(getPlanLimits("pro"), { compositions: 20, clientPhotos: 30 });
-assert.deepEqual(getPlanLimits("enterprise"), { compositions: 7, clientPhotos: 25 });
+assert.deepEqual(getPlanLimits("start"), { compositions: 25, clientPhotos: 25 });
+assert.deepEqual(getPlanLimits("pro"), { compositions: 25, clientPhotos: 30 });
+assert.deepEqual(getPlanLimits("enterprise"), { compositions: 25, clientPhotos: 25 });
+assert.equal(getPlanLimits("start").compositions, 25);
+assert.ok(getPlanLimits("pro").compositions >= 25);
+
+{
+  const originalFetch = globalThis.fetch;
+  const originalConfigured = supabaseEnv.isConfigured;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    return {
+      ok: true,
+      text: async () => ""
+    };
+  };
+  supabaseEnv.isConfigured = true;
+
+  try {
+    const result = await deletePowerPlaceComposition(
+      "composition-1",
+      "profile-1",
+      { access_token: "session-token" }
+    );
+
+    assert.equal(result, true);
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      "/rest/v1/profile_cabinet_power_place_compositions?id=eq.composition-1&profile_id=eq.profile-1"
+    );
+    assert.equal(calls[0].options.method, "DELETE");
+    assert.equal(calls[0].options.headers.Authorization, "Bearer session-token");
+  } finally {
+    globalThis.fetch = originalFetch;
+    supabaseEnv.isConfigured = originalConfigured;
+  }
+}
+
+await assert.rejects(
+  () => deletePowerPlaceComposition("composition-1", "profile-1", null),
+  /Нужно войти в кабинет/,
+  "delete should require a session"
+);
 
 assert.deepEqual(
   normalizeCoverRef({
