@@ -28,6 +28,7 @@ import {
 import {
   ACCOUNT_PLANS,
   createClientGoalPhoto,
+  deletePowerPlaceComposition,
   deleteClientGoalPhoto,
   createPowerPlaceComposition,
   createTraditionAsset,
@@ -1048,6 +1049,10 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
     () => mysteryTraditions.find((item) => item.id === selectedTraditionId) || mysteryTraditions[0] || null,
     [selectedTraditionId]
   );
+  const selectedSavedComposition = useMemo(
+    () => powerPlaceCompositions.find((item) => item.id === selectedCompositionId) || null,
+    [powerPlaceCompositions, selectedCompositionId]
+  );
   const selectedCentralPhoto = useMemo(
     () => clientGoalPhotos.find((item) => item.id === selectedCentralPhotoId) || null,
     [clientGoalPhotos, selectedCentralPhotoId]
@@ -2033,6 +2038,60 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
         setSelectedOuterCoverId("no-cover");
       }
 
+    }
+  };
+
+  const handleCreateNewComposition = () => {
+    setSelectedCompositionId("");
+    setCompositionTitle("");
+    setConstructorType("zodiac");
+    setPowerSourceCount(4);
+    setZodiacVisibleCount(12);
+    setZodiacVariant("classic-12");
+    setStarVariant("closed");
+    setChessVariant("classic-14");
+    setBusinessVertexZoneCount(1);
+    setAltarCenterRatio("1");
+    setObjectImages({});
+    setSelectedCoverId(FALLBACK_COVER_VARIANTS[0].id);
+    setSelectedOuterCoverId("no-cover");
+    setActiveCoverLayer("inner");
+    setMandalaFieldLayout("square");
+    setCustomCoverImage("");
+    setCustomOuterCoverImage("");
+    setCoverNotice("");
+    setSelectedCentralPhotoId("");
+    setSelectedCentralImageRef("");
+    setSelectedTraditionId(mysteryTraditions[0]?.id || "");
+    setResourceComparisonMode("photo_mandala");
+    setResourceWithoutMandalaComment("");
+    setResourceWithMandalaComment("");
+    setSelectedObjectSlotId("");
+    setImagePickerContext({ mode: "", slotId: "" });
+    setMessage("Редактор переключён в режим новой мандалы.");
+    setError("");
+  };
+
+  const handleDeleteComposition = async (composition, event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    if (!composition?.id || !profile?.id) return;
+    const title = composition.title || "Без названия";
+    if (!window.confirm(`Удалить мандалу «${title}»? Это действие нельзя отменить.`)) return;
+
+    setMessage("");
+    setError("");
+    try {
+      await deletePowerPlaceComposition(composition.id, profile.id, session);
+      setPowerPlaceCompositions((current) => current.filter((item) => item.id !== composition.id));
+      if (selectedCompositionId === composition.id) {
+        setSelectedCompositionId("");
+        setMessage("Мандала удалена из базы. Текущий макет остался в редакторе как черновик.");
+      } else {
+        setMessage("Мандала удалена.");
+      }
+    } catch (err) {
+      setError(err.message || "Не удалось удалить мандалу.");
     }
   };
 
@@ -3560,17 +3619,6 @@ const resourceComparisonPanel = (
                       ))}
                     </div>
                   )}
-                  {powerPlaceCompositions.length > 0 && (
-                    <select value={selectedCompositionId} onChange={(event) => {
-                      const composition = powerPlaceCompositions.find((item) => item.id === event.target.value);
-                      if (composition) applyComposition(composition);
-                    }}>
-                      <option value="">Загрузить сохранённое место силы</option>
-                      {powerPlaceCompositions.map((composition) => (
-                        <option key={composition.id} value={composition.id}>{composition.title || "Место силы"}</option>
-                      ))}
-                    </select>
-                  )}
                 </div>
               </div>
 
@@ -4010,6 +4058,53 @@ const resourceComparisonPanel = (
                 </aside>
               </div>
 
+              <section className="savedCompositionsPanel" aria-label="Сохранённые мандалы">
+                <div className="savedCompositionsHeader">
+                  <div>
+                    <p className="cabinetEyebrow">Библиотека</p>
+                    <h3>Сохранённые мандалы</h3>
+                  </div>
+                  <span className="savedCompositionsCounter">{powerPlaceCompositions.length}/{planLimits.compositions}</span>
+                </div>
+                {powerPlaceCompositions.length > 0 ? (
+                  <div className="savedCompositionsList">
+                    {powerPlaceCompositions.map((composition) => {
+                      const isSelected = composition.id === selectedCompositionId;
+                      return (
+                        <article
+                          className={`savedCompositionCard${isSelected ? " selected" : ""}`}
+                          key={composition.id}
+                        >
+                          <div className="savedCompositionBody">
+                            <b>{composition.title || "Место силы"}</b>
+                            <span>{constructorTypeLabel(composition.constructor_type)}</span>
+                            <small>{isSelected ? "Сейчас открыта в редакторе" : "Можно загрузить в редактор"}</small>
+                          </div>
+                          <div className="savedCompositionActions">
+                            <button
+                              className="cabinetSecondary"
+                              type="button"
+                              onClick={() => applyComposition(composition)}
+                            >
+                              {isSelected ? "Редактировать" : "Выбрать"}
+                            </button>
+                            <button
+                              className="cabinetSecondary"
+                              type="button"
+                              onClick={(event) => handleDeleteComposition(composition, event)}
+                            >
+                              Удалить
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="savedCompositionsEmpty">Сохранённые мандалы появятся здесь после первого сохранения.</p>
+                )}
+              </section>
+
               <label className="compositionTitleField">
                 Название мандалы
                 <input
@@ -4021,7 +4116,10 @@ const resourceComparisonPanel = (
               </label>
               <div className="powerPlaceActions">
                 <button className="cabinetPrimary" type="button" disabled={!profile?.id} onClick={handleCompositionSave}>
-                  {selectedCompositionId ? "Обновить место силы" : "Сохранить место силы"}
+                  {selectedCompositionId ? "Обновить" : "Сохранить новую"}
+                </button>
+                <button className="cabinetSecondary" type="button" disabled={!profile?.id} onClick={handleCreateNewComposition}>
+                  Создать новую
                 </button>
                 <button
                   className="cabinetSecondary"
@@ -4043,7 +4141,11 @@ const resourceComparisonPanel = (
                 </button>
                 <button className="cabinetSecondary" type="button" onClick={handleDownloadMandala}>Скачать</button>
                 <button className="cabinetPrimary" type="button" onClick={handlePrintMandala}>Распечатать</button>
-                <span>{powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мест силы · Storage refs сохраняются без data:image.</span>
+                <span>
+                  {selectedSavedComposition ? `Редактируется: ${selectedSavedComposition.title || "Место силы"}` : "Новая мандала"}
+                  {" · "}
+                  {powerPlaceCompositions.length}/{planLimits.compositions} сохранённых мандал · Storage refs сохраняются без data:image.
+                </span>
               </div>
             </section>
             )}
