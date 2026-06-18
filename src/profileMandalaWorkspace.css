@@ -10566,7 +10566,7 @@
 }
 
 .zodiacInnerPositionImage {
-  width: min(48px, 100%);
+  width: min(28px, 100%);
   aspect-ratio: 1;
   transform: scale(var(--power-source-slot-scale, 1));
   transform-origin: center;
@@ -10619,7 +10619,7 @@
   }
 
   .zodiacInnerPositionImage {
-    width: min(34px, 100%);
+    width: min(18px, 100%);
     font-size: 9px;
   }
 
@@ -10747,6 +10747,10 @@
 @media (max-width: 640px) {
   .zodiacInnerPositionImage {
     width: min(34px, 100%);
+  }
+
+  .zodiacMandalaSheet.zodiac-2-format .zodiacInnerPositionImage {
+    width: min(18px, 100%);
   }
 
   .zodiacRibbonCellImage {

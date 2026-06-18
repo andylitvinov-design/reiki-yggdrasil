@@ -275,6 +275,19 @@ function normalizeZodiacVisibleCount(value) {
   return ZODIAC_COUNT_OPTIONS.includes(count) ? count : 12;
 }
 
+const ZODIAC_2_OUTER_RADIUS = 43;
+const ZODIAC_2_INNER_RADIUS = 31;
+
+function getZodiacRingPosition(index, count, radius) {
+  const safeCount = Math.max(1, Number(count) || 1);
+  const angle = -90 + (360 / safeCount) * index;
+  const radians = angle * (Math.PI / 180);
+  return {
+    left: `${50 + radius * Math.cos(radians)}%`,
+    top: `${50 + radius * Math.sin(radians)}%`
+  };
+}
+
 function classicZodiacVariantForCount(count) {
   return count === 12 ? "classic-12" : `classic-${count}`;
 }
@@ -3179,8 +3192,9 @@ export default function ProfileLitePowerPlaceModule({
                             {isZodiac2 && slots.filter((slot) => slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
                               const src = objectRefs[slot.id] || "";
                               const displaySrc = objectRefUrls[src] || src;
+                              const innerPos = getZodiacRingPosition(index, zodiacVisibleCount, ZODIAC_2_INNER_RADIUS);
                               return (
-                                <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
+                                <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id} style={innerPos}>
                                   <button
                                     className={`zodiacInnerPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {
@@ -3205,8 +3219,9 @@ export default function ProfileLitePowerPlaceModule({
                             {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus") && !slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
                               const src = objectRefs[slot.id] || "";
                               const displaySrc = objectRefUrls[src] || src;
+                              const outerPos = isZodiac2 ? getZodiacRingPosition(index, zodiacVisibleCount, ZODIAC_2_OUTER_RADIUS) : undefined;
                               return (
-                                <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                                <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id} style={outerPos}>
                                   <button
                                     className={`zodiacPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {

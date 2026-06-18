@@ -1358,6 +1358,24 @@ assert.match(
   "Zodiac 2 inner slots must be generated from the selected visible count"
 );
 
+assert.match(
+  powerPlaceBaseSource,
+  /function getZodiacRingPosition\(index,\s*count,\s*radius\)/,
+  "Zodiac 2 must use a shared ring-position helper for count-aware inner/outer geometry"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const ZODIAC_2_OUTER_RADIUS\s*=\s*43/,
+  "Zodiac 2 outer ring radius must be explicit and close to the legacy outer CSS ring"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const ZODIAC_2_INNER_RADIUS\s*=\s*31/,
+  "Zodiac 2 inner ring radius must be explicit and keep inner slots near the center without overlapping it"
+);
+
 assert.doesNotMatch(
   powerPlaceBaseSource,
   /ZODIAC_2_INNER_SLOTS\s*=\s*Array\.from\(\{\s*length:\s*12\s*\}/,
@@ -1404,6 +1422,18 @@ assert.match(
   powerPlaceBaseSource,
   /zodiacInnerPosition/,
   "Zodiac JSX must render zodiacInnerPosition elements for inner ring slots"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const innerPos = getZodiacRingPosition\(index,\s*zodiacVisibleCount,\s*ZODIAC_2_INNER_RADIUS\)[\s\S]*className=\{`zodiacInnerPosition[\s\S]*style=\{innerPos\}/,
+  "Zodiac 2 inner wrappers must receive count-aware inline positions"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const outerPos = isZodiac2 \? getZodiacRingPosition\(index,\s*zodiacVisibleCount,\s*ZODIAC_2_OUTER_RADIUS\) : undefined[\s\S]*className=\{`zodiacPosition[\s\S]*style=\{outerPos\}/,
+  "Zodiac 2 outer wrappers must use the same count-aware angle grid as the inner ring"
 );
 
 assert.match(

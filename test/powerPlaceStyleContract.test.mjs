@@ -1209,6 +1209,12 @@ assert.ok(
   "CSS must define .zodiacInnerPositionImage for inner ring slot buttons"
 );
 
+assert.match(
+  cssSource,
+  /\.zodiacInnerPositionImage\s*\{[\s\S]*width:\s*min\(28px,\s*100%\)/,
+  "Zodiac 2 inner slot base size must stay compact enough to avoid the center photo"
+);
+
 assert.ok(
   cssSource.includes(".zodiacInnerPosition.inner-1"),
   "CSS must define absolute position for .zodiacInnerPosition.inner-1"
@@ -1231,12 +1237,23 @@ assert.match(
 );
 
 {
-  const mobileStart = cssSource.lastIndexOf("@media (max-width: 640px)");
+  const mobileStart = cssSource.indexOf("@media (max-width: 640px)", cssSource.indexOf(".zodiacMandalaSheet.zodiac-2-format"));
+  const mobileBlock = mobileStart === -1 ? "" : cssSource.slice(mobileStart, cssSource.indexOf("/* ─── Zodiac style", mobileStart));
   assert.ok(
-    mobileStart !== -1 && cssSource.slice(mobileStart).includes("zodiacInnerPositionImage"),
+    mobileStart !== -1 && mobileBlock.includes("zodiacInnerPositionImage"),
     "CSS must include mobile sizing for .zodiacInnerPositionImage in a max-width:640px media query"
   );
+  assert.ok(
+    mobileStart !== -1 && /zodiacInnerPositionImage\s*\{[\s\S]*width:\s*min\(18px,\s*100%\)/.test(mobileBlock),
+    "Mobile Zodiac 2 inner slot base size must avoid center overlap at 390px"
+  );
 }
+
+assert.match(
+  cssSource,
+  /@media \(max-width:\s*640px\)\s*\{[\s\S]*\.zodiacMandalaSheet\.zodiac-2-format\s+\.zodiacInnerPositionImage\s*\{[\s\S]*width:\s*min\(18px,\s*100%\)/,
+  "Later mobile CSS must preserve the scoped 18px Zodiac 2 inner slot size"
+);
 
 assert.ok(
   moduleSource.includes(".zodiacInnerPositionImage[style]"),
