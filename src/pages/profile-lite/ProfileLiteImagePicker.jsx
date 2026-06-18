@@ -220,7 +220,6 @@ export default function ProfileLiteImagePicker({
       });
       setLocalUploadStatus("success");
       setUploadTitle("");
-      setClientCategory("all");
       onClose?.();
     } catch (error) {
       setLocalUploadStatus("error");

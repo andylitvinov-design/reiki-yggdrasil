@@ -9452,11 +9452,73 @@
   min-width: 0;
 }
 
+.profileLiteMediaModule .profileLiteMediaBrowserCard {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button {
+  min-height: 52px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 8px;
+  background: #fffaf2;
+  color: #4d3724;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button.active,
+.profileLiteMediaModule .profileLiteMediaFolderRail button:hover:not(:disabled) {
+  border-color: rgba(136, 86, 20, 0.58);
+  background: #2c2017;
+  color: #fff2d2;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button b {
+  flex: 0 0 auto;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(184, 121, 29, 0.14);
+}
+
+.profileLiteMediaModule .profileLiteMediaMoveNotice {
+  margin: 0;
+  padding: 9px 11px;
+}
+
 .profileLiteMediaModule .profileLiteMediaCard {
   display: grid;
   gap: 6px;
   min-width: 0;
   overflow: hidden;
+  align-content: start;
 }
 
 .profileLiteMediaModule .profileLiteMediaCard h3 {
@@ -9474,6 +9536,39 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard small {
+  font-size: 11px;
+  color: #92775d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaCardActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+}
+
+.profileLiteMediaModule .profileLiteMediaCardActions label {
+  display: grid;
+  gap: 3px;
+  color: #71543b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profileLiteMediaModule .profileLiteMediaCardActions select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d4c0a8;
+  border-radius: 6px;
+  background: #fff;
+  color: #3c2c20;
+  padding: 5px 7px;
+  font-size: 12px;
 }
 
 .profileLiteMediaModule .profileLiteMediaThumb {

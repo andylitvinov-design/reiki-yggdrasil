@@ -11,7 +11,8 @@ import {
   normalizeClientGoalPhoto,
   normalizeCoverRef,
   normalizePowerPlaceComposition,
-  normalizeTraditionAsset
+  normalizeTraditionAsset,
+  updateClientGoalPhotoCategory
 } from "../src/lib/powerPlaceClient.js";
 
 const storageRefs = {
@@ -314,6 +315,58 @@ await assert.rejects(
   () => deletePowerPlaceComposition("composition-1", "profile-1", null),
   /Нужно войти в кабинет/,
   "delete should require a session"
+);
+
+{
+  const originalFetch = globalThis.fetch;
+  const originalConfigured = supabaseEnv.isConfigured;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    return {
+      ok: true,
+      text: async () => JSON.stringify([{
+        id: "photo-1",
+        profile_id: "profile-1",
+        title: "Client",
+        image_url: "https://example.com/client.jpg",
+        image_bucket: "profile-cabinet-media",
+        image_path: "",
+        client_category: "client-2",
+        notes: ""
+      }])
+    };
+  };
+  supabaseEnv.isConfigured = true;
+
+  try {
+    const updated = await updateClientGoalPhotoCategory(
+      "photo-1",
+      "profile-1",
+      "client-2",
+      { access_token: "session-token" }
+    );
+
+    assert.equal(updated.client_category, "client-2");
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      "/rest/v1/profile_cabinet_client_goal_photos?id=eq.photo-1&profile_id=eq.profile-1"
+    );
+    assert.equal(calls[0].options.method, "PATCH");
+    assert.equal(calls[0].options.headers.Authorization, "Bearer session-token");
+    assert.equal(calls[0].options.headers.Prefer, "return=representation");
+    assert.deepEqual(JSON.parse(calls[0].options.body), { client_category: "client-2" });
+  } finally {
+    globalThis.fetch = originalFetch;
+    supabaseEnv.isConfigured = originalConfigured;
+  }
+}
+
+await assert.rejects(
+  () => updateClientGoalPhotoCategory("photo-1", "profile-1", "zodiac", { access_token: "session-token" }),
+  /Неизвестная папка фото/,
+  "move should reject constructor-specific categories outside the client-category constraint"
 );
 
 assert.deepEqual(
