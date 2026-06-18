@@ -114,15 +114,13 @@ const DAO_LAYOUT_INNER_SLOTS = DAO_LAYOUT_MINI_SLOT_NUMBERS.map((slotNumber) => 
 }));
 const DAO_SHARED_STAGE_MINI_SLOTS = DAO_LAYOUT_INNER_SLOTS;
 const ZODIAC_2_VARIANT = "zodiac-2-12";
-const ZODIAC_VARIANTS = [
-  { value: "classic-2", label: "2", visibleCount: 2 },
-  { value: "classic-4", label: "4", visibleCount: 4 },
-  { value: "classic-6", label: "6", visibleCount: 6 },
-  { value: "classic-8", label: "8", visibleCount: 8 },
-  { value: "plus-8", label: "8+", visibleCount: 8 },
-  { value: "classic-12", label: "Зодиак 1", visibleCount: 12 },
-  { value: ZODIAC_2_VARIANT, label: "Зодиак 2", visibleCount: 12 }
+const ZODIAC_COUNT_OPTIONS = GEOMETRIES;
+const ZODIAC_FORMAT_VARIANTS = [
+  { value: "classic", label: "Зодиак 1" },
+  { value: ZODIAC_2_VARIANT, label: "Зодиак 2" },
+  { value: "plus-8", label: "8+" }
 ];
+const ZODIAC_VARIANTS = ZODIAC_FORMAT_VARIANTS;
 const STAR_VARIANTS = [
   { value: "closed", label: "Закрытая" },
   { value: "open", label: "Открытая" }
@@ -249,12 +247,14 @@ const ZODIAC_PLUS_SLOT_LAYOUT = {
     { id: "zodiac-plus-corner-br", className: "plus-corner-br", label: "Угол низ-прав", classPrefix: "plus" }
   ]
 };
-const ZODIAC_2_INNER_SLOTS = Array.from({ length: 12 }, (_, index) => ({
-  id: `zodiac-inner-${index + 1}`,
-  className: `inner-${index + 1}`,
-  label: `Внутренняя мандала ${index + 1}`,
-  classPrefix: "inner"
-}));
+function buildZodiac2InnerSlots(count) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `zodiac-inner-${index + 1}`,
+    className: `inner-${index + 1}`,
+    label: `Внутренняя мандала ${index + 1}`,
+    classPrefix: "inner"
+  }));
+}
 export const ZODIAC_STYLE_REF_KEY = "__zodiac_style";
 export const ZODIAC_STYLE_VARIANTS = [
   { value: "sun", label: "Солнце" },
@@ -267,7 +267,23 @@ export function zodiacStyleValue(value) {
 }
 
 function isZodiac2Variant(value) {
-  return String(value || "") === ZODIAC_2_VARIANT;
+  return String(value || "").startsWith("zodiac-2");
+}
+
+function normalizeZodiacVisibleCount(value) {
+  const count = Number(value);
+  return ZODIAC_COUNT_OPTIONS.includes(count) ? count : 12;
+}
+
+function classicZodiacVariantForCount(count) {
+  return count === 12 ? "classic-12" : `classic-${count}`;
+}
+
+function zodiacVariantFormat(value) {
+  const variant = String(value || "");
+  if (isZodiac2Variant(variant)) return ZODIAC_2_VARIANT;
+  if (variant.startsWith("plus")) return "plus-8";
+  return "classic";
 }
 const CHANNELS_SUBCATEGORIES = [
   { value: "sefirot", label: "Сефирот", thirdLevels: [{ value: "major-arcana", label: "Большие арканы" }, { value: "minor-arcana", label: "Малые арканы" }, { value: "sephirot-siphers", label: "Сиферы" }] },
@@ -595,11 +611,11 @@ function buildSlotList(draft) {
     }));
   }
   if (type === "zodiac") {
-    const visibleCount = Number(draft.zodiac_visible_count) || 12;
-    const variant = draft.zodiac_variant || (visibleCount === 8 ? "classic-8" : visibleCount === 12 ? "classic-12" : `classic-${visibleCount}`);
+    const visibleCount = normalizeZodiacVisibleCount(draft.zodiac_visible_count);
+    const variant = draft.zodiac_variant || classicZodiacVariantForCount(visibleCount);
     const zodiac2 = isZodiac2Variant(variant);
     const isPlusVariant = !zodiac2 && variant.startsWith("plus");
-    const baseVisibleCount = zodiac2 ? 12 : visibleCount;
+    const baseVisibleCount = visibleCount;
     const signSlots = ZODIAC_SIGNS.slice(0, isPlusVariant ? 8 : baseVisibleCount).map((sign, index) => ({
       id: `zodiac-${index + 1}`,
       label: sign.label,
@@ -607,7 +623,7 @@ function buildSlotList(draft) {
       classPrefix: "classic"
     }));
 
-    if (zodiac2) return [...signSlots, ...ZODIAC_2_INNER_SLOTS];
+    if (zodiac2) return [...signSlots, ...buildZodiac2InnerSlots(visibleCount)];
     if (!isPlusVariant) return signSlots;
     if (visibleCount === 8) return signSlots;
     return [...signSlots, ...(ZODIAC_PLUS_SLOT_LAYOUT[visibleCount] || ZODIAC_PLUS_SLOT_LAYOUT[8])];
@@ -701,7 +717,7 @@ const CHESS_MOTION_RADIUS = 24;
 function getMotionPositionsForComposition(draft, slots) {
   const type = draft?.constructor_type || "zodiac";
   if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, CLIENT_MOTION_RADIUS);
-  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, ZODIAC_VIDEO_COPY_SAFE_RADIUS);
+  if (type === "zodiac") return clockPositions(normalizeZodiacVisibleCount(draft.zodiac_visible_count), ZODIAC_VIDEO_COPY_SAFE_RADIUS);
   if (type === "star") {
     return [
       { left: 50, top: 22 },
@@ -889,7 +905,9 @@ export default function ProfileLitePowerPlaceModule({
   const centerImageOffsetY = clampCenterImageOffset(compositionDraft.__center_image_offset_y ?? objectRefs.__center_image_offset_y);
   const centerImageZoom = clampCenterImageZoom(compositionDraft.__center_image_zoom ?? objectRefs.__center_image_zoom);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
-  const zodiacVariant = compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count || 12}`;
+  const zodiacVisibleCount = normalizeZodiacVisibleCount(compositionDraft.zodiac_visible_count);
+  const zodiacVariant = compositionDraft.zodiac_variant || classicZodiacVariantForCount(zodiacVisibleCount);
+  const zodiacFormat = zodiacVariantFormat(zodiacVariant);
   const isZodiac2 = compositionDraft.constructor_type === "zodiac" && isZodiac2Variant(zodiacVariant);
   const zodiacStyle = zodiacStyleValue(compositionDraft.__zodiac_style);
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
@@ -2941,11 +2959,34 @@ export default function ProfileLitePowerPlaceModule({
                 {compositionDraft.constructor_type === "zodiac" && (
                   <div className="zodiacCountSelector" aria-label="Формат зодиака">
                     <span>Формат зодиака</span>
-                    {ZODIAC_VARIANTS.map((variant) => (
-                      <button className={(compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count}`) === variant.value ? "active" : ""} key={variant.value} onClick={() => {
+                    {ZODIAC_FORMAT_VARIANTS.map((variant) => (
+                      <button className={zodiacFormat === variant.value ? "active" : ""} key={variant.value} onClick={() => {
+                        if (variant.value === "classic") {
+                          onCompositionDraftChange("zodiac_variant", classicZodiacVariantForCount(zodiacVisibleCount));
+                          return;
+                        }
+                        if (variant.value === "plus-8") {
+                          onCompositionDraftChange("zodiac_variant", "plus-8");
+                          onCompositionDraftChange("zodiac_visible_count", 8);
+                          return;
+                        }
                         onCompositionDraftChange("zodiac_variant", variant.value);
-                        onCompositionDraftChange("zodiac_visible_count", variant.visibleCount);
                       }} type="button">{variant.label}</button>
+                    ))}
+                  </div>
+                )}
+                {compositionDraft.constructor_type === "zodiac" && (
+                  <div className="zodiacCountSelector" aria-label="Количество кружочков зодиака">
+                    <span>Кружочки</span>
+                    {ZODIAC_COUNT_OPTIONS.map((count) => (
+                      <button className={zodiacVisibleCount === count ? "active" : ""} key={count} onClick={() => {
+                        onCompositionDraftChange("zodiac_visible_count", count);
+                        if (isZodiac2) {
+                          onCompositionDraftChange("zodiac_variant", ZODIAC_2_VARIANT);
+                          return;
+                        }
+                        onCompositionDraftChange("zodiac_variant", classicZodiacVariantForCount(count));
+                      }} type="button">{count}</button>
                     ))}
                   </div>
                 )}
@@ -3129,7 +3170,7 @@ export default function ProfileLitePowerPlaceModule({
                         </div>
                       ) : (
                         <>
-                          <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                          <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                             {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                             {renderPowerPlaceMotionLayer()}
                             <div className="zodiacClockFace" aria-hidden="true">

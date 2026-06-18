@@ -1298,14 +1298,50 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /ZODIAC_2_INNER_SLOTS/,
-  "Base module must define ZODIAC_2_INNER_SLOTS array"
+  /buildZodiac2InnerSlots/,
+  "Base module must define a dynamic Zodiac 2 inner slot builder"
 );
 
 assert.match(
   powerPlaceBaseSource,
   /zodiac-inner-\$\{|`zodiac-inner-|"zodiac-inner-/,
-  "ZODIAC_2_INNER_SLOTS must generate slot ids with zodiac-inner- prefix"
+  "Zodiac 2 inner slot builder must generate slot ids with zodiac-inner- prefix"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function buildZodiac2InnerSlots\(count\)/,
+  "Zodiac 2 inner slots must be generated from the selected visible count"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /ZODIAC_2_INNER_SLOTS\s*=\s*Array\.from\(\{\s*length:\s*12\s*\}/,
+  "Zodiac 2 inner slots must not be hardcoded to 12"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /baseVisibleCount\s*=\s*zodiac2\s*\?\s*12\s*:\s*visibleCount/,
+  "Zodiac 2 outer slots must use zodiac_visible_count instead of forcing 12"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /if \(zodiac2\) return \[\.\.\.signSlots, \.\.\.buildZodiac2InnerSlots\(visibleCount\)\]/,
+  "Zodiac 2 must render the same number of inner slots as the selected visible count"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_COUNT_OPTIONS/,
+  "Zodiac count choices must be separate from the Zodiac 1 / Zodiac 2 format choice"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_FORMAT_VARIANTS/,
+  "Zodiac format choices must allow Zodiac 1 / Zodiac 2 without resetting the selected count"
 );
 
 assert.match(
