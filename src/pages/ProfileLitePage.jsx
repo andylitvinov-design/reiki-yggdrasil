@@ -56,6 +56,7 @@ import {
   createPowerPlaceComposition,
   createTraditionAsset,
   deleteClientGoalPhoto,
+  deletePowerPlaceComposition,
   getPlanLimits,
   getPowerPlaceCompositionById,
   listClientGoalPhotos,
@@ -439,6 +440,81 @@ function preloadImagesForPrint(urls, timeoutMs = 2500) {
   });
 }
 
+function cssBackgroundUrl(value) {
+  const match = String(value || "").match(/url\((['"]?)(.*?)\1\)/);
+  return match?.[2] || "";
+}
+
+function isPrintablePhotoLayer(element) {
+  return Boolean(element?.matches?.([
+    ".powerCenterPhoto.hasImage",
+    ".altarCenterPhoto.hasImage",
+    ".businessCenterPhoto.hasImage",
+    ".zodiacCenterPhoto.hasImage",
+    ".starCenterPhoto.hasImage",
+    ".daoCenterPhoto.hasImage",
+    ".power-place-chess__center.hasImage",
+    ".power-place-chess__slot.hasImage",
+    ".powerSource.hasImage",
+    ".altarTopSource.hasImage",
+    ".altarSupportSource.hasImage",
+    ".businessVertexZone.hasImage",
+    ".zodiacPositionImage[style]",
+    ".zodiacFieldPlusPositionImage[style]",
+    ".zodiacInnerPositionImage[style]",
+    ".zodiacRibbonCellImage[style]",
+    ".starPositionImage[style]",
+    ".daoElementImage.hasImage",
+    ".has-custom-inner-cover",
+    ".has-custom-outer-cover"
+  ].join(",")));
+}
+
+function injectPrintablePhotoImages(sourceArea, clonedArea) {
+  const sourceNodes = Array.from(sourceArea.querySelectorAll("*"));
+  const clonedNodes = Array.from(clonedArea.querySelectorAll("*"));
+  const injectedUrls = [];
+
+  sourceNodes.forEach((sourceNode, index) => {
+    if (!isPrintablePhotoLayer(sourceNode)) return;
+    const clonedNode = clonedNodes[index];
+    if (!clonedNode) return;
+
+    const style = window.getComputedStyle(sourceNode);
+    const imageUrl = cssBackgroundUrl(style.backgroundImage || sourceNode.style.backgroundImage);
+    if (!imageUrl || imageUrl.endsWith(".svg") || imageUrl.includes("/symbols/")) return;
+
+    const img = clonedArea.ownerDocument.createElement("img");
+    img.src = imageUrl;
+    img.alt = "";
+    img.decoding = "async";
+    img.loading = "eager";
+    img.setAttribute("aria-hidden", "true");
+    Object.assign(img.style, {
+      position: "absolute",
+      inset: "0",
+      width: "100%",
+      height: "100%",
+      maxWidth: "none",
+      objectFit: style.backgroundSize.includes("contain") ? "contain" : "cover",
+      objectPosition: style.backgroundPosition || "50% 50%",
+      borderRadius: "inherit",
+      filter: style.filter === "none" ? "" : style.filter,
+      transform: "translateZ(0)",
+      pointerEvents: "none",
+      zIndex: "0"
+    });
+
+    clonedNode.style.position = style.position === "static" ? "relative" : style.position;
+    clonedNode.style.overflow = "hidden";
+    clonedNode.style.backgroundImage = "none";
+    clonedNode.insertBefore(img, clonedNode.firstChild);
+    injectedUrls.push(imageUrl);
+  });
+
+  return injectedUrls;
+}
+
 function raf2(win) {
   if (typeof win.requestAnimationFrame === "function") {
     return new Promise((res) => win.requestAnimationFrame(() => win.requestAnimationFrame(res)));
@@ -484,9 +560,10 @@ function openPowerPlacePdfPrintView(title) {
     .then(() => {
       const freshPrintArea = document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || document.querySelector(".powerPlacePrintArea");
       if (!freshPrintArea) throw new Error("Макет мандалы не найден.");
-      const imageUrls = extractCssUrls(freshPrintArea);
       const clonedArea = freshPrintArea.cloneNode(true);
       clonedArea.classList.add("powerPlacePdfOnlyArea");
+      const injectedImageUrls = injectPrintablePhotoImages(freshPrintArea, clonedArea);
+      const imageUrls = Array.from(new Set([...extractCssUrls(freshPrintArea), ...injectedImageUrls]));
       printWindow.document.querySelector("main")?.appendChild(printWindow.document.importNode(clonedArea, true));
       return Promise.all([
         preloadImagesForPrint(imageUrls),
@@ -1842,6 +1919,35 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleCompositionDelete = async (composition) => {
+    if (!profile?.id || !composition?.id || !hasProfileLiteSessionCredential(session)) {
+      setMandalasError("Сначала сохраните профиль мастера.");
+      setMandalasStatus("needs-verification");
+      return;
+    }
+
+    const confirmed = window.confirm("Удалить сохранённую мандалу? Фото и источники силы не удалятся.");
+    if (!confirmed) return;
+
+    setCompositionMessage("Удаляем сохранённую мандалу…");
+    setMandalasStatus("loading");
+    try {
+      await deletePowerPlaceComposition(composition.id, profile.id, session);
+      setPowerPlaceCompositions((current) => current.filter((item) => item.id !== composition.id));
+      if (compositionDraft.id === composition.id) {
+        setCompositionDraft(withDefaultMotionSettings({ ...EMPTY_COMPOSITION }));
+      }
+      setMandalasStatus("success");
+      setMandalasError("");
+      setCompositionMessage("Сохранённая мандала удалена. Фото и источники силы остались в библиотеке.");
+    } catch (error) {
+      const safeMsg = moduleError(error, "profile_cabinet_power_place_compositions delete failed or RLS not applied");
+      setMandalasStatus("needs-verification");
+      setMandalasError(safeMsg);
+      setCompositionMessage("Мандала не удалена: " + safeMsg);
+    }
+  };
+
   const saveCompositionForServiceAction = async (composition = compositionDraft) => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       const message = "Сначала сохраните профиль мастера.";
@@ -2334,6 +2440,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         {...moduleProps}
         onClientPhotoDelete={handleDeleteClientPhoto}
         onCompositionCoverSelect={handleCompositionCoverSelect}
+        onCompositionDelete={handleCompositionDelete}
         onCompositionDraftChange={handleCompositionDraftChange}
         onCompositionLoad={handleCompositionLoad}
         onStartNewDraft={handleCompositionStartNewDraft}

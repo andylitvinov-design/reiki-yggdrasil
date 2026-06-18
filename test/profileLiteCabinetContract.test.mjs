@@ -231,6 +231,7 @@ for (const requiredPowerPlaceText of [
   "Добавить фото",
   "Добавить в мои услуги",
   "В услугах ✓",
+  "Удалить",
   "Пока нет мандал, добавленных в услуги.",
   "Группа",
   "Категория",
@@ -411,6 +412,7 @@ assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActionsMeta
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActions \{[\s\S]*order: 2 !important;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.profileLitePowerPlaceActionFeedback \{[\s\S]*order: 3;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActionsMeta \{[\s\S]*order: 4;/, "Profile Lite action card should force buttons, stage feedback, then saved-count meta even when public mobile hotfixes assign action order");
 assert.doesNotMatch(powerPlaceBaseSource, /powerPlacePrintArea[\s\S]*renderPowerPlaceActions\(\)[\s\S]*reportAdded/, "Power Place actions must not render inside the central printable mandala flow before report output");
 assert.match(powerPlaceBaseSource, /workspaceRightColumn[\s\S]*renderReportModule\(\)[\s\S]*renderPowerPlaceActions\(\)/, "Power Place actions should render after the library, cover, and report modules for mobile ordering");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\) \{[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions \{[\s\S]*order: 5 !important;[\s\S]*\.profileLitePowerPlace \.powerLibrarySidebar \{[\s\S]*order: 99 !important;/, "mobile Power Place layout should keep title/actions above sources and move Источники силы to the bottom");
 assert.match(profileLitePageSource, /handleCompositionSaveNew/, "Profile Lite page should split composition create into handleCompositionSaveNew");
 assert.match(profileLitePageSource, /const message = "Сначала сохраните профиль мастера\.";[\s\S]*setMandalasError\(message\);[\s\S]*setCompositionMessage\(powerPlaceSaveFailureMessage\("profile", \{ message \}, message\)\);/, "Save preflight failure should render near the Power Place action controls as a visible staged composition message");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting/, "Profile Lite page should split composition update into handleCompositionUpdateExisting");
@@ -428,6 +430,9 @@ assert.doesNotMatch(powerPlaceBaseSource, /handleSaveCompositionClick/, "handleS
 assert.match(profileLitePageSource, /const handlePrintComposition[\s\S]*openPowerPlacePdfPrintView/, "handlePrintComposition must use the clean print window, not direct window.print");
 assert.doesNotMatch(profileLitePageSource, /handlePrintComposition[\s\S]*body\.classList\.add\("printMandalaOnly"\)/, "handlePrintComposition must not apply printMandalaOnly to the main body");
 assert.doesNotMatch(powerPlaceBaseSource, /const createNewDisabled\s*=.*!compositionDraft\.id/, "createNewDisabled definition must not depend on compositionDraft.id — only on the plan limit");
+assert.match(profileLitePageSource, /function injectPrintablePhotoImages\(sourceArea, clonedArea\)/, "print/PDF should convert CSS background photo layers into real img nodes for Safari/iOS print");
+assert.match(profileLitePageSource, /isPrintablePhotoLayer[\s\S]*powerCenterPhoto\.hasImage[\s\S]*zodiacPositionImage\[style\][\s\S]*has-custom-inner-cover[\s\S]*has-custom-outer-cover/, "print/PDF image injection should include center, mini slot, inner cover, and outer cover photo layers");
+assert.match(profileLitePageSource, /clonedNode\.style\.backgroundImage = "none"/, "print/PDF image injection should disable the cloned photo background after inserting a real img to avoid print artifacts");
 assert.match(powerPlaceBaseSource, /powerPlaceUpdateButton/, "Update button must carry powerPlaceUpdateButton class for scoped targeting");
 assert.match(powerPlaceBaseSource, /powerPlaceCreateButton/, "Create-new button must carry powerPlaceCreateButton class for scoped targeting");
 assert.match(powerPlaceSource, /\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "Power Place UI should show count text like 7/7 сохранённых мест силы");
@@ -679,6 +684,11 @@ assert.match(powerPlaceBaseSource, /Пока нет мандал, добавле
 assert.match(powerPlaceBaseSource, /\(services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "Услуги tab should filter services by composition_id");
 assert.match(profileLitePageSource, /handleSendCompositionToServices/, "ProfileLitePage should expose handleSendCompositionToServices");
 assert.match(profileLitePageSource, /handlePublishCompositionAsService/, "ProfileLitePage should expose handlePublishCompositionAsService");
+assert.match(profileLitePageSource, /deletePowerPlaceComposition/, "ProfileLitePage should import and use deletePowerPlaceComposition for saved mandala deletion");
+assert.match(profileLitePageSource, /Удалить сохранённую мандалу\? Фото и источники силы не удалятся\./, "saved mandala deletion should confirm that photos and sources are preserved");
+assert.match(profileLitePageSource, /handleCompositionDelete[\s\S]*deletePowerPlaceComposition\(composition\.id, profile\.id, session\)[\s\S]*setPowerPlaceCompositions\(\(current\) => current\.filter\(\(item\) => item\.id !== composition\.id\)\)/, "saved mandala deletion should remove only the composition row and local card");
+assert.match(profileLitePageSource, /compositionDraft\.id === composition\.id[\s\S]*setCompositionDraft\(withDefaultMotionSettings\(\{ \.\.\.EMPTY_COMPOSITION \}\)\)/, "deleting the open saved mandala should reset the current draft to a fresh empty composition");
+assert.match(powerPlaceBaseSource, /profileLiteCompositionDeleteButton[\s\S]*event\.stopPropagation\(\)[\s\S]*onCompositionDelete\?\.\(composition\)/, "saved mandala delete button should be visible and should not open the composition card");
 assert.match(profileLitePageSource, /saveCompositionForServiceAction/, "service actions should save or update the composition before creating a service");
 assert.match(profileLitePageSource, /upsertOwnServiceForComposition/, "service actions should reuse the service for profile_id + composition_id");
 assert.match(profileLitePageSource, /setActiveTab\("services"\)/, "service transfer/publish actions should open the /profile/services tab");

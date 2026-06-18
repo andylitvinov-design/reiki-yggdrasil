@@ -818,6 +818,7 @@ export default function ProfileLitePowerPlaceModule({
   onAddCompositionToServices,
   onClientPhotoDelete,
   onCompositionCoverSelect,
+  onCompositionDelete,
   onCompositionDraftChange,
   onCompositionLoad,
   onCompositionObjectRefSelect,
@@ -2752,6 +2753,16 @@ export default function ProfileLitePowerPlaceModule({
                     Добавить в мои услуги
                   </button>
                 )}
+                <button
+                  className="cabinetGhost profileLiteCompositionDeleteButton"
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onCompositionDelete?.(composition);
+                  }}
+                >
+                  Удалить
+                </button>
               </div>
             </div>
           );
