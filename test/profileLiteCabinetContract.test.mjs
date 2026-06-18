@@ -183,6 +183,7 @@ const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.
 const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
 const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
+const profileLiteMediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
 const profileCoursesClientSource = readFileSync("src/lib/profileCoursesClient.js", "utf8");
 const profileCoursesModuleSource = readFileSync(join(moduleDir, "ProfileLiteCoursesModule.jsx"), "utf8");
@@ -355,6 +356,13 @@ assert.match(powerPlaceSource, /onChange=\{\(event\) => selectedSlot && assignPo
 assert.match(profileMandalaCss, /\.power-place-slot--drag-over/, "Power Place drop targets should have a subtle drag-over state");
 assert.doesNotMatch(profileMandalaCss, /coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon CSS should be removed");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverLayerTabs button\.power-place-slot--drag-over/, "cover layer tab drag-over styling should be scoped");
+assert.match(profileLiteMediaModuleSource, /Все файлы[\s\S]*Клиенты \/ Все[\s\S]*Клиент 1[\s\S]*Клиент 2[\s\S]*Клиент 3[\s\S]*Больше клиентов \/ Pro[\s\S]*Материалы/, "Profile Lite media manager should expose the requested folder navigation");
+assert.match(profileLiteMediaModuleSource, /draggable=\{photoDraggable\}[\s\S]*handleClientPhotoDragStart\(event, photo\)/, "client photo cards should be draggable");
+assert.match(profileLiteMediaModuleSource, /onDrop=\{\(event\) => handleFolderDrop\(event, folder\)\}/, "client folders should be droppable");
+assert.match(profileLiteMediaModuleSource, /Переместить в…[\s\S]*onChange=\{\(event\) => handleClientPhotoMove\(photo, event\.target\.value\)\}/, "client photo cards should expose a non-drag move action");
+assert.match(profileLiteMediaModuleSource, /option\.proOnly && !isProAccount[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "Start plan should disable the Pro folder in move controls");
+assert.match(profileLiteMediaModuleSource, /folder\.proOnly && !isProAccount[\s\S]*Доступно в Pro/, "Start plan should block dropping into the Pro folder with a hint");
+assert.match(profileLiteMediaModuleSource, /kind: "client-photo"[\s\S]*kind: "material"/, "media manager should build one mixed file browser across client photos and materials");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four Power Place sliders should share the desktop grid contract");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl button,[\s\S]*\.profileLitePowerPlace \.photoScaleControl button \{[\s\S]*width: 28px;[\s\S]*height: 28px;[\s\S]*display: grid;[\s\S]*place-items: center;/, "all four Power Place slider buttons should share compact square sizing");
 assert.match(profileMandalaCss, /@media \(max-width: 640px\) \{[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) 28px minmax\(110px, 1fr\) 28px;/, "all four Power Place sliders should keep a no-overlap mobile grid");
@@ -975,26 +983,26 @@ assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileL
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer buttons should stack full width");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireQuickActionsCard\s+a\s*\{[\s\S]*display: flex/, "Grimoire quick actions should render as separated vertical links");
 
-// ── Media module: filter applies to both photos and materials ─────────────────
+// ── Media module: folder browser applies to both photos and materials ─────────
 
 const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 
 assert.match(
   mediaModuleSource,
-  /filteredMaterials/,
-  "ProfileLiteMediaModule should compute filteredMaterials from the filter state"
+  /const mediaItems = useMemo/,
+  "ProfileLiteMediaModule should build one mediaItems collection from photos and materials"
 );
 
 assert.match(
   mediaModuleSource,
-  /matchesMediaFilter/,
-  "ProfileLiteMediaModule should define a shared matchesMediaFilter helper"
+  /const visibleItems = useMemo/,
+  "ProfileLiteMediaModule should compute visibleItems from the selected folder"
 );
 
-assert.doesNotMatch(
+assert.match(
   mediaModuleSource,
-  /materials\.map\(/,
-  "ProfileLiteMediaModule must not render materials.map() directly — use filteredMaterials.map() instead"
+  /activeFolder\.type === "materials"[\s\S]*item\.kind === "material"/,
+  "ProfileLiteMediaModule should keep materials visible only in material/all folders"
 );
 
 assert.match(
@@ -1011,8 +1019,8 @@ assert.match(
 
 assert.match(
   mediaModuleSource,
-  /const \[activeClientFolder, setActiveClientFolder\] = useState\("all"\)/,
-  "ProfileLiteMediaModule should expose a client folder browser state"
+  /const \[activeFolderId, setActiveFolderId\] = useState\("all-files"\)/,
+  "ProfileLiteMediaModule should expose an all-files folder browser state"
 );
 
 assert.match(
@@ -1023,7 +1031,7 @@ assert.match(
 
 assert.match(
   mediaModuleSource,
-  /draggable=\{photo\.kind !== "material"\}/,
+  /draggable=\{photoDraggable\}/,
   "ProfileLiteMediaModule should make client photo cards draggable"
 );
 

@@ -2,9 +2,6 @@ import React, { useMemo, useRef, useState } from "react";
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
 
-/* ── Library categories matching SOURCE_LIBRARY_CATEGORIES
-   in ProfileLitePowerPlaceModuleBase.jsx ─────────────────────────── */
-
 const CHANNELS_SUBCATEGORIES = [
   { value: "sefirot", label: "Сефирот" },
   { value: "runes", label: "Руны" },
@@ -18,11 +15,33 @@ const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "client-1", label: "Клиент 1" },
   { value: "client-2", label: "Клиент 2" },
   { value: "client-3", label: "Клиент 3" },
-  { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
+  { value: "pro-more-clients", label: "Больше клиентов / Pro", proOnly: true }
+];
+
+const MEDIA_FOLDERS = [
+  { id: "all-files", label: "Все файлы", type: "all" },
+  { id: "client-all", label: "Клиенты / Все", type: "client-all", targetCategory: "all" },
+  { id: "client-1", label: "Клиент 1", type: "client-category", targetCategory: "client-1" },
+  { id: "client-2", label: "Клиент 2", type: "client-category", targetCategory: "client-2" },
+  { id: "client-3", label: "Клиент 3", type: "client-category", targetCategory: "client-3" },
+  { id: "pro-more-clients", label: "Больше клиентов / Pro", type: "client-category", targetCategory: "pro-more-clients", proOnly: true },
+  { id: "materials", label: "Материалы", type: "materials" }
 ];
 
 function clientPhotoCategoryLabel(value) {
   return CLIENT_PHOTO_SUBCATEGORIES.find((item) => item.value === value)?.label || "Все";
+}
+
+function mediaFolderForPhoto(value) {
+  return clientPhotoCategoryLabel(value || "all");
+}
+
+function materialFolderLabel(item) {
+  return item?.step_title || item?.setting_title || item?.category || item?.material_group || "Материалы";
+}
+
+function hasPreview(item) {
+  return Boolean(item?.display_url || item?.image_url);
 }
 
 const SOURCE_LIBRARY_CATEGORIES = [
@@ -85,39 +104,22 @@ export default function ProfileLiteMediaModule({
   mediaError,
   mediaStatus,
   onClientPhotoDelete,
-  onClientPhotoCategoryMove,
   onClientPhotoFieldChange,
   onClientPhotoFileChange,
+  onClientPhotoCategoryMove,
   onClientPhotoSave,
   onLibraryPhotoUpload,
   clientPhotoForm,
   shellChrome
 }) {
   const isProAccount = accountPlan === "pro";
-  /* ── Filter state ───────────────────────────────────────────────── */
-  const [filterGroup, setFilterGroup] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterSubcategory, setFilterSubcategory] = useState("");
-  const [activeClientFolder, setActiveClientFolder] = useState("all");
-  const [draggedPhotoId, setDraggedPhotoId] = useState("");
-  const [moveStatus, setMoveStatus] = useState("idle");
-  const [moveMessage, setMoveMessage] = useState("");
+  const [activeFolderId, setActiveFolderId] = useState("all-files");
+  const [draggedPhoto, setDraggedPhoto] = useState(null);
+  const [dragOverFolderId, setDragOverFolderId] = useState("");
+  const [moveStatus, setMoveStatus] = useState("");
+  const [moveError, setMoveError] = useState("");
 
-  const activeFilterGroup = useMemo(
-    () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === filterGroup) || null,
-    [filterGroup]
-  );
-  const filterCategoryOptions = activeFilterGroup?.subcategories || [];
-  const activeFilterCategory = useMemo(
-    () => filterCategoryOptions.find((c) => c.value === filterCategory) || null,
-    [filterCategoryOptions, filterCategory]
-  );
-  const filterSubcategoryOptions = activeFilterCategory?.thirdLevels || [];
-
-  /* ── Upload destination tabs ───────────────────────────────────── */
   const [uploadDestination, setUploadDestination] = useState("clients");
-
-  /* ── Materials upload local state ─────────────────────────────── */
   const [uploadGroup, setUploadGroup] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.value || "");
   const [uploadCategory, setUploadCategory] = useState("");
   const [uploadSubcategory, setUploadSubcategory] = useState("");
@@ -128,6 +130,7 @@ export default function ProfileLiteMediaModule({
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef(null);
 
+  const activeFolder = MEDIA_FOLDERS.find((folder) => folder.id === activeFolderId) || MEDIA_FOLDERS[0];
   const activeUploadGroup = useMemo(
     () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === uploadGroup) || null,
     [uploadGroup]
@@ -143,86 +146,99 @@ export default function ProfileLiteMediaModule({
     [uploadSubcategoryOptions, uploadSubcategory]
   );
 
-  /* ── Shared filter helper ───────────────────────────────────────── */
-  function matchesMediaFilter(item, { filterGroup: fg, filterCategory: fc, filterSubcategory: fs }) {
-    if (!fg && !fc && !fs) return true;
-    if (fg) {
-      const itemGroup = item.material_group || item.group || item.library_group || "";
-      if (!itemGroup || itemGroup !== fg) return false;
-    }
-    if (fc) {
-      const itemCategory = item.material_category || item.category || item.step_id || "";
-      if (!itemCategory || itemCategory !== fc) return false;
-    }
-    if (fs) {
-      const itemSubcategory = item.material_subcategory || item.subcategory || item.setting_title || item.step_id || "";
-      if (!itemSubcategory || itemSubcategory !== fs) return false;
-    }
-    return true;
-  }
+  const mediaItems = useMemo(() => {
+    const photoItems = (clientGoalPhotos || []).map((photo) => ({
+      kind: "client-photo",
+      id: photo.id || photo.image_ref || photo.image_url,
+      title: photo.title || "Фото клиента / цели",
+      folderLabel: mediaFolderForPhoto(photo.client_category),
+      category: photo.client_category || "all",
+      previewUrl: photo.display_url || photo.image_url || "",
+      previewStatus: hasPreview(photo) ? "" : (photo.media_signing_error || "Предпросмотр недоступен"),
+      source: photo
+    }));
+    const materialItems = (materials || []).map((material) => ({
+      kind: "material",
+      id: material.id || material.image_ref || material.image_url,
+      title: material.title || "Материал",
+      folderLabel: materialFolderLabel(material),
+      category: "materials",
+      previewUrl: material.display_url || material.image_url || "",
+      previewStatus: hasPreview(material) ? "" : (material.media_signing_error || "Предпросмотр недоступен"),
+      source: material
+    }));
+    return [...photoItems, ...materialItems];
+  }, [clientGoalPhotos, materials]);
 
-  /* ── Filtered photo list ────────────────────────────────────────── */
-  const filteredPhotos = useMemo(() => {
-    const folderPhotos = activeClientFolder === "all"
-      ? clientGoalPhotos
-      : clientGoalPhotos.filter((photo) => (photo.client_category || "all") === activeClientFolder);
-    if (!filterGroup && !filterCategory && !filterSubcategory) return folderPhotos;
-    return folderPhotos.filter((photo) =>
-      matchesMediaFilter(photo, { filterGroup, filterCategory, filterSubcategory })
-    );
-  }, [activeClientFolder, clientGoalPhotos, filterGroup, filterCategory, filterSubcategory]);
-
-  /* ── Filtered materials list ────────────────────────────────────── */
-  const filteredMaterials = useMemo(() => {
-    if (!filterGroup && !filterCategory && !filterSubcategory) return materials || [];
-    return (materials || []).filter((mat) =>
-      matchesMediaFilter(mat, { filterGroup, filterCategory, filterSubcategory })
-    );
-  }, [materials, filterGroup, filterCategory, filterSubcategory]);
+  const visibleItems = useMemo(() => {
+    if (activeFolder.type === "all") return mediaItems;
+    if (activeFolder.type === "client-all") return mediaItems.filter((item) => item.kind === "client-photo");
+    if (activeFolder.type === "materials") return mediaItems.filter((item) => item.kind === "material");
+    if (activeFolder.type === "client-category") {
+      return mediaItems.filter((item) => item.kind === "client-photo" && item.category === activeFolder.targetCategory);
+    }
+    return mediaItems;
+  }, [activeFolder, mediaItems]);
 
   const clientsFormError = mediaStatus === "needs-verification" ? mediaError : "";
   const isUploading = uploadStatus === "loading";
-  const clientFolderCounts = useMemo(() => {
-    const counts = Object.fromEntries(CLIENT_PHOTO_SUBCATEGORIES.map((item) => [item.value, 0]));
-    counts.all = clientGoalPhotos.length;
-    for (const photo of clientGoalPhotos) {
-      const category = photo.client_category || "all";
-      if (category !== "all" && Object.hasOwn(counts, category)) counts[category] += 1;
-    }
-    return counts;
-  }, [clientGoalPhotos]);
 
-  const moveClientPhoto = async (photo, nextCategory) => {
+  const moveCategoryOptions = CLIENT_PHOTO_SUBCATEGORIES;
+
+  const handleClientPhotoMove = async (photo, nextCategory) => {
     const option = CLIENT_PHOTO_SUBCATEGORIES.find((item) => item.value === nextCategory);
-    if (!photo?.id || !option) return;
-    if (option.proOnly && !isProAccount) {
-      setMoveStatus("error");
-      setMoveMessage("Больше клиентов доступно в Pro.");
+    if (option?.proOnly && !isProAccount) {
+      setMoveStatus("Больше клиентов доступно в Pro.");
+      setMoveError("");
       return;
     }
-    if ((photo.client_category || "all") === nextCategory) return;
-
-    setMoveStatus("loading");
-    setMoveMessage("");
+    if (!photo?.id || !nextCategory || nextCategory === (photo.client_category || "all")) return;
+    setMoveStatus("Перемещаем фото…");
+    setMoveError("");
     try {
       await onClientPhotoCategoryMove?.(photo, nextCategory);
-      setMoveStatus("success");
-      setMoveMessage(`Фото перемещено в «${option.label}».`);
+      setMoveStatus(`Фото перемещено в ${clientPhotoCategoryLabel(nextCategory)}.`);
     } catch (error) {
-      setMoveStatus("error");
-      setMoveMessage(error?.message || "Не удалось переместить фото.");
+      setMoveStatus("");
+      setMoveError(error?.message || "Фото не переместилось.");
     }
   };
 
-  const handleFolderDrop = async (event, nextCategory) => {
-    event.preventDefault();
-    const photoId = event.dataTransfer.getData("text/plain") || draggedPhotoId;
-    const photo = clientGoalPhotos.find((item) => item.id === photoId);
-    setDraggedPhotoId("");
-    if (photo) await moveClientPhoto(photo, nextCategory);
+  const handleClientPhotoDragStart = (event, photo) => {
+    const payload = {
+      kind: "client-photo",
+      id: photo.id,
+      currentCategory: photo.client_category || "all"
+    };
+    setDraggedPhoto(photo);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("application/json", JSON.stringify(payload));
+    event.dataTransfer.setData("text/plain", photo.id || "");
   };
 
-  /* ── Materials upload handler ───────────────────────────────────── */
+  const handleFolderDrop = (event, folder) => {
+    event.preventDefault();
+    setDragOverFolderId("");
+    if (!folder.targetCategory) return;
+    if (folder.proOnly && !isProAccount) {
+      setMoveStatus("Доступно в Pro: папка «Больше клиентов / Pro».");
+      setMoveError("");
+      return;
+    }
+    let droppedPhoto = draggedPhoto;
+    if (!droppedPhoto?.id) {
+      try {
+        const payload = JSON.parse(event.dataTransfer.getData("application/json") || "{}");
+        droppedPhoto = (clientGoalPhotos || []).find((photo) => photo.id === payload.id);
+      } catch {
+        const photoId = event.dataTransfer.getData("text/plain");
+        droppedPhoto = (clientGoalPhotos || []).find((photo) => photo.id === photoId);
+      }
+    }
+    if (!droppedPhoto?.id) return;
+    void handleClientPhotoMove(droppedPhoto, folder.targetCategory);
+  };
+
   const handleMaterialsUpload = async (event) => {
     event.preventDefault();
     if (!uploadFile) {
@@ -278,206 +294,133 @@ export default function ProfileLiteMediaModule({
       {shellChrome}
 
       <div className="profileLiteMediaLayout">
-        {/* Left column: filter bar + photo list */}
         <div className="profileLiteMediaMain">
-          <div className="profileLiteMediaFilterBar" role="group" aria-label="Фильтр фото">
-            <div className="profileLiteMediaFilterField">
-              <label htmlFor="mediaFilterGroup">Группа</label>
-              <select
-                id="mediaFilterGroup"
-                value={filterGroup}
-                onChange={(event) => {
-                  setFilterGroup(event.target.value);
-                  setFilterCategory("");
-                  setFilterSubcategory("");
-                }}
-              >
-                <option value="">Все группы</option>
-                {SOURCE_LIBRARY_CATEGORIES.map((g) => (
-                  <option key={g.value} value={g.value}>{g.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="profileLiteMediaFilterField">
-              <label htmlFor="mediaFilterCategory">Категория</label>
-              <select
-                id="mediaFilterCategory"
-                value={filterCategory}
-                disabled={!filterGroup || filterCategoryOptions.length === 0}
-                onChange={(event) => {
-                  setFilterCategory(event.target.value);
-                  setFilterSubcategory("");
-                }}
-              >
-                <option value="">Все</option>
-                {filterCategoryOptions.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="profileLiteMediaFilterField">
-              <label htmlFor="mediaFilterSubcategory">Ступень</label>
-              <select
-                id="mediaFilterSubcategory"
-                value={filterSubcategory}
-                disabled={!filterCategory || filterSubcategoryOptions.length === 0}
-                onChange={(event) => setFilterSubcategory(event.target.value)}
-              >
-                <option value="">Все</option>
-                {filterSubcategoryOptions.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="cabinetCard profileLiteMediaBrowserCard">
+          <div className="cabinetCard profileLiteMediaBrowser">
             <div className="cabinetFormHeader">
               <div>
-                <p className="cabinetEyebrow">Фото / Медиа</p>
-                <h2>Файлы клиентов</h2>
+                <p className="cabinetEyebrow">Файлы</p>
+                <h2>Браузер медиа</h2>
               </div>
               <span className="cabinetStatus">{mediaStatus}</span>
             </div>
-            <div className="profileLiteMediaFolderRail" role="tablist" aria-label="Папки фото клиентов">
-              {CLIENT_PHOTO_SUBCATEGORIES.map((option) => {
-                const disabled = option.proOnly && !isProAccount;
-                return (
-                  <button
-                    key={option.value}
-                    className={activeClientFolder === option.value ? "active" : ""}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeClientFolder === option.value}
-                    disabled={disabled}
-                    onClick={() => {
-                      if (disabled) {
-                        setMoveStatus("error");
-                        setMoveMessage("Больше клиентов доступно в Pro.");
-                        return;
-                      }
-                      setActiveClientFolder(option.value);
-                    }}
-                    onDragOver={(event) => {
-                      if (!disabled) event.preventDefault();
-                    }}
-                    onDrop={(event) => {
-                      if (disabled) {
-                        event.preventDefault();
-                        setMoveStatus("error");
-                        setMoveMessage("Больше клиентов доступно в Pro.");
-                        return;
-                      }
-                      void handleFolderDrop(event, option.value);
-                    }}
-                  >
-                    <span>{option.value === "all" ? "Все фото" : option.label}</span>
-                    <b>{clientFolderCounts[option.value] || 0}</b>
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                className="profileLiteMediaMaterialFolder"
-                onClick={() => setFilterGroup(filterGroup ? "" : "dao-ri")}
-              >
-                <span>Материалы</span>
-                <b>{materials?.length || 0}</b>
-              </button>
-            </div>
-            {moveMessage && (
-              <div className={`cabinetNotice profileLiteMediaMoveNotice ${moveStatus === "error" ? "cabinetSecondaryDataWarning" : ""}`} role="status">
-                {moveMessage}
+
+            {(moveStatus || moveError) && (
+              <div className={`cabinetNotice ${moveError ? "cabinetSecondaryDataWarning" : ""}`} role={moveError ? "alert" : "status"}>
+                {moveError || moveStatus}
               </div>
             )}
-            <div className="profileLiteMediaGrid">
-              {filteredPhotos.map((photo) => (
-                <article
-                  className="profileLiteMediaCard"
-                  key={photo.id || photo.image_ref || photo.image_url}
-                  draggable={photo.kind !== "material"}
-                  onDragStart={(event) => {
-                    setDraggedPhotoId(photo.id || "");
-                    event.dataTransfer.setData("text/plain", photo.id || "");
-                    event.dataTransfer.effectAllowed = "move";
-                  }}
-                  onDragEnd={() => setDraggedPhotoId("")}
-                >
-                  <div
-                    className="profileLiteMediaThumb"
-                    style={
-                      photo.display_url || photo.image_url
-                        ? { backgroundImage: `url(${photo.display_url || photo.image_url})` }
-                        : undefined
-                    }
-                  >
-                    ◎
-                  </div>
-                  <h3>{photo.title || "Фото клиента / цели"}</h3>
-                  <p>{clientPhotoCategoryLabel(photo.client_category || "all")}</p>
-                  <small>Фото клиента</small>
-                  <div className="profileLiteMediaCardActions">
-                    <label>
-                      Переместить
-                      <select
-                        value={photo.client_category || "all"}
-                        disabled={moveStatus === "loading"}
-                        onChange={(event) => void moveClientPhoto(photo, event.target.value)}
-                      >
-                        {CLIENT_PHOTO_SUBCATEGORIES.map((option) => (
-                          <option key={option.value} value={option.value} disabled={option.proOnly && !isProAccount}>
-                            {option.proOnly && !isProAccount ? `${option.label} — Pro` : option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <button className="cabinetGhost" type="button" onClick={() => onClientPhotoDelete(photo)}>
-                      Удалить
-                    </button>
-                  </div>
-                </article>
-              ))}
-              {mediaStatus === "success" && filteredPhotos.length === 0 && clientGoalPhotos.length === 0 && (
-                <p>Фото клиентов пока не найдены.</p>
-              )}
-              {filteredPhotos.length === 0 && clientGoalPhotos.length > 0 && (
-                <p>Нет фото по выбранному фильтру.</p>
-              )}
-            </div>
-          </div>
 
-          {materials?.length > 0 && (
-            <div className="cabinetCard profileLiteMediaMaterialsBlock">
-              <p className="cabinetEyebrow">Материалы библиотеки</p>
-              <h2>Загруженные материалы</h2>
-              <div className="profileLiteMediaGrid">
-                {filteredMaterials.map((mat) => (
-                  <article className="profileLiteMediaCard" key={mat.id || mat.image_url}>
-                    <div
-                      className="profileLiteMediaThumb"
-                      style={
-                        mat.display_url || mat.image_url
-                          ? { backgroundImage: `url(${mat.display_url || mat.image_url})` }
-                          : undefined
-                      }
+            <div className="profileLiteFileManager">
+              <nav className="profileLiteMediaFolders" aria-label="Папки медиа">
+                {MEDIA_FOLDERS.map((folder) => {
+                  const disabled = folder.proOnly && !isProAccount;
+                  const isDropTarget = Boolean(folder.targetCategory);
+                  return (
+                    <button
+                      key={folder.id}
+                      className={[
+                        "profileLiteMediaFolderButton",
+                        activeFolder.id === folder.id ? "active" : "",
+                        dragOverFolderId === folder.id ? "profileLiteMediaFolderButton--dragOver" : ""
+                      ].filter(Boolean).join(" ")}
+                      type="button"
+                      disabled={folder.proOnly && !isProAccount}
+                      onClick={() => {
+                        if (disabled) {
+                          setMoveStatus("Доступно в Pro: папка «Больше клиентов / Pro».");
+                          return;
+                        }
+                        setActiveFolderId(folder.id);
+                      }}
+                      onDragOver={(event) => {
+                        if (!isDropTarget || disabled) return;
+                        event.preventDefault();
+                        setDragOverFolderId(folder.id);
+                      }}
+                      onDragLeave={() => setDragOverFolderId("")}
+                      onDrop={(event) => handleFolderDrop(event, folder)}
+                      title={disabled ? "Доступно в Pro" : "Открыть папку"}
                     >
-                      ◎
-                    </div>
-                    <h3>{mat.title || "Материал"}</h3>
-                    <p>{mat.description || mat.step_title || mat.setting_title || ""}</p>
-                  </article>
-                ))}
-                {filteredMaterials.length === 0 && (filterGroup || filterCategory || filterSubcategory) && (
-                  <p>Нет материалов по выбранному фильтру.</p>
-                )}
+                      <span>{folder.label}</span>
+                      {disabled && <small>Доступно в Pro</small>}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              <div className="profileLiteMediaFilesPanel">
+                <div className="profileLiteMediaFilesHeader">
+                  <div>
+                    <p className="cabinetEyebrow">{activeFolder.label}</p>
+                    <h3>{visibleItems.length} файл(ов)</h3>
+                  </div>
+                  <small>Материалы доступны только для просмотра. Перетаскиваются только фото клиентов.</small>
+                </div>
+
+                <div className="profileLiteMediaGrid">
+                  {visibleItems.map((item) => {
+                    const photo = item.kind === "client-photo" ? item.source : null;
+                    const photoDraggable = item.kind === "client-photo" && Boolean(item.source?.id);
+                    return (
+                      <article
+                        className={`profileLiteMediaCard profileLiteMediaCard--${item.kind}`}
+                        key={`${item.kind}-${item.id}`}
+                        draggable={photoDraggable}
+                        onDragStart={(event) => photoDraggable && handleClientPhotoDragStart(event, photo)}
+                        onDragEnd={() => {
+                          setDraggedPhoto(null);
+                          setDragOverFolderId("");
+                        }}
+                      >
+                        <div
+                          className="profileLiteMediaThumb"
+                          style={item.previewUrl ? { backgroundImage: `url(${item.previewUrl})` } : undefined}
+                        >
+                          ◎
+                        </div>
+                        <h3>{item.title}</h3>
+                        <p className="profileLiteMediaMeta">
+                          <b>{item.kind === "client-photo" ? "Клиент" : "Материал"}</b>
+                          <span>{item.folderLabel}</span>
+                        </p>
+                        {item.previewStatus && <p className="profileLiteMediaPreviewStatus">{item.previewStatus}</p>}
+
+                        {item.kind === "client-photo" && (
+                          <div className="profileLiteMediaCardActions">
+                            <label>
+                              Переместить в…
+                              <select
+                                value={photo.client_category || "all"}
+                                onChange={(event) => handleClientPhotoMove(photo, event.target.value)}
+                              >
+                                {moveCategoryOptions.map((option) => (
+                                  <option
+                                    key={option.value}
+                                    value={option.value}
+                                    disabled={option.proOnly && !isProAccount}
+                                  >
+                                    {option.proOnly && !isProAccount ? `${option.label} — Pro` : option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <button className="cabinetGhost" type="button" onClick={() => onClientPhotoDelete(item.source)}>
+                              Удалить
+                            </button>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
+                  {mediaStatus === "success" && visibleItems.length === 0 && (
+                    <p>В этой папке пока нет файлов.</p>
+                  )}
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Right column: single upload card */}
         <div className="profileLiteMediaUploadPanel">
           <div className="cabinetCard profileLiteMediaUploadCard">
             <p className="cabinetEyebrow">Загрузить фото</p>

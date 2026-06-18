@@ -626,7 +626,6 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
   return hydrated?.[0] || null;
 }
 
-
 export async function updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session = getStoredSession()) {
   requireSession(session);
   const cleanPhotoId = cleanText(photoId);
