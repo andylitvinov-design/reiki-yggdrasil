@@ -1,14 +1,11 @@
 import React, { useMemo, useRef, useState } from "react";
-import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
-import { mysteryTraditions } from "../../data/mysteryTraditions.js";
-
-const CHANNELS_SUBCATEGORIES = [
-  { value: "sefirot", label: "Сефирот" },
-  { value: "runes", label: "Руны" },
-  { value: "planets", label: "Планеты" },
-  { value: "money", label: "Деньги" },
-  { value: "life", label: "Жизнь" }
-];
+import {
+  MATERIAL_GROUP_TABS,
+  buildMaterialPayloadFromSelection,
+  getMaterialCategoryOptions,
+  getMaterialSubcategoryOptions,
+  normalizeMaterialSelection
+} from "./profileLiteMaterialTaxonomy.js";
 
 const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "all", label: "Все" },
@@ -44,59 +41,6 @@ function hasPreview(item) {
   return Boolean(item?.display_url || item?.image_url);
 }
 
-const SOURCE_LIBRARY_CATEGORIES = [
-  {
-    value: "dao-ri",
-    label: "ДАО РИ",
-    subcategories: reikiLevels.map((level) => ({
-      value: `level-${level.id}`,
-      label: `${level.id}. ${level.name}`,
-      thirdLevels: level.steps.map((step) => ({
-        value: step.id,
-        label: `${level.stepLabel} ${step.number}: ${step.title}`,
-        step_id: step.id,
-        step_title: step.title
-      }))
-    }))
-  },
-  {
-    value: "god-channels",
-    label: "Мистерии",
-    subcategories: mysteryTraditions.map((t) => ({
-      value: t.id,
-      label: t.title
-    }))
-  },
-  {
-    value: "channels",
-    label: "Каналы",
-    subcategories: CHANNELS_SUBCATEGORIES
-  },
-  {
-    value: "covers",
-    label: "Фон",
-    subcategories: [{ value: "cover", label: "Фон" }]
-  },
-  {
-    value: "form",
-    label: "Форма",
-    subcategories: [
-      { value: "zashchitnye", label: "Защитные" },
-      { value: "tselyebnye", label: "Целебные" },
-      { value: "business", label: "Бизнес" },
-      { value: "other", label: "Другие" }
-    ]
-  },
-  { value: "talismans", label: "Талисманы", subcategories: [] },
-  { value: "artifacts", label: "Артефакты", subcategories: [] },
-  { value: "favorites", label: "Избранные", subcategories: [] },
-  {
-    value: "client-goals",
-    label: "Клиенты",
-    subcategories: [{ value: "client-goals", label: "Фото клиентов" }]
-  }
-];
-
 export default function ProfileLiteMediaModule({
   accountPlan,
   clientGoalPhotos,
@@ -120,9 +64,10 @@ export default function ProfileLiteMediaModule({
   const [moveError, setMoveError] = useState("");
 
   const [uploadDestination, setUploadDestination] = useState("clients");
-  const [uploadGroup, setUploadGroup] = useState(SOURCE_LIBRARY_CATEGORIES[0]?.value || "");
-  const [uploadCategory, setUploadCategory] = useState("");
-  const [uploadSubcategory, setUploadSubcategory] = useState("");
+  const defaultMaterialSelection = useMemo(() => normalizeMaterialSelection("dao-ri"), []);
+  const [uploadGroup, setUploadGroup] = useState(defaultMaterialSelection.group);
+  const [uploadCategory, setUploadCategory] = useState(defaultMaterialSelection.categoryValue);
+  const [uploadSubcategory, setUploadSubcategory] = useState(defaultMaterialSelection.subcategoryValue);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadNotes, setUploadNotes] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
@@ -131,20 +76,9 @@ export default function ProfileLiteMediaModule({
   const fileInputRef = useRef(null);
 
   const activeFolder = MEDIA_FOLDERS.find((folder) => folder.id === activeFolderId) || MEDIA_FOLDERS[0];
-  const activeUploadGroup = useMemo(
-    () => SOURCE_LIBRARY_CATEGORIES.find((g) => g.value === uploadGroup) || null,
-    [uploadGroup]
-  );
-  const uploadCategoryOptions = activeUploadGroup?.subcategories || [];
-  const activeUploadCategory = useMemo(
-    () => uploadCategoryOptions.find((c) => c.value === uploadCategory) || null,
-    [uploadCategoryOptions, uploadCategory]
-  );
-  const uploadSubcategoryOptions = activeUploadCategory?.thirdLevels || [];
-  const activeUploadSubcategory = useMemo(
-    () => uploadSubcategoryOptions.find((s) => s.value === uploadSubcategory) || null,
-    [uploadSubcategoryOptions, uploadSubcategory]
-  );
+  const uploadSelection = normalizeMaterialSelection(uploadGroup, uploadCategory, uploadSubcategory);
+  const uploadCategoryOptions = getMaterialCategoryOptions(uploadSelection.group);
+  const uploadSubcategoryOptions = getMaterialSubcategoryOptions(uploadSelection.group, uploadSelection.categoryValue);
 
   const mediaItems = useMemo(() => {
     const photoItems = (clientGoalPhotos || []).map((photo) => ({
@@ -253,18 +187,7 @@ export default function ProfileLiteMediaModule({
         file: uploadFile,
         title: uploadTitle || uploadFile.name || "Материал",
         notes: uploadNotes,
-        material: {
-          group: uploadGroup,
-          category: uploadCategory,
-          subcategory: activeUploadSubcategory?.label || uploadSubcategory,
-          step_id: activeUploadSubcategory?.step_id || uploadSubcategory,
-          step_title: activeUploadSubcategory?.step_title || activeUploadSubcategory?.label || "",
-          setting_title: activeUploadSubcategory?.label || "",
-          setting_index: uploadSubcategoryOptions.indexOf(activeUploadSubcategory) >= 0
-            ? uploadSubcategoryOptions.indexOf(activeUploadSubcategory) + 1
-            : null,
-          type: "mandala"
-        }
+        material: buildMaterialPayloadFromSelection(uploadSelection)
       });
       setUploadStatus("success");
       setUploadFile(null);
@@ -524,35 +447,42 @@ export default function ProfileLiteMediaModule({
                   </div>
                 )}
 
-                <label>
-                  Группа
-                  <select
-                    value={uploadGroup}
-                    disabled={isUploading}
-                    onChange={(event) => {
-                      setUploadGroup(event.target.value);
-                      setUploadCategory("");
-                      setUploadSubcategory("");
-                    }}
-                  >
-                    {SOURCE_LIBRARY_CATEGORIES.map((g) => (
-                      <option key={g.value} value={g.value}>{g.label}</option>
+                <div className="profileLiteMaterialGroupField">
+                  <span>Группа</span>
+                  <div className="imagePickerMaterialGroupTabs" role="tablist" aria-label="Группа материалов">
+                    {MATERIAL_GROUP_TABS.map((group) => (
+                      <button
+                        key={group.value}
+                        className={uploadSelection.group === group.value ? "active" : ""}
+                        type="button"
+                        role="tab"
+                        aria-selected={uploadSelection.group === group.value}
+                        disabled={isUploading}
+                        onClick={() => {
+                          const nextSelection = normalizeMaterialSelection(group.value);
+                          setUploadGroup(nextSelection.group);
+                          setUploadCategory(nextSelection.categoryValue);
+                          setUploadSubcategory(nextSelection.subcategoryValue);
+                        }}
+                      >
+                        {group.label}
+                      </button>
                     ))}
-                  </select>
-                </label>
+                  </div>
+                </div>
 
                 {uploadCategoryOptions.length > 0 && (
-                  <label>
-                    Категория
+                  <label className="profileLiteMaterialTaxonomyField">
+                    {uploadSelection.group === "god-channels" ? "Пантеон / традиция" : "Категория"}
                     <select
-                      value={uploadCategory}
+                      value={uploadSelection.categoryValue}
                       disabled={isUploading}
                       onChange={(event) => {
-                        setUploadCategory(event.target.value);
-                        setUploadSubcategory("");
+                        const nextSelection = normalizeMaterialSelection(uploadSelection.group, event.target.value, "");
+                        setUploadCategory(nextSelection.categoryValue);
+                        setUploadSubcategory(nextSelection.subcategoryValue);
                       }}
                     >
-                      <option value="">Выбрать</option>
                       {uploadCategoryOptions.map((c) => (
                         <option key={c.value} value={c.value}>{c.label}</option>
                       ))}
@@ -561,14 +491,13 @@ export default function ProfileLiteMediaModule({
                 )}
 
                 {uploadSubcategoryOptions.length > 0 && (
-                  <label>
-                    Ступень / подкатегория
+                  <label className="profileLiteMaterialTaxonomyField">
+                    {uploadSelection.group === "god-channels" ? "Бог / канал" : "Подкатегория"}
                     <select
-                      value={uploadSubcategory}
+                      value={uploadSelection.subcategoryValue}
                       disabled={isUploading}
                       onChange={(event) => setUploadSubcategory(event.target.value)}
                     >
-                      <option value="">Выбрать</option>
                       {uploadSubcategoryOptions.map((s) => (
                         <option key={s.value} value={s.value}>{s.label}</option>
                       ))}
