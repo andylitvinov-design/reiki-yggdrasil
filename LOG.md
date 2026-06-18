@@ -1,5 +1,39 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-18 — Fix publication taxonomy schema-cache migration
+
+- Branch: `fix/profile-publications-category-schema-cache`.
+- Base: fresh `origin/main` at `985a347` (`Fix Power Place print delete and mobile order (#395)`).
+- Changed files:
+  - `README.md`
+  - `STATE.md`
+  - `LOG.md`
+  - `supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`
+  - `test/profileLiteCabinetContract.test.mjs`
+- Root cause:
+  - center image modal material uploads call `createOwnMaterial()` and POST `material_group`, `material_type`, `category`, and `subcategory` to `profile_cabinet_publications`;
+  - public material loading also selects `category` and `subcategory`;
+  - the prior taxonomy migration is idempotent, but production can still reject `category` when the migration has not been applied or PostgREST schema cache is stale.
+- Changed:
+  - added a follow-up idempotent migration that re-adds the required taxonomy columns, preserves the taxonomy index, and runs `notify pgrst, 'reload schema';`;
+  - added a Profile Lite contract assertion for the required idempotent columns and schema-cache reload;
+  - documented the production column check and schema-cache reload SQL in README.
+- Checks run:
+  - `npm run test:profile-lite` failed first on missing `20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`;
+  - `npm run test:profile-lite` then exited `0`.
+- Not verified:
+  - production/staging Supabase column list for the `2mentalica` project;
+  - real authenticated upload/select on live mobile.
+- Required production SQL:
+  ```sql
+  select column_name
+  from information_schema.columns
+  where table_name = 'profile_cabinet_publications'
+  order by ordinal_position;
+
+  notify pgrst, 'reload schema';
+  ```
+
 ## 2026-06-18 — Fix client photo folders and add media browser moves
 
 - Branch: `codex/client-photo-browser-20260618`.

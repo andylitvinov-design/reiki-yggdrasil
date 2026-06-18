@@ -65,17 +65,30 @@ Supabase setup steps:
 14. Apply `supabase/migrations/20260605153000_service_orders_client_phase4.sql`.
 15. Apply `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`.
 16. Apply `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`.
-17. Add these auth redirect URLs in Supabase for the target domain:
+17. Apply `supabase/migrations/20260609_profile_client_photo_categories.sql`.
+18. Apply `supabase/migrations/20260615123000_power_place_dao_layout_format.sql`.
+19. Apply `supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql`.
+20. Apply `supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`.
+21. Verify `profile_cabinet_publications` has `material_group`, `material_type`, `category`, and `subcategory`, then reload PostgREST if needed:
+    ```sql
+    select column_name
+    from information_schema.columns
+    where table_name = 'profile_cabinet_publications'
+    order by ordinal_position;
+
+    notify pgrst, 'reload schema';
+    ```
+22. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-18. Keep these legacy auth redirect URLs until the migration is fully verified:
+23. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-19. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
+24. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
     - `https://2mentalica.vercel.app/profile`
     - `https://2mentalica.vercel.app/profile/admin`
-20. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
-21. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+25. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
+26. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
