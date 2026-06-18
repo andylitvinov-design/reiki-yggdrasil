@@ -518,9 +518,9 @@ assert.match(profileLitePageSource, /subcategory:\s*material\?\.subcategory/, "i
 assert.match(powerPlaceBaseSource, /materialGroup:\s*item\.material_group \|\| item\.group/, "saved material images should preserve material group metadata for picker filters");
 assert.match(powerPlaceBaseSource, /materialType:\s*item\.material_type \|\| item\.type/, "saved material images should preserve material type metadata for picker filters");
 assert.match(powerPlaceBaseSource, /settingTitle:\s*item\.setting_title \|\| item\.settingTitle/, "saved material images should preserve setting/subcategory metadata for picker filters");
-assert.match(imagePickerSource, /materialFilterGroup[\s\S]*materialFilterType[\s\S]*materialFilterStepId[\s\S]*materialFilterSettingTitle/, "saved Materials picker should use four-level material filters");
-assert.match(imagePickerSource, /normalizeMaterialImageMetadata/, "saved Materials picker should normalize material metadata before filtering");
-assert.match(imagePickerSource, /matchesMaterialFilter/, "saved Materials picker should use normalized metadata for non-strict filter matching");
+assert.match(imagePickerSource, /materialFilterGroup[\s\S]*materialFilterCategory[\s\S]*materialFilterSubcategory/, "saved Materials picker should use group/category/subcategory material filters");
+assert.doesNotMatch(imagePickerSource, /materialFilterType/, "saved Materials picker should not require material type filters");
+assert.match(imagePickerSource, /materialImageMatchesSelection/, "saved Materials picker should use shared normalized metadata matching");
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");

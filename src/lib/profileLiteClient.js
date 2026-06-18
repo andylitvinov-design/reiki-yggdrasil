@@ -74,6 +74,19 @@ export function shortUserId(value) {
 
 export function safeProfileLiteError(error, fallback = "Не удалось загрузить данные кабинета.") {
   const message = hasText(error?.message) ? error.message : fallback;
+  const lowerMessage = message.toLowerCase();
+  if (
+    lowerMessage.includes("schema cache")
+    && lowerMessage.includes("profile_cabinet_publications")
+    && (
+      lowerMessage.includes("'category'")
+      || lowerMessage.includes("category")
+      || lowerMessage.includes("material_group")
+      || lowerMessage.includes("subcategory")
+    )
+  ) {
+    return "В Supabase не применена миграция таксономии материалов: отсутствует колонка category в profile_cabinet_publications. Нужно применить migration 20260617120000_profile_cabinet_publication_material_taxonomy.sql на staging/2mentalica.";
+  }
   return message
     .replace(/https?:\/\/\S+/gi, "[url hidden]")
     .replace(/[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}/g, "[token hidden]")

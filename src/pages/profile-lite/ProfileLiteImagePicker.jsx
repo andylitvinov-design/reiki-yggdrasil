@@ -1,11 +1,17 @@
 import React, { useMemo, useState } from "react";
-import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
-import { sourcedStepSettings } from "../../data/reikiStepSettings.js";
 import {
   POWER_PLACE_SYMBOL_SHELVES,
   listPowerPlaceSymbolsByShelf,
   symbolShelfForConstructorType
 } from "../../data/powerPlaceSymbolLibrary.js";
+import {
+  MATERIAL_GROUP_TABS,
+  buildMaterialPayloadFromSelection,
+  getMaterialCategoryOptions,
+  getMaterialSubcategoryOptions,
+  materialImageMatchesSelection,
+  normalizeMaterialSelection
+} from "./profileLiteMaterialTaxonomy.js";
 
 function isDisplayUrl(value) {
   return Boolean(value && (/^https?:\/\//.test(value) || value.startsWith("data:image/") || value.startsWith("/")));
@@ -33,30 +39,6 @@ function modeEyebrow(mode) {
   return "Объект мандалы";
 }
 
-const materialStepOptions = reikiLevels.flatMap((level) =>
-  level.steps.map((step) => ({
-    id: step.id,
-    title: step.title,
-    levelName: level.name,
-    label: `${level.id}. ${level.name} · ${level.stepLabel} ${step.number}: ${step.title}`,
-    settings: sourcedStepSettings[step.id] || step.settings || []
-  }))
-);
-
-const firstMaterialStep = materialStepOptions[0] || null;
-const MATERIAL_GROUPS = [
-  { value: "dao-ri", label: "ДАО РИ" },
-  { value: "god-channels", label: "Мистерии" },
-  { value: "channels", label: "Каналы" },
-  { value: "form", label: "Форма" }
-];
-const MATERIAL_TYPES = [
-  { value: "mandala", label: "Мандала" },
-  { value: "artifact", label: "Артефакт" },
-  { value: "practice", label: "Практика" }
-];
-const ALL_MATERIAL_FILTER = "all";
-const ALL_MATERIAL_OPTION = { value: ALL_MATERIAL_FILTER, label: "Все" };
 const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "all", label: "Все" },
   { value: "client-1", label: "Клиент 1" },
@@ -64,61 +46,6 @@ const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "client-3", label: "Клиент 3" },
   { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
 ];
-
-function cleanText(value) {
-  return String(value || "").trim();
-}
-
-function normalizeSearchText(value) {
-  return cleanText(value).toLowerCase();
-}
-
-function fieldValues(...values) {
-  return values
-    .flatMap((value) => Array.isArray(value) ? value : [value])
-    .map(cleanText)
-    .filter(Boolean);
-}
-
-function normalizeMaterialImageMetadata(image) {
-  const group = fieldValues(image?.materialGroup, image?.material_group, image?.group);
-  const type = fieldValues(image?.materialType, image?.material_type, image?.type);
-  const stepId = fieldValues(image?.stepId, image?.step_id);
-  const stepTitle = fieldValues(image?.stepTitle, image?.step_title, image?.category);
-  const settingTitle = fieldValues(image?.settingTitle, image?.setting_title, image?.subcategory, image?.material_subcategory);
-  const legacyText = normalizeSearchText([image?.label, image?.meta].filter(Boolean).join(" "));
-
-  return {
-    group,
-    type,
-    stepId,
-    stepTitle,
-    settingTitle,
-    legacyText
-  };
-}
-
-function matchesMaterialField(values, selectedValue, legacyText = "", legacyLabels = []) {
-  if (!selectedValue || selectedValue === ALL_MATERIAL_FILTER) return true;
-  const normalizedSelected = normalizeSearchText(selectedValue);
-  if (!values.length) return true;
-  if (values.some((value) => normalizeSearchText(value) === normalizedSelected)) return true;
-  if (legacyLabels.some((label) => legacyText.includes(normalizeSearchText(label)))) return true;
-  return legacyText.includes(normalizedSelected);
-}
-
-function matchesMaterialFilter(image, filters) {
-  const metadata = normalizeMaterialImageMetadata(image);
-  const selectedStep = materialStepOptions.find((step) => step.id === filters.stepId);
-  const selectedSetting = selectedStep?.settings?.find((setting) => setting.title === filters.settingTitle);
-
-  return (
-    matchesMaterialField(metadata.group, filters.group, metadata.legacyText, MATERIAL_GROUPS.map((group) => group.label)) &&
-    matchesMaterialField(metadata.type, filters.type, metadata.legacyText, MATERIAL_TYPES.map((type) => type.label)) &&
-    matchesMaterialField([...metadata.stepId, ...metadata.stepTitle], filters.stepId, metadata.legacyText, [selectedStep?.title, selectedStep?.label, selectedStep?.levelName]) &&
-    matchesMaterialField(metadata.settingTitle, filters.settingTitle, metadata.legacyText, [selectedSetting?.title])
-  );
-}
 
 export default function ProfileLiteImagePicker({
   accountPlan = "start",
@@ -139,17 +66,13 @@ export default function ProfileLiteImagePicker({
   const [uploadTitle, setUploadTitle] = useState("");
   const [clientCategory, setClientCategory] = useState("all");
   const [symbolShelf, setSymbolShelf] = useState(() => symbolShelfForConstructorType(constructorType));
-  const [materialGroup, setMaterialGroup] = useState("dao-ri");
-  const [materialType, setMaterialType] = useState("mandala");
-  const [materialStepId, setMaterialStepId] = useState(firstMaterialStep?.id || "");
-  const activeMaterialStep = materialStepOptions.find((step) => step.id === materialStepId) || firstMaterialStep;
-  const [materialSettingTitle, setMaterialSettingTitle] = useState(activeMaterialStep?.settings?.[0]?.title || "");
-  const activeSetting = activeMaterialStep?.settings?.find((setting) => setting.title === materialSettingTitle) || activeMaterialStep?.settings?.[0] || null;
-  const [materialFilterGroup, setMaterialFilterGroup] = useState(ALL_MATERIAL_FILTER);
-  const [materialFilterType, setMaterialFilterType] = useState(ALL_MATERIAL_FILTER);
-  const [materialFilterStepId, setMaterialFilterStepId] = useState(ALL_MATERIAL_FILTER);
-  const activeMaterialFilterStep = materialStepOptions.find((step) => step.id === materialFilterStepId) || null;
-  const [materialFilterSettingTitle, setMaterialFilterSettingTitle] = useState(ALL_MATERIAL_FILTER);
+  const defaultMaterialSelection = useMemo(() => normalizeMaterialSelection("dao-ri"), []);
+  const [materialGroup, setMaterialGroup] = useState(defaultMaterialSelection.group);
+  const [materialCategory, setMaterialCategory] = useState(defaultMaterialSelection.categoryValue);
+  const [materialSubcategory, setMaterialSubcategory] = useState(defaultMaterialSelection.subcategoryValue);
+  const [materialFilterGroup, setMaterialFilterGroup] = useState(defaultMaterialSelection.group);
+  const [materialFilterCategory, setMaterialFilterCategory] = useState(defaultMaterialSelection.categoryValue);
+  const [materialFilterSubcategory, setMaterialFilterSubcategory] = useState(defaultMaterialSelection.subcategoryValue);
   const [localUploadStatus, setLocalUploadStatus] = useState("idle");
   const [localUploadError, setLocalUploadError] = useState("");
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
@@ -157,6 +80,12 @@ export default function ProfileLiteImagePicker({
   const isUploading = currentUploadStatus === "loading";
   const isProAccount = accountPlan === "pro";
   const symbolImages = useMemo(() => listPowerPlaceSymbolsByShelf(symbolShelf), [symbolShelf]);
+  const materialSelection = normalizeMaterialSelection(materialGroup, materialCategory, materialSubcategory);
+  const materialFilterSelection = normalizeMaterialSelection(materialFilterGroup, materialFilterCategory, materialFilterSubcategory);
+  const materialCategoryOptions = getMaterialCategoryOptions(materialSelection.group);
+  const materialSubcategoryOptions = getMaterialSubcategoryOptions(materialSelection.group, materialSelection.categoryValue);
+  const materialFilterCategoryOptions = getMaterialCategoryOptions(materialFilterSelection.group);
+  const materialFilterSubcategoryOptions = getMaterialSubcategoryOptions(materialFilterSelection.group, materialFilterSelection.categoryValue);
   const visibleImages = useMemo(() => {
     const validImages = images.filter((image) => image?.id || image?.src || image?.displaySrc);
     if (activeTab === "clients") {
@@ -168,16 +97,11 @@ export default function ProfileLiteImagePicker({
     if (activeTab === "materials") {
       return validImages
         .filter((image) => image.kind === "material" || image.kind === "tradition-asset")
-        .filter((image) => matchesMaterialFilter(image, {
-          group: materialFilterGroup,
-          type: materialFilterType,
-          stepId: materialFilterStepId,
-          settingTitle: materialFilterSettingTitle
-        }));
+        .filter((image) => materialImageMatchesSelection(image, materialFilterSelection));
     }
     if (activeTab === "symbols") return symbolImages;
     return validImages;
-  }, [activeTab, clientCategory, images, materialFilterGroup, materialFilterSettingTitle, materialFilterStepId, materialFilterType, symbolImages]);
+  }, [activeTab, clientCategory, images, materialFilterSelection, symbolImages]);
   const tabLabels = mode === "library"
     ? [{ id: "upload", label: "Загрузить своё" }]
     : [
@@ -207,16 +131,7 @@ export default function ProfileLiteImagePicker({
         title: activeUploadDestination === "clients" ? (uploadTitle.trim() || file.name || "") : file.name || "",
         notes: "",
         clientCategory: activeUploadDestination === "clients" ? clientCategory || "all" : undefined,
-        material: {
-          group: materialGroup,
-          type: materialType,
-          step_id: activeMaterialStep?.id || "",
-          step_title: activeMaterialStep?.title || "",
-          setting_title: activeSetting?.title || "",
-          setting_index: activeSetting ? activeMaterialStep.settings.indexOf(activeSetting) + 1 : null,
-          category: activeMaterialStep?.levelName || "",
-          subcategory: activeSetting?.title || ""
-        }
+        material: buildMaterialPayloadFromSelection(materialSelection)
       });
       setLocalUploadStatus("success");
       setUploadTitle("");
@@ -276,33 +191,46 @@ export default function ProfileLiteImagePicker({
         )}
 
         {activeTab === "materials" && (
-          <div className="profileLiteUploadFields imagePickerStructuredControls">
-            <label>
-              Группа
-              <select value={materialFilterGroup} onChange={(event) => setMaterialFilterGroup(event.target.value)}>
-                {[ALL_MATERIAL_OPTION, ...MATERIAL_GROUPS].map((group) => <option key={group.value} value={group.value}>{group.label}</option>)}
-              </select>
-            </label>
-            <label>
-              Тип материала
-              <select value={materialFilterType} onChange={(event) => setMaterialFilterType(event.target.value)}>
-                {[ALL_MATERIAL_OPTION, ...MATERIAL_TYPES].map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-              </select>
-            </label>
-            <label>
-              Категория / ступень
-              <select value={materialFilterStepId} onChange={(event) => {
-                setMaterialFilterStepId(event.target.value);
-                setMaterialFilterSettingTitle(ALL_MATERIAL_FILTER);
+          <div className="profileLiteUploadFields profileLiteMaterialTaxonomyGrid imagePickerStructuredControls">
+            <div className="profileLiteMaterialGroupField">
+              <span>Группа</span>
+              <div className="imagePickerMaterialGroupTabs" role="tablist" aria-label="Группа материалов">
+                {MATERIAL_GROUP_TABS.map((group) => (
+                  <button
+                    key={group.value}
+                    className={materialFilterSelection.group === group.value ? "active" : ""}
+                    type="button"
+                    role="tab"
+                    aria-selected={materialFilterSelection.group === group.value}
+                    onClick={() => {
+                      const nextSelection = normalizeMaterialSelection(group.value);
+                      setMaterialFilterGroup(nextSelection.group);
+                      setMaterialFilterCategory(nextSelection.categoryValue);
+                      setMaterialFilterSubcategory(nextSelection.subcategoryValue);
+                    }}
+                  >
+                    {group.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="profileLiteMaterialTaxonomyField">
+              {materialFilterSelection.group === "god-channels" ? "Пантеон / традиция" : "Категория"}
+              <select value={materialFilterSelection.categoryValue} onChange={(event) => {
+                const nextSelection = normalizeMaterialSelection(materialFilterSelection.group, event.target.value, "");
+                setMaterialFilterCategory(nextSelection.categoryValue);
+                setMaterialFilterSubcategory(nextSelection.subcategoryValue);
               }}>
-                {[ALL_MATERIAL_OPTION, ...materialStepOptions].map((step) => <option key={step.id || step.value} value={step.id || step.value}>{step.label}</option>)}
+                {materialFilterCategoryOptions.map((category) => (
+                  <option key={category.value} value={category.value}>{category.label}</option>
+                ))}
               </select>
             </label>
-            <label>
-              Подкатегория
-              <select value={materialFilterSettingTitle} onChange={(event) => setMaterialFilterSettingTitle(event.target.value)}>
-                {[ALL_MATERIAL_OPTION, ...((activeMaterialFilterStep?.settings || []).map((setting) => ({ value: setting.title, label: setting.title })))].map((setting) => (
-                  <option key={setting.value} value={setting.value}>{setting.label}</option>
+            <label className="profileLiteMaterialTaxonomyField">
+              {materialFilterSelection.group === "god-channels" ? "Бог / канал" : "Подкатегория"}
+              <select value={materialFilterSelection.subcategoryValue} onChange={(event) => setMaterialFilterSubcategory(event.target.value)}>
+                {materialFilterSubcategoryOptions.map((subcategory) => (
+                  <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>
                 ))}
               </select>
             </label>
@@ -370,33 +298,43 @@ export default function ProfileLiteImagePicker({
             )}
 
             {uploadDestination === "materials" && (
-              <div className="profileLiteUploadFields profileLiteUploadMaterialFields">
-                <label>
-                  Группа
-                  <select value={materialGroup} onChange={(event) => setMaterialGroup(event.target.value)}>
-                    {MATERIAL_GROUPS.map((group) => <option key={group.value} value={group.value}>{group.label}</option>)}
-                  </select>
-                </label>
-                <label>
-                  Тип материала
-                  <select value={materialType} onChange={(event) => setMaterialType(event.target.value)}>
-                    {MATERIAL_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-                  </select>
-                </label>
-                <label>
-                  Категория / ступень
-                  <select value={materialStepId} onChange={(event) => {
-                    const nextStep = materialStepOptions.find((step) => step.id === event.target.value) || firstMaterialStep;
-                    setMaterialStepId(nextStep?.id || "");
-                    setMaterialSettingTitle(nextStep?.settings?.[0]?.title || "");
+              <div className="profileLiteUploadFields profileLiteUploadMaterialFields profileLiteMaterialTaxonomyGrid">
+                <div className="profileLiteMaterialGroupField">
+                  <span>Группа</span>
+                  <div className="imagePickerMaterialGroupTabs" role="tablist" aria-label="Группа материалов">
+                    {MATERIAL_GROUP_TABS.map((group) => (
+                      <button
+                        key={group.value}
+                        className={materialSelection.group === group.value ? "active" : ""}
+                        type="button"
+                        role="tab"
+                        aria-selected={materialSelection.group === group.value}
+                        onClick={() => {
+                          const nextSelection = normalizeMaterialSelection(group.value);
+                          setMaterialGroup(nextSelection.group);
+                          setMaterialCategory(nextSelection.categoryValue);
+                          setMaterialSubcategory(nextSelection.subcategoryValue);
+                        }}
+                      >
+                        {group.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label className="profileLiteMaterialTaxonomyField">
+                  {materialSelection.group === "god-channels" ? "Пантеон / традиция" : "Категория"}
+                  <select value={materialSelection.categoryValue} onChange={(event) => {
+                    const nextSelection = normalizeMaterialSelection(materialSelection.group, event.target.value, "");
+                    setMaterialCategory(nextSelection.categoryValue);
+                    setMaterialSubcategory(nextSelection.subcategoryValue);
                   }}>
-                    {materialStepOptions.map((step) => <option key={step.id} value={step.id}>{step.label}</option>)}
+                    {materialCategoryOptions.map((category) => <option key={category.value} value={category.value}>{category.label}</option>)}
                   </select>
                 </label>
-                <label>
-                  Подкатегория
-                  <select value={materialSettingTitle} onChange={(event) => setMaterialSettingTitle(event.target.value)}>
-                    {(activeMaterialStep?.settings || []).map((setting) => <option key={setting.title} value={setting.title}>{setting.title}</option>)}
+                <label className="profileLiteMaterialTaxonomyField">
+                  {materialSelection.group === "god-channels" ? "Бог / канал" : "Подкатегория"}
+                  <select value={materialSelection.subcategoryValue} onChange={(event) => setMaterialSubcategory(event.target.value)}>
+                    {materialSubcategoryOptions.map((subcategory) => <option key={subcategory.value} value={subcategory.value}>{subcategory.label}</option>)}
                   </select>
                 </label>
               </div>
