@@ -34,6 +34,54 @@
   notify pgrst, 'reload schema';
   ```
 
+## 2026-06-18 — Fix Profile Lite center photo scale control
+
+- Branch: `codex/fix-center-photo-scale-20260618`.
+- Base: fresh `origin/main` at `985a347` (`Fix Power Place print delete and mobile order (#395)`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx`
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - center image scale was already normalized and passed into CSS as `--power-center-image-scale`;
+  - the visible constructor controls exposed only `Размер центра`, mapped to `__center_frame_scale`, so users could resize the center window but had no separate center photo crop/zoom control;
+  - `handleDraftChange` in the wrapper persisted `__center_frame_scale` but not `__center_image_scale`.
+- Changed:
+  - added `Масштаб фото` immediately after `Размер центра` with `className: "photoScaleControl"`;
+  - mapped it to `field: "__center_image_scale"`, `value: centerImageScale`, `min: "0.65"`, `max: "2"`, and `step: "0.01"`;
+  - kept the same inline center visibility toggle label `Центр мандалы`;
+  - added `CENTER_IMAGE_SCALE_REF_KEY` handling in `handleDraftChange` with the existing `centerImageScaleValue(value)` clamp;
+  - updated contracts so `Размер центра` remains frame/window scale and `Масштаб фото` is the independent photo scale.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs` before implementation failed on the missing `Масштаб фото` / `__center_image_scale` constructor mapping;
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `node test/powerPlaceStyleContract.test.mjs`
+  - `npm install` failed locally with `ENOSPC: no space left on device`;
+  - linked the clean worktree to the canonical repo `node_modules` after the failed install left a partial dependency folder;
+  - `npm run test:profile-lite`
+  - `npm run test:power-place`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all final test/check/build commands exited `0`;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run check` and `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - mock Supabase endpoint: `http://127.0.0.1:5999`;
+  - dev server: `http://127.0.0.1:4361/profile/mandalas`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop snapshot confirmed `Размер центра` and `Масштаб фото` render as separate controls, the mocked center photo source appears in the workspace, `ДАО` and `ДАО-Макет` remain visible, and horizontal overflow was `0`;
+  - deeper click-based slider interaction was not completed because the Playwright MCP transport closed during the interaction step.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - physical browser drag of the sliders on desktop/mobile;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+- Risks:
+  - final live proof still requires the `main` deploy to reach `2mentalica` and an authenticated session for real saved compositions.
+
 ## 2026-06-18 — Fix client photo folders and add media browser moves
 
 - Branch: `codex/client-photo-browser-20260618`.

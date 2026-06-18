@@ -382,12 +382,13 @@ assert.match(powerPlaceSource, /centerImageStyle/, "center photo renderer should
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"/, "Power Place constructor controls should map slot-window, field, and center sliders to distinct fields");
+assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Масштаб фото[\s\S]*field: "__center_image_scale"/, "Power Place constructor controls should map slot-window, field, center frame, and center photo sliders to distinct fields");
 assert.match(powerPlaceBaseSource, /Масштаб фото[\s\S]*writeSlotImageTransform/, "Масштаб фото slider must be in renderSlotPhotoEditor and call writeSlotImageTransform");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "sourceSlotScaleControl"/g) || []).length, 1, "Размер окон slider should render once from the base module");
-assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 0, "top Размер фоток photoScaleControl slider must be removed from constructor controls");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Масштаб фото center photo slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
+assert.match(powerPlaceBaseSource, /className: "photoScaleControl"[\s\S]*label: "Масштаб фото"[\s\S]*value: centerImageScale[\s\S]*min: "0\.65"[\s\S]*max: "2"[\s\S]*step: "0\.01"[\s\S]*field: "__center_image_scale"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Масштаб фото must target center image scale and share the center visibility toggle");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four size sliders should share the requested desktop grid");
 assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*grid-template-columns: minmax\(0, 1fr\) 28px minmax\(110px, 1fr\) 28px;/, "all four size sliders should share the requested mobile grid");
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
@@ -805,6 +806,12 @@ assert.match(
   profileLitePageSource,
   /field === "__center_image_scale"[\s\S]*object_refs[\s\S]*__center_image_scale/,
   "handleCompositionDraftChange must persist __center_image_scale into object_refs"
+);
+
+assert.match(
+  powerPlaceWrapperSource,
+  /field === CENTER_IMAGE_SCALE_REF_KEY[\s\S]*objectRefs[\s\S]*CENTER_IMAGE_SCALE_REF_KEY[\s\S]*centerImageScaleValue\(value\)/,
+  "ProfileLitePowerPlaceModule handleDraftChange must persist __center_image_scale into object_refs"
 );
 
 assert.match(
@@ -1291,6 +1298,7 @@ assert.match(powerPlaceBaseSource, /Фон внутри/, "PowerPlaceModuleBase 
 assert.match(powerPlaceBaseSource, /label: "Размер окон"[\s\S]*visibilityKey: "slots"[\s\S]*visibilityLabel: "Мини-мандалы"/, "Размер окон must inline the slots visibility toggle");
 assert.match(powerPlaceBaseSource, /label: "Размер поля"[\s\S]*visibilityKey: "inner_cover"[\s\S]*visibilityLabel: "Фон внутри"/, "Размер поля must inline the inner cover visibility toggle");
 assert.match(powerPlaceBaseSource, /label: "Размер центра"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Размер центра must inline the center visibility toggle");
+assert.match(powerPlaceBaseSource, /label: "Масштаб фото"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Масштаб фото must inline the center visibility toggle");
 assert.match(powerPlaceBaseSource, /coverOuterVisibilityToggle[\s\S]*setVisibilitySetting\("outer_cover"/, "outer cover visibility must remain next to the cover selector");
 assert.match(powerPlaceBaseSource, /power-place-hide-center/, "PowerPlaceModuleBase must apply power-place-hide-center class");
 assert.match(powerPlaceBaseSource, /power-place-hide-slots/, "PowerPlaceModuleBase must apply power-place-hide-slots class");

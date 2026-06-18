@@ -793,6 +793,11 @@ export default function ProfileLitePowerPlaceModule(props) {
   }, [objectRefs, writeObjectRefs]);
 
   const handleDraftChange = useCallback((field, value) => {
+    if (field === CENTER_IMAGE_SCALE_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [CENTER_IMAGE_SCALE_REF_KEY]: String(centerImageScaleValue(value)) });
+      return;
+    }
+
     if (field === CENTER_FRAME_SCALE_REF_KEY) {
       writeObjectRefs({ ...objectRefs, [CENTER_FRAME_SCALE_REF_KEY]: String(centerFrameScaleValue(value)) });
       return;
