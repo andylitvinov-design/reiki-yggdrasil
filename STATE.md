@@ -19,6 +19,35 @@ Last updated: 2026-06-18
 - Risk:
   - code deployment alone will not fix the production error unless the migration is applied to the Supabase project used by `2mentalica.vercel.app`.
 
+## 2026-06-18 — Profile Lite center photo scale control
+
+- Branch: `codex/fix-center-photo-scale-20260618`, based on `origin/main` at `985a347`.
+- Scope: `/profile/mandalas` Profile Lite Power Place center controls only; public homepage, `/profile`, `/masters`, `/profile/admin`, Supabase auth/data flows, migrations, Vercel rewrites, DAO geometry, and saved composition persistence were not changed.
+- Root cause:
+  - `ProfileLitePowerPlaceModuleBase.jsx` already read `__center_image_scale` and CSS already used `--power-center-image-scale`, but the constructor rendered only `Размер центра` for `__center_frame_scale`.
+  - `ProfileLitePowerPlaceModule.jsx` handled `__center_frame_scale` in `handleDraftChange`, but did not handle the existing `CENTER_IMAGE_SCALE_REF_KEY`.
+- Changed:
+  - added the visible `Масштаб фото` slider directly after `Размер центра`;
+  - mapped `Масштаб фото` to `object_refs.__center_image_scale` with the existing `0.65..2` clamp;
+  - kept `Размер центра` mapped to `object_refs.__center_frame_scale`;
+  - preserved center wheel/pinch zoom via `__center_image_zoom` and center image offsets.
+- Verification:
+  - `node test/profileLiteCabinetContract.test.mjs` failed before implementation on the missing constructor control contract, then passed after the fix;
+  - `node test/profileLiteCabinetContract.test.mjs`, `node test/powerPlaceStyleContract.test.mjs`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run check`, and `npm run build` exited `0`;
+  - `npm install` was attempted but failed with local disk `ENOSPC`; final verification used the canonical checkout `node_modules` symlink;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - mocked Supabase endpoint: `http://127.0.0.1:5999`;
+  - dev server: `http://127.0.0.1:4361/profile/mandalas`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop snapshot confirmed `Размер центра` and `Масштаб фото` controls render separately, `Масштаб фото` uses `photoScaleControl`, the mocked center photo source appears in the workspace, `ДАО` and `ДАО-Макет` remain visible, and horizontal overflow was `0`.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - physical browser slider drag after the Playwright MCP transport closed during click-based interaction;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+- Risk:
+  - live proof still depends on the `main` deploy reaching the `2mentalica` project and on authenticated owner/session QA for real saved compositions.
+
 ## 2026-06-18 — Profile Lite client photo folder browser and moves
 
 - Branch: `codex/client-photo-browser-20260618`, based on `origin/main` at `0ce51f0`.

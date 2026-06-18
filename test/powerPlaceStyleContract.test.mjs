@@ -896,16 +896,16 @@ assert.ok(
   "CSS must define active state for .coverVariantSwatch"
 );
 
-// ─── Top photoScaleControl removed; slot photo editor has Масштаб фото ────────
+// ─── Center photoScaleControl and slot photo editor both expose Масштаб фото ───
 
 assert.ok(
-  !baseSource.includes('className: "photoScaleControl"') && !baseSource.includes('className="photoScaleControl"'),
-  "top photoScaleControl must no longer be rendered in constructor controls"
+  baseSource.includes('className: "photoScaleControl"') || baseSource.includes('className="photoScaleControl"'),
+  "center photoScaleControl must be rendered in constructor controls"
 );
 
 assert.ok(
   baseSource.includes("Масштаб фото"),
-  "renderSlotPhotoEditor must include Масштаб фото zoom slider"
+  "constructor controls and renderSlotPhotoEditor must include Масштаб фото sliders"
 );
 
 // ─── DAO style selector: __dao_style stored in object_refs ───────────────────

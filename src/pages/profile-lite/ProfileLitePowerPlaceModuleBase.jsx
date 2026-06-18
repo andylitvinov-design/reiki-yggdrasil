@@ -3100,6 +3100,7 @@ export default function ProfileLitePowerPlaceModule({
                 {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale", visibilityKey: "slots", visibilityLabel: "Мини-мандалы" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale", visibilityKey: "inner_cover", visibilityLabel: "Фон внутри" })}
                 {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
+                {renderScaleControl({ className: "photoScaleControl", label: "Масштаб фото", value: centerImageScale, min: "0.65", max: "2", step: "0.01", field: "__center_image_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
