@@ -12,14 +12,15 @@ Last updated: 2026-06-18
   - the media tab listed photos but had no metadata-only move action for existing `all` rows.
 - Changed:
   - added `updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session)` for `PATCH profile_cabinet_client_goal_photos` by `id` and `profile_id`;
-  - added a media file-browser rail with `Все фото`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled `Больше клиентов / Pro`, and `Материалы`;
-  - client photo cards now show kind/category, keep delete, support drag/drop to folder targets, and include a move select fallback;
+  - added a media file-browser rail with `Все файлы`, `Клиенты / Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled `Больше клиентов / Pro`, and `Материалы`;
+  - one mixed grid can show client photos and materials together under `Все файлы`, with materials view-only in the move system;
+  - client photo cards now show kind/category, preview status, keep delete, support drag/drop to folder targets, and include a move select fallback;
   - Start plan cannot move into `pro-more-clients` and shows the existing Pro message;
   - image picker preserves selected client category after upload instead of resetting to `all`.
 - Verification:
   - `npm install`, `npm run test:profile-media`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run check`, and `npm run build` exited `0`;
   - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the Vite large-chunk warning;
-  - mocked local browser QA with fake public Supabase env and mock REST/Auth/Storage confirmed desktop media folders/cards/materials, dropdown move from `Все` to `Клиент 2` updating folder count, disabled Pro target, mobile `390x900` media rendering, `/profile/mandalas` rendering, and console warnings/errors `0`.
+  - mocked local browser QA with fake public Supabase env and mock REST/Auth/Storage confirmed desktop media folders/cards/materials, mixed `Все файлы`, dropdown move to `Клиент 2`, drag/drop to `Клиент 2`, disabled Pro target, mobile `390x900` horizontal overflow `0`, `/profile/mandalas` rendering, and console warnings/errors `0`.
 - Not verified:
   - real authenticated staging Supabase upload/reload or drag/drop with a physical mouse;
   - live `https://2mentalica.vercel.app` after merge/deploy.

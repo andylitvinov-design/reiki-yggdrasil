@@ -9445,6 +9445,84 @@
   align-self: start;
 }
 
+.profileLiteMediaModule .profileLiteMediaBrowser {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.profileLiteMediaModule .profileLiteFileManager {
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolders {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.9);
+  color: #513823;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton small {
+  color: #9a7450;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton.active,
+.profileLiteMediaModule .profileLiteMediaFolderButton--dragOver {
+  background: #2f210f;
+  border-color: rgba(184, 121, 29, 0.65);
+  color: #fff4da;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesPanel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesHeader h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesHeader small {
+  max-width: 320px;
+  color: #826a52;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .profileLiteMediaModule .profileLiteMediaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -9521,6 +9599,10 @@
   align-content: start;
 }
 
+.profileLiteMediaModule .profileLiteMediaCard[draggable="true"] {
+  cursor: grab;
+}
+
 .profileLiteMediaModule .profileLiteMediaCard h3 {
   font-size: 13px;
   margin: 0;
@@ -9536,6 +9618,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.profileLiteMediaModule .profileLiteMediaPreviewStatus {
+  color: #9a4f22 !important;
 }
 
 .profileLiteMediaModule .profileLiteMediaCard small {
@@ -9745,6 +9837,18 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .profileLiteMediaModule .profileLiteFileManager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFolders {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFilesHeader {
+    display: grid;
+  }
+
   .profileLiteMediaModule .profileLiteMediaFilterBar {
     flex-direction: column;
     align-items: stretch;
@@ -9757,6 +9861,16 @@
 
   .profileLiteMediaModule .profileLiteMediaGrid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .profileLiteMediaModule .profileLiteMediaFolders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteMediaModule .profileLiteMediaGrid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

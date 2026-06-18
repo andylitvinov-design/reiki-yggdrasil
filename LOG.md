@@ -20,7 +20,8 @@
   - the media tab had no metadata-only way to reclassify existing `all` photos into `Клиент 1/2/3`.
 - Changed:
   - added a guarded metadata-only `PATCH` client for `profile_cabinet_client_goal_photos` by `id` and `profile_id`;
-  - added a media browser folder rail with counts for `Все фото`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled Pro folder, and `Материалы`;
+  - added a media browser folder rail with `Все файлы`, `Клиенты / Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled Pro folder, and `Материалы`;
+  - rendered client photos and materials in one mixed file grid under `Все файлы`, while keeping materials view-only for moves;
   - added drag/drop folder targets plus a select fallback for moving existing photos without moving/deleting Storage objects;
   - kept Start-plan `pro-more-clients` disabled with the visible Pro message;
   - preserved selected picker client category after upload so selected-folder uploads stay visible there.
@@ -44,9 +45,10 @@
   - mock Supabase endpoint: `http://127.0.0.1:5998`;
   - env-backed dev server: `http://localhost:5188`;
   - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
-  - desktop `/profile?tab=media` rendered the folder rail, counts, three seeded client photos, material card, disabled Pro target, upload category selector, and no console warnings/errors;
-  - moved `Общее фото` from `Все` to `Клиент 2` with the select fallback; folder count changed from `Клиент 2 1` to `Клиент 2 2`;
-  - mobile `390x900` `/profile?tab=media` rendered folder rail and cards with no console warnings/errors;
+  - desktop `/profile?tab=media` rendered the folder rail, mixed client/material cards under `Все файлы`, disabled Pro target, upload category selector, and no console warnings/errors;
+  - moved a client photo to `Клиент 2` with the select fallback and received `Фото перемещено в Клиент 2.`;
+  - drag/drop onto `Клиент 2` received `Фото перемещено в Клиент 2.`;
+  - mobile `390x900` `/profile?tab=media` rendered folder rail and cards with horizontal overflow `0` and no console warnings/errors;
   - desktop `/profile/mandalas` rendered the mandala workspace and library surface with no console warnings/errors.
 - Not verified:
   - real authenticated staging Supabase upload/reload;
