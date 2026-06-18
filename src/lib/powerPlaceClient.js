@@ -627,6 +627,29 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
 }
 
 
+export async function updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session = getStoredSession()) {
+  requireSession(session);
+  const cleanPhotoId = cleanText(photoId);
+  const cleanProfileId = cleanText(profileId);
+  const normalizedCategory = cleanText(clientCategory) || "all";
+
+  if (!cleanPhotoId || !cleanProfileId) throw powerPlaceError("Не удалось определить фото для перемещения.");
+  if (!VALID_CLIENT_PHOTO_CATEGORIES.includes(normalizedCategory)) {
+    throw powerPlaceError("Неизвестная папка фото клиента.");
+  }
+
+  const rows = await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}?id=eq.${encodeURIComponent(cleanPhotoId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: { client_category: normalizedCategory }
+  });
+
+  const hydrated = await hydrateMediaRows(rows, session);
+  return hydrated?.[0] || null;
+}
+
+
 export async function deleteClientGoalPhoto(photoId, profileId, session = getStoredSession()) {
   requireSession(session);
   const cleanPhotoId = cleanText(photoId);

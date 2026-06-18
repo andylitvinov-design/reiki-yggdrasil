@@ -1010,6 +1010,42 @@ assert.match(
 );
 
 assert.match(
+  mediaModuleSource,
+  /const \[activeClientFolder, setActiveClientFolder\] = useState\("all"\)/,
+  "ProfileLiteMediaModule should expose a client folder browser state"
+);
+
+assert.match(
+  mediaModuleSource,
+  /onClientPhotoCategoryMove/,
+  "ProfileLiteMediaModule should call a category move handler for metadata-only moves"
+);
+
+assert.match(
+  mediaModuleSource,
+  /draggable=\{photo\.kind !== "material"\}/,
+  "ProfileLiteMediaModule should make client photo cards draggable"
+);
+
+assert.match(
+  mediaModuleSource,
+  /option\.proOnly && !isProAccount[\s\S]*Больше клиентов доступно в Pro/,
+  "Start plan should keep the Pro client folder disabled with a clear message"
+);
+
+assert.match(
+  imagePickerSource,
+  /clientCategory === "all" \|\| image\.clientCategory === clientCategory \|\| image\.client_category === clientCategory/,
+  "ProfileLiteImagePicker visibleImages should filter client-1/client-2/client-3 by saved category"
+);
+
+assert.doesNotMatch(
+  imagePickerSource,
+  /setClientCategory\("all"\)/,
+  "ProfileLiteImagePicker should preserve the selected client folder after upload"
+);
+
+assert.match(
   profileMandalaCss,
   /\.profileLiteMediaModule \.profileLiteMediaGrid/,
   "CSS must define grid layout for profileLiteMediaGrid"

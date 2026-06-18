@@ -1,6 +1,31 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-17
+Last updated: 2026-06-18
+
+## 2026-06-18 — Profile Lite client photo folder browser and moves
+
+- Branch: `codex/client-photo-browser-20260618`, based on `origin/main` at `0ce51f0`.
+- Scope: `/profile?tab=media`, `/profile/mandalas` image picker upload category behavior, client photo metadata update client, focused tests, and scoped media CSS only.
+- Root cause:
+  - constructor uploads for center/object/cover used the shared client-photo upload helper without a client category, so those photos were saved as `all`;
+  - the image picker reset the selected client folder to `all` after upload, so uploads made from a selected client folder did not stay visible in that folder;
+  - the media tab listed photos but had no metadata-only move action for existing `all` rows.
+- Changed:
+  - added `updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session)` for `PATCH profile_cabinet_client_goal_photos` by `id` and `profile_id`;
+  - added a media file-browser rail with `Все фото`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled `Больше клиентов / Pro`, and `Материалы`;
+  - client photo cards now show kind/category, keep delete, support drag/drop to folder targets, and include a move select fallback;
+  - Start plan cannot move into `pro-more-clients` and shows the existing Pro message;
+  - image picker preserves selected client category after upload instead of resetting to `all`.
+- Verification:
+  - `npm install`, `npm run test:profile-media`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run check`, and `npm run build` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the Vite large-chunk warning;
+  - mocked local browser QA with fake public Supabase env and mock REST/Auth/Storage confirmed desktop media folders/cards/materials, dropdown move from `Все` to `Клиент 2` updating folder count, disabled Pro target, mobile `390x900` media rendering, `/profile/mandalas` rendering, and console warnings/errors `0`.
+- Not verified:
+  - real authenticated staging Supabase upload/reload or drag/drop with a physical mouse;
+  - live `https://2mentalica.vercel.app` after merge/deploy.
+- Risks:
+  - live Supabase must already have `20260609_profile_client_photo_categories.sql` applied for the category column/constraint;
+  - existing `all` rows are intentionally not auto-backfilled and must be moved manually when the real client is known.
 
 ## 2026-06-17 — Profile Lite material picker taxonomy fix
 

@@ -1,5 +1,61 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-18 — Fix client photo folders and add media browser moves
+
+- Branch: `codex/client-photo-browser-20260618`.
+- Base: fresh `origin/main` at `0ce51f0` (`Merge pull request #389 from andylitvinov-design/codex/fix-profile-lite-material-picker-categories`).
+- Changed files:
+  - `src/lib/powerPlaceClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteMediaModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteImagePicker.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/powerPlaceClient.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - client photo category persistence already existed, but uploads from constructor center/object/cover calls did not pass a category and therefore saved under `all`;
+  - picker uploads always reset the selected category to `all`;
+  - the media tab had no metadata-only way to reclassify existing `all` photos into `Клиент 1/2/3`.
+- Changed:
+  - added a guarded metadata-only `PATCH` client for `profile_cabinet_client_goal_photos` by `id` and `profile_id`;
+  - added a media browser folder rail with counts for `Все фото`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled Pro folder, and `Материалы`;
+  - added drag/drop folder targets plus a select fallback for moving existing photos without moving/deleting Storage objects;
+  - kept Start-plan `pro-more-clients` disabled with the visible Pro message;
+  - preserved selected picker client category after upload so selected-folder uploads stay visible there.
+- Checks run:
+  - `node test/powerPlaceClient.test.mjs` before implementation failed on missing `updateClientGoalPhotoCategory`;
+  - `node test/profileLiteCabinetContract.test.mjs` before implementation failed on missing media browser contracts;
+  - `node test/powerPlaceClient.test.mjs`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm run test:profile-media`
+  - `npm run test:power-place`
+  - `npm run test:profile-lite`
+  - `npm install`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm install` reported one high-severity audit finding in dependencies, not changed by this task;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run check` and `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - mock Supabase endpoint: `http://127.0.0.1:5998`;
+  - env-backed dev server: `http://localhost:5188`;
+  - fake public Supabase env/session and mocked Auth/REST/Storage responses only;
+  - desktop `/profile?tab=media` rendered the folder rail, counts, three seeded client photos, material card, disabled Pro target, upload category selector, and no console warnings/errors;
+  - moved `Общее фото` from `Все` to `Клиент 2` with the select fallback; folder count changed from `Клиент 2 1` to `Клиент 2 2`;
+  - mobile `390x900` `/profile?tab=media` rendered folder rail and cards with no console warnings/errors;
+  - desktop `/profile/mandalas` rendered the mandala workspace and library surface with no console warnings/errors.
+- Not verified:
+  - real authenticated staging Supabase upload/reload;
+  - physical mouse drag/drop on a real browser/device;
+  - live `https://2mentalica.vercel.app` after merge/deploy.
+- Risks:
+  - staging/live Supabase must have `client_category` migration and constraint applied;
+  - existing `all` rows require manual user reclassification because there is no reliable automatic backfill signal.
+
 ## 2026-06-17 — Fix Profile Lite material picker taxonomy
 
 - Branch: `codex/fix-profile-lite-material-picker-categories`.

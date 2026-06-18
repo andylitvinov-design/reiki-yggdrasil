@@ -62,6 +62,7 @@ import {
   listPowerPlaceCompositions,
   listTraditionAssets,
   normalizeAccountPlan,
+  updateClientGoalPhotoCategory,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
 import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
@@ -1405,6 +1406,34 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleClientPhotoCategoryMove = async (photo, clientCategory) => {
+    if (!profile?.id || !photo?.id || !hasProfileLiteSessionCredential(session)) {
+      setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      throw new Error("Сначала сохраните профиль мастера.");
+    }
+
+    try {
+      const updated = await updateClientGoalPhotoCategory(photo.id, profile.id, clientCategory, session);
+      setClientGoalPhotos((current) => current.map((item) => (
+        item?.id === photo.id
+          ? {
+            ...item,
+            ...(updated || {}),
+            client_category: updated?.client_category || clientCategory || "all"
+          }
+          : item
+      )));
+      setMediaStatus("success");
+      setMediaError("");
+      return updated;
+    } catch (error) {
+      setMediaStatus("needs-verification");
+      setMediaError(moduleError(error, "profile_cabinet_client_goal_photos category update failed or migration/RLS not applied"));
+      throw error;
+    }
+  };
+
   const handleCompositionDraftChange = (field, value) => {
     setCompositionDraft((current) => {
       if (field === VISIBILITY_SETTINGS_REF_KEY) {
@@ -2330,6 +2359,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
       <ProfileLiteMediaModule
         {...moduleProps}
         onClientPhotoDelete={handleDeleteClientPhoto}
+        onClientPhotoCategoryMove={handleClientPhotoCategoryMove}
         onClientPhotoFieldChange={(field, value) => setClientPhotoForm((current) => ({ ...current, [field]: value }))}
         onClientPhotoFileChange={(event) => setClientPhotoForm((current) => ({ ...current, file: event.target.files?.[0] || null, image_url: event.target.files?.[0] ? "" : current.image_url }))}
         onClientPhotoSave={handleClientPhotoSave}
