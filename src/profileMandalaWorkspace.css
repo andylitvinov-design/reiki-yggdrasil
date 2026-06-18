@@ -8736,6 +8736,10 @@
     grid-column: 1;
   }
 
+  .profileLitePowerPlace .powerLibrarySidebar {
+    order: 99 !important;
+  }
+
   /* Ensure layout, cover, and report panels stretch to the full single-column width */
   .profileLitePowerPlace .powerLayoutPanel.compactFieldLayoutSwitch,
   .profileLitePowerPlace .coverPickerPanel,
@@ -8761,7 +8765,7 @@
     height: 28px;
   }
 
-  .profileLitePowerPlace .mandalaModeSidebar {
+  .profileLitePowerPlace .mandalaModeSidebar:not(.powerLibrarySidebar) {
     order: 5 !important;
     position: static;
   }
