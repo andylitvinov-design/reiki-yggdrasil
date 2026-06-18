@@ -1224,6 +1224,12 @@ assert.ok(
   "CSS must include both zodiac-2-format and zodiacInnerPositionImage rules"
 );
 
+assert.match(
+  cssSource,
+  /\.zodiacMandalaSheet\.zodiac-2-format\s+\.zodiacInnerPositionImage\s*\{[\s\S]*transform:\s*scale\(calc\(var\(--power-source-slot-scale,\s*1\)\s*\*\s*1\.5\)\)/,
+  "Zodiac 2 inner slot images must be scaled 1.5x through a scoped zodiac-2-format rule"
+);
+
 {
   const mobileStart = cssSource.lastIndexOf("@media (max-width: 640px)");
   assert.ok(

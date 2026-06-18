@@ -56,6 +56,51 @@
   - staging/live Supabase must have `client_category` migration and constraint applied;
   - existing `all` rows require manual user reclassification because there is no reliable automatic backfill signal.
 
+## 2026-06-18 — Fix Profile Lite Zodiac 2 dynamic count and inner size
+
+- Branch: `codex/fix-zodiac2-dynamic-count-and-inner-size`.
+- Base: fresh `origin/main` at `0ce51f0` (`Merge pull request #389 from andylitvinov-design/codex/fix-profile-lite-material-picker-categories`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `test/powerPlaceStyleContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - `ZODIAC_2_INNER_SLOTS` generated 12 fixed inner slots;
+  - `buildSlotList` used `zodiac2 ? 12 : visibleCount`, forcing Zodiac 2 outer slots to 12;
+  - the old Zodiac selector gave `Зодиак 2` `visibleCount: 12`, resetting the count on selection.
+- Changed:
+  - added dynamic `buildZodiac2InnerSlots(count)`;
+  - made Zodiac 2 use selected `zodiac_visible_count` for both outer and inner rings;
+  - split Zodiac format selector from count selector so `Зодиак 1` / `Зодиак 2` does not overwrite the chosen count;
+  - preserved legacy `zodiac-2-12` and fallback count 12 for old saved compositions;
+  - added a scoped `1.5` transform multiplier for `.zodiac-2-format .zodiacInnerPositionImage`.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs` failed first on missing dynamic Zodiac 2 inner slot builder, then passed after the fix;
+  - `node test/powerPlaceStyleContract.test.mjs` failed first on missing scoped `1.5` inner-slot transform, then passed after the fix;
+  - `node test/powerPlaceClient.test.mjs`
+  - `npm install`
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - all final commands exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - `npm install` reported one high-severity npm audit item; no dependency fix was applied because it was unrelated to this change.
+- Local browser QA:
+  - URL: `http://127.0.0.1:4351/profile/mandalas`;
+  - mock Supabase: `http://127.0.0.1:4352`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop 1280x920 and mobile 390x900 confirmed Zodiac 1 counts 2/4/6/8/12 render matching outer slots and no inner slots;
+  - desktop 1280x920 and mobile 390x900 confirmed Zodiac 2 counts 2/4/6/8/12 render matching outer + inner slots;
+  - computed Zodiac 2 inner slot transform was `matrix(1.5, 0, 0, 1.5, 0, 0)`;
+  - horizontal overflow was `0` and captured runtime errors were `0`;
+  - mocked old saved `zodiac-2-12` composition without `zodiac_visible_count` opened as 12 outer + 12 inner slots.
+- Not verified:
+  - real authenticated Supabase save/update/reload against live data;
+  - Vercel preview/main deployment and live `https://2mentalica.vercel.app/profile/mandalas`.
+
 ## 2026-06-17 — Fix Profile Lite material picker taxonomy
 
 - Branch: `codex/fix-profile-lite-material-picker-categories`.

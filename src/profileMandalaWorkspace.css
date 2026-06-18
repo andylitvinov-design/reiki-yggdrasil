@@ -10454,7 +10454,7 @@
 .zodiacInnerPositionImage {
   width: min(48px, 100%);
   aspect-ratio: 1;
-  transform: scale(var(--power-source-slot-scale));
+  transform: scale(var(--power-source-slot-scale, 1));
   transform-origin: center;
   display: grid;
   place-items: center;
@@ -10472,6 +10472,10 @@
   font-weight: 900;
   padding: 0;
   box-shadow: 0 0 16px rgba(128, 114, 54, 0.22);
+}
+
+.zodiacMandalaSheet.zodiac-2-format .zodiacInnerPositionImage {
+  transform: scale(calc(var(--power-source-slot-scale, 1) * 1.5));
 }
 
 .zodiacInnerPosition.hasImage .zodiacInnerPositionImage span {
