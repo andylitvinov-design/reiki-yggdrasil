@@ -858,6 +858,16 @@ assert.match(profileMediaClientSource, /application\/pdf/, "PROFILE_MEDIA_ALLOWE
 const grimoireMigration = readFileSync("supabase/migrations/20260605120000_grimoire_publication_types.sql", "utf8");
 assert.match(grimoireMigration, /uncategorized.*photo.*article.*document.*audio/, "Grimoire migration should add uncategorized, photo, article, document, audio type values");
 
+const publicationTaxonomyMigrations = [
+  readFileSync("supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql", "utf8"),
+  readFileSync("supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql", "utf8")
+].join("\n");
+assert.match(publicationTaxonomyMigrations, /add column if not exists category text not null default ''/, "publication taxonomy migrations must add the category column idempotently");
+assert.match(publicationTaxonomyMigrations, /add column if not exists subcategory text not null default ''/, "publication taxonomy migrations must add the subcategory column idempotently");
+assert.match(publicationTaxonomyMigrations, /add column if not exists material_group text not null default ''/, "publication taxonomy migrations must add material_group idempotently");
+assert.match(publicationTaxonomyMigrations, /add column if not exists material_type text not null default ''/, "publication taxonomy migrations must add material_type idempotently");
+assert.match(publicationTaxonomyMigrations, /notify\s+pgrst,\s*'reload schema'/i, "publication taxonomy migrations must reload the PostgREST schema cache");
+
 // ── F: Cover layer separation and mobile width contract ───────────────────────
 
 assert.match(powerPlaceBaseSource, /Фон внутри/, "cover panel must include inner layer tab label");

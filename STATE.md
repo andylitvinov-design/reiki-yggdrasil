@@ -2,6 +2,23 @@
 
 Last updated: 2026-06-18
 
+## 2026-06-18 — Profile publication taxonomy schema-cache recovery
+
+- Branch: `fix/profile-publications-category-schema-cache`, based on `origin/main` at `985a347`.
+- Scope: Supabase migration/docs/contracts only; public home page, RU UI, routes, Vercel rewrites, Supabase auth/session flow, and Profile Lite layouts were not changed.
+- Root cause:
+  - the mandala center image picker material upload path POSTs to `profile_cabinet_publications` with `material_group`, `material_type`, `category`, and `subcategory`;
+  - the repo already had an idempotent migration adding those columns, but live `2mentalica` can still fail if that migration was not applied or PostgREST kept a stale schema cache.
+- Changed:
+  - added `20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`, which safely re-adds the four taxonomy columns, preserves the taxonomy index, and runs `notify pgrst, 'reload schema';`;
+  - added a contract check that publication taxonomy migrations include idempotent columns and a PostgREST schema-cache reload;
+  - updated README Supabase setup with the required column check and schema-cache reload SQL.
+- Not verified:
+  - production/staging Supabase column state for `https://2mentalica.vercel.app`;
+  - real authenticated mobile upload/select in the live center image modal.
+- Risk:
+  - code deployment alone will not fix the production error unless the migration is applied to the Supabase project used by `2mentalica.vercel.app`.
+
 ## 2026-06-18 — Profile Lite client photo folder browser and moves
 
 - Branch: `codex/client-photo-browser-20260618`, based on `origin/main` at `0ce51f0`.
