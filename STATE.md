@@ -2,6 +2,31 @@
 
 Last updated: 2026-06-18
 
+## 2026-06-19 — 2mentalica publication taxonomy live schema fix
+
+- Branch: `codex/live-schema-fix-main`, based on `origin/main` at `b4ae5cc`.
+- Scope: Supabase migration runner/contract only, plus live staging schema repair for `https://2mentalica.vercel.app`; Profile Lite UI, routes, auth/session/storage flows, env values, and `production` were not changed.
+- Root cause confirmed:
+  - `2mentalica` frontend bundle points to Supabase project `dvzioccidlwfuuqbfhjl`;
+  - live `profile_cabinet_publications` initially had none of `material_group`, `material_type`, `category`, or `subcategory`;
+  - the repo migrations existed, but `scripts/apply-reiki-supabase-migrations.mjs` did not allow the two publication taxonomy migrations and did not verify the four publication taxonomy columns.
+- Changed:
+  - added the two publication taxonomy migrations to the migration runner allowlist;
+  - added schema verification booleans for the four `profile_cabinet_publications` taxonomy columns;
+  - added contract assertions for runner allowlist and schema checks.
+- Live fix:
+  - applied the idempotent taxonomy recovery SQL to Supabase project `dvzioccidlwfuuqbfhjl`;
+  - ran `notify pgrst, 'reload schema';`;
+  - read-only schema check then returned `category`, `material_group`, `material_type`, and `subcategory`.
+- Verification:
+  - focused profile/material/media tests, `npm run check`, and `npm run build` passed;
+  - public live routes `/`, `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` returned `200`;
+  - live PostgREST select for `material_group`, `material_type`, `category`, and `subcategory` returned `200`.
+- Not verified:
+  - real authenticated mobile upload through the center image picker, because no owner/authenticated browser session was available in this run.
+- Risk:
+  - code deployment alone was not sufficient; the live project needed actual Supabase schema repair. Future runs should use `npm run supabase:migrations:apply`, but this local run could not use the vault-backed runner because the Secret Vault endpoint was unavailable.
+
 ## 2026-06-18 — Profile publication taxonomy schema-cache recovery
 
 - Branch: `fix/profile-publications-category-schema-cache`, based on `origin/main` at `985a347`.

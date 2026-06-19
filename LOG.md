@@ -1,5 +1,51 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-19 — Fix 2mentalica publication taxonomy migration runner and live schema
+
+- Branch: `codex/live-schema-fix-main`.
+- Base: fresh `origin/main` at `b4ae5cc` (`Allow auth-limited delivery success`).
+- Changed files:
+  - `scripts/apply-reiki-supabase-migrations.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - the two publication taxonomy migration files existed on `main`, and the follow-up migration already re-added columns idempotently, preserved `profile_cabinet_publications_material_taxonomy_idx`, and ran `notify pgrst, 'reload schema';`;
+  - the live `2mentalica` bundle uses Supabase ref `dvzioccidlwfuuqbfhjl`;
+  - read-only live schema check initially returned no rows for `material_group`, `material_type`, `category`, or `subcategory`;
+  - `scripts/apply-reiki-supabase-migrations.mjs` still stopped at `20260609_profile_client_photo_categories.sql` and did not verify the four publication taxonomy columns.
+- Changed:
+  - added `20260617120000_profile_cabinet_publication_material_taxonomy.sql` and `20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql` to `ALLOWED_MIGRATIONS`;
+  - added schema verification booleans and `information_schema.columns` checks for `profile_cabinet_publications.material_group`, `material_type`, `category`, and `subcategory`;
+  - extended the Profile Lite contract test to assert the runner allowlist and schema checks.
+- Live schema fix:
+  - local vault-backed `npm run supabase:migrations:apply` could not run because Secret Vault was unavailable and all expected env names were missing from the shell;
+  - used the Supabase connector against project `dvzioccidlwfuuqbfhjl` after proving it matches the `2mentalica` bundle;
+  - applied the idempotent recovery SQL and `notify pgrst, 'reload schema';`;
+  - read-only schema check then returned `category`, `material_group`, `material_type`, and `subcategory`;
+  - live public PostgREST select for those four columns returned HTTP `200`.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm run supabase:migrations:apply` failed with `wallet_unavailable` before connector fallback
+  - `npm run test:profile-materials`
+  - `npm run test:profile-lite`
+  - `npm run test:profile-media`
+  - `npm run check` first failed at `vite: command not found` because the clean worktree had no `node_modules`
+  - symlinked canonical checkout `node_modules` for verification only
+  - `npm run check`
+  - `npm run build`
+- Check notes:
+  - final `npm run check` and `npm run build` exited `0`;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Live route checks:
+  - `https://2mentalica.vercel.app/` returned `200`;
+  - `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` returned `200`.
+- Not verified:
+  - real authenticated mobile upload in the center image picker, because no owner/authenticated browser session was available.
+- Risks:
+  - the live upload path should no longer fail on schema cache for `category`, but final end-to-end material appearance in the picker still needs authenticated owner QA.
+
 ## 2026-06-18 — Fix publication taxonomy schema-cache migration
 
 - Branch: `fix/profile-publications-category-schema-cache`.

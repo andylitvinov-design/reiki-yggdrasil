@@ -873,7 +873,33 @@ assert.match(publicationTaxonomyMigrations, /add column if not exists category t
 assert.match(publicationTaxonomyMigrations, /add column if not exists subcategory text not null default ''/, "publication taxonomy migrations must add the subcategory column idempotently");
 assert.match(publicationTaxonomyMigrations, /add column if not exists material_group text not null default ''/, "publication taxonomy migrations must add material_group idempotently");
 assert.match(publicationTaxonomyMigrations, /add column if not exists material_type text not null default ''/, "publication taxonomy migrations must add material_type idempotently");
+assert.match(publicationTaxonomyMigrations, /profile_cabinet_publications_material_taxonomy_idx/, "publication taxonomy migrations must preserve the taxonomy index");
 assert.match(publicationTaxonomyMigrations, /notify\s+pgrst,\s*'reload schema'/i, "publication taxonomy migrations must reload the PostgREST schema cache");
+
+const supabaseMigrationRunnerSource = readFileSync("scripts/apply-reiki-supabase-migrations.mjs", "utf8");
+for (const migrationFile of [
+  "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
+  "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql"
+]) {
+  assert.match(
+    supabaseMigrationRunnerSource,
+    new RegExp(migrationFile.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    `Supabase migration runner must allow ${migrationFile}`
+  );
+}
+
+for (const columnName of ["material_group", "material_type", "category", "subcategory"]) {
+  assert.match(
+    supabaseMigrationRunnerSource,
+    new RegExp(`profile_cabinet_publications[\\s\\S]*column_name = '${columnName}'`),
+    `Supabase migration runner must verify profile_cabinet_publications.${columnName}`
+  );
+  assert.match(
+    supabaseMigrationRunnerSource,
+    new RegExp(`profile_cabinet_publications_${columnName}`),
+    `Supabase migration runner schema check must expose profile_cabinet_publications_${columnName}`
+  );
+}
 
 // ── F: Cover layer separation and mobile width contract ───────────────────────
 

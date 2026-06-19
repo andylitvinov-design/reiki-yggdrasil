@@ -22,7 +22,9 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260605153000_service_orders_client_phase4.sql",
   "supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql",
   "supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql",
-  "supabase/migrations/20260609_profile_client_photo_categories.sql"
+  "supabase/migrations/20260609_profile_client_photo_categories.sql",
+  "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
+  "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
@@ -45,7 +47,11 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_courses: false,
   profile_cabinet_course_steps: false,
   profile_cabinet_course_lessons: false,
-  profile_cabinet_course_access: false
+  profile_cabinet_course_access: false,
+  profile_cabinet_publications_material_group: false,
+  profile_cabinet_publications_material_type: false,
+  profile_cabinet_publications_category: false,
+  profile_cabinet_publications_subcategory: false
 });
 
 function redact(text = "", secrets = {}) {
@@ -300,7 +306,23 @@ select
   exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_course_access'
-  ) as profile_cabinet_course_access
+  ) as profile_cabinet_course_access,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'material_group'
+  ) as profile_cabinet_publications_material_group,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'material_type'
+  ) as profile_cabinet_publications_material_type,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'category'
+  ) as profile_cabinet_publications_category,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'subcategory'
+  ) as profile_cabinet_publications_subcategory
 `.trim();
 }
 
