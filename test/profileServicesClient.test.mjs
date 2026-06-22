@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import {
+  buildClientInviteUrl,
   buildClientDirectoryFromOrders,
   buildCompositionResultUrl,
   buildCompositionServicePayload,
@@ -11,7 +12,9 @@ import {
   buildServiceOrderDraftPayload,
   buildSendOrderResultPayload,
   buildServiceOrderSubmitPayload,
+  claimClientInvite,
   clientMandalaStatusText,
+  createClientInvite,
   createEmptyServiceForm,
   createServiceCartStore,
   filterPublishedServices,
@@ -287,6 +290,22 @@ assert.deepEqual(
   "client selector should not list client/goal photo titles or filenames as clients"
 );
 
+const clientDirectoryWithInvites = buildClientDirectoryFromOrders([], [], [], [
+  {
+    id: "invite-1",
+    client_name: "Анна",
+    invite_token: "token-1",
+    status: "pending"
+  }
+]);
+assert.equal(clientDirectoryWithInvites[0].invites.length, 1, "client directory should include pending invites");
+assert.equal(clientDirectoryWithInvites[0].status, "pending", "pending invite should keep pending status until claim");
+assert.equal(
+  buildClientInviteUrl(clientDirectoryWithInvites[0].invites[0], "https://2mentalica.vercel.app"),
+  "https://2mentalica.vercel.app/profile/orders?invite=token-1",
+  "invite URL should point to authenticated orders claim route"
+);
+
 assert.equal(buildCompositionResultUrl("", "https://mentalica.vercel.app"), "");
 assert.equal(
   buildCompositionResultUrl("final result 1", "https://mentalica.vercel.app/"),
@@ -523,5 +542,16 @@ assert.match(personalOrdersSchemaMigration, /owner reads own service orders/, "p
 assert.match(personalOrdersSchemaMigration, /owner updates own service orders/, "personal orders schema migration should preserve master update policy");
 assert.match(personalOrdersSchemaMigration, /public creates orders for published services/, "personal orders schema migration should preserve legacy public order creation policy");
 assert.doesNotMatch(personalOrdersSchemaMigration, /drop table|drop column|alter column .* type/i, "personal orders schema migration must stay additive");
+
+const inviteMigration = readFileSync(new URL("../supabase/migrations/20260622190000_profile_client_invites.sql", import.meta.url), "utf8");
+assert.match(inviteMigration, /profile_cabinet_client_invites/, "invite migration should add client invite table");
+assert.match(inviteMigration, /invite_token_hash/, "invite migration should store token hash, not raw token");
+assert.match(inviteMigration, /create_client_invite/, "invite migration should expose master invite RPC");
+assert.match(inviteMigration, /claim_client_invite/, "invite migration should expose client claim RPC");
+assert.match(inviteMigration, /enable row level security/, "invite table must keep RLS enabled");
+assert.doesNotMatch(inviteMigration, /service_role/i, "invite implementation must not require a frontend service-role key");
+assert.doesNotMatch(inviteMigration, /client_name\s*=/i, "claim flow must not link by name-only matching");
+assert.equal(typeof createClientInvite, "function", "services client should expose createClientInvite RPC helper");
+assert.equal(typeof claimClientInvite, "function", "services client should expose claimClientInvite RPC helper");
 
 console.log("profileServicesClient: all assertions passed.");
