@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import {
+  buildClientDirectoryFromOrders,
+  buildCompositionResultUrl,
   buildCompositionServicePayload,
   buildServiceCartItem,
   buildServicePublicUrl,
@@ -179,6 +181,58 @@ const groupedServices = groupServicesByStatus([
 assert.deepEqual(groupedServices.draft.map((item) => item.id), ["draft-1", "draft-2"]);
 assert.deepEqual(groupedServices.published.map((item) => item.id), ["published-1"]);
 assert.deepEqual(groupedServices.archived.map((item) => item.id), ["archived-1"]);
+
+const clientDirectory = buildClientDirectoryFromOrders([
+  normalizeServiceOrder({
+    id: "order-a",
+    client_profile_id: "client-profile-a",
+    client_name: " Анна ",
+    request_text: "Запрос 1"
+  }),
+  normalizeServiceOrder({
+    id: "order-b",
+    client_profile_id: "client-profile-a",
+    client_name: "Анна",
+    request_text: "Запрос 2"
+  }),
+  normalizeServiceOrder({
+    id: "order-c",
+    client_name: " Борис ",
+    final_result_composition_id: "final-c",
+    status: "sent"
+  })
+]);
+assert.deepEqual(
+  clientDirectory.map((client) => [client.key, client.client_name, client.orders.map((order) => order.id)]),
+  [
+    ["client:client-profile-a", "Анна", ["order-a", "order-b"]],
+    ["name:Борис", "Борис", ["order-c"]]
+  ],
+  "client directory should group by client_profile_id first and client_name fallback second"
+);
+
+const clientDirectoryWithSavedWork = buildClientDirectoryFromOrders([], [], [
+  {
+    id: "composition-for-client",
+    title: "Клиентская мандала",
+    object_refs: {
+      __client_work: {
+        client_name: "Вера",
+        request_text: "личный запрос",
+        result_composition_id: "composition-for-client",
+        status: "saved_for_client"
+      }
+    }
+  }
+]);
+assert.equal(clientDirectoryWithSavedWork[0].client_name, "Вера");
+assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].result_composition_id, "composition-for-client");
+assert.equal(buildCompositionResultUrl("", "https://mentalica.vercel.app"), "");
+assert.equal(
+  buildCompositionResultUrl("final result 1", "https://mentalica.vercel.app/"),
+  "https://mentalica.vercel.app/profile/mandalas?composition=final%20result%201",
+  "composition result links should be authenticated internal cabinet links"
+);
 
 const archivedStatus = normalizeServiceForm({ profile_id: "p1", title: "Archived" }, "archived");
 assert.equal(archivedStatus.status, "archived", "archive action should normalize to archived status safely");

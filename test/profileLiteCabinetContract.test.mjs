@@ -394,7 +394,7 @@ assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLite
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
-assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Создать новую\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose save, create-new, transfer, and publish buttons in order");
+assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Сохранить как шаблон\s*<\/button>[\s\S]*>\s*Сохранить для клиента\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose update, template save, client save, transfer, and publish buttons in order");
 assert.match(powerPlaceSource, /SHOW_POWER_PLACE_FEED_PROJECTION[\s\S]*Опубликовать в ленту[\s\S]*Название для ленты[\s\S]*Публичное описание/, "Power Place should keep feed projection handlers/form code behind the visibility flag");
 assert.match(powerPlaceSource, /const SHOW_POWER_PLACE_FEED_PROJECTION = false;/, "Power Place public projection must be hidden from the builder UI");
 const powerPlaceFeedProjectionSource = powerPlaceSource.match(/<div className="powerPlaceFeedProjection"[\s\S]*?<\/div>\s*<p className="powerPrintColorHint">/)?.[0] || "";
@@ -441,6 +441,15 @@ for (const servicesManagerText of [
   "Черновики",
   "Опубликованные",
   "Архив",
+  "Клиенты",
+  "База клиента",
+  "Выберите клиента, чтобы увидеть его заказы и отправленные мандалы.",
+  "Для этого клиента пока нет заказов.",
+  "Отправленная мандала",
+  "Ссылка на мандалу",
+  "Внутренняя ссылка на мандалу",
+  "Ссылка скопирована",
+  "Ссылка появится после отправки мандалы клиенту.",
   "Опубликовать",
   "Вернуть в черновик",
   "Архивировать",
@@ -454,6 +463,18 @@ for (const servicesManagerText of [
 ]) {
   assert.match(profileServicesManagerSource, new RegExp(servicesManagerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `/profile/services should include ${servicesManagerText}`);
 }
+assert.match(profileServicesModuleSource, /clientDirectory = \[\]/, "services manager should accept clientDirectory");
+assert.match(profileServicesModuleSource, /selectedClientKey = ""/, "services manager should accept selected client key");
+assert.match(profileServicesModuleSource, /onClientSelect = \(\) => \{\}/, "services manager should accept client selection callback");
+assert.match(profileServicesModuleSource, /navigator\.clipboard\?\.writeText\(url\)/, "sent mandala copy button should use Clipboard API");
+assert.match(profileServicesModuleSource, /window\.prompt\("Ссылка на мандалу", url\)/, "sent mandala copy should fall back to prompt");
+assert.match(profileLitePageSource, /buildClientDirectoryFromOrders\(orders,\s*clientGoalPhotos,\s*powerPlaceCompositions\)/, "ProfileLitePage should derive the Services client database from master orders plus saved client work");
+assert.match(profileLitePageSource, /selectedClientKey/, "ProfileLitePage should own selected client state");
+assert.match(powerPlaceBaseSource, /Сохранить как шаблон/, "Power Place save UI should preserve create-new behavior under the template label");
+assert.match(powerPlaceBaseSource, /Сохранить для клиента/, "Power Place save UI should expose client save intent");
+assert.match(powerPlaceBaseSource, /onOpenClientSave/, "Power Place save UI should open the client save modal");
+assert.match(profileLitePageSource, /handleSaveCompositionForClient/, "ProfileLitePage should save a client-specific composition");
+assert.match(profileLitePageSource, /__client_work/, "client save should persist client metadata in saved composition object_refs");
 assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
 assert.match(profileLitePageSource, /restoreFreshPendingServiceCart/, "Profile Lite should restore a fresh pending cart after auth");
 assert.match(profileLitePageSource, /createServiceOrderDraft/, "checkout should create an order draft after auth, not a public new order");

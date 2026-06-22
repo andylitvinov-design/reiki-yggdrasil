@@ -27,6 +27,7 @@ import {
 import { validateGrimoireFile } from "../lib/profileMediaClient.js";
 import {
   createEmptyServiceForm,
+  buildClientDirectoryFromOrders,
   createServiceCartStore,
   createServiceOrderDraft,
   createOwnService,
@@ -181,6 +182,15 @@ const EMPTY_ORDER_CONFIRMATION = {
   orderId: "",
   photoId: "",
   requestText: "",
+  status: "idle",
+  message: ""
+};
+const EMPTY_CLIENT_SAVE_FORM = {
+  isOpen: false,
+  clientKey: "",
+  clientName: "",
+  requestText: "",
+  clientPhotoId: "",
   status: "idle",
   message: ""
 };
@@ -630,6 +640,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [serviceForm, setServiceForm] = useState(() => createEmptyServiceForm());
   const [serviceActionStatus, setServiceActionStatus] = useState("idle");
   const [serviceMessage, setServiceMessage] = useState("");
+  const [selectedClientKey, setSelectedClientKey] = useState("");
+  const [clientSaveForm, setClientSaveForm] = useState(EMPTY_CLIENT_SAVE_FORM);
 
   const [ordersStatus, setOrdersStatus] = useState("idle");
   const [ordersError, setOrdersError] = useState("");
@@ -646,6 +658,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [chatDraft, setChatDraft] = useState("");
 
   const sessionExpired = useMemo(() => isStoredSessionExpired(session), [session]);
+  const clientDirectory = useMemo(
+    () => buildClientDirectoryFromOrders(orders, clientGoalPhotos, powerPlaceCompositions),
+    [orders, clientGoalPhotos, powerPlaceCompositions]
+  );
+  const selectedClient = useMemo(
+    () => clientDirectory.find((client) => client.key === selectedClientKey) || null,
+    [clientDirectory, selectedClientKey]
+  );
   const activeSettings = useMemo(() => settingsForStep(materialForm.step_id), [materialForm.step_id]);
   const accountPlan = normalizeAccountPlan(form.account_plan || profile?.account_plan);
   const planLimits = getPlanLimits(accountPlan);
@@ -1919,6 +1939,93 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleOpenClientSave = () => {
+    setClientSaveForm((current) => ({
+      ...current,
+      isOpen: true,
+      clientKey: current.clientKey || selectedClientKey,
+      status: "idle",
+      message: ""
+    }));
+  };
+
+  const handleClientSaveFormChange = (field, value) => {
+    setClientSaveForm((current) => ({ ...current, [field]: value, message: "" }));
+  };
+
+  const handleSaveCompositionForClient = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      const message = "Сначала сохраните профиль мастера.";
+      setClientSaveForm((current) => ({ ...current, status: "error", message }));
+      setMandalasError(message);
+      return;
+    }
+    const existingClient = clientDirectory.find((client) => client.key === clientSaveForm.clientKey) || null;
+    const clientName = (clientSaveForm.clientName || existingClient?.client_name || "").trim();
+    if (!clientName) {
+      setClientSaveForm((current) => ({ ...current, status: "error", message: "Укажите имя клиента или выберите клиента из списка." }));
+      return;
+    }
+
+    setClientSaveForm((current) => ({ ...current, status: "loading", message: "Сохраняю для клиента…" }));
+    try {
+      const clientKey = existingClient?.key || `name:${clientName}`;
+      const clientMeta = {
+        client_key: clientKey,
+        client_profile_id: existingClient?.client_profile_id || "",
+        client_name: clientName,
+        client_photo_id: clientSaveForm.clientPhotoId || "",
+        request_text: clientSaveForm.requestText || "",
+        source_composition_id: compositionDraft.id || "",
+        result_composition_id: "",
+        status: "saved_for_client"
+      };
+      const createPayload = {
+        ...withDefaultMotionSettings(compositionDraft),
+        id: undefined,
+        title: uniqueCompositionCopyTitle(`${compositionDraft.title || "Мандала"} · ${clientName}`, powerPlaceCompositions),
+        profile_id: profile.id,
+        central_photo_id: clientSaveForm.clientPhotoId || compositionDraft.central_photo_id || "",
+        object_refs: {
+          ...(compositionDraft.object_refs || {}),
+          __client_work: clientMeta
+        }
+      };
+      delete createPayload.id;
+      const saved = await createPowerPlaceComposition(createPayload, accountPlan, session);
+      if (!saved?.id) throw new Error("сервер не вернул сохранённую мандалу.");
+      const savedWithClientMeta = {
+        ...saved,
+        object_refs: {
+          ...(saved.object_refs || createPayload.object_refs || {}),
+          __client_work: {
+            ...clientMeta,
+            result_composition_id: saved.id
+          }
+        }
+      };
+      setPowerPlaceCompositions((current) => [withDefaultMotionSettings(savedWithClientMeta), ...current.filter((item) => item.id !== saved.id)]);
+      setSelectedClientKey(clientKey);
+      setClientSaveForm({
+        ...EMPTY_CLIENT_SAVE_FORM,
+        clientKey,
+        clientName,
+        status: "success",
+        message: "Сохранено для клиента."
+      });
+      setCompositionMessage("Сохранено для клиента.");
+      setMandalasStatus("success");
+      setMandalasError("");
+      openServicesTab();
+    } catch (error) {
+      const safeMsg = moduleError(error, "Не удалось сохранить для клиента.");
+      setClientSaveForm((current) => ({ ...current, status: "error", message: safeMsg }));
+      setMandalasStatus("needs-verification");
+      setMandalasError(safeMsg);
+      setCompositionMessage("Не удалось сохранить для клиента. " + safeMsg);
+    }
+  };
+
   const handleCompositionDelete = async (composition) => {
     if (!profile?.id || !composition?.id || !hasProfileLiteSessionCredential(session)) {
       setMandalasError("Сначала сохраните профиль мастера.");
@@ -2438,7 +2545,12 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     mandalas: (
       <ProfileLiteMandalasModule
         {...moduleProps}
+        clientDirectory={clientDirectory}
+        clientSaveForm={clientSaveForm}
         onClientPhotoDelete={handleDeleteClientPhoto}
+        onClientSaveCancel={() => setClientSaveForm(EMPTY_CLIENT_SAVE_FORM)}
+        onClientSaveFormChange={handleClientSaveFormChange}
+        onClientSaveSubmit={handleSaveCompositionForClient}
         onCompositionCoverSelect={handleCompositionCoverSelect}
         onCompositionDelete={handleCompositionDelete}
         onCompositionDraftChange={handleCompositionDraftChange}
@@ -2451,6 +2563,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         onDownload={handleDownloadComposition}
         onLibraryPhotoUpload={handleLibraryClientPhotoUpload}
         onObjectFileUpload={handleCompositionObjectFileUpload}
+        onOpenClientSave={handleOpenClientSave}
         onPrint={handlePrintComposition}
         onPublishAsService={handlePublishCompositionAsService}
         onPublishToFeed={handlePublishCompositionToFeed}
@@ -2500,6 +2613,10 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     services: (
       <ProfileLiteServicesModule
         {...moduleProps}
+        clientDirectory={clientDirectory}
+        selectedClient={selectedClient}
+        selectedClientKey={selectedClientKey}
+        onClientSelect={setSelectedClientKey}
         onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
         onAddToFeed={handleAddServiceToFeed}
         onPublish={handleServicePublish}

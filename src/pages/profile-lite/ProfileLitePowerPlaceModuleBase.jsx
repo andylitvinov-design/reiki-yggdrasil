@@ -806,7 +806,9 @@ function coverToneClass(cover) {
 
 export default function ProfileLitePowerPlaceModule({
   accountPlan = "start",
-  clientGoalPhotos,
+  clientGoalPhotos = [],
+  clientDirectory = [],
+  clientSaveForm = { isOpen: false, clientKey: "", clientName: "", requestText: "", clientPhotoId: "", status: "idle", message: "" },
   compositionDraft,
   compositionMessage,
   mandalasError,
@@ -817,6 +819,9 @@ export default function ProfileLitePowerPlaceModule({
   onFeedFormChange,
   onAddCompositionToServices,
   onClientPhotoDelete,
+  onClientSaveCancel = () => {},
+  onClientSaveFormChange = () => {},
+  onClientSaveSubmit = () => {},
   onCompositionCoverSelect,
   onCompositionDelete,
   onCompositionDraftChange,
@@ -827,6 +832,7 @@ export default function ProfileLitePowerPlaceModule({
   onDownload,
   onLibraryPhotoUpload,
   onObjectFileUpload,
+  onOpenClientSave = () => {},
   onPrint,
   onPublishAsService,
   onPublishToFeed,
@@ -962,6 +968,7 @@ export default function ProfileLitePowerPlaceModule({
     if (createNewDisabled) return;
     onSaveNew();
   };
+  const isClientSaveLoading = clientSaveForm.status === "loading";
 
   const writeCenterImageTransform = useCallback((offsetX, offsetY, zoom) => {
     const nextRefs = {
@@ -2558,11 +2565,86 @@ export default function ProfileLitePowerPlaceModule({
           type="button"
           onClick={handleSaveNewClick}
           disabled={createNewDisabled}
-          title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}
-          aria-label={createNewDisabled ? "Создать новую: лимит сохранённых мандал достигнут" : "Создать новую мандалу"}>
-          Создать новую
+          title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Сохранить текущую композицию как шаблон"}
+          aria-label={createNewDisabled ? "Сохранить как шаблон: лимит сохранённых мандал достигнут" : "Сохранить как шаблон"}>
+          Сохранить как шаблон
+        </button>
+        <button
+          className="cabinetSecondary powerPlaceClientSaveButton"
+          type="button"
+          onClick={onOpenClientSave}
+          disabled={isClientSaveLoading}
+          aria-label="Сохранить для клиента">
+          Сохранить для клиента
         </button>
       </div>
+      {clientSaveForm.isOpen && (
+        <div className="cabinetCardInline profileLiteClientSaveForm" role="dialog" aria-label="Сохранить для клиента">
+          <div className="cabinetFormHeader">
+            <div>
+              <p className="cabinetEyebrow">Клиент</p>
+              <h3>Сохранить для клиента</h3>
+            </div>
+            <span className="cabinetStatus">{clientSaveForm.status}</span>
+          </div>
+          <label>
+            Клиент
+            <select
+              disabled={isClientSaveLoading}
+              value={clientSaveForm.clientKey || ""}
+              onChange={(event) => onClientSaveFormChange("clientKey", event.target.value)}
+            >
+              <option value="">Добавить нового клиента</option>
+              {clientDirectory.map((client) => (
+                <option key={client.key} value={client.key}>{client.client_name}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Имя клиента
+            <input
+              disabled={isClientSaveLoading}
+              value={clientSaveForm.clientName || ""}
+              onChange={(event) => onClientSaveFormChange("clientName", event.target.value)}
+              placeholder="Имя клиента"
+            />
+          </label>
+          <label>
+            Комментарий / запрос клиента
+            <textarea
+              disabled={isClientSaveLoading}
+              rows={3}
+              value={clientSaveForm.requestText || ""}
+              onChange={(event) => onClientSaveFormChange("requestText", event.target.value)}
+              placeholder="Комментарий / запрос клиента"
+            />
+          </label>
+          <label>
+            Фото клиента / цель
+            <select
+              disabled={isClientSaveLoading}
+              value={clientSaveForm.clientPhotoId || ""}
+              onChange={(event) => onClientSaveFormChange("clientPhotoId", event.target.value)}
+            >
+              <option value="">Без фото</option>
+              {clientGoalPhotos.map((photo) => (
+                <option key={photo.id} value={photo.id}>{photo.title || photo.notes || photo.id}</option>
+              ))}
+            </select>
+          </label>
+          {clientSaveForm.message && (
+            <p className={clientSaveForm.status === "error" ? "cabinetSecondaryDataWarning" : "cabinetNotice"}>
+              {clientSaveForm.message}
+            </p>
+          )}
+          <div className="cabinetActions">
+            <button className="cabinetSecondary" disabled={isClientSaveLoading} type="button" onClick={onClientSaveCancel}>Отмена</button>
+            <button className="cabinetPrimary" disabled={isClientSaveLoading} type="button" onClick={onClientSaveSubmit}>
+              {isClientSaveLoading ? "Сохраняю для клиента…" : "Сохранить для клиента"}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="powerPlaceActions powerPlaceActions--export">
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>

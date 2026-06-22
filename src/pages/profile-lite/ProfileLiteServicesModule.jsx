@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   SERVICE_FORMAT_OPTIONS,
+  buildCompositionResultUrl,
   buildServicePublicUrl,
   formatServicePrice,
   getServicePublicLinkState,
   groupServicesByStatus,
+  orderStatusText,
   serviceStatusText
 } from "../../lib/profileServicesClient.js";
 
@@ -15,6 +17,10 @@ export default function ProfileLiteServicesModule({
   onSave,
   onServiceSelect,
   onStatusChange,
+  clientDirectory = [],
+  selectedClient = null,
+  selectedClientKey = "",
+  onClientSelect = () => {},
   serviceActionStatus = "idle",
   serviceForm,
   serviceMessage = "",
@@ -29,6 +35,7 @@ export default function ProfileLiteServicesModule({
   const isSaving = serviceActionStatus === "loading";
   const canPublish = Boolean(selectedServiceId && selectedCompositionId);
   const canAddSelectedToFeed = Boolean(selectedServiceId && serviceForm?.status === "published");
+  const [copiedResultUrl, setCopiedResultUrl] = useState("");
   const serviceGroups = [
     ["draft", "Черновики"],
     ["published", "Опубликованные"],
@@ -42,6 +49,35 @@ export default function ProfileLiteServicesModule({
     } catch {
       window.prompt("Публичная ссылка для клиентов", url);
     }
+  };
+  const copyResultLink = async (url) => {
+    if (!url) return;
+    try {
+      await navigator.clipboard?.writeText(url);
+    } catch {
+      window.prompt("Ссылка на мандалу", url);
+    }
+    setCopiedResultUrl(url);
+  };
+  const renderSentResultLink = (compositionId) => {
+    const url = buildCompositionResultUrl(compositionId, window.location.origin);
+    return (
+      <div className="profileLiteClientResultLink">
+        <p className="cabinetEyebrow">Отправленная мандала</p>
+        {url ? (
+          <>
+            <small>Внутренняя ссылка на мандалу</small>
+            <a href={url}>Ссылка на мандалу</a>
+            <button className="cabinetSecondary" type="button" onClick={() => void copyResultLink(url)}>
+              Скопировать ссылку
+            </button>
+            {copiedResultUrl === url && <p className="cabinetNotice">Ссылка скопирована</p>}
+          </>
+        ) : (
+          <p className="cabinetMuted">Ссылка появится после отправки мандалы клиенту.</p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -65,7 +101,7 @@ export default function ProfileLiteServicesModule({
           <p className="cabinetEyebrow">Рабочий режим</p>
           <h3>Услуги</h3>
           <div className="chatModeNav" aria-label="Статические разделы услуг">
-            {["Каталог услуг", "Черновики", "Публикация", "Места силы"].map((item) => (
+            {["Каталог услуг", "Клиенты", "Черновики", "Публикация", "Места силы"].map((item) => (
               <button className={item === "Каталог услуг" ? "active" : ""} key={item} type="button">
                 <span>{item}</span>
                 <small>Profile Lite</small>
@@ -83,6 +119,59 @@ export default function ProfileLiteServicesModule({
             </div>
             {servicesError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {servicesError}</div>}
             {serviceMessage && <div className="cabinetNotice">{serviceMessage}</div>}
+            <section className="cabinetCard profileLiteClientDatabase" aria-label="Клиенты База клиента">
+              <div className="cabinetFormHeader">
+                <div>
+                  <p className="cabinetEyebrow">Клиенты</p>
+                  <h3>База клиента</h3>
+                </div>
+                <span className="cabinetStatus">{clientDirectory.length}</span>
+              </div>
+              <label>
+                Клиент
+                <select value={selectedClientKey} onChange={(event) => onClientSelect(event.target.value)}>
+                  <option value="">Выберите клиента</option>
+                  {clientDirectory.map((client) => (
+                    <option key={client.key} value={client.key}>{client.client_name}</option>
+                  ))}
+                </select>
+              </label>
+              {!selectedClient && <p className="cabinetMuted">Выберите клиента, чтобы увидеть его заказы и отправленные мандалы.</p>}
+              {selectedClient && (
+                <div className="profileLiteClientDatabaseBody">
+                  <p className="cabinetMuted">
+                    Заказы: {selectedClient.orders.length} · Активные: {selectedClient.orders.filter((order) => order.status !== "sent" && order.status !== "closed").length} · Отправлено: {selectedClient.orders.filter((order) => order.final_result_composition_id || order.status === "sent").length}
+                  </p>
+                  {selectedClient.orders.map((order) => (
+                    <article className="materialCard profileLiteClientOrderCard" key={order.id}>
+                      <div className="materialThumb">{orderStatusText(order.status).slice(0, 1)}</div>
+                      <div>
+                        <h4>{order.service?.title || "Услуга"}</h4>
+                        <p>{order.request_text || "Запрос клиента не заполнен."}</p>
+                        <small>{orderStatusText(order.status)} · {order.order_format}</small>
+                        {order.final_result_composition_id ? renderSentResultLink(order.final_result_composition_id) : (
+                          <p className="cabinetMuted">Ссылка появится после отправки мандалы клиенту.</p>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                  {selectedClient.clientWorks.map((work) => (
+                    <article className="materialCard profileLiteClientOrderCard" key={work.id}>
+                      <div className="materialThumb">К</div>
+                      <div>
+                        <h4>{work.title}</h4>
+                        <p>{work.request_text || "Комментарий / запрос клиента не заполнен."}</p>
+                        <small>Сохранено для клиента</small>
+                        {renderSentResultLink(work.result_composition_id)}
+                      </div>
+                    </article>
+                  ))}
+                  {selectedClient.orders.length === 0 && selectedClient.clientWorks.length === 0 && (
+                    <p>Для этого клиента пока нет заказов.</p>
+                  )}
+                </div>
+              )}
+            </section>
             <div className="profileLiteServiceList">
               {serviceGroups.map(([status, title]) => (
                 <section className="profileLiteServiceGroup" key={status} aria-label={title}>

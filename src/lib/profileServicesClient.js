@@ -115,6 +115,12 @@ export function buildServicePublicUrl(service = {}, origin = globalThis.location
   return id && base ? `${base}/services/${id}` : "";
 }
 
+export function buildCompositionResultUrl(compositionId, origin = globalThis.location?.origin || "") {
+  const id = text(compositionId);
+  const base = text(origin).replace(/\/$/, "");
+  return id && base ? `${base}/profile/mandalas?composition=${encodeURIComponent(id)}` : "";
+}
+
 export function filterPublishedServices(services = []) {
   return (services || []).filter((service) => serviceStatus(service?.status) === "published");
 }
@@ -153,6 +159,70 @@ export function groupServicesByStatus(services = []) {
     groups[status].push(service);
     return groups;
   }, { draft: [], published: [], archived: [] });
+}
+
+function clientWorkFromComposition(composition = {}) {
+  const meta = composition?.object_refs?.__client_work || {};
+  const clientName = text(meta.client_name);
+  if (!clientName && !text(meta.client_profile_id)) return null;
+  return {
+    id: text(composition.id),
+    title: text(composition.title) || "Мандала",
+    client_profile_id: text(meta.client_profile_id),
+    client_name: clientName || "Без имени",
+    client_photo_id: text(meta.client_photo_id),
+    request_text: text(meta.request_text),
+    result_composition_id: text(meta.result_composition_id || composition.id),
+    status: text(meta.status || "saved_for_client"),
+    created_at: composition.created_at || null
+  };
+}
+
+export function buildClientDirectoryFromOrders(orders = [], clientGoalPhotos = [], clientCompositions = []) {
+  const clientsByKey = new Map();
+  const ensureClient = ({ key, client_profile_id = "", client_name = "Без имени" }) => {
+    const safeKey = text(key);
+    const existing = clientsByKey.get(safeKey) || {
+      key: safeKey,
+      client_profile_id: text(client_profile_id),
+      client_name: text(client_name) || "Без имени",
+      orders: [],
+      photos: [],
+      clientWorks: []
+    };
+    clientsByKey.set(safeKey, existing);
+    return existing;
+  };
+
+  for (const order of orders || []) {
+    const normalizedOrder = normalizeServiceOrder(order);
+    const key = normalizedOrder.client_profile_id
+      ? `client:${normalizedOrder.client_profile_id}`
+      : `name:${normalizedOrder.client_name || "Без имени"}`;
+    ensureClient({
+      key,
+      client_profile_id: normalizedOrder.client_profile_id,
+      client_name: normalizedOrder.client_name || "Без имени"
+    }).orders.push(normalizedOrder);
+  }
+
+  for (const work of (clientCompositions || []).map(clientWorkFromComposition).filter(Boolean)) {
+    const key = work.client_profile_id ? `client:${work.client_profile_id}` : `name:${work.client_name}`;
+    ensureClient({
+      key,
+      client_profile_id: work.client_profile_id,
+      client_name: work.client_name
+    }).clientWorks.push(work);
+  }
+
+  for (const photo of clientGoalPhotos || []) {
+    const name = text(photo.title || photo.notes);
+    if (!name) continue;
+    const key = `name:${name}`;
+    ensureClient({ key, client_name: name }).photos.push(photo);
+  }
+
+  return [...clientsByKey.values()].sort((a, b) => a.client_name.localeCompare(b.client_name, "ru"));
 }
 
 export function normalizeServiceForm(form = {}, requestedStatus = form?.status) {
