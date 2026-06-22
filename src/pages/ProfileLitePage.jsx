@@ -75,6 +75,8 @@ import {
   createProfileLiteForm,
   createProfileLiteSavePayload,
   getProfileLiteTabById,
+  getProfileLiteRoleById,
+  getProfileLiteRoleForTab,
   getProfileLiteRouteByTabId,
   hasProfileLiteSessionCredential,
   safeProfileLiteError
@@ -591,6 +593,7 @@ function openPowerPlacePdfPrintView(title) {
 
 export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
   const [activeTab, setActiveTab] = useState(getProfileLiteTabById(initialTab).id);
+  const [cabinetRole, setCabinetRole] = useState(() => getProfileLiteRoleForTab(getProfileLiteTabById(initialTab).id));
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -680,7 +683,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   }), [authStatus, profile, profileStatus, session, sessionExpired, user]);
 
   useEffect(() => {
-    setActiveTab(getProfileLiteTabById(initialTab).id);
+    const nextTab = getProfileLiteTabById(initialTab).id;
+    setActiveTab(nextTab);
+    setCabinetRole(getProfileLiteRoleForTab(nextTab));
   }, [initialTab]);
 
   const moduleStates = useMemo(() => ({
@@ -2185,11 +2190,21 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     const nextTab = getProfileLiteTabById(tab?.id);
     const href = tab?.href || getProfileLiteRouteByTabId(nextTab.id);
     setActiveTab(nextTab.id);
+    setCabinetRole(getProfileLiteRoleForTab(nextTab.id));
     if (typeof window !== "undefined" && window.location.pathname + window.location.search !== href) {
       window.history.pushState({}, "", href);
       window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  const handleCabinetRoleChange = (role) => {
+    const nextRole = getProfileLiteRoleById(role?.id);
+    setCabinetRole(nextRole.id);
+    handleProfileLiteTabNavigate({
+      id: nextRole.defaultTabId,
+      href: getProfileLiteRouteByTabId(nextRole.defaultTabId)
+    });
   };
 
   const handleDownloadComposition = async () => {
@@ -2666,6 +2681,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     <ProfileLiteShell
       activeTab={activeTab}
       authStatus={authStatus}
+      cabinetRole={cabinetRole}
+      onCabinetRoleChange={handleCabinetRoleChange}
       onNavigateHome={onNavigateHome}
       onNavigateMasters={onNavigateMasters}
       onRefresh={refreshShell}

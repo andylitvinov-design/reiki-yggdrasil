@@ -8,8 +8,13 @@ import {
   createProfileLiteSavePayload,
   createProfileLiteShellViewModel,
   getProfileLiteInitialTabFromLocation,
+  getProfileLiteRoleById,
+  getProfileLiteRoleForTab,
+  getProfileLiteRoleNav,
   getProfileLiteRouteByTabId,
   getProfileLiteTabById,
+  PROFILE_LITE_CABINET_ROLES,
+  PROFILE_LITE_ROLE_NAV,
   PROFILE_LITE_TABS,
   safeProfileLiteError
 } from "../src/lib/profileLiteClient.js";
@@ -68,6 +73,34 @@ assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "cour
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/unknown", ""), "mandalas");
+
+assert.deepEqual(
+  PROFILE_LITE_CABINET_ROLES.map((role) => [role.id, role.label, role.defaultTabId]),
+  [
+    ["client", "Кабинет Личный", "orders"],
+    ["master", "Кабинет Мастера", "mandalas"]
+  ],
+  "Profile Lite should expose the two cabinet role switcher labels without adding routes"
+);
+
+assert.deepEqual(
+  PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
+  ["Мои Заказы", "Полученные мандалы", "Мои фото / цели", "Сообщения с мастером", "Профиль"],
+  "client cabinet nav should expose Phase A labels"
+);
+
+assert.deepEqual(
+  PROFILE_LITE_ROLE_NAV.master.map((item) => item.label),
+  ["Мандалы / Шаблоны", "Услуги", "Клиенты", "База клиента", "Заявки / Заказы", "Материалы / Гримуарий"],
+  "master cabinet nav should expose Phase A labels"
+);
+
+assert.equal(getProfileLiteRoleById("missing").label, "Кабинет Личный");
+assert.equal(getProfileLiteRoleForTab("orders"), "client");
+assert.equal(getProfileLiteRoleForTab("mandalas"), "master");
+assert.equal(getProfileLiteRoleForTab("services"), "master");
+assert.equal(getProfileLiteRoleForTab("profile"), "client");
+assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "services", "services", "orders", "materials"]);
 
 const fullForm = createProfileLiteForm({
   display_name: "Master",
