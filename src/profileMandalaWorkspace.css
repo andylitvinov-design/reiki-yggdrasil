@@ -8164,6 +8164,29 @@
   min-width: 0;
 }
 
+.profileLitePowerPlace .profileLiteClientSaveForm,
+.profileLiteServices .profileLiteClientDatabase,
+.profileLiteServices .profileLiteServiceEditorForm {
+  min-width: 0;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm label,
+.profileLiteServices .profileLiteClientDatabase label,
+.profileLiteServices .profileLiteServiceEditorForm label {
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientDatabaseBody {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
 .profileLiteLegacyColumns .materialCard h3,
 .profileLiteLegacyColumns .materialCard p,
 .profileLiteLegacyColumns .materialCard small,
@@ -8702,6 +8725,87 @@
 
   .profileLiteLegacyColumns .chatPlaceholderWorkspace {
     min-height: 0;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+    padding: 14px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetFormHeader,
+  .profileLiteServices .profileLiteClientDatabase .cabinetFormHeader,
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetFormHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetStatus,
+  .profileLiteServices .profileLiteClientDatabase .cabinetStatus,
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetStatus {
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm label {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteClientDatabase label,
+  .profileLiteServices .profileLiteServiceEditorForm label,
+  .profileLiteServices .profileLiteServiceEditorForm fieldset {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm input,
+  .profileLitePowerPlace .profileLiteClientSaveForm select,
+  .profileLitePowerPlace .profileLiteClientSaveForm textarea,
+  .profileLiteServices .profileLiteClientDatabase select,
+  .profileLiteServices .profileLiteServiceEditorForm input,
+  .profileLiteServices .profileLiteServiceEditorForm select,
+  .profileLiteServices .profileLiteServiceEditorForm textarea {
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteServiceEditorForm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetTwoColumns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions button,
+  .profileLitePowerPlace .profileLiteClientSaveNewButton,
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetActions button {
+    width: 100%;
   }
 
   .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
