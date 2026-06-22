@@ -242,6 +242,44 @@
   grid-template-columns: 108px minmax(0, 1fr) auto;
 }
 
+.profileLiteShellChrome {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.profileLiteTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profileLiteTabs a {
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  border-radius: 14px;
+  padding: 9px 12px;
+  background: rgba(255, 253, 248, 0.72);
+  color: #5d3c12;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.profileLiteTabs a.active {
+  background: rgba(71, 42, 11, 0.1);
+  color: #2b1b0c;
+}
+
+.profileLiteStatusRail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #745327;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .mandalaModeSidebar,
 .chatPlaceholderWorkspace {
   min-width: 0;
@@ -269,6 +307,8 @@
 
 .materialFilterList,
 .chatModeNav,
+.profileLiteRoleNav,
+.profileLiteRoleSwitcher,
 .powerLibraryGroups,
 .powerLibraryGroupList,
 .powerSavedImageList {
@@ -277,7 +317,9 @@
 }
 
 .materialFilterList button,
-.chatModeNav button {
+.chatModeNav button,
+.profileLiteRoleNav a,
+.profileLiteRoleSwitcher button {
   width: 100%;
   display: flex;
   align-items: center;
@@ -290,13 +332,34 @@
   color: #5d3c12;
   font-weight: 800;
   text-align: left;
+  text-decoration: none;
 }
 
 .materialFilterList button.active,
-.chatModeNav button:first-child {
+.chatModeNav button:first-child,
+.profileLiteRoleNav a.active,
+.profileLiteRoleSwitcher button.active {
   background: linear-gradient(180deg, #f2d492, #d39a32);
   color: #24180e;
   box-shadow: 0 10px 22px rgba(141, 83, 10, 0.14);
+}
+
+.profileLiteRoleSwitcher {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profileLiteRoleSwitcher button {
+  justify-content: center;
+  min-height: 42px;
+  text-align: center;
+}
+
+.profileLiteRoleNav {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.profileLiteRoleNav a {
+  min-height: 40px;
 }
 
 .materialFilterList b {
@@ -9354,6 +9417,8 @@
 @media (max-width: 760px) {
   .profileLiteShell .profileLiteTabs a,
   .profileLiteShell .profileLiteShellChrome .profileLiteTabs a,
+  .profileLiteShell .profileLiteRoleSwitcher button,
+  .profileLiteShell .profileLiteRoleNav a,
   .profileLitePowerPlace .workspaceTabs button,
   .profileLitePowerPlace .powerPlaceActions button,
   .profileLitePowerPlace .reportActions button,

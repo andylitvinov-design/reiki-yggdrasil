@@ -12,6 +12,29 @@ export const PROFILE_LITE_TABS = [
   { id: "chats", label: "Чаты", href: "/profile/chats" }
 ];
 
+export const PROFILE_LITE_CABINET_ROLES = [
+  { id: "client", label: "Кабинет Личный", defaultTabId: "orders" },
+  { id: "master", label: "Кабинет Мастера", defaultTabId: "mandalas" }
+];
+
+export const PROFILE_LITE_ROLE_NAV = {
+  client: [
+    { label: "Мои Заказы", tabId: "orders" },
+    { label: "Полученные мандалы", tabId: "orders" },
+    { label: "Мои фото / цели", tabId: "media" },
+    { label: "Сообщения с мастером", tabId: "chats" },
+    { label: "Профиль", tabId: "profile" }
+  ],
+  master: [
+    { label: "Мандалы / Шаблоны", tabId: "mandalas" },
+    { label: "Услуги", tabId: "services" },
+    { label: "Клиенты", tabId: "services" },
+    { label: "База клиента", tabId: "services" },
+    { label: "Заявки / Заказы", tabId: "orders" },
+    { label: "Материалы / Гримуарий", tabId: "materials" }
+  ]
+};
+
 const PROFILE_LITE_INTERNAL_TABS = [
   ...PROFILE_LITE_TABS,
   { id: "settings", label: "Настройки", href: "/profile/settings" },
@@ -39,6 +62,19 @@ export function getProfileLiteTabById(tabId) {
 
 export function getProfileLiteRouteByTabId(tabId) {
   return getProfileLiteTabById(tabId).href;
+}
+
+export function getProfileLiteRoleById(roleId) {
+  return PROFILE_LITE_CABINET_ROLES.find((role) => role.id === roleId) || PROFILE_LITE_CABINET_ROLES[0];
+}
+
+export function getProfileLiteRoleForTab(tabId) {
+  return ["mandalas", "services", "materials"].includes(tabId) ? "master" : "client";
+}
+
+export function getProfileLiteRoleNav(roleId) {
+  const role = getProfileLiteRoleById(roleId);
+  return PROFILE_LITE_ROLE_NAV[role.id] || PROFILE_LITE_ROLE_NAV.client;
 }
 
 export function getProfileLiteInitialTabFromLocation(pathname = "/profile", search = "") {
