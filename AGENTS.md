@@ -278,6 +278,8 @@ LIVE PROOF:
 - Expected live behavior:
 - Actual live behavior:
 - Evidence:
+- Auth boundary: NONE / GOOGLE_OAUTH_EXPECTED / SUPABASE_AUTH_EXPECTED / PRIVATE_CABINET_EXPECTED / OWNER_SESSION_REQUIRED
+- Authenticated live proof: VERIFIED / SKIPPED_EXPECTED_AUTH_BOUNDARY / OWNER_REQUIRED / NOT_APPLICABLE
 ```
 
 Project adapter for this repo:
@@ -342,3 +344,8 @@ After work, report:
 - whether `STATE.md` / `LOG.md` need updates
 - fallback workflow result if deploy fallback was used
 - production/legacy live verification result
+
+
+## Expected Auth Boundary
+
+Follow `docs/delivery-auth-boundary-standard.md` when Google OAuth, Supabase auth, private cabinet login, or an owner-only session blocks automated post-login live verification. Expected auth boundaries are not delivery failures by themselves. Use `STATUS: SUCCESS_WITH_AUTH_LIMITATION` when safe public/login/protected-redirect/local-or-code proof passes and the only missing proof is authenticated post-login live verification.
