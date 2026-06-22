@@ -19,19 +19,17 @@ export const PROFILE_LITE_CABINET_ROLES = [
 
 export const PROFILE_LITE_ROLE_NAV = {
   client: [
-    { label: "Мои Заказы", tabId: "orders" },
-    { label: "Полученные мандалы", tabId: "orders" },
-    { label: "Мои фото / цели", tabId: "media" },
-    { label: "Сообщения с мастером", tabId: "chats" },
+    { label: "Мои заказы", tabId: "orders" },
+    { label: "Мои фото", tabId: "media" },
+    { label: "Чаты", tabId: "chats" },
     { label: "Профиль", tabId: "profile" }
   ],
   master: [
-    { label: "Мандалы / Шаблоны", tabId: "mandalas" },
+    { label: "Мастерская", tabId: "mandalas" },
     { label: "Услуги", tabId: "services" },
     { label: "Клиенты", tabId: "services" },
-    { label: "База клиента", tabId: "services" },
-    { label: "Заявки / Заказы", tabId: "orders" },
-    { label: "Материалы / Гримуарий", tabId: "materials" }
+    { label: "Заявки", tabId: "orders" },
+    { label: "Гримуар", tabId: "materials" }
   ]
 };
 

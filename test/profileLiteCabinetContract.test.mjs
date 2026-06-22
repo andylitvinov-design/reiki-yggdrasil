@@ -85,14 +85,14 @@ assert.deepEqual(
 
 assert.deepEqual(
   PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
-  ["Мои Заказы", "Полученные мандалы", "Мои фото / цели", "Сообщения с мастером", "Профиль"],
-  "client cabinet nav should expose Phase A labels"
+  ["Мои заказы", "Мои фото", "Чаты", "Профиль"],
+  "client cabinet nav should expose only client role items"
 );
 
 assert.deepEqual(
   PROFILE_LITE_ROLE_NAV.master.map((item) => item.label),
-  ["Мандалы / Шаблоны", "Услуги", "Клиенты", "База клиента", "Заявки / Заказы", "Материалы / Гримуарий"],
-  "master cabinet nav should expose Phase A labels"
+  ["Мастерская", "Услуги", "Клиенты", "Заявки", "Гримуар"],
+  "master cabinet nav should expose only master role items"
 );
 
 assert.equal(getProfileLiteRoleById("missing").label, "Кабинет Личный");
@@ -100,7 +100,7 @@ assert.equal(getProfileLiteRoleForTab("orders"), "client");
 assert.equal(getProfileLiteRoleForTab("mandalas"), "master");
 assert.equal(getProfileLiteRoleForTab("services"), "master");
 assert.equal(getProfileLiteRoleForTab("profile"), "client");
-assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "services", "services", "orders", "materials"]);
+assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "services", "orders", "materials"]);
 
 const fullForm = createProfileLiteForm({
   display_name: "Master",
@@ -229,6 +229,14 @@ const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8"
 const grimoireWorkspaceCss = readFileSync(join(moduleDir, "ProfileLiteGrimoireWorkspace.css"), "utf8");
 const mobileOrderCss = readFileSync("public/profile-lite-mobile-order-hotfix.css", "utf8");
 const layoutFinalFix = readFileSync("public/profile-lite-layout-final-fix.js", "utf8");
+const clientOrdersViewSource = profileOrdersModuleSource.slice(
+  profileOrdersModuleSource.indexOf("function ClientOrdersView"),
+  profileOrdersModuleSource.indexOf("function MasterOrdersView")
+);
+const masterOrdersViewSource = profileOrdersModuleSource.slice(
+  profileOrdersModuleSource.indexOf("function MasterOrdersView"),
+  profileOrdersModuleSource.indexOf("export default function ProfileLiteOrdersModule")
+);
 
 for (const label of expectedTabs.map(([, label]) => label)) {
   assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
@@ -514,15 +522,25 @@ assert.match(profileLitePageSource, /createServiceOrderDraft/, "checkout should 
 assert.match(profileLitePageSource, /submitServiceOrderToMaster/, "order flow should require explicit submit to master");
 assert.match(profileLitePageSource, /listClientServiceOrders\(profile\.id/, "client cabinet should load own client orders");
 assert.match(profileLitePageSource, /listOwnServiceOrders\(profile\.id/, "master cabinet should load incoming orders for own services");
+assert.match(profileLitePageSource, /cabinetRole,/, "ProfileLitePage should pass the existing cabinetRole into module props");
 assert.match(profileOrdersModuleSource, /Кабинет Личный/, "orders module should expose personal cabinet mode");
-assert.match(profileOrdersModuleSource, /Мои Заказы/, "orders module should expose client orders");
-assert.match(profileOrdersModuleSource, /Мои Фото/, "orders module should expose client photos");
+assert.match(profileOrdersModuleSource, /function ClientOrdersView/, "orders module should split the personal cabinet branch");
+assert.match(profileOrdersModuleSource, /function MasterOrdersView/, "orders module should split the master cabinet branch");
+assert.match(profileOrdersModuleSource, /Мои заказы/, "orders module should expose client orders");
+assert.match(profileOrdersModuleSource, /Мои фото/, "orders module should expose client photos");
 assert.match(profileOrdersModuleSource, /Кабинет Мастера/, "orders module should expose master cabinet mode");
 assert.match(profileOrdersModuleSource, /Заявки/, "orders module should expose master requests");
+assert.doesNotMatch(profileOrdersModuleSource, /\["Мои Заказы", "Мои Фото", "Кабинет Мастера", "Заявки"\]/, "orders module must not render a hardcoded mixed inner sidebar");
+assert.doesNotMatch(profileOrdersModuleSource, /Источник данных/, "orders module must not expose source table debug text");
+assert.doesNotMatch(profileOrdersModuleSource, /needs verification/, "orders module must not expose raw needs verification text");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить личные заказы\. Попробуйте обновить страницу\./, "client orders errors should be non-technical");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить заявки мастера\. Попробуйте обновить страницу\./, "master orders errors should be non-technical");
 assert.match(profileOrdersModuleSource, /Можно хранить до 4 фото\. Удалите старое фото или выберите одно из существующих\./, "orders module should show exact 4-photo limit message");
 assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
 assert.match(profileOrdersModuleSource, /Отправить заказ мастеру/, "orders module should require explicit submit button");
 assert.doesNotMatch(profileOrdersModuleSource, /onSubmit=\{\(event\) => \{ event\.preventDefault\(\); onOrderUpdate\(\); \}\}/, "orders module should not silently submit via generic form update");
+assert.doesNotMatch(clientOrdersViewSource, /Кабинет Мастера|Заявки мастера|Создать мандалу заказа|Комментарий мастера|Отправить клиенту/, "client orders branch must not render master cabinet controls");
+assert.doesNotMatch(masterOrdersViewSource, /Мои фото|Отправить заказ мастеру|Название фото|Загрузить фото/, "master orders branch must not render personal photo upload or client submit controls");
 for (const phase5OrderText of [
   "Создать мандалу заказа",
   "Открыть мандалу заказа",
@@ -537,7 +555,7 @@ for (const phase5OrderText of [
 }
 assert.match(profileLitePageSource, /generateDraftResultComposition/, "Profile Lite page should call Phase 5 draft generation helper");
 assert.match(profileLitePageSource, /sendOrderResultToClient/, "Profile Lite page should call Phase 5 send result helper");
-assert.doesNotMatch(profileOrdersModuleSource, /draft_result_composition_id[^]*Кабинет Личный/, "client UI must not expose draft_result_composition_id before sent");
+assert.doesNotMatch(clientOrdersViewSource, /draft_result_composition_id/, "client UI must not expose draft_result_composition_id before sent");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");

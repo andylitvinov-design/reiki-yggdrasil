@@ -2,8 +2,7 @@ import React from "react";
 import {
   getProfileLiteRoleNav,
   getProfileLiteRouteByTabId,
-  PROFILE_LITE_CABINET_ROLES,
-  PROFILE_LITE_TABS
+  PROFILE_LITE_CABINET_ROLES
 } from "../../lib/profileLiteClient.js";
 
 export default function ProfileLiteShell({
@@ -21,6 +20,7 @@ export default function ProfileLiteShell({
   user
 }) {
   const roleNav = getProfileLiteRoleNav(cabinetRole);
+  const currentCabinetLabel = PROFILE_LITE_CABINET_ROLES.find((role) => role.id === cabinetRole)?.label || "Кабинет Личный";
 
   const shellChrome = (
     <div className="profileLiteShellChrome">
@@ -58,26 +58,7 @@ export default function ProfileLiteShell({
         })}
       </nav>
 
-      <nav className="profileLiteTabs" aria-label="Разделы кабинета Profile Lite">
-        {PROFILE_LITE_TABS.map((tab) => (
-          <a
-            aria-current={activeTab === tab.id ? "page" : undefined}
-            className={activeTab === tab.id ? "active" : ""}
-            href={tab.href}
-            key={tab.id}
-            onClick={(event) => {
-              event.preventDefault();
-              onTabNavigate(tab);
-            }}
-          >
-            {tab.label}
-          </a>
-        ))}
-      </nav>
-
-      <div className="profileLiteStatusRail">
-        <span>Auth: {authStatus}</span>
-        <span>Профиль: {profile?.status || "needs verification"}</span>
+      <div className="profileLiteActionsRail" aria-label="Действия кабинета">
         <div className="cabinetActions">
           <button className="cabinetSecondary" type="button" onClick={onRefresh}>Обновить</button>
           <button className="cabinetGhost" type="button" onClick={onReset}>Выйти / сбросить</button>
@@ -99,7 +80,7 @@ export default function ProfileLiteShell({
         <button type="button" onClick={onNavigateHome}>На главную</button>
         <div>
           <p>Альтернативный кабинет</p>
-          <h1>Кабинет мастера Lite</h1>
+          <h1>{currentCabinetLabel} Lite</h1>
           <small>{user?.email || "вход не выполнен"} · {profile?.display_name || "профиль загружается отдельно"}</small>
         </div>
         <button type="button" onClick={onNavigateMasters}>Мастера</button>

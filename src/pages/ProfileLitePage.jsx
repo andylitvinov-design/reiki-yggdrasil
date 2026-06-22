@@ -2495,6 +2495,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     chatThreads,
     chatsError,
     chatsStatus,
+    cabinetRole,
     clientGoalPhotos,
     clientOrders,
     clientPhotoForm,
