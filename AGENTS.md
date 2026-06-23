@@ -84,6 +84,28 @@ For auth-gated cabinet screens, use auth-safe evidence. Never request credential
 
 If GitHub Issues are unavailable during audit, output the full issue body in chat and mark `STATUS: AUDIT_COMPLETE_ISSUE_NOT_CREATED`.
 
+## Audit-fin numeric diagnostic mode
+
+When the user asks for `/audit-fin`, numeric audit, finance audit, calculation audit, formula check, score check, dashboard/table/report check, or asks whether numbers/percentages/totals/metrics are correct, follow `docs/audit-fin-loop.md` before implementation.
+
+`/audit-fin` is diagnostic by default. It should not edit app code, commit product fixes, push implementation changes, merge, deploy, modify production data, or change formulas unless the user explicitly asks to continue to `/delivery`.
+
+For screenshots, reports, tables, dashboards, scores, results pages, calculators, and numeric complaints, audit-fin must:
+
+- extract the numeric contract: expected values, formulas, labels, thresholds, date periods, units, and display rules;
+- inspect visible numbers and mark unclear screenshot values as `VISUAL UNCLEAR`;
+- inspect code deeply to find where numbers are computed, stored, loaded, transformed, rounded, formatted, and displayed;
+- trace data flow from input to state, calculation, derived value, persistence, hydration, and display;
+- compare expected vs actual values using `MATCH`, `MISMATCH`, `MISSING`, `DUPLICATE`, `STALE`, `NOT VERIFIED`, or `NOT APPLICABLE`;
+- evaluate formula correctness, data source, rounding/formatting, missing/inconsistent values, persistence/history safety, charts/gauges, desktop/mobile display, edge cases, regression risk, and proof plan;
+- identify confirmed numeric/code problems separately from unverified hypotheses;
+- create or update a GitHub issue with the full numeric technical instruction;
+- return only a short chat response with audit-fin status, issue link, and a concise `/delivery` prompt pointing to that issue.
+
+For auth-gated cabinet screens, use auth-safe evidence. Never request credentials, cookies, tokens, or secrets, and never claim authenticated production numeric verification unless actually performed.
+
+If GitHub Issues are unavailable during audit-fin, output the full issue body in chat and mark `STATUS: AUDIT_FIN_COMPLETE_ISSUE_NOT_CREATED`.
+
 ## Terminal prompt safety rules
 
 When giving the user a terminal prompt for this repo:
