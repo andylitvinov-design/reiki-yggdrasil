@@ -8,6 +8,18 @@ Install command when supported by the local agent environment:
 npx skills add jakubkrehel/make-interfaces-feel-better
 ```
 
+Verified project-local install for Codex + Claude Code:
+
+```bash
+npx skills add jakubkrehel/make-interfaces-feel-better --skill make-interfaces-feel-better --agent codex claude-code -y
+```
+
+Expected local install result:
+
+- `.agents/skills/make-interfaces-feel-better/` is available to Codex;
+- `.claude/skills/make-interfaces-feel-better` points to that project skill for Claude Code;
+- `skills-lock.json` pins the external source and hash.
+
 Source URL:
 
 ```txt
