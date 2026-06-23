@@ -215,13 +215,6 @@ export function buildClientDirectoryFromOrders(orders = [], clientGoalPhotos = [
     }).clientWorks.push(work);
   }
 
-  for (const photo of clientGoalPhotos || []) {
-    const name = text(photo.title || photo.notes);
-    if (!name) continue;
-    const key = `name:${name}`;
-    ensureClient({ key, client_name: name }).photos.push(photo);
-  }
-
   return [...clientsByKey.values()].sort((a, b) => a.client_name.localeCompare(b.client_name, "ru"));
 }
 

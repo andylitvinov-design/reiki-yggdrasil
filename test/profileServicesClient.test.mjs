@@ -227,6 +227,17 @@ const clientDirectoryWithSavedWork = buildClientDirectoryFromOrders([], [], [
 ]);
 assert.equal(clientDirectoryWithSavedWork[0].client_name, "Вера");
 assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].result_composition_id, "composition-for-client");
+
+const clientDirectoryWithPhotosOnly = buildClientDirectoryFromOrders([], [
+  { id: "photo-a", title: "IMG_1842.jpeg", notes: "цель клиента" },
+  { id: "photo-b", title: "Фото цели" }
+], []);
+assert.deepEqual(
+  clientDirectoryWithPhotosOnly,
+  [],
+  "client selector should not list client/goal photo titles or filenames as clients"
+);
+
 assert.equal(buildCompositionResultUrl("", "https://mentalica.vercel.app"), "");
 assert.equal(
   buildCompositionResultUrl("final result 1", "https://mentalica.vercel.app/"),
