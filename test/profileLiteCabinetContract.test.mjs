@@ -495,8 +495,9 @@ for (const servicesManagerText of [
   "Архив",
   "Клиенты",
   "База клиентов",
-  "Выберите клиента, чтобы увидеть его заказы и отправленные мандалы.",
-  "Для этого клиента пока нет заказов.",
+  "Клиентов пока нет",
+  "Клиенты появятся, когда вы сохраните мандалу через \"Сохранить для клиента\" или когда клиент оформит заказ.",
+  "В этом разделе пока нет материалов клиента.",
   "Открыть мандалу",
   "Превью мандалы пока не создано",
   "Превью недоступно",
@@ -527,6 +528,11 @@ assert.match(profileServicesModuleSource, /profileLiteClientSelectorButton/, "se
 assert.match(profileServicesModuleSource, /profileLiteClientOption/, "services client selector should render inline client options");
 assert.match(profileServicesModuleSource, /client_display_name/, "services client selector should use safe display names");
 assert.doesNotMatch(profileServicesModuleSource, /profile_cabinet_services|\/services\/:serviceId/, "services manager should not show table names or unfinished route debug text in the normal UI");
+assert.doesNotMatch(profileServicesModuleSource, /composition_id:|delivery modes MVP|formats persistence|raw success|needs verification/, "services manager normal UI must not expose implementation/debug labels");
+assert.match(profileServicesModuleSource, /Клиентов пока нет[\s\S]*Сохранить для клиента/, "services manager should show a useful no-clients empty state instead of an empty selector-first UI");
+assert.match(profileServicesModuleSource, /profileLiteClientWorkspace[\s\S]*profileLiteSecondaryServices/, "services manager should put clients/materials before secondary service groups");
+assert.match(profileServicesModuleSource, /profileLiteEditorToggle[\s\S]*Создать услугу/, "services manager should hide the editor behind a create/edit action on compact screens");
+assert.match(profileServicesModuleSource, /serviceUiStatusText/, "services manager should map raw service load/action statuses to RU UI labels");
 assert.match(profileServicesModuleSource, /navigator\.clipboard\?\.writeText\(url\)/, "sent mandala copy button should use Clipboard API");
 assert.match(profileServicesModuleSource, /window\.prompt\("Ссылка на мандалу", url\)/, "sent mandala copy should fall back to prompt");
 assert.doesNotMatch(profileServicesModuleSource, /Внутренняя ссылка на мандалу/, "services manager should not expose internal mandala-link labels in normal cards");
