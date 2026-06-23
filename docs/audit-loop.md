@@ -26,6 +26,7 @@ screenshot / complaint / URL
 -> UX diagnosis
 -> friendlier target design
 -> deep code investigation
+-> multi-layer quality audit
 -> code problem map
 -> GitHub issue with full technical instructions
 -> short /delivery prompt linking to the issue
@@ -192,7 +193,129 @@ Instead check or request safe substitute evidence:
 
 Use status `AUDIT_PARTIAL_AUTH_LIMITATION` when only authenticated production visual proof is unavailable.
 
-## 5. Audit loop
+## 5. Mandatory audit dimensions
+
+Every `/audit` issue must evaluate the target through these layers. Mark a layer `NOT APPLICABLE` only when it truly does not apply.
+
+### 5.1 User friendliness and visual quality
+
+Check whether the screen is pleasant, clear, and easy for a normal user:
+
+- first impression and visual calm;
+- visual hierarchy: title, explanation, primary action, secondary actions;
+- beauty/polish: spacing, alignment, rhythm, card balance, typography;
+- whether the page feels too technical, medical, therapist-only, or owner-specific;
+- whether the user can understand what to do in 3–5 seconds;
+- whether the UI uses short labels instead of long explanations;
+- whether optional details are hidden or collapsed instead of always visible;
+- whether the page feels friendly, human, and confidence-building.
+
+### 5.2 Desktop and mobile layout mechanics
+
+Check both desktop and mobile behavior, even if only one screenshot is provided:
+
+- desktop width and responsive breakpoints;
+- mobile width around 360–430px;
+- iOS/Safari safe-area issues;
+- `100vh`, fixed bars, sticky headers/footers;
+- scrolling and overflow containers;
+- modals/sheets/dropdowns fitting inside viewport;
+- buttons not hidden under bottom bars;
+- keyboard behavior for forms;
+- touch target size and spacing;
+- text wrapping and long Russian labels.
+
+### 5.3 Interaction and clickability
+
+Check whether all meaningful actions can actually be used:
+
+- primary buttons visible and clickable;
+- disabled/loading states understandable;
+- menus expand/collapse correctly;
+- tabs/sidebars/accordions preserve selected state;
+- forms can be opened, cancelled, submitted;
+- modals close safely;
+- no invisible overlay blocks clicks;
+- no duplicate competing buttons;
+- navigation returns user to expected place.
+
+### 5.4 Data saving, persistence, and history
+
+Check whether user actions save the right data in the right place:
+
+- form submit handler exists and is wired correctly;
+- localStorage/Supabase/state updates match the intended data model;
+- create vs update vs duplicate behavior is clear;
+- primary intake/results data is not overwritten by repeat/history data;
+- dates/history entries are preserved;
+- selected client/template/session is not lost;
+- errors during save are visible;
+- success state is visible;
+- backward-compatible reads/migrations are preserved.
+
+### 5.5 Auth, privacy, and protected routes
+
+Check safety boundaries:
+
+- no weakening of private-route protection;
+- no mock auth in production;
+- no exposure of private pages publicly;
+- no secrets, tokens, cookies, or `.env` committed;
+- protected routes redirect safely rather than crashing;
+- auth limitation is documented as `AUDIT_PARTIAL_AUTH_LIMITATION` when needed.
+
+### 5.6 Technical code quality
+
+Check whether the implementation is maintainable:
+
+- component responsibilities are clear;
+- no huge fragile conditional blocks unless necessary;
+- state shape is understandable;
+- shared components are reused safely;
+- naming matches product language;
+- no unrelated rewrite;
+- no dead code or duplicate logic introduced;
+- errors and edge cases handled;
+- code can be verified by build/check commands.
+
+### 5.7 Regression risk and blast radius
+
+Check what else can break:
+
+- shared components used on other pages;
+- CSS classes or layout wrappers reused elsewhere;
+- routes that share the same state/data model;
+- previous PRs touching the same area;
+- mobile changes affecting desktop;
+- auth changes affecting protected flows;
+- save/history changes affecting existing user data.
+
+### 5.8 Content and language quality
+
+Check whether text supports the interface instead of overwhelming it:
+
+- Russian copy is short and natural;
+- no long paragraphs where labels/cards would work;
+- no vague therapeutic jargon for ordinary users;
+- action labels are concrete;
+- helper text appears only where needed;
+- user sees benefit and next action quickly.
+
+### 5.9 Accessibility and resilience
+
+Check basic robustness:
+
+- semantic buttons/inputs/labels;
+- keyboard navigation where relevant;
+- readable contrast and font sizes;
+- focus states for forms/modals;
+- empty states;
+- loading states;
+- error states;
+- long names/text values;
+- network/save failure handling.
+
+## 6. Audit loop
 
 Run this loop:
 
@@ -211,25 +334,28 @@ Run this loop:
 5. Inspect code deeply  
    Search routes/components/styles/data/state. Open relevant files. Follow imports to child components and shared helpers. Do not invent code details.
 
-6. Map symptoms to code  
+6. Evaluate all mandatory audit dimensions  
+   User friendliness, responsive layout, interaction, saving/persistence, auth/privacy, code quality, regression risk, language, accessibility, and resilience.
+
+7. Map symptoms to code  
    Connect each UI issue to specific files, functions, components, classes, state, and likely root causes.
 
-7. Identify actual code problems  
+8. Identify actual code problems  
    Separate confirmed code defects from UX improvement opportunities and unverified hypotheses.
 
-8. Propose minimal redesign and implementation plan  
+9. Propose minimal redesign and implementation plan  
    Prefer small targeted changes over full rewrites.
 
-9. Create or update a GitHub issue  
+10. Create or update a GitHub issue  
    Save the full technical instruction in GitHub Issues. If an existing open issue clearly covers the same audit target and problem, update/comment on that issue instead of creating a duplicate. Otherwise create a new issue.
 
-10. Return a short chat response  
+11. Return a short chat response  
    Include only the audit status, GitHub issue link, and a concise `/delivery` prompt that points to the issue.
 
-11. Stop  
+12. Stop  
    Do not implement unless user explicitly asks to continue.
 
-## 6. GitHub issue requirements
+## 7. GitHub issue requirements
 
 Every completed `/audit` should create or update a GitHub issue unless the GitHub connector is unavailable. If GitHub is unavailable, output the full issue body in chat and mark:
 
@@ -257,7 +383,7 @@ auth-limited
 
 Use only labels that exist or that the tool can safely create/apply. Do not fail the audit only because labels are missing.
 
-## 7. Required GitHub issue body format
+## 8. Required GitHub issue body format
 
 The GitHub issue must contain the full technical detail. Use this structure:
 
@@ -282,6 +408,20 @@ STATUS: AUDIT_COMPLETE | AUDIT_PARTIAL_AUTH_LIMITATION | AUDIT_BLOCKED | AUDIT_C
 
 ## User-friendly target interface
 Describe the target interface in plain language.
+
+## Mandatory audit dimensions
+| Layer | Status | Findings | Required action |
+|---|---|---|---|
+| User friendliness / visual quality | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Desktop layout | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Mobile layout | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Interaction / clickability | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Data saving / persistence / history | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Auth / privacy / protected routes | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Technical code quality | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Regression risk / blast radius | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Content / language quality | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Accessibility / resilience | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
 
 ## Findings
 | Priority | Problem | Why it matters | Evidence | Suggested fix |
@@ -322,6 +462,9 @@ List improvements that are product decisions rather than strict code bugs.
 - Build/check commands.
 - Browser/local/preview/live checks.
 - Mobile checks.
+- Desktop checks.
+- Clickability/form checks.
+- Save/persistence/history checks.
 - Auth-safe verification limits.
 
 ## Acceptance criteria
@@ -350,7 +493,7 @@ Verification:
 ```
 ```
 
-## 8. Chat output format
+## 9. Chat output format
 
 The chat response after `/audit` should be short. Do not duplicate all technical details if a GitHub issue was created.
 
@@ -383,7 +526,7 @@ STATUS: AUDIT_PARTIAL_AUTH_LIMITATION
 ...
 ```
 
-## 9. Required behavior
+## 10. Required behavior
 
 Do not say “everything is fine” unless the audit contract was checked.
 
