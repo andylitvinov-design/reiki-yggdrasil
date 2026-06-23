@@ -2587,7 +2587,7 @@ export default function ProfileLitePowerPlaceModule({
             </div>
             <span className="cabinetStatus">{clientSaveForm.status}</span>
           </div>
-          <label>
+          <label className="profileLiteClientSaveField">
             Клиент
             <select
               disabled={isClientSaveLoading}
@@ -2611,7 +2611,7 @@ export default function ProfileLitePowerPlaceModule({
           >
             Добавить нового клиента
           </button>
-          <label>
+          <label className="profileLiteClientSaveField">
             Имя клиента
             <input
               disabled={isClientSaveLoading}
@@ -2620,7 +2620,7 @@ export default function ProfileLitePowerPlaceModule({
               placeholder="Имя клиента"
             />
           </label>
-          <label>
+          <label className="profileLiteClientSaveField">
             Комментарий / запрос клиента
             <textarea
               disabled={isClientSaveLoading}
@@ -2630,7 +2630,7 @@ export default function ProfileLitePowerPlaceModule({
               placeholder="Комментарий / запрос клиента"
             />
           </label>
-          <label>
+          <label className="profileLiteClientSaveField">
             Фото клиента / цель
             <select
               disabled={isClientSaveLoading}

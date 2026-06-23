@@ -15,6 +15,7 @@ import {
   createServiceCartStore,
   filterPublishedServices,
   formatServicePrice,
+  getClientDisplayName,
   getServicePublicLinkState,
   groupServicesByStatus,
   isPendingServiceCartFresh,
@@ -227,6 +228,28 @@ const clientDirectoryWithSavedWork = buildClientDirectoryFromOrders([], [], [
 ]);
 assert.equal(clientDirectoryWithSavedWork[0].client_name, "Вера");
 assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].result_composition_id, "composition-for-client");
+
+const clientDirectoryWithFilenameNames = buildClientDirectoryFromOrders([
+  normalizeServiceOrder({
+    id: "order-img",
+    client_name: "IMG_2481.jpeg",
+    client_photo_id: "photo-2481"
+  }),
+  normalizeServiceOrder({
+    id: "order-human",
+    client_name: " Мария Север "
+  })
+]);
+assert.deepEqual(
+  clientDirectoryWithFilenameNames.map((client) => [client.key, client.client_name, client.client_display_name, client.client_display_note]),
+  [
+    ["name:IMG_2481.jpeg", "IMG_2481.jpeg", "Клиент без имени", "Имя клиента не заполнено"],
+    ["name:Мария Север", "Мария Север", "Мария Север", ""]
+  ],
+  "client directory should keep stable raw keys but use safe display names for filename-like client names"
+);
+assert.equal(getClientDisplayName({ client_name: "IMG_2482.jpeg" }), "Клиент без имени");
+assert.equal(getClientDisplayName({ client_name: "Анна" }), "Анна");
 
 const clientDirectoryWithPhotosOnly = buildClientDirectoryFromOrders([], [
   { id: "photo-a", title: "IMG_1842.jpeg", notes: "цель клиента" },

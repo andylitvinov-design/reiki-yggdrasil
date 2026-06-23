@@ -8173,6 +8173,8 @@
 .profileLitePowerPlace .profileLiteClientSaveForm {
   display: grid;
   gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
 }
 
 .profileLitePowerPlace .profileLiteClientSaveForm label,
@@ -8181,10 +8183,133 @@
   min-width: 0;
 }
 
+.profileLitePowerPlace .profileLiteClientSaveField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  width: 100%;
+  color: #5f3e12;
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm input,
+.profileLitePowerPlace .profileLiteClientSaveForm select,
+.profileLitePowerPlace .profileLiteClientSaveForm textarea {
+  box-sizing: border-box;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  justify-content: start;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions button,
+.profileLitePowerPlace .profileLiteClientSaveNewButton {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
 .profileLiteServices .profileLiteClientDatabaseBody {
   display: grid;
   gap: 10px;
   min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientSelector {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientSelectorLabel {
+  color: rgba(44, 29, 12, 0.72);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton,
+.profileLiteServices .profileLiteClientOption {
+  align-items: center;
+  background: #fffdf8;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 14px;
+  color: #2c1d0c;
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+  min-width: 0;
+  padding: 11px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton span,
+.profileLiteServices .profileLiteClientOption span,
+.profileLiteServices .profileLiteClientSelectorButton small,
+.profileLiteServices .profileLiteClientOption small {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton span,
+.profileLiteServices .profileLiteClientOption span {
+  font-weight: 900;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton small,
+.profileLiteServices .profileLiteClientOption small {
+  color: rgba(44, 29, 12, 0.62);
+  font-size: 0.76rem;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton:hover,
+.profileLiteServices .profileLiteClientOption:hover,
+.profileLiteServices .profileLiteClientOption.active {
+  border-color: rgba(116, 76, 24, 0.44);
+  box-shadow: 0 8px 18px rgba(90, 58, 20, 0.08);
+}
+
+.profileLiteServices .profileLiteClientSelectorPanel {
+  background: rgba(255, 252, 246, 0.92);
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 16px;
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  min-width: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.profileLiteServices .profileLiteClientSearch {
+  background: #fffdf8;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 12px;
+  color: #2c1d0c;
+  min-width: 0;
+  padding: 10px 11px;
+  width: 100%;
 }
 
 .profileLiteLegacyColumns .materialCard h3,
