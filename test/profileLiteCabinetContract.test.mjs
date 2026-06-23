@@ -526,6 +526,9 @@ assert.match(profileLitePageSource, /submitServiceOrderToMaster/, "order flow sh
 assert.match(profileLitePageSource, /listClientServiceOrders\(profile\.id/, "client cabinet should load own client orders");
 assert.match(profileLitePageSource, /listOwnServiceOrders\(profile\.id/, "master cabinet should load incoming orders for own services");
 assert.match(profileLitePageSource, /cabinetRole,/, "ProfileLitePage should pass the existing cabinetRole into module props");
+assert.match(profileLitePageSource, /authGateCabinetLabel = getProfileLiteRoleById\(cabinetRole\)\.label/, "logged-out Profile Lite shell should use the selected role label");
+assert.doesNotMatch(profileLitePageSource, /<h1>Кабинет мастера Lite<\/h1>/, "logged-out Profile Lite shell must not hardcode the master cabinet title");
+assert.doesNotMatch(profileLitePageSource, /<ProfileLiteDiagnosticsModule diagnostics=\{diagnostics\} moduleStates=\{moduleStates\} \/>[\s\S]*<\/main>[\s\S]*<\/div>[\s\S]*\);\n  \}/, "logged-out Profile Lite shell must not render the diagnostics block");
 assert.match(profileOrdersModuleSource, /Кабинет Личный/, "orders module should expose personal cabinet mode");
 assert.match(profileOrdersModuleSource, /function ClientOrdersView/, "orders module should split the personal cabinet branch");
 assert.match(profileOrdersModuleSource, /function MasterOrdersView/, "orders module should split the master cabinet branch");

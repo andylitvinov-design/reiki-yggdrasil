@@ -2456,13 +2456,14 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   };
 
   if (!user || authStatus !== "success") {
+    const authGateCabinetLabel = getProfileLiteRoleById(cabinetRole).label;
     return (
       <div className="cabinetShell profileLiteShell profileLiteFullShell">
         <header className="cabinetTopbar">
           <button type="button" onClick={onNavigateHome}>На главную</button>
           <div>
             <p>Альтернативный кабинет</p>
-            <h1>Кабинет мастера Lite</h1>
+            <h1>{authGateCabinetLabel} Lite</h1>
           </div>
           <button type="button" onClick={onNavigateMasters}>Мастера</button>
         </header>
@@ -2482,7 +2483,6 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
               <button className="cabinetGhost" type="button" onClick={refreshShell}>Повторить</button>
             </div>
           </section>
-          <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
         </main>
       </div>
     );
