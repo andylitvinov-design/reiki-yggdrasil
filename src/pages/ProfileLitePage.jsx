@@ -2491,6 +2491,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const moduleProps = {
     activeSettings,
     accountPlan,
+    cabinetRole,
     chatDraft,
     chatThreads,
     chatsError,

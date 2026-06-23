@@ -213,6 +213,7 @@ const moduleSource = readdirSync(moduleDir)
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
+const profileLiteShellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
 const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
@@ -262,6 +263,15 @@ assert.match(profileCoursesClientSource, /listAvailableCoursesForProfile/, "Cour
 assert.match(profileCoursesClientSource, /listAvailableCourseSteps/, "Course client should load steps for current profile");
 assert.match(profileCoursesClientSource, /listAvailableCourseLessons/, "Course client should load lessons for current profile");
 assert.doesNotMatch(`${profileCoursesClientSource}\n${profileCoursesModuleSource}\n${adminCoursesPanelSource}`, /lesson_access|per[-_ ]lesson/i, "Courses MVP should not implement per-lesson access");
+assert.match(profileLiteShellSource, /<div className="profileLiteRoleSwitcher"[\s\S]*<header className="cabinetTopbar profileLiteTopbar"/, "Profile Lite role switcher must render before the cabinet topbar");
+assert.doesNotMatch(profileLiteShellSource, /PROFILE_LITE_TABS\.map|profileLiteTabs/, "Profile Lite shell must not render the global tab rail that leaks master tabs into client mode");
+assert.doesNotMatch(profileOrdersModuleSource, /Кабинет Мастера", "Заявки"/, "personal orders sidebar must not include master-only items");
+assert.match(profileOrdersModuleSource, /isMasterRole[\s\S]*<MasterOrdersView/, "master requests panel should render only for the master role");
+assert.doesNotMatch(profileOrdersModuleSource, /needs verification: \{ordersError\}/, "orders UI must not expose raw Supabase errors to users");
+assert.match(profileOrdersModuleSource, /Заказы временно не загрузились\. Обновите страницу или попробуйте позже\./, "orders UI should show a clean temporary failure message");
+assert.doesNotMatch(profileOrdersModuleSource, /clientGoalPhotos\.length\}\/4/, "orders photo summary must not render raw count slash limit text");
+assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders photo panel should explain the order selection limit in user-facing RU copy");
+assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders photo panel should summarize hidden media without dumping filenames");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -546,9 +556,9 @@ assert.match(profileOrdersModuleSource, /Заявки/, "orders module should ex
 assert.doesNotMatch(profileOrdersModuleSource, /\["Мои Заказы", "Мои Фото", "Кабинет Мастера", "Заявки"\]/, "orders module must not render a hardcoded mixed inner sidebar");
 assert.doesNotMatch(profileOrdersModuleSource, /Источник данных/, "orders module must not expose source table debug text");
 assert.doesNotMatch(profileOrdersModuleSource, /needs verification/, "orders module must not expose raw needs verification text");
-assert.match(profileOrdersModuleSource, /Не удалось загрузить личные заказы\. Попробуйте обновить страницу\./, "client orders errors should be non-technical");
-assert.match(profileOrdersModuleSource, /Не удалось загрузить заявки мастера\. Попробуйте обновить страницу\./, "master orders errors should be non-technical");
-assert.match(profileOrdersModuleSource, /Можно хранить до 4 фото\. Удалите старое фото или выберите одно из существующих\./, "orders module should show exact 4-photo limit message");
+assert.match(profileOrdersModuleSource, /Заказы временно не загрузились\. Обновите страницу или попробуйте позже\./, "orders errors should be non-technical");
+assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders module should show the order photo selection limit");
+assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders module should summarize extra media photos instead of listing every filename");
 assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
 assert.match(profileOrdersModuleSource, /Отправить заказ мастеру/, "orders module should require explicit submit button");
 assert.doesNotMatch(profileOrdersModuleSource, /onSubmit=\{\(event\) => \{ event\.preventDefault\(\); onOrderUpdate\(\); \}\}/, "orders module should not silently submit via generic form update");

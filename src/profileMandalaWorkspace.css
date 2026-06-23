@@ -348,6 +348,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.profileLiteShell > .profileLiteRoleSwitcher {
+  margin: 14px 18px 0;
+}
+
 .profileLiteRoleSwitcher button {
   justify-content: center;
   min-height: 42px;

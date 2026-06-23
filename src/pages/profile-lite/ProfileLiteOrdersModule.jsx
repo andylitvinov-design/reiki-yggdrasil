@@ -1,18 +1,29 @@
 import React from "react";
 import { formatServicePrice, orderHasClientVisibleResult, orderStatusText } from "../../lib/profileServicesClient.js";
 
-const PHOTO_LIMIT_MESSAGE = "Можно хранить до 4 фото. Удалите старое фото или выберите одно из существующих.";
+const ORDER_PHOTO_SELECTION_LIMIT = 4;
+const ORDER_PHOTO_SELECTION_MESSAGE = "Можно выбрать до 4 фото для заказа";
 const PHOTO_REQUIRED_MESSAGE = "Загрузите своё фото, чтобы отправить заказ в работу Мастеру.";
+const ORDERS_TEMPORARY_ERROR_MESSAGE = "Заказы временно не загрузились. Обновите страницу или попробуйте позже.";
+
+function isRawFilename(value) {
+  return /\.[a-z0-9]{2,5}$/i.test(String(value || "").trim());
+}
 
 function photoTitle(photo, index) {
-  return photo?.title || photo?.notes || `Фото ${index + 1}`;
+  const notes = String(photo?.notes || "").trim();
+  const title = String(photo?.title || "").trim();
+  if (notes) return notes;
+  if (title && !isRawFilename(title)) return title;
+  return `Фото ${index + 1}`;
 }
 
 function ClientOrdersView({
   clientGoalPhotos,
   clientOrders,
   clientPhotoForm,
-  hasPhotoLimit,
+  extraPhotoCount,
+  hasPhotoStorageLimit,
   onClientPhotoFieldChange,
   onClientPhotoFileChange,
   onClientPhotoSave,
@@ -23,6 +34,7 @@ function ClientOrdersView({
   orderConfirmation,
   ordersStatus,
   pendingCartMessage,
+  visibleOrderPhotos,
   visibleOrdersError
 }) {
   return (
@@ -57,7 +69,7 @@ function ClientOrdersView({
                     <div className="cabinetCardInline">
                       <p className="cabinetEyebrow">Фото для заказа</p>
                       {clientGoalPhotos.length === 0 && <p>{PHOTO_REQUIRED_MESSAGE}</p>}
-                      {clientGoalPhotos.map((photo, index) => (
+                      {visibleOrderPhotos.map((photo, index) => (
                         <label className="cabinetCheckbox" key={photo.id || index}>
                           <input
                             checked={orderConfirmation.orderId === order.id && orderConfirmation.photoId === photo.id}
@@ -68,6 +80,7 @@ function ClientOrdersView({
                           {photoTitle(photo, index)}
                         </label>
                       ))}
+                      {extraPhotoCount > 0 && <p className="cabinetMuted">ещё {extraPhotoCount} в медиатеке</p>}
                       <textarea
                         onChange={(event) => onOrderConfirmationChange({ orderId: order.id, requestText: event.target.value })}
                         placeholder="Комментарий к заказу"
@@ -99,12 +112,22 @@ function ClientOrdersView({
         <section className="cabinetCard" aria-label="Кабинет Личный Мои фото">
           <p className="cabinetEyebrow">Кабинет Личный</p>
           <h2>Мои фото</h2>
-          <span className="cabinetStatus">{clientGoalPhotos.length}/4</span>
-          {hasPhotoLimit && <p className="cabinetSecondaryDataWarning">{PHOTO_LIMIT_MESSAGE}</p>}
-          {clientGoalPhotos.map((photo, index) => (
-            <p className="cabinetMuted" key={photo.id || index}>{photoTitle(photo, index)}</p>
-          ))}
-          {!hasPhotoLimit && (
+          <p className="cabinetMuted">{ORDER_PHOTO_SELECTION_MESSAGE}</p>
+          <span className="cabinetStatus">Выбрано {Math.min(clientGoalPhotos.length, ORDER_PHOTO_SELECTION_LIMIT)}</span>
+          {hasPhotoStorageLimit && <p className="cabinetSecondaryDataWarning">Лимит медиатеки для текущего плана достигнут.</p>}
+          <div className="profileLiteOrderPhotoList">
+            {visibleOrderPhotos.map((photo, index) => (
+              <article className="materialCard profileLiteOrderPhotoCard" key={photo.id || index}>
+                <div className="materialThumb">{index + 1}</div>
+                <div>
+                  <h3>{photoTitle(photo, index)}</h3>
+                  <small>{photo.image_bucket || photo.image_ref ? "Фото в медиатеке" : "Фото без файла"}</small>
+                </div>
+              </article>
+            ))}
+          </div>
+          {extraPhotoCount > 0 && <p className="cabinetMuted">ещё {extraPhotoCount} в медиатеке</p>}
+          {!hasPhotoStorageLimit && (
             <>
               <label>
                 Название фото
@@ -150,7 +173,7 @@ function MasterOrdersView({
                 <p>{order.request_text || "Запрос клиента не заполнен."}</p>
                 <small>{orderStatusText(order.status)} · {order.order_format}</small>
                 <p className="cabinetMuted">{order.client_photo_id ? "Фото клиента выбрано" : "Фото клиента не выбрано"}</p>
-                {order.client_photo_path && <p className="cabinetMuted">Выбранное фото: {order.client_photo_path.split("/").pop()}</p>}
+                <p className="cabinetMuted">{order.client_photo_path ? "Выбранное фото прикреплено к заказу" : "Выбранное фото не прикреплено"}</p>
                 <div className="cabinetCardInline">
                   <button className="cabinetSecondary" onClick={() => onGenerateDraftResult(order)} type="button">Создать мандалу заказа</button>
                   {order.draft_result_composition_id && (
@@ -205,15 +228,15 @@ export default function ProfileLiteOrdersModule({
   ordersError,
   ordersStatus,
   pendingCartMessage = "",
+  planLimits = {},
   shellChrome
 }) {
-  const hasPhotoLimit = clientGoalPhotos.length >= 4;
   const isMasterRole = cabinetRole === "master";
-  const visibleOrdersError = ordersError
-    ? isMasterRole
-      ? "Не удалось загрузить заявки мастера. Попробуйте обновить страницу."
-      : "Не удалось загрузить личные заказы. Попробуйте обновить страницу."
-    : "";
+  const visibleOrderPhotos = clientGoalPhotos.slice(0, ORDER_PHOTO_SELECTION_LIMIT);
+  const extraPhotoCount = Math.max(clientGoalPhotos.length - visibleOrderPhotos.length, 0);
+  const clientPhotoLimit = Number(planLimits.clientPhotos) || 4;
+  const hasPhotoStorageLimit = clientGoalPhotos.length >= clientPhotoLimit;
+  const visibleOrdersError = ordersError ? ORDERS_TEMPORARY_ERROR_MESSAGE : "";
 
   if (ordersError && import.meta.env.DEV) {
     console.warn("Profile Lite service orders load failed", ordersError);
@@ -251,7 +274,8 @@ export default function ProfileLiteOrdersModule({
             clientGoalPhotos={clientGoalPhotos}
             clientOrders={clientOrders}
             clientPhotoForm={clientPhotoForm}
-            hasPhotoLimit={hasPhotoLimit}
+            extraPhotoCount={extraPhotoCount}
+            hasPhotoStorageLimit={hasPhotoStorageLimit}
             onClientPhotoFieldChange={onClientPhotoFieldChange}
             onClientPhotoFileChange={onClientPhotoFileChange}
             onClientPhotoSave={onClientPhotoSave}
@@ -262,6 +286,7 @@ export default function ProfileLiteOrdersModule({
             orderConfirmation={orderConfirmation}
             ordersStatus={ordersStatus}
             pendingCartMessage={pendingCartMessage}
+            visibleOrderPhotos={visibleOrderPhotos}
             visibleOrdersError={visibleOrdersError}
           />
         )}

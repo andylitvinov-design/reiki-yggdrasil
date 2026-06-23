@@ -22,22 +22,24 @@ export default function ProfileLiteShell({
   const roleNav = getProfileLiteRoleNav(cabinetRole);
   const currentCabinetLabel = PROFILE_LITE_CABINET_ROLES.find((role) => role.id === cabinetRole)?.label || "Кабинет Личный";
 
+  const roleSwitcher = (
+    <div className="profileLiteRoleSwitcher" aria-label="Роль кабинета Profile Lite">
+      {PROFILE_LITE_CABINET_ROLES.map((role) => (
+        <button
+          aria-pressed={cabinetRole === role.id}
+          className={cabinetRole === role.id ? "active" : ""}
+          key={role.id}
+          onClick={() => onCabinetRoleChange(role)}
+          type="button"
+        >
+          {role.label}
+        </button>
+      ))}
+    </div>
+  );
+
   const shellChrome = (
     <div className="profileLiteShellChrome">
-      <div className="profileLiteRoleSwitcher" aria-label="Роль кабинета Profile Lite">
-        {PROFILE_LITE_CABINET_ROLES.map((role) => (
-          <button
-            aria-pressed={cabinetRole === role.id}
-            className={cabinetRole === role.id ? "active" : ""}
-            key={role.id}
-            onClick={() => onCabinetRoleChange(role)}
-            type="button"
-          >
-            {role.label}
-          </button>
-        ))}
-      </div>
-
       <nav className="profileLiteRoleNav" aria-label={`Навигация ${cabinetRole === "master" ? "Кабинет Мастера" : "Кабинет Личный"}`}>
         {roleNav.map((item) => {
           const href = getProfileLiteRouteByTabId(item.tabId);
@@ -76,6 +78,7 @@ export default function ProfileLiteShell({
 
   return (
     <div className={`cabinetShell profileLiteShell profileLiteFullShell profileLiteShell-${activeTab}`}>
+      {roleSwitcher}
       <header className="cabinetTopbar profileLiteTopbar">
         <button type="button" onClick={onNavigateHome}>На главную</button>
         <div>

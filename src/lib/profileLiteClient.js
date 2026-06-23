@@ -33,6 +33,11 @@ export const PROFILE_LITE_ROLE_NAV = {
   ]
 };
 
+const PROFILE_LITE_ROLE_TAB_IDS = {
+  client: ["orders", "media", "chats", "profile"],
+  master: ["mandalas", "services", "materials", "orders"]
+};
+
 const PROFILE_LITE_INTERNAL_TABS = [
   ...PROFILE_LITE_TABS,
   { id: "settings", label: "Настройки", href: "/profile/settings" },
@@ -73,6 +78,12 @@ export function getProfileLiteRoleForTab(tabId) {
 export function getProfileLiteRoleNav(roleId) {
   const role = getProfileLiteRoleById(roleId);
   return PROFILE_LITE_ROLE_NAV[role.id] || PROFILE_LITE_ROLE_NAV.client;
+}
+
+export function getProfileLiteTabsForRole(roleId) {
+  const role = getProfileLiteRoleById(roleId);
+  const allowedIds = PROFILE_LITE_ROLE_TAB_IDS[role.id] || PROFILE_LITE_ROLE_TAB_IDS.client;
+  return PROFILE_LITE_TABS.filter((tab) => allowedIds.includes(tab.id));
 }
 
 export function getProfileLiteInitialTabFromLocation(pathname = "/profile", search = "") {

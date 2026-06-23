@@ -477,4 +477,25 @@ assert.match(phase5Migration, /sent_at/, "Phase 5 migration should add sent_at")
 assert.match(phase5Migration, /client reads own sent final result compositions/, "RLS assumptions should document client final-only visibility");
 assert.doesNotMatch(phase5Migration, /drop table|drop column|alter column .* type/i, "Phase 5 migration must stay additive");
 
+const personalOrdersSchemaMigration = readFileSync(new URL("../supabase/migrations/20260623120000_service_orders_personal_schema_fix.sql", import.meta.url), "utf8");
+for (const columnName of [
+  "client_profile_id",
+  "template_composition_id",
+  "draft_result_composition_id",
+  "final_result_composition_id",
+  "order_format",
+  "client_photo_id",
+  "sent_at"
+]) {
+  assert.match(personalOrdersSchemaMigration, new RegExp(`add column if not exists ${columnName}\\b`), `personal orders schema migration should add ${columnName}`);
+}
+assert.match(personalOrdersSchemaMigration, /profile_cabinet_service_orders_client_profile_id_idx/, "personal orders schema migration should index client_profile_id");
+assert.match(personalOrdersSchemaMigration, /draft[\s\S]*photo_required[\s\S]*ready_for_review[\s\S]*sent/, "personal orders schema migration should allow the current client/master status flow");
+assert.match(personalOrdersSchemaMigration, /client reads own service orders/, "personal orders schema migration should add authenticated client read policy");
+assert.match(personalOrdersSchemaMigration, /client updates own service orders/, "personal orders schema migration should add authenticated client update policy");
+assert.match(personalOrdersSchemaMigration, /owner reads own service orders/, "personal orders schema migration should preserve master read policy");
+assert.match(personalOrdersSchemaMigration, /owner updates own service orders/, "personal orders schema migration should preserve master update policy");
+assert.match(personalOrdersSchemaMigration, /public creates orders for published services/, "personal orders schema migration should preserve legacy public order creation policy");
+assert.doesNotMatch(personalOrdersSchemaMigration, /drop table|drop column|alter column .* type/i, "personal orders schema migration must stay additive");
+
 console.log("profileServicesClient: all assertions passed.");
