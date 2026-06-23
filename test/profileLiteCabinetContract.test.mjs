@@ -8,6 +8,7 @@ import {
   createProfileLiteSavePayload,
   createProfileLiteShellViewModel,
   getProfileLiteInitialTabFromLocation,
+  getProfileLiteInitialRoleFromLocation,
   getProfileLiteRoleById,
   getProfileLiteRoleForTab,
   getProfileLiteRoleNav,
@@ -75,6 +76,9 @@ assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "cour
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/unknown", ""), "mandalas");
+assert.equal(getProfileLiteInitialRoleFromLocation("/profile/orders", ""), "client");
+assert.equal(getProfileLiteInitialRoleFromLocation("/profile/orders", "?role=master"), "master");
+assert.equal(getProfileLiteInitialRoleFromLocation("/profile/orders", "?cabinet=master"), "master");
 
 assert.deepEqual(
   PROFILE_LITE_CABINET_ROLES.map((role) => [role.id, role.label, role.defaultTabId]),
@@ -105,7 +109,7 @@ assert.equal(getProfileLiteRoleForTab("services"), "master");
 assert.equal(getProfileLiteRoleForTab("clients"), "master");
 assert.equal(getProfileLiteRoleForTab("profile"), "client");
 assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "clients", "orders", "materials"]);
-assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master" });
+assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" });
 
 const fullForm = createProfileLiteForm({
   display_name: "Master",
@@ -271,6 +275,9 @@ assert.match(profileCoursesClientSource, /listAvailableCourseLessons/, "Course c
 assert.doesNotMatch(`${profileCoursesClientSource}\n${profileCoursesModuleSource}\n${adminCoursesPanelSource}`, /lesson_access|per[-_ ]lesson/i, "Courses MVP should not implement per-lesson access");
 assert.match(profileLiteShellSource, /<div className="profileLiteRoleSwitcher"[\s\S]*<header className="cabinetTopbar profileLiteTopbar"/, "Profile Lite role switcher must render before the cabinet topbar");
 assert.doesNotMatch(profileLiteShellSource, /PROFILE_LITE_TABS\.map|profileLiteTabs/, "Profile Lite shell must not render the global tab rail that leaks master tabs into client mode");
+assert.match(profileLiteShellSource, /const href = item\.href \|\| getProfileLiteRouteByTabId\(item\.tabId\);/, "Profile Lite shell should keep role-aware master navigation hrefs");
+assert.match(profileLitePageSource, /initialRole = ""/, "ProfileLitePage should accept an initial role for ambiguous shared routes");
+assert.match(profileLitePageSource, /getProfileLiteInitialRoleFromLocation/, "ProfileLitePage should preserve master role when opened through a role-aware URL");
 assert.doesNotMatch(profileOrdersModuleSource, /Кабинет Мастера", "Заявки"/, "personal orders sidebar must not include master-only items");
 assert.match(profileOrdersModuleSource, /isMasterRole[\s\S]*<MasterOrdersView/, "master requests panel should render only for the master role");
 assert.doesNotMatch(profileOrdersModuleSource, /needs verification: \{ordersError\}/, "orders UI must not expose raw Supabase errors to users");
@@ -512,7 +519,7 @@ for (const servicesManagerText of [
   "Опубликованные",
   "Архив",
   "Клиенты",
-  "База клиентов",
+  "Клиенты и материалы",
   "Клиентов пока нет",
   "Клиенты появятся, когда вы сохраните мандалу через \"Сохранить для клиента\" или когда клиент оформит заказ.",
   "В этом разделе пока нет материалов клиента.",
@@ -550,6 +557,8 @@ assert.doesNotMatch(profileServicesModuleSource, /composition_id:|delivery modes
 assert.match(profileServicesModuleSource, /Клиентов пока нет[\s\S]*Сохранить для клиента/, "services manager should show a useful no-clients empty state instead of an empty selector-first UI");
 assert.match(profileServicesModuleSource, /activeView = "services"/, "services/clients module should accept an explicit active view");
 assert.match(profileServicesModuleSource, /isClientsView \? "Клиентская база" : "Каталог услуг"/, "Услуги and Клиенты should render distinct hero headings");
+assert.match(profileServicesModuleSource, /Список клиентов, фильтр, сохранённые мандалы, заказы и статусы\./, "Клиенты should describe client materials instead of service editing");
+assert.match(profileServicesModuleSource, /Шаблоны услуг, редактор и публикации из сохранённых мандал\./, "Услуги should describe service templates instead of client filtering");
 assert.match(profileServicesModuleSource, /isClientsView \? renderClientWorkspace\(\) : renderServiceGroups\(\)/, "Клиенты should show client materials while Услуги should show service groups");
 assert.match(profileLitePageSource, /clients:\s*\([\s\S]*<ProfileLiteServicesModule[\s\S]*activeView="clients"/, "Profile Lite should render a dedicated clients tab module");
 assert.match(profileLitePageSource, /services:\s*\([\s\S]*<ProfileLiteServicesModule[\s\S]*activeView="services"/, "Profile Lite should render a dedicated services tab module");
@@ -578,6 +587,9 @@ assert.match(profileLitePageSource, /__client_work/, "client save should persist
 assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLiteClientSaveForm \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveField \{[\s\S]*display: grid;[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm input,[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm select,[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm textarea \{[\s\S]*box-sizing: border-box;[\s\S]*width: 100%;/, "client save form should have a base one-column field layout, not only a mobile media override");
 assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm \{[\s\S]*display: grid;[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm label \{[\s\S]*display: grid;[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm \.cabinetActions \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "client save form should stack labels, inputs, and actions as one mobile card");
+assert.match(profileMandalaCss, /\.profileLiteServices \.profileLiteClientMandalaCard \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "mobile saved client material cards should stack preview and text to avoid overlap");
+assert.match(profileMandalaCss, /\.profileLiteServices \.profileLiteServiceCard \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "mobile service cards should stack thumbnail and text to avoid overflow");
+assert.match(profileMandalaCss, /\.profileLiteServices \.mandalaHeroStats \{[\s\S]*grid-template-columns: repeat\(auto-fit, minmax\(128px, 1fr\)\);/, "services/client stats chips should wrap without clipping on mobile");
 assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \{[\s\S]*display: grid;[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \.cabinetTwoColumns \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \.cabinetActions \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "services editor should stack fields and action buttons vertically on mobile");
 assert.match(profileServicesModuleSource, /className="cabinetCard profileLiteServiceEditorForm"/, "services editor form should expose a scoped class for mobile stacking");
 assert.match(profileLitePageSource, /restoreFreshPendingServiceCart/, "Profile Lite should restore a fresh pending cart after auth");
@@ -596,6 +608,7 @@ assert.match(profileOrdersModuleSource, /Мои заказы/, "orders module sh
 assert.match(profileOrdersModuleSource, /Мои фото/, "orders module should expose client photos");
 assert.match(profileOrdersModuleSource, /Кабинет Мастера/, "orders module should expose master cabinet mode");
 assert.match(profileOrdersModuleSource, /Заявки/, "orders module should expose master requests");
+assert.match(profileOrdersModuleSource, /Заявок пока нет[\s\S]*Здесь будут заявки клиентов\./, "master requests should have the required empty state copy");
 assert.doesNotMatch(profileOrdersModuleSource, /\["Мои Заказы", "Мои Фото", "Кабинет Мастера", "Заявки"\]/, "orders module must not render a hardcoded mixed inner sidebar");
 assert.doesNotMatch(profileOrdersModuleSource, /Источник данных/, "orders module must not expose source table debug text");
 assert.doesNotMatch(profileOrdersModuleSource, /needs verification/, "orders module must not expose raw needs verification text");

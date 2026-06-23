@@ -11,7 +11,7 @@ import { getMysteryEntity, getMysteryTraditionByMenuItemId } from "./data/myster
 import { sourcedStepSettings } from "./data/reikiStepSettings.js";
 import { getStepVideo } from "./data/reikiStepVideos.js";
 import { leftMenuSections, topSections } from "./data/topSectionMenus.js";
-import { getProfileLiteInitialTabFromLocation } from "./lib/profileLiteClient.js";
+import { getProfileLiteInitialRoleFromLocation, getProfileLiteInitialTabFromLocation } from "./lib/profileLiteClient.js";
 import { youtubeEmbedUrl as buildYoutubeEmbedUrl, youtubeWatchUrl } from "./lib/youtube.js";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import ProfileLitePage from "./pages/ProfileLitePage.jsx";
@@ -173,6 +173,7 @@ function RootRouter() {
   }, []);
 
   const profileQueryTab = getProfileLiteInitialTabFromLocation(path, search);
+  const profileQueryRole = getProfileLiteInitialRoleFromLocation(path, search);
 
   if (path === "/profile/admin") {
     return <AdminPage onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
@@ -188,7 +189,7 @@ function RootRouter() {
   }
 
   if (path === "/profile-lite") {
-    return <ProfileLitePage initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialRole={profileQueryRole} initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile-old") {
@@ -196,7 +197,7 @@ function RootRouter() {
   }
 
   if (path === "/profile/mandalas") {
-    return <ProfileLitePage initialTab="mandalas" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialRole="master" initialTab="mandalas" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/courses") {
@@ -204,11 +205,11 @@ function RootRouter() {
   }
 
   if (path === "/profile/services") {
-    return <ProfileLitePage initialTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialRole="master" initialTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/orders") {
-    return <ProfileLitePage initialTab="orders" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialRole={profileQueryRole} initialTab="orders" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path === "/profile/chats") {
@@ -220,7 +221,7 @@ function RootRouter() {
   }
 
   if (path === "/profile") {
-    return <ProfileLitePage initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+    return <ProfileLitePage initialRole={profileQueryRole} initialTab={profileQueryTab} onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
   if (path.startsWith("/masters/")) {

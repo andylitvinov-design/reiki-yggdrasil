@@ -79,6 +79,7 @@ import {
   createProfileLiteDiagnostics,
   createProfileLiteForm,
   createProfileLiteSavePayload,
+  getProfileLiteInitialRoleFromLocation,
   getProfileLiteTabById,
   getProfileLiteRoleById,
   getProfileLiteRoleForTab,
@@ -596,9 +597,9 @@ function openPowerPlacePdfPrintView(title) {
     });
 }
 
-export default function ProfileLitePage({ initialTab = "overview", onNavigateHome, onNavigateMasters }) {
+export default function ProfileLitePage({ initialRole = "", initialTab = "overview", onNavigateHome, onNavigateMasters }) {
   const [activeTab, setActiveTab] = useState(getProfileLiteTabById(initialTab).id);
-  const [cabinetRole, setCabinetRole] = useState(() => getProfileLiteRoleForTab(getProfileLiteTabById(initialTab).id));
+  const [cabinetRole, setCabinetRole] = useState(() => initialRole || getProfileLiteRoleForTab(getProfileLiteTabById(initialTab).id));
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -693,8 +694,11 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   useEffect(() => {
     const nextTab = getProfileLiteTabById(initialTab).id;
     setActiveTab(nextTab);
-    setCabinetRole(getProfileLiteRoleForTab(nextTab, cabinetRole));
-  }, [initialTab]);
+    setCabinetRole(initialRole || getProfileLiteInitialRoleFromLocation(
+      typeof window !== "undefined" ? window.location.pathname : "/profile",
+      typeof window !== "undefined" ? window.location.search : ""
+    ));
+  }, [initialRole, initialTab]);
 
   const moduleStates = useMemo(() => ({
     profile: { status: profileStatus, count: profile ? 1 : 0, error: profileError },
