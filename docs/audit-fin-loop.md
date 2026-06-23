@@ -6,7 +6,7 @@ Purpose: audit screens, reports, dashboards, calculators, client summaries, resu
 
 `/audit-fin` is diagnostic by default. It does not edit code, commit product fixes, push implementation changes, merge, deploy, modify production data, or change formulas unless the user explicitly asks to continue to `/delivery`.
 
-`/audit-fin` is similar to `/audit`, but it is specialized for numbers and calculations. The priority is correctness of values, formulas, display, persistence, and source data.
+`/audit-fin` is similar to `/audit`, but it is specialized for numbers and calculations. The priority is correctness of values, formulas, display, persistence, source data, and financially precise technical execution.
 
 ## 1. What /audit-fin does
 
@@ -15,12 +15,17 @@ Use `/audit-fin` when the user provides a screenshot, URL, report, table, dashbo
 `/audit-fin` must produce:
 
 1. a numeric correctness diagnosis;
-2. a calculation and formula audit;
-3. a code-level investigation of where numbers are computed, stored, transformed, rounded, formatted, and displayed;
-4. identification of missing, duplicated, stale, or incorrect values;
-5. root-cause analysis for any numeric discrepancy;
-6. a GitHub issue with full technical instructions;
-7. a short chat response with the issue link and a concise `/delivery` prompt.
+2. a financial/business logic audit;
+3. a calculation and formula audit;
+4. a code-level investigation of where numbers are computed, stored, transformed, rounded, formatted, and displayed;
+5. identification of missing, duplicated, stale, or incorrect values;
+6. a problem list;
+7. a hypothesis list;
+8. hypothesis evaluation and confidence scoring;
+9. selection of the most likely root cause or root-cause set;
+10. solution options and a recommended solution path;
+11. a GitHub issue with full technical instructions;
+12. a short chat response with the issue link and a concise `/delivery` prompt.
 
 Short form:
 
@@ -30,7 +35,11 @@ screenshot / table / dashboard / report / complaint
 -> inspect visible numbers
 -> inspect code formulas and data flow
 -> compare expected vs actual
--> find discrepancies and likely root causes
+-> list problems
+-> generate hypotheses
+-> evaluate hypotheses against evidence
+-> choose most likely cause
+-> compare solution options
 -> create GitHub issue with full technical instructions
 -> return short /delivery prompt linking to the issue
 ```
@@ -75,10 +84,13 @@ Before judging numbers, use these sources in order:
    - state updates;
    - formula helpers;
    - aggregation/reduction logic;
+   - weighting logic;
+   - threshold/category logic;
    - rounding and formatting;
    - storage/persistence;
    - loading/hydration;
    - UI rendering;
+   - charts/gauges/tables;
    - export/print/PDF/report code if relevant.
 
 5. Auth-safe verification limits  
@@ -103,7 +115,21 @@ Check the screen/report itself:
 - units/currency/percent symbols are correct;
 - zero/empty/null values are shown intentionally and not as accidental blanks.
 
-### 4.2 Formula and calculation correctness
+### 4.2 Financial/business logic correctness
+
+Check the business meaning behind the numbers:
+
+- each metric has a clear financial/product meaning;
+- money, score, percentage, count, and ratio are not mixed;
+- base period is correct;
+- comparison period is correct;
+- first/second date semantics are not swapped;
+- baseline vs current value is clear;
+- trend/delta is computed from the correct direction;
+- user-facing interpretation does not overstate uncertain or partial data;
+- summary number matches detailed calculation logic.
+
+### 4.3 Formula and calculation correctness
 
 Inspect how values are computed:
 
@@ -117,7 +143,7 @@ Inspect how values are computed:
 - repeated/intake/history calculations do not mix datasets incorrectly;
 - no stale cached values are used after source changes.
 
-### 4.3 Data source and data flow
+### 4.4 Data source and data flow
 
 Trace values from input to display:
 
@@ -130,7 +156,7 @@ Trace values from input to display:
 - whether client/template/session/date selection affects the value;
 - whether localStorage/Supabase/API values can diverge.
 
-### 4.4 Rounding, formatting, and localization
+### 4.5 Rounding, formatting, and localization
 
 Check number display rules:
 
@@ -143,7 +169,7 @@ Check number display rules:
 - `NaN`, `Infinity`, `undefined`, and `null` cannot appear in UI;
 - small values and zero values are not hidden incorrectly.
 
-### 4.5 Missing and inconsistent values
+### 4.6 Missing and inconsistent values
 
 Check for omissions and mismatches:
 
@@ -155,7 +181,7 @@ Check for omissions and mismatches:
 - selected client value not matching another client’s data;
 - stale value after changing filters/tabs/client/date.
 
-### 4.6 State, persistence, and history safety
+### 4.7 State, persistence, and history safety
 
 Check saving and history behavior:
 
@@ -167,7 +193,7 @@ Check saving and history behavior:
 - migration/backward compatibility is preserved;
 - deleting/changing a client/template/session does not orphan values incorrectly.
 
-### 4.7 UI interpretation and user trust
+### 4.8 UI interpretation and user trust
 
 Check whether the user can understand the numbers:
 
@@ -180,7 +206,7 @@ Check whether the user can understand the numbers:
 - empty states explain missing data;
 - warnings appear when calculation is incomplete.
 
-### 4.8 Desktop/mobile display of numbers
+### 4.9 Desktop/mobile display of numbers
 
 Check responsive numeric UI:
 
@@ -192,7 +218,7 @@ Check responsive numeric UI:
 - sticky/fixed bars do not cover totals or buttons;
 - date/metric comparison remains clear on mobile.
 
-### 4.9 Charts, gauges, and visual indicators
+### 4.10 Charts, gauges, and visual indicators
 
 When charts/gauges/speedometers are present, check:
 
@@ -204,7 +230,7 @@ When charts/gauges/speedometers are present, check:
 - missing data is not plotted as zero unless intended;
 - chart rounding matches text value or difference is explained.
 
-### 4.10 Edge cases and negative paths
+### 4.11 Edge cases and negative paths
 
 Check non-happy paths:
 
@@ -222,7 +248,7 @@ Check non-happy paths:
 - missing Supabase session;
 - old data shape without newly added fields.
 
-### 4.11 Regression and blast radius
+### 4.12 Regression and blast radius
 
 Check what else can break:
 
@@ -234,7 +260,7 @@ Check what else can break:
 - admin/client views;
 - previous PRs touching the same formulas or data fields.
 
-### 4.12 Testability and proof plan
+### 4.13 Testability and proof plan
 
 The audit must say exactly how the fix can be proven:
 
@@ -248,7 +274,115 @@ The audit must say exactly how the fix can be proven:
 - save/load/history verification;
 - auth-safe substitute if post-login live proof is blocked.
 
-## 5. Audit-fin loop
+## 5. Problem-hypothesis-solution loop
+
+This is mandatory for `/audit-fin`.
+
+### 5.1 Problem list
+
+Output a problem list before proposing fixes.
+
+Separate:
+
+- `CONFIRMED` — supported by code/data/screenshot evidence;
+- `SUSPECTED` — plausible but not fully proven;
+- `NOT VERIFIED RISK` — important risk that could not be checked safely.
+
+Problem format:
+
+```txt
+Problem:
+Type: CONFIRMED | SUSPECTED | NOT VERIFIED RISK
+Evidence:
+User impact:
+Code/data location:
+Severity:
+```
+
+### 5.2 Hypothesis generation
+
+For every mismatch, missing value, stale value, duplicate value, incorrect chart/gauge, or unclear calculation, generate multiple hypotheses.
+
+Common hypothesis categories:
+
+- wrong formula;
+- wrong source field;
+- wrong denominator/numerator;
+- wrong weighting;
+- wrong aggregation level;
+- stale state or cache;
+- localStorage/Supabase divergence;
+- old data shape/migration gap;
+- wrong client/session/date selection;
+- rounding too early;
+- percent multiplied/divided incorrectly;
+- display formatting bug;
+- chart/gauge threshold mismatch;
+- comparison dates swapped;
+- UI label points to wrong metric;
+- regression from shared helper/component.
+
+### 5.3 Hypothesis evaluation
+
+Evaluate each hypothesis before choosing a solution.
+
+Use this table:
+
+| Hypothesis | Supporting evidence | Contradicting evidence | Confidence | Verification step | Decision |
+|---|---|---|---|---|---|
+
+Confidence values:
+
+- `high`
+- `medium`
+- `low`
+
+Decision values:
+
+- `KEEP_AS_LIKELY`
+- `REJECT`
+- `DEFER_NOT_VERIFIED`
+
+### 5.4 Most likely root cause selection
+
+After evaluating hypotheses, choose the most likely root cause or root-cause set.
+
+Rules:
+
+- do not choose only one cause if evidence points to multiple interacting causes;
+- do not choose a hypothesis without code/data/screenshot evidence;
+- if evidence is insufficient, mark `MOST LIKELY: NOT VERIFIED` and write the exact verification needed;
+- if a fix depends on a business rule, mark it as `NEEDS_PRODUCT_RULE_CONFIRMATION` unless the rule is already clear in code/docs/user request.
+
+### 5.5 Solution options
+
+List possible solution approaches before recommending one.
+
+Use this table:
+
+| Option | What changes | Pros | Cons/Risks | Effort | Verification | Decision |
+|---|---|---|---|---|---|---|
+
+Decision values:
+
+- `RECOMMENDED`
+- `VALID_BUT_DEFER`
+- `REJECT`
+
+### 5.6 Recommended implementation path
+
+Only after problem list, hypothesis evaluation, and solution comparison, write the implementation path.
+
+It must include:
+
+- what to fix first;
+- what formula/data path to change;
+- what display path to change;
+- what persistence/history behavior to preserve;
+- what tests/checks to add or run;
+- what should not be touched.
+
+## 6. Audit-fin loop
 
 Run this loop:
 
@@ -270,22 +404,34 @@ Run this loop:
 6. Compare expected vs actual  
    Build a discrepancy table. Mark each item `MATCH`, `MISMATCH`, `MISSING`, `DUPLICATE`, `STALE`, `NOT VERIFIED`, or `NOT APPLICABLE`.
 
-7. Identify root cause  
-   Separate formula errors, data mapping errors, stale state, formatting/rounding errors, display bugs, and missing data.
+7. Produce problem list  
+   List confirmed problems, suspected problems, and not-verified risks.
 
-8. Score priority  
+8. Generate hypotheses  
+   Generate multiple hypotheses for every important discrepancy or risk.
+
+9. Evaluate hypotheses  
+   Compare supporting and contradicting evidence, confidence, and verification step.
+
+10. Choose likely root cause  
+   Select the most likely cause or state `NOT VERIFIED` with the exact proof needed.
+
+11. Compare solution options  
+   Evaluate possible fixes and choose the recommended solution path.
+
+12. Score priority  
    Use severity, user impact, effort, and confidence.
 
-9. Create or update a GitHub issue  
+13. Create or update a GitHub issue  
    Save the full numeric audit and technical instructions in GitHub Issues. If an existing open issue clearly covers the same numeric problem, update/comment on that issue instead of creating a duplicate.
 
-10. Return a short chat response  
+14. Return a short chat response  
    Include only the audit status, GitHub issue link, and a concise `/delivery` prompt that points to the issue.
 
-11. Stop  
+15. Stop  
    Do not implement unless user explicitly asks to continue.
 
-## 6. GitHub issue requirements
+## 7. GitHub issue requirements
 
 Every completed `/audit-fin` should create or update a GitHub issue unless GitHub Issues are unavailable. If GitHub is unavailable, output the full issue body in chat and mark:
 
@@ -312,7 +458,7 @@ auth-limited
 
 Use only labels that exist or that the tool can safely create/apply. Do not fail the audit only because labels are missing.
 
-## 7. Required GitHub issue body format
+## 8. Required GitHub issue body format
 
 The GitHub issue must contain the full technical detail. Use this structure:
 
@@ -352,6 +498,43 @@ Status values:
 - STALE
 - NOT VERIFIED
 - NOT APPLICABLE
+
+## Problem list
+| Type | Problem | Evidence | User impact | Code/data location | Severity |
+|---|---|---|---|---|---|
+
+Type values:
+- CONFIRMED
+- SUSPECTED
+- NOT VERIFIED RISK
+
+## Hypothesis list
+| Hypothesis | Category | Evidence | Why plausible | Risk if true |
+|---|---|---|---|---|
+
+## Hypothesis evaluation
+| Hypothesis | Supporting evidence | Contradicting evidence | Confidence | Verification step | Decision |
+|---|---|---|---|---|---|
+
+Decision values:
+- KEEP_AS_LIKELY
+- REJECT
+- DEFER_NOT_VERIFIED
+
+## Most likely root cause
+Describe the selected root cause or root-cause set. If evidence is insufficient, state `MOST LIKELY: NOT VERIFIED` and the exact verification required.
+
+## Solution options
+| Option | What changes | Pros | Cons/Risks | Effort | Verification | Decision |
+|---|---|---|---|---|---|---|
+
+Decision values:
+- RECOMMENDED
+- VALID_BUT_DEFER
+- REJECT
+
+## Recommended solution path
+Explain the chosen solution path after hypothesis evaluation and solution comparison.
 
 ## Formula and calculation audit
 | Formula/metric | Code location | Rule found | Finding | Fix direction |
@@ -422,6 +605,7 @@ Severity values:
 - [ ] Rounding/formatting is correct.
 - [ ] Save/load/history behavior preserves values correctly.
 - [ ] Mobile and desktop displays are readable.
+- [ ] Hypotheses were evaluated and the recommended fix follows the most likely root cause.
 
 ## Ready-to-run /delivery prompt
 ```txt
@@ -431,7 +615,10 @@ Task:
 Implement the numeric/calculation fixes from this GitHub issue: <issue URL>
 
 Requirements:
-- ...
+- Follow the recommended solution path selected after hypothesis evaluation.
+- Fix the confirmed numeric/code problems first.
+- Preserve data/auth/history safety.
+- Do not implement rejected hypotheses.
 
 Files/components/functions to inspect first:
 - ...
@@ -444,7 +631,7 @@ Verification:
 ```
 ```
 
-## 8. Chat output format
+## 9. Chat output format
 
 The chat response after `/audit-fin` should be short. Do not duplicate all technical details if a GitHub issue was created.
 
@@ -460,7 +647,7 @@ GitHub issue:
 /delivery
 Task:
 Исправить числовые/расчетные ошибки по issue <issue URL>.
-Ключевые требования: ...
+Ключевые требования: следовать выбранной гипотезе/причине и recommended solution path из issue.
 ```
 
 For auth-limited audits:
@@ -477,7 +664,7 @@ GitHub issue:
 ...
 ```
 
-## 9. Required behavior
+## 10. Required behavior
 
 Do not say “numbers are correct” unless the numeric contract was checked.
 
@@ -488,6 +675,8 @@ Do not invent values from an unclear screenshot. Mark them `VISUAL UNCLEAR` or `
 Do not claim authenticated production cabinet numeric proof unless it actually was performed.
 
 Do not block only because Google/Supabase auth prevents post-login production access. Use auth-safe audit-fin status instead.
+
+Do not skip the problem-hypothesis-solution loop. `/audit-fin` must list problems, generate hypotheses, evaluate hypotheses, choose the most likely root cause, compare solution options, and only then write the implementation prompt.
 
 Do not write code during `/audit-fin` unless the user explicitly asks to continue to `/delivery`.
 
