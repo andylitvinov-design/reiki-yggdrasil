@@ -8272,6 +8272,79 @@
   min-width: 0;
 }
 
+.profileLiteServices .profileLiteClientWorkspace,
+.profileLiteServices .profileLiteSecondaryServices,
+.profileLiteServices .profileLiteEditorClosedCard,
+.profileLiteServices .profileLiteServiceEditorForm {
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientWorkspace {
+  border-color: rgba(116, 76, 24, 0.34);
+  box-shadow: 0 16px 34px rgba(71, 44, 14, 0.1);
+}
+
+.profileLiteServices .profileLiteClientEmptyState {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 0 2px;
+}
+
+.profileLiteServices .profileLiteClientEmptyState h4,
+.profileLiteServices .profileLiteClientEmptyState p,
+.profileLiteServices .profileLiteEditorClosedCard h2,
+.profileLiteServices .profileLiteEditorClosedCard p {
+  margin: 0;
+}
+
+.profileLiteServices .profileLiteClientSummaryGrid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientSummaryGrid span {
+  background: rgba(255, 252, 246, 0.88);
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  color: rgba(44, 29, 12, 0.7);
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.profileLiteServices .profileLiteClientSummaryGrid b {
+  color: #2c1d0c;
+  font-size: 1.05rem;
+}
+
+.profileLiteServices .profileLiteMaterialFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteMaterialFilters button {
+  background: rgba(255, 252, 246, 0.84);
+  border: 1px solid rgba(150, 97, 31, 0.22);
+  border-radius: 999px;
+  color: #684416;
+  font-size: 0.78rem;
+  font-weight: 850;
+  min-height: 32px;
+  padding: 7px 11px;
+}
+
+.profileLiteServices .profileLiteMaterialFilters button.active {
+  background: #2c1d0c;
+  border-color: #2c1d0c;
+  color: #fff3d6;
+}
+
 .profileLiteServices .profileLiteClientMandalaCard {
   align-items: start;
   grid-template-columns: 128px minmax(0, 1fr);
@@ -8419,6 +8492,85 @@
   min-width: 0;
   padding: 10px 11px;
   width: 100%;
+}
+
+.profileLiteServices .profileLiteSecondaryServices {
+  background: rgba(255, 252, 246, 0.54);
+  border: 1px solid rgba(150, 97, 31, 0.16);
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.profileLiteServices .profileLiteServiceList {
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteServices .profileLiteServiceGroup {
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(150, 97, 31, 0.14);
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.profileLiteServices .profileLiteServiceCard {
+  align-items: start;
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+
+.profileLiteServices .profileLiteServiceCard h3,
+.profileLiteServices .profileLiteServiceCard p {
+  margin-top: 0;
+}
+
+.profileLiteServices .profileLiteEditorClosedCard,
+.profileLiteServices .profileLiteServiceEditorForm {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLiteServices .profileLiteServiceEditorForm input,
+.profileLiteServices .profileLiteServiceEditorForm textarea {
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteFormatCards {
+  border: 1px solid rgba(150, 97, 31, 0.2);
+  border-radius: 14px;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 12px;
+}
+
+.profileLiteServices .profileLiteFormatCards legend {
+  color: #5b3b12;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0 4px;
+}
+
+.profileLiteServices .profileLiteFormatOption {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.86);
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.profileLiteServices .profileLiteFormatOption span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .profileLiteLegacyColumns .materialCard h3,
