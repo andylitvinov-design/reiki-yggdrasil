@@ -497,9 +497,13 @@ for (const servicesManagerText of [
   "База клиентов",
   "Выберите клиента, чтобы увидеть его заказы и отправленные мандалы.",
   "Для этого клиента пока нет заказов.",
-  "Отправленная мандала",
-  "Ссылка на мандалу",
-  "Внутренняя ссылка на мандалу",
+  "Открыть мандалу",
+  "Превью мандалы пока не создано",
+  "Превью недоступно",
+  "Сохранено для клиента",
+  "Готово к отправке",
+  "Отправлено клиенту",
+  "Ошибка сохранения/отправки",
   "Ссылка скопирована",
   "Ссылка появится после отправки мандалы клиенту.",
   "Опубликовать",
@@ -525,6 +529,11 @@ assert.match(profileServicesModuleSource, /client_display_name/, "services clien
 assert.doesNotMatch(profileServicesModuleSource, /profile_cabinet_services|\/services\/:serviceId/, "services manager should not show table names or unfinished route debug text in the normal UI");
 assert.match(profileServicesModuleSource, /navigator\.clipboard\?\.writeText\(url\)/, "sent mandala copy button should use Clipboard API");
 assert.match(profileServicesModuleSource, /window\.prompt\("Ссылка на мандалу", url\)/, "sent mandala copy should fall back to prompt");
+assert.doesNotMatch(profileServicesModuleSource, /Внутренняя ссылка на мандалу/, "services manager should not expose internal mandala-link labels in normal cards");
+assert.doesNotMatch(profileServicesModuleSource, />К<\/div>/, "saved client mandala cards must not use a hardcoded K as a fake preview");
+assert.doesNotMatch(profileServicesModuleSource, /orderStatusText\(order\.status\)\.slice\(0,\s*1\)/, "client order cards must not use a status-letter thumbnail as a fake mandala preview");
+assert.match(profileServicesModuleSource, /getClientMandalaPreviewState/, "client mandala cards should resolve real preview state before rendering");
+assert.match(profileServicesModuleSource, /profileLiteMandalaPreview/, "client mandala cards should render a dedicated preview or clear empty state");
 assert.match(profileLitePageSource, /buildClientDirectoryFromOrders\(orders,\s*clientGoalPhotos,\s*powerPlaceCompositions\)/, "ProfileLitePage should derive the Services client database from master orders plus saved client work");
 assert.match(profileLitePageSource, /selectedClientKey/, "ProfileLitePage should own selected client state");
 assert.match(powerPlaceBaseSource, /Сохранить как шаблон/, "Power Place save UI should preserve create-new behavior under the template label");

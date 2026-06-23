@@ -103,6 +103,67 @@ export function orderStatusText(status) {
   })[status] || "Новая";
 }
 
+export function clientMandalaStatusText(status) {
+  return ({
+    draft: "Черновик",
+    photo_required: "Черновик",
+    new: "Черновик",
+    in_progress: "Черновик",
+    saved_for_client: "Сохранено для клиента",
+    ready_for_review: "Готово к отправке",
+    sent: "Отправлено клиенту",
+    closed: "Отправлено клиенту",
+    save_error: "Ошибка сохранения/отправки",
+    send_error: "Ошибка сохранения/отправки",
+    error: "Ошибка сохранения/отправки"
+  })[text(status)] || "Черновик";
+}
+
+function displayableImageUrl(value) {
+  const url = text(value);
+  return url && (/^https?:\/\//.test(url) || url.startsWith("data:image/") || url.startsWith("/")) ? url : "";
+}
+
+function compositionPreviewUrl(composition = {}) {
+  const objectRefs = composition?.object_refs || {};
+  const objectRefUrls = composition?.object_ref_urls || {};
+  const cover = composition?.cover_ref || {};
+  const candidates = [
+    composition.preview_url,
+    composition.preview_image_url,
+    composition.thumbnail_url,
+    composition.image_url,
+    objectRefs.__preview_image,
+    objectRefs.__mandala_preview,
+    objectRefs.__center_image,
+    cover.inner?.display_src,
+    cover.display_src,
+    cover.outer?.display_src,
+    cover.inner?.src,
+    cover.src,
+    cover.outer?.src,
+    ...Object.values(objectRefs || {}).filter((value) => typeof value === "string")
+  ];
+
+  for (const candidate of candidates) {
+    const direct = displayableImageUrl(candidate);
+    if (direct) return direct;
+    const signed = displayableImageUrl(objectRefUrls?.[candidate]);
+    if (signed) return signed;
+  }
+
+  return "";
+}
+
+export function getClientMandalaPreviewState(item = {}) {
+  const imageUrl = displayableImageUrl(item.preview_url || item.display_url || item.result_image_url || item.image_url);
+  if (imageUrl) return { src: imageUrl, message: "" };
+  if (item.result_image_bucket || item.result_image_path || item.image_bucket || item.image_path) {
+    return { src: "", message: "Превью недоступно" };
+  }
+  return { src: "", message: "Превью мандалы пока не создано" };
+}
+
 export function formatServicePrice(service = {}) {
   const amount = price(service.price_amount);
   if (!amount) return "Бесплатно";
@@ -185,6 +246,7 @@ function clientWorkFromComposition(composition = {}) {
   const meta = composition?.object_refs?.__client_work || {};
   const clientName = text(meta.client_name);
   if (!clientName && !text(meta.client_profile_id)) return null;
+  const previewUrl = displayableImageUrl(meta.preview_url || meta.image_url || meta.result_image_url) || compositionPreviewUrl(composition);
   return {
     id: text(composition.id),
     title: text(composition.title) || "Мандала",
@@ -193,6 +255,10 @@ function clientWorkFromComposition(composition = {}) {
     client_photo_id: text(meta.client_photo_id),
     request_text: text(meta.request_text),
     result_composition_id: text(meta.result_composition_id || composition.id),
+    preview_url: previewUrl,
+    image_url: previewUrl,
+    image_bucket: text(meta.image_bucket || composition.image_bucket) || null,
+    image_path: text(meta.image_path || composition.image_path) || null,
     status: text(meta.status || "saved_for_client"),
     created_at: composition.created_at || null
   };
