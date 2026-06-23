@@ -3,13 +3,31 @@ import {
   SERVICE_FORMAT_OPTIONS,
   buildCompositionResultUrl,
   buildServicePublicUrl,
+  clientMandalaStatusText,
   formatServicePrice,
   getClientDisplayName,
+  getClientMandalaPreviewState,
   getServicePublicLinkState,
   groupServicesByStatus,
-  orderStatusText,
   serviceStatusText
 } from "../../lib/profileServicesClient.js";
+
+function clientMandalaResultId(item = {}) {
+  return item.final_result_composition_id || item.result_composition_id || "";
+}
+
+function ClientMandalaPreview({ item, title }) {
+  const preview = getClientMandalaPreviewState(item);
+  return (
+    <div className={`profileLiteMandalaPreview${preview.src ? " hasImage" : ""}`}>
+      {preview.src ? (
+        <img alt={`Превью мандалы: ${title || "мандала"}`} src={preview.src} />
+      ) : (
+        <span>{preview.message}</span>
+      )}
+    </div>
+  );
+}
 
 export default function ProfileLiteServicesModule({
   onFieldChange,
@@ -62,15 +80,15 @@ export default function ProfileLiteServicesModule({
     }
     setCopiedResultUrl(url);
   };
-  const renderSentResultLink = (compositionId) => {
+  const renderMandalaActions = (compositionId) => {
     const url = buildCompositionResultUrl(compositionId, window.location.origin);
     return (
-      <div className="profileLiteClientResultLink">
-        <p className="cabinetEyebrow">Отправленная мандала</p>
+      <div className="profileLiteClientResultActions">
         {url ? (
           <>
-            <small>Внутренняя ссылка на мандалу</small>
-            <a href={url}>Ссылка на мандалу</a>
+            <a className="cabinetPrimary profileLiteMandalaOpenLink" href={url}>
+              Открыть мандалу
+            </a>
             <button className="cabinetSecondary" type="button" onClick={() => void copyResultLink(url)}>
               Скопировать ссылку
             </button>
@@ -80,6 +98,27 @@ export default function ProfileLiteServicesModule({
           <p className="cabinetMuted">Ссылка появится после отправки мандалы клиенту.</p>
         )}
       </div>
+    );
+  };
+  const renderClientMandalaCard = ({ item, title, subtitle, description, meta, key }) => {
+    const statusLabel = clientMandalaStatusText(item.status);
+    const compositionId = clientMandalaResultId(item);
+    return (
+      <article className="materialCard profileLiteClientOrderCard profileLiteClientMandalaCard" key={key}>
+        <ClientMandalaPreview item={item} title={title} />
+        <div className="profileLiteClientMandalaBody">
+          <div className="profileLiteClientMandalaHeader">
+            <div>
+              <h4>{title}</h4>
+              <p>{subtitle}</p>
+            </div>
+            <span className="cabinetStatus">{statusLabel}</span>
+          </div>
+          <p>{description}</p>
+          {meta && <small>{meta}</small>}
+          {renderMandalaActions(compositionId)}
+        </div>
+      </article>
     );
   };
   const selectedClientDisplayName = selectedClient ? getClientDisplayName(selectedClient) : "Выберите клиента";
@@ -205,32 +244,24 @@ export default function ProfileLiteServicesModule({
               {selectedClient && (
                 <div className="profileLiteClientDatabaseBody">
                   <p className="cabinetMuted">
-                    Заказы: {selectedClient.orders.length} · Активные: {selectedClient.orders.filter((order) => order.status !== "sent" && order.status !== "closed").length} · Отправлено: {selectedClient.orders.filter((order) => order.final_result_composition_id || order.status === "sent").length}
+                    Заказы: {selectedClient.orders.length} · Сохранено: {selectedClient.clientWorks.length} · Готово: {selectedClient.orders.filter((order) => order.status === "ready_for_review").length} · Отправлено клиенту: {selectedClient.orders.filter((order) => order.final_result_composition_id || order.status === "sent").length}
                   </p>
-                  {selectedClient.orders.map((order) => (
-                    <article className="materialCard profileLiteClientOrderCard" key={order.id}>
-                      <div className="materialThumb">{orderStatusText(order.status).slice(0, 1)}</div>
-                      <div>
-                        <h4>{order.service?.title || "Услуга"}</h4>
-                        <p>{order.request_text || "Запрос клиента не заполнен."}</p>
-                        <small>{orderStatusText(order.status)} · {order.order_format}</small>
-                        {order.final_result_composition_id ? renderSentResultLink(order.final_result_composition_id) : (
-                          <p className="cabinetMuted">Ссылка появится после отправки мандалы клиенту.</p>
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                  {selectedClient.clientWorks.map((work) => (
-                    <article className="materialCard profileLiteClientOrderCard" key={work.id}>
-                      <div className="materialThumb">К</div>
-                      <div>
-                        <h4>{work.title}</h4>
-                        <p>{work.request_text || "Комментарий / запрос клиента не заполнен."}</p>
-                        <small>Сохранено для клиента</small>
-                        {renderSentResultLink(work.result_composition_id)}
-                      </div>
-                    </article>
-                  ))}
+                  {selectedClient.orders.map((order) => renderClientMandalaCard({
+                    item: order,
+                    title: order.service?.title || "Мандала клиента",
+                    subtitle: `Клиент: ${selectedClientDisplayName}`,
+                    description: order.request_text || "Запрос клиента не заполнен.",
+                    meta: order.order_format,
+                    key: order.id
+                  }))}
+                  {selectedClient.clientWorks.map((work) => renderClientMandalaCard({
+                    item: work,
+                    title: work.title || "Сохранённая мандала",
+                    subtitle: `Клиент: ${selectedClientDisplayName}`,
+                    description: work.request_text || "Комментарий / запрос клиента не заполнен.",
+                    meta: "Сохранённая работа клиента",
+                    key: work.id
+                  }))}
                   {selectedClient.orders.length === 0 && selectedClient.clientWorks.length === 0 && (
                     <p>Для этого клиента пока нет заказов.</p>
                   )}

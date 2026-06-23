@@ -11,11 +11,13 @@ import {
   buildServiceOrderDraftPayload,
   buildSendOrderResultPayload,
   buildServiceOrderSubmitPayload,
+  clientMandalaStatusText,
   createEmptyServiceForm,
   createServiceCartStore,
   filterPublishedServices,
   formatServicePrice,
   getClientDisplayName,
+  getClientMandalaPreviewState,
   getServicePublicLinkState,
   groupServicesByStatus,
   isPendingServiceCartFresh,
@@ -130,10 +132,25 @@ assert.equal(order.id, "order-1");
 assert.equal(order.status, "sent");
 assert.equal(order.service.title, "Услуга");
 assert.equal(order.service.price_amount, 90);
+assert.equal(order.result_image_url, "https://example.com/result.jpg");
+assert.deepEqual(getClientMandalaPreviewState(order), { src: "https://example.com/result.jpg", message: "" });
 assert.equal(order.draft_result_composition_id, "", "missing draft result should normalize to empty string");
 assert.equal(order.final_result_composition_id, "", "missing final result should normalize to empty string");
 assert.equal(serviceStatusText("published"), "Размещено");
 assert.equal(orderStatusText("in_progress"), "В работе");
+assert.equal(clientMandalaStatusText("ready_for_review"), "Готово к отправке");
+assert.equal(clientMandalaStatusText("sent"), "Отправлено клиенту");
+assert.equal(clientMandalaStatusText("saved_for_client"), "Сохранено для клиента");
+assert.equal(clientMandalaStatusText("send_error"), "Ошибка сохранения/отправки");
+assert.deepEqual(
+  getClientMandalaPreviewState({ result_image_bucket: "profile-cabinet-media", result_image_path: "orders/result.png" }),
+  { src: "", message: "Превью недоступно" },
+  "private storage result refs should not be exposed as preview URLs without signed display data"
+);
+assert.deepEqual(
+  getClientMandalaPreviewState({}),
+  { src: "", message: "Превью мандалы пока не создано" }
+);
 assert.equal(formatServicePrice({ price_amount: null, price_currency: "EUR" }), "Бесплатно");
 assert.equal(formatServicePrice({ price_amount: "", price_currency: "EUR" }), "Бесплатно");
 assert.equal(formatServicePrice({ price_amount: 0, price_currency: "EUR" }), "Бесплатно");
@@ -222,12 +239,21 @@ const clientDirectoryWithSavedWork = buildClientDirectoryFromOrders([], [], [
         request_text: "личный запрос",
         result_composition_id: "composition-for-client",
         status: "saved_for_client"
-      }
+      },
+      __center_image: "storage://profile-cabinet-media/compositions/center.png"
+    },
+    object_ref_urls: {
+      "storage://profile-cabinet-media/compositions/center.png": "https://signed.example/center.png"
     }
   }
 ]);
 assert.equal(clientDirectoryWithSavedWork[0].client_name, "Вера");
 assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].result_composition_id, "composition-for-client");
+assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].preview_url, "https://signed.example/center.png");
+assert.deepEqual(
+  getClientMandalaPreviewState(clientDirectoryWithSavedWork[0].clientWorks[0]),
+  { src: "https://signed.example/center.png", message: "" }
+);
 
 const clientDirectoryWithFilenameNames = buildClientDirectoryFromOrders([
   normalizeServiceOrder({

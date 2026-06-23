@@ -8235,6 +8235,74 @@
   min-width: 0;
 }
 
+.profileLiteServices .profileLiteClientMandalaCard {
+  align-items: start;
+  grid-template-columns: 128px minmax(0, 1fr);
+}
+
+.profileLiteServices .profileLiteMandalaPreview {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 246, 0.92), rgba(246, 232, 204, 0.72));
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 14px;
+  color: rgba(44, 29, 12, 0.68);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 850;
+  justify-content: center;
+  line-height: 1.25;
+  min-width: 0;
+  overflow: hidden;
+  padding: 10px;
+  text-align: center;
+  width: 128px;
+}
+
+.profileLiteServices .profileLiteMandalaPreview img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteClientMandalaBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientMandalaHeader {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientMandalaHeader h4,
+.profileLiteServices .profileLiteClientMandalaHeader p {
+  margin: 0;
+}
+
+.profileLiteServices .profileLiteClientMandalaHeader p {
+  color: rgba(44, 29, 12, 0.66);
+  font-size: 0.82rem;
+}
+
+.profileLiteServices .profileLiteClientResultActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteMandalaOpenLink {
+  text-decoration: none;
+}
+
 .profileLiteServices .profileLiteClientSelector {
   display: grid;
   gap: 8px;
@@ -8916,6 +8984,25 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteClientMandalaCard {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .profileLiteServices .profileLiteMandalaPreview {
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteClientMandalaHeader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteServices .profileLiteClientResultActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
   }
 
