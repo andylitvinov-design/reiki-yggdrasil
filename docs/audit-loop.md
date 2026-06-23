@@ -16,8 +16,9 @@ Use `/audit` when the user provides a screenshot, route, vague problem, broken f
 2. a more user-friendly target interface concept;
 3. a detailed code investigation of related routes/components/styles/state/data;
 4. identified code-level problems, risks, and likely root causes;
-5. a maximally detailed technical implementation instruction saved as a GitHub issue;
-6. a short chat response with the issue link and a concise `/delivery` prompt.
+5. priority scoring and a clear implementation sequence;
+6. a maximally detailed technical implementation instruction saved as a GitHub issue;
+7. a short chat response with the issue link and a concise `/delivery` prompt.
 
 Short form:
 
@@ -27,6 +28,8 @@ screenshot / complaint / URL
 -> friendlier target design
 -> deep code investigation
 -> multi-layer quality audit
+-> root-cause analysis
+-> priority and risk scoring
 -> code problem map
 -> GitHub issue with full technical instructions
 -> short /delivery prompt linking to the issue
@@ -315,6 +318,113 @@ Check basic robustness:
 - long names/text values;
 - network/save failure handling.
 
+### 5.10 Product flow and user journey
+
+Check whether the whole scenario makes sense, not only the visible screen:
+
+- what user goal the screen serves;
+- where the user came from and where they should go next;
+- whether the current step is obvious;
+- whether choices are introduced at the right time;
+- whether the user is asked to decide too early;
+- whether the flow has a clear finish state;
+- whether there is a natural next action after save/analysis/result;
+- whether the flow works for both first-time and returning users.
+
+### 5.11 Root-cause analysis
+
+Do not stop at surface symptoms. For every important issue, identify likely root cause type:
+
+- copy/content problem;
+- visual hierarchy/layout problem;
+- responsive CSS problem;
+- component state problem;
+- data model/persistence problem;
+- auth/routing problem;
+- product flow problem;
+- missing test/verification problem;
+- regression from prior changes.
+
+Use this chain:
+
+```txt
+Visible symptom -> user impact -> code evidence -> likely root cause -> technical fix -> verification
+```
+
+### 5.12 Priority, severity, and effort scoring
+
+Every issue must get a practical score:
+
+- Severity: `P0 blocker`, `P1 major`, `P2 medium`, `P3 polish`.
+- User impact: `high`, `medium`, `low`.
+- Implementation effort: `small`, `medium`, `large`.
+- Confidence: `high`, `medium`, `low`.
+
+Prefer fixing high-impact/small-effort items first.
+
+### 5.13 Edge cases and negative paths
+
+Check what happens outside the happy path:
+
+- no client selected;
+- new client added and then save is clicked;
+- duplicate client/template names;
+- empty required fields;
+- very long names/texts;
+- repeated submit clicks;
+- network/save failure;
+- stale localStorage;
+- missing Supabase session;
+- user refreshes after partial progress;
+- user goes back/forward in browser.
+
+### 5.14 Testability and verification design
+
+The audit must say how the fix can be proven:
+
+- exact build/check commands;
+- exact route/page to open;
+- desktop viewport to check;
+- mobile viewport to check;
+- click path to verify;
+- save/persistence scenario to verify;
+- auth-safe substitute when live post-login is blocked;
+- owner manual check when only owner session can prove it.
+
+### 5.15 Observability and debug evidence
+
+If relevant, check whether failures can be diagnosed:
+
+- console errors;
+- visible error messages;
+- debug helpers already in repo;
+- status/log output;
+- network request failures;
+- localStorage keys/state shape;
+- whether the final report should include screenshots or logs.
+
+### 5.16 Implementation slicing and issue decomposition
+
+For large audits, do not create one vague mega-task. Split into:
+
+- must-fix now;
+- should-fix next;
+- optional polish;
+- separate follow-up issues if changes touch unrelated flows.
+
+The GitHub issue should state whether the implementation should be one PR or multiple PRs.
+
+### 5.17 Rollback and safety plan
+
+For risky fixes, include:
+
+- what files are safe to change;
+- what files should not be touched;
+- what data migrations must be backward compatible;
+- how to revert safely;
+- what user data must be preserved;
+- what manual owner verification remains.
+
 ## 6. Audit loop
 
 Run this loop:
@@ -335,7 +445,7 @@ Run this loop:
    Search routes/components/styles/data/state. Open relevant files. Follow imports to child components and shared helpers. Do not invent code details.
 
 6. Evaluate all mandatory audit dimensions  
-   User friendliness, responsive layout, interaction, saving/persistence, auth/privacy, code quality, regression risk, language, accessibility, and resilience.
+   User friendliness, responsive layout, interaction, saving/persistence, auth/privacy, code quality, regression risk, language, accessibility, product flow, root cause, priority, edge cases, testability, observability, issue slicing, and rollback safety.
 
 7. Map symptoms to code  
    Connect each UI issue to specific files, functions, components, classes, state, and likely root causes.
@@ -422,10 +532,26 @@ Describe the target interface in plain language.
 | Regression risk / blast radius | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
 | Content / language quality | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
 | Accessibility / resilience | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Product flow / user journey | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Root cause analysis | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Priority / severity / effort | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Edge cases / negative paths | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Testability / verification design | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Observability / debug evidence | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Implementation slicing | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
+| Rollback / safety plan | PASS / ISSUE / NOT VERIFIED / NOT APPLICABLE | | |
 
 ## Findings
 | Priority | Problem | Why it matters | Evidence | Suggested fix |
 |---|---|---|---|---|
+
+## Root-cause map
+| Symptom | User impact | Code evidence | Likely root cause | Fix direction | Verification |
+|---|---|---|---|---|---|
+
+## Priority scoring
+| Issue | Severity | User impact | Effort | Confidence | Recommended order |
+|---|---|---|---|---|---|
 
 ## Deep code investigation
 | Code status | File/component | What was inspected | Finding |
@@ -441,6 +567,9 @@ List actual problems found in code, with file paths and details.
 
 ## UX/product improvements
 List improvements that are product decisions rather than strict code bugs.
+
+## Edge cases to cover
+- ...
 
 ## Technical implementation plan
 ### Files to change
@@ -458,6 +587,18 @@ List improvements that are product decisions rather than strict code bugs.
 ### Regression risks
 - What could break.
 
+### Implementation slicing
+- Must-fix now:
+- Should-fix next:
+- Optional polish:
+- Separate follow-up issues:
+- One PR or multiple PRs:
+
+### Rollback / safety plan
+- Safe revert path:
+- Data to preserve:
+- Owner/manual verification required:
+
 ### Verification plan
 - Build/check commands.
 - Browser/local/preview/live checks.
@@ -465,7 +606,9 @@ List improvements that are product decisions rather than strict code bugs.
 - Desktop checks.
 - Clickability/form checks.
 - Save/persistence/history checks.
+- Edge-case checks.
 - Auth-safe verification limits.
+- Screenshots/logs to include in final report.
 
 ## Acceptance criteria
 - [ ] Criterion 1
