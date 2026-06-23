@@ -70,6 +70,18 @@ For RY agent setup or custom agent instructions, use:
 
 This document is the reusable instruction block that teaches the RY agent to route `/audit` and `/audit-fin` to the project audit protocols and return GitHub issue links plus short `/delivery` prompts.
 
+## Delivery design quality gate
+
+For `/delivery` tasks that affect UI, UX, mobile/desktop layout, screenshots, first screen, hero, landing, navigation, tabs/chips/buttons, cards, forms, profile/cabinet pages, visual polish, or user-facing copy, follow:
+
+- `docs/delivery-design-quality-gate.md`
+
+Build/check/live proof is not enough for UI delivery. Before `STATUS: SUCCESS`, `/delivery` must include a `DESIGN QUALITY GATE` and `UI POLISH / FEEL-BETTER PASS`.
+
+The polish pass must use `jakubkrehel/make-interfaces-feel-better` when installed, or the fallback checklist from `docs/audit-ui-polish-skill.md` when the external skill is unavailable.
+
+If any required design item is `FAIL` or `NOT VERIFIED`, `/delivery` must run another improvement loop or report an exact blocker/auth limitation instead of claiming success.
+
 ## Audit-first diagnostic mode
 
 When the user asks for audit, UI review, UX simplification, problem analysis, regression check, screenshot review, or “what is wrong”, follow `docs/audit-loop.md` before implementation.
