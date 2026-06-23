@@ -114,10 +114,10 @@
     document.head.appendChild(style);
   }
 
-  function preferMandalasRoute() {
+  function preferClientCabinetRoute() {
     if (window.location.pathname !== "/profile" && window.location.pathname !== "/profile-lite") return;
     if (window.location.search || window.location.hash) return;
-    window.history.replaceState({}, "", "/profile/mandalas");
+    window.history.replaceState({}, "", "/profile/orders");
     window.dispatchEvent(new Event("reiki-route-change"));
   }
 
@@ -232,7 +232,7 @@
   }
 
   function start() {
-    preferMandalasRoute();
+    preferClientCabinetRoute();
     injectStyle();
     wireControls();
     applyState();
