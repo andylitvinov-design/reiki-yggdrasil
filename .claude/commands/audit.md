@@ -149,6 +149,10 @@ Task:
 Ключевые требования: ...
 ```
 
+The copy-pasteable handoff prompt must start with `/delivery` as the first non-empty line.
+
+Do not start the prompt block with `/audit -> /delivery handoff`, `/audit → /delivery handoff`, `/audit handoff`, or any other slash-prefixed audit label. If a label is useful, put it outside the prompt block as plain text only.
+
 ## Required behavior
 
 Do not say “everything is fine” unless the audit contract was actually checked.
