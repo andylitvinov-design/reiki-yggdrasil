@@ -30,6 +30,26 @@ function text(value) {
   return String(value || "").trim();
 }
 
+function isFilenameLikeName(value) {
+  const name = text(value);
+  if (!name) return false;
+  return (
+    /^img[_-]?\d+\.(jpe?g|png|webp|heic|gif)$/i.test(name) ||
+    /^[\w\s().-]+\.(jpe?g|png|webp|heic|gif|pdf)$/i.test(name)
+  );
+}
+
+export function getClientDisplayName(client = {}) {
+  const rawName = text(client.client_name || client.name || client.title);
+  if (rawName && !isFilenameLikeName(rawName)) return rawName;
+  return "Клиент без имени";
+}
+
+function getClientDisplayNote(client = {}) {
+  const rawName = text(client.client_name || client.name || client.title);
+  return rawName && rawName !== getClientDisplayName(client) ? "Имя клиента не заполнено" : "";
+}
+
 function serviceStatus(value) {
   return SERVICE_STATUSES.includes(value) ? value : "draft";
 }
@@ -182,14 +202,23 @@ export function buildClientDirectoryFromOrders(orders = [], clientGoalPhotos = [
   const clientsByKey = new Map();
   const ensureClient = ({ key, client_profile_id = "", client_name = "Без имени" }) => {
     const safeKey = text(key);
+    const normalizedName = text(client_name) || "Без имени";
+    const displayName = getClientDisplayName({ client_name: normalizedName, client_profile_id });
     const existing = clientsByKey.get(safeKey) || {
       key: safeKey,
       client_profile_id: text(client_profile_id),
-      client_name: text(client_name) || "Без имени",
+      client_name: normalizedName,
+      client_display_name: displayName,
+      client_display_note: getClientDisplayNote({ client_name: normalizedName, client_profile_id }),
       orders: [],
       photos: [],
       clientWorks: []
     };
+    if (existing.client_display_name === "Клиент без имени" && displayName !== "Клиент без имени") {
+      existing.client_name = normalizedName;
+      existing.client_display_name = displayName;
+      existing.client_display_note = "";
+    }
     clientsByKey.set(safeKey, existing);
     return existing;
   };
@@ -215,7 +244,9 @@ export function buildClientDirectoryFromOrders(orders = [], clientGoalPhotos = [
     }).clientWorks.push(work);
   }
 
-  return [...clientsByKey.values()].sort((a, b) => a.client_name.localeCompare(b.client_name, "ru"));
+  return [...clientsByKey.values()].sort((a, b) => (
+    (a.client_display_name || a.client_name).localeCompare((b.client_display_name || b.client_name), "ru")
+  ));
 }
 
 export function normalizeServiceForm(form = {}, requestedStatus = form?.status) {

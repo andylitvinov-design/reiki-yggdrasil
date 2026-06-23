@@ -3470,7 +3470,7 @@ const resourceComparisonPanel = (
                 <div className="chatPlaceholderHeader">
                   <p className="cabinetEyebrow">Услуги</p>
                   <h2>Каталог услуг</h2>
-                  <span>Источник данных: profile_cabinet_services · inline smoke mode</span>
+                  <span>Черновики, публикации и клиентские мандалы в одном рабочем разделе.</span>
                 </div>
                 <div className="cabinetNotice cabinetSecondaryDataWarning">
                   Модуль услуг не участвует в критической загрузке кабинета. Если таблицы услуг, RLS или runtime-блок недоступны, тяжелый кабинет остаётся открытым, а услугу можно подготовить из сохранённого места силы следующим отдельным шагом.
