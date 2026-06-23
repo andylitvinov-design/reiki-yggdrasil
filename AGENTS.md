@@ -62,6 +62,14 @@ Before changing this repo, read:
 
 If a file is missing, report `not found`.
 
+## RY agent audit modes
+
+For RY agent setup or custom agent instructions, use:
+
+- `docs/ry-agent-audit-modes.md`
+
+This document is the reusable instruction block that teaches the RY agent to route `/audit` and `/audit-fin` to the project audit protocols and return GitHub issue links plus short `/delivery` prompts.
+
 ## Audit-first diagnostic mode
 
 When the user asks for audit, UI review, UX simplification, problem analysis, regression check, screenshot review, or “what is wrong”, follow `docs/audit-loop.md` before implementation.
