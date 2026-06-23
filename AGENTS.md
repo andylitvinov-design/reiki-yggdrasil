@@ -96,11 +96,13 @@ For screenshots, reports, tables, dashboards, scores, results pages, calculators
 - inspect visible numbers and mark unclear screenshot values as `VISUAL UNCLEAR`;
 - inspect code deeply to find where numbers are computed, stored, loaded, transformed, rounded, formatted, and displayed;
 - trace data flow from input to state, calculation, derived value, persistence, hydration, and display;
+- run the mandatory source-layer matrix before generating hypotheses: visual/displayed value, raw data availability, input parsing, state/selection, formula/business logic, calculation helpers, persistence/hydration, formatting/rounding, rendering/component binding, chart/gauge, async/loading/race, auth/environment, and test fixture/proof;
+- assign each source layer `PASS`, `ISSUE`, `NOT VERIFIED`, or `NOT APPLICABLE`, plus problem level `NONE`, `LOW`, `MEDIUM`, `HIGH`, or `BLOCKER`;
 - compare expected vs actual values using `MATCH`, `MISMATCH`, `MISSING`, `DUPLICATE`, `STALE`, `NOT VERIFIED`, or `NOT APPLICABLE`;
 - evaluate formula correctness, financial/business logic, data source, rounding/formatting, missing/inconsistent values, persistence/history safety, charts/gauges, desktop/mobile display, edge cases, regression risk, and proof plan;
-- produce a problem list split into `CONFIRMED`, `SUSPECTED`, and `NOT VERIFIED RISK`;
-- generate multiple hypotheses for every mismatch, missing value, stale value, duplicate value, incorrect chart/gauge, or unclear calculation;
-- evaluate each hypothesis against supporting and contradicting evidence, confidence, and verification step;
+- produce a problem list split into `CONFIRMED`, `SUSPECTED`, and `NOT VERIFIED RISK`, each tied to a source layer;
+- generate focused hypotheses only from source layers marked `ISSUE`, `HIGH`, `BLOCKER`, or important `NOT VERIFIED`; do not generate a huge generic hypothesis list;
+- evaluate each hypothesis against source-layer evidence, supporting and contradicting evidence, confidence, and verification step;
 - choose the most likely root cause or root-cause set, or state `MOST LIKELY: NOT VERIFIED` with exact proof needed;
 - compare solution options and select a recommended solution path before writing the `/delivery` prompt;
 - identify confirmed numeric/code problems separately from unverified hypotheses;
