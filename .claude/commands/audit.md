@@ -2,12 +2,12 @@
 
 `/audit` is sufficient by itself.
 
-The user must not need to add extra wording such as “study the code”, “create an issue”, “write technical instructions”, “check mobile”, “check save”, or “return a delivery prompt”.
+The user must not need to add extra wording such as “study the code”, “create an issue”, “write technical instructions”, “check mobile”, “check save”, “make interface feel better”, or “return a delivery prompt”.
 
 When the user invokes `/audit`, that invocation means full safe audit delegation for this repository:
 
 ```txt
-understand target -> inspect project rules -> inspect code deeply -> evaluate UX/UI/product/technical layers -> create/update GitHub issue -> return short /delivery prompt with issue link
+understand target -> inspect project rules -> inspect code deeply -> evaluate UX/UI/product/technical layers -> run optional UI polish pass -> create/update GitHub issue -> return short /delivery prompt with issue link
 ```
 
 ## Source of truth
@@ -16,13 +16,30 @@ Follow all source-of-truth docs in order:
 
 1. `.claude/commands/audit.md`
 2. `docs/audit-loop.md` — full audit protocol, mandatory dimensions, GitHub issue format, final response format
-3. `AGENTS.md` — project adapter and safety rules
-4. `.claude/commands/delivery.md` — implementation handoff contract
-5. `docs/delivery-auth-boundary-standard.md` — auth-gated cabinet verification boundary
-6. `docs/delivery-loop-program.md` — delivery handoff context
-7. `docs/delivery-loop-source-patterns-and-live-proof.md` — live proof context for final implementation
+3. `docs/audit-ui-polish-skill.md` — optional UI polish skill addendum, including `make-interfaces-feel-better` integration
+4. `AGENTS.md` — project adapter and safety rules
+5. `.claude/commands/delivery.md` — implementation handoff contract
+6. `docs/delivery-auth-boundary-standard.md` — auth-gated cabinet verification boundary
+7. `docs/delivery-loop-program.md` — delivery handoff context
+8. `docs/delivery-loop-source-patterns-and-live-proof.md` — live proof context for final implementation
 
 If a local source-of-truth doc is missing, report `needs verification` and do not invent replacement rules.
+
+## Optional external UI skill
+
+When available in the agent environment, use the external skill:
+
+```bash
+npx skills add jakubkrehel/make-interfaces-feel-better
+```
+
+Source:
+
+```txt
+https://jakub.kr/skills/make-interfaces-feel-better
+```
+
+If the skill is installed, load and apply it during `/audit`. If it is not installed or cannot be verified, do not block the audit; run the local UI polish checklist from `docs/audit-ui-polish-skill.md` and note the missing skill in the GitHub issue.
 
 ## Mode
 
@@ -78,10 +95,11 @@ Run the full audit chain:
    - observability and debug evidence;
    - implementation slicing;
    - rollback and safety plan.
-7. Map UI/product symptoms to specific code-level findings, hypotheses, and technical change directions.
-8. Identify confirmed code problems separately from UX/product improvements.
-9. Create or update a GitHub issue with the full audit report and technical implementation instructions.
-10. Return only a short response: audit status, issue link, and concise `/delivery` prompt pointing to that issue.
+7. Run the UI polish pass from `docs/audit-ui-polish-skill.md`, using `make-interfaces-feel-better` if installed.
+8. Map UI/product symptoms to specific code-level findings, hypotheses, and technical change directions.
+9. Identify confirmed code problems separately from UX/product improvements.
+10. Create or update a GitHub issue with the full audit report and technical implementation instructions.
+11. Return only a short response: audit status, issue link, and concise `/delivery` prompt pointing to that issue.
 
 ## Auth-gated cabinet rule
 
@@ -105,6 +123,7 @@ The GitHub issue must contain the full technical detail:
 - audit contract;
 - user-friendly target interface;
 - mandatory audit dimensions table;
+- UI polish pass;
 - findings;
 - root-cause map;
 - priority scoring;
