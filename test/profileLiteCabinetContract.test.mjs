@@ -66,8 +66,8 @@ assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
 assert.equal(getProfileLiteRouteByTabId("settings"), "/profile/settings");
 assert.equal(getProfileLiteRouteByTabId("diagnostics"), "/profile?tab=diagnostics");
 assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
-assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "mandalas");
-assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "orders");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
@@ -446,7 +446,7 @@ assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLite
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
-assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Сохранить как шаблон\s*<\/button>[\s\S]*>\s*Сохранить для клиента\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose update, template save, client save, transfer, and publish buttons in order");
+assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Сохранить как шаблон\s*<\/button>[\s\S]*isMasterWorkflow[\s\S]*>\s*Сохранить для клиента\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose update, template save, client save, transfer, and publish buttons in order for master workflow");
 assert.match(powerPlaceSource, /SHOW_POWER_PLACE_FEED_PROJECTION[\s\S]*Опубликовать в ленту[\s\S]*Название для ленты[\s\S]*Публичное описание/, "Power Place should keep feed projection handlers/form code behind the visibility flag");
 assert.match(powerPlaceSource, /const SHOW_POWER_PLACE_FEED_PROJECTION = false;/, "Power Place public projection must be hidden from the builder UI");
 const powerPlaceFeedProjectionSource = powerPlaceSource.match(/<div className="powerPlaceFeedProjection"[\s\S]*?<\/div>\s*<p className="powerPrintColorHint">/)?.[0] || "";
@@ -530,6 +530,10 @@ assert.match(profileLitePageSource, /selectedClientKey/, "ProfileLitePage should
 assert.match(powerPlaceBaseSource, /Сохранить как шаблон/, "Power Place save UI should preserve create-new behavior under the template label");
 assert.match(powerPlaceBaseSource, /Сохранить для клиента/, "Power Place save UI should expose client save intent");
 assert.match(powerPlaceBaseSource, /onOpenClientSave/, "Power Place save UI should open the client save modal");
+assert.match(powerPlaceBaseSource, /cabinetRole = "client"/, "Power Place should default to the client role when role context is absent");
+assert.match(powerPlaceBaseSource, /const isMasterWorkflow = cabinetRole === "master"/, "Power Place client-save UI should be explicitly gated to master workflow");
+assert.match(powerPlaceBaseSource, /\{isMasterWorkflow && \([\s\S]*powerPlaceClientSaveButton/, "Power Place should render the client-save button only in master workflow");
+assert.match(powerPlaceBaseSource, /\{isMasterWorkflow && clientSaveForm\.isOpen && \(/, "Power Place should render the client-save form only in master workflow");
 assert.match(powerPlaceBaseSource, /className="profileLiteClientSaveField"[\s\S]*Клиент[\s\S]*className="profileLiteClientSaveField"[\s\S]*Имя клиента[\s\S]*className="profileLiteClientSaveField"[\s\S]*Комментарий \/ запрос клиента[\s\S]*className="profileLiteClientSaveField"[\s\S]*Фото клиента \/ цель/, "client save fields should expose scoped field wrappers for stable mobile layout");
 assert.match(profileLitePageSource, /handleSaveCompositionForClient/, "ProfileLitePage should save a client-specific composition");
 assert.match(profileLitePageSource, /__client_work/, "client save should persist client metadata in saved composition object_refs");
@@ -709,8 +713,10 @@ assert.match(mobileOrderCss, /powerLibrarySidebar\{order:99/, "mobile order CSS 
 assert.match(mobileOrderCss, /reportSettingsPanel\{order:20/, "mobile order CSS should move report analysis lower on mobile");
 assert.match(mobileOrderCss, /coverPickerPanel\{order:[23]/, "mobile order CSS should place Power Place background near the top on mobile");
 
-assert.match(layoutFinalFix, /preferMandalasRoute/, "layout fix should prefer mandalas on bare profile route");
-assert.match(layoutFinalFix, /window\.location\.search \|\| window\.location\.hash/, "mandalas default redirect should leave callback/query URLs untouched");
+assert.match(layoutFinalFix, /preferClientCabinetRoute/, "layout fix should prefer the client cabinet on bare profile route");
+assert.match(layoutFinalFix, /window\.history\.replaceState\(\{\}, "", "\/profile\/orders"\)/, "bare profile route should redirect to client orders instead of the master workshop");
+assert.doesNotMatch(layoutFinalFix, /replaceState\(\{\}, "", "\/profile\/mandalas"\)/, "bare profile route must not redirect ordinary clients to the master workshop");
+assert.match(layoutFinalFix, /window\.location\.search \|\| window\.location\.hash/, "client default redirect should leave callback/query URLs untouched");
 assert.match(layoutFinalFix, /Отчёт и анализ/, "layout fix should merge report and analysis labels");
 assert.match(layoutFinalFix, /mergedResourceComparison/, "layout fix should move resource comparison into the report card");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "layout fix should not convert cover controls into legacy diagonal arrows");

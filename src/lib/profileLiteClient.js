@@ -100,7 +100,7 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
 
   if (pathname === "/profile" || pathname === "/profile-lite") {
     const queryTab = new URLSearchParams(search).get("tab");
-    return getProfileLiteTabById(queryTab).id;
+    return queryTab ? getProfileLiteTabById(queryTab).id : getProfileLiteRoleById("client").defaultTabId;
   }
 
   return "mandalas";

@@ -806,6 +806,7 @@ function coverToneClass(cover) {
 
 export default function ProfileLitePowerPlaceModule({
   accountPlan = "start",
+  cabinetRole = "client",
   clientGoalPhotos = [],
   clientDirectory = [],
   clientSaveForm = { isOpen: false, clientKey: "", clientName: "", requestText: "", clientPhotoId: "", status: "idle", message: "" },
@@ -935,6 +936,7 @@ export default function ProfileLitePowerPlaceModule({
   const savedCompositionLimit = planLimits.compositions;
   const createNewDisabled = savedCompositionCount >= savedCompositionLimit;
   const updateExistingDisabled = !compositionDraft.id;
+  const isMasterWorkflow = cabinetRole === "master";
   const defaultSymbolShelf = symbolShelfForConstructorType(compositionDraft.constructor_type);
   const activeSymbolShelf = symbolShelfState.value || defaultSymbolShelf;
   const activeSymbolShelfItems = useMemo(() => listPowerPlaceSymbolsByShelf(activeSymbolShelf), [activeSymbolShelf]);
@@ -2569,16 +2571,18 @@ export default function ProfileLitePowerPlaceModule({
           aria-label={createNewDisabled ? "Сохранить как шаблон: лимит сохранённых мандал достигнут" : "Сохранить как шаблон"}>
           Сохранить как шаблон
         </button>
-        <button
-          className="cabinetSecondary powerPlaceClientSaveButton"
-          type="button"
-          onClick={onOpenClientSave}
-          disabled={isClientSaveLoading}
-          aria-label="Сохранить для клиента">
-          Сохранить для клиента
-        </button>
+        {isMasterWorkflow && (
+          <button
+            className="cabinetSecondary powerPlaceClientSaveButton"
+            type="button"
+            onClick={onOpenClientSave}
+            disabled={isClientSaveLoading}
+            aria-label="Сохранить для клиента">
+            Сохранить для клиента
+          </button>
+        )}
       </div>
-      {clientSaveForm.isOpen && (
+      {isMasterWorkflow && clientSaveForm.isOpen && (
         <div className="cabinetCardInline profileLiteClientSaveForm" role="dialog" aria-label="Сохранить для клиента">
           <div className="cabinetFormHeader">
             <div>
