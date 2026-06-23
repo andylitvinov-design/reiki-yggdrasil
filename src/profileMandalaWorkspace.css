@@ -318,6 +318,7 @@
 
 .materialFilterList button,
 .chatModeNav button,
+.chatMasterPicker button,
 .profileLiteRoleNav a,
 .profileLiteRoleSwitcher button {
   width: 100%;
@@ -336,12 +337,48 @@
 }
 
 .materialFilterList button.active,
-.chatModeNav button:first-child,
+.chatModeNav button.active,
+.chatMasterPicker button:hover,
 .profileLiteRoleNav a.active,
 .profileLiteRoleSwitcher button.active {
   background: linear-gradient(180deg, #f2d492, #d39a32);
   color: #24180e;
   box-shadow: 0 10px 22px rgba(141, 83, 10, 0.14);
+}
+
+.chatMasterPicker {
+  display: grid;
+  gap: 8px;
+}
+
+.chatMasterPicker button {
+  display: grid;
+  justify-items: start;
+}
+
+.chatEmptyCompact {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 14px;
+  padding: 11px 12px;
+  background: rgba(255, 253, 248, 0.72);
+  color: #6b4d28;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.chatEmptyCompact b {
+  color: #2b1b0c;
+}
+
+.profileLiteChats .cabinetCard {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLiteChats textarea {
+  resize: vertical;
 }
 
 .profileLiteRoleSwitcher {
