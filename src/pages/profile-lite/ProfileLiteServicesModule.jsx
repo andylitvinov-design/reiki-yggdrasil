@@ -40,6 +40,7 @@ function serviceUiStatusText(status) {
 }
 
 export default function ProfileLiteServicesModule({
+  activeView = "services",
   onFieldChange,
   onAddToFeed = () => {},
   onPublish,
@@ -58,6 +59,7 @@ export default function ProfileLiteServicesModule({
   servicesError,
   servicesStatus
 }) {
+  const isClientsView = activeView === "clients";
   const groupedServices = groupServicesByStatus(services);
   const selectedServiceId = serviceForm?.id || "";
   const selectedCompositionId = serviceForm?.composition_id || "";
@@ -200,9 +202,7 @@ export default function ProfileLiteServicesModule({
           </p>
           <div className="cabinetActions">
             <a className="cabinetPrimary" href="/profile/mandalas">Открыть Места силы</a>
-            <button className="cabinetSecondary" type="button" onClick={openNewServiceEditor}>
-              Посмотреть черновики
-            </button>
+            <a className="cabinetSecondary" href="/profile/services">Открыть услуги</a>
           </div>
         </div>
       ) : (
@@ -418,61 +418,57 @@ export default function ProfileLiteServicesModule({
   );
 
   return (
-    <section className="profileLiteModule profileLiteServices mandalaWorkspace" aria-label="Услуги">
+    <section className={`profileLiteModule profileLiteServices mandalaWorkspace ${isClientsView ? "profileLiteClientsView" : "profileLiteServicesView"}`} aria-label={isClientsView ? "Клиенты" : "Услуги"}>
       <div className="mandalaHero">
         <div className="mandalaHeroSeal">◇</div>
         <div>
-          <p className="cabinetEyebrow">Услуги</p>
-          <h2>Каталог услуг</h2>
-          <p>Ведите клиентов, сохранённые мандалы, заказы и компактные публикации услуг в одном рабочем разделе.</p>
+          <p className="cabinetEyebrow">{isClientsView ? "Клиенты" : "Услуги"}</p>
+          <h2>{isClientsView ? "Клиентская база" : "Каталог услуг"}</h2>
+          <p>
+            {isClientsView
+              ? "Фильтр по клиентам, сохранённые материалы и мандалы клиента."
+              : "Шаблонные услуги, черновики, редактор и публикации из сохранённых мандал."}
+          </p>
         </div>
         <div className="mandalaHeroStats">
-          <span><b>{clientDirectory.length}</b> Клиенты</span>
-          <span><b>{services.length}</b> Услуги</span>
+          <span><b>{isClientsView ? clientDirectory.length : services.length}</b> {isClientsView ? "Клиенты" : "Услуги"}</span>
+          <span><b>{isClientsView ? selectedClientMaterials.length : groupedServices.draft.length}</b> {isClientsView ? "Материалы" : "Черновики"}</span>
           <span><b>{statusLabel}</b> Статус</span>
         </div>
       </div>
       {shellChrome}
-      <div className="workspaceMainColumns profileLiteLegacyColumns">
-        <aside className="mandalaModeSidebar">
-          <p className="cabinetEyebrow">Рабочий режим</p>
-          <h3>Услуги</h3>
-          <div className="chatModeNav" aria-label="Статические разделы услуг">
-            {["Клиенты", "Материалы", "Черновики", "Публикации", "Места силы"].map((item) => (
-              <button className={item === "Клиенты" ? "active" : ""} key={item} type="button">
-                <span>{item}</span>
-                <small>Profile Lite</small>
-              </button>
-            ))}
-          </div>
-        </aside>
-
+      <div className={`workspaceMainColumns profileLiteLegacyColumns ${isClientsView ? "profileLiteClientsColumns" : "profileLiteServicesColumns"}`}>
         <div className="workspaceCenterColumn">
-          <section className="chatPlaceholderWorkspace" aria-label="Клиенты и услуги">
+          <section className="chatPlaceholderWorkspace" aria-label={isClientsView ? "Клиенты и материалы" : "Шаблоны услуг"}>
             <div className="chatPlaceholderHeader">
-              <p className="cabinetEyebrow">Клиенты</p>
-              <h2>Клиенты и материалы</h2>
-              <span>Сначала клиентская база и мандалы, затем черновики услуг.</span>
+              <p className="cabinetEyebrow">{isClientsView ? "Клиенты" : "Услуги"}</p>
+              <h2>{isClientsView ? "Клиенты и материалы" : "Шаблоны, черновики и публикации"}</h2>
+              <span>
+                {isClientsView
+                  ? "Клиентская база, фильтр и сохранённые мандалы клиента."
+                  : "Создавайте услугу из сохранённой или отправленной мандалы."}
+              </span>
             </div>
             {servicesError && <div className="cabinetNotice cabinetSecondaryDataWarning">Нужно проверить данные услуг: {servicesError}</div>}
             {serviceMessage && <div className="cabinetNotice">{serviceMessage}</div>}
-            {renderClientWorkspace()}
-            {renderServiceGroups()}
+            {isClientsView ? renderClientWorkspace() : renderServiceGroups()}
           </section>
         </div>
 
-        <div className="workspaceRightColumn">
-          {!isEditorOpen ? (
-            <div className="cabinetCard profileLiteEditorClosedCard">
-              <p className="cabinetEyebrow">Редактор</p>
-              <h2>Редактор услуги скрыт</h2>
-              <p>Откройте форму только когда нужно создать или отредактировать услугу.</p>
-              <button className="cabinetPrimary profileLiteEditorToggle" type="button" onClick={openNewServiceEditor}>
-                Создать услугу
-              </button>
-            </div>
-          ) : renderEditor()}
-        </div>
+        {!isClientsView && (
+          <div className="workspaceRightColumn">
+            {!isEditorOpen ? (
+              <div className="cabinetCard profileLiteEditorClosedCard">
+                <p className="cabinetEyebrow">Редактор</p>
+                <h2>Редактор услуги скрыт</h2>
+                <p>Откройте форму только когда нужно создать или отредактировать услугу.</p>
+                <button className="cabinetPrimary profileLiteEditorToggle" type="button" onClick={openNewServiceEditor}>
+                  Создать услугу
+                </button>
+              </div>
+            ) : renderEditor()}
+          </div>
+        )}
       </div>
     </section>
   );

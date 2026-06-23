@@ -8284,6 +8284,14 @@
   box-shadow: 0 16px 34px rgba(71, 44, 14, 0.1);
 }
 
+.profileLiteServices .profileLiteClientsColumns {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.profileLiteServices .profileLiteServicesColumns {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+}
+
 .profileLiteServices .profileLiteClientEmptyState {
   display: grid;
   gap: 10px;
@@ -8314,6 +8322,7 @@
   gap: 2px;
   min-width: 0;
   padding: 9px 10px;
+  overflow-wrap: anywhere;
 }
 
 .profileLiteServices .profileLiteClientSummaryGrid b {
@@ -8521,6 +8530,10 @@
 .profileLiteServices .profileLiteServiceCard {
   align-items: start;
   grid-template-columns: 42px minmax(0, 1fr);
+}
+
+.profileLiteServices .profileLiteServiceCard .materialThumb {
+  min-height: 42px;
 }
 
 .profileLiteServices .profileLiteServiceCard h3,
@@ -9116,9 +9129,9 @@
   .profileLitePowerPlace .profileLiteClientSaveForm {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 9px;
     width: 100%;
-    padding: 14px;
+    padding: 12px;
   }
 
   .profileLitePowerPlace .profileLiteClientSaveForm .cabinetFormHeader,
@@ -9139,7 +9152,7 @@
   .profileLitePowerPlace .profileLiteClientSaveForm label {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 7px;
+    gap: 5px;
     width: 100%;
   }
 
@@ -9162,6 +9175,17 @@
     width: 100%;
   }
 
+  .profileLitePowerPlace .profileLiteClientSaveForm input,
+  .profileLitePowerPlace .profileLiteClientSaveForm select {
+    min-height: 38px;
+    padding: 8px 10px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm textarea {
+    min-height: 70px;
+    padding: 8px 10px;
+  }
+
   .profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -9177,16 +9201,51 @@
   }
 
   .profileLiteServices .profileLiteClientMandalaCard {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 11px;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .profileLiteServices .profileLiteMandalaPreview {
-    width: 100%;
+    min-height: 96px;
+    width: 96px;
   }
 
   .profileLiteServices .profileLiteClientMandalaHeader {
     grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .profileLiteServices .profileLiteClientSummaryGrid {
+    gap: 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileLiteServices .profileLiteClientSummaryGrid span {
+    border-radius: 10px;
+    padding: 7px 8px;
+  }
+
+  .profileLiteServices .profileLiteClientDatabase,
+  .profileLiteServices .profileLiteSecondaryServices,
+  .profileLiteServices .profileLiteServiceGroup {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard .materialThumb {
+    min-height: 38px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard h3,
+  .profileLiteServices .profileLiteServiceCard p,
+  .profileLiteServices .profileLiteClientMandalaHeader h4,
+  .profileLiteServices .profileLiteClientMandalaBody p {
+    margin-bottom: 5px;
   }
 
   .profileLiteServices .profileLiteClientResultActions {

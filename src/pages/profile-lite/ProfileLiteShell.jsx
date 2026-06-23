@@ -43,15 +43,16 @@ export default function ProfileLiteShell({
       <nav className="profileLiteRoleNav" aria-label={`Навигация ${cabinetRole === "master" ? "Кабинет Мастера" : "Кабинет Личный"}`}>
         {roleNav.map((item) => {
           const href = getProfileLiteRouteByTabId(item.tabId);
+          const isActive = activeTab === item.tabId && (!item.role || cabinetRole === item.role);
           return (
             <a
-              aria-current={activeTab === item.tabId ? "page" : undefined}
-              className={activeTab === item.tabId ? "active" : ""}
+              aria-current={isActive ? "page" : undefined}
+              className={isActive ? "active" : ""}
               href={href}
               key={item.label}
               onClick={(event) => {
                 event.preventDefault();
-                onTabNavigate({ id: item.tabId, href });
+                onTabNavigate({ id: item.tabId, href, role: item.role });
               }}
             >
               {item.label}

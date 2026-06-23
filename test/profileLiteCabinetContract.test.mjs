@@ -26,6 +26,7 @@ const expectedTabs = [
   ["materials", "Гримуар"],
   ["courses", "Курсы"],
   ["services", "Услуги"],
+  ["clients", "Клиенты"],
   ["orders", "Заказы"],
   ["chats", "Чаты"]
 ];
@@ -45,6 +46,7 @@ assert.deepEqual(
     ["materials", "/profile?tab=materials"],
     ["courses", "/profile/courses"],
     ["services", "/profile/services"],
+    ["clients", "/profile?tab=clients"],
     ["orders", "/profile/orders"],
     ["chats", "/profile/chats"]
   ],
@@ -97,10 +99,13 @@ assert.deepEqual(
 
 assert.equal(getProfileLiteRoleById("missing").label, "Кабинет Личный");
 assert.equal(getProfileLiteRoleForTab("orders"), "client");
+assert.equal(getProfileLiteRoleForTab("orders", "master"), "master");
 assert.equal(getProfileLiteRoleForTab("mandalas"), "master");
 assert.equal(getProfileLiteRoleForTab("services"), "master");
+assert.equal(getProfileLiteRoleForTab("clients"), "master");
 assert.equal(getProfileLiteRoleForTab("profile"), "client");
-assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "services", "orders", "materials"]);
+assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "clients", "orders", "materials"]);
+assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master" });
 
 const fullForm = createProfileLiteForm({
   display_name: "Master",
@@ -543,7 +548,12 @@ assert.match(profileServicesModuleSource, /client_display_name/, "services clien
 assert.doesNotMatch(profileServicesModuleSource, /profile_cabinet_services|\/services\/:serviceId/, "services manager should not show table names or unfinished route debug text in the normal UI");
 assert.doesNotMatch(profileServicesModuleSource, /composition_id:|delivery modes MVP|formats persistence|raw success|needs verification/, "services manager normal UI must not expose implementation/debug labels");
 assert.match(profileServicesModuleSource, /Клиентов пока нет[\s\S]*Сохранить для клиента/, "services manager should show a useful no-clients empty state instead of an empty selector-first UI");
-assert.match(profileServicesModuleSource, /profileLiteClientWorkspace[\s\S]*profileLiteSecondaryServices/, "services manager should put clients/materials before secondary service groups");
+assert.match(profileServicesModuleSource, /activeView = "services"/, "services/clients module should accept an explicit active view");
+assert.match(profileServicesModuleSource, /isClientsView \? "Клиентская база" : "Каталог услуг"/, "Услуги and Клиенты should render distinct hero headings");
+assert.match(profileServicesModuleSource, /isClientsView \? renderClientWorkspace\(\) : renderServiceGroups\(\)/, "Клиенты should show client materials while Услуги should show service groups");
+assert.match(profileLitePageSource, /clients:\s*\([\s\S]*<ProfileLiteServicesModule[\s\S]*activeView="clients"/, "Profile Lite should render a dedicated clients tab module");
+assert.match(profileLitePageSource, /services:\s*\([\s\S]*<ProfileLiteServicesModule[\s\S]*activeView="services"/, "Profile Lite should render a dedicated services tab module");
+assert.match(profileLiteShellSource, /onTabNavigate\(\{ id: item\.tabId, href, role: item\.role \}\)/, "Profile Lite shell should pass master-only role metadata through tab navigation");
 assert.match(profileServicesModuleSource, /profileLiteEditorToggle[\s\S]*Создать услугу/, "services manager should hide the editor behind a create/edit action on compact screens");
 assert.match(profileServicesModuleSource, /serviceUiStatusText/, "services manager should map raw service load/action statuses to RU UI labels");
 assert.match(profileServicesModuleSource, /navigator\.clipboard\?\.writeText\(url\)/, "sent mandala copy button should use Clipboard API");

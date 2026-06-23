@@ -693,7 +693,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   useEffect(() => {
     const nextTab = getProfileLiteTabById(initialTab).id;
     setActiveTab(nextTab);
-    setCabinetRole(getProfileLiteRoleForTab(nextTab));
+    setCabinetRole(getProfileLiteRoleForTab(nextTab, cabinetRole));
   }, [initialTab]);
 
   const moduleStates = useMemo(() => ({
@@ -2123,6 +2123,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
 
   const openServicesTab = () => {
     setActiveTab("services");
+    setCabinetRole("master");
     if (typeof window !== "undefined" && window.location.pathname !== "/profile/services") {
       window.history.pushState({}, "", "/profile/services");
       window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
@@ -2215,8 +2216,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const handleProfileLiteTabNavigate = (tab) => {
     const nextTab = getProfileLiteTabById(tab?.id);
     const href = tab?.href || getProfileLiteRouteByTabId(nextTab.id);
+    const nextRole = tab?.role || getProfileLiteRoleForTab(nextTab.id, cabinetRole);
     setActiveTab(nextTab.id);
-    setCabinetRole(getProfileLiteRoleForTab(nextTab.id));
+    setCabinetRole(nextRole);
     if (typeof window !== "undefined" && window.location.pathname + window.location.search !== href) {
       window.history.pushState({}, "", href);
       window.dispatchEvent(new Event(ROUTE_CHANGE_EVENT));
@@ -2229,7 +2231,8 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setCabinetRole(nextRole.id);
     handleProfileLiteTabNavigate({
       id: nextRole.defaultTabId,
-      href: getProfileLiteRouteByTabId(nextRole.defaultTabId)
+      href: getProfileLiteRouteByTabId(nextRole.defaultTabId),
+      role: nextRole.id
     });
   };
 
@@ -2676,6 +2679,27 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     services: (
       <ProfileLiteServicesModule
         {...moduleProps}
+        activeView="services"
+        clientDirectory={clientDirectory}
+        selectedClient={selectedClient}
+        selectedClientKey={selectedClientKey}
+        onClientSelect={setSelectedClientKey}
+        onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
+        onAddToFeed={handleAddServiceToFeed}
+        onPublish={handleServicePublish}
+        onSave={handleServiceSave}
+        onServiceSelect={(service) => {
+          setServiceForm(createEmptyServiceForm(service));
+          setServiceMessage("Услуга выбрана для редактирования.");
+          setServicesError("");
+        }}
+        onStatusChange={handleServiceStatusChange}
+      />
+    ),
+    clients: (
+      <ProfileLiteServicesModule
+        {...moduleProps}
+        activeView="clients"
         clientDirectory={clientDirectory}
         selectedClient={selectedClient}
         selectedClientKey={selectedClientKey}
