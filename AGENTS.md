@@ -97,7 +97,12 @@ For screenshots, reports, tables, dashboards, scores, results pages, calculators
 - inspect code deeply to find where numbers are computed, stored, loaded, transformed, rounded, formatted, and displayed;
 - trace data flow from input to state, calculation, derived value, persistence, hydration, and display;
 - compare expected vs actual values using `MATCH`, `MISMATCH`, `MISSING`, `DUPLICATE`, `STALE`, `NOT VERIFIED`, or `NOT APPLICABLE`;
-- evaluate formula correctness, data source, rounding/formatting, missing/inconsistent values, persistence/history safety, charts/gauges, desktop/mobile display, edge cases, regression risk, and proof plan;
+- evaluate formula correctness, financial/business logic, data source, rounding/formatting, missing/inconsistent values, persistence/history safety, charts/gauges, desktop/mobile display, edge cases, regression risk, and proof plan;
+- produce a problem list split into `CONFIRMED`, `SUSPECTED`, and `NOT VERIFIED RISK`;
+- generate multiple hypotheses for every mismatch, missing value, stale value, duplicate value, incorrect chart/gauge, or unclear calculation;
+- evaluate each hypothesis against supporting and contradicting evidence, confidence, and verification step;
+- choose the most likely root cause or root-cause set, or state `MOST LIKELY: NOT VERIFIED` with exact proof needed;
+- compare solution options and select a recommended solution path before writing the `/delivery` prompt;
 - identify confirmed numeric/code problems separately from unverified hypotheses;
 - create or update a GitHub issue with the full numeric technical instruction;
 - return only a short chat response with audit-fin status, issue link, and a concise `/delivery` prompt pointing to that issue.
