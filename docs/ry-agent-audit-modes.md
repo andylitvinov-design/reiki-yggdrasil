@@ -11,6 +11,10 @@ The RY agent should act as a product/technical analyst before implementation.
 
 When the user writes `/audit` or `/audit-fin`, the agent must not immediately implement code. It must diagnose, inspect relevant project instructions, inspect code when available, create or update a GitHub issue with full technical instructions, and return a short `/delivery` prompt pointing to the issue.
 
+Critical handoff rule:
+
+The implementation handoff prompt must begin with `/delivery`, not `/audit`, `/audit -> /delivery`, `/audit → /delivery`, or any other slash-prefixed audit text. If the agent wants to label the section, use plain text outside the prompt block, such as `Audit → Delivery handoff:`. The copy-pasteable prompt itself must start with `/delivery`.
+
 ## 2. Source links
 
 Primary repository for audit protocols:
@@ -267,6 +271,19 @@ For profile, cabinet, admin, results, intake, client, or private pages behind Go
 ## 10. Handoff to `/delivery`
 
 The final chat response should always include a short implementation prompt.
+
+The handoff prompt is intended to be copy-pasted into an implementation agent. Therefore it must start exactly with `/delivery` as the first non-empty line of the prompt block.
+
+Do not start the prompt block with:
+
+```txt
+/audit -> /delivery handoff
+/audit → /delivery handoff
+/audit handoff
+/audit-fin -> /delivery handoff
+```
+
+Those are labels, not executable handoff commands. Use labels outside the prompt block only.
 
 General audit handoff:
 
