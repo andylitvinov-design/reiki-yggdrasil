@@ -42,7 +42,7 @@ export default function ProfileLiteShell({
     <div className="profileLiteShellChrome">
       <nav className="profileLiteRoleNav" aria-label={`Навигация ${cabinetRole === "master" ? "Кабинет Мастера" : "Кабинет Личный"}`}>
         {roleNav.map((item) => {
-          const href = getProfileLiteRouteByTabId(item.tabId);
+          const href = item.href || getProfileLiteRouteByTabId(item.tabId);
           const isActive = activeTab === item.tabId && (!item.role || cabinetRole === item.role);
           return (
             <a

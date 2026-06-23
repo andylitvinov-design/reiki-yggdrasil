@@ -29,7 +29,7 @@ export const PROFILE_LITE_ROLE_NAV = {
     { label: "Мастерская", tabId: "mandalas" },
     { label: "Услуги", tabId: "services" },
     { label: "Клиенты", tabId: "clients" },
-    { label: "Заявки", tabId: "orders", role: "master" },
+    { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" },
     { label: "Гримуар", tabId: "materials" }
   ]
 };
@@ -106,6 +106,15 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
   }
 
   return "mandalas";
+}
+
+export function getProfileLiteInitialRoleFromLocation(pathname = "/profile", search = "") {
+  const tabId = getProfileLiteInitialTabFromLocation(pathname, search);
+  const params = new URLSearchParams(search);
+  const requestedRole = params.get("role") || params.get("cabinet");
+  if (requestedRole === "master" && tabId === "orders") return "master";
+  if (requestedRole === "client" && tabId === "orders") return "client";
+  return getProfileLiteRoleForTab(tabId);
 }
 
 export function hasProfileLiteSessionCredential(session) {

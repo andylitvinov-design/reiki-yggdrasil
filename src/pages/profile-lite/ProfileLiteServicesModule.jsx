@@ -189,7 +189,8 @@ export default function ProfileLiteServicesModule({
       <div className="cabinetFormHeader">
         <div>
           <p className="cabinetEyebrow">Клиенты</p>
-          <h3>База клиентов и материалы клиента</h3>
+          <h3>Клиенты и материалы</h3>
+          <p className="cabinetMuted">Список клиентов, фильтр, сохранённые мандалы, заказы и статусы.</p>
         </div>
         <span className="cabinetStatus">{hasClients ? `${clientDirectory.length} клиентов` : "Пусто"}</span>
       </div>
@@ -301,6 +302,7 @@ export default function ProfileLiteServicesModule({
         <div>
           <p className="cabinetEyebrow">Услуги</p>
           <h3>Черновики и публикации</h3>
+          <p className="cabinetMuted">Шаблоны услуг, редактор и публикации из сохранённых мандал.</p>
         </div>
         <button className="cabinetSecondary profileLiteEditorToggle" type="button" onClick={openNewServiceEditor}>
           Создать услугу
@@ -449,7 +451,7 @@ export default function ProfileLiteServicesModule({
                   : "Создавайте услугу из сохранённой или отправленной мандалы."}
               </span>
             </div>
-            {servicesError && <div className="cabinetNotice cabinetSecondaryDataWarning">Нужно проверить данные услуг: {servicesError}</div>}
+            {!isClientsView && servicesError && <div className="cabinetNotice cabinetSecondaryDataWarning">Нужно проверить данные услуг: {servicesError}</div>}
             {serviceMessage && <div className="cabinetNotice">{serviceMessage}</div>}
             {isClientsView ? renderClientWorkspace() : renderServiceGroups()}
           </section>

@@ -11466,3 +11466,43 @@
     font-size: 8px;
   }
 }
+
+@media (max-width: 760px) {
+  .profileLiteServices .mandalaHeroStats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .profileLiteServices .mandalaHeroStats span {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .profileLiteServices .profileLiteClientMandalaCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteServices .profileLiteMandalaPreview {
+    width: 100%;
+    max-width: 160px;
+    min-height: 118px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteServices .profileLiteServiceCard .materialThumb {
+    width: 42px;
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .profileLiteOrdersEmptyState h3,
+  .profileLiteOrdersEmptyState p {
+    margin: 0 0 6px;
+  }
+}

@@ -201,7 +201,12 @@ function MasterOrdersView({
               </div>
             </article>
           ))}
-          {ordersStatus === "success" && orders.length === 0 && <p>Входящих заявок пока нет.</p>}
+          {ordersStatus === "success" && orders.length === 0 && (
+            <div className="profileLiteOrdersEmptyState">
+              <h3>Заявок пока нет</h3>
+              <p>Здесь будут заявки клиентов.</p>
+            </div>
+          )}
         </div>
       </section>
     </div>
