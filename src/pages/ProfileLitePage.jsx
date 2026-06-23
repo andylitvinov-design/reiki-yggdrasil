@@ -69,7 +69,12 @@ import {
 } from "../lib/powerPlaceClient.js";
 import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
 import { loadProfileCabinetBootstrap } from "../lib/profileBootstrapClient.js";
-import { listOwnChatThreads, sendChatMessage } from "../lib/masterChatClient.js";
+import {
+  createConversationWithMaster,
+  listApprovedMasterProfiles,
+  listOwnChatThreads,
+  sendChatMessage
+} from "../lib/masterChatClient.js";
 import {
   createProfileLiteDiagnostics,
   createProfileLiteForm,
@@ -659,6 +664,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
   const [chatThreads, setChatThreads] = useState([]);
   const [selectedThreadId, setSelectedThreadId] = useState("");
   const [chatDraft, setChatDraft] = useState("");
+  const [approvedChatProfiles, setApprovedChatProfiles] = useState([]);
+  const [approvedChatProfilesStatus, setApprovedChatProfilesStatus] = useState("idle");
+  const [approvedChatProfilesError, setApprovedChatProfilesError] = useState("");
 
   const sessionExpired = useMemo(() => isStoredSessionExpired(session), [session]);
   const clientDirectory = useMemo(
@@ -696,8 +704,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     mandalas: { status: mandalasStatus, count: powerPlaceCompositions.length, error: mandalasError },
     services: { status: servicesStatus, count: services.length, error: servicesError },
     orders: { status: ordersStatus, count: orders.length + clientOrders.length, error: ordersError },
-    chats: { status: chatsStatus, count: chatThreads.length, error: chatsError }
+    chats: { status: chatsStatus, count: chatThreads.length, error: chatsError || approvedChatProfilesError }
   }), [
+    approvedChatProfilesError,
     chatThreads.length,
     chatsError,
     chatsStatus,
@@ -773,6 +782,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     setChatThreads([]);
     setChatsStatus("idle");
     setChatsError("");
+    setApprovedChatProfiles([]);
+    setApprovedChatProfilesStatus("idle");
+    setApprovedChatProfilesError("");
     resetWindowUrl();
   };
 
@@ -1028,19 +1040,23 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         setOrders([]);
         setClientOrders([]);
         setChatThreads([]);
+        setApprovedChatProfiles([]);
         setServicesStatus("idle");
         setOrdersStatus("idle");
         setChatsStatus("idle");
+        setApprovedChatProfilesStatus("idle");
         return;
       }
       setServicesStatus("loading");
       setOrdersStatus("loading");
       setChatsStatus("loading");
-      const [servicesResult, clientOrdersResult, masterOrdersResult, chatsResult] = await Promise.allSettled([
+      setApprovedChatProfilesStatus("loading");
+      const [servicesResult, clientOrdersResult, masterOrdersResult, chatsResult, approvedProfilesResult] = await Promise.allSettled([
         listOwnServices(profile.id, session),
         listClientServiceOrders(profile.id, session),
         listOwnServiceOrders(profile.id, session),
-        listOwnChatThreads(profile.id, session)
+        listOwnChatThreads(profile.id, session),
+        listApprovedMasterProfiles(session)
       ]);
       if (cancelled) return;
       if (servicesResult.status === "fulfilled") {
@@ -1076,6 +1092,16 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         setChatThreads([]);
         setChatsStatus("needs-verification");
         setChatsError(moduleError(chatsResult.reason, "profile_cabinet_chat_* request failed or migration/RLS not applied"));
+      }
+      if (approvedProfilesResult.status === "fulfilled") {
+        const profiles = (approvedProfilesResult.value || []).filter((item) => item?.id && item.id !== profile.id);
+        setApprovedChatProfiles(profiles);
+        setApprovedChatProfilesStatus("success");
+        setApprovedChatProfilesError("");
+      } else {
+        setApprovedChatProfiles([]);
+        setApprovedChatProfilesStatus("needs-verification");
+        setApprovedChatProfilesError(moduleError(approvedProfilesResult.reason, "approved profile lookup failed or RLS not applied"));
       }
     }
     void loadBusinessModules();
@@ -2455,6 +2481,23 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     }
   };
 
+  const handleStartChatWithMaster = async (masterProfileId) => {
+    if (!profile?.id || !masterProfileId || !hasProfileLiteSessionCredential(session)) return;
+    setChatsStatus("loading");
+    setChatsError("");
+    try {
+      const conversationId = await createConversationWithMaster(profile.id, masterProfileId, session);
+      const threads = (await listOwnChatThreads(profile.id, session)).map((thread) => ({ ...thread, ownerProfileId: profile.id }));
+      setChatThreads(threads);
+      setSelectedThreadId(conversationId || threads[0]?.conversation_id || "");
+      setChatsStatus("success");
+      setChatsError("");
+    } catch (error) {
+      setChatsStatus("needs-verification");
+      setChatsError(moduleError(error, "profile_cabinet_chat_conversations create failed or migration/RLS not applied"));
+    }
+  };
+
   if (!user || authStatus !== "success") {
     const authGateCabinetLabel = getProfileLiteRoleById(cabinetRole).label;
     return (
@@ -2494,6 +2537,9 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
     cabinetRole,
     chatDraft,
     chatThreads,
+    approvedChatProfiles,
+    approvedChatProfilesError,
+    approvedChatProfilesStatus,
     chatsError,
     chatsStatus,
     cabinetRole,
@@ -2666,6 +2712,7 @@ export default function ProfileLitePage({ initialTab = "overview", onNavigateHom
         {...moduleProps}
         onChatDraftChange={setChatDraft}
         onSendMessage={handleSendMessage}
+        onStartChatWithMaster={handleStartChatWithMaster}
         onThreadSelect={setSelectedThreadId}
       />
     ),

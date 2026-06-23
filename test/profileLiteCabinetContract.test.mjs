@@ -216,6 +216,7 @@ const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.
 const profileLiteShellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
 const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
+const profileChatsModuleSource = readFileSync(join(moduleDir, "ProfileLiteChatsModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
 const profileLiteMediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
@@ -273,6 +274,18 @@ assert.match(profileOrdersModuleSource, /Не удалось загрузить 
 assert.doesNotMatch(profileOrdersModuleSource, /clientGoalPhotos\.length\}\/4/, "orders photo summary must not render raw count slash limit text");
 assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders photo panel should explain the order selection limit in user-facing RU copy");
 assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders photo panel should summarize hidden media without dumping filenames");
+assert.match(profileLitePageSource, /listApprovedMasterProfiles/, "ProfileLitePage should load approved master profiles for chat creation");
+assert.match(profileLitePageSource, /createConversationWithMaster/, "ProfileLitePage should create or open conversations through the shared chat client");
+assert.match(profileLitePageSource, /listApprovedMasterProfiles\(session\)/, "approved chat profiles should keep the existing Supabase auth session flow");
+assert.match(profileLitePageSource, /createConversationWithMaster\(profile\.id, masterProfileId, session\)/, "chat creation should preserve profile/session ownership flow");
+assert.match(profileLitePageSource, /<ProfileLiteChatsModule[\s\S]*onStartChatWithMaster=\{handleStartChatWithMaster\}/, "ProfileLitePage should pass the start-chat action into the chat module");
+assert.match(profileChatsModuleSource, /approvedChatProfiles = \[\]/, "chats module should accept approved master profiles");
+assert.match(profileChatsModuleSource, /onStartChatWithMaster\(master\.id\)/, "approved master buttons should create or open a conversation");
+assert.match(profileChatsModuleSource, /Начните диалог с мастером/, "empty chat state should invite selecting an approved master");
+assert.match(profileChatsModuleSource, /Выберите мастера из одобренных профилей/, "empty chat state should explain the approved-master flow");
+assert.match(profileChatsModuleSource, /disabled=\{!selectedThread \|\| !hasDraft\}/, "send button should require a selected thread and non-empty draft");
+assert.doesNotMatch(profileChatsModuleSource, /needs verification/i, "chats UI must not expose raw needs verification text");
+assert.doesNotMatch(profileChatsModuleSource, /Источник данных|profile_cabinet_chat_\*|Статические разделы чатов|Места силы", "Фото клиентов"|Создание новых диалогов/, "chats UI must not expose debug source or old placeholder copy");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
