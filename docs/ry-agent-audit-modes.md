@@ -13,7 +13,7 @@ When the user writes `/audit` or `/audit-fin`, the agent must not immediately im
 
 ## 2. Source links
 
-Primary repository:
+Primary repository for audit protocols:
 
 ```txt
 https://github.com/andylitvinov-design/reiki-yggdrasil
@@ -48,7 +48,36 @@ If the agent has direct repository access, it should read the local files instea
 
 If the agent cannot access GitHub or local files, it should say that the source protocol was not verified and continue using the behavior summarized in this document.
 
-## 3. `/audit` mode
+## 3. Project routing
+
+When auditing a URL or screenshot, first resolve the project repository. Do not assume the repo name from the local folder name.
+
+Known mappings:
+
+```txt
+Live URL: https://2mentalica.vercel.app
+Canonical GitHub repo: andylitvinov-design/report
+Possible local path: /Users/andriilitvinov/projects/MYPROJECTS/reports
+Notes: local folder may be plural `reports`, but GitHub repo is singular `report`.
+
+Live URL: https://mentalica.vercel.app
+Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
+
+Live URL: https://reiki-yggdrasil.vercel.app
+Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
+```
+
+If `andylitvinov-design/reports` returns Not Found, try `andylitvinov-design/report` before declaring GitHub issue creation unavailable.
+
+For `https://2mentalica.vercel.app`, create GitHub audit issues in:
+
+```txt
+https://github.com/andylitvinov-design/report/issues
+```
+
+Do not fall back to `andylitvinov-design/reiki-yggdrasil` for 2mentalica implementation issues unless the user explicitly says the issue belongs there.
+
+## 4. `/audit` mode
 
 Trigger examples:
 
@@ -66,6 +95,7 @@ Required chain:
 
 ```txt
 understand target
+-> resolve project repo
 -> inspect project rules
 -> inspect relevant code deeply when available
 -> evaluate UX/UI/product/technical layers
@@ -112,7 +142,7 @@ Task:
 
 Do not duplicate the full issue body in chat if the GitHub issue was created.
 
-## 4. `/audit-fin` mode
+## 5. `/audit-fin` mode
 
 Trigger examples:
 
@@ -130,6 +160,7 @@ Required chain:
 
 ```txt
 understand numeric target
+-> resolve project repo
 -> extract numeric contract
 -> inspect visible numbers
 -> inspect code and data flow deeply
@@ -144,7 +175,7 @@ understand numeric target
 -> return short /delivery prompt with issue link
 ```
 
-## 5. `/audit-fin` source-layer matrix
+## 6. `/audit-fin` source-layer matrix
 
 Before generating hypotheses, the agent must check all source layers:
 
@@ -176,7 +207,7 @@ Important rule:
 
 If raw data availability, formula/business logic, state/selection, or persistence/hydration is `ISSUE` or `NOT VERIFIED`, do not prematurely classify the problem as display/rendering. State the upstream uncertainty first.
 
-## 6. `/audit-fin` failed-repair mode
+## 7. `/audit-fin` failed-repair mode
 
 If the user says previous fixes did not work, or if repeated hypotheses were already tried, the RY agent must also run the failed-repair addendum.
 
@@ -203,7 +234,7 @@ Do not repeat a prior failed hypothesis unless new evidence changes the conclusi
 
 Do not keep applying display/rendering fixes when the source-layer matrix shows raw data, formula, state, or persistence problems.
 
-## 7. GitHub issue behavior
+## 8. GitHub issue behavior
 
 When GitHub access is available, `/audit` and `/audit-fin` should create or update a GitHub issue.
 
@@ -223,7 +254,7 @@ STATUS: AUDIT_COMPLETE_ISSUE_NOT_CREATED
 STATUS: AUDIT_FIN_COMPLETE_ISSUE_NOT_CREATED
 ```
 
-## 8. Auth-safe behavior
+## 9. Auth-safe behavior
 
 For profile, cabinet, admin, results, intake, client, or private pages behind Google/Supabase auth:
 
@@ -233,7 +264,7 @@ For profile, cabinet, admin, results, intake, client, or private pages behind Go
 - use screenshot, code-level proof, local/demo/fixture state, public route, login entry, protected redirect, and owner-provided expected values as safe substitute evidence;
 - use `STATUS: AUDIT_PARTIAL_AUTH_LIMITATION` or `STATUS: AUDIT_FIN_PARTIAL_AUTH_LIMITATION` when only authenticated production proof is unavailable.
 
-## 9. Handoff to `/delivery`
+## 10. Handoff to `/delivery`
 
 The final chat response should always include a short implementation prompt.
 
@@ -264,7 +295,7 @@ Task:
 - verify with deterministic expected values.
 ```
 
-## 10. Required behavior
+## 11. Required behavior
 
 Do not say “everything is fine” unless the audit contract was checked.
 
