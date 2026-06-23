@@ -62,6 +62,23 @@ Before changing this repo, read:
 
 If a file is missing, report `not found`.
 
+## Audit-first diagnostic mode
+
+When the user asks for audit, UI review, UX simplification, problem analysis, regression check, screenshot review, or “what is wrong”, follow `docs/audit-loop.md` before implementation.
+
+`/audit` is diagnostic by default. It should not edit code, commit, push, merge, or deploy unless the user explicitly asks to continue to `/delivery`.
+
+For screenshots and UI complaints, audit must:
+
+- diagnose what is wrong;
+- propose a more user-friendly target interface;
+- inspect likely route/component/style/data files when repository access is available;
+- map UI symptoms to code-level change directions;
+- produce a technical implementation instruction;
+- end with a ready-to-run `/delivery` prompt.
+
+For auth-gated cabinet screens, use auth-safe evidence. Never request credentials, cookies, tokens, or secrets, and never claim authenticated production visual verification unless actually performed.
+
 ## Terminal prompt safety rules
 
 When giving the user a terminal prompt for this repo:
