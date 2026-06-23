@@ -169,8 +169,8 @@ assert.match(
 
 assert.match(
   profilePageSource,
-  /activeTopTab === "services"[\s\S]*profile_cabinet_services[\s\S]*inline smoke mode/,
-  "old /profile services tab should render an inline smoke notice instead of a blank or blocking module"
+  /activeTopTab === "services"[\s\S]*Черновики, публикации и клиентские мандалы в одном рабочем разделе\./,
+  "old /profile services tab should render a user-facing inline services notice instead of table/debug text"
 );
 
 assert.match(

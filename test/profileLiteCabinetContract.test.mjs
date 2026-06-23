@@ -483,7 +483,7 @@ for (const servicesManagerText of [
   "Опубликованные",
   "Архив",
   "Клиенты",
-  "База клиента",
+  "База клиентов",
   "Выберите клиента, чтобы увидеть его заказы и отправленные мандалы.",
   "Для этого клиента пока нет заказов.",
   "Отправленная мандала",
@@ -507,6 +507,11 @@ for (const servicesManagerText of [
 assert.match(profileServicesModuleSource, /clientDirectory = \[\]/, "services manager should accept clientDirectory");
 assert.match(profileServicesModuleSource, /selectedClientKey = ""/, "services manager should accept selected client key");
 assert.match(profileServicesModuleSource, /onClientSelect = \(\) => \{\}/, "services manager should accept client selection callback");
+assert.doesNotMatch(profileServicesModuleSource, /<select[\s\S]*clientDirectory/, "services client selector should not use a native select for mobile client lists");
+assert.match(profileServicesModuleSource, /profileLiteClientSelectorButton/, "services client selector should render a custom selected-client button");
+assert.match(profileServicesModuleSource, /profileLiteClientOption/, "services client selector should render inline client options");
+assert.match(profileServicesModuleSource, /client_display_name/, "services client selector should use safe display names");
+assert.doesNotMatch(profileServicesModuleSource, /profile_cabinet_services|\/services\/:serviceId/, "services manager should not show table names or unfinished route debug text in the normal UI");
 assert.match(profileServicesModuleSource, /navigator\.clipboard\?\.writeText\(url\)/, "sent mandala copy button should use Clipboard API");
 assert.match(profileServicesModuleSource, /window\.prompt\("Ссылка на мандалу", url\)/, "sent mandala copy should fall back to prompt");
 assert.match(profileLitePageSource, /buildClientDirectoryFromOrders\(orders,\s*clientGoalPhotos,\s*powerPlaceCompositions\)/, "ProfileLitePage should derive the Services client database from master orders plus saved client work");
@@ -514,9 +519,11 @@ assert.match(profileLitePageSource, /selectedClientKey/, "ProfileLitePage should
 assert.match(powerPlaceBaseSource, /Сохранить как шаблон/, "Power Place save UI should preserve create-new behavior under the template label");
 assert.match(powerPlaceBaseSource, /Сохранить для клиента/, "Power Place save UI should expose client save intent");
 assert.match(powerPlaceBaseSource, /onOpenClientSave/, "Power Place save UI should open the client save modal");
+assert.match(powerPlaceBaseSource, /className="profileLiteClientSaveField"[\s\S]*Клиент[\s\S]*className="profileLiteClientSaveField"[\s\S]*Имя клиента[\s\S]*className="profileLiteClientSaveField"[\s\S]*Комментарий \/ запрос клиента[\s\S]*className="profileLiteClientSaveField"[\s\S]*Фото клиента \/ цель/, "client save fields should expose scoped field wrappers for stable mobile layout");
 assert.match(profileLitePageSource, /handleSaveCompositionForClient/, "ProfileLitePage should save a client-specific composition");
 assert.match(profileLitePageSource, /__client_work/, "client save should persist client metadata in saved composition object_refs");
 assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLiteClientSaveForm \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveField \{[\s\S]*display: grid;[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm input,[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm select,[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm textarea \{[\s\S]*box-sizing: border-box;[\s\S]*width: 100%;/, "client save form should have a base one-column field layout, not only a mobile media override");
 assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm \{[\s\S]*display: grid;[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm label \{[\s\S]*display: grid;[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm \.cabinetActions \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "client save form should stack labels, inputs, and actions as one mobile card");
 assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \{[\s\S]*display: grid;[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \.cabinetTwoColumns \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \.cabinetActions \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "services editor should stack fields and action buttons vertically on mobile");
 assert.match(profileServicesModuleSource, /className="cabinetCard profileLiteServiceEditorForm"/, "services editor form should expose a scoped class for mobile stacking");

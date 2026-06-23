@@ -4,6 +4,7 @@ import {
   buildCompositionResultUrl,
   buildServicePublicUrl,
   formatServicePrice,
+  getClientDisplayName,
   getServicePublicLinkState,
   groupServicesByStatus,
   orderStatusText,
@@ -36,6 +37,8 @@ export default function ProfileLiteServicesModule({
   const canPublish = Boolean(selectedServiceId && selectedCompositionId);
   const canAddSelectedToFeed = Boolean(selectedServiceId && serviceForm?.status === "published");
   const [copiedResultUrl, setCopiedResultUrl] = useState("");
+  const [clientPickerOpen, setClientPickerOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
   const serviceGroups = [
     ["draft", "Черновики"],
     ["published", "Опубликованные"],
@@ -79,6 +82,25 @@ export default function ProfileLiteServicesModule({
       </div>
     );
   };
+  const selectedClientDisplayName = selectedClient ? getClientDisplayName(selectedClient) : "Выберите клиента";
+  const normalizedClientSearch = clientSearch.trim().toLocaleLowerCase("ru");
+  const filteredClientDirectory = normalizedClientSearch
+    ? clientDirectory.filter((client) => {
+      const visibleText = [
+        client.client_display_name,
+        getClientDisplayName(client),
+        client.client_display_note,
+        client.orders?.length ? `${client.orders.length}` : "",
+        client.clientWorks?.length ? `${client.clientWorks.length}` : ""
+      ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
+      return visibleText.includes(normalizedClientSearch);
+    })
+    : clientDirectory;
+  const handleClientPick = (key) => {
+    onClientSelect(key);
+    setClientPickerOpen(false);
+    setClientSearch("");
+  };
 
   return (
     <section className="profileLiteModule profileLiteServices mandalaWorkspace" aria-label="Услуги">
@@ -115,27 +137,70 @@ export default function ProfileLiteServicesModule({
             <div className="chatPlaceholderHeader">
               <p className="cabinetEyebrow">Услуги</p>
               <h2>Менеджер услуг</h2>
-              <span>Источник данных: profile_cabinet_services · публичный маршрут /services/:serviceId не подключён</span>
+              <span>Управляйте черновиками, публикациями и клиентскими мандалами.</span>
             </div>
             {servicesError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {servicesError}</div>}
             {serviceMessage && <div className="cabinetNotice">{serviceMessage}</div>}
-            <section className="cabinetCard profileLiteClientDatabase" aria-label="Клиенты База клиента">
+            <section className="cabinetCard profileLiteClientDatabase" aria-label="Клиенты База клиентов">
               <div className="cabinetFormHeader">
                 <div>
                   <p className="cabinetEyebrow">Клиенты</p>
-                  <h3>База клиента</h3>
+                  <h3>База клиентов</h3>
                 </div>
                 <span className="cabinetStatus">{clientDirectory.length}</span>
               </div>
-              <label>
-                Клиент
-                <select value={selectedClientKey} onChange={(event) => onClientSelect(event.target.value)}>
-                  <option value="">Выберите клиента</option>
-                  {clientDirectory.map((client) => (
-                    <option key={client.key} value={client.key}>{client.client_name}</option>
-                  ))}
-                </select>
-              </label>
+              <div className="profileLiteClientSelector">
+                <span className="profileLiteClientSelectorLabel">Клиент</span>
+                <button
+                  aria-controls="profile-lite-client-options"
+                  aria-expanded={clientPickerOpen}
+                  className="profileLiteClientSelectorButton"
+                  onClick={() => setClientPickerOpen((open) => !open)}
+                  type="button"
+                >
+                  <span>{selectedClientDisplayName}</span>
+                  <small>{selectedClient ? "Открыть список клиентов" : "Нажмите, чтобы выбрать"}</small>
+                </button>
+                {clientPickerOpen && (
+                  <div className="profileLiteClientSelectorPanel" id="profile-lite-client-options">
+                    {clientDirectory.length > 6 && (
+                      <input
+                        aria-label="Поиск клиента"
+                        className="profileLiteClientSearch"
+                        onChange={(event) => setClientSearch(event.target.value)}
+                        placeholder="Найти клиента"
+                        type="search"
+                        value={clientSearch}
+                      />
+                    )}
+                    <button
+                      className={`profileLiteClientOption ${selectedClientKey === "" ? "active" : ""}`}
+                      onClick={() => handleClientPick("")}
+                      type="button"
+                    >
+                      <span>Все клиенты</span>
+                      <small>Сбросить выбор</small>
+                    </button>
+                    {filteredClientDirectory.map((client) => {
+                      const displayName = client.client_display_name || getClientDisplayName(client);
+                      return (
+                        <button
+                          className={`profileLiteClientOption ${selectedClientKey === client.key ? "active" : ""}`}
+                          key={client.key}
+                          onClick={() => handleClientPick(client.key)}
+                          type="button"
+                        >
+                          <span>{displayName}</span>
+                          <small>
+                            {client.client_display_note || `Заказы: ${client.orders.length} · Мандалы: ${client.clientWorks.length}`}
+                          </small>
+                        </button>
+                      );
+                    })}
+                    {filteredClientDirectory.length === 0 && <p className="cabinetMuted">Клиенты пока не найдены.</p>}
+                  </div>
+                )}
+              </div>
               {!selectedClient && <p className="cabinetMuted">Выберите клиента, чтобы увидеть его заказы и отправленные мандалы.</p>}
               {selectedClient && (
                 <div className="profileLiteClientDatabaseBody">
