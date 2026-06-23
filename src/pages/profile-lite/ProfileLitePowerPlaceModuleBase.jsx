@@ -2594,12 +2594,23 @@ export default function ProfileLitePowerPlaceModule({
               value={clientSaveForm.clientKey || ""}
               onChange={(event) => onClientSaveFormChange("clientKey", event.target.value)}
             >
-              <option value="">Добавить нового клиента</option>
+              <option value="">Выберите клиента</option>
               {clientDirectory.map((client) => (
                 <option key={client.key} value={client.key}>{client.client_name}</option>
               ))}
             </select>
           </label>
+          <button
+            className="cabinetSecondary profileLiteClientSaveNewButton"
+            disabled={isClientSaveLoading}
+            type="button"
+            onClick={() => {
+              onClientSaveFormChange("clientKey", "");
+              onClientSaveFormChange("clientName", "");
+            }}
+          >
+            Добавить нового клиента
+          </button>
           <label>
             Имя клиента
             <input

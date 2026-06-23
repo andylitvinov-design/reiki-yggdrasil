@@ -223,7 +223,7 @@ export default function ProfileLiteServicesModule({
         </div>
 
         <div className="workspaceRightColumn">
-          <form className="cabinetCard" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
+          <form className="cabinetCard profileLiteServiceEditorForm" onSubmit={(event) => { event.preventDefault(); onSave("draft"); }}>
             <p className="cabinetEyebrow">Услуги</p>
             <h2>{selectedServiceId ? "Редактировать услугу" : "Создать черновик услуги"}</h2>
             <span className="cabinetStatus">{servicesStatus}</span>
