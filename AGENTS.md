@@ -62,6 +62,28 @@ Before changing this repo, read:
 
 If a file is missing, report `not found`.
 
+## Audit-first diagnostic mode
+
+When the user asks for audit, UI review, UX simplification, problem analysis, regression check, screenshot review, or “what is wrong”, follow `docs/audit-loop.md` before implementation.
+
+`/audit` is diagnostic by default. It should not edit app code, commit product fixes, push implementation changes, merge, or deploy unless the user explicitly asks to continue to `/delivery`.
+
+For screenshots and UI complaints, audit must:
+
+- diagnose what is wrong;
+- propose a more user-friendly target interface;
+- inspect likely route/component/style/data/state files deeply when repository access is available;
+- follow imports to shared components and helpers;
+- evaluate UX, desktop/mobile layout, clickability, saving/history, auth/privacy, code quality, regression risk, language quality, accessibility, product flow, root cause, priority/effort, edge cases, testability, observability, implementation slicing, and rollback safety;
+- map UI symptoms to code-level findings, hypotheses, and technical change directions;
+- identify confirmed code problems separately from UX/product improvements;
+- create or update a GitHub issue with the full technical implementation instruction;
+- return only a short chat response with audit status, issue link, and a concise `/delivery` prompt pointing to that issue.
+
+For auth-gated cabinet screens, use auth-safe evidence. Never request credentials, cookies, tokens, or secrets, and never claim authenticated production visual verification unless actually performed.
+
+If GitHub Issues are unavailable during audit, output the full issue body in chat and mark `STATUS: AUDIT_COMPLETE_ISSUE_NOT_CREATED`.
+
 ## Terminal prompt safety rules
 
 When giving the user a terminal prompt for this repo:
