@@ -74,6 +74,7 @@ For screenshots and UI complaints, audit must:
 - propose a more user-friendly target interface;
 - inspect likely route/component/style/data/state files deeply when repository access is available;
 - follow imports to shared components and helpers;
+- evaluate UX, desktop/mobile layout, clickability, saving/history, auth/privacy, code quality, regression risk, language quality, accessibility, product flow, root cause, priority/effort, edge cases, testability, observability, implementation slicing, and rollback safety;
 - map UI symptoms to code-level findings, hypotheses, and technical change directions;
 - identify confirmed code problems separately from UX/product improvements;
 - create or update a GitHub issue with the full technical implementation instruction;
