@@ -2,21 +2,22 @@
 
 Status: reusable diagnostic protocol  
 Command: `/audit`  
-Purpose: turn screenshots, vague UI complaints, and suspected bugs into a user-friendly redesign direction plus a technical implementation brief for `/delivery`.
+Purpose: turn screenshots, vague UI complaints, suspected bugs, and regression concerns into a user-friendly redesign direction, deep code investigation, a GitHub issue with detailed technical instructions, and a short `/delivery` prompt that links to the issue.
 
 `/audit` is diagnostic by default. It does not edit code, commit, push, merge, deploy, or change production state unless the user explicitly asks to continue to `/delivery`.
 
 ## 1. What /audit does
 
-Use `/audit` when the user provides a screenshot, route, vague problem, broken feeling, confusing UI, regression concern, or product/UX question.
+Use `/audit` when the user provides a screenshot, route, vague problem, broken feeling, confusing UI, regression concern, product/UX question, or asks “what is wrong”.
 
 `/audit` must produce:
 
 1. a problem diagnosis;
 2. a more user-friendly target interface concept;
-3. code-level investigation of likely related files/components when repository access is available;
-4. a technical instruction for what should be changed in code;
-5. a ready-to-run `/delivery` prompt.
+3. a detailed code investigation of related routes/components/styles/state/data;
+4. identified code-level problems, risks, and likely root causes;
+5. a maximally detailed technical implementation instruction saved as a GitHub issue;
+6. a short chat response with the issue link and a concise `/delivery` prompt.
 
 Short form:
 
@@ -24,14 +25,15 @@ Short form:
 screenshot / complaint / URL
 -> UX diagnosis
 -> friendlier target design
--> code/component mapping
--> technical change plan
--> /delivery prompt
+-> deep code investigation
+-> code problem map
+-> GitHub issue with full technical instructions
+-> short /delivery prompt linking to the issue
 ```
 
 ## 2. Audit is not delivery
 
-By default, `/audit` must not implement. It stops after the audit report and technical instruction.
+By default, `/audit` must not implement. It stops after creating or updating the GitHub issue and returning a short prompt.
 
 Switch to implementation only if the user explicitly says:
 
@@ -55,6 +57,7 @@ Before judging or recommending changes, use these sources in order:
    - `docs/delivery-auth-boundary-standard.md`
    - `docs/delivery-loop-program.md`
    - `docs/delivery-loop-source-patterns-and-live-proof.md`
+   - `docs/audit-loop.md`
 
 3. Product standard for this project  
    Default target experience:
@@ -69,10 +72,10 @@ Before judging or recommending changes, use these sources in order:
    - no owner-only or therapist-only wording when the feature should be universal.
 
 4. Code evidence  
-   If repository access is available, inspect likely components, routes, state/data files, and CSS before writing technical instructions. If code cannot be inspected, mark code findings as `NOT VERIFIED` and write the best external instruction separately.
+   Repository code is mandatory evidence when available. Inspect likely routes, components, shared UI primitives, CSS/module/Tailwind classes, state/data files, persistence helpers, and related tests/scripts before writing the technical issue. If code cannot be inspected, mark code findings as `NOT VERIFIED` and create an issue that clearly separates evidence from hypotheses.
 
 5. Auth-safe verification limits  
-   If a page is behind Google/Supabase/private cabinet auth, do not request credentials, cookies, tokens, or secrets. Use safe evidence: public route, login entry, protected redirect, local/demo/fixture state, or code-level proof.
+   If a page is behind Google/Supabase/private cabinet auth, do not request credentials, cookies, tokens, or secrets. Use safe evidence: public route, login entry, protected redirect, local/demo/fixture state, code-level proof, or owner-provided screenshots.
 
 ## 4. Audit modes
 
@@ -108,18 +111,23 @@ Check:
 - What wording is too narrow or too owner-specific?
 - What should be the one obvious next step?
 
-### 4.3 Code Mapping Audit
+### 4.3 Deep Code Mapping Audit
 
-Use whenever repository access is available.
+Use whenever repository access is available. This is mandatory for project-code audits.
 
-Find:
+Find and inspect:
 
-- likely route/page file;
-- likely component files;
+- route/page entry points;
+- direct component files;
+- shared child components;
 - relevant CSS/module/Tailwind classes;
+- layout wrappers and viewport containers;
+- mobile-specific logic;
 - state/data source if the UI is data-driven;
-- shared components that may create regression risk;
-- existing constraints from `AGENTS.md` and delivery docs.
+- persistence/localStorage/Supabase interactions if saving/history is involved;
+- existing tests, checks, scripts, and debug tools;
+- recent commits/PR context when regression is suspected;
+- project constraints from `AGENTS.md` and delivery docs.
 
 The audit must separate:
 
@@ -142,12 +150,14 @@ Examples:
 - fixed bottom bar covering content;
 - state not saved or overwritten.
 
-For each suspected bug, output:
+For each suspected bug, output in the GitHub issue:
 
 ```txt
 Symptom:
+Evidence:
 Likely cause:
-Files to inspect:
+Files inspected:
+Files still to inspect:
 Technical fix direction:
 Regression risk:
 Verification:
@@ -198,117 +208,133 @@ Run this loop:
 4. Diagnose visible issues  
    Use screenshot/user description. Mark uncertain items as `NOT VERIFIED`.
 
-5. Inspect code when possible  
-   Search likely routes/components/styles/data. Do not invent code details.
+5. Inspect code deeply  
+   Search routes/components/styles/data/state. Open relevant files. Follow imports to child components and shared helpers. Do not invent code details.
 
 6. Map symptoms to code  
-   Connect each UI issue to likely files/functions/classes/state.
+   Connect each UI issue to specific files, functions, components, classes, state, and likely root causes.
 
-7. Propose minimal redesign  
+7. Identify actual code problems  
+   Separate confirmed code defects from UX improvement opportunities and unverified hypotheses.
+
+8. Propose minimal redesign and implementation plan  
    Prefer small targeted changes over full rewrites.
 
-8. Write technical instructions  
-   Include files, components, change direction, constraints, and verification.
+9. Create or update a GitHub issue  
+   Save the full technical instruction in GitHub Issues. If an existing open issue clearly covers the same audit target and problem, update/comment on that issue instead of creating a duplicate. Otherwise create a new issue.
 
-9. Write ready-to-run `/delivery` prompt  
-   The prompt must be complete enough for an implementation agent.
+10. Return a short chat response  
+   Include only the audit status, GitHub issue link, and a concise `/delivery` prompt that points to the issue.
 
-10. Stop  
+11. Stop  
    Do not implement unless user explicitly asks to continue.
 
-## 6. Output format
+## 6. GitHub issue requirements
 
-Every audit must end with this structure.
-
-### AUDIT STATUS
-
-Use one:
+Every completed `/audit` should create or update a GitHub issue unless the GitHub connector is unavailable. If GitHub is unavailable, output the full issue body in chat and mark:
 
 ```txt
-STATUS: AUDIT_COMPLETE
-STATUS: AUDIT_PARTIAL_AUTH_LIMITATION
-STATUS: AUDIT_BLOCKED
+STATUS: AUDIT_COMPLETE_ISSUE_NOT_CREATED
 ```
 
-### 1. Target
-
-Page / route / screenshot / component / flow checked.
-
-### 2. Audit Contract
-
-What the user wanted evaluated.
-
-### 3. User-Friendly Target
-
-Describe the better interface in plain language.
-
-Example:
+Issue title format:
 
 ```txt
-The screen should feel like a short guided step: one clear title, one short explanation, visible primary action, optional details hidden below.
+[AUDIT] <area/page/feature>: <short problem summary>
 ```
 
-### 4. Findings
+Recommended labels when available:
 
-Use table:
+```txt
+audit
+ux
+ui
+technical-debt
+bug
+regression
+auth-limited
+```
 
+Use only labels that exist or that the tool can safely create/apply. Do not fail the audit only because labels are missing.
+
+## 7. Required GitHub issue body format
+
+The GitHub issue must contain the full technical detail. Use this structure:
+
+```md
+# Audit: <area/page/feature>
+
+## Status
+STATUS: AUDIT_COMPLETE | AUDIT_PARTIAL_AUTH_LIMITATION | AUDIT_BLOCKED | AUDIT_COMPLETE_ISSUE_NOT_CREATED
+
+## User request
+<original user request summary>
+
+## Target
+- Page/route/component:
+- Screenshot or evidence:
+- Auth status:
+
+## Audit contract
+- Requirement 1
+- Requirement 2
+- Requirement 3
+
+## User-friendly target interface
+Describe the target interface in plain language.
+
+## Findings
 | Priority | Problem | Why it matters | Evidence | Suggested fix |
 |---|---|---|---|---|
 
-Priority values:
-
-- `CRITICAL`
-- `IMPORTANT`
-- `POLISH`
-- `NOT VERIFIED`
-
-### 5. Code Mapping
-
-Use table:
-
-| UI symptom | Code status | Likely file/component | What to inspect/change |
+## Deep code investigation
+| Code status | File/component | What was inspected | Finding |
 |---|---|---|---|
 
 Code status values:
+- CODE VERIFIED
+- LIKELY
+- NOT VERIFIED
 
-- `CODE VERIFIED`
-- `LIKELY`
-- `NOT VERIFIED`
+## Confirmed code problems
+List actual problems found in code, with file paths and details.
 
-### 6. Technical Instruction
+## UX/product improvements
+List improvements that are product decisions rather than strict code bugs.
 
-Write implementation guidance:
+## Technical implementation plan
+### Files to change
+- `path/to/file`
 
-```txt
-Files to change:
-- ...
+### Required changes
+- Step-by-step implementation instructions.
 
-Required changes:
-- ...
+### Do not touch
+- Protected files/flows/data/auth behavior.
 
-Do not touch:
-- ...
+### Data/auth safety
+- What must remain safe.
 
-Verification:
-- ...
-```
+### Regression risks
+- What could break.
 
-### 7. Auth / Verification Limits
+### Verification plan
+- Build/check commands.
+- Browser/local/preview/live checks.
+- Mobile checks.
+- Auth-safe verification limits.
 
-State what was checked and what could not be checked because of auth or missing visual evidence.
+## Acceptance criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+- [ ] Criterion 3
 
-### 8. Ready-to-run /delivery prompt
-
-Provide a complete prompt:
-
+## Ready-to-run /delivery prompt
 ```txt
 /delivery
 
 Task:
-[implementation task]
-
-Context:
-[audit summary]
+Implement the technical instructions from this GitHub issue: <issue URL>
 
 Requirements:
 - ...
@@ -322,8 +348,42 @@ Do not touch:
 Verification:
 - ...
 ```
+```
 
-## 7. Required behavior
+## 8. Chat output format
+
+The chat response after `/audit` should be short. Do not duplicate all technical details if a GitHub issue was created.
+
+Use this structure:
+
+```txt
+STATUS: AUDIT_COMPLETE
+
+Создал GitHub issue с полной технической инструкцией:
+<issue URL>
+
+Короткий prompt для Codex/Claude:
+/delivery
+Task:
+Исправить проблему по issue <issue URL>.
+Ключевые требования: ...
+```
+
+For auth-limited audits:
+
+```txt
+STATUS: AUDIT_PARTIAL_AUTH_LIMITATION
+
+Создал GitHub issue с полной технической инструкцией:
+<issue URL>
+
+Ограничение: production post-login visual proof недоступен из-за Google/Supabase auth. Техническая проверка выполнена по коду/доступным безопасным данным.
+
+Короткий prompt для Codex/Claude:
+...
+```
+
+## 9. Required behavior
 
 Do not say “everything is fine” unless the audit contract was checked.
 
@@ -334,5 +394,7 @@ Do not claim authenticated production cabinet UI was visually verified unless it
 Do not block only because Google/Supabase auth prevents post-login production access. Use auth-safe audit status instead.
 
 Do not write code during `/audit` unless the user explicitly asks to continue to `/delivery`.
+
+Do not leave the full technical instruction only in chat when GitHub Issues are available. Save it as an issue and return a short prompt with the link.
 
 Prefer direct, practical recommendations over abstract UX theory.
