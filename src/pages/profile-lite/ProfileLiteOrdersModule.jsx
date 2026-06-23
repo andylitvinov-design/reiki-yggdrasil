@@ -4,7 +4,8 @@ import { formatServicePrice, orderHasClientVisibleResult, orderStatusText } from
 const ORDER_PHOTO_SELECTION_LIMIT = 4;
 const ORDER_PHOTO_SELECTION_MESSAGE = "Можно выбрать до 4 фото для заказа";
 const PHOTO_REQUIRED_MESSAGE = "Загрузите своё фото, чтобы отправить заказ в работу Мастеру.";
-const ORDERS_TEMPORARY_ERROR_MESSAGE = "Заказы временно не загрузились. Обновите страницу или попробуйте позже.";
+const CLIENT_ORDERS_ERROR_MESSAGE = "Не удалось загрузить личные заказы. Попробуйте обновить страницу.";
+const MASTER_ORDERS_ERROR_MESSAGE = "Не удалось загрузить заявки мастера. Попробуйте обновить страницу.";
 
 function isRawFilename(value) {
   return /\.[a-z0-9]{2,5}$/i.test(String(value || "").trim());
@@ -236,7 +237,7 @@ export default function ProfileLiteOrdersModule({
   const extraPhotoCount = Math.max(clientGoalPhotos.length - visibleOrderPhotos.length, 0);
   const clientPhotoLimit = Number(planLimits.clientPhotos) || 4;
   const hasPhotoStorageLimit = clientGoalPhotos.length >= clientPhotoLimit;
-  const visibleOrdersError = ordersError ? ORDERS_TEMPORARY_ERROR_MESSAGE : "";
+  const visibleOrdersError = ordersError ? (isMasterRole ? MASTER_ORDERS_ERROR_MESSAGE : CLIENT_ORDERS_ERROR_MESSAGE) : "";
 
   if (ordersError && import.meta.env.DEV) {
     console.warn("Profile Lite service orders load failed", ordersError);

@@ -268,7 +268,8 @@ assert.doesNotMatch(profileLiteShellSource, /PROFILE_LITE_TABS\.map|profileLiteT
 assert.doesNotMatch(profileOrdersModuleSource, /Кабинет Мастера", "Заявки"/, "personal orders sidebar must not include master-only items");
 assert.match(profileOrdersModuleSource, /isMasterRole[\s\S]*<MasterOrdersView/, "master requests panel should render only for the master role");
 assert.doesNotMatch(profileOrdersModuleSource, /needs verification: \{ordersError\}/, "orders UI must not expose raw Supabase errors to users");
-assert.match(profileOrdersModuleSource, /Заказы временно не загрузились\. Обновите страницу или попробуйте позже\./, "orders UI should show a clean temporary failure message");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить личные заказы\. Попробуйте обновить страницу\./, "client orders UI should show a clean temporary failure message");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить заявки мастера\. Попробуйте обновить страницу\./, "master orders UI should show a clean temporary failure message");
 assert.doesNotMatch(profileOrdersModuleSource, /clientGoalPhotos\.length\}\/4/, "orders photo summary must not render raw count slash limit text");
 assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders photo panel should explain the order selection limit in user-facing RU copy");
 assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders photo panel should summarize hidden media without dumping filenames");
@@ -556,7 +557,8 @@ assert.match(profileOrdersModuleSource, /Заявки/, "orders module should ex
 assert.doesNotMatch(profileOrdersModuleSource, /\["Мои Заказы", "Мои Фото", "Кабинет Мастера", "Заявки"\]/, "orders module must not render a hardcoded mixed inner sidebar");
 assert.doesNotMatch(profileOrdersModuleSource, /Источник данных/, "orders module must not expose source table debug text");
 assert.doesNotMatch(profileOrdersModuleSource, /needs verification/, "orders module must not expose raw needs verification text");
-assert.match(profileOrdersModuleSource, /Заказы временно не загрузились\. Обновите страницу или попробуйте позже\./, "orders errors should be non-technical");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить личные заказы\. Попробуйте обновить страницу\./, "client orders errors should be non-technical");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить заявки мастера\. Попробуйте обновить страницу\./, "master orders errors should be non-technical");
 assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders module should show the order photo selection limit");
 assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders module should summarize extra media photos instead of listing every filename");
 assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
