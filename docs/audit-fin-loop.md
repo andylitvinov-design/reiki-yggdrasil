@@ -6,7 +6,7 @@ Purpose: audit screens, reports, dashboards, calculators, client summaries, resu
 
 `/audit-fin` is diagnostic by default. It does not edit code, commit product fixes, push implementation changes, merge, deploy, modify production data, or change formulas unless the user explicitly asks to continue to `/delivery`.
 
-`/audit-fin` is similar to `/audit`, but it is specialized for numbers and calculations. The priority is correctness of values, formulas, display, persistence, source data, and financially precise technical execution.
+`/audit-fin` is not a free-form hypothesis generator. It must first check all possible source layers of a numeric problem, score the state of each layer, and only then generate a small set of evidence-backed hypotheses and a recommended solution path.
 
 ## 1. What /audit-fin does
 
@@ -16,35 +16,53 @@ Use `/audit-fin` when the user provides a screenshot, URL, report, table, dashbo
 
 1. a numeric correctness diagnosis;
 2. a financial/business logic audit;
-3. a calculation and formula audit;
-4. a code-level investigation of where numbers are computed, stored, transformed, rounded, formatted, and displayed;
-5. identification of missing, duplicated, stale, or incorrect values;
-6. a problem list;
-7. a hypothesis list;
-8. hypothesis evaluation and confidence scoring;
-9. selection of the most likely root cause or root-cause set;
-10. solution options and a recommended solution path;
-11. a GitHub issue with full technical instructions;
-12. a short chat response with the issue link and a concise `/delivery` prompt.
+3. a source-layer audit across all possible origins of numeric problems;
+4. a calculation and formula audit;
+5. a code-level investigation of where numbers are computed, stored, transformed, rounded, formatted, and displayed;
+6. identification of missing, duplicated, stale, or incorrect values;
+7. a problem list;
+8. a limited hypothesis list grounded in the source-layer evidence;
+9. hypothesis evaluation and confidence scoring;
+10. selection of the most likely root cause or root-cause set;
+11. solution options and a recommended solution path;
+12. a GitHub issue with full technical instructions;
+13. a short chat response with the issue link and a concise `/delivery` prompt.
 
 Short form:
 
 ```txt
 screenshot / table / dashboard / report / complaint
--> extract expected numeric contract
+-> extract numeric contract
 -> inspect visible numbers
--> inspect code formulas and data flow
+-> run source-layer audit across all levels
+-> inspect formulas and code data flow
 -> compare expected vs actual
--> list problems
--> generate hypotheses
--> evaluate hypotheses against evidence
--> choose most likely cause
+-> list confirmed/suspected/not-verified problems
+-> generate only evidence-backed hypotheses
+-> evaluate hypotheses against source-layer evidence
+-> choose likely root cause
 -> compare solution options
--> create GitHub issue with full technical instructions
+-> create GitHub issue with full instructions
 -> return short /delivery prompt linking to the issue
 ```
 
-## 2. Audit-fin is not delivery
+## 2. Anti-pattern this protocol prevents
+
+Do not do this:
+
+```txt
+see wrong number -> guess many possible causes -> fix one hypothesis -> no effect -> guess again
+```
+
+This failed pattern creates many hypotheses but does not locate the real source layer. It often misclassifies data/source problems as display problems or misses that the dataset is incomplete.
+
+Correct pattern:
+
+```txt
+see wrong number -> inspect every source layer -> score each layer -> identify where evidence first diverges -> generate hypotheses only around the failing layers -> choose recommended fix -> verify with deterministic expected values
+```
+
+## 3. Audit-fin is not delivery
 
 By default, `/audit-fin` must not implement. It stops after creating or updating the GitHub issue and returning a short prompt.
 
@@ -57,7 +75,7 @@ apply this audit-fin
 fix the calculations
 ```
 
-## 3. Source of truth
+## 4. Source of truth
 
 Before judging numbers, use these sources in order:
 
@@ -80,6 +98,7 @@ Before judging numbers, use these sources in order:
 4. Code evidence  
    Repository code is mandatory evidence when available. Inspect the full numeric pipeline:
    - source data;
+   - fixture/demo data;
    - input parsing;
    - state updates;
    - formula helpers;
@@ -96,11 +115,166 @@ Before judging numbers, use these sources in order:
 5. Auth-safe verification limits  
    If a page is behind Google/Supabase/private cabinet auth, do not request credentials, cookies, tokens, or secrets. Use safe evidence: screenshot, code-level proof, local/demo/fixture state, public route, protected redirect, or owner-provided expected values.
 
-## 4. Mandatory numeric audit dimensions
+## 5. Mandatory source-layer audit
 
-Every `/audit-fin` issue must evaluate the target through these layers. Mark a layer `NOT APPLICABLE` only when it truly does not apply.
+Before generating hypotheses or recommending fixes, `/audit-fin` must evaluate every layer below.
 
-### 4.1 Visible numeric correctness
+For each layer, assign:
+
+```txt
+Layer status: PASS | ISSUE | NOT VERIFIED | NOT APPLICABLE
+Problem level: NONE | LOW | MEDIUM | HIGH | BLOCKER
+Evidence:
+Gap:
+Next verification:
+```
+
+### 5.1 Visual/displayed value layer
+
+Check what is visible on the screenshot/page/report:
+
+- which numbers are displayed;
+- which expected numbers are missing;
+- whether visible values are readable or `VISUAL UNCLEAR`;
+- whether labels, units, dates, and periods match the values;
+- whether the same metric appears with different values in different UI places.
+
+### 5.2 Raw data availability layer
+
+Check whether enough source data exists to calculate the requested values:
+
+- all required fields are present;
+- required client/session/date records exist;
+- repeated/history records exist when comparison is expected;
+- old data shape has required fields or migration fallback;
+- absent values are distinguished from zero values;
+- incomplete data is surfaced to the user instead of silently computed as zero.
+
+If data is insufficient, the audit must not keep chasing display fixes. It must mark the source layer as `ISSUE` or `NOT VERIFIED` and include data requirements in the fix.
+
+### 5.3 Input parsing and normalization layer
+
+Check how raw values enter the app:
+
+- strings converted to numbers correctly;
+- empty strings/null/undefined handled safely;
+- percentages parsed in correct basis;
+- currency/decimal separators handled;
+- date strings/time zones normalized;
+- IDs for client/template/session/date are stable.
+
+### 5.4 State and selection layer
+
+Check whether the UI is using the intended state:
+
+- selected client is correct;
+- selected session/date is correct;
+- selected test/form/template is correct;
+- first-date and second-date states are not swapped;
+- current vs baseline values are not mixed;
+- stale state is not used after navigation/filter changes.
+
+### 5.5 Formula and business logic layer
+
+Check the actual formula rules:
+
+- formula matches the product/financial rule;
+- numerator and denominator are correct;
+- weighting is correct;
+- aggregation level is correct;
+- thresholds/categories are correct;
+- comparison and delta direction are correct;
+- partial data rules are explicit.
+
+### 5.6 Calculation helper/code layer
+
+Check implementation details:
+
+- helper functions receive expected arguments;
+- helper functions return expected shape;
+- reducers/maps/filters use correct fields;
+- conditional branches do not skip cases;
+- memoization/cache dependencies are complete;
+- no duplicate calculation paths disagree.
+
+### 5.7 Persistence and hydration layer
+
+Check saved values and reloaded values:
+
+- save handler stores all necessary numeric fields;
+- localStorage/Supabase/API shape matches load code;
+- derived values are either recalculated intentionally or stored intentionally;
+- history/repeat entries preserve their own values;
+- primary intake/results are not overwritten by repeat/history unless explicitly requested;
+- old records remain readable.
+
+### 5.8 Formatting and rounding layer
+
+Check display transformations:
+
+- rounding happens at the correct stage;
+- precision is correct;
+- percent values are not multiplied/divided twice;
+- `NaN`, `Infinity`, `undefined`, and `null` cannot appear;
+- negative and zero values display intentionally;
+- localization is correct.
+
+### 5.9 Rendering and component binding layer
+
+Check whether the UI displays the right variable:
+
+- card/table/chart reads the intended field;
+- label points to the correct metric;
+- props passed to children are correct;
+- fallback values are safe;
+- no placeholder/demo value leaks into real UI;
+- no wrong metric reused by copy/paste.
+
+### 5.10 Chart/gauge/indicator layer
+
+Check visual numeric components:
+
+- source number equals chart/gauge value;
+- min/max/range is correct;
+- thresholds/color bands are correct;
+- first/second-date comparison is not swapped;
+- missing data is not plotted as zero unless intended;
+- chart value matches text value or difference is explained.
+
+### 5.11 Async/loading/race layer
+
+Check timing issues:
+
+- loading state does not show stale old numbers;
+- async fetch does not overwrite newer selected data;
+- repeated submit does not duplicate values;
+- refresh/back/forward does not show stale values;
+- derived values update after data changes.
+
+### 5.12 Auth/environment layer
+
+Check environment boundaries:
+
+- production auth does not hide required proof without being documented;
+- public/login/protected redirect behaves safely;
+- local/demo/fixture data is clearly separated from production;
+- no credentials/tokens/secrets are required or requested.
+
+### 5.13 Test fixture and proof layer
+
+Check whether the problem can be proven:
+
+- deterministic input exists;
+- expected output table exists;
+- manual recalculation is possible;
+- unit/integration test target is identifiable;
+- screenshot alone is not treated as complete proof if raw values are needed.
+
+## 6. Mandatory numeric audit dimensions
+
+After the source-layer audit, evaluate the target through these dimensions. Mark a layer `NOT APPLICABLE` only when it truly does not apply.
+
+### 6.1 Visible numeric correctness
 
 Check the screen/report itself:
 
@@ -115,7 +289,7 @@ Check the screen/report itself:
 - units/currency/percent symbols are correct;
 - zero/empty/null values are shown intentionally and not as accidental blanks.
 
-### 4.2 Financial/business logic correctness
+### 6.2 Financial/business logic correctness
 
 Check the business meaning behind the numbers:
 
@@ -129,7 +303,7 @@ Check the business meaning behind the numbers:
 - user-facing interpretation does not overstate uncertain or partial data;
 - summary number matches detailed calculation logic.
 
-### 4.3 Formula and calculation correctness
+### 6.3 Formula and calculation correctness
 
 Inspect how values are computed:
 
@@ -143,7 +317,7 @@ Inspect how values are computed:
 - repeated/intake/history calculations do not mix datasets incorrectly;
 - no stale cached values are used after source changes.
 
-### 4.4 Data source and data flow
+### 6.4 Data source and data flow
 
 Trace values from input to display:
 
@@ -156,7 +330,7 @@ Trace values from input to display:
 - whether client/template/session/date selection affects the value;
 - whether localStorage/Supabase/API values can diverge.
 
-### 4.5 Rounding, formatting, and localization
+### 6.5 Rounding, formatting, and localization
 
 Check number display rules:
 
@@ -169,7 +343,7 @@ Check number display rules:
 - `NaN`, `Infinity`, `undefined`, and `null` cannot appear in UI;
 - small values and zero values are not hidden incorrectly.
 
-### 4.6 Missing and inconsistent values
+### 6.6 Missing and inconsistent values
 
 Check for omissions and mismatches:
 
@@ -181,7 +355,7 @@ Check for omissions and mismatches:
 - selected client value not matching another client’s data;
 - stale value after changing filters/tabs/client/date.
 
-### 4.7 State, persistence, and history safety
+### 6.7 State, persistence, and history safety
 
 Check saving and history behavior:
 
@@ -193,7 +367,7 @@ Check saving and history behavior:
 - migration/backward compatibility is preserved;
 - deleting/changing a client/template/session does not orphan values incorrectly.
 
-### 4.8 UI interpretation and user trust
+### 6.8 UI interpretation and user trust
 
 Check whether the user can understand the numbers:
 
@@ -206,7 +380,7 @@ Check whether the user can understand the numbers:
 - empty states explain missing data;
 - warnings appear when calculation is incomplete.
 
-### 4.9 Desktop/mobile display of numbers
+### 6.9 Desktop/mobile display of numbers
 
 Check responsive numeric UI:
 
@@ -218,7 +392,7 @@ Check responsive numeric UI:
 - sticky/fixed bars do not cover totals or buttons;
 - date/metric comparison remains clear on mobile.
 
-### 4.10 Charts, gauges, and visual indicators
+### 6.10 Charts, gauges, and visual indicators
 
 When charts/gauges/speedometers are present, check:
 
@@ -230,7 +404,7 @@ When charts/gauges/speedometers are present, check:
 - missing data is not plotted as zero unless intended;
 - chart rounding matches text value or difference is explained.
 
-### 4.11 Edge cases and negative paths
+### 6.11 Edge cases and negative paths
 
 Check non-happy paths:
 
@@ -248,7 +422,7 @@ Check non-happy paths:
 - missing Supabase session;
 - old data shape without newly added fields.
 
-### 4.12 Regression and blast radius
+### 6.12 Regression and blast radius
 
 Check what else can break:
 
@@ -260,7 +434,7 @@ Check what else can break:
 - admin/client views;
 - previous PRs touching the same formulas or data fields.
 
-### 4.13 Testability and proof plan
+### 6.13 Testability and proof plan
 
 The audit must say exactly how the fix can be proven:
 
@@ -274,11 +448,53 @@ The audit must say exactly how the fix can be proven:
 - save/load/history verification;
 - auth-safe substitute if post-login live proof is blocked.
 
-## 5. Problem-hypothesis-solution loop
+## 7. Source-layer-first problem diagnosis
 
-This is mandatory for `/audit-fin`.
+This is mandatory and must happen before hypothesis generation.
 
-### 5.1 Problem list
+Output a source-layer matrix:
+
+| Source layer | Layer status | Problem level | Evidence | Gap | Next verification |
+|---|---|---|---|---|---|
+
+Layer statuses:
+
+- `PASS`
+- `ISSUE`
+- `NOT VERIFIED`
+- `NOT APPLICABLE`
+
+Problem levels:
+
+- `NONE`
+- `LOW`
+- `MEDIUM`
+- `HIGH`
+- `BLOCKER`
+
+Source layers must include at least:
+
+1. Visual/displayed value.
+2. Raw data availability.
+3. Input parsing and normalization.
+4. State and selection.
+5. Formula and business logic.
+6. Calculation helper/code.
+7. Persistence and hydration.
+8. Formatting and rounding.
+9. Rendering and component binding.
+10. Chart/gauge/indicator.
+11. Async/loading/race.
+12. Auth/environment.
+13. Test fixture and proof.
+
+If a lower upstream layer is `ISSUE` or `NOT VERIFIED`, do not prematurely conclude that the problem is in a downstream display/rendering layer. State the upstream uncertainty first.
+
+## 8. Problem-hypothesis-solution loop
+
+This is mandatory for `/audit-fin`, but it starts only after the source-layer matrix.
+
+### 8.1 Problem list
 
 Output a problem list before proposing fixes.
 
@@ -297,14 +513,20 @@ Evidence:
 User impact:
 Code/data location:
 Severity:
+Source layer:
 ```
 
-### 5.2 Hypothesis generation
+### 8.2 Hypothesis generation rules
 
-For every mismatch, missing value, stale value, duplicate value, incorrect chart/gauge, or unclear calculation, generate multiple hypotheses.
+Do not generate dozens of generic hypotheses.
+
+Generate hypotheses only from source layers marked `ISSUE`, `HIGH`, `BLOCKER`, or important `NOT VERIFIED`.
+
+For each important discrepancy, generate usually 2–5 focused hypotheses, not a long uncontrolled list.
 
 Common hypothesis categories:
 
+- insufficient raw data;
 - wrong formula;
 - wrong source field;
 - wrong denominator/numerator;
@@ -322,14 +544,14 @@ Common hypothesis categories:
 - UI label points to wrong metric;
 - regression from shared helper/component.
 
-### 5.3 Hypothesis evaluation
+### 8.3 Hypothesis evaluation
 
 Evaluate each hypothesis before choosing a solution.
 
 Use this table:
 
-| Hypothesis | Supporting evidence | Contradicting evidence | Confidence | Verification step | Decision |
-|---|---|---|---|---|---|
+| Hypothesis | Source layer | Supporting evidence | Contradicting evidence | Confidence | Verification step | Decision |
+|---|---|---|---|---|---|---|
 
 Confidence values:
 
@@ -343,7 +565,7 @@ Decision values:
 - `REJECT`
 - `DEFER_NOT_VERIFIED`
 
-### 5.4 Most likely root cause selection
+### 8.4 Most likely root cause selection
 
 After evaluating hypotheses, choose the most likely root cause or root-cause set.
 
@@ -352,16 +574,17 @@ Rules:
 - do not choose only one cause if evidence points to multiple interacting causes;
 - do not choose a hypothesis without code/data/screenshot evidence;
 - if evidence is insufficient, mark `MOST LIKELY: NOT VERIFIED` and write the exact verification needed;
+- if data is insufficient, state that the primary issue is data availability, not display;
 - if a fix depends on a business rule, mark it as `NEEDS_PRODUCT_RULE_CONFIRMATION` unless the rule is already clear in code/docs/user request.
 
-### 5.5 Solution options
+### 8.5 Solution options
 
 List possible solution approaches before recommending one.
 
 Use this table:
 
-| Option | What changes | Pros | Cons/Risks | Effort | Verification | Decision |
-|---|---|---|---|---|---|---|
+| Option | What changes | Source layer fixed | Pros | Cons/Risks | Effort | Verification | Decision |
+|---|---|---|---|---|---|---|---|
 
 Decision values:
 
@@ -369,12 +592,13 @@ Decision values:
 - `VALID_BUT_DEFER`
 - `REJECT`
 
-### 5.6 Recommended implementation path
+### 8.6 Recommended implementation path
 
-Only after problem list, hypothesis evaluation, and solution comparison, write the implementation path.
+Only after source-layer matrix, problem list, hypothesis evaluation, and solution comparison, write the implementation path.
 
 It must include:
 
+- which source layer is the primary fix target;
 - what to fix first;
 - what formula/data path to change;
 - what display path to change;
@@ -382,7 +606,7 @@ It must include:
 - what tests/checks to add or run;
 - what should not be touched.
 
-## 6. Audit-fin loop
+## 9. Audit-fin loop
 
 Run this loop:
 
@@ -401,37 +625,40 @@ Run this loop:
 5. Trace data flow  
    Input -> state -> calculation -> derived value -> persistence -> hydration -> display.
 
-6. Compare expected vs actual  
+6. Run source-layer matrix  
+   Evaluate every source layer before generating hypotheses.
+
+7. Compare expected vs actual  
    Build a discrepancy table. Mark each item `MATCH`, `MISMATCH`, `MISSING`, `DUPLICATE`, `STALE`, `NOT VERIFIED`, or `NOT APPLICABLE`.
 
-7. Produce problem list  
-   List confirmed problems, suspected problems, and not-verified risks.
+8. Produce problem list  
+   List confirmed problems, suspected problems, and not-verified risks, each tied to a source layer.
 
-8. Generate hypotheses  
-   Generate multiple hypotheses for every important discrepancy or risk.
+9. Generate focused hypotheses  
+   Generate hypotheses only around failing or unverified source layers.
 
-9. Evaluate hypotheses  
+10. Evaluate hypotheses  
    Compare supporting and contradicting evidence, confidence, and verification step.
 
-10. Choose likely root cause  
-   Select the most likely cause or state `NOT VERIFIED` with the exact proof needed.
+11. Choose likely root cause  
+   Select the most likely cause or state `NOT VERIFIED` with exact proof needed.
 
-11. Compare solution options  
+12. Compare solution options  
    Evaluate possible fixes and choose the recommended solution path.
 
-12. Score priority  
+13. Score priority  
    Use severity, user impact, effort, and confidence.
 
-13. Create or update a GitHub issue  
+14. Create or update a GitHub issue  
    Save the full numeric audit and technical instructions in GitHub Issues. If an existing open issue clearly covers the same numeric problem, update/comment on that issue instead of creating a duplicate.
 
-14. Return a short chat response  
+15. Return a short chat response  
    Include only the audit status, GitHub issue link, and a concise `/delivery` prompt that points to the issue.
 
-15. Stop  
+16. Stop  
    Do not implement unless user explicitly asks to continue.
 
-## 7. GitHub issue requirements
+## 10. GitHub issue requirements
 
 Every completed `/audit-fin` should create or update a GitHub issue unless GitHub Issues are unavailable. If GitHub is unavailable, output the full issue body in chat and mark:
 
@@ -458,7 +685,7 @@ auth-limited
 
 Use only labels that exist or that the tool can safely create/apply. Do not fail the audit only because labels are missing.
 
-## 8. Required GitHub issue body format
+## 11. Required GitHub issue body format
 
 The GitHub issue must contain the full technical detail. Use this structure:
 
@@ -486,6 +713,10 @@ STATUS: AUDIT_FIN_COMPLETE | AUDIT_FIN_PARTIAL_AUTH_LIMITATION | AUDIT_FIN_BLOCK
 | Label | Displayed value | Source evidence | Status |
 |---|---:|---|---|
 
+## Source-layer matrix
+| Source layer | Layer status | Problem level | Evidence | Gap | Next verification |
+|---|---|---|---|---|---|
+
 ## Expected vs actual
 | Metric | Expected | Actual | Status | Evidence | Notes |
 |---|---:|---:|---|---|---|
@@ -500,8 +731,8 @@ Status values:
 - NOT APPLICABLE
 
 ## Problem list
-| Type | Problem | Evidence | User impact | Code/data location | Severity |
-|---|---|---|---|---|---|
+| Type | Problem | Source layer | Evidence | User impact | Code/data location | Severity |
+|---|---|---|---|---|---|---|
 
 Type values:
 - CONFIRMED
@@ -509,12 +740,12 @@ Type values:
 - NOT VERIFIED RISK
 
 ## Hypothesis list
-| Hypothesis | Category | Evidence | Why plausible | Risk if true |
-|---|---|---|---|---|
+| Hypothesis | Source layer | Category | Evidence | Why plausible | Risk if true |
+|---|---|---|---|---|---|
 
 ## Hypothesis evaluation
-| Hypothesis | Supporting evidence | Contradicting evidence | Confidence | Verification step | Decision |
-|---|---|---|---|---|---|
+| Hypothesis | Source layer | Supporting evidence | Contradicting evidence | Confidence | Verification step | Decision |
+|---|---|---|---|---|---|---|
 
 Decision values:
 - KEEP_AS_LIKELY
@@ -525,8 +756,8 @@ Decision values:
 Describe the selected root cause or root-cause set. If evidence is insufficient, state `MOST LIKELY: NOT VERIFIED` and the exact verification required.
 
 ## Solution options
-| Option | What changes | Pros | Cons/Risks | Effort | Verification | Decision |
-|---|---|---|---|---|---|---|
+| Option | What changes | Source layer fixed | Pros | Cons/Risks | Effort | Verification | Decision |
+|---|---|---|---|---|---|---|---|
 
 Decision values:
 - RECOMMENDED
@@ -534,7 +765,7 @@ Decision values:
 - REJECT
 
 ## Recommended solution path
-Explain the chosen solution path after hypothesis evaluation and solution comparison.
+Explain the chosen solution path after source-layer audit, hypothesis evaluation, and solution comparison.
 
 ## Formula and calculation audit
 | Formula/metric | Code location | Rule found | Finding | Fix direction |
@@ -599,13 +830,15 @@ Severity values:
 - Auth-safe verification limits.
 
 ## Acceptance criteria
-- [ ] Every expected numeric value is present.
+- [ ] Every expected numeric value is present or explicitly marked unavailable due to insufficient data.
+- [ ] Source-layer matrix was completed before hypotheses.
 - [ ] Formulas match the numeric contract.
 - [ ] Displayed values match stored/calculated values.
 - [ ] Rounding/formatting is correct.
 - [ ] Save/load/history behavior preserves values correctly.
 - [ ] Mobile and desktop displays are readable.
-- [ ] Hypotheses were evaluated and the recommended fix follows the most likely root cause.
+- [ ] Hypotheses were generated only from failing/unverified source layers.
+- [ ] Recommended fix follows the most likely root cause.
 
 ## Ready-to-run /delivery prompt
 ```txt
@@ -615,7 +848,7 @@ Task:
 Implement the numeric/calculation fixes from this GitHub issue: <issue URL>
 
 Requirements:
-- Follow the recommended solution path selected after hypothesis evaluation.
+- Follow the recommended solution path selected after source-layer audit and hypothesis evaluation.
 - Fix the confirmed numeric/code problems first.
 - Preserve data/auth/history safety.
 - Do not implement rejected hypotheses.
@@ -631,7 +864,7 @@ Verification:
 ```
 ```
 
-## 9. Chat output format
+## 12. Chat output format
 
 The chat response after `/audit-fin` should be short. Do not duplicate all technical details if a GitHub issue was created.
 
@@ -647,7 +880,7 @@ GitHub issue:
 /delivery
 Task:
 Исправить числовые/расчетные ошибки по issue <issue URL>.
-Ключевые требования: следовать выбранной гипотезе/причине и recommended solution path из issue.
+Ключевые требования: следовать source-layer matrix, выбранной гипотезе/причине и recommended solution path из issue.
 ```
 
 For auth-limited audits:
@@ -664,7 +897,7 @@ GitHub issue:
 ...
 ```
 
-## 10. Required behavior
+## 13. Required behavior
 
 Do not say “numbers are correct” unless the numeric contract was checked.
 
@@ -676,7 +909,11 @@ Do not claim authenticated production cabinet numeric proof unless it actually w
 
 Do not block only because Google/Supabase auth prevents post-login production access. Use auth-safe audit-fin status instead.
 
-Do not skip the problem-hypothesis-solution loop. `/audit-fin` must list problems, generate hypotheses, evaluate hypotheses, choose the most likely root cause, compare solution options, and only then write the implementation prompt.
+Do not skip the source-layer matrix. `/audit-fin` must assess problem status across all source layers before hypotheses.
+
+Do not skip the problem-hypothesis-solution loop. `/audit-fin` must list problems, generate focused hypotheses from failing/unverified layers, evaluate hypotheses, choose the most likely root cause, compare solution options, and only then write the implementation prompt.
+
+Do not generate a huge unfocused hypothesis list. Prefer fewer, evidence-backed hypotheses tied to source layers.
 
 Do not write code during `/audit-fin` unless the user explicitly asks to continue to `/delivery`.
 
