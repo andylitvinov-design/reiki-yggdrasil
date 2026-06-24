@@ -35,6 +35,7 @@ export const MATERIAL_TYPES = [
 ];
 
 export const DB_SAFE_GRIMOIRE_TYPE = "practice";
+export const TAXONOMY_ALL = "all";
 export const TAXONOMY_UNCLASSIFIED = "unclassified";
 export const TAXONOMY_UNCLASSIFIED_LABEL = "Неразобранно";
 export const GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION = true;
@@ -152,6 +153,26 @@ export function grimoireTaxonomyLevelOptions(level, parentValues = {}) {
 
   const level2 = (level1?.children || []).find((item) => item.value === parentValues.level2);
   return withUnclassified(level2?.children || []);
+}
+
+function flattenTaxonomyLevel(level, parentValues = {}) {
+  if (level === 2 && (!parentValues.level1 || parentValues.level1 === TAXONOMY_ALL)) {
+    return GRIMOIRE_TAXONOMY.flatMap((level1) => level1.children || []);
+  }
+  if (level === 3 && (!parentValues.level2 || parentValues.level2 === TAXONOMY_ALL)) {
+    const level1Items = parentValues.level1 && parentValues.level1 !== TAXONOMY_ALL
+      ? GRIMOIRE_TAXONOMY.filter((item) => item.value === parentValues.level1)
+      : GRIMOIRE_TAXONOMY;
+    return level1Items.flatMap((level1) => (level1.children || []).flatMap((level2) => level2.children || []));
+  }
+  return grimoireTaxonomyLevelOptions(level, parentValues).filter((option) => option.value !== TAXONOMY_UNCLASSIFIED);
+}
+
+export function grimoireTaxonomyFilterLevelOptions(level, filter = {}) {
+  const base = [{ value: TAXONOMY_ALL, label: "Все", children: [] }];
+  const parentValues = normalizeGrimoireTaxonomy(filter);
+  if (level === 1) return [...base, ...grimoireTaxonomyLevelOptions(1)];
+  return [...base, UNCLASSIFIED_OPTION, ...flattenTaxonomyLevel(level, parentValues)];
 }
 
 export function createDefaultTaxonomy(overrides = {}) {
@@ -307,6 +328,25 @@ export function isGrimoireTaxonomyUnclassified(materialOrTaxonomy = {}) {
     ? normalizeGrimoireTaxonomy(materialOrTaxonomy)
     : grimoireTaxonomyFromMaterial(materialOrTaxonomy);
   return [taxonomy.level1, taxonomy.level2, taxonomy.level3].some((value) => !value || value === TAXONOMY_UNCLASSIFIED || value === "uncategorized");
+}
+
+function taxonomyLevelMatches(actualValue, selectedValue) {
+  const actual = cleanText(actualValue) || TAXONOMY_UNCLASSIFIED;
+  const selected = cleanText(selectedValue) || TAXONOMY_ALL;
+  if (selected === TAXONOMY_ALL) return true;
+  if (selected === TAXONOMY_UNCLASSIFIED || selected === "uncategorized") {
+    return !actual || actual === TAXONOMY_UNCLASSIFIED || actual === "uncategorized";
+  }
+  return actual === selected;
+}
+
+export function materialMatchesGrimoireTaxonomyFilter(material = {}, filter = {}) {
+  const taxonomy = grimoireTaxonomyFromMaterial(material);
+  return (
+    taxonomyLevelMatches(taxonomy.level1, filter.level1)
+    && taxonomyLevelMatches(taxonomy.level2, filter.level2)
+    && taxonomyLevelMatches(taxonomy.level3, filter.level3)
+  );
 }
 
 export function materialStatusText(status) {

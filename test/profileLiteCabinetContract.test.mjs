@@ -480,6 +480,13 @@ const powerPlaceFeedProjectionSource = powerPlaceSource.match(/<div className="p
 assert.doesNotMatch(powerPlaceFeedProjectionSource, /object_refs|storage:\/\/|signed URL|profile-cabinet-media/i, "Power Place feed projection UI must not render private refs");
 assert.match(profileMaterialsModuleSource, /getGrimoireFeedActionLabel/, "materials should derive feed action labels from publication visibility");
 assert.match(profileMaterialsModuleSource, /getGrimoireNextVisibilityStatus/, "materials should hide visible feed items by changing status, not deleting");
+assert.match(profileMaterialsModuleSource, /grimoireTaxonomyFilterLevelOptions/, "Grimoire feed filter should use the shared 3-level taxonomy source");
+assert.match(profileMaterialsModuleSource, /materialMatchesGrimoireTaxonomyFilter/, "Grimoire feed filter should use shared taxonomy matching with legacy fallback");
+assert.match(profileMaterialsModuleSource, /Фильтр материалов/, "Grimoire feed should render the compact taxonomy filter label");
+assert.match(profileMaterialsModuleSource, /Уровень 1[\s\S]*Уровень 2[\s\S]*Уровень 3/, "Grimoire feed should render all three taxonomy filter dropdown labels");
+assert.match(profileMaterialsModuleSource, /Сбросить/, "Grimoire feed should expose a reset action for taxonomy filters");
+assert.match(profileMaterialsModuleSource, /grimoireMaterialFilterPanel/, "Grimoire feed should render a dedicated compact filter panel above records");
+assert.match(profileMaterialsModuleSource, /grimoireTaxonomyMeta/, "Grimoire record cards should render compact taxonomy metadata");
 assert.match(profileMaterialsModuleSource, /<img[\s\S]*className="grimoireCardImage"[\s\S]*onError/, "materials should render actual image previews and fall back only after load failure");
 assert.match(profileMaterialsModuleSource, /display_url:\s*saved\.display_url \|\| uploaded\.signedUrl/, "composer should keep signed preview URLs for newly uploaded images");
 assert.match(profileServicesModuleSource, /Добавить в ленту[\s\S]*Опубликовать обновление/, "published services should expose explicit feed create/update actions");
@@ -1220,6 +1227,7 @@ assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileL
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerTools\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer tools should stack full width");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer buttons should stack full width");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireQuickActionsCard\s+a\s*\{[\s\S]*display: flex/, "Grimoire quick actions should render as separated vertical links");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireMaterialFilterPanel[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/, "Grimoire material filter should be a compact three-select panel on desktop");
 assert.match(profileMaterialsModuleSource, /className=\{`grimoireRecordCard grimoirePostCard/, "Grimoire records should render through the post-card contract");
 assert.match(profileMaterialsModuleSource, /className="grimoirePostHeader"/, "Grimoire records should have a post header");
 assert.match(profileMaterialsModuleSource, /className="grimoirePostActions"/, "Grimoire records should keep add/edit/delete actions in the post footer");
@@ -1243,12 +1251,15 @@ assert.match(profileMaterialsModuleSource, /isGrimoireTaxonomyUnclassified/, "Gr
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFile input\[type="file"\]\s*\{[\s\S]*opacity: 0/, "Grimoire composer native file input should be visually hidden");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFiles\s*\{/, "Grimoire composer selected files should have compact styled list");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Grimoire post card should override the legacy side-rail grid");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*padding: 9px/, "Grimoire feed cards should use compact padding");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostIdentity b,[\s\S]*overflow-wrap: anywhere/, "Grimoire post header text should wrap long category/date values");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostPreview\s*\{[\s\S]*aspect-ratio: 16 \/ 9[\s\S]*overflow: hidden/, "Grimoire media block should use a stable desktop aspect ratio");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostPreview\s*\{[\s\S]*max-height: 150px/, "Grimoire media previews should be capped to compact height");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireCardImage\s*\{[\s\S]*object-fit: cover/, "Grimoire image previews should fill the media block without layout shift");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*display: flex[\s\S]*flex-wrap: wrap/, "Grimoire post actions should be a wrapping footer row");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostHeader\s*\{[\s\S]*grid-template-columns: 38px minmax\(0, 1fr\)/, "Mobile Grimoire post header should avoid a three-column side rail");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview\.hasImage\s*\{[\s\S]*aspect-ratio: 4 \/ 3/, "Mobile Grimoire media block should keep a stable 4:3 aspect ratio");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*max-height: 118px/, "mobile Grimoire media previews should stay compact");
 assert.doesNotMatch(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Mobile Grimoire post actions should not regress to a full-width stacked side column");
 
 // ── Media module: folder browser applies to both photos and materials ─────────
