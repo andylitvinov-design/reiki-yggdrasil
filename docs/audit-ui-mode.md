@@ -25,6 +25,7 @@ understand target
 -> inspect screenshot/link/route
 -> inspect relevant UI code when available
 -> diagnose current UI
+-> run expert UI frameworks
 -> run shared design skills and quality gates
 -> list problems and opportunities
 -> generate 5-7 improvement ideas
@@ -36,12 +37,33 @@ understand target
 -> return short report + /delivery prompt
 ```
 
+## Expert framework stack
+
+Before proposing concepts, run:
+
+```txt
+docs/audit-ui-expert-frameworks.md
+```
+
+Required lenses:
+
+- product clarity;
+- visual hierarchy;
+- layout and rhythm;
+- information architecture;
+- interaction design;
+- accessibility basics;
+- perceived quality;
+- mobile-first review;
+- implementation realism.
+
 ## Design skill stack
 
 Use:
 
 - `jakubkrehel/make-interfaces-feel-better` when installed;
-- fallback checklist from `docs/audit-ui-polish-skill.md` or `docs/audit-ui-polish-skill.md` equivalent;
+- `docs/audit-ui-expert-frameworks.md`;
+- fallback checklist from `docs/audit-ui-polish-skill.md` or equivalent;
 - `docs/delivery-design-quality-gate.md`;
 - visual hierarchy, spacing/rhythm, typography, density, contrast, CTA clarity;
 - UX clarity, progressive disclosure, cognitive load, navigation clarity;
@@ -72,6 +94,7 @@ The issue must include:
 
 - target screenshot/link/route;
 - current UI diagnosis;
+- expert framework review;
 - confirmed problems;
 - suspected problems;
 - missed opportunities;
