@@ -1262,6 +1262,49 @@ assert.ok(
 
 console.log("Zodiac 2 CSS contract: all assertions passed.");
 
+// ─── Star 2 CSS contract ────────────────────────────────────────────────────
+
+assert.ok(
+  cssSource.includes(".starMandalaSheet.star-2-format"),
+  "CSS must define .starMandalaSheet.star-2-format for the expanded Star 2 layout"
+);
+
+assert.ok(
+  cssSource.includes(".starAdditionalPosition"),
+  "CSS must define .starAdditionalPosition for the five additional Star 2 slots"
+);
+
+assert.ok(
+  cssSource.includes(".starAdditionalPositionImage"),
+  "CSS must define .starAdditionalPositionImage for Star 2 additional slot buttons"
+);
+
+for (let index = 1; index <= 5; index += 1) {
+  assert.ok(
+    cssSource.includes(`.starAdditionalPosition.extra-${index}`),
+    `CSS must position Star 2 additional slot ${index}`
+  );
+}
+
+assert.match(
+  cssSource,
+  /\.starAdditionalPositionImage\s*\{[\s\S]*min-width:\s*30px[\s\S]*min-height:\s*30px/,
+  "Star 2 additional slots must keep a tappable minimum size"
+);
+
+assert.match(
+  cssSource,
+  /@media \(max-width:\s*640px\)\s*\{[\s\S]*\.starMandalaSheet\.star-2-format\s+\.starAdditionalPositionImage\s*\{[\s\S]*width:\s*min\(34px,\s*100%\)/,
+  "Mobile Star 2 additional slot buttons must be sized for 390px screens"
+);
+
+assert.ok(
+  moduleSource.includes(".starAdditionalPositionImage[style]"),
+  "Wrapper module dynamic CSS must include .starAdditionalPositionImage[style] for pan/zoom support"
+);
+
+console.log("Star 2 CSS contract: all assertions passed.");
+
 // ─── Zodiac style CSS contract ────────────────────────────────────────────────
 
 assert.ok(

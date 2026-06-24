@@ -23,6 +23,7 @@ const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
+const VALID_STAR_FORMAT_VARIANTS = ["classic", "star-2-10"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const SLOT_SCALE_REF_KEY = "__slot_scale";
@@ -571,6 +572,7 @@ export function normalizePowerPlaceComposition(composition) {
   const zodiacVisibleCount = Number(composition?.zodiac_visible_count);
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
+  const starFormatVariant = cleanText(composition?.star_format_variant);
   const chessVariant = cleanText(composition?.chess_variant);
   const slotScale = composition?.slot_scale ?? sourceObjectRefs[SLOT_SCALE_REF_KEY];
   const fieldScale = composition?.field_scale ?? sourceObjectRefs[INNER_FIELD_SCALE_REF_KEY];
@@ -628,6 +630,9 @@ export function normalizePowerPlaceComposition(composition) {
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
     business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
     star_variant: VALID_STAR_VARIANTS.includes(starVariant) ? starVariant : "closed",
+    ...(constructorType === "star"
+      ? { star_format_variant: VALID_STAR_FORMAT_VARIANTS.includes(starFormatVariant) ? starFormatVariant : "classic" }
+      : {}),
     chess_variant: VALID_CHESS_VARIANTS.includes(chessVariant) ? chessVariant : "classic-14",
     cover_ref: normalizeCoverRef(composition?.cover_ref),
     object_refs: objectRefs,

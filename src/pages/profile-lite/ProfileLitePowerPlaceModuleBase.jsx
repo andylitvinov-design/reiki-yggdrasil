@@ -125,12 +125,24 @@ const STAR_VARIANTS = [
   { value: "closed", label: "Закрытая" },
   { value: "open", label: "Открытая" }
 ];
+const STAR_2_VARIANT = "star-2-10";
+const STAR_FORMAT_VARIANTS = [
+  { value: "classic", label: "Звезда 1" },
+  { value: STAR_2_VARIANT, label: "Звезда 2" }
+];
 const STAR_POINTS = [
   { id: "top", className: "top", label: "Верхний луч" },
   { id: "right", className: "right", label: "Правый луч" },
   { id: "lower-right", className: "lowerRight", label: "Нижний правый луч" },
   { id: "lower-left", className: "lowerLeft", label: "Нижний левый луч" },
   { id: "left", className: "left", label: "Левый луч" }
+];
+const STAR_ADDITIONAL_POINTS = [
+  { id: "star-extra-1", className: "extra-1", label: "Дополнительная мандала 1" },
+  { id: "star-extra-2", className: "extra-2", label: "Дополнительная мандала 2" },
+  { id: "star-extra-3", className: "extra-3", label: "Дополнительная мандала 3" },
+  { id: "star-extra-4", className: "extra-4", label: "Дополнительная мандала 4" },
+  { id: "star-extra-5", className: "extra-5", label: "Дополнительная мандала 5" }
 ];
 const CHESS_VARIANTS = [
   { value: "classic-14", label: "15 фоток", slotCount: 14, layout: "grid-5x3" },
@@ -297,6 +309,14 @@ function zodiacVariantFormat(value) {
   if (isZodiac2Variant(variant)) return ZODIAC_2_VARIANT;
   if (variant.startsWith("plus")) return "plus-8";
   return "classic";
+}
+
+function isStar2Format(value) {
+  return String(value || "") === STAR_2_VARIANT;
+}
+
+function starFormatValue(value) {
+  return isStar2Format(value) ? STAR_2_VARIANT : "classic";
 }
 const CHANNELS_SUBCATEGORIES = [
   { value: "sefirot", label: "Сефирот", thirdLevels: [{ value: "major-arcana", label: "Большие арканы" }, { value: "minor-arcana", label: "Малые арканы" }, { value: "sephirot-siphers", label: "Сиферы" }] },
@@ -648,11 +668,13 @@ function buildSlotList(draft) {
     return [...signSlots, ...(ZODIAC_PLUS_SLOT_LAYOUT[visibleCount] || ZODIAC_PLUS_SLOT_LAYOUT[8])];
   }
   if (type === "star") {
-    return STAR_POINTS.map((point, index) => ({
+    const starSlots = STAR_POINTS.map((point, index) => ({
       id: `star-${index + 1}`,
       label: point.label,
       className: point.className
     }));
+    if (isStar2Format(draft.star_format_variant)) return [...starSlots, ...STAR_ADDITIONAL_POINTS];
+    return starSlots;
   }
   if (type === "chess") {
     return CHESS_SLOT_LAYOUTS[draft.chess_variant] || CHESS_SLOT_LAYOUTS["classic-14"];
@@ -939,6 +961,8 @@ export default function ProfileLitePowerPlaceModule({
   const zodiacFormat = zodiacVariantFormat(zodiacVariant);
   const isZodiac2 = compositionDraft.constructor_type === "zodiac" && isZodiac2Variant(zodiacVariant);
   const zodiacStyle = zodiacStyleValue(compositionDraft.__zodiac_style);
+  const starFormat = starFormatValue(compositionDraft.star_format_variant);
+  const isStar2 = compositionDraft.constructor_type === "star" && isStar2Format(compositionDraft.star_format_variant);
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
@@ -3159,6 +3183,14 @@ export default function ProfileLitePowerPlaceModule({
                 )}
                 {compositionDraft.constructor_type === "star" && (
                   <div className="starVariantSelector" aria-label="Формат звезды">
+                    <span>Формат звезды</span>
+                    {STAR_FORMAT_VARIANTS.map((variant) => (
+                      <button className={starFormat === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("star_format_variant", variant.value)} type="button">{variant.label}</button>
+                    ))}
+                  </div>
+                )}
+                {compositionDraft.constructor_type === "star" && (
+                  <div className="starVariantSelector" aria-label="Вариант звезды">
                     <span>Вариант звезды</span>
                     {STAR_VARIANTS.map((variant) => (
                       <button className={compositionDraft.star_variant === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("star_variant", variant.value)} type="button">{variant.label}</button>
@@ -3421,7 +3453,7 @@ export default function ProfileLitePowerPlaceModule({
                       )}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${isStar2 ? "star-2-format" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -3443,7 +3475,7 @@ export default function ProfileLitePowerPlaceModule({
                         <span className="starOpenLine starOpenRight" />
                         <span className="starOpenLine starOpenLowerLeft" />
                       </div>
-                      {slots.map((slot, index) => {
+                      {slots.filter((slot) => !slot.id.startsWith("star-extra-")).map((slot, index) => {
                         const src = objectRefs[slot.id] || "";
                         const displaySrc = objectRefUrls[src] || src;
                         return (
@@ -3465,6 +3497,32 @@ export default function ProfileLitePowerPlaceModule({
                               {...getPowerPlaceSlotDropHandlers(slot.id)}
                             >
                               {!src && <span>{index + 1}</span>}
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {isStar2 && slots.filter((slot) => slot.id.startsWith("star-extra-")).map((slot, index) => {
+                        const src = objectRefs[slot.id] || "";
+                        const displaySrc = objectRefUrls[src] || src;
+                        return (
+                          <div className={`starAdditionalPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                            <button
+                              className={`starAdditionalPositionImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                              onClick={() => {
+                                if (suppressSlotPickerClickRef.current[slot.id]) {
+                                  suppressSlotPickerClickRef.current[slot.id] = false;
+                                  return;
+                                }
+                                openObjectPicker(slot.id);
+                              }}
+                              style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
+                              type="button"
+                              title={slot.label}
+                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                              {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
+                              {...getPowerPlaceSlotDropHandlers(slot.id)}
+                            >
+                              {!src && <span>{index + 6}</span>}
                             </button>
                           </div>
                         );

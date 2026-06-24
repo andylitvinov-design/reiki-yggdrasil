@@ -4149,6 +4149,63 @@
   display: none;
 }
 
+.starMandalaSheet.star-2-format {
+  overflow: visible;
+}
+
+.starMandalaSheet.star-2-format .starGuide::before {
+  inset: 13%;
+}
+
+.starMandalaSheet.star-2-format .starPositionImage {
+  width: min(62px, 100%);
+}
+
+.starAdditionalPosition {
+  position: absolute;
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 15%;
+  transform: translate(-50%, -50%);
+}
+
+.starAdditionalPositionImage {
+  width: min(46px, 100%);
+  min-width: 30px;
+  min-height: 30px;
+  aspect-ratio: 1;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 226, 148, 0.8);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 45% 35%, #fff4ce, #c28a2b 62%, #38220b 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0;
+  box-shadow: 0 0 18px rgba(128, 114, 54, 0.24);
+}
+
+.starAdditionalPosition.hasImage .starAdditionalPositionImage span {
+  display: none;
+}
+
+.starAdditionalPosition.extra-1 { left: 50%; top: 26%; }
+.starAdditionalPosition.extra-2 { left: 69%; top: 41%; }
+.starAdditionalPosition.extra-3 { left: 62%; top: 65%; }
+.starAdditionalPosition.extra-4 { left: 38%; top: 65%; }
+.starAdditionalPosition.extra-5 { left: 31%; top: 41%; }
+
 .starPosition b {
   max-width: 100%;
   color: #513512;
@@ -5744,6 +5801,13 @@
   .zodiacPositionImage,
   .starPositionImage {
     width: min(50px, 100%);
+  }
+
+  .starMandalaSheet.star-2-format .starAdditionalPositionImage {
+    width: min(34px, 100%);
+    min-width: 30px;
+    min-height: 30px;
+    font-size: 9px;
   }
 
   .starPosition {
@@ -11356,6 +11420,7 @@
 .powerMandalaPanel.power-place-hide-slots .zodiacPositionImage,
 .powerMandalaPanel.power-place-hide-slots .zodiacFieldPlusPositionImage,
 .powerMandalaPanel.power-place-hide-slots .starPositionImage,
+.powerMandalaPanel.power-place-hide-slots .starAdditionalPositionImage,
 .powerMandalaPanel.power-place-hide-slots .daoElementImage,
 .powerMandalaPanel.power-place-hide-slots .daoTalismanSlot,
 .powerMandalaPanel.power-place-hide-slots .power-place-chess__slot {

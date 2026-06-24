@@ -25,7 +25,8 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260609_profile_client_photo_categories.sql",
   "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
   "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql",
-  "supabase/migrations/20260623120000_service_orders_personal_schema_fix.sql"
+  "supabase/migrations/20260623120000_service_orders_personal_schema_fix.sql",
+  "supabase/migrations/20260624120000_power_place_star_format_variant.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
@@ -34,6 +35,7 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_power_place_compositions: false,
   zodiac_visible_count: false,
   star_variant: false,
+  star_format_variant: false,
   chess_variant: false,
   profile_cabinet_chat_conversations: false,
   profile_cabinet_chat_participants: false,
@@ -246,6 +248,10 @@ select
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'star_variant'
   ) as star_variant,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'star_format_variant'
+  ) as star_format_variant,
   exists (
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'chess_variant'

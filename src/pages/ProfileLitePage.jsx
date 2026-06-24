@@ -146,6 +146,7 @@ const EMPTY_COMPOSITION = {
   altar_center_ratio: "1",
   business_vertex_zone_count: 1,
   star_variant: "closed",
+  star_format_variant: "classic",
   chess_variant: "classic-14",
   chess_slot_scale: 1,
   slot_scale: 1,

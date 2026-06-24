@@ -941,9 +941,11 @@ assert.deepEqual(
     geometry: 8,
     zodiac_visible_count: 6,
     star_variant: "open",
+    star_format_variant: "star-2-10",
     object_refs: {
       "star-1": " https://example.com/star-top.jpg ",
       "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png",
+      "star-extra-1": "https://example.com/star-extra-1.jpg",
       "star-5": "data:image/png;base64,local"
     },
     central_photo_id: "photo-7",
@@ -959,11 +961,13 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "open",
+    star_format_variant: "star-2-10",
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "star-1": "https://example.com/star-top.jpg",
       "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png",
+      "star-extra-1": "https://example.com/star-extra-1.jpg",
       __field_layout: "square"
     },
     central_photo_id: "photo-7",
@@ -981,6 +985,7 @@ assert.deepEqual(
     title: " Звезда fallback ",
     constructor_type: "star",
     star_variant: "wide",
+    star_format_variant: "wide",
     object_refs: {
       "star-3": "https://example.com/star-left.jpg"
     },
@@ -995,6 +1000,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    star_format_variant: "classic",
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
