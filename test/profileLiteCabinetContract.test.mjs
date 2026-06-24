@@ -1057,6 +1057,8 @@ assert.match(profileLitePageSource, /detectMaterialTypeFromFile/, "ProfileLitePa
 assert.match(profileLitePageSource, /stripFileExtension/, "ProfileLitePage should use stripFileExtension for grimoire title derivation");
 
 assert.match(profileMaterialsClientSource, /export.*GRIMOIRE_CATEGORIES/, "profileMaterialsClient.js should export GRIMOIRE_CATEGORIES");
+assert.match(profileMaterialsClientSource, /reikiLevels\.map/, "profileMaterialsClient.js should derive Grimoire course taxonomy from all Reiki levels");
+assert.match(profileMaterialsClientSource, /mysteryTraditions\.map/, "profileMaterialsClient.js should derive deity taxonomy from all mystery traditions");
 assert.match(profileMaterialsClientSource, /export function detectMaterialTypeFromFile/, "profileMaterialsClient.js should export detectMaterialTypeFromFile");
 assert.match(profileMaterialsClientSource, /export function stripFileExtension/, "profileMaterialsClient.js should export stripFileExtension");
 assert.match(profileMaterialsClientSource, /export async function updateOwnMaterial/, "profileMaterialsClient.js should export updateOwnMaterial");
@@ -1261,7 +1263,10 @@ assert.match(profileGrimoireComposerSource, /Уровень 3/, "Grimoire compos
 assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(2, taxonomy\)/, "Grimoire composer level 2 should depend on selected level 1");
 assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(3, taxonomy\)/, "Grimoire composer level 3 should depend on selected level 2");
 assert.doesNotMatch(profileGrimoireComposerSource, /<span>Тип<\/span>/, "Grimoire composer should not use the old flat Type select");
-assert.match(profileGrimoireComposerSource, /safe interim, needs verification/, "Interim taxonomy source must be marked needs verification");
+assert.doesNotMatch(profileGrimoireComposerSource, /Название \/ тема/, "Grimoire composer should not expose the removed title/topic field");
+assert.doesNotMatch(profileGrimoireComposerSource, /safe interim, needs verification/, "Grimoire composer should not expose taxonomy debug text");
+assert.match(profileGrimoireComposerSource, /Что хотите добавить\?/, "Grimoire composer should use a compact composer prompt");
+assert.match(profileGrimoireComposerSource, /Поделитесь заметкой, практикой, описанием мандалы/, "Grimoire composer should keep the compact note field");
 assert.match(profileMaterialsModuleSource, /grimoireTaxonomyCompactLabel/, "Grimoire feed cards should render compact taxonomy");
 assert.match(profileMaterialsModuleSource, /isGrimoireTaxonomyUnclassified/, "Grimoire unclassified logic should inspect all taxonomy levels");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFile input\[type="file"\]\s*\{[\s\S]*opacity: 0/, "Grimoire composer native file input should be visually hidden");
@@ -1357,7 +1362,7 @@ assert.match(
 assert.match(
   imagePickerSource,
   /getUnclassifiedMaterialSelection/,
-  "ProfileLiteImagePicker should expose Неразобрано for material upload defaults"
+  "ProfileLiteImagePicker should expose Неразобранно for material upload defaults"
 );
 
 assert.match(
@@ -1380,8 +1385,8 @@ assert.match(
 
 assert.match(
   profileMaterialsClientSource,
-  /Неразобрано/,
-  "ProfileLiteImagePicker should render the corrected Неразобрано label for material uploads"
+  /Неразобранно/,
+  "ProfileLiteImagePicker should render the corrected Неразобранно label for material uploads"
 );
 
 assert.doesNotMatch(

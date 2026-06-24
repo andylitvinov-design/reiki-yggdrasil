@@ -41,18 +41,44 @@
 
 .profileLiteGrimoireModule .grimoireComposer {
   display: grid;
-  gap: 9px;
-  padding: 12px;
-  border-radius: 12px;
-  background: #fffdf9;
-  box-shadow: 0 8px 22px rgba(68, 45, 25, 0.06);
+  gap: 10px;
+  padding: 13px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffefd, #fff8ee);
+  box-shadow: 0 12px 32px rgba(68, 45, 25, 0.09), inset 0 0 0 1px rgba(156, 103, 41, 0.1);
 }
 
 .profileLiteGrimoireModule .grimoireComposerHeader {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px;
-  align-items: start;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+}
+
+.profileLiteGrimoireModule .grimoireComposerAvatar {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f5e4c8;
+  color: #7a4b13;
+  font-size: 17px;
+  box-shadow: inset 0 0 0 1px rgba(149, 95, 35, 0.16);
+}
+
+.profileLiteGrimoireModule .grimoireComposerIntro {
+  display: grid;
+  gap: 2px;
+}
+
+.profileLiteGrimoireModule .grimoireComposerIntro h3 {
+  margin: 0;
+  color: #2f2418;
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: 0;
+  text-wrap: balance;
 }
 
 .profileLiteGrimoireModule .grimoireComposerField,
@@ -71,6 +97,19 @@
   max-width: 100%;
 }
 
+.profileLiteGrimoireModule .grimoireComposerField textarea {
+  min-height: 70px;
+  border: 1px solid rgba(126, 89, 45, 0.14);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fffdf9;
+  color: #2f2418;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: vertical;
+  box-shadow: inset 0 1px 3px rgba(68, 45, 25, 0.04);
+}
+
 .profileLiteGrimoireModule .grimoireComposerTools {
   display: grid;
   grid-template-columns: repeat(3, minmax(130px, 1fr));
@@ -85,13 +124,14 @@
 .profileLiteGrimoireModule .grimoireComposerFile {
   position: relative;
   display: grid;
-  align-content: center;
-  gap: 4px;
-  min-height: 58px;
-  padding: 9px 11px;
-  border: 1px dashed rgba(184, 121, 29, 0.42);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 251, 243, 0.95), rgba(246, 232, 207, 0.86));
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 11px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 12px;
+  background: #fbf1df;
   cursor: pointer;
 }
 
@@ -112,27 +152,43 @@
 }
 
 .profileLiteGrimoireModule .grimoireComposerFile span {
-  color: #2f2418;
+  color: #5d3c12;
+  font-size: 13px;
   font-weight: 850;
-  line-height: 1.18;
+  line-height: 1.15;
 }
 
 .profileLiteGrimoireModule .grimoireComposerFile small {
+  grid-column: 1 / -1;
   color: #80664b;
   font-size: 12px;
-  line-height: 1.28;
+  line-height: 1.25;
 }
 
 .profileLiteGrimoireModule .grimoireComposerActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
+  gap: 7px;
 }
 
 .profileLiteGrimoireModule .grimoireComposerActions button {
-  min-height: 34px;
+  min-height: 36px;
   min-width: 0;
-  padding: 8px 12px;
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.profileLiteGrimoireModule .grimoireComposerActions button.cabinetSecondary {
+  background: #f7efe2;
+  color: #6a430f;
+  box-shadow: inset 0 0 0 1px rgba(184, 121, 29, 0.34);
+}
+
+.profileLiteGrimoireModule .grimoireComposerActions button.cabinetGhost {
+  color: #3c2817;
 }
 
 .profileLiteGrimoireModule .grimoireComposerFiles {
@@ -504,16 +560,26 @@
   .profileLiteGrimoireModule .grimoireComposer {
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
-    padding: 10px;
-    border-radius: 12px;
+    padding: 11px;
+    border-radius: 14px;
   }
 
   .profileLiteGrimoireModule .grimoireComposerHeader {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 34px minmax(0, 1fr);
   }
 
   .profileLiteGrimoireModule .grimoireComposerAvatar {
-    display: none;
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+
+  .profileLiteGrimoireModule .grimoireComposerIntro h3 {
+    font-size: 16px;
+  }
+
+  .profileLiteGrimoireModule .grimoireComposerField textarea {
+    min-height: 66px;
   }
 
   .profileLiteGrimoireModule .grimoireComposerTools {

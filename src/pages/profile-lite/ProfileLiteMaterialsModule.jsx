@@ -363,7 +363,7 @@ export default function ProfileLiteMaterialsModule({
     const cleanTitle = safeText(title);
     const cleanDescription = safeText(description);
     const selectedFiles = Array.from(files || []).filter(Boolean);
-    if (!cleanTitle && !cleanDescription && !selectedFiles.length) throw new Error("Добавьте текст, название или файл.");
+    if (!cleanTitle && !cleanDescription && !selectedFiles.length) throw new Error("Добавьте заметку или файл.");
     if (!session?.access_token) throw new Error("Нужно войти в кабинет.");
 
     setComposerStatus("loading");

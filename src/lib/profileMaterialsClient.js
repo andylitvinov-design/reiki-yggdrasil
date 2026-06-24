@@ -1,5 +1,7 @@
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 import { createSignedMediaUrl, isStorageRef, parseStorageRef } from "./profileMediaClient.js";
+import { reikiLevels } from "../data/reikiKnowledgeBase.js";
+import { mysteryTraditions } from "../data/mysteryTraditions.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
@@ -37,8 +39,7 @@ export const MATERIAL_TYPES = [
 export const DB_SAFE_GRIMOIRE_TYPE = "practice";
 export const TAXONOMY_ALL = "all";
 export const TAXONOMY_UNCLASSIFIED = "unclassified";
-export const TAXONOMY_UNCLASSIFIED_LABEL = "Неразобрано";
-export const GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION = true;
+export const TAXONOMY_UNCLASSIFIED_LABEL = "Неразобранно";
 
 export const GRIMOIRE_TAXONOMY = [
   {
@@ -62,7 +63,15 @@ export const GRIMOIRE_TAXONOMY = [
           { value: "dao-ri-place-mandala", label: "Место силы" },
           { value: "dao-ri-service-mandala", label: "Услуга" }
         ]
-      }
+      },
+      ...reikiLevels.map((level) => ({
+        value: `dao-ri-level-${level.id}`,
+        label: `${level.id}. ${level.name}`,
+        children: level.steps.map((step) => ({
+          value: step.id,
+          label: `${level.stepLabel} ${step.number}: ${step.title}`
+        }))
+      }))
     ]
   },
   {
@@ -102,15 +111,14 @@ export const GRIMOIRE_TAXONOMY = [
           { value: "thor", label: "Тор" }
         ]
       },
-      {
-        value: "greek-deities",
-        label: "Греческая традиция",
-        children: [
-          { value: "apollo", label: "Аполлон" },
-          { value: "athena", label: "Афина" },
-          { value: "hestia", label: "Гестия" }
-        ]
-      }
+      ...mysteryTraditions.map((tradition) => ({
+        value: tradition.id === "greek" ? "greek-deities" : `${tradition.id}-deities`,
+        label: tradition.id === "greek" ? "Греческая традиция" : tradition.title,
+        children: (tradition.entities || []).map((entity) => ({
+          value: tradition.id === "greek" ? entity.id : `${tradition.id}-${entity.id}`,
+          label: entity.title
+        }))
+      }))
     ]
   },
   {
