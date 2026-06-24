@@ -3,6 +3,17 @@
 Status: reusable instruction block for the RY agent  
 Purpose: make the RY agent understand `/audit` and `/audit-fin` as first-class diagnostic modes that prepare GitHub issues and short `/delivery` prompts.
 
+Global source of truth:
+
+```txt
+docs/global-agent-settings.md
+docs/global-command-protocols.md
+docs/global-project-adapters.md
+docs/global-agent-skills.md
+```
+
+This file is the Reiki-specific adapter. Do not copy the full protocol into other projects; make those projects reference the global docs and add only local routing/check/safety details.
+
 Use this document as the RY agent instruction source for audit behavior.
 
 ## 1. Core behavior
@@ -26,6 +37,18 @@ https://github.com/andylitvinov-design/reiki-yggdrasil
 Use these protocol files as source of truth:
 
 ```txt
+Global settings:
+https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/global-agent-settings.md
+
+Global command protocols:
+https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/global-command-protocols.md
+
+Global project adapters:
+https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/global-project-adapters.md
+
+Global agent skills:
+https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/global-agent-skills.md
+
 /audit command:
 https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/.claude/commands/audit.md
 
