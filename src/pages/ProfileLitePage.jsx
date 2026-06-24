@@ -9,11 +9,13 @@ import {
   listAvailableCourseSteps
 } from "../lib/profileCoursesClient.js";
 import {
+  DB_SAFE_GRIMOIRE_TYPE,
   createEmptyMaterialForm,
   createOwnMaterial,
   deleteOwnMaterial,
   detectMaterialTypeFromFile,
   listOwnMaterials,
+  normalizeGrimoireTaxonomy,
   normalizeMaterialForm,
   stripFileExtension,
   updateOwnMaterial
@@ -1283,14 +1285,15 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       setMaterialsStatus("needs-verification");
       throw new Error("Сначала сохраните профиль мастера.");
     }
-    const results = await Promise.allSettled(files.map(async (file) => {
-      validateGrimoireFile(file);
-      const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
-      const detectedType = detectMaterialTypeFromFile(file);
+      const results = await Promise.allSettled(files.map(async (file) => {
+        validateGrimoireFile(file);
+        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+        const detectedType = detectMaterialTypeFromFile(file);
       const title = stripFileExtension(file.name) || "Запись гримуара";
       const payload = {
         profile_id: profile.id,
-        type: detectedType,
+        type: DB_SAFE_GRIMOIRE_TYPE,
+        material_type: detectedType,
         title,
         description: "",
         image_url: uploaded.ref,
@@ -1298,6 +1301,9 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         step_title: "",
         setting_title: "",
         setting_index: null,
+        category: "unclassified",
+        subcategory: "unclassified",
+        material_group: "unclassified",
         status: "draft",
         updated_at: new Date().toISOString()
       };
@@ -1325,7 +1331,18 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       throw new Error("Нужно войти в кабинет.");
     }
     try {
-      const saved = await updateOwnMaterial(id, patch, session);
+      const updatePatch = { ...patch };
+      if (patch?.taxonomy) {
+        const taxonomy = normalizeGrimoireTaxonomy(patch.taxonomy);
+        updatePatch.category = taxonomy.level1;
+        updatePatch.subcategory = taxonomy.level2;
+        updatePatch.material_group = taxonomy.level3;
+        delete updatePatch.taxonomy;
+      }
+      if (updatePatch.type && ["ri", "channels", "gods", "clients", "uncategorized"].includes(updatePatch.type)) {
+        updatePatch.type = DB_SAFE_GRIMOIRE_TYPE;
+      }
+      const saved = await updateOwnMaterial(id, updatePatch, session);
       if (saved) {
         setMaterials((current) => current.map((item) => item.id === id ? { ...item, ...saved } : item));
       }

@@ -25,16 +25,148 @@ const PUBLIC_MATERIAL_FIELDS = [
 ].join(",");
 
 export const MATERIAL_TYPES = [
-  { value: "ri", label: "РИ" },
-  { value: "channels", label: "Каналы" },
-  { value: "gods", label: "Боги" },
-  { value: "clients", label: "Клиенты" }
+  { value: "practice", label: "Материал" },
+  { value: "photo", label: "Фото / образ" },
+  { value: "article", label: "Статья" },
+  { value: "document", label: "Документ" },
+  { value: "audio", label: "Аудио" },
+  { value: "artifact", label: "Артефакт" },
+  { value: "mandala", label: "Мандала" }
 ];
+
+export const DB_SAFE_GRIMOIRE_TYPE = "practice";
+export const TAXONOMY_UNCLASSIFIED = "unclassified";
+export const TAXONOMY_UNCLASSIFIED_LABEL = "Неразобранно";
+export const GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION = true;
+
+export const GRIMOIRE_TAXONOMY = [
+  {
+    value: "dao-ri",
+    label: "РИ",
+    children: [
+      {
+        value: "dao-ri-foundation",
+        label: "База РИ",
+        children: [
+          { value: "dao-ri-practices", label: "Практики" },
+          { value: "dao-ri-initiations", label: "Настройки" },
+          { value: "dao-ri-materials", label: "Материалы" }
+        ]
+      },
+      {
+        value: "dao-ri-mandalas",
+        label: "Мандалы РИ",
+        children: [
+          { value: "dao-ri-client-mandala", label: "Клиентская мандала" },
+          { value: "dao-ri-place-mandala", label: "Место силы" },
+          { value: "dao-ri-service-mandala", label: "Услуга" }
+        ]
+      }
+    ]
+  },
+  {
+    value: "channels",
+    label: "Каналы",
+    children: [
+      {
+        value: "god-channels",
+        label: "Каналы богов",
+        children: [
+          { value: "healing-channel", label: "Исцеление" },
+          { value: "protection-channel", label: "Защита" },
+          { value: "resource-channel", label: "Ресурс" }
+        ]
+      },
+      {
+        value: "practice-channels",
+        label: "Каналы практик",
+        children: [
+          { value: "audio-channel", label: "Аудио" },
+          { value: "text-channel", label: "Тексты" },
+          { value: "visual-channel", label: "Образы" }
+        ]
+      }
+    ]
+  },
+  {
+    value: "deities",
+    label: "Боги",
+    children: [
+      {
+        value: "norse-deities",
+        label: "Северная традиция",
+        children: [
+          { value: "odin", label: "Один" },
+          { value: "freyja", label: "Фрейя" },
+          { value: "thor", label: "Тор" }
+        ]
+      },
+      {
+        value: "greek-deities",
+        label: "Греческая традиция",
+        children: [
+          { value: "apollo", label: "Аполлон" },
+          { value: "athena", label: "Афина" },
+          { value: "hestia", label: "Гестия" }
+        ]
+      }
+    ]
+  },
+  {
+    value: "clients",
+    label: "Клиенты",
+    children: [
+      {
+        value: "client-work",
+        label: "Работа с клиентом",
+        children: [
+          { value: "client-request", label: "Запрос" },
+          { value: "client-result", label: "Результат" },
+          { value: "client-followup", label: "Сопровождение" }
+        ]
+      },
+      {
+        value: "client-materials",
+        label: "Материалы клиента",
+        children: [
+          { value: "client-photo", label: "Фото клиента" },
+          { value: "client-notes", label: "Заметки" },
+          { value: "client-documents", label: "Документы" }
+        ]
+      }
+    ]
+  }
+];
+
+const UNCLASSIFIED_OPTION = { value: TAXONOMY_UNCLASSIFIED, label: TAXONOMY_UNCLASSIFIED_LABEL, children: [] };
+
+function withUnclassified(options) {
+  return [UNCLASSIFIED_OPTION, ...(options || [])];
+}
+
+export function grimoireTaxonomyLevelOptions(level, parentValues = {}) {
+  if (level === 1) return withUnclassified(GRIMOIRE_TAXONOMY);
+
+  const level1 = GRIMOIRE_TAXONOMY.find((item) => item.value === parentValues.level1);
+  if (level === 2) return withUnclassified(level1?.children || []);
+
+  const level2 = (level1?.children || []).find((item) => item.value === parentValues.level2);
+  return withUnclassified(level2?.children || []);
+}
+
+export function createDefaultTaxonomy(overrides = {}) {
+  return {
+    level1: TAXONOMY_UNCLASSIFIED,
+    level2: TAXONOMY_UNCLASSIFIED,
+    level3: TAXONOMY_UNCLASSIFIED,
+    ...overrides
+  };
+}
 
 export const GRIMOIRE_CATEGORIES = [
   { value: "all", label: "Все записи" },
-  { value: "uncategorized", label: "Без категории" },
-  ...MATERIAL_TYPES
+  { value: TAXONOMY_UNCLASSIFIED, label: TAXONOMY_UNCLASSIFIED_LABEL },
+  ...GRIMOIRE_TAXONOMY
 ];
 
 const LEGACY_MATERIAL_TYPE_LABELS = new Map([
@@ -61,20 +193,20 @@ export function stripFileExtension(filename) {
 }
 
 export function detectMaterialTypeFromFile(file) {
-  if (!file) return "ri";
+  if (!file) return DB_SAFE_GRIMOIRE_TYPE;
   const mimeType = String(file.type || "").toLowerCase();
-  if (mimeType.startsWith("image/")) return "clients";
+  if (mimeType.startsWith("image/")) return "photo";
   const ext = String(file.name || "").split(".").pop().toLowerCase();
-  if (IMAGE_EXTENSIONS.includes(ext)) return "clients";
-  if (mimeType.startsWith("audio/") || AUDIO_EXTENSIONS.includes(ext)) return "channels";
+  if (IMAGE_EXTENSIONS.includes(ext)) return "photo";
+  if (mimeType.startsWith("audio/") || AUDIO_EXTENSIONS.includes(ext)) return "audio";
   if (
     mimeType === "application/pdf" ||
     mimeType === "application/msword" ||
     mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
     DOC_EXTENSIONS.includes(ext) ||
     TEXT_EXTENSIONS.includes(ext)
-  ) return "ri";
-  return "ri";
+  ) return "document";
+  return DB_SAFE_GRIMOIRE_TYPE;
 }
 
 export const MATERIAL_STATUSES = [
@@ -97,7 +229,8 @@ function cleanText(value) {
 function cleanType(value) {
   if (MATERIAL_TYPES.some((item) => item.value === value)) return value;
   if (value === "uncategorized") return "uncategorized";
-  return "ri";
+  if (["ri", "channels", "gods", "clients"].includes(value)) return DB_SAFE_GRIMOIRE_TYPE;
+  return DB_SAFE_GRIMOIRE_TYPE;
 }
 
 function cleanStatus(value) {
@@ -112,7 +245,8 @@ function cleanSettingIndex(value) {
 
 export function createEmptyMaterialForm(overrides = {}) {
   return {
-    type: "ri",
+    type: DB_SAFE_GRIMOIRE_TYPE,
+    taxonomy: createDefaultTaxonomy(),
     title: "",
     description: "",
     image_url: "",
@@ -127,6 +261,52 @@ export function createEmptyMaterialForm(overrides = {}) {
 
 export function publicationTypeLabel(type) {
   return MATERIAL_TYPES.find((item) => item.value === type)?.label || LEGACY_MATERIAL_TYPE_LABELS.get(type) || "Без категории";
+}
+
+export function normalizeGrimoireTaxonomy(value = {}) {
+  const level1 = cleanText(value.level1 ?? value.category ?? value.material_category) || TAXONOMY_UNCLASSIFIED;
+  const level2 = cleanText(value.level2 ?? value.subcategory ?? value.material_subcategory) || TAXONOMY_UNCLASSIFIED;
+  const level3 = cleanText(value.level3 ?? value.material_group ?? value.materialGroup ?? value.group) || TAXONOMY_UNCLASSIFIED;
+  return { level1, level2, level3 };
+}
+
+export function grimoireTaxonomyFromMaterial(material = {}) {
+  return normalizeGrimoireTaxonomy({
+    level1: material.taxonomy?.level1 ?? material.category,
+    level2: material.taxonomy?.level2 ?? material.subcategory,
+    level3: material.taxonomy?.level3 ?? material.material_group
+  });
+}
+
+function findTaxonomyLabel(level, value, parentValues = {}) {
+  const cleanValue = cleanText(value) || TAXONOMY_UNCLASSIFIED;
+  if (cleanValue === TAXONOMY_UNCLASSIFIED || cleanValue === "uncategorized") return TAXONOMY_UNCLASSIFIED_LABEL;
+  return grimoireTaxonomyLevelOptions(level, parentValues).find((item) => item.value === cleanValue)?.label || cleanValue;
+}
+
+export function grimoireTaxonomyLabels(materialOrTaxonomy = {}) {
+  const taxonomy = materialOrTaxonomy.level1 || materialOrTaxonomy.level2 || materialOrTaxonomy.level3
+    ? normalizeGrimoireTaxonomy(materialOrTaxonomy)
+    : grimoireTaxonomyFromMaterial(materialOrTaxonomy);
+
+  return [
+    findTaxonomyLabel(1, taxonomy.level1),
+    findTaxonomyLabel(2, taxonomy.level2, taxonomy),
+    findTaxonomyLabel(3, taxonomy.level3, taxonomy)
+  ];
+}
+
+export function grimoireTaxonomyCompactLabel(materialOrTaxonomy = {}) {
+  return grimoireTaxonomyLabels(materialOrTaxonomy)
+    .filter((label) => label && label !== TAXONOMY_UNCLASSIFIED_LABEL)
+    .join(" / ");
+}
+
+export function isGrimoireTaxonomyUnclassified(materialOrTaxonomy = {}) {
+  const taxonomy = materialOrTaxonomy.level1 || materialOrTaxonomy.level2 || materialOrTaxonomy.level3
+    ? normalizeGrimoireTaxonomy(materialOrTaxonomy)
+    : grimoireTaxonomyFromMaterial(materialOrTaxonomy);
+  return [taxonomy.level1, taxonomy.level2, taxonomy.level3].some((value) => !value || value === TAXONOMY_UNCLASSIFIED || value === "uncategorized");
 }
 
 export function materialStatusText(status) {
@@ -157,9 +337,10 @@ export function getGrimoireNextVisibilityStatus(material) {
 }
 
 export function normalizeMaterialForm(form, requestedStatus = form?.status) {
+  const taxonomy = normalizeGrimoireTaxonomy(form?.taxonomy || form);
   return {
     type: cleanType(form?.type),
-    material_group: cleanText(form?.material_group ?? form?.materialGroup ?? form?.group),
+    material_group: taxonomy.level3,
     material_type: cleanText(form?.material_type ?? form?.materialType ?? form?.type),
     title: cleanText(form?.title),
     description: cleanText(form?.description),
@@ -168,8 +349,8 @@ export function normalizeMaterialForm(form, requestedStatus = form?.status) {
     step_title: cleanText(form?.step_title),
     setting_title: cleanText(form?.setting_title),
     setting_index: cleanSettingIndex(form?.setting_index),
-    category: cleanText(form?.category),
-    subcategory: cleanText(form?.subcategory ?? form?.material_subcategory ?? form?.setting_title),
+    category: taxonomy.level1,
+    subcategory: taxonomy.level2,
     status: cleanStatus(requestedStatus)
   };
 }
