@@ -159,6 +159,12 @@ function clampSlotZoom(v) {
   return Number.isFinite(n) ? Math.min(1.8, Math.max(0.65, n)) : 1;
 }
 
+function clampSlotRotation(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n / 90) * 90;
+}
+
 function normalizeSlotTransforms(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
   const result = {};
@@ -168,7 +174,8 @@ function normalizeSlotTransforms(value) {
     result[id] = {
       x: clampSlotOffset(raw.x),
       y: clampSlotOffset(raw.y),
-      zoom: clampSlotZoom(raw.zoom)
+      zoom: clampSlotZoom(raw.zoom),
+      rotate: clampSlotRotation(raw.rotate ?? raw.rotation)
     };
   }
   return Object.keys(result).length > 0 ? result : undefined;
