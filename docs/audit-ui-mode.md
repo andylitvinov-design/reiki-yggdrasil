@@ -34,6 +34,7 @@ understand target
 -> score concepts with decision rubric
 -> compare the 3 concepts
 -> choose recommended concept
+-> run completeness gate
 -> create/update GitHub issue
 -> return short report + /delivery prompt
 ```
@@ -45,6 +46,7 @@ Before proposing concepts, run:
 ```txt
 docs/audit-ui-expert-frameworks.md
 docs/audit-ui-decision-rubric.md
+docs/audit-ui-completeness-gate.md
 ```
 
 Required lenses:
@@ -66,6 +68,7 @@ Use:
 - `jakubkrehel/make-interfaces-feel-better` when installed;
 - `docs/audit-ui-expert-frameworks.md`;
 - `docs/audit-ui-decision-rubric.md`;
+- `docs/audit-ui-completeness-gate.md`;
 - fallback checklist from `docs/audit-ui-polish-skill.md` or equivalent;
 - `docs/delivery-design-quality-gate.md`;
 - visual hierarchy, spacing/rhythm, typography, density, contrast, CTA clarity;
@@ -73,6 +76,27 @@ Use:
 - mobile-first first-screen quality and desktop regression checks.
 
 If image generation or drawing tools are available and the user asked for sketches, produce 3 low/mid-fidelity visual concept sketches. If not available, provide structured ASCII/wireframe/layout descriptions for the 3 concepts.
+
+## Completeness gate
+
+Before finalizing, `/audit-ui` must pass:
+
+```txt
+docs/audit-ui-completeness-gate.md
+```
+
+It is incomplete unless it includes:
+
+- 5-7 improvement ideas;
+- 3 concepts;
+- sketch/mockup direction for all 3 concepts;
+- scored comparison table;
+- recommended concept;
+- why this concept wins over the other two;
+- GitHub issue full URL or issue body;
+- short `/delivery` prompt.
+
+If any required block is missing, return `STATUS: AUDIT_UI_INCOMPLETE`, list missing blocks, and complete them before finalizing.
 
 ## Diagnose current UI
 
@@ -113,9 +137,11 @@ The issue must include:
 - design quality gate;
 - ready-to-run `/delivery` prompt.
 
+If the issue only contains one recommended option and not 3 concepts, it is not a valid `/audit-ui` issue.
+
 ## Chat output
 
-When an issue is created, do not duplicate the full issue body in chat.
+When an issue is created, do not duplicate the full issue body in chat, but still include the concept summary.
 
 Return:
 
@@ -123,26 +149,28 @@ Return:
 STATUS: AUDIT_UI_COMPLETE | AUDIT_UI_PARTIAL | AUDIT_UI_BLOCKED | AUDIT_UI_COMPLETE_ISSUE_NOT_CREATED
 
 3 best concepts:
-1. ...
-2. ...
-3. ...
+1. Concept A — ...
+2. Concept B — ...
+3. Concept C — ...
 
 Recommended: Concept X
 Why: ...
 
-Sketches:
-- Sketch A: attached / described
-- Sketch B: attached / described
-- Sketch C: attached / described
+Sketch directions:
+A: ...
+B: ...
+C: ...
 
 GitHub issue:
-<issue URL>
+<full issue URL>
 
 Prompt:
 /delivery
 Task:
 Implement the recommended UI concept from issue <issue URL>. Keep Concept 2 and Concept 3 as fallback alternatives if the recommended concept proves risky. Follow the design quality gate and do not touch unrelated flows.
 ```
+
+Do not return only one concept. The user must be able to choose Concept 1, 2, or 3 from the chat response.
 
 ## Selection rule
 
