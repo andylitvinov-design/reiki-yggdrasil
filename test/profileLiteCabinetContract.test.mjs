@@ -1338,6 +1338,36 @@ assert.match(
   "ProfileLiteImagePicker should pass all selected material files through the upload chain"
 );
 
+assert.match(
+  imagePickerSource,
+  /getUnclassifiedMaterialSelection/,
+  "ProfileLiteImagePicker should expose Неразобрано for material upload defaults"
+);
+
+assert.match(
+  imagePickerSource,
+  /getDefaultMaterialFilterSelection/,
+  "ProfileLiteImagePicker material browser should default to Все, not the first concrete category"
+);
+
+assert.doesNotMatch(
+  imagePickerSource,
+  /const defaultMaterialSelection = useMemo\(\(\) => normalizeMaterialSelection\("dao-ri"\)/,
+  "ProfileLiteImagePicker must not reuse the first concrete ДАО РИ selection for both upload and browsing"
+);
+
+assert.match(
+  imagePickerSource,
+  /value: "all", label: "Все"/,
+  "ProfileLiteImagePicker materials browser should render an explicit Все filter option"
+);
+
+assert.match(
+  profileMaterialsClientSource,
+  /Неразобрано/,
+  "ProfileLiteImagePicker should render the corrected Неразобрано label for material uploads"
+);
+
 assert.doesNotMatch(
   imagePickerSource,
   /setClientCategory\("all"\)/,

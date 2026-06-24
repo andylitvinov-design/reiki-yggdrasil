@@ -1,6 +1,11 @@
 import { reikiLevels } from "../../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../../data/mysteryTraditions.js";
+import {
+  TAXONOMY_ALL,
+  TAXONOMY_UNCLASSIFIED,
+  TAXONOMY_UNCLASSIFIED_LABEL
+} from "../../lib/profileMaterialsClient.js";
 
 export const MATERIAL_GROUP_TABS = [
   { value: "dao-ri", label: "РИ", fullLabel: "ДАО РИ" },
@@ -23,6 +28,13 @@ const CHANNEL_CATEGORY_OPTIONS = [
   { value: "life", label: "Жизнь" }
 ].map((option) => ({ ...option, group: "channels" }));
 
+const ALL_OPTION = { value: TAXONOMY_ALL, label: "Все" };
+const UNCLASSIFIED_OPTION = {
+  value: TAXONOMY_UNCLASSIFIED,
+  label: TAXONOMY_UNCLASSIFIED_LABEL,
+  group: TAXONOMY_UNCLASSIFIED
+};
+
 function text(value) {
   return String(value || "").trim();
 }
@@ -40,6 +52,19 @@ function values(...items) {
 
 function sameText(left, right) {
   return searchText(left) === searchText(right);
+}
+
+function isAllValue(value) {
+  return text(value) === TAXONOMY_ALL;
+}
+
+function isUnclassifiedValue(value) {
+  const normalized = searchText(value);
+  return normalized === TAXONOMY_UNCLASSIFIED || normalized === "uncategorized" || normalized === searchText(TAXONOMY_UNCLASSIFIED_LABEL);
+}
+
+function withUnclassified(options) {
+  return [UNCLASSIFIED_OPTION, ...(options || [])];
 }
 
 function levelByCategoryValue(categoryValue) {
@@ -74,24 +99,27 @@ function stepOptionsForLevel(level) {
 }
 
 export function getMaterialCategoryOptions(group) {
+  if (group === TAXONOMY_ALL) return [ALL_OPTION, UNCLASSIFIED_OPTION];
   if (group === "god-channels") {
-    return mysteryTraditions.map((tradition) => ({
+    return withUnclassified(mysteryTraditions.map((tradition) => ({
       value: tradition.id,
       label: tradition.title,
       group: "god-channels",
       traditionId: tradition.id
-    }));
+    })));
   }
-  if (group === "channels") return CHANNEL_CATEGORY_OPTIONS;
-  return reikiLevels.map((level) => ({
+  if (group === "channels") return withUnclassified(CHANNEL_CATEGORY_OPTIONS);
+  return withUnclassified(reikiLevels.map((level) => ({
     value: `level-${level.id}`,
     label: `${level.id}. ${level.name}`,
     group: "dao-ri",
     levelId: level.id
-  }));
+  })));
 }
 
 export function getMaterialSubcategoryOptions(group, categoryValue) {
+  if (group === TAXONOMY_ALL || isAllValue(categoryValue)) return [ALL_OPTION];
+  if (isUnclassifiedValue(group) || isUnclassifiedValue(categoryValue)) return [UNCLASSIFIED_OPTION];
   if (group === "god-channels") {
     const tradition = mysteryTraditions.find((item) => item.id === categoryValue) || mysteryTraditions[0] || null;
     return (tradition?.entities || []).map((entity) => ({
@@ -133,12 +161,34 @@ export function getDefaultMaterialSelection(group = "dao-ri") {
   };
 }
 
+export function getUnclassifiedMaterialSelection(group = "dao-ri") {
+  const normalizedGroup = MATERIAL_GROUP_TABS.some((item) => item.value === group) ? group : "dao-ri";
+  return {
+    group: normalizedGroup,
+    categoryValue: TAXONOMY_UNCLASSIFIED,
+    subcategoryValue: TAXONOMY_UNCLASSIFIED,
+    categoryOption: UNCLASSIFIED_OPTION,
+    subcategoryOption: UNCLASSIFIED_OPTION
+  };
+}
+
+export function getDefaultMaterialFilterSelection() {
+  return {
+    group: TAXONOMY_ALL,
+    categoryValue: TAXONOMY_ALL,
+    subcategoryValue: TAXONOMY_ALL,
+    categoryOption: ALL_OPTION,
+    subcategoryOption: ALL_OPTION
+  };
+}
+
 export function normalizeMaterialSelection(group = "dao-ri", categoryValue = "", subcategoryValue = "") {
+  if (isAllValue(group)) return getDefaultMaterialFilterSelection();
   const normalizedGroup = MATERIAL_GROUP_TABS.some((item) => item.value === group) ? group : "dao-ri";
   const categories = getMaterialCategoryOptions(normalizedGroup);
-  const categoryOption = categories.find((option) => option.value === categoryValue) || categories[0] || null;
+  const categoryOption = categories.find((option) => option.value === categoryValue) || categories.find((option) => option.value === TAXONOMY_UNCLASSIFIED) || categories[0] || null;
   const subcategories = getMaterialSubcategoryOptions(normalizedGroup, categoryOption?.value);
-  const subcategoryOption = subcategories.find((option) => option.value === subcategoryValue) || subcategories[0] || null;
+  const subcategoryOption = subcategories.find((option) => option.value === subcategoryValue) || subcategories.find((option) => option.value === TAXONOMY_UNCLASSIFIED) || subcategories[0] || null;
   return {
     group: normalizedGroup,
     categoryValue: categoryOption?.value || "",
@@ -151,6 +201,18 @@ export function normalizeMaterialSelection(group = "dao-ri", categoryValue = "",
 export function buildMaterialPayloadFromSelection(selection) {
   const normalized = normalizeMaterialSelection(selection?.group, selection?.categoryValue, selection?.subcategoryValue);
   const { group, categoryOption, subcategoryOption } = normalized;
+  if (isAllValue(group) || isUnclassifiedValue(group) || isUnclassifiedValue(categoryOption?.value) || isUnclassifiedValue(subcategoryOption?.value)) {
+    return {
+      group: TAXONOMY_UNCLASSIFIED,
+      category: TAXONOMY_UNCLASSIFIED,
+      subcategory: TAXONOMY_UNCLASSIFIED,
+      step_id: "",
+      step_title: "",
+      setting_title: "",
+      setting_index: null,
+      type: "mandala"
+    };
+  }
   if (group === "god-channels") {
     return {
       group,
@@ -206,7 +268,12 @@ function matchesSelected(valuesToCheck, selectedValue, selectedLabel, legacyText
 
 export function materialImageMatchesSelection(image, selection) {
   const normalized = normalizeMaterialSelection(selection?.group, selection?.categoryValue, selection?.subcategoryValue);
+  if (normalized.group === TAXONOMY_ALL) return true;
   const metadata = normalizeMaterialImageMetadata(image);
+  if (isUnclassifiedValue(normalized.categoryValue) || isUnclassifiedValue(normalized.subcategoryValue)) {
+    return [...metadata.group, ...metadata.category, ...metadata.subcategory].some(isUnclassifiedValue)
+      || metadata.group.length + metadata.category.length + metadata.subcategory.length === 0;
+  }
   const groupLabels = LEGACY_GROUP_LABELS[normalized.group] || [];
   return (
     matchesSelected(metadata.group, normalized.group, groupLabels[0], metadata.legacyText)
