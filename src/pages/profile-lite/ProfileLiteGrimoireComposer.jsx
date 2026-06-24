@@ -1,7 +1,12 @@
 import React, { useState } from "react";
-import { MATERIAL_TYPES } from "../../lib/profileMaterialsClient.js";
+import {
+  createDefaultTaxonomy,
+  grimoireTaxonomyLevelOptions,
+  GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION,
+  TAXONOMY_UNCLASSIFIED
+} from "../../lib/profileMaterialsClient.js";
 
-const DEFAULT_TYPE = "ri";
+const DEFAULT_TAXONOMY = createDefaultTaxonomy();
 
 function filenamesLabel(files) {
   if (!files.length) return "Файлы не выбраны";
@@ -20,7 +25,7 @@ export default function ProfileLiteGrimoireComposer({
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState(DEFAULT_TYPE);
+  const [taxonomy, setTaxonomy] = useState(DEFAULT_TAXONOMY);
   const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +33,7 @@ export default function ProfileLiteGrimoireComposer({
   const reset = () => {
     setTitle("");
     setDescription("");
-    setType(DEFAULT_TYPE);
+    setTaxonomy(DEFAULT_TAXONOMY);
     setFiles([]);
   };
 
@@ -51,7 +56,7 @@ export default function ProfileLiteGrimoireComposer({
       await onCreate({
         title,
         description,
-        type: forceUncategorized ? "uncategorized" : type,
+        taxonomy: forceUncategorized ? createDefaultTaxonomy() : taxonomy,
         files,
         forceUncategorized
       });
@@ -62,6 +67,23 @@ export default function ProfileLiteGrimoireComposer({
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const level1Options = grimoireTaxonomyLevelOptions(1);
+  const level2Options = grimoireTaxonomyLevelOptions(2, taxonomy);
+  const level3Options = grimoireTaxonomyLevelOptions(3, taxonomy);
+
+  const handleTaxonomyChange = (level, value) => {
+    setMessage("");
+    setTaxonomy((current) => {
+      if (level === "level1") {
+        return createDefaultTaxonomy({ level1: value, level2: TAXONOMY_UNCLASSIFIED, level3: TAXONOMY_UNCLASSIFIED });
+      }
+      if (level === "level2") {
+        return createDefaultTaxonomy({ ...current, level2: value, level3: TAXONOMY_UNCLASSIFIED });
+      }
+      return createDefaultTaxonomy({ ...current, level3: value });
+    });
   };
 
   return (
@@ -98,9 +120,27 @@ export default function ProfileLiteGrimoireComposer({
 
       <div className="grimoireComposerTools">
         <label className="grimoireComposerField compact">
-          <span>Тип</span>
-          <select value={type} onChange={(event) => setType(event.target.value)} disabled={disabled || submitting}>
-            {MATERIAL_TYPES.map((item) => (
+          <span>Уровень 1</span>
+          <select value={taxonomy.level1} onChange={(event) => handleTaxonomyChange("level1", event.target.value)} disabled={disabled || submitting}>
+            {level1Options.map((item) => (
+              <option key={item.value} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grimoireComposerField compact">
+          <span>Уровень 2</span>
+          <select value={taxonomy.level2} onChange={(event) => handleTaxonomyChange("level2", event.target.value)} disabled={disabled || submitting}>
+            {level2Options.map((item) => (
+              <option key={item.value} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grimoireComposerField compact">
+          <span>Уровень 3</span>
+          <select value={taxonomy.level3} onChange={(event) => handleTaxonomyChange("level3", event.target.value)} disabled={disabled || submitting}>
+            {level3Options.map((item) => (
               <option key={item.value} value={item.value}>{item.label}</option>
             ))}
           </select>
@@ -140,6 +180,7 @@ export default function ProfileLiteGrimoireComposer({
       </div>
 
       {message && <p className="grimoireComposerMessage">{message}</p>}
+      {GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION && <small className="grimoireComposerWarning">Таксономия Гримуара: safe interim, needs verification.</small>}
       {status === "needs-verification" && <small className="grimoireComposerWarning">Проверьте Supabase/RLS, если сохранение не сработало.</small>}
     </section>
   );

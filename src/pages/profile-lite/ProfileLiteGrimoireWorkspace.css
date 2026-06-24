@@ -73,9 +73,13 @@
 
 .profileLiteGrimoireModule .grimoireComposerTools {
   display: grid;
-  grid-template-columns: minmax(150px, 0.7fr) minmax(180px, 1fr);
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
   gap: 8px;
   align-items: stretch;
+}
+
+.profileLiteGrimoireModule .grimoireComposerFile {
+  grid-column: 1 / -1;
 }
 
 .profileLiteGrimoireModule .grimoireComposerFile {

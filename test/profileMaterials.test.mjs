@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 
 import {
+  DB_SAFE_GRIMOIRE_TYPE,
   GRIMOIRE_CATEGORIES,
+  GRIMOIRE_TAXONOMY,
+  TAXONOMY_UNCLASSIFIED,
+  TAXONOMY_UNCLASSIFIED_LABEL,
   MATERIAL_TYPES,
+  createDefaultTaxonomy,
   createEmptyMaterialForm,
   detectMaterialTypeFromFile,
+  grimoireTaxonomyCompactLabel,
+  grimoireTaxonomyFromMaterial,
+  grimoireTaxonomyLevelOptions,
+  isGrimoireTaxonomyUnclassified,
   getGrimoireFeedActionLabel,
   getGrimoireNextVisibilityStatus,
   getGrimoirePreviewUrl,
@@ -16,16 +25,25 @@ import {
 
 const empty = createEmptyMaterialForm();
 
-assert.equal(empty.type, "ri");
+assert.equal(empty.type, DB_SAFE_GRIMOIRE_TYPE);
 assert.equal(empty.status, "draft");
 assert.equal(empty.image_url, "");
+assert.deepEqual(empty.taxonomy, createDefaultTaxonomy());
 
 assert.deepEqual(
   MATERIAL_TYPES.map((t) => t.label),
-  ["РИ", "Каналы", "Боги", "Клиенты"],
-  "MATERIAL_TYPES should expose exactly the primary Grimoire categories"
+  ["Материал", "Фото / образ", "Статья", "Документ", "Аудио", "Артефакт", "Мандала"],
+  "MATERIAL_TYPES should expose DB-safe technical material kinds, not user taxonomy labels"
 );
 assert.ok(!MATERIAL_TYPES.some((t) => t.value === "uncategorized"), "MATERIAL_TYPES should not expose uncategorized in primary inputs");
+assert.ok(GRIMOIRE_TAXONOMY.length >= 4, "safe interim Grimoire taxonomy should expose root groups");
+assert.deepEqual(
+  grimoireTaxonomyLevelOptions(1)[0],
+  { value: TAXONOMY_UNCLASSIFIED, label: TAXONOMY_UNCLASSIFIED_LABEL, children: [] },
+  "level 1 should include Неразобранно"
+);
+assert.equal(grimoireTaxonomyLevelOptions(2, { level1: "dao-ri" })[0].label, TAXONOMY_UNCLASSIFIED_LABEL);
+assert.equal(grimoireTaxonomyLevelOptions(3, { level1: "dao-ri", level2: "dao-ri-foundation" })[0].label, TAXONOMY_UNCLASSIFIED_LABEL);
 
 // unknown type falls back to uncategorized (not mandala)
 assert.deepEqual(
@@ -39,16 +57,18 @@ assert.deepEqual(
       title: " Мандала здоровья ",
       description: " Описание ",
       image_url: " https://example.com/image.jpg ",
-      material_group: " channels ",
       material_type: " mandala ",
-      category: " Reiki 1 ",
-      subcategory: " Лечение "
+      taxonomy: {
+        level1: " dao-ri ",
+        level2: " dao-ri-foundation ",
+        level3: " dao-ri-practices "
+      }
     },
     "pending"
   ),
   {
-    type: "ri",
-    material_group: "channels",
+    type: DB_SAFE_GRIMOIRE_TYPE,
+    material_group: "dao-ri-practices",
     material_type: "mandala",
     title: "Мандала здоровья",
     description: "Описание",
@@ -57,35 +77,44 @@ assert.deepEqual(
     step_title: "Здоровье",
     setting_title: "Лечение",
     setting_index: 2,
-    category: "Reiki 1",
-    subcategory: "Лечение",
+    category: "dao-ri",
+    subcategory: "dao-ri-foundation",
     status: "pending"
   }
 );
 
-// normalizeMaterialForm accepts uncategorized
+// normalizeMaterialForm keeps old flat taxonomy labels out of constrained type
 assert.equal(
   normalizeMaterialForm({ type: "uncategorized", title: "Запись" }, "draft").type,
   "uncategorized"
 );
+assert.equal(normalizeMaterialForm({ type: "ri", title: "Запись" }, "draft").type, DB_SAFE_GRIMOIRE_TYPE);
 
 assert.equal(publicationTypeLabel("artifact"), "Артефакт");
 assert.equal(publicationTypeLabel("photo"), "Фото / образ");
 assert.equal(publicationTypeLabel("audio"), "Аудио");
 assert.equal(publicationTypeLabel("document"), "Документ");
 assert.equal(publicationTypeLabel("uncategorized"), "Без категории");
-assert.equal(publicationTypeLabel("ri"), "РИ");
-assert.equal(publicationTypeLabel("channels"), "Каналы");
-assert.equal(publicationTypeLabel("gods"), "Боги");
-assert.equal(publicationTypeLabel("clients"), "Клиенты");
+assert.equal(publicationTypeLabel("practice"), "Материал");
 assert.equal(materialStatusText("pending"), "на модерации");
 
 // GRIMOIRE_CATEGORIES includes all filter options
 assert.ok(Array.isArray(GRIMOIRE_CATEGORIES), "GRIMOIRE_CATEGORIES should be an array");
 assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "all"), "GRIMOIRE_CATEGORIES should include 'all'");
-assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "uncategorized"), "GRIMOIRE_CATEGORIES should include 'uncategorized'");
-assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "ri"), "GRIMOIRE_CATEGORIES should include 'ri'");
+assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === TAXONOMY_UNCLASSIFIED), "GRIMOIRE_CATEGORIES should include unclassified");
+assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "dao-ri"), "GRIMOIRE_CATEGORIES should include level-1 taxonomy");
 assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "clients"), "GRIMOIRE_CATEGORIES should include 'clients'");
+
+assert.deepEqual(
+  grimoireTaxonomyFromMaterial({ category: "dao-ri", subcategory: "dao-ri-foundation", material_group: "dao-ri-practices" }),
+  { level1: "dao-ri", level2: "dao-ri-foundation", level3: "dao-ri-practices" }
+);
+assert.equal(
+  grimoireTaxonomyCompactLabel({ category: "dao-ri", subcategory: "dao-ri-foundation", material_group: "dao-ri-practices" }),
+  "РИ / База РИ / Практики"
+);
+assert.equal(grimoireTaxonomyCompactLabel({}), "");
+assert.equal(isGrimoireTaxonomyUnclassified({ category: "dao-ri", subcategory: "unclassified", material_group: "dao-ri-practices" }), true);
 
 // stripFileExtension
 assert.equal(stripFileExtension("image.jpg"), "image");
@@ -93,14 +122,14 @@ assert.equal(stripFileExtension("my.practice.pdf"), "my.practice");
 assert.equal(stripFileExtension("noextension"), "noextension");
 
 // detectMaterialTypeFromFile
-assert.equal(detectMaterialTypeFromFile({ type: "audio/mpeg", name: "track.mp3" }), "channels");
-assert.equal(detectMaterialTypeFromFile({ type: "application/pdf", name: "doc.pdf" }), "ri");
-assert.equal(detectMaterialTypeFromFile({ type: "image/jpeg", name: "pic.jpg" }), "clients");
-assert.equal(detectMaterialTypeFromFile({ type: "text/plain", name: "note.txt" }), "ri");
-assert.equal(detectMaterialTypeFromFile({ type: "text/markdown", name: "readme.md" }), "ri");
-assert.equal(detectMaterialTypeFromFile({ type: "application/msword", name: "file.doc" }), "ri");
-assert.equal(detectMaterialTypeFromFile({ type: "", name: "unknown.xyz" }), "ri");
-assert.equal(detectMaterialTypeFromFile(null), "ri");
+assert.equal(detectMaterialTypeFromFile({ type: "audio/mpeg", name: "track.mp3" }), "audio");
+assert.equal(detectMaterialTypeFromFile({ type: "application/pdf", name: "doc.pdf" }), "document");
+assert.equal(detectMaterialTypeFromFile({ type: "image/jpeg", name: "pic.jpg" }), "photo");
+assert.equal(detectMaterialTypeFromFile({ type: "text/plain", name: "note.txt" }), "document");
+assert.equal(detectMaterialTypeFromFile({ type: "text/markdown", name: "readme.md" }), "document");
+assert.equal(detectMaterialTypeFromFile({ type: "application/msword", name: "file.doc" }), "document");
+assert.equal(detectMaterialTypeFromFile({ type: "", name: "unknown.xyz" }), DB_SAFE_GRIMOIRE_TYPE);
+assert.equal(detectMaterialTypeFromFile(null), DB_SAFE_GRIMOIRE_TYPE);
 
 assert.equal(
   getGrimoirePreviewUrl({ display_url: "https://signed.example/img.jpg", image_url: "storage://profile-cabinet-media/p/img.jpg" }),

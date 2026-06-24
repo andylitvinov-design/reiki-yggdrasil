@@ -924,15 +924,15 @@ const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsM
 
 assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");
 assert.match(grimoireModuleSource, /Соберите фото, статьи, практики, аудио и документы\. Сначала загрузите всё без структуры, потом разложите по категориям\./, "Grimoire hero should explain the collect-first workflow");
-assert.match(grimoireModuleSource, /Без категории[\s\S]*Готово к работе/, "Grimoire hero should expose uncategorized and ready-to-work stats");
+assert.match(grimoireModuleSource, /Неразобранно[\s\S]*Готово к работе/, "Grimoire hero should expose unclassified and ready-to-work stats");
 assert.match(grimoireModuleSource, /Фильтр гримуара/, "Grimoire left column should say 'Фильтр гримуара'");
 assert.match(grimoireModuleSource, /Записи гримуара/, "Grimoire center column should say 'Записи гримуара'");
 assert.match(grimoireModuleSource, /Загрузить в гримуар/, "Grimoire right column should say 'Загрузить в гримуар'");
 assert.match(grimoireModuleSource, /type="file"[\s\S]*multiple/, "Grimoire uploader should be a multi-file input");
 assert.match(grimoireModuleSource, /Перетащите файлы сюда или выберите с телефона/, "Grimoire uploader should expose a clear drop-zone instruction");
 assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should keep selected files before upload");
-assert.match(grimoireModuleSource, /MATERIAL_TYPES\.map/, "Grimoire edit select should use the primary category list");
-assert.doesNotMatch(grimoireModuleSource, /Без категории по умолчанию/, "Grimoire uploader should not present uncategorized as the new default");
+assert.match(grimoireModuleSource, /grimoireTaxonomyLevelOptions\(1\)/, "Grimoire edit select should use level 1 taxonomy options");
+assert.doesNotMatch(grimoireModuleSource, /РИ по умолчанию/, "Grimoire uploader should not present flat RI as the new default");
 assert.match(grimoireModuleSource, /const records = selectedFiles\.length \? selectedFiles : \[null\]/, "Grimoire composer save should preserve text-only posts and multi-file posts");
 assert.match(grimoireModuleSource, /for \(const file of records\)[\s\S]*createOwnMaterial/, "Grimoire composer save should create one material record per selected file");
 assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
@@ -1227,6 +1227,15 @@ assert.match(profileGrimoireComposerSource, /type="file"[\s\S]*multiple/, "Grimo
 assert.match(profileGrimoireComposerSource, /useState\(\[\]\)/, "Grimoire composer should store selected files as an array");
 assert.match(profileGrimoireComposerSource, /Array\.from\(event\.target\.files \|\| \[\]\)/, "Grimoire composer should keep all selected files");
 assert.match(profileGrimoireComposerSource, /grimoireComposerFiles/, "Grimoire composer should render the selected file list");
+assert.match(profileGrimoireComposerSource, /Уровень 1/, "Grimoire composer should render taxonomy level 1");
+assert.match(profileGrimoireComposerSource, /Уровень 2/, "Grimoire composer should render taxonomy level 2");
+assert.match(profileGrimoireComposerSource, /Уровень 3/, "Grimoire composer should render taxonomy level 3");
+assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(2, taxonomy\)/, "Grimoire composer level 2 should depend on selected level 1");
+assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(3, taxonomy\)/, "Grimoire composer level 3 should depend on selected level 2");
+assert.doesNotMatch(profileGrimoireComposerSource, /<span>Тип<\/span>/, "Grimoire composer should not use the old flat Type select");
+assert.match(profileGrimoireComposerSource, /safe interim, needs verification/, "Interim taxonomy source must be marked needs verification");
+assert.match(profileMaterialsModuleSource, /grimoireTaxonomyCompactLabel/, "Grimoire feed cards should render compact taxonomy");
+assert.match(profileMaterialsModuleSource, /isGrimoireTaxonomyUnclassified/, "Grimoire unclassified logic should inspect all taxonomy levels");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFile input\[type="file"\]\s*\{[\s\S]*opacity: 0/, "Grimoire composer native file input should be visually hidden");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFiles\s*\{/, "Grimoire composer selected files should have compact styled list");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Grimoire post card should override the legacy side-rail grid");
