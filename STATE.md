@@ -1,6 +1,26 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-18
+Last updated: 2026-06-24
+
+## 2026-06-24 — Grimoire mobile Facebook-like feed repair
+
+- Branch: `codex/issue97-grimoire-feed-clean`, based on `origin/main` at `5f59977`.
+- Scope: Profile Lite Grimoire layout/CSS and contract assertions only; storage helpers, Supabase schema, save/upload/edit/delete handlers, public home page, `production`, env values, and live data were not changed.
+- Root cause:
+  - `GrimoireRecordCard` already rendered Facebook-like `grimoirePost*` classes, but the stylesheet only had legacy `.grimoireRecordCard` side-rail rules for cards and actions.
+  - The composer file input was functionally wrapped but still lacked scoped hidden-input styling in the composer path.
+- Changed:
+  - added scoped post-card rules for header/avatar/date/status, single-column body, media preview, wrapping text, and footer actions;
+  - hid the native composer file input behind the styled drop/button area;
+  - made long filenames, categories, tags, status text, and action rows wrap on 390/430px mobile;
+  - added contract checks for post-card layout, handler wiring, mobile no-side-rail behavior, and hidden raw input.
+- Verification:
+  - `npm ci`, focused Profile Lite contract test, `npm run build`, `npm run check`, and `npm run delivery:checks` passed;
+  - live `https://2mentalica.vercel.app` still lacks `build-info.json`;
+  - live CSS asset still contains the legacy side-rail Grimoire card and lacks the new `grimoirePost*` CSS, so current live is stale until this branch is merged/deployed.
+- Not verified:
+  - real authenticated browser save/upload/edit/delete on live;
+  - local screenshot QA, because Playwright Chromium launch was blocked by macOS sandbox Mach-port permission.
 
 ## 2026-06-19 — 2mentalica publication taxonomy live schema fix
 

@@ -1,5 +1,44 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-24 — Repair Grimoire post-feed mobile layout
+
+- Branch: `codex/issue97-grimoire-feed-clean`.
+- Base: fresh `origin/main` at `5f59977` (`docs: record Power Place cover-none fix (#361)`).
+- Changed files:
+  - `src/pages/profile-lite/ProfileLiteGrimoireWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - Grimoire cards rendered `grimoirePostCard`, `grimoirePostHeader`, `grimoirePostBody`, and `grimoirePostActions`, but scoped CSS did not define the post-card contract.
+  - Legacy `.grimoireRecordCard` grid rules still created a narrow side-rail style and could squeeze date/status/actions on mobile.
+  - Composer upload used a styled label, but the composer file input did not have the same explicit hidden-input treatment as the bulk uploader.
+- Changed:
+  - added single-column Facebook-like post-card CSS with avatar/header, readable body, media preview, metadata wrapping, and footer action row;
+  - hid the raw composer file input and made selected filenames wrap instead of truncating into neighboring text;
+  - kept `Добавить в ленту`, `Редактировать`, and `Удалить` wired to existing handlers;
+  - added regression assertions for no mobile side rail, wrapping long text, hidden raw input, and preserved handlers.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm ci`
+  - `npm test` failed because this repo has no `test` script
+  - `npm run build`
+  - `npm run check` first failed because it ran concurrently with `delivery:checks` while `npm ci` replaced dependencies
+  - `npm run delivery:checks`
+  - rerun `npm run check`
+- Check notes:
+  - final focused test, `npm ci`, `npm run build`, `npm run delivery:checks`, and rerun `npm run check` exited `0`;
+  - retained existing npm audit report: 1 moderate and 1 high vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Deploy/source check:
+  - `https://2mentalica.vercel.app/build-info.json` returned `404`;
+  - live HTML is the Reiki Yggdrasil app, not the `andylitvinov-design/report` bundle;
+  - live CSS asset has legacy Grimoire side-rail CSS and no new `grimoirePost*` overrides, so live is stale relative to this fix.
+- Not verified:
+  - authenticated live Grimoire save/upload/edit/delete;
+  - local screenshot QA, because Playwright Chromium launch failed with macOS Mach-port permission denial.
+
 ## 2026-06-19 — Fix 2mentalica publication taxonomy migration runner and live schema
 
 - Branch: `codex/live-schema-fix-main`.

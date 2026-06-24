@@ -75,16 +75,44 @@
 }
 
 .profileLiteGrimoireModule .grimoireComposerFile {
+  position: relative;
   display: grid;
-  align-content: end;
+  align-content: center;
   gap: 5px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px dashed rgba(184, 121, 29, 0.42);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 251, 243, 0.95), rgba(246, 232, 207, 0.86));
+  cursor: pointer;
+}
+
+.profileLiteGrimoireModule .grimoireComposerFile input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .profileLiteGrimoireModule .grimoireComposerFile span,
 .profileLiteGrimoireModule .grimoireComposerFile small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.profileLiteGrimoireModule .grimoireComposerFile span {
+  color: #2f2418;
+  font-weight: 850;
+  line-height: 1.18;
+}
+
+.profileLiteGrimoireModule .grimoireComposerFile small {
+  color: #80664b;
+  font-size: 12px;
+  line-height: 1.28;
 }
 
 .profileLiteGrimoireModule .grimoireComposerActions {
@@ -95,6 +123,14 @@
 
 .profileLiteGrimoireModule .grimoireComposerActions button {
   min-width: 0;
+}
+
+.profileLiteGrimoireModule .grimoireComposerActions .cabinetGhost {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.1;
 }
 
 .profileLiteGrimoireModule .grimoireComposerMessage,
@@ -108,6 +144,126 @@
 .profileLiteGrimoireModule .grimoireQuickStatsCard,
 .profileLiteGrimoireModule .grimoireQuickActionsCard {
   overflow-wrap: anywhere;
+}
+
+.profileLiteGrimoireModule .grimoirePostList {
+  display: grid;
+  gap: 14px;
+}
+
+.profileLiteGrimoireModule .grimoireRecordCard.grimoirePostCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  overflow: hidden;
+}
+
+.profileLiteGrimoireModule .grimoirePostHeader {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.profileLiteGrimoireModule .grimoirePostAvatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.35);
+  border-radius: 50%;
+  background: #fff8e8;
+  color: #8c5c1c;
+  font-weight: 900;
+}
+
+.profileLiteGrimoireModule .grimoirePostIdentity {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.profileLiteGrimoireModule .grimoirePostIdentity b,
+.profileLiteGrimoireModule .grimoirePostIdentity small,
+.profileLiteGrimoireModule .grimoirePostBadge,
+.profileLiteGrimoireModule .grimoirePostBody h3,
+.profileLiteGrimoireModule .grimoirePostBody p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.profileLiteGrimoireModule .grimoirePostIdentity small {
+  color: #80664b;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.profileLiteGrimoireModule .grimoirePostBadge {
+  justify-self: end;
+  padding: 5px 8px;
+  border: 1px solid rgba(200, 145, 42, 0.36);
+  border-radius: 999px;
+  background: #fff3c7;
+  color: #7a4f12;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.profileLiteGrimoireModule .grimoirePostBody {
+  display: grid;
+  gap: 9px;
+}
+
+.profileLiteGrimoireModule .grimoirePostBody h3 {
+  margin: 0;
+  color: #2f2418;
+  font-size: 18px;
+  line-height: 1.22;
+}
+
+.profileLiteGrimoireModule .grimoirePostBody p {
+  margin: 0;
+  color: #5a4030;
+  line-height: 1.48;
+}
+
+.profileLiteGrimoireModule .grimoirePostEmptyText {
+  color: #92785b;
+  font-style: italic;
+}
+
+.profileLiteGrimoireModule .grimoirePostPreview {
+  width: 100%;
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(176, 128, 70, 0.28);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(45, 35, 25, 0.1), rgba(216, 176, 96, 0.28)),
+    #ede0c8 center/cover no-repeat;
+}
+
+.profileLiteGrimoireModule .grimoirePostPreview.hasImage {
+  min-height: 210px;
+  background-size: cover;
+  background-position: center;
+}
+
+.profileLiteGrimoireModule .grimoirePostActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(180, 132, 66, 0.18);
+}
+
+.profileLiteGrimoireModule .grimoirePostActions .grimoireActionBtn {
+  white-space: normal;
 }
 
 .profileLiteGrimoireModule .grimoireQuickActionsCard {
@@ -199,10 +355,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .profileLiteGrimoireModule .grimoireComposerActions button,
+  .profileLiteGrimoireModule .grimoireComposerActions button:not(.cabinetGhost),
   .profileLiteGrimoireModule .grimoireUploadPrimary {
     width: 100%;
     justify-content: center;
+  }
+
+  .profileLiteGrimoireModule .grimoireComposerActions .cabinetGhost {
+    width: fit-content;
+    justify-self: start;
   }
 
   .profileLiteGrimoireModule .grimoireFileInputLabel {
@@ -211,13 +372,32 @@
   }
 
   .profileLiteGrimoireModule .grimoirePostActions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
     gap: 8px;
   }
 
   .profileLiteGrimoireModule .grimoireActionBtn {
-    width: 100%;
+    flex: 1 1 128px;
     white-space: normal;
+  }
+}
+
+@media (max-width: 520px) {
+  .profileLiteGrimoireModule .grimoirePostHeader {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .profileLiteGrimoireModule .grimoirePostBadge {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .profileLiteGrimoireModule .grimoireRecordCard.grimoirePostCard {
+    padding: 12px;
+  }
+
+  .profileLiteGrimoireModule .grimoirePostPreview,
+  .profileLiteGrimoireModule .grimoirePostPreview.hasImage {
+    min-height: 118px;
   }
 }
