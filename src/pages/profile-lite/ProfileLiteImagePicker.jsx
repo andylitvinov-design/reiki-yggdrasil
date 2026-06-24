@@ -46,6 +46,25 @@ const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "client-3", label: "Клиент 3" },
   { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
 ];
+const BACKGROUND_UPLOAD_MATERIAL = {
+  group: "backgrounds",
+  category: "Фон",
+  subcategory: "Фон места силы",
+  type: "mandala",
+  material_type: "background"
+};
+
+function isBackgroundMaterialImage(image) {
+  const categoryText = [
+    image?.materialGroup,
+    image?.material_group,
+    image?.group,
+    image?.category,
+    image?.subcategory,
+    image?.meta
+  ].filter(Boolean).join(" ").toLowerCase();
+  return image?.kind === "material" && (/backgrounds|фон/.test(categoryText));
+}
 
 export default function ProfileLiteImagePicker({
   accountPlan = "start",
@@ -99,6 +118,7 @@ export default function ProfileLiteImagePicker({
         .filter((image) => image.kind === "material" || image.kind === "tradition-asset")
         .filter((image) => materialImageMatchesSelection(image, materialFilterSelection));
     }
+    if (activeTab === "backgrounds") return validImages.filter(isBackgroundMaterialImage);
     if (activeTab === "symbols") return symbolImages;
     return validImages;
   }, [activeTab, clientCategory, images, materialFilterSelection, symbolImages]);
@@ -107,9 +127,15 @@ export default function ProfileLiteImagePicker({
     : [
       { id: "clients", label: "Клиенты" },
       { id: "materials", label: "Материалы" },
+      { id: "backgrounds", label: "Фон" },
       { id: "symbols", label: "Символы" },
       { id: "upload", label: "Загрузить своё" }
     ];
+
+  const handleSourceTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (["clients", "materials", "backgrounds"].includes(tabId)) setUploadDestination(tabId);
+  };
 
   const handleSelect = async (image) => {
     await onSelect(image);
@@ -131,7 +157,9 @@ export default function ProfileLiteImagePicker({
         title: activeUploadDestination === "clients" ? (uploadTitle.trim() || file.name || "") : file.name || "",
         notes: "",
         clientCategory: activeUploadDestination === "clients" ? clientCategory || "all" : undefined,
-        material: buildMaterialPayloadFromSelection(materialSelection)
+        material: activeUploadDestination === "backgrounds"
+          ? BACKGROUND_UPLOAD_MATERIAL
+          : buildMaterialPayloadFromSelection(materialSelection)
       });
       setLocalUploadStatus("success");
       setUploadTitle("");
@@ -162,7 +190,7 @@ export default function ProfileLiteImagePicker({
               className={`imagePickerSourceButton${activeTab === tab.id ? " active" : ""}`}
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleSourceTabClick(tab.id)}
               role="tab"
               aria-selected={activeTab === tab.id}
             >
@@ -255,6 +283,7 @@ export default function ProfileLiteImagePicker({
             <div className="clientPhotoPickerModeTabs imagePickerDestinationTabs" role="tablist" aria-label="Назначение загрузки">
               <button className={uploadDestination === "clients" ? "active" : ""} type="button" onClick={() => setUploadDestination("clients")}>Клиенты</button>
               <button className={uploadDestination === "materials" ? "active" : ""} type="button" onClick={() => setUploadDestination("materials")}>Материалы</button>
+              <button className={uploadDestination === "backgrounds" ? "active" : ""} type="button" onClick={() => setUploadDestination("backgrounds")}>Фон</button>
             </div>
 
             {uploadDestination === "clients" && (

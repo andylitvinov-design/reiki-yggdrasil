@@ -697,8 +697,12 @@ assert.match(powerPlaceSource, /if \(visibleCount === 8\) return signSlots/, "Zo
 assert.match(powerPlaceSource, /className={`coverPreview[\s\S]*onClick=\{\(\) => \{[\s\S]*openPicker\("cover"\)/, "empty cover preview should open the React image picker");
 assert.doesNotMatch(powerPlaceSource, /zodiac-plus-\$\{compositionDraft\.zodiac_visible_count \|\| 12\}[\s\S]*visibleCount === 8[\s\S]*ZODIAC_PLUS_SLOT_LAYOUT\[8\]/, "Zodiac 8+ must not append the old four plus slots");
 
-assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwnMaterial/, "image picker material uploads should use the existing material publication save flow");
+assert.match(profileLitePageSource, /destination === "materials" \|\| destination === "backgrounds"[\s\S]*createOwnMaterial/, "image picker material and background uploads should use the existing material publication save flow");
 assert.match(profileLitePageSource, /material_group:\s*material\?\.group \|\| material\?\.material_group/, "image picker material upload should persist the selected material group");
+assert.match(imagePickerSource, /\{ id: "materials", label: "Материалы" \},[\s\S]*\{ id: "backgrounds", label: "Фон" \},[\s\S]*\{ id: "symbols", label: "Символы" \}/, "image picker should show Фон immediately after Материалы and before Символы");
+assert.match(imagePickerSource, /uploadDestination === "backgrounds"[\s\S]*>Фон<\/button>/, "upload destination tabs should include separate Фон uploads");
+assert.match(imagePickerSource, /BACKGROUND_UPLOAD_MATERIAL[\s\S]*group: "backgrounds"[\s\S]*subcategory: "Фон места силы"/, "background uploads should persist a separate background material category");
+assert.match(imagePickerSource, /activeTab === "backgrounds"[\s\S]*isBackgroundMaterialImage/, "Фон tab should filter saved images through background metadata");
 assert.match(profileLitePageSource, /category:\s*material\?\.category/, "image picker material upload should persist the selected step/category");
 assert.match(profileLitePageSource, /subcategory:\s*material\?\.subcategory/, "image picker material upload should persist the selected material subcategory");
 assert.match(powerPlaceBaseSource, /materialGroup:\s*item\.material_group \|\| item\.group/, "saved material images should preserve material group metadata for picker filters");

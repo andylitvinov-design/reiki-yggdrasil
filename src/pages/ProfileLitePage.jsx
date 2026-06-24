@@ -1472,7 +1472,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     material = null,
     clientCategory = "all"
   }) => {
-    if (destination === "materials") {
+    if (destination === "materials" || destination === "backgrounds") {
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
         setMaterialsError("Сначала сохраните профиль мастера.");
         setMaterialsStatus("needs-verification");
@@ -1486,8 +1486,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
           ...EMPTY_MATERIAL,
           type: material?.type || "mandala",
           material_group: material?.group || material?.material_group || "",
-          material_type: material?.type || material?.material_type || "mandala",
-          title: title || file.name || "Материал",
+          material_type: material?.material_type || material?.type || (destination === "backgrounds" ? "background" : "mandala"),
+          title: title || file.name || (destination === "backgrounds" ? "Фон" : "Материал"),
           description: [material?.group, material?.category, material?.subcategory].filter(Boolean).join(" · "),
           image_url: uploaded.ref,
           step_id: material?.step_id || "",
