@@ -4335,6 +4335,34 @@
   justify-self: end;
 }
 
+.slotPhotoEditorRotate {
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) 64px 64px 42px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: #392512;
+}
+
+.slotPhotoEditorRotate button {
+  min-width: 0;
+  width: 64px;
+  min-height: 30px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.slotPhotoEditorRotate small {
+  min-width: 0;
+  color: #744c17;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}
+
 .slotPhotoEditorReset {
   justify-self: start;
   margin-top: 2px;
@@ -9919,6 +9947,18 @@
   gap: 6px;
 }
 
+.profileLitePowerPlace .coverLayerTabShell {
+  position: relative;
+  min-width: 0;
+  display: block;
+}
+
+.profileLitePowerPlace .coverLayerTabShell > .coverLayerTabButton {
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 26px;
+}
+
 .profileLitePowerPlace .coverLayerTabs button.power-place-slot--drag-over {
   border-style: solid;
   border-color: #b8791d;
@@ -9991,6 +10031,27 @@
   padding: 0;
   background: rgba(255, 250, 239, 0.96);
   color: #5c3b12;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.profileLitePowerPlace .coverLayerDeleteButton {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(92, 59, 18, 0.3);
+  border-radius: 50%;
+  padding: 0;
+  background: rgba(255, 250, 239, 0.97);
+  color: #5c3b12;
+  box-shadow: 0 2px 8px rgba(80, 48, 8, 0.12);
   font-size: 14px;
   line-height: 1;
 }

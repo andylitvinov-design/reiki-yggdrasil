@@ -91,6 +91,22 @@ assert.deepEqual(
   "valid motion settings should survive normalization inside object_refs.__motion_settings"
 );
 
+assert.deepEqual(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    object_refs: {
+      __slot_transforms: {
+        "chess-1": { x: 42, y: 58, zoom: 1.2, rotate: 90 },
+        "chess-2": { x: 50, y: 50, zoom: 1, rotation: -90 }
+      }
+    }
+  }).object_refs.__slot_transforms,
+  {
+    "chess-1": { x: 42, y: 58, zoom: 1.2, rotate: 90 },
+    "chess-2": { x: 50, y: 50, zoom: 1, rotate: -90 }
+  },
+  "slot photo rotation must persist inside object_refs.__slot_transforms"
+);
+
 const normalizedUnsafeMotionRefs = normalizePowerPlaceComposition({
   object_refs: {
     __motion_settings: {

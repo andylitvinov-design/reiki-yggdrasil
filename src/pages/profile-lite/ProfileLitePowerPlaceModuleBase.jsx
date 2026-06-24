@@ -519,6 +519,12 @@ export function clampSlotImageZoom(value) {
   return Math.min(1.8, Math.max(0.65, parsed));
 }
 
+export function clampSlotImageRotation(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.round(parsed / 90) * 90;
+}
+
 // Classify a saved image item as an inner-cover, outer-cover, or legacy (both) shortcut.
 // Uses the `meta` field which maps to the `notes` column in the database.
 // Cover uploads use notes `Фон мандалы: inner` / `Фон мандалы: outer`.
@@ -901,6 +907,8 @@ export default function ProfileLitePowerPlaceModule({
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
+  const hasInnerCoverImage = innerCover?.type === "image" && Boolean(innerCover?.src);
+  const hasOuterCoverImage = outerCover?.type === "image" && Boolean(outerCover?.src);
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
   const outerCoverFitClassName = outerCoverFitClass(outerCover);
@@ -989,23 +997,32 @@ export default function ProfileLitePowerPlaceModule({
     return {
       x: clampSlotImageOffset(t?.x ?? 50),
       y: clampSlotImageOffset(t?.y ?? 50),
-      zoom: clampSlotImageZoom(t?.zoom ?? 1)
+      zoom: clampSlotImageZoom(t?.zoom ?? 1),
+      rotate: clampSlotImageRotation(t?.rotate ?? t?.rotation ?? 0)
     };
   }
 
-  const writeSlotImageTransform = useCallback((slotId, x, y, zoom) => {
+  const writeSlotImageTransform = useCallback((slotId, x, y, zoom, rotate) => {
     const currentTransforms = cleanObjectRefs(objectRefs.__slot_transforms);
+    const currentSlotTransform = cleanObjectRefs(currentTransforms[slotId]);
     const nextTransforms = {
       ...currentTransforms,
       [slotId]: {
         x: clampSlotImageOffset(x),
         y: clampSlotImageOffset(y),
-        zoom: clampSlotImageZoom(zoom)
+        zoom: clampSlotImageZoom(zoom),
+        rotate: clampSlotImageRotation(rotate ?? currentSlotTransform.rotate ?? currentSlotTransform.rotation ?? 0)
       }
     };
     const nextRefs = { ...objectRefs, __slot_transforms: nextTransforms };
     onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
   }, [objectRefs, onCompositionObjectRefsChange]);
+
+  const rotateSlotPhoto = useCallback((slotId, delta) => {
+    if (!slotId) return;
+    const t = slotImageTransformFor(slotId);
+    writeSlotImageTransform(slotId, t.x, t.y, t.zoom, t.rotate + delta);
+  }, [slotImageTransformFor, writeSlotImageTransform]);
 
   const slotAdjustments = cleanObjectRefs(objectRefs.__slot_adjustments);
 
@@ -1034,12 +1051,14 @@ export default function ProfileLitePowerPlaceModule({
 
   function slotImageStyle(slotId, displaySrc) {
     if (!isImagePreview(displaySrc)) return imageStyle(displaySrc);
-    const { x, y, zoom } = slotImageTransformFor(slotId);
+    const { x, y, zoom, rotate } = slotImageTransformFor(slotId);
     const { brightness, contrast } = slotImageAdjustmentFor(slotId);
     return {
-      backgroundImage: `url(${displaySrc})`,
+      backgroundImage: "none",
+      "--slot-bg-image": `url(${displaySrc})`,
       "--slot-bg-pos": `${x}% ${y}%`,
       "--slot-bg-zoom": String(zoom),
+      "--slot-bg-rotate": `${rotate}deg`,
       filter: `brightness(${brightness}%) contrast(${contrast}%)`,
       touchAction: "none"
     };
@@ -1114,7 +1133,7 @@ export default function ProfileLitePowerPlaceModule({
           if (pinch.pointers.length < 2) {
             pinch.active = false;
             const t = slotImageTransformFor(slotId);
-            writeSlotImageTransform(slotId, t.x, t.y, pinch.currentZoom ?? t.zoom);
+            writeSlotImageTransform(slotId, t.x, t.y, pinch.currentZoom ?? t.zoom, t.rotate);
             e.currentTarget.style.removeProperty("--slot-bg-zoom");
           }
           return;
@@ -1126,7 +1145,7 @@ export default function ProfileLitePowerPlaceModule({
         e.currentTarget.style.removeProperty("--slot-bg-pos");
         if (drag.moved) {
           const t = slotImageTransformFor(slotId);
-          writeSlotImageTransform(slotId, drag.currentOffsetX, drag.currentOffsetY, t.zoom);
+          writeSlotImageTransform(slotId, drag.currentOffsetX, drag.currentOffsetY, t.zoom, t.rotate);
         }
         if (pinch) {
           const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
@@ -1142,7 +1161,7 @@ export default function ProfileLitePowerPlaceModule({
         e.preventDefault();
         const t = slotImageTransformFor(slotId);
         const delta = e.deltaY > 0 ? -0.05 : 0.05;
-        writeSlotImageTransform(slotId, t.x, t.y, clampSlotImageZoom(t.zoom + delta));
+        writeSlotImageTransform(slotId, t.x, t.y, clampSlotImageZoom(t.zoom + delta), t.rotate);
       }
     };
   }
@@ -1261,9 +1280,11 @@ export default function ProfileLitePowerPlaceModule({
     "--power-center-frame-scale": centerFrameScale
   };
   const centerImageAdj = slotImageAdjustmentFor("__center_image");
+  const centerImageTransform = slotImageTransformFor("__center_image");
   const centerImageStyle = {
-    ...(imageStyle(centralImage) || {}),
+    ...(centralImage ? { backgroundImage: "none", "--power-center-image": `url(${centralImage})` } : {}),
     "--power-center-image-scale": centerImageScale,
+    "--slot-bg-rotate": `${centerImageTransform.rotate}deg`,
     ...(centralImage ? { filter: `brightness(${centerImageAdj.brightness}%) contrast(${centerImageAdj.contrast}%)` } : {})
   };
   const chessCoverStyle = {
@@ -1785,6 +1806,11 @@ export default function ProfileLitePowerPlaceModule({
   const openCoverPickerForLayer = (layer) => {
     setCoverLayerMode(layer);
     openPicker("cover");
+  };
+
+  const clearCoverLayer = (layer, event) => {
+    event?.stopPropagation();
+    onCompositionCoverSelect(layer, FALLBACK_COVERS[0]);
   };
 
   const hideCoverShortcut = (cover, event) => {
@@ -2483,6 +2509,7 @@ export default function ProfileLitePowerPlaceModule({
     const isCenterSlot = selectedSlotId === "__center_image";
     const { brightness, contrast } = slotImageAdjustmentFor(selectedSlotId);
     const zoom = isCenterSlot ? centerImageZoom : slotImageTransformFor(selectedSlotId).zoom;
+    const rotation = slotImageTransformFor(selectedSlotId).rotate;
     const editorLabel = isCenterSlot ? "Фото клиента / цели" : selectedSlot?.label || selectedSlotId;
     return (
       <div className="slotPhotoEditor" aria-label="Редактор мини-фото">
@@ -2500,12 +2527,22 @@ export default function ProfileLitePowerPlaceModule({
                 writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, Number(e.target.value));
               } else {
                 const t = slotImageTransformFor(selectedSlotId);
-                writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value));
+                writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value), t.rotate);
               }
             }}
           />
           <span>{Math.round(zoom * 100)}%</span>
         </label>
+        <div className="slotPhotoEditorRotate" role="group" aria-label="Поворот фото">
+          <span>Поворот</span>
+          <button className="cabinetSecondary" type="button" onClick={() => rotateSlotPhoto(selectedSlotId, -90)} aria-label="Повернуть фото влево на 90 градусов">
+            ↺ 90°
+          </button>
+          <button className="cabinetSecondary" type="button" onClick={() => rotateSlotPhoto(selectedSlotId, 90)} aria-label="Повернуть фото вправо на 90 градусов">
+            ↻ 90°
+          </button>
+          <small>{rotation}°</small>
+        </div>
         <label className="slotPhotoEditorControl">
           Яркость фото
           <input
@@ -2534,8 +2571,9 @@ export default function ProfileLitePowerPlaceModule({
           onClick={() => {
             if (isCenterSlot) {
               writeCenterImageTransform(50, 50, 1);
+              writeSlotImageTransform(selectedSlotId, 50, 50, 1, 0);
             } else {
-              writeSlotImageTransform(selectedSlotId, 50, 50, 1);
+              writeSlotImageTransform(selectedSlotId, 50, 50, 1, 0);
             }
             writeSlotImageAdjustment(selectedSlotId, 100, 100);
           }}
@@ -3526,26 +3564,40 @@ export default function ProfileLitePowerPlaceModule({
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
-                <button
-                  className={`coverLayerTabButton${coverLayerMode === "inner" ? " active" : ""}${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
-                  type="button"
-                  onClick={() => setCoverLayerMode("inner")}
-                  aria-label="Фон внутри. Можно перетащить фото"
-                  title="Фон внутри. Можно перетащить фото"
-                  {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
-                >
-                  Фон внутри
-                </button>
-                <button
-                  className={`coverLayerTabButton${coverLayerMode === "outer" ? " active" : ""}${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
-                  type="button"
-                  onClick={() => setCoverLayerMode("outer")}
-                  aria-label="Фон снаружи. Можно перетащить фото"
-                  title="Фон снаружи. Можно перетащить фото"
-                  {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
-                >
-                  Фон снаружи
-                </button>
+                <span className="coverLayerTabShell">
+                  <button
+                    className={`coverLayerTabButton${coverLayerMode === "inner" ? " active" : ""}${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
+                    type="button"
+                    onClick={() => setCoverLayerMode("inner")}
+                    aria-label="Фон внутрь. Можно перетащить фото"
+                    title="Фон внутрь. Можно перетащить фото"
+                    {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
+                  >
+                    Внутрь
+                  </button>
+                  {hasInnerCoverImage && (
+                    <button className="coverLayerDeleteButton" type="button" onClick={(event) => clearCoverLayer("inner", event)} aria-label="Удалить внутренний фон" title="Удалить внутренний фон">
+                      ×
+                    </button>
+                  )}
+                </span>
+                <span className="coverLayerTabShell">
+                  <button
+                    className={`coverLayerTabButton${coverLayerMode === "outer" ? " active" : ""}${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
+                    type="button"
+                    onClick={() => setCoverLayerMode("outer")}
+                    aria-label="Фон снаружи. Можно перетащить фото"
+                    title="Фон снаружи. Можно перетащить фото"
+                    {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
+                  >
+                    Снаружи
+                  </button>
+                  {hasOuterCoverImage && (
+                    <button className="coverLayerDeleteButton" type="button" onClick={(event) => clearCoverLayer("outer", event)} aria-label="Удалить внешний фон" title="Удалить внешний фон">
+                      ×
+                    </button>
+                  )}
+                </span>
               </div>
               <label className={`coverOuterVisibilityToggle${visibilitySettings.outer_cover ? "" : " power-place-layer-hidden"}`}>
                 <input
