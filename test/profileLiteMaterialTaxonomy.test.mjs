@@ -30,7 +30,7 @@ assert.ok(greekEntities.some((entity) => entity.value === "athena" && entity.lab
 
 const daoCategories = getMaterialCategoryOptions("dao-ri");
 assert.equal(daoCategories[0].value, "unclassified");
-assert.equal(daoCategories[0].label, "Неразобрано");
+assert.equal(daoCategories[0].label, "Неразобранно");
 assert.ok(daoCategories[1].value.startsWith("level-"));
 assert.match(daoCategories[1].label, /^1\. /);
 
@@ -40,7 +40,7 @@ assert.ok(daoSubcategories.some((option) => option.step_id === "RY-L01-S01" && o
 const channelsCategories = getMaterialCategoryOptions("channels");
 assert.deepEqual(
   channelsCategories.map((category) => category.label),
-  ["Неразобрано", "Сефирот", "Руны", "Планеты", "Деньги", "Жизнь"]
+  ["Неразобранно", "Сефирот", "Руны", "Планеты", "Деньги", "Жизнь"]
 );
 assert.deepEqual(getMaterialSubcategoryOptions("channels", channelsCategories[1].value), [
   {
@@ -73,7 +73,7 @@ assert.deepEqual(
     subcategoryValue: uploadDefault.subcategoryValue
   },
   { group: "dao-ri", categoryValue: "unclassified", subcategoryValue: "unclassified" },
-  "material upload must default to explicit Неразобрано"
+  "material upload must default to explicit Неразобранно"
 );
 
 assert.deepEqual(buildMaterialPayloadFromSelection(uploadDefault), {

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   createDefaultTaxonomy,
   grimoireTaxonomyLevelOptions,
-  GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION,
   TAXONOMY_UNCLASSIFIED
 } from "../../lib/profileMaterialsClient.js";
 
@@ -23,7 +22,6 @@ export default function ProfileLiteGrimoireComposer({
   onCreate = async () => {},
   onShowUncategorized = () => {}
 }) {
-  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [taxonomy, setTaxonomy] = useState(DEFAULT_TAXONOMY);
   const [files, setFiles] = useState([]);
@@ -31,7 +29,6 @@ export default function ProfileLiteGrimoireComposer({
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
-    setTitle("");
     setDescription("");
     setTaxonomy(DEFAULT_TAXONOMY);
     setFiles([]);
@@ -45,8 +42,8 @@ export default function ProfileLiteGrimoireComposer({
 
   const handleSubmit = async (forceUncategorized = false) => {
     if (disabled || submitting) return;
-    if (!title.trim() && !description.trim() && !files.length) {
-      setMessage("Добавьте текст, название или файл.");
+    if (!description.trim() && !files.length) {
+      setMessage("Добавьте заметку или файл.");
       return;
     }
 
@@ -54,7 +51,6 @@ export default function ProfileLiteGrimoireComposer({
     setMessage("Сохраняю в Гримуарий...");
     try {
       await onCreate({
-        title,
         description,
         taxonomy: forceUncategorized ? createDefaultTaxonomy() : taxonomy,
         files,
@@ -90,30 +86,18 @@ export default function ProfileLiteGrimoireComposer({
     <section className="grimoireComposer" aria-label="Быстро добавить материал в Гримуарий">
       <div className="grimoireComposerHeader">
         <div className="grimoireComposerAvatar" aria-hidden="true">✦</div>
-        <div>
+        <div className="grimoireComposerIntro">
           <p className="cabinetEyebrow">Мастерская</p>
-          <h3>Что вы хотите добавить в мастерскую?</h3>
-          <small>Сначала запись сохраняется как черновик. Позже её можно разобрать и отправить в ленту.</small>
+          <h3>Что хотите добавить?</h3>
         </div>
       </div>
 
       <label className="grimoireComposerField">
-        <span>Название / тема</span>
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Например: Мандала силы, заметка о практике, статья..."
-          disabled={disabled || submitting}
-        />
-      </label>
-
-      <label className="grimoireComposerField">
-        <span>Заметка</span>
         <textarea
-          rows={4}
+          rows={3}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Заметка, идея, описание мандалы, статья или материал..."
+          placeholder="Поделитесь заметкой, практикой, описанием мандалы..."
           disabled={disabled || submitting}
         />
       </label>
@@ -180,7 +164,6 @@ export default function ProfileLiteGrimoireComposer({
       </div>
 
       {message && <p className="grimoireComposerMessage">{message}</p>}
-      {GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION && <small className="grimoireComposerWarning">Таксономия Гримуара: safe interim, needs verification.</small>}
       {status === "needs-verification" && <small className="grimoireComposerWarning">Проверьте Supabase/RLS, если сохранение не сработало.</small>}
     </section>
   );
