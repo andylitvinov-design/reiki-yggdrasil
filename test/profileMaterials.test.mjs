@@ -17,10 +17,12 @@ import {
   isGrimoireTaxonomyUnclassified,
   getGrimoireFeedActionLabel,
   getGrimoireNextVisibilityStatus,
+  getGrimoirePhotoGalleryItems,
   getGrimoirePreviewUrl,
   buildMaterialUploadPublicationPayload,
   materialMatchesGrimoireTaxonomyFilter,
   materialStatusText,
+  normalizeGrimoireAttachments,
   normalizeMaterialForm,
   publicationTypeLabel,
   stripFileExtension
@@ -177,6 +179,49 @@ assert.equal(
   getGrimoirePreviewUrl({ image_url: "https://cdn.example/img.jpg" }),
   "https://cdn.example/img.jpg",
   "Legacy public image URLs should still render"
+);
+assert.deepEqual(
+  normalizeGrimoireAttachments([
+    { image_url: "storage://profile-cabinet-media/p/a.jpg", signed_url: "https://signed.example/a.jpg", title: "A" },
+    { imageUrl: "https://cdn.example/b.jpg", displayUrl: "https://display.example/b.jpg", name: "B" },
+    null,
+    { image_url: "" }
+  ]),
+  [
+    {
+      image_url: "storage://profile-cabinet-media/p/a.jpg",
+      display_url: "",
+      signed_url: "https://signed.example/a.jpg",
+      title: "A",
+      type: "photo"
+    },
+    {
+      image_url: "https://cdn.example/b.jpg",
+      display_url: "https://display.example/b.jpg",
+      signed_url: "",
+      title: "B",
+      type: "photo"
+    }
+  ],
+  "Grimoire attachments should normalize mixed API/local fields and drop empty rows"
+);
+assert.deepEqual(
+  getGrimoirePhotoGalleryItems({
+    image_url: "storage://profile-cabinet-media/p/parent.jpg",
+    display_url: "https://signed.example/parent.jpg",
+    attachments: [
+      { image_url: "storage://profile-cabinet-media/p/a.jpg", signed_url: "https://signed.example/a.jpg", title: "A" },
+      { image_url: "storage://profile-cabinet-media/p/b.jpg", signed_url: "https://signed.example/b.jpg", title: "B" },
+      { image_url: "storage://profile-cabinet-media/p/c.jpg" }
+    ]
+  }).map((item) => item.display_url),
+  ["https://signed.example/a.jpg", "https://signed.example/b.jpg"],
+  "Gallery should prefer valid attachment display URLs and never expose raw private storage refs"
+);
+assert.deepEqual(
+  getGrimoirePhotoGalleryItems({ image_url: "https://cdn.example/legacy.jpg", title: "Legacy" }).map((item) => item.display_url),
+  ["https://cdn.example/legacy.jpg"],
+  "Legacy single-photo material should still render as a one-item gallery"
 );
 assert.equal(getGrimoireFeedActionLabel({ status: "approved" }), "Спрятать");
 assert.equal(getGrimoireNextVisibilityStatus({ status: "approved" }), "draft");

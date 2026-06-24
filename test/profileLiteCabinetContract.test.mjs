@@ -488,7 +488,22 @@ assert.match(profileMaterialsModuleSource, /Сбросить/, "Grimoire feed sh
 assert.match(profileMaterialsModuleSource, /grimoireMaterialFilterPanel/, "Grimoire feed should render a dedicated compact filter panel above records");
 assert.match(profileMaterialsModuleSource, /grimoireTaxonomyMeta/, "Grimoire record cards should render compact taxonomy metadata");
 assert.match(profileMaterialsModuleSource, /<img[\s\S]*className="grimoireCardImage"[\s\S]*onError/, "materials should render actual image previews and fall back only after load failure");
-assert.match(profileMaterialsModuleSource, /display_url:\s*saved\.display_url \|\| uploaded\.signedUrl/, "composer should keep signed preview URLs for newly uploaded images");
+assert.match(profileMaterialsModuleSource, /attachments,[\s\S]*display_url:\s*saved\.display_url \|\| firstUpload\?\.uploaded\?\.signedUrl/, "composer should keep signed preview URLs for newly uploaded parent galleries");
+assert.match(profileMaterialsModuleSource, /function GrimoirePhotoGallery/, "Grimoire cards should render photos through one parent gallery component");
+assert.match(profileMaterialsModuleSource, /getGrimoirePhotoGalleryItems/, "Grimoire gallery should use normalized parent attachments");
+assert.match(profileMaterialsModuleSource, /buildGrimoireDescriptionValue\(cleanDescription, attachments\)/, "composer should persist multi-photo attachments under one parent material");
+assert.doesNotMatch(profileMaterialsModuleSource, /const records = selectedFiles\.length \? selectedFiles : \[null\]/, "composer must not create one parent material per selected file");
+assert.match(profileLitePageSource, /buildGrimoireDescriptionValue\("", attachments\)/, "bulk Grimoire upload should persist selected files as one parent attachment batch");
+for (const gallerySelector of [
+  ".grimoirePhotoGallery--count-1",
+  ".grimoirePhotoGallery--count-2",
+  ".grimoirePhotoGallery--count-3",
+  ".grimoirePhotoGallery--count-4",
+  ".grimoirePhotoGallery--count-5",
+  ".grimoirePhotoMore"
+]) {
+  assert.match(grimoireWorkspaceCss, new RegExp(gallerySelector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Grimoire gallery CSS should include ${gallerySelector}`);
+}
 assert.match(profileServicesModuleSource, /Добавить в ленту[\s\S]*Опубликовать обновление/, "published services should expose explicit feed create/update actions");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions powerPlaceActions--save">[\s\S]*>\s*Обновить\s*<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
 assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
@@ -942,8 +957,9 @@ assert.match(grimoireModuleSource, /Перетащите файлы сюда и�
 assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should keep selected files before upload");
 assert.match(grimoireModuleSource, /grimoireTaxonomyLevelOptions\(1\)/, "Grimoire edit select should use level 1 taxonomy options");
 assert.doesNotMatch(grimoireModuleSource, /РИ по умолчанию/, "Grimoire uploader should not present flat RI as the new default");
-assert.match(grimoireModuleSource, /const records = selectedFiles\.length \? selectedFiles : \[null\]/, "Grimoire composer save should preserve text-only posts and multi-file posts");
-assert.match(grimoireModuleSource, /for \(const file of records\)[\s\S]*createOwnMaterial/, "Grimoire composer save should create one material record per selected file");
+assert.match(grimoireModuleSource, /const uploadedFiles = \[\]/, "Grimoire composer save should collect selected files before creating one parent post");
+assert.match(grimoireModuleSource, /const saved = await createOwnMaterial\(localMaterialPayload/, "Grimoire composer save should create one parent material record for the batch");
+assert.doesNotMatch(grimoireModuleSource, /for \(const file of records\)[\s\S]*createOwnMaterial/, "Grimoire composer save must not create one material record per selected file");
 assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
 assert.match(grimoireModuleSource, /Разберите позже/, "Uncategorized records should be treated as the main working state");
 assert.match(grimoireModuleSource, /Гримуар пуст/, "Empty grimoire should use the dedicated empty state title");

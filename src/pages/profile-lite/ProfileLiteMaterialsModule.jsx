@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from "react";
 import {
+  buildGrimoireDescriptionValue,
   createOwnMaterial,
   DB_SAFE_GRIMOIRE_TYPE,
   detectMaterialTypeFromFile,
   getGrimoireFeedActionLabel,
   getGrimoireNextVisibilityStatus,
+  getGrimoireDescriptionText,
+  getGrimoirePhotoGalleryItems,
   getGrimoirePreviewUrl,
   GRIMOIRE_CATEGORIES,
   grimoireTaxonomyFilterLevelOptions,
@@ -60,6 +63,39 @@ function localMaterialPayload({ profileId, title, description, type, taxonomy, m
   };
 }
 
+function GrimoirePhotoGallery({ material, onImageError }) {
+  const photos = getGrimoirePhotoGalleryItems(material);
+  const visiblePhotos = photos.slice(0, 4);
+  const hiddenCount = Math.max(photos.length - visiblePhotos.length, 0);
+
+  if (!visiblePhotos.length) {
+    return (
+      <div className="grimoirePostPreview">
+        <span className="grimoireCardIcon">◎</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`grimoirePhotoGallery grimoirePhotoGallery--count-${Math.min(photos.length, 5)}`} data-count={photos.length}>
+      {visiblePhotos.map((photo, index) => {
+        const isOverlayTile = hiddenCount > 0 && index === visiblePhotos.length - 1;
+        return (
+          <figure className="grimoirePhotoTile" key={`${photo.display_url}-${index}`}>
+            <img
+              alt={photo.title || material.title || "Фото гримуара"}
+              loading="lazy"
+              src={photo.display_url}
+              onError={onImageError}
+            />
+            {isOverlayTile && <figcaption className="grimoirePhotoMore">+{hiddenCount}</figcaption>}
+          </figure>
+        );
+      })}
+    </div>
+  );
+}
+
 function mergeMaterials(localMaterials, sourceMaterials) {
   const seen = new Set();
   return [...localMaterials, ...(sourceMaterials || [])].filter((item) => {
@@ -73,10 +109,11 @@ function mergeMaterials(localMaterials, sourceMaterials) {
 function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete, onToggleVisibility }) {
   const [previewFailed, setPreviewFailed] = useState(false);
   const isUncategorized = isGrimoireTaxonomyUnclassified(material);
-  const noteText = material.description || "Комментарий ещё не добавлен";
+  const noteText = getGrimoireDescriptionText(material) || "Комментарий ещё не добавлен";
   const canAddToFeed = Boolean(material.id && feedActivityTypeForMaterial(material));
   const feedActionLabel = getGrimoireFeedActionLabel(material);
   const previewUrl = previewFailed ? "" : getGrimoirePreviewUrl(material);
+  const galleryMaterial = previewFailed ? { ...material, attachments: [], image_url: "", display_url: "" } : material;
   const showFeedAction = canAddToFeed || feedActionLabel === "Спрятать";
   const compactTaxonomy = grimoireTaxonomyCompactLabel(material);
 
@@ -93,9 +130,10 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete, onToggleV
 
       <div className="grimoirePostBody">
         <h3>{material.title || "Без названия"}</h3>
-        <p className={material.description ? "" : "grimoirePostEmptyText"}>{noteText}</p>
-        <div className={previewUrl ? "grimoirePostPreview hasImage" : "grimoirePostPreview"}>
-          {previewUrl ? (
+        <p className={getGrimoireDescriptionText(material) ? "" : "grimoirePostEmptyText"}>{noteText}</p>
+        <GrimoirePhotoGallery material={galleryMaterial} onImageError={() => setPreviewFailed(true)} />
+        {!getGrimoirePhotoGalleryItems(material).length && previewUrl && (
+          <div className="grimoirePostPreview hasImage">
             <img
               alt={material.title || "Изображение гримуара"}
               className="grimoireCardImage"
@@ -103,10 +141,8 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete, onToggleV
               src={previewUrl}
               onError={() => setPreviewFailed(true)}
             />
-          ) : (
-            <span className="grimoireCardIcon">◎</span>
-          )}
-        </div>
+          </div>
+        )}
         {(material.step_id || material.step_title || material.setting_title) && (
           <small className="grimoirePostMeta">{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
         )}
@@ -167,7 +203,7 @@ function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
   const initialTaxonomy = normalizeGrimoireTaxonomy(material);
   const [form, setForm] = useState({
     title: material.title || "",
-    description: material.description || "",
+    description: getGrimoireDescriptionText(material) || "",
     taxonomy: initialTaxonomy,
     step_title: material.step_title || "",
     setting_title: material.setting_title || ""
@@ -242,7 +278,7 @@ function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
           <input value={form.setting_title} onChange={(e) => setForm((s) => ({ ...s, setting_title: e.target.value }))} />
         </label>
         <div className="cabinetActions grimoireEditActions">
-          <button className="cabinetPrimary" type="button" onClick={() => onSave(material.id, form)}>Сохранить</button>
+          <button className="cabinetPrimary" type="button" onClick={() => onSave(material.id, { ...form, description: buildGrimoireDescriptionValue(form.description, material.attachments) })}>Сохранить</button>
           <button className="cabinetSecondary" type="button" onClick={onClose}>Отмена</button>
           <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material).then(onClose)}>Удалить</button>
         </div>
@@ -336,45 +372,44 @@ export default function ProfileLiteMaterialsModule({
       const profile = await getOwnProfile(user?.id, session);
       if (!profile?.id) throw new Error("Сначала сохраните профиль мастера.");
 
-      const records = selectedFiles.length ? selectedFiles : [null];
-      const savedRecords = [];
-
-      for (const file of records) {
-        let uploaded = null;
-        let imageUrl = "";
-        let materialType = "";
-        const finalTaxonomy = forceUncategorized
-          ? normalizeGrimoireTaxonomy({})
-          : normalizeGrimoireTaxonomy(taxonomy);
-        let finalTitle = cleanTitle;
-
-        if (file) {
-          validateGrimoireFile(file);
-          uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
-          imageUrl = uploaded.ref;
-          if (!finalTitle) finalTitle = stripFileExtension(file.name) || "Запись гримуара";
-          materialType = detectMaterialTypeFromFile(file);
-        }
-
-        if (!finalTitle) finalTitle = cleanDescription.slice(0, 64) || "Запись гримуара";
-
-        const saved = await createOwnMaterial(localMaterialPayload({
-          profileId: profile.id,
-          title: finalTitle,
-          description: cleanDescription,
-          type: DB_SAFE_GRIMOIRE_TYPE,
-          taxonomy: finalTaxonomy,
-          materialType,
-          imageUrl
-        }), session);
-        if (saved) {
-          savedRecords.push(file && uploaded?.signedUrl ? {
-            ...saved,
-            display_url: saved.display_url || uploaded.signedUrl,
-            signed_url: saved.signed_url || uploaded.signedUrl
-          } : saved);
-        }
+      const uploadedFiles = [];
+      for (const file of selectedFiles) {
+        validateGrimoireFile(file);
+        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+        uploadedFiles.push({ file, uploaded });
       }
+
+      const finalTaxonomy = forceUncategorized
+        ? normalizeGrimoireTaxonomy({})
+        : normalizeGrimoireTaxonomy(taxonomy);
+      const firstUpload = uploadedFiles[0];
+      const attachments = uploadedFiles.map(({ file, uploaded }) => ({
+        image_url: uploaded.ref,
+        signed_url: uploaded.signedUrl || "",
+        title: stripFileExtension(file.name) || file.name || "Фото",
+        type: detectMaterialTypeFromFile(file)
+      }));
+      const materialType = firstUpload ? detectMaterialTypeFromFile(firstUpload.file) : "";
+      const imageUrl = firstUpload?.uploaded?.ref || "";
+      const finalTitle = cleanTitle
+        || (selectedFiles.length > 1 ? `Фото (${selectedFiles.length})` : stripFileExtension(firstUpload?.file?.name) || "")
+        || cleanDescription.slice(0, 64)
+        || "Запись гримуара";
+      const saved = await createOwnMaterial(localMaterialPayload({
+        profileId: profile.id,
+        title: finalTitle,
+        description: buildGrimoireDescriptionValue(cleanDescription, attachments),
+        type: DB_SAFE_GRIMOIRE_TYPE,
+        taxonomy: finalTaxonomy,
+        materialType,
+        imageUrl
+      }), session);
+      const savedRecords = saved ? [{
+        ...saved,
+        attachments,
+        display_url: saved.display_url || firstUpload?.uploaded?.signedUrl || saved.display_url,
+        signed_url: saved.signed_url || firstUpload?.uploaded?.signedUrl || saved.signed_url
+      }] : [];
 
       setLocalMaterials((current) => [
         ...savedRecords,
