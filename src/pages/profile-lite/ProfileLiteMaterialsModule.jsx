@@ -2,6 +2,9 @@ import React, { useMemo, useState } from "react";
 import {
   createOwnMaterial,
   detectMaterialTypeFromFile,
+  getGrimoireFeedActionLabel,
+  getGrimoireNextVisibilityStatus,
+  getGrimoirePreviewUrl,
   GRIMOIRE_CATEGORIES,
   MATERIAL_TYPES,
   materialStatusText,
@@ -16,12 +19,6 @@ import "./ProfileLiteGrimoireWorkspace.css";
 
 function safeText(value) {
   return String(value || "").trim();
-}
-
-function safePreviewUrl(material) {
-  const url = safeText(material?.display_url || material?.displayUrl || "");
-  if (/^https?:\/\//i.test(url) && !url.includes("/storage/v1/object/sign/")) return url;
-  return "";
 }
 
 function materialDate(material) {
@@ -60,11 +57,14 @@ function mergeMaterials(localMaterials, sourceMaterials) {
   });
 }
 
-function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
+function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete, onToggleVisibility }) {
+  const [previewFailed, setPreviewFailed] = useState(false);
   const isUncategorized = !material.type || material.type === "uncategorized";
   const noteText = material.description || "Комментарий ещё не добавлен";
   const canAddToFeed = Boolean(material.id && feedActivityTypeForMaterial(material));
-  const previewUrl = safePreviewUrl(material);
+  const feedActionLabel = getGrimoireFeedActionLabel(material);
+  const previewUrl = previewFailed ? "" : getGrimoirePreviewUrl(material);
+  const showFeedAction = canAddToFeed || feedActionLabel === "Спрятать";
 
   return (
     <article className={`grimoireRecordCard grimoirePostCard${isUncategorized ? " grimoireRecordCard--uncategorized grimoirePostCard--uncategorized" : ""}`} key={material.id || material.title}>
@@ -80,8 +80,18 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
       <div className="grimoirePostBody">
         <h3>{material.title || "Без названия"}</h3>
         <p className={material.description ? "" : "grimoirePostEmptyText"}>{noteText}</p>
-        <div className={previewUrl ? "grimoirePostPreview hasImage" : "grimoirePostPreview"} style={previewUrl ? { backgroundImage: `url(${previewUrl})` } : undefined}>
-          {!previewUrl && <span className="grimoireCardIcon">◎</span>}
+        <div className={previewUrl ? "grimoirePostPreview hasImage" : "grimoirePostPreview"}>
+          {previewUrl ? (
+            <img
+              alt={material.title || "Изображение гримуара"}
+              className="grimoireCardImage"
+              loading="lazy"
+              src={previewUrl}
+              onError={() => setPreviewFailed(true)}
+            />
+          ) : (
+            <span className="grimoireCardIcon">◎</span>
+          )}
         </div>
         {(material.step_id || material.step_title || material.setting_title) && (
           <small className="grimoirePostMeta">{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
@@ -89,7 +99,15 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
       </div>
 
       <footer className="grimoirePostActions">
-        {canAddToFeed && <button className="grimoireActionBtn" type="button" onClick={() => onAddToFeed(material)}>Добавить в ленту</button>}
+        {showFeedAction && (
+          <button
+            className="grimoireActionBtn grimoireActionBtnVisibility"
+            type="button"
+            onClick={() => feedActionLabel === "Спрятать" ? onToggleVisibility(material) : onAddToFeed(material)}
+          >
+            {feedActionLabel}
+          </button>
+        )}
         <button className="grimoireActionBtn" type="button" onClick={() => onEdit(material)}>Редактировать</button>
         <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material)}>Удалить</button>
       </footer>
@@ -208,13 +226,14 @@ export default function ProfileLiteMaterialsModule({
       const savedRecords = [];
 
       for (const file of records) {
+        let uploaded = null;
         let imageUrl = "";
         let finalType = forceUncategorized ? "uncategorized" : (type || "ri");
         let finalTitle = cleanTitle;
 
         if (file) {
           validateGrimoireFile(file);
-          const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+          uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
           imageUrl = uploaded.ref;
           if (!finalTitle) finalTitle = stripFileExtension(file.name) || "Запись гримуара";
           if (!forceUncategorized && !type) finalType = detectMaterialTypeFromFile(file);
@@ -229,7 +248,13 @@ export default function ProfileLiteMaterialsModule({
           type: finalType,
           imageUrl
         }), session);
-        if (saved) savedRecords.push(saved);
+        if (saved) {
+          savedRecords.push(file && uploaded?.signedUrl ? {
+            ...saved,
+            display_url: saved.display_url || uploaded.signedUrl,
+            signed_url: saved.signed_url || uploaded.signedUrl
+          } : saved);
+        }
       }
 
       setLocalMaterials((current) => [
@@ -274,6 +299,20 @@ export default function ProfileLiteMaterialsModule({
       setEditingMaterial(null);
     } catch (error) {
       alert("Не удалось сохранить: " + String(error?.message || error));
+    }
+  };
+
+  const handleToggleVisibility = async (material) => {
+    try {
+      const nextStatus = getGrimoireNextVisibilityStatus(material);
+      if (material?.id && onUpdate) await onUpdate(material.id, { status: nextStatus });
+      setLocalMaterials((current) => current.map((item) => (
+        item === material || item?.id === material?.id
+          ? { ...item, status: nextStatus, updated_at: new Date().toISOString() }
+          : item
+      )));
+    } catch (error) {
+      alert("Не удалось изменить видимость: " + String(error?.message || error));
     }
   };
 
@@ -349,6 +388,7 @@ export default function ProfileLiteMaterialsModule({
                   onAddToFeed={onAddToFeed}
                   onEdit={setEditingMaterial}
                   onDelete={handleDelete}
+                  onToggleVisibility={handleToggleVisibility}
                 />
               ))}
             </div>

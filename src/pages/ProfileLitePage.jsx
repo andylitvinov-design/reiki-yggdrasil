@@ -1296,7 +1296,12 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         status: "draft",
         updated_at: new Date().toISOString()
       };
-      return createOwnMaterial(payload, session);
+      const saved = await createOwnMaterial(payload, session);
+      return uploaded?.signedUrl ? {
+        ...saved,
+        display_url: saved?.display_url || uploaded.signedUrl,
+        signed_url: saved?.signed_url || uploaded.signedUrl
+      } : saved;
     }));
     const saved = results.filter((r) => r.status === "fulfilled").map((r) => r.value).filter(Boolean);
     const failed = results.filter((r) => r.status === "rejected");
