@@ -1379,6 +1379,36 @@ assert.match(
 );
 
 assert.match(
+  imagePickerSource,
+  /\{ id: "clients", label: "Клиенты" \}[\s\S]*\{ id: "backgrounds", label: "Фон" \}[\s\S]*\{ id: "materials", label: "Материалы" \}/,
+  "ProfileLiteImagePicker source tabs should put Фон between Клиенты and Материалы"
+);
+
+assert.match(
+  imagePickerSource,
+  /mode === "cover" \? "backgrounds"/,
+  "cover picker should open the real Фон source tab by default"
+);
+
+assert.match(
+  imagePickerSource,
+  /activeTab === "backgrounds"[\s\S]*isBackgroundCompatibleImage[\s\S]*newestImagesFirst/,
+  "Фон source should filter background-compatible images and sort newest first"
+);
+
+assert.match(
+  imagePickerSource,
+  /materialFilterSelection\.group === "all"[\s\S]*sort\(newestImagesFirst\)/,
+  "Материалы / Все should show recent uploaded material photos newest first"
+);
+
+assert.match(
+  imagePickerSource,
+  /kind === "power-place-background"[\s\S]*destination === "background"[\s\S]*destination === "backgrounds"[\s\S]*destination === "cover"[\s\S]*\/фон\|обложк\//,
+  "Фон source should use existing background/cover metadata instead of a visual-only label"
+);
+
+assert.match(
   profileMaterialsClientSource,
   /Неразобрано/,
   "ProfileLiteImagePicker should render the corrected Неразобрано label for material uploads"
