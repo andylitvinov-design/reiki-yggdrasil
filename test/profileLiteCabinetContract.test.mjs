@@ -577,7 +577,9 @@ assert.doesNotMatch(profileServicesModuleSource, />К<\/div>/, "saved client man
 assert.doesNotMatch(profileServicesModuleSource, /orderStatusText\(order\.status\)\.slice\(0,\s*1\)/, "client order cards must not use a status-letter thumbnail as a fake mandala preview");
 assert.match(profileServicesModuleSource, /getClientMandalaPreviewState/, "client mandala cards should resolve real preview state before rendering");
 assert.match(profileServicesModuleSource, /profileLiteMandalaPreview/, "client mandala cards should render a dedicated preview or clear empty state");
-assert.match(profileLitePageSource, /buildClientDirectoryFromOrders\(orders,\s*clientGoalPhotos,\s*powerPlaceCompositions\)/, "ProfileLitePage should derive the Services client database from master orders plus saved client work");
+assert.match(profileLitePageSource, /buildClientDirectoryFromOrders\(orders,\s*clientGoalPhotos,\s*powerPlaceCompositions,\s*clientInvites\)/, "ProfileLitePage should derive the Services client database from master orders, saved client work, and invites");
+assert.match(profileLitePageSource, /listOwnClientInvites\(profile\.id,\s*session\)/, "ProfileLitePage should load master client invites into the client database");
+assert.match(profileLitePageSource, /claimClientInvite\(token,\s*session\)/, "ProfileLitePage should claim invite links only after authenticated login");
 assert.match(profileLitePageSource, /selectedClientKey/, "ProfileLitePage should own selected client state");
 assert.match(powerPlaceBaseSource, /Сохранить как шаблон/, "Power Place save UI should preserve create-new behavior under the template label");
 assert.match(powerPlaceBaseSource, /Сохранить для клиента/, "Power Place save UI should expose client save intent");
@@ -647,6 +649,9 @@ for (const phase5OrderText of [
 assert.match(profileLitePageSource, /generateDraftResultComposition/, "Profile Lite page should call Phase 5 draft generation helper");
 assert.match(profileLitePageSource, /sendOrderResultToClient/, "Profile Lite page should call Phase 5 send result helper");
 assert.doesNotMatch(clientOrdersViewSource, /draft_result_composition_id/, "client UI must not expose draft_result_composition_id before sent");
+assert.match(profileServicesModuleSource, /Ссылка для клиента/, "/profile/services client database should include invite-link UI");
+assert.match(profileServicesModuleSource, /без привязки только по имени/, "/profile/services should explain invite-only client linking");
+assert.match(profileServicesModuleSource, /buildClientInviteUrl/, "/profile/services should build invite URLs through the client helper");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");

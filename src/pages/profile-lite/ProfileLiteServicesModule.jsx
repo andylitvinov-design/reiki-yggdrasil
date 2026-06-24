@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   SERVICE_FORMAT_OPTIONS,
+  buildClientInviteUrl,
   buildCompositionResultUrl,
   buildServicePublicUrl,
   clientMandalaStatusText,
@@ -56,8 +57,12 @@ function ServiceThumbnail({ service }) {
 
 export default function ProfileLiteServicesModule({
   activeView = "services",
+  clientInviteForm = {},
+  clientInvites = [],
   onFieldChange,
   onAddToFeed = () => {},
+  onClientInviteFieldChange = () => {},
+  onCreateClientInvite = () => {},
   onPublish,
   onSave,
   onServiceSelect,
@@ -82,6 +87,7 @@ export default function ProfileLiteServicesModule({
   const canPublish = Boolean(selectedServiceId && selectedCompositionId);
   const canAddSelectedToFeed = Boolean(selectedServiceId && serviceForm?.status === "published");
   const [copiedResultUrl, setCopiedResultUrl] = useState("");
+  const [copiedInviteUrl, setCopiedInviteUrl] = useState("");
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientSearch, setClientSearch] = useState("");
   const [clientMaterialFilter, setClientMaterialFilter] = useState("all");
@@ -132,6 +138,15 @@ export default function ProfileLiteServicesModule({
       window.prompt("Ссылка на мандалу", url);
     }
     setCopiedResultUrl(url);
+  };
+  const copyInviteLink = async (url) => {
+    if (!url) return;
+    try {
+      await navigator.clipboard?.writeText(url);
+    } catch {
+      window.prompt("Ссылка для клиента", url);
+    }
+    setCopiedInviteUrl(url);
   };
   const renderMandalaActions = (compositionId) => {
     const url = buildCompositionResultUrl(compositionId, window.location.origin);
@@ -276,9 +291,34 @@ export default function ProfileLiteServicesModule({
           <div className="profileLiteClientSummaryGrid" aria-label="Сводка клиента">
             <span><b>{selectedClientOrders.length}</b> Заказы</span>
             <span><b>{selectedClientWorks.length}</b> Сохранено</span>
+            <span><b>{effectiveSelectedClient?.invites?.length || 0}</b> Ссылки</span>
             <span><b>{readyCount}</b> Готово</span>
             <span><b>{sentCount}</b> Отправлено</span>
           </div>
+
+          {effectiveSelectedClient?.invites?.length > 0 && (
+            <div className="profileLiteClientInviteList">
+              {effectiveSelectedClient.invites.map((invite) => {
+                const inviteUrl = buildClientInviteUrl(invite, window.location.origin);
+                return (
+                  <article className="cabinetCardInline" key={invite.id}>
+                    <p className="cabinetEyebrow">Ссылка для клиента</p>
+                    <h4>{invite.client_name || selectedClientDisplayName}</h4>
+                    <p className="cabinetMuted">
+                      {invite.client_profile_id ? "Клиент привязан" : invite.status === "pending" ? "Ожидает регистрации" : "Проверьте статус ссылки"}
+                    </p>
+                    {inviteUrl ? <a href={inviteUrl}>Ссылка для клиента</a> : <p className="cabinetMuted">Ссылка появится после создания invite.</p>}
+                    <div className="cabinetActions">
+                      <button className="cabinetSecondary" disabled={!inviteUrl} onClick={() => void copyInviteLink(inviteUrl)} type="button">
+                        Скопировать ссылку
+                      </button>
+                    </div>
+                    {copiedInviteUrl === inviteUrl && <p className="cabinetSuccess compactNotice">Ссылка скопирована</p>}
+                  </article>
+                );
+              })}
+            </div>
+          )}
 
           <div className="profileLiteMaterialFilters" aria-label="Фильтр материалов клиента">
             {[
@@ -489,6 +529,32 @@ export default function ProfileLiteServicesModule({
             {isClientsView ? renderClientWorkspace() : renderServiceGroups()}
           </section>
         </div>
+
+        {isClientsView && (
+          <div className="workspaceRightColumn">
+            <form className="cabinetCard" onSubmit={(event) => { event.preventDefault(); onCreateClientInvite(); }}>
+              <p className="cabinetEyebrow">Услуги → Клиенты</p>
+              <h2>Ссылка для клиента</h2>
+              <label>
+                Имя клиента
+                <input disabled={isSaving} value={clientInviteForm.client_name || ""} onChange={(event) => onClientInviteFieldChange("client_name", event.target.value)} placeholder="Анна" />
+              </label>
+              <label>
+                Услуга
+                <select disabled={isSaving} value={clientInviteForm.service_id || selectedServiceId || ""} onChange={(event) => onClientInviteFieldChange("service_id", event.target.value)}>
+                  <option value="">Без услуги</option>
+                  {services.map((service) => (
+                    <option key={service.id} value={service.id}>{service.title || "Без названия"}</option>
+                  ))}
+                </select>
+              </label>
+              <button className="cabinetSecondary" disabled={isSaving || !(clientInviteForm.client_name || "").trim()} type="submit">
+                Создать ссылку для клиента
+              </button>
+              <p className="cabinetMuted">Клиент привязывается только после входа по invite-ссылке, без привязки только по имени.</p>
+            </form>
+          </div>
+        )}
 
         {!isClientsView && (
           <div className="workspaceRightColumn">

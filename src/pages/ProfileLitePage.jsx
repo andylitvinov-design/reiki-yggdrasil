@@ -28,13 +28,17 @@ import { validateGrimoireFile } from "../lib/profileMediaClient.js";
 import {
   createEmptyServiceForm,
   buildClientDirectoryFromOrders,
+  claimClientInvite,
+  createClientInvite,
   createServiceCartStore,
   createServiceOrderDraft,
   createOwnService,
   generateDraftResultComposition,
   listClientServiceOrders,
+  listOwnClientInvites,
   listOwnServiceOrders,
   listOwnServices,
+  PENDING_CLIENT_INVITE_KEY,
   publishOwnService,
   sendOrderResultToClient,
   submitServiceOrderToMaster,
@@ -201,6 +205,12 @@ const EMPTY_CLIENT_SAVE_FORM = {
   clientPhotoId: "",
   status: "idle",
   message: ""
+};
+const EMPTY_CLIENT_INVITE_FORM = {
+  client_name: "",
+  service_id: "",
+  service_order_id: "",
+  expires_at: ""
 };
 const POWER_PLACE_START_LIMIT_MESSAGE = "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
 const ROUTE_CHANGE_EVENT = "reiki-route-change";
@@ -651,6 +661,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   const [serviceMessage, setServiceMessage] = useState("");
   const [selectedClientKey, setSelectedClientKey] = useState("");
   const [clientSaveForm, setClientSaveForm] = useState(EMPTY_CLIENT_SAVE_FORM);
+  const [clientInvites, setClientInvites] = useState([]);
+  const [clientInviteForm, setClientInviteForm] = useState(EMPTY_CLIENT_INVITE_FORM);
 
   const [ordersStatus, setOrdersStatus] = useState("idle");
   const [ordersError, setOrdersError] = useState("");
@@ -671,8 +683,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
 
   const sessionExpired = useMemo(() => isStoredSessionExpired(session), [session]);
   const clientDirectory = useMemo(
-    () => buildClientDirectoryFromOrders(orders, clientGoalPhotos, powerPlaceCompositions),
-    [orders, clientGoalPhotos, powerPlaceCompositions]
+    () => buildClientDirectoryFromOrders(orders, clientGoalPhotos, powerPlaceCompositions, clientInvites),
+    [orders, clientGoalPhotos, powerPlaceCompositions, clientInvites]
   );
   const selectedClient = useMemo(
     () => clientDirectory.find((client) => client.key === selectedClientKey) || null,
@@ -777,6 +789,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     setServiceForm(createEmptyServiceForm());
     setServiceActionStatus("idle");
     setServiceMessage("");
+    setClientInvites([]);
+    setClientInviteForm(EMPTY_CLIENT_INVITE_FORM);
     setOrders([]);
     setClientOrders([]);
     setOrdersStatus("idle");
@@ -891,6 +905,33 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       }
     }
     void loadMaterials();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function claimPendingClientInvite() {
+      if (!profile?.id || !hasProfileLiteSessionCredential(session)) return;
+      const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+      const token = searchParams.get("invite") || localStorage.getItem(PENDING_CLIENT_INVITE_KEY);
+      if (!token) return;
+      try {
+        const claimed = await claimClientInvite(token, session);
+        if (cancelled) return;
+        setClientInvites((current) => [claimed, ...current.filter((item) => item.id !== claimed?.id)].filter(Boolean));
+        localStorage.removeItem(PENDING_CLIENT_INVITE_KEY);
+        setOrdersStatus("success");
+        setOrdersError("");
+      } catch (error) {
+        if (cancelled) return;
+        localStorage.setItem(PENDING_CLIENT_INVITE_KEY, token);
+        setOrdersStatus("needs-verification");
+        setOrdersError(moduleError(error, "profile_cabinet_client_invites claim failed or migration/RLS not applied"));
+      }
+    }
+    void claimPendingClientInvite();
     return () => {
       cancelled = true;
     };
@@ -1043,6 +1084,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         setServices([]);
         setOrders([]);
         setClientOrders([]);
+        setClientInvites([]);
         setChatThreads([]);
         setApprovedChatProfiles([]);
         setServicesStatus("idle");
@@ -1055,10 +1097,11 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       setOrdersStatus("loading");
       setChatsStatus("loading");
       setApprovedChatProfilesStatus("loading");
-      const [servicesResult, clientOrdersResult, masterOrdersResult, chatsResult, approvedProfilesResult] = await Promise.allSettled([
+      const [servicesResult, clientOrdersResult, masterOrdersResult, invitesResult, chatsResult, approvedProfilesResult] = await Promise.allSettled([
         listOwnServices(profile.id, session),
         listClientServiceOrders(profile.id, session),
         listOwnServiceOrders(profile.id, session),
+        listOwnClientInvites(profile.id, session),
         listOwnChatThreads(profile.id, session),
         listApprovedMasterProfiles(session)
       ]);
@@ -1085,6 +1128,15 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         setOrders([]);
         setOrdersStatus("needs-verification");
         setOrdersError(moduleError(clientOrdersResult.reason || masterOrdersResult.reason, "profile_cabinet_service_orders request failed or migration/RLS not applied"));
+      }
+      if (invitesResult.status === "fulfilled") {
+        setClientInvites(invitesResult.value || []);
+      } else {
+        setClientInvites([]);
+        setOrdersError((current) => [
+          current,
+          moduleError(invitesResult.reason, "profile_cabinet_client_invites request failed or migration/RLS not applied")
+        ].filter(Boolean).join(" · "));
       }
       if (chatsResult.status === "fulfilled") {
         const threads = (chatsResult.value || []).map((thread) => ({ ...thread, ownerProfileId: profile.id }));
@@ -2345,6 +2397,32 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     }
   };
 
+  const handleCreateClientInvite = async () => {
+    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+      setServicesError("Сначала сохраните профиль мастера.");
+      setServicesStatus("needs-verification");
+      return;
+    }
+    setServiceActionStatus("loading");
+    setServiceMessage("");
+    setServicesError("");
+    try {
+      const invite = await createClientInvite({
+        ...clientInviteForm,
+        service_id: clientInviteForm.service_id || serviceForm.id || ""
+      }, session);
+      setClientInvites((current) => [invite, ...current.filter((item) => item.id !== invite?.id)].filter(Boolean));
+      setClientInviteForm(EMPTY_CLIENT_INVITE_FORM);
+      setServiceActionStatus("success");
+      setServicesStatus("success");
+      setServiceMessage("Ссылка для клиента создана.");
+    } catch (error) {
+      setServiceActionStatus("error");
+      setServicesStatus("needs-verification");
+      setServicesError(moduleError(error, "profile_cabinet_client_invites create failed or migration/RLS not applied"));
+    }
+  };
+
   const handleAddServiceToFeed = async (activityType = "service_created") => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setServicesError("Сначала сохраните профиль мастера.");
@@ -2552,6 +2630,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     chatsStatus,
     cabinetRole,
     clientGoalPhotos,
+    clientInviteForm,
+    clientInvites,
     clientOrders,
     clientPhotoForm,
     compositionDraft,
@@ -2691,6 +2771,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         onClientSelect={setSelectedClientKey}
         onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
         onAddToFeed={handleAddServiceToFeed}
+        onClientInviteFieldChange={(field, value) => setClientInviteForm((current) => ({ ...current, [field]: value }))}
+        onCreateClientInvite={handleCreateClientInvite}
         onPublish={handleServicePublish}
         onSave={handleServiceSave}
         onServiceSelect={(service) => {
@@ -2711,6 +2793,8 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         onClientSelect={setSelectedClientKey}
         onFieldChange={(field, value) => setServiceForm((current) => ({ ...current, [field]: value }))}
         onAddToFeed={handleAddServiceToFeed}
+        onClientInviteFieldChange={(field, value) => setClientInviteForm((current) => ({ ...current, [field]: value }))}
+        onCreateClientInvite={handleCreateClientInvite}
         onPublish={handleServicePublish}
         onSave={handleServiceSave}
         onServiceSelect={(service) => {
