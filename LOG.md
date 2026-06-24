@@ -1,5 +1,48 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-24 — Group Grimoire multi-photo uploads into one gallery card
+
+- Branch: `codex/issue104-multi-photo-gallery`.
+- Base: fresh `origin/main` at `927e875` (`Add Grimoire taxonomy filter and compact cards (#440)`).
+- Tracker/source check:
+  - task referenced `andylitvinov-design/report#104`, but live `https://2mentalica.vercel.app` HTML/title/assets are the Reiki Yggdrasil app;
+  - `andylitvinov-design/report` `origin/main` does not contain the `Мастерская` renderer;
+  - patch was applied to `andylitvinov-design/reiki-yggdrasil`, the live source surface for 2mentalica.
+- Changed files:
+  - `src/lib/profileMaterialsClient.js`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/pages/profile-lite/ProfileLiteMaterialsModule.jsx`
+  - `src/pages/profile-lite/ProfileLiteGrimoireWorkspace.css`
+  - `test/profileMaterials.test.mjs`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - the composer and the bulk Grimoire uploader both looped through selected files and called `createOwnMaterial(...)` for each file;
+  - each created publication rendered as its own `Мастерская` card with repeated metadata and repeated `Добавить в ленту` / `Редактировать` / `Удалить` actions.
+- Changed:
+  - both upload paths now upload all selected files first and then create one parent publication for the batch;
+  - parent rows normalize photo metadata into `attachments[]` after read/hydration and persist the attachment refs through a hidden metadata envelope in the existing `description` field, so no staging schema migration is required;
+  - visible descriptions and edit text strip the hidden metadata;
+  - `GrimoirePhotoGallery` renders square gallery states for 1, 2, 3, 4, and 5+ photos with `+N` overlay on the last visible tile;
+  - post-level actions remain rendered once in the card footer.
+- Checks run:
+  - `node test/profileMaterials.test.mjs && node test/profileLiteCabinetContract.test.mjs`
+  - `npm ci`
+  - `npm test` failed because this repo has no `test` script
+  - `npm run build` first failed because it ran concurrently with `npm run delivery:check` while dependencies were being reinstalled
+  - `npm run delivery:check`
+  - rerun `npm run build`
+- Check notes:
+  - focused tests, final `npm ci`, `npm run delivery:check`, and rerun `npm run build` exited `0`;
+  - retained existing npm audit report: 1 high severity vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Not verified:
+  - authenticated live multi-photo upload/reload/edit/delete/add-to-feed against `https://2mentalica.vercel.app`;
+  - live deployment after merge;
+  - historical separate photo drafts were not merged because there is no reliable batch key.
+
 ## 2026-06-24 — Fix Services mobile layout and thumbnails
 
 - Branch: `codex/issue97-services-mobile-live-20260624`.

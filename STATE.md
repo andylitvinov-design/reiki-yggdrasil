@@ -2,6 +2,28 @@
 
 Last updated: 2026-06-24
 
+## 2026-06-24 — Grimoire multi-photo parent gallery
+
+- Branch: `codex/issue104-multi-photo-gallery`, based on `origin/main` at `927e875`.
+- Tracker/source check:
+  - task referenced `andylitvinov-design/report#104`, but live `https://2mentalica.vercel.app` serves the Reiki Yggdrasil bundle and `andylitvinov-design/report` `main` does not contain the `Мастерская` renderer;
+  - patch was applied to `andylitvinov-design/reiki-yggdrasil`, the codebase that currently serves the observed `2mentalica` Grimoire surface.
+- Scope: Profile Lite Grimoire material batching, card gallery rendering, attachment normalization, and contract tests only; Supabase env values, auth/RLS, public home page, report/PsiTherapy flows, and historical separate draft rows were not changed.
+- Changed:
+  - composer and bulk Grimoire uploads now create one parent material per selected batch instead of one material per file;
+  - parent materials normalize photo metadata to `attachments[]` in the app model and persist reload-safe metadata through the existing description field, avoiding a staging-schema dependency;
+  - Grimoire cards render a square responsive gallery with 1, 2, 3, 4, and 5+ photo states, including a `+N` overlay;
+  - edit/display paths strip hidden attachment metadata from the visible note text and keep post-level actions once.
+- Verification:
+  - focused material and Profile Lite contract tests passed;
+  - `npm ci`, `npm run build`, and `npm run delivery:check` passed;
+  - `npm test` is not defined in this repo.
+- Not verified:
+  - authenticated live multi-photo upload/reload on `https://2mentalica.vercel.app`;
+  - post-merge deploy and live visual QA.
+- Risk:
+  - existing historical separate photo drafts are intentionally not merged because there is no reliable shared parent key.
+
 ## 2026-06-24 — Services mobile card/hero repair
 
 - Branch: `codex/issue97-services-mobile-live-20260624`, based on `origin/main` at `c704d2e`.

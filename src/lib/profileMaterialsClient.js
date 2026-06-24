@@ -205,6 +205,7 @@ const AUDIO_EXTENSIONS = ["mp3", "mp4a", "ogg", "wav", "webm", "aac", "flac", "m
 const DOC_EXTENSIONS = ["pdf", "doc", "docx"];
 const TEXT_EXTENSIONS = ["txt", "md"];
 const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "avif"];
+const GRIMOIRE_ATTACHMENT_META_PREFIX = "\n\n__grimoire_attachments__:";
 
 export function stripFileExtension(filename) {
   const name = String(filename || "").trim();
@@ -245,6 +246,10 @@ function materialError(message, details = null) {
 
 function cleanText(value) {
   return String(value || "").trim();
+}
+
+function isPublicDisplayUrl(value) {
+  return /^https?:\/\//.test(cleanText(value)) || cleanText(value).startsWith("data:image/");
 }
 
 function cleanType(value) {
@@ -353,6 +358,70 @@ export function materialStatusText(status) {
   return MATERIAL_STATUSES.find((item) => item.value === status)?.label || "черновик";
 }
 
+export function normalizeGrimoireAttachments(items = []) {
+  if (!Array.isArray(items)) return [];
+
+  return items.map((item) => {
+    if (!item || typeof item !== "object") return null;
+    const imageUrl = cleanText(item.image_url ?? item.imageUrl ?? item.src);
+    const displayUrl = cleanText(item.display_url ?? item.displayUrl);
+    const signedUrl = cleanText(item.signed_url ?? item.signedUrl);
+    if (!imageUrl && !displayUrl && !signedUrl) return null;
+
+    return {
+      image_url: imageUrl,
+      display_url: displayUrl,
+      signed_url: signedUrl,
+      title: cleanText(item.title ?? item.name ?? item.alt),
+      type: cleanText(item.type) || "photo"
+    };
+  }).filter(Boolean);
+}
+
+export function splitGrimoireDescription(value = "") {
+  const raw = String(value || "");
+  const markerIndex = raw.lastIndexOf(GRIMOIRE_ATTACHMENT_META_PREFIX);
+  if (markerIndex < 0) return { text: raw.trim(), attachments: [] };
+
+  const text = raw.slice(0, markerIndex).trim();
+  const encoded = raw.slice(markerIndex + GRIMOIRE_ATTACHMENT_META_PREFIX.length).trim();
+  try {
+    const parsed = JSON.parse(encoded);
+    return {
+      text,
+      attachments: normalizeGrimoireAttachments(parsed?.attachments || parsed)
+    };
+  } catch {
+    return { text: raw.trim(), attachments: [] };
+  }
+}
+
+export function buildGrimoireDescriptionValue(description = "", attachments = []) {
+  const normalizedAttachments = normalizeGrimoireAttachments(attachments).map((item) => ({
+    image_url: item.image_url,
+    title: item.title,
+    type: item.type
+  }));
+  const text = cleanText(description);
+  if (normalizedAttachments.length <= 1) return text;
+  return `${text}${GRIMOIRE_ATTACHMENT_META_PREFIX}${JSON.stringify({ attachments: normalizedAttachments })}`;
+}
+
+export function getGrimoireDescriptionText(material = {}) {
+  return splitGrimoireDescription(material.description).text;
+}
+
+function materialWithParsedAttachments(material = {}) {
+  const parsed = splitGrimoireDescription(material.description);
+  const ownAttachments = normalizeGrimoireAttachments(material.attachments);
+  const attachments = ownAttachments.length ? ownAttachments : parsed.attachments;
+  return {
+    ...material,
+    description: parsed.text,
+    attachments
+  };
+}
+
 export function getGrimoirePreviewUrl(material) {
   const displayUrl = cleanText(material?.display_url ?? material?.displayUrl);
   if (displayUrl) return displayUrl;
@@ -362,6 +431,28 @@ export function getGrimoirePreviewUrl(material) {
 
   const imageUrl = cleanText(material?.image_url ?? material?.imageUrl);
   return isStorageRef(imageUrl) ? "" : imageUrl;
+}
+
+export function getGrimoirePhotoGalleryItems(material = {}) {
+  const materialWithAttachments = materialWithParsedAttachments(material);
+  const sourceItems = materialWithAttachments.attachments?.length
+    ? materialWithAttachments.attachments
+    : [{
+      image_url: materialWithAttachments.image_url ?? materialWithAttachments.imageUrl,
+      display_url: materialWithAttachments.display_url ?? materialWithAttachments.displayUrl,
+      signed_url: materialWithAttachments.signed_url ?? materialWithAttachments.signedUrl,
+      title: materialWithAttachments.title,
+      type: materialWithAttachments.material_type || materialWithAttachments.type
+    }];
+
+  return normalizeGrimoireAttachments(sourceItems).map((item) => {
+    const displayUrl = item.display_url || item.signed_url || (isStorageRef(item.image_url) ? "" : item.image_url);
+    if (!displayUrl || !isPublicDisplayUrl(displayUrl)) return null;
+    return {
+      ...item,
+      display_url: displayUrl
+    };
+  }).filter(Boolean);
 }
 
 export function isGrimoireFeedVisible(material) {
@@ -464,19 +555,42 @@ export async function listPublicMaterials({ limit = 24 } = {}) {
 
 async function hydrateMaterialRows(rows, session) {
   return Promise.all((rows || []).map(async (row) => {
-    if (!isStorageRef(row?.image_url) || !session?.access_token) return row;
+    const parsedRow = materialWithParsedAttachments(row);
+    if (!session?.access_token) return parsedRow;
 
-    const parsed = parseStorageRef(row.image_url);
-    if (!parsed?.path) return row;
-
-    try {
-      return {
-        ...row,
-        display_url: await createSignedMediaUrl(parsed.path, session, parsed.bucket)
-      };
-    } catch {
-      return row;
+    let hydratedRow = parsedRow;
+    if (isStorageRef(parsedRow?.image_url)) {
+      const parsed = parseStorageRef(parsedRow.image_url);
+      if (parsed?.path) {
+        try {
+          hydratedRow = {
+            ...hydratedRow,
+            display_url: await createSignedMediaUrl(parsed.path, session, parsed.bucket)
+          };
+        } catch {
+          hydratedRow = parsedRow;
+        }
+      }
     }
+
+    const attachments = await Promise.all(normalizeGrimoireAttachments(hydratedRow.attachments).map(async (attachment) => {
+      if (!isStorageRef(attachment.image_url)) return attachment;
+      const parsed = parseStorageRef(attachment.image_url);
+      if (!parsed?.path) return attachment;
+      try {
+        return {
+          ...attachment,
+          display_url: attachment.display_url || await createSignedMediaUrl(parsed.path, session, parsed.bucket)
+        };
+      } catch {
+        return attachment;
+      }
+    }));
+
+    return {
+      ...hydratedRow,
+      attachments
+    };
   }));
 }
 

@@ -10,6 +10,7 @@ import {
 } from "../lib/profileCoursesClient.js";
 import {
   DB_SAFE_GRIMOIRE_TYPE,
+  buildGrimoireDescriptionValue,
   buildMaterialUploadPublicationPayload,
   createEmptyMaterialForm,
   createOwnMaterial,
@@ -1281,23 +1282,42 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   };
 
   const handleGrimoireMultiUpload = async (files) => {
-    if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
+  if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMaterialsError("Сначала сохраните профиль мастера.");
       setMaterialsStatus("needs-verification");
       throw new Error("Сначала сохраните профиль мастера.");
     }
-      const results = await Promise.allSettled(files.map(async (file) => {
+    const uploadFiles = Array.from(files || []).filter(Boolean);
+    try {
+      const results = await Promise.allSettled(uploadFiles.map(async (file) => {
         validateGrimoireFile(file);
         const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
-        const detectedType = detectMaterialTypeFromFile(file);
-      const title = stripFileExtension(file.name) || "Запись гримуара";
+        return { file, uploaded };
+      }));
+      const uploadedFiles = results.filter((r) => r.status === "fulfilled").map((r) => r.value).filter(Boolean);
+      const failed = results.filter((r) => r.status === "rejected");
+      if (!uploadedFiles.length && failed.length > 0) {
+        throw failed[0].reason || new Error("Файлы не загрузились.");
+      }
+
+      const firstUpload = uploadedFiles[0];
+      const detectedType = detectMaterialTypeFromFile(firstUpload?.file);
+      const attachments = uploadedFiles.map(({ file, uploaded }) => ({
+        image_url: uploaded.ref,
+        signed_url: uploaded.signedUrl || "",
+        title: stripFileExtension(file.name) || file.name || "Фото",
+        type: detectMaterialTypeFromFile(file)
+      }));
+      const title = uploadedFiles.length > 1
+        ? `Фото (${uploadedFiles.length})`
+        : stripFileExtension(firstUpload?.file?.name) || "Запись гримуара";
       const payload = {
         profile_id: profile.id,
         type: DB_SAFE_GRIMOIRE_TYPE,
         material_type: detectedType,
         title,
-        description: "",
-        image_url: uploaded.ref,
+        description: buildGrimoireDescriptionValue("", attachments),
+        image_url: firstUpload?.uploaded?.ref || "",
         step_id: "",
         step_title: "",
         setting_title: "",
@@ -1309,21 +1329,23 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         updated_at: new Date().toISOString()
       };
       const saved = await createOwnMaterial(payload, session);
-      return uploaded?.signedUrl ? {
+      const savedWithPreview = firstUpload?.uploaded?.signedUrl ? {
         ...saved,
-        display_url: saved?.display_url || uploaded.signedUrl,
-        signed_url: saved?.signed_url || uploaded.signedUrl
-      } : saved;
-    }));
-    const saved = results.filter((r) => r.status === "fulfilled").map((r) => r.value).filter(Boolean);
-    const failed = results.filter((r) => r.status === "rejected");
-    setMaterials((current) => [...saved, ...current.filter((item) => !saved.some((s) => s?.id === item.id))].filter(Boolean));
-    setMaterialsStatus("success");
-    if (failed.length > 0) {
-      setMaterialsError(`${failed.length} файл(ов) не загрузилось: ${moduleError(failed[0]?.reason, "upload or save failed")}`);
-      throw new Error(`${failed.length} файл(ов) не загрузилось.`);
-    } else {
+        attachments,
+        display_url: saved?.display_url || firstUpload.uploaded.signedUrl,
+        signed_url: saved?.signed_url || firstUpload.uploaded.signedUrl
+      } : { ...saved, attachments };
+      setMaterials((current) => [savedWithPreview, ...current.filter((item) => item.id !== savedWithPreview?.id)].filter(Boolean));
+      setMaterialsStatus("success");
       setMaterialsError("");
+      if (failed.length > 0) {
+        setMaterialsError(`${failed.length} файл(ов) не загрузилось: ${moduleError(failed[0]?.reason, "upload or save failed")}`);
+        throw new Error(`${failed.length} файл(ов) не загрузилось.`);
+      }
+    } catch (error) {
+      setMaterialsStatus("needs-verification");
+      setMaterialsError(moduleError(error, "upload or save failed"));
+      throw error;
     }
   };
 
