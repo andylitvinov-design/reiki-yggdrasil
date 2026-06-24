@@ -8289,7 +8289,7 @@
 }
 
 .profileLiteServices .profileLiteServicesColumns {
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.36fr);
 }
 
 .profileLiteServices .profileLiteClientEmptyState {
@@ -8512,6 +8512,24 @@
   padding: 12px;
 }
 
+.profileLiteServices .chatPlaceholderHeader {
+  gap: 6px;
+}
+
+.profileLiteServicesView .mandalaHero {
+  min-height: 0;
+  padding: 16px;
+}
+
+.profileLiteServicesView .mandalaHeroSeal {
+  opacity: 0.22;
+}
+
+.profileLiteServicesView .mandalaHero h2,
+.profileLiteServices .chatPlaceholderHeader h2 {
+  text-wrap: balance;
+}
+
 .profileLiteServices .profileLiteServiceList {
   display: grid;
   gap: 10px;
@@ -8529,16 +8547,53 @@
 
 .profileLiteServices .profileLiteServiceCard {
   align-items: start;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
 }
 
-.profileLiteServices .profileLiteServiceCard .materialThumb {
-  min-height: 42px;
+.profileLiteServices .profileLiteServiceThumb {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(245, 198, 86, 0.44), transparent 34%),
+    linear-gradient(135deg, rgba(44, 29, 12, 0.94), rgba(142, 89, 18, 0.84));
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  color: #fff3d6;
+  display: grid;
+  flex: 0 0 88px;
+  font-size: 1.45rem;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 88px;
+  overflow: hidden;
+  width: 88px;
+}
+
+.profileLiteServices .profileLiteServiceThumb img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteServiceCardBody {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteServiceMeta {
+  color: rgba(44, 29, 12, 0.66);
+  font-weight: 850;
 }
 
 .profileLiteServices .profileLiteServiceCard h3,
 .profileLiteServices .profileLiteServiceCard p {
   margin-top: 0;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .profileLiteServices .profileLiteEditorClosedCard,
@@ -11468,6 +11523,45 @@
 }
 
 @media (max-width: 760px) {
+  .profileLiteServices {
+    gap: 10px;
+  }
+
+  .profileLiteServicesView .mandalaHero {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .profileLiteServicesView .mandalaHeroSeal {
+    display: none;
+  }
+
+  .profileLiteServicesView .mandalaHero h2 {
+    font-size: clamp(1.32rem, 6vw, 1.72rem);
+    line-height: 1.08;
+    margin-bottom: 4px;
+  }
+
+  .profileLiteServicesView .mandalaHero p {
+    line-height: 1.35;
+    margin-bottom: 0;
+  }
+
+  .profileLiteServices .profileLiteServicesColumns {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteServicesColumns .workspaceCenterColumn,
+  .profileLiteServices .profileLiteServicesColumns .workspaceRightColumn,
+  .profileLiteServices .profileLiteServicesColumns .chatPlaceholderWorkspace,
+  .profileLiteServices .profileLiteSecondaryServices,
+  .profileLiteServices .profileLiteServiceList,
+  .profileLiteServices .profileLiteServiceGroup {
+    width: 100%;
+  }
+
   .profileLiteServices .mandalaHeroStats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
@@ -11492,17 +11586,47 @@
   }
 
   .profileLiteServices .profileLiteServiceCard {
-    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px;
   }
 
-  .profileLiteServices .profileLiteServiceCard .materialThumb {
-    width: 42px;
-    height: 42px;
-    min-height: 42px;
+  .profileLiteServices .profileLiteServiceThumb {
+    border-radius: 12px;
+    flex-basis: 82px;
+    min-height: 82px;
+    width: 82px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard .cabinetActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard .cabinetActions button {
+    min-height: 38px;
+    white-space: normal;
   }
 
   .profileLiteOrdersEmptyState h3,
   .profileLiteOrdersEmptyState p {
     margin: 0 0 6px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns .workspaceCenterColumn,
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns .workspaceRightColumn,
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns .chatPlaceholderWorkspace,
+  .profileLiteServices.profileLiteServicesView .profileLiteSecondaryServices,
+  .profileLiteServices.profileLiteServicesView .profileLiteServiceList,
+  .profileLiteServices.profileLiteServicesView .profileLiteServiceGroup {
+    width: 100%;
   }
 }
