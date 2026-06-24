@@ -229,6 +229,7 @@ const profileChatsModuleSource = readFileSync(join(moduleDir, "ProfileLiteChatsM
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
 const profileLiteMediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
+const profileGrimoireComposerSource = readFileSync(join(moduleDir, "ProfileLiteGrimoireComposer.jsx"), "utf8");
 const profileCoursesClientSource = readFileSync("src/lib/profileCoursesClient.js", "utf8");
 const profileCoursesModuleSource = readFileSync(join(moduleDir, "ProfileLiteCoursesModule.jsx"), "utf8");
 const adminCoursesPanelSource = readFileSync("src/pages/admin/AdminCoursesPanel.jsx", "utf8");
@@ -1189,6 +1190,19 @@ assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileL
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerTools\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer tools should stack full width");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer buttons should stack full width");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireQuickActionsCard\s+a\s*\{[\s\S]*display: flex/, "Grimoire quick actions should render as separated vertical links");
+assert.match(profileMaterialsModuleSource, /className=\{`grimoireRecordCard grimoirePostCard/, "Grimoire records should render through the post-card contract");
+assert.match(profileMaterialsModuleSource, /className="grimoirePostHeader"/, "Grimoire records should have a post header");
+assert.match(profileMaterialsModuleSource, /className="grimoirePostActions"/, "Grimoire records should keep add/edit/delete actions in the post footer");
+assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onAddToFeed\(material\)\}/, "Grimoire add-to-feed handler must remain wired");
+assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onEdit\(material\)\}/, "Grimoire edit handler must remain wired");
+assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onDelete\(material\)\}/, "Grimoire delete handler must remain wired");
+assert.match(profileGrimoireComposerSource, /type="file"/, "Grimoire composer should keep file upload support");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFile input\[type="file"\]\s*\{[\s\S]*opacity: 0/, "Grimoire composer native file input should be visually hidden");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Grimoire post card should override the legacy side-rail grid");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostIdentity b,[\s\S]*overflow-wrap: anywhere/, "Grimoire post header text should wrap long category/date values");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*display: flex[\s\S]*flex-wrap: wrap/, "Grimoire post actions should be a wrapping footer row");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostHeader\s*\{[\s\S]*grid-template-columns: 38px minmax\(0, 1fr\)/, "Mobile Grimoire post header should avoid a three-column side rail");
+assert.doesNotMatch(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Mobile Grimoire post actions should not regress to a full-width stacked side column");
 
 // ── Media module: folder browser applies to both photos and materials ─────────
 
