@@ -1380,8 +1380,8 @@ assert.match(
 
 assert.match(
   imagePickerSource,
-  /\{ id: "clients", label: "Клиенты" \}[\s\S]*\{ id: "backgrounds", label: "Фон" \}[\s\S]*\{ id: "materials", label: "Материалы" \}/,
-  "ProfileLiteImagePicker source tabs should put Фон between Клиенты and Материалы"
+  /\{ id: "clients", label: "Клиенты" \}[\s\S]*\{ id: "materials", label: "Материалы" \}[\s\S]*\{ id: "backgrounds", label: "Фон" \}[\s\S]*\{ id: "symbols", label: "Символы" \}/,
+  "ProfileLiteImagePicker source tabs should put Фон immediately after Материалы"
 );
 
 assert.match(
@@ -1394,6 +1394,24 @@ assert.match(
   imagePickerSource,
   /activeTab === "backgrounds"[\s\S]*isBackgroundCompatibleImage[\s\S]*newestImagesFirst/,
   "Фон source should filter background-compatible images and sort newest first"
+);
+
+assert.match(
+  imagePickerSource,
+  /handleSourceTabClick[\s\S]*\["clients", "materials", "backgrounds"\]\.includes\(tabId\)[\s\S]*setUploadDestination\(tabId\)/,
+  "selecting Фон should carry the background destination into the upload tab"
+);
+
+assert.match(
+  imagePickerSource,
+  /uploadDestination === "backgrounds"[\s\S]*>Фон<\/button>/,
+  "upload destination tabs should include separate Фон uploads"
+);
+
+assert.match(
+  imagePickerSource,
+  /BACKGROUND_UPLOAD_MATERIAL[\s\S]*group: "backgrounds"[\s\S]*subcategory: "Фон места силы"/,
+  "background uploads should persist separate background metadata"
 );
 
 assert.match(

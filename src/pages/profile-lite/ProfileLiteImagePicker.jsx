@@ -53,6 +53,12 @@ const MATERIAL_FILTER_GROUP_TABS = [
   { value: "all", label: "Все", fullLabel: "Все материалы" },
   ...MATERIAL_GROUP_TABS
 ];
+const BACKGROUND_UPLOAD_MATERIAL = {
+  group: "backgrounds",
+  category: "Фон",
+  subcategory: "Фон места силы",
+  material_type: "background"
+};
 
 function imageTimestamp(image) {
   const parsed = Date.parse(image?.updatedAt || image?.updated_at || image?.createdAt || image?.created_at || image?.uploadedAt || image?.uploaded_at || "");
@@ -175,11 +181,16 @@ export default function ProfileLiteImagePicker({
     ? [{ id: "upload", label: "Загрузить своё" }]
     : [
       { id: "clients", label: "Клиенты" },
-      { id: "backgrounds", label: "Фон" },
       { id: "materials", label: "Материалы" },
+      { id: "backgrounds", label: "Фон" },
       { id: "symbols", label: "Символы" },
       { id: "upload", label: "Загрузить своё" }
     ];
+
+  const handleSourceTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (["clients", "materials", "backgrounds"].includes(tabId)) setUploadDestination(tabId);
+  };
 
   const handleSelect = async (image) => {
     await onSelect(image);
@@ -205,7 +216,9 @@ export default function ProfileLiteImagePicker({
         title: activeUploadDestination === "clients" ? (uploadTitle.trim() || file.name || "") : file.name || "",
         notes: "",
         clientCategory: activeUploadDestination === "clients" ? clientCategory || "all" : undefined,
-        material: buildMaterialPayloadFromSelection(materialSelection)
+        material: activeUploadDestination === "backgrounds"
+          ? BACKGROUND_UPLOAD_MATERIAL
+          : buildMaterialPayloadFromSelection(materialSelection)
       });
       setLocalUploadStatus("success");
       setUploadTitle("");
@@ -238,7 +251,7 @@ export default function ProfileLiteImagePicker({
               className={`imagePickerSourceButton${activeTab === tab.id ? " active" : ""}`}
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleSourceTabClick(tab.id)}
               role="tab"
               aria-selected={activeTab === tab.id}
             >
@@ -333,6 +346,7 @@ export default function ProfileLiteImagePicker({
             <div className="clientPhotoPickerModeTabs imagePickerDestinationTabs" role="tablist" aria-label="Назначение загрузки">
               <button className={uploadDestination === "clients" ? "active" : ""} type="button" onClick={() => setUploadDestination("clients")}>Клиенты</button>
               <button className={uploadDestination === "materials" ? "active" : ""} type="button" onClick={() => setUploadDestination("materials")}>Материалы</button>
+              <button className={uploadDestination === "backgrounds" ? "active" : ""} type="button" onClick={() => setUploadDestination("backgrounds")}>Фон</button>
             </div>
 
             {uploadDestination === "clients" && (

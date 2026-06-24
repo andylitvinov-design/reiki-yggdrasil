@@ -1496,7 +1496,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     material = null,
     clientCategory = "all"
   }) => {
-    if (destination === "materials") {
+    if (destination === "materials" || destination === "backgrounds") {
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
         setMaterialsError("Сначала сохраните профиль мастера.");
         setMaterialsStatus("needs-verification");
@@ -1511,7 +1511,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
           const materialPayload = buildMaterialUploadPublicationPayload({
             profileId: profile.id,
             file: uploadFile,
-            title: uploadFiles.length === 1 ? title || uploadFile.name || "Материал" : uploadFile.name || "Материал",
+            title: uploadFiles.length === 1 ? title || uploadFile.name || (destination === "backgrounds" ? "Фон" : "Материал") : uploadFile.name || (destination === "backgrounds" ? "Фон" : "Материал"),
             imageUrl: uploaded.ref,
             material,
             status: "draft"
