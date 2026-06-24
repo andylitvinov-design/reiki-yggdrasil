@@ -54,6 +54,57 @@ const MATERIAL_FILTER_GROUP_TABS = [
   ...MATERIAL_GROUP_TABS
 ];
 
+function imageTimestamp(image) {
+  const parsed = Date.parse(image?.updatedAt || image?.updated_at || image?.createdAt || image?.created_at || image?.uploadedAt || image?.uploaded_at || "");
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function newestImagesFirst(left, right) {
+  return imageTimestamp(right) - imageTimestamp(left);
+}
+
+function isPhotoLikeImage(image) {
+  const text = `${image?.src || ""} ${image?.displaySrc || ""} ${image?.image_url || ""}`.toLowerCase();
+  return Boolean(image?.src || image?.displaySrc) && (
+    image?.kind === "tradition-asset"
+    || image?.materialType === "photo"
+    || image?.material_type === "photo"
+    || image?.type === "photo"
+    || /\.(png|jpe?g|webp|gif|avif)(\?|#|$)/i.test(text)
+    || text.startsWith("data:image/")
+  );
+}
+
+function isBackgroundCompatibleImage(image) {
+  const kind = String(image?.kind || "").toLowerCase();
+  const type = String(image?.type || image?.materialType || image?.material_type || "").toLowerCase();
+  const destination = String(image?.destination || image?.uploadDestination || image?.upload_destination || "").toLowerCase();
+  const text = [
+    image?.label,
+    image?.title,
+    image?.meta,
+    image?.notes,
+    image?.category,
+    image?.subcategory,
+    image?.src,
+    image?.displaySrc
+  ].filter(Boolean).join(" ").toLowerCase();
+
+  return (
+    kind === "power-place-background"
+    || kind === "background"
+    || kind === "cover"
+    || type === "background"
+    || type === "cover"
+    || type === "underlay"
+    || destination === "background"
+    || destination === "backgrounds"
+    || destination === "cover"
+    || /\b(background|backgrounds|cover|underlay)\b/.test(text)
+    || /фон|обложк/.test(text)
+  );
+}
+
 export default function ProfileLiteImagePicker({
   accountPlan = "start",
   mode = "center",
@@ -68,7 +119,7 @@ export default function ProfileLiteImagePicker({
   uploadStatus = "idle",
   uploadError = ""
 }) {
-  const [activeTab, setActiveTab] = useState(mode === "library" ? "upload" : "clients");
+  const [activeTab, setActiveTab] = useState(mode === "library" ? "upload" : mode === "cover" ? "backgrounds" : "clients");
   const [uploadDestination, setUploadDestination] = useState(defaultLibraryTab === "materials" ? "materials" : "clients");
   const [uploadTitle, setUploadTitle] = useState("");
   const [clientCategory, setClientCategory] = useState("all");
@@ -104,9 +155,18 @@ export default function ProfileLiteImagePicker({
       ));
     }
     if (activeTab === "materials") {
-      return validImages
+      const materialImages = validImages
         .filter((image) => image.kind === "material" || image.kind === "tradition-asset")
-        .filter((image) => materialImageMatchesSelection(image, materialFilterSelection));
+        .filter(isPhotoLikeImage);
+
+      if (materialFilterSelection.group === "all") {
+        return [...materialImages].sort(newestImagesFirst);
+      }
+
+      return materialImages.filter((image) => materialImageMatchesSelection(image, materialFilterSelection));
+    }
+    if (activeTab === "backgrounds") {
+      return validImages.filter(isBackgroundCompatibleImage).sort(newestImagesFirst);
     }
     if (activeTab === "symbols") return symbolImages;
     return validImages;
@@ -115,6 +175,7 @@ export default function ProfileLiteImagePicker({
     ? [{ id: "upload", label: "Загрузить своё" }]
     : [
       { id: "clients", label: "Клиенты" },
+      { id: "backgrounds", label: "Фон" },
       { id: "materials", label: "Материалы" },
       { id: "symbols", label: "Символы" },
       { id: "upload", label: "Загрузить своё" }
