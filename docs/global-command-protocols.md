@@ -1,6 +1,6 @@
 # Global Command Protocols
 
-Status: shared behavior for `/audit`, `/audit-fin`, `/delivery`, UI polish, design quality gates, and deep technical issue writing.
+Status: shared behavior for `/audit`, `/audit-ui`, `/audit-fin`, `/delivery`, UI polish, design quality gates, and deep technical issue writing.
 
 ## `/audit`
 
@@ -42,6 +42,46 @@ NOT VERIFIED
 ```
 
 Do not create vague issues. If code or runtime proof is unavailable, say exactly what is `NOT VERIFIED`.
+
+## `/audit-ui`
+
+Purpose: run a design-focused UI/UX audit from screenshot, link, route, or page description. It proposes competing UI concepts before implementation.
+
+Source protocol:
+
+```txt
+docs/audit-ui-mode.md
+```
+
+Required chain:
+
+```txt
+understand target
+-> resolve project repo
+-> inspect screenshot/link/route
+-> inspect relevant UI code when available
+-> diagnose current UI
+-> run shared design skills and quality gates
+-> list problems and opportunities
+-> generate 5-7 improvement ideas
+-> select top 3 UI concepts
+-> create 3 sketch/mockup directions when possible
+-> compare the 3 concepts
+-> choose recommended concept
+-> create/update GitHub issue
+-> return short report + /delivery prompt
+```
+
+The chat report must include:
+
+- 3 best concepts;
+- recommended concept;
+- why it was selected;
+- sketch/mockup references or descriptions;
+- issue link;
+- short `/delivery` prompt.
+
+The user may choose Concept 1, 2, or 3. `/audit-ui` must not implement code by default.
 
 ## `/audit-fin`
 
