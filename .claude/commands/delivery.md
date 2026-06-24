@@ -59,3 +59,9 @@ STATUS: SUCCESS
 STATUS: SUCCESS_WITH_AUTH_LIMITATION
 STATUS: BLOCKED
 ```
+
+## Final Result Verification Gate compatibility
+
+Before any completion claim, build an Original Request Contract from the user's task and verify every requirement. Allowed verification statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`. Implementation is not completion.
+
+Run the Spiral Validator-Critic Loop from the shared delivery docs when a repair pass needs requirement-by-requirement critique before merge/deploy.

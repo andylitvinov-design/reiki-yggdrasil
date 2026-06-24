@@ -21,6 +21,7 @@
     "verify:debug-contract": "node scripts/verify-reiki-debug-contract.mjs",
     "verify:debug-manifest": "node scripts/verify-reiki-debug-manifest.mjs",
     "check": "npm run verify:debug-contract && npm run verify:debug-manifest && npm run test:profile-bootstrap && npm run test:profile-materials && npm run test:power-place && npm run test:profile-media && npm run test:profile-loading-recovery && npm run test:profile-lite && npm run test:profile-services && npm run test:public-master && npm run test:profile-feed && npm run validate:knowledge && npm run validate:videos && npm run validate:free-courses && npm run build",
+    "delivery:check": "bash scripts/delivery-checks.sh",
     "delivery:checks": "bash scripts/delivery-checks.sh",
     "delivery:status": "bash scripts/delivery-status.sh",
     "smoke:live": "node scripts/live-smoke-test.mjs",

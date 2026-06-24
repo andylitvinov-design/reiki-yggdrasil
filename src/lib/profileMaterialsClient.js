@@ -25,27 +25,28 @@ const PUBLIC_MATERIAL_FIELDS = [
 ].join(",");
 
 export const MATERIAL_TYPES = [
-  { value: "uncategorized", label: "Без категории" },
-  { value: "photo", label: "Фото / образ" },
-  { value: "article", label: "Статья" },
-  { value: "document", label: "Документ" },
-  { value: "audio", label: "Аудио" },
-  { value: "practice", label: "Практика" },
-  { value: "artifact", label: "Артефакт" },
-  { value: "mandala", label: "Мандала" }
+  { value: "ri", label: "РИ" },
+  { value: "channels", label: "Каналы" },
+  { value: "gods", label: "Боги" },
+  { value: "clients", label: "Клиенты" }
 ];
 
 export const GRIMOIRE_CATEGORIES = [
   { value: "all", label: "Все записи" },
   { value: "uncategorized", label: "Без категории" },
-  { value: "photo", label: "Фото / образ" },
-  { value: "article", label: "Статья" },
-  { value: "document", label: "Документ" },
-  { value: "audio", label: "Аудио" },
-  { value: "practice", label: "Практика" },
-  { value: "artifact", label: "Артефакт" },
-  { value: "mandala", label: "Мандала" }
+  ...MATERIAL_TYPES
 ];
+
+const LEGACY_MATERIAL_TYPE_LABELS = new Map([
+  ["photo", "Фото / образ"],
+  ["article", "Статья"],
+  ["document", "Документ"],
+  ["audio", "Аудио"],
+  ["practice", "Практика"],
+  ["artifact", "Артефакт"],
+  ["mandala", "Мандала"],
+  ["uncategorized", "Без категории"]
+]);
 
 const AUDIO_EXTENSIONS = ["mp3", "mp4a", "ogg", "wav", "webm", "aac", "flac", "m4a", "opus"];
 const DOC_EXTENSIONS = ["pdf", "doc", "docx"];
@@ -60,22 +61,20 @@ export function stripFileExtension(filename) {
 }
 
 export function detectMaterialTypeFromFile(file) {
-  if (!file) return "uncategorized";
+  if (!file) return "ri";
   const mimeType = String(file.type || "").toLowerCase();
-  if (mimeType.startsWith("audio/")) return "audio";
-  if (mimeType.startsWith("image/")) return "photo";
-  if (mimeType === "text/plain" || mimeType === "text/markdown") return "article";
+  if (mimeType.startsWith("image/")) return "clients";
+  const ext = String(file.name || "").split(".").pop().toLowerCase();
+  if (IMAGE_EXTENSIONS.includes(ext)) return "clients";
+  if (mimeType.startsWith("audio/") || AUDIO_EXTENSIONS.includes(ext)) return "channels";
   if (
     mimeType === "application/pdf" ||
     mimeType === "application/msword" ||
-    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  ) return "document";
-  const ext = String(file.name || "").split(".").pop().toLowerCase();
-  if (AUDIO_EXTENSIONS.includes(ext)) return "audio";
-  if (IMAGE_EXTENSIONS.includes(ext)) return "photo";
-  if (TEXT_EXTENSIONS.includes(ext)) return "article";
-  if (DOC_EXTENSIONS.includes(ext)) return "document";
-  return "uncategorized";
+    mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    DOC_EXTENSIONS.includes(ext) ||
+    TEXT_EXTENSIONS.includes(ext)
+  ) return "ri";
+  return "ri";
 }
 
 export const MATERIAL_STATUSES = [
@@ -96,7 +95,9 @@ function cleanText(value) {
 }
 
 function cleanType(value) {
-  return MATERIAL_TYPES.some((item) => item.value === value) ? value : "uncategorized";
+  if (MATERIAL_TYPES.some((item) => item.value === value)) return value;
+  if (value === "uncategorized") return "uncategorized";
+  return "ri";
 }
 
 function cleanStatus(value) {
@@ -111,7 +112,7 @@ function cleanSettingIndex(value) {
 
 export function createEmptyMaterialForm(overrides = {}) {
   return {
-    type: "uncategorized",
+    type: "ri",
     title: "",
     description: "",
     image_url: "",
@@ -125,7 +126,7 @@ export function createEmptyMaterialForm(overrides = {}) {
 }
 
 export function publicationTypeLabel(type) {
-  return MATERIAL_TYPES.find((item) => item.value === type)?.label || "Без категории";
+  return MATERIAL_TYPES.find((item) => item.value === type)?.label || LEGACY_MATERIAL_TYPE_LABELS.get(type) || "Без категории";
 }
 
 export function materialStatusText(status) {

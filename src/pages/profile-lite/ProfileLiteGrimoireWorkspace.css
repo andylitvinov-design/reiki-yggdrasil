@@ -41,13 +41,17 @@
 
 .profileLiteGrimoireModule .grimoireComposer {
   display: grid;
-  gap: 12px;
+  gap: 9px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fffdf9;
+  box-shadow: 0 8px 22px rgba(68, 45, 25, 0.06);
 }
 
 .profileLiteGrimoireModule .grimoireComposerHeader {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: start;
 }
 
@@ -70,7 +74,7 @@
 .profileLiteGrimoireModule .grimoireComposerTools {
   display: grid;
   grid-template-columns: minmax(150px, 0.7fr) minmax(180px, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
 }
 
@@ -78,9 +82,9 @@
   position: relative;
   display: grid;
   align-content: center;
-  gap: 5px;
-  min-height: 72px;
-  padding: 12px 14px;
+  gap: 4px;
+  min-height: 58px;
+  padding: 9px 11px;
   border: 1px dashed rgba(184, 121, 29, 0.42);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(255, 251, 243, 0.95), rgba(246, 232, 207, 0.86));
@@ -118,11 +122,34 @@
 .profileLiteGrimoireModule .grimoireComposerActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .profileLiteGrimoireModule .grimoireComposerActions button {
+  min-height: 34px;
   min-width: 0;
+  padding: 8px 12px;
+}
+
+.profileLiteGrimoireModule .grimoireComposerFiles {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(180, 132, 66, 0.22);
+  border-radius: 9px;
+  background: #fffaf1;
+  list-style: none;
+}
+
+.profileLiteGrimoireModule .grimoireComposerFiles li {
+  min-width: 0;
+  overflow: hidden;
+  color: #5a4030;
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profileLiteGrimoireModule .grimoireComposerActions .cabinetGhost {
@@ -135,6 +162,7 @@
 
 .profileLiteGrimoireModule .grimoireComposerMessage,
 .profileLiteGrimoireModule .grimoireComposerWarning,
+.profileLiteGrimoireModule .grimoireComposerFiles li,
 .profileLiteGrimoireModule .grimoireUploaderFormats,
 .profileLiteGrimoireModule .grimoireSelectedFiles li,
 .profileLiteGrimoireModule .grimoirePostBody,
@@ -334,7 +362,7 @@
   .profileLiteGrimoireModule .grimoireComposer {
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     border-radius: 12px;
   }
 
@@ -367,8 +395,8 @@
   }
 
   .profileLiteGrimoireModule .grimoireFileInputLabel {
-    min-height: 132px;
-    padding: 14px;
+    min-height: 104px;
+    padding: 12px;
   }
 
   .profileLiteGrimoireModule .grimoirePostActions {
