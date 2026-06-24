@@ -2309,13 +2309,14 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     }
   };
 
-  const handleServiceStatusChange = async (status) => {
+  const handleServiceStatusChange = async (status, serviceOverride = null) => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setServicesError("Сначала сохраните профиль мастера.");
       setServicesStatus("needs-verification");
       return;
     }
-    if (!serviceForm.id) {
+    const targetService = serviceOverride?.id ? createEmptyServiceForm(serviceOverride) : serviceForm;
+    if (!targetService.id) {
       setServicesError("Выберите услугу из списка перед сменой статуса.");
       setServicesStatus("needs-verification");
       return;
@@ -2325,9 +2326,9 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     setServiceMessage("");
     setServicesError("");
     try {
-      const saved = await updateOwnService(serviceForm.id, { ...serviceForm, profile_id: profile.id, status: normalizedStatus }, session);
+      const saved = await updateOwnService(targetService.id, { ...targetService, profile_id: profile.id, status: normalizedStatus }, session);
       setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
-      setServiceForm(createEmptyServiceForm(saved || { ...serviceForm, status: normalizedStatus }));
+      setServiceForm(createEmptyServiceForm(saved || { ...targetService, status: normalizedStatus }));
       setServicesStatus("success");
       setServiceActionStatus("success");
       setServiceMessage(

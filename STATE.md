@@ -2,6 +2,25 @@
 
 Last updated: 2026-06-24
 
+## 2026-06-24 — Services mobile card/hero repair
+
+- Branch: `codex/issue97-services-mobile-live-20260624`, based on `origin/main` at `c704d2e`.
+- Tracker: `andylitvinov-design/report#97`; live source check showed `https://2mentalica.vercel.app` serves the Reiki Yggdrasil bundle, not the `report` repo bundle.
+- Scope: Profile Lite Services mobile layout, service-card thumbnail rendering, card-level status actions, and contract assertions only; storage/auth/Supabase schema, service data model, public home page, `production`, env values, and live data were not changed.
+- Changed:
+  - shortened the Services hero/title copy to `Услуги и шаблоны` with one compact helper line;
+  - removed the squeezed mobile split for the Services tab and forced the services workspace/list/groups to full width on mobile;
+  - service cards now render an existing `display_url` / `image_url` as the left thumbnail and use a designed placeholder when no image exists;
+  - service cards expose `Редактировать`, `Опубликовать`, and `Спрятать` actions while preserving the existing save/update/status handlers.
+- Verification:
+  - focused Profile Lite and Services tests passed;
+  - `npm ci`, `npm run build`, `npm run check`, and `npm run delivery:checks` passed;
+  - `npm test` and `npm run delivery:check` are not defined in this repo (`delivery:checks` is the actual script);
+  - local Chrome DevTools QA with mocked auth/Supabase at the Services route confirmed no horizontal overflow, compact hero, two service cards, 82px left thumbnails, and full-width 390px cards.
+- Not verified:
+  - real authenticated live Services save/edit/publish/hide against `2mentalica`;
+  - post-merge live deployment, because this entry records local branch state before merge/deploy.
+
 ## 2026-06-24 — Grimoire mobile Facebook-like feed repair
 
 - Branch: `codex/issue97-grimoire-feed-clean`, based on `origin/main` at `5f59977`.

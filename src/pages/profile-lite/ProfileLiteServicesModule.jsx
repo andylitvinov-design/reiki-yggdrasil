@@ -39,6 +39,21 @@ function serviceUiStatusText(status) {
   })[status] || "Готово";
 }
 
+function ServiceThumbnail({ service }) {
+  const previewSrc = service?.display_url || service?.image_url || "";
+  const title = service?.title || "услуга";
+
+  return (
+    <div className={`profileLiteServiceThumb${previewSrc ? " hasImage" : ""}`}>
+      {previewSrc ? (
+        <img alt={`Фото услуги: ${title}`} src={previewSrc} />
+      ) : (
+        <span>◇</span>
+      )}
+    </div>
+  );
+}
+
 export default function ProfileLiteServicesModule({
   activeView = "services",
   onFieldChange,
@@ -181,6 +196,10 @@ export default function ProfileLiteServicesModule({
     setIsEditorOpen(true);
     onServiceSelect(service);
   };
+  const handleServiceStatusAction = (service, status) => {
+    onServiceSelect(service);
+    onStatusChange(status, service);
+  };
   const openNewServiceEditor = () => {
     setIsEditorOpen(true);
   };
@@ -301,8 +320,8 @@ export default function ProfileLiteServicesModule({
       <div className="cabinetFormHeader">
         <div>
           <p className="cabinetEyebrow">Услуги</p>
-          <h3>Черновики и публикации</h3>
-          <p className="cabinetMuted">Шаблоны услуг, редактор и публикации из сохранённых мандал.</p>
+          <h3>Услуги и шаблоны</h3>
+          <p className="cabinetMuted">Черновики, публикации и быстрые действия.</p>
         </div>
         <button className="cabinetSecondary profileLiteEditorToggle" type="button" onClick={openNewServiceEditor}>
           Создать услугу
@@ -323,11 +342,11 @@ export default function ProfileLiteServicesModule({
                 className={`materialCard profileLiteServiceCard ${selectedServiceId === service.id ? "active" : ""}`}
                 key={service.id || service.title}
               >
-                <div className="materialThumb">{serviceStatusText(service.status).slice(0, 1)}</div>
-                <div>
+                <ServiceThumbnail service={service} />
+                <div className="profileLiteServiceCardBody">
                   <h3>{service.title || "Без названия"}</h3>
+                  <small className="profileLiteServiceMeta">{serviceStatusText(service.status)} · {formatServicePrice(service)}</small>
                   <p>{service.description || "Описание не заполнено."}</p>
-                  <small>{formatServicePrice(service)} · {serviceStatusText(service.status)}</small>
                   <p className={status === "published" ? "cabinetNotice" : "cabinetMuted"}>
                     {getServicePublicLinkState(service).message}
                   </p>
@@ -345,6 +364,20 @@ export default function ProfileLiteServicesModule({
                     <button className="cabinetSecondary" disabled={isSaving} onClick={() => handleServiceEdit(service)} type="button">
                       Редактировать
                     </button>
+                    {service.status === "published" ? (
+                      <button className="cabinetSecondary" disabled={isSaving} onClick={() => handleServiceStatusAction(service, "archived")} type="button">
+                        Спрятать
+                      </button>
+                    ) : (
+                      <button
+                        className="cabinetSecondary"
+                        disabled={isSaving || !service.composition_id}
+                        onClick={() => handleServiceStatusAction(service, "published")}
+                        type="button"
+                      >
+                        Опубликовать
+                      </button>
+                    )}
                   </div>
                 </div>
               </article>
@@ -425,11 +458,11 @@ export default function ProfileLiteServicesModule({
         <div className="mandalaHeroSeal">◇</div>
         <div>
           <p className="cabinetEyebrow">{isClientsView ? "Клиенты" : "Услуги"}</p>
-          <h2>{isClientsView ? "Клиентская база" : "Каталог услуг"}</h2>
+          <h2>{isClientsView ? "Клиентская база" : "Услуги и шаблоны"}</h2>
           <p>
             {isClientsView
               ? "Фильтр по клиентам, сохранённые материалы и мандалы клиента."
-              : "Шаблонные услуги, черновики, редактор и публикации из сохранённых мандал."}
+              : "Черновики, публикации и действия по услугам."}
           </p>
         </div>
         <div className="mandalaHeroStats">
@@ -444,7 +477,7 @@ export default function ProfileLiteServicesModule({
           <section className="chatPlaceholderWorkspace" aria-label={isClientsView ? "Клиенты и материалы" : "Шаблоны услуг"}>
             <div className="chatPlaceholderHeader">
               <p className="cabinetEyebrow">{isClientsView ? "Клиенты" : "Услуги"}</p>
-              <h2>{isClientsView ? "Клиенты и материалы" : "Шаблоны, черновики и публикации"}</h2>
+              <h2>{isClientsView ? "Клиенты и материалы" : "Услуги и шаблоны"}</h2>
               <span>
                 {isClientsView
                   ? "Клиентская база, фильтр и сохранённые мандалы клиента."

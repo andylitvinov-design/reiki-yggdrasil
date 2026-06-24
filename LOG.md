@@ -1,5 +1,52 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-24 — Fix Services mobile layout and thumbnails
+
+- Branch: `codex/issue97-services-mobile-live-20260624`.
+- Base: fresh `origin/main` at `c704d2e` (`Add deep technical audit-fin guide`).
+- Tracker/source check:
+  - task referenced `andylitvinov-design/report#97`, but live `https://2mentalica.vercel.app` HTML/title/assets are the Reiki Yggdrasil app;
+  - `andylitvinov-design/report` `origin/main` does not contain the Services screen strings;
+  - patch was applied to `andylitvinov-design/reiki-yggdrasil`, the live source surface for 2mentalica.
+- Changed files:
+  - `src/pages/profile-lite/ProfileLiteServicesModule.jsx`
+  - `src/pages/ProfileLitePage.jsx`
+  - `src/profileMandalaWorkspace.css`
+  - `test/profileLiteCabinetContract.test.mjs`
+  - `STATE.md`
+  - `LOG.md`
+- Root cause:
+  - the Services tab kept the desktop split on mobile, so the main list column stayed narrow and service-card text became a one-word column;
+  - service cards used a small status-letter thumbnail instead of the real service image/preview field;
+  - card actions were mostly pushed into the editor instead of being visible on the service card.
+- Changed:
+  - compacted Services copy to `Услуги и шаблоны` with one helper line;
+  - added `ServiceThumbnail`, using `display_url` / `image_url` when available and a styled placeholder otherwise;
+  - added card-level `Редактировать`, `Опубликовать`, and `Спрятать` actions that pass the clicked service to the existing status handler;
+  - added mobile CSS overrides so the Services workspace/list/groups are full width and service cards use an 82px left thumbnail with the text column taking remaining width.
+- Checks run:
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm ci`
+  - `npm test` failed because this repo has no `test` script
+  - `npm run test:profile-services`
+  - `npm run build`
+  - `npm run delivery:check` failed because this repo uses `delivery:checks`
+  - `npm run delivery:checks`
+  - `npm run check`
+- Check notes:
+  - final focused contracts, Services client tests, `npm ci`, `npm run build`, `npm run delivery:checks`, and `npm run check` exited `0`;
+  - retained existing npm audit report: 1 moderate and 1 high vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4377/profile/services`;
+  - mocked public Supabase/Auth only, with two services including one long title and one missing image;
+  - Chrome DevTools mobile-sized run reported horizontal overflow `0`, hero `468x106`, service columns `468px`, service group widths `412px`, card widths `390px`, card columns `82px 268px`, thumbnails `82x82`, one real image thumbnail and one placeholder, and card actions `Редактировать`, `Опубликовать`, `Скопировать ссылку`, `Редактировать`, `Спрятать`;
+  - screenshot artifact was saved outside the repo at `/private/tmp/issue97-services-mobile-qa.png` and intentionally not committed.
+- Not verified:
+  - real authenticated live Services save/edit/publish/hide against `https://2mentalica.vercel.app`;
+  - live deployment after merge.
+
 ## 2026-06-24 — Repair Grimoire post-feed mobile layout
 
 - Branch: `codex/issue97-grimoire-feed-clean`.
