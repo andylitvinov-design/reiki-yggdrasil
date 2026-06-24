@@ -3,6 +3,7 @@ import {
   createOwnMaterial,
   detectMaterialTypeFromFile,
   GRIMOIRE_CATEGORIES,
+  MATERIAL_TYPES,
   materialStatusText,
   publicationTypeLabel,
   stripFileExtension
@@ -36,7 +37,7 @@ function materialDate(material) {
 function localMaterialPayload({ profileId, title, description, type, imageUrl }) {
   return {
     profile_id: profileId,
-    type: type || "uncategorized",
+    type: type || "ri",
     title: title || "Запись гримуара",
     description: description || "",
     image_url: imageUrl || "",
@@ -100,7 +101,7 @@ function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
   const [form, setForm] = useState({
     title: material.title || "",
     description: material.description || "",
-    type: material.type || "uncategorized",
+    type: MATERIAL_TYPES.some((item) => item.value === material.type) ? material.type : "ri",
     step_title: material.step_title || "",
     setting_title: material.setting_title || ""
   });
@@ -120,7 +121,7 @@ function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
         <label>
           Категория
           <select value={form.type} onChange={(e) => setForm((s) => ({ ...s, type: e.target.value }))}>
-            {GRIMOIRE_CATEGORIES.filter((c) => c.value !== "all").map((c) => (
+            {MATERIAL_TYPES.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
@@ -189,11 +190,12 @@ export default function ProfileLiteMaterialsModule({
     setPendingFiles(event.dataTransfer?.files || []);
   };
 
-  const handleComposerCreate = async ({ title = "", description = "", type = "uncategorized", file = null, forceUncategorized = false } = {}) => {
+  const handleComposerCreate = async ({ title = "", description = "", type = "ri", files = [], forceUncategorized = false } = {}) => {
     const session = getStoredSession();
     const cleanTitle = safeText(title);
     const cleanDescription = safeText(description);
-    if (!cleanTitle && !cleanDescription && !file) throw new Error("Добавьте текст, название или файл.");
+    const selectedFiles = Array.from(files || []).filter(Boolean);
+    if (!cleanTitle && !cleanDescription && !selectedFiles.length) throw new Error("Добавьте текст, название или файл.");
     if (!session?.access_token) throw new Error("Нужно войти в кабинет.");
 
     setComposerStatus("loading");
@@ -202,31 +204,40 @@ export default function ProfileLiteMaterialsModule({
       const profile = await getOwnProfile(user?.id, session);
       if (!profile?.id) throw new Error("Сначала сохраните профиль мастера.");
 
-      let imageUrl = "";
-      let finalType = forceUncategorized ? "uncategorized" : (type || "uncategorized");
-      let finalTitle = cleanTitle;
+      const records = selectedFiles.length ? selectedFiles : [null];
+      const savedRecords = [];
 
-      if (file) {
-        validateGrimoireFile(file);
-        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
-        imageUrl = uploaded.ref;
-        if (!finalTitle) finalTitle = stripFileExtension(file.name) || "Запись гримуара";
-        if (!forceUncategorized && (!type || type === "uncategorized")) finalType = detectMaterialTypeFromFile(file);
+      for (const file of records) {
+        let imageUrl = "";
+        let finalType = forceUncategorized ? "uncategorized" : (type || "ri");
+        let finalTitle = cleanTitle;
+
+        if (file) {
+          validateGrimoireFile(file);
+          const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
+          imageUrl = uploaded.ref;
+          if (!finalTitle) finalTitle = stripFileExtension(file.name) || "Запись гримуара";
+          if (!forceUncategorized && !type) finalType = detectMaterialTypeFromFile(file);
+        }
+
+        if (!finalTitle) finalTitle = cleanDescription.slice(0, 64) || "Запись гримуара";
+
+        const saved = await createOwnMaterial(localMaterialPayload({
+          profileId: profile.id,
+          title: finalTitle,
+          description: cleanDescription,
+          type: finalType,
+          imageUrl
+        }), session);
+        if (saved) savedRecords.push(saved);
       }
 
-      if (!finalTitle) finalTitle = cleanDescription.slice(0, 64) || "Запись гримуара";
-
-      const saved = await createOwnMaterial(localMaterialPayload({
-        profileId: profile.id,
-        title: finalTitle,
-        description: cleanDescription,
-        type: finalType,
-        imageUrl
-      }), session);
-
-      setLocalMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setLocalMaterials((current) => [
+        ...savedRecords,
+        ...current.filter((item) => !savedRecords.some((saved) => saved?.id === item.id))
+      ].filter(Boolean));
       setComposerStatus("success");
-      return saved;
+      return savedRecords;
     } catch (error) {
       setComposerStatus("needs-verification");
       throw error;
@@ -348,7 +359,7 @@ export default function ProfileLiteMaterialsModule({
           <div className="cabinetCard grimoireUploaderCard">
             <p className="cabinetEyebrow">Быстрая загрузка</p>
             <h3>Добавить записи</h3>
-            <p className="grimoireUploaderHint">Загрузите один или несколько файлов. Категория и описание — необязательны при загрузке, их можно добавить после.</p>
+            <p className="grimoireUploaderHint">Загрузите один или несколько файлов. Быстрая загрузка сохранит их в РИ; категорию и описание можно уточнить после.</p>
             <label className="grimoireFileInputLabel" onDragOver={(event) => event.preventDefault()} onDrop={handleFileDrop}>
               <input
                 type="file"
@@ -360,7 +371,7 @@ export default function ProfileLiteMaterialsModule({
               <span className="grimoireFileInputText">
                 Перетащите файлы сюда или выберите с телефона
               </span>
-              <small>Без категории по умолчанию. Разберите позже.</small>
+              <small>РИ по умолчанию. Можно разобрать после загрузки.</small>
             </label>
             {selectedFiles.length > 0 && (
               <div className="grimoireSelectedFiles" aria-label="Выбранные файлы">
@@ -382,7 +393,7 @@ export default function ProfileLiteMaterialsModule({
           <div className="cabinetCard grimoireQuickStatsCard">
             <p className="cabinetEyebrow">Неразобранное</p>
             <h3>{uncategorizedCount} материалов</h3>
-            <p>Быстрый вход в материалы, которые нужно назвать, описать и разложить.</p>
+            <p>Разберите позже: быстрый вход в материалы, которые нужно назвать, описать и разложить.</p>
             <button className="cabinetSecondary" type="button" onClick={() => setActiveFilter("uncategorized")}>Показать</button>
           </div>
 

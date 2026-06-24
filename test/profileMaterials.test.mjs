@@ -13,14 +13,16 @@ import {
 
 const empty = createEmptyMaterialForm();
 
-assert.equal(empty.type, "uncategorized");
+assert.equal(empty.type, "ri");
 assert.equal(empty.status, "draft");
 assert.equal(empty.image_url, "");
 
-// MATERIAL_TYPES includes uncategorized
-assert.ok(MATERIAL_TYPES.some((t) => t.value === "uncategorized"), "MATERIAL_TYPES should include uncategorized");
-assert.ok(MATERIAL_TYPES.some((t) => t.value === "photo"), "MATERIAL_TYPES should include photo");
-assert.ok(MATERIAL_TYPES.some((t) => t.value === "audio"), "MATERIAL_TYPES should include audio");
+assert.deepEqual(
+  MATERIAL_TYPES.map((t) => t.label),
+  ["РИ", "Каналы", "Боги", "Клиенты"],
+  "MATERIAL_TYPES should expose exactly the primary Grimoire categories"
+);
+assert.ok(!MATERIAL_TYPES.some((t) => t.value === "uncategorized"), "MATERIAL_TYPES should not expose uncategorized in primary inputs");
 
 // unknown type falls back to uncategorized (not mandala)
 assert.deepEqual(
@@ -42,7 +44,7 @@ assert.deepEqual(
     "pending"
   ),
   {
-    type: "uncategorized",
+    type: "ri",
     material_group: "channels",
     material_type: "mandala",
     title: "Мандала здоровья",
@@ -69,14 +71,18 @@ assert.equal(publicationTypeLabel("photo"), "Фото / образ");
 assert.equal(publicationTypeLabel("audio"), "Аудио");
 assert.equal(publicationTypeLabel("document"), "Документ");
 assert.equal(publicationTypeLabel("uncategorized"), "Без категории");
+assert.equal(publicationTypeLabel("ri"), "РИ");
+assert.equal(publicationTypeLabel("channels"), "Каналы");
+assert.equal(publicationTypeLabel("gods"), "Боги");
+assert.equal(publicationTypeLabel("clients"), "Клиенты");
 assert.equal(materialStatusText("pending"), "на модерации");
 
 // GRIMOIRE_CATEGORIES includes all filter options
 assert.ok(Array.isArray(GRIMOIRE_CATEGORIES), "GRIMOIRE_CATEGORIES should be an array");
 assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "all"), "GRIMOIRE_CATEGORIES should include 'all'");
 assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "uncategorized"), "GRIMOIRE_CATEGORIES should include 'uncategorized'");
-assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "photo"), "GRIMOIRE_CATEGORIES should include 'photo'");
-assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "audio"), "GRIMOIRE_CATEGORIES should include 'audio'");
+assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "ri"), "GRIMOIRE_CATEGORIES should include 'ri'");
+assert.ok(GRIMOIRE_CATEGORIES.some((c) => c.value === "clients"), "GRIMOIRE_CATEGORIES should include 'clients'");
 
 // stripFileExtension
 assert.equal(stripFileExtension("image.jpg"), "image");
@@ -84,11 +90,11 @@ assert.equal(stripFileExtension("my.practice.pdf"), "my.practice");
 assert.equal(stripFileExtension("noextension"), "noextension");
 
 // detectMaterialTypeFromFile
-assert.equal(detectMaterialTypeFromFile({ type: "audio/mpeg", name: "track.mp3" }), "audio");
-assert.equal(detectMaterialTypeFromFile({ type: "application/pdf", name: "doc.pdf" }), "document");
-assert.equal(detectMaterialTypeFromFile({ type: "image/jpeg", name: "pic.jpg" }), "photo");
-assert.equal(detectMaterialTypeFromFile({ type: "text/plain", name: "note.txt" }), "article");
-assert.equal(detectMaterialTypeFromFile({ type: "text/markdown", name: "readme.md" }), "article");
-assert.equal(detectMaterialTypeFromFile({ type: "application/msword", name: "file.doc" }), "document");
-assert.equal(detectMaterialTypeFromFile({ type: "", name: "unknown.xyz" }), "uncategorized");
-assert.equal(detectMaterialTypeFromFile(null), "uncategorized");
+assert.equal(detectMaterialTypeFromFile({ type: "audio/mpeg", name: "track.mp3" }), "channels");
+assert.equal(detectMaterialTypeFromFile({ type: "application/pdf", name: "doc.pdf" }), "ri");
+assert.equal(detectMaterialTypeFromFile({ type: "image/jpeg", name: "pic.jpg" }), "clients");
+assert.equal(detectMaterialTypeFromFile({ type: "text/plain", name: "note.txt" }), "ri");
+assert.equal(detectMaterialTypeFromFile({ type: "text/markdown", name: "readme.md" }), "ri");
+assert.equal(detectMaterialTypeFromFile({ type: "application/msword", name: "file.doc" }), "ri");
+assert.equal(detectMaterialTypeFromFile({ type: "", name: "unknown.xyz" }), "ri");
+assert.equal(detectMaterialTypeFromFile(null), "ri");

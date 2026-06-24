@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { MATERIAL_TYPES } from "../../lib/profileMaterialsClient.js";
 
-const DEFAULT_TYPE = "uncategorized";
+const DEFAULT_TYPE = "ri";
 
-function filenameLabel(file) {
-  if (!file) return "Файл не выбран";
-  return `${file.name || "файл"}${file.size ? ` · ${Math.ceil(file.size / 1024)} KB` : ""}`;
+function filenamesLabel(files) {
+  if (!files.length) return "Файлы не выбраны";
+  if (files.length === 1) {
+    const file = files[0];
+    return `${file.name || "файл"}${file.size ? ` · ${Math.ceil(file.size / 1024)} KB` : ""}`;
+  }
+  return `Выбрано файлов: ${files.length}`;
 }
 
 export default function ProfileLiteGrimoireComposer({
@@ -17,7 +21,7 @@ export default function ProfileLiteGrimoireComposer({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState(DEFAULT_TYPE);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -25,18 +29,18 @@ export default function ProfileLiteGrimoireComposer({
     setTitle("");
     setDescription("");
     setType(DEFAULT_TYPE);
-    setFile(null);
+    setFiles([]);
   };
 
   const handleFileChange = (event) => {
-    setFile(event.target.files?.[0] || null);
+    setFiles(Array.from(event.target.files || []));
     event.target.value = "";
     setMessage("");
   };
 
   const handleSubmit = async (forceUncategorized = false) => {
     if (disabled || submitting) return;
-    if (!title.trim() && !description.trim() && !file) {
+    if (!title.trim() && !description.trim() && !files.length) {
       setMessage("Добавьте текст, название или файл.");
       return;
     }
@@ -47,8 +51,8 @@ export default function ProfileLiteGrimoireComposer({
       await onCreate({
         title,
         description,
-        type: forceUncategorized ? DEFAULT_TYPE : type,
-        file,
+        type: forceUncategorized ? "uncategorized" : type,
+        files,
         forceUncategorized
       });
       reset();
@@ -105,14 +109,23 @@ export default function ProfileLiteGrimoireComposer({
         <label className="grimoireComposerFile">
           <input
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/webm,audio/ogg,audio/aac,application/pdf,text/plain,text/markdown,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             onChange={handleFileChange}
             disabled={disabled || submitting}
           />
-          <span>+ Фото / файл</span>
-          <small>{filenameLabel(file)}</small>
+          <span>+ Фото / файлы</span>
+          <small>{filenamesLabel(files)}</small>
         </label>
       </div>
+
+      {files.length > 0 && (
+        <ul className="grimoireComposerFiles" aria-label="Файлы для записи">
+          {files.map((file) => (
+            <li key={`${file.name}-${file.size}`}>{file.name}</li>
+          ))}
+        </ul>
+      )}
 
       <div className="grimoireComposerActions">
         <button className="cabinetPrimary" type="button" onClick={() => handleSubmit(false)} disabled={disabled || submitting}>

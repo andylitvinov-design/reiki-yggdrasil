@@ -926,6 +926,10 @@ assert.match(grimoireModuleSource, /Загрузить в гримуар/, "Grim
 assert.match(grimoireModuleSource, /type="file"[\s\S]*multiple/, "Grimoire uploader should be a multi-file input");
 assert.match(grimoireModuleSource, /Перетащите файлы сюда или выберите с телефона/, "Grimoire uploader should expose a clear drop-zone instruction");
 assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should keep selected files before upload");
+assert.match(grimoireModuleSource, /MATERIAL_TYPES\.map/, "Grimoire edit select should use the primary category list");
+assert.doesNotMatch(grimoireModuleSource, /Без категории по умолчанию/, "Grimoire uploader should not present uncategorized as the new default");
+assert.match(grimoireModuleSource, /const records = selectedFiles\.length \? selectedFiles : \[null\]/, "Grimoire composer save should preserve text-only posts and multi-file posts");
+assert.match(grimoireModuleSource, /for \(const file of records\)[\s\S]*createOwnMaterial/, "Grimoire composer save should create one material record per selected file");
 assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
 assert.match(grimoireModuleSource, /Разберите позже/, "Uncategorized records should be treated as the main working state");
 assert.match(grimoireModuleSource, /Гримуар пуст/, "Empty grimoire should use the dedicated empty state title");
@@ -1212,7 +1216,12 @@ assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onAddToFeed\(mater
 assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onEdit\(material\)\}/, "Grimoire edit handler must remain wired");
 assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onDelete\(material\)\}/, "Grimoire delete handler must remain wired");
 assert.match(profileGrimoireComposerSource, /type="file"/, "Grimoire composer should keep file upload support");
+assert.match(profileGrimoireComposerSource, /type="file"[\s\S]*multiple/, "Grimoire composer file input should support multiple files");
+assert.match(profileGrimoireComposerSource, /useState\(\[\]\)/, "Grimoire composer should store selected files as an array");
+assert.match(profileGrimoireComposerSource, /Array\.from\(event\.target\.files \|\| \[\]\)/, "Grimoire composer should keep all selected files");
+assert.match(profileGrimoireComposerSource, /grimoireComposerFiles/, "Grimoire composer should render the selected file list");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFile input\[type="file"\]\s*\{[\s\S]*opacity: 0/, "Grimoire composer native file input should be visually hidden");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFiles\s*\{/, "Grimoire composer selected files should have compact styled list");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Grimoire post card should override the legacy side-rail grid");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostIdentity b,[\s\S]*overflow-wrap: anywhere/, "Grimoire post header text should wrap long category/date values");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*display: flex[\s\S]*flex-wrap: wrap/, "Grimoire post actions should be a wrapping footer row");
