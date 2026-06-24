@@ -31,6 +31,7 @@ understand target
 -> generate 5-7 improvement ideas
 -> select top 3 UI concepts
 -> create 3 sketch/mockup directions when possible
+-> score concepts with decision rubric
 -> compare the 3 concepts
 -> choose recommended concept
 -> create/update GitHub issue
@@ -43,6 +44,7 @@ Before proposing concepts, run:
 
 ```txt
 docs/audit-ui-expert-frameworks.md
+docs/audit-ui-decision-rubric.md
 ```
 
 Required lenses:
@@ -63,6 +65,7 @@ Use:
 
 - `jakubkrehel/make-interfaces-feel-better` when installed;
 - `docs/audit-ui-expert-frameworks.md`;
+- `docs/audit-ui-decision-rubric.md`;
 - fallback checklist from `docs/audit-ui-polish-skill.md` or equivalent;
 - `docs/delivery-design-quality-gate.md`;
 - visual hierarchy, spacing/rhythm, typography, density, contrast, CTA clarity;
@@ -95,13 +98,14 @@ The issue must include:
 - target screenshot/link/route;
 - current UI diagnosis;
 - expert framework review;
+- UI anti-pattern checklist;
 - confirmed problems;
 - suspected problems;
 - missed opportunities;
 - 5-7 improvement ideas;
 - top 3 concepts;
 - sketch/mockup notes for all 3 concepts;
-- comparison table;
+- scored comparison table from `docs/audit-ui-decision-rubric.md`;
 - recommended concept;
 - implementation direction;
 - do-not-touch rules;
@@ -146,9 +150,12 @@ Choose the recommended concept by scoring:
 
 - clarity;
 - visual quality;
+- mobile first-screen quality;
+- CTA/action clarity;
+- information architecture;
+- accessibility basics;
 - implementation effort;
 - regression risk;
-- mobile quality;
 - product fit;
 - ability to preserve existing behavior.
 
