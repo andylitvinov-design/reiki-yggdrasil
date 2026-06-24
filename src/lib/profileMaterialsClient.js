@@ -37,7 +37,7 @@ export const MATERIAL_TYPES = [
 export const DB_SAFE_GRIMOIRE_TYPE = "practice";
 export const TAXONOMY_ALL = "all";
 export const TAXONOMY_UNCLASSIFIED = "unclassified";
-export const TAXONOMY_UNCLASSIFIED_LABEL = "Неразобранно";
+export const TAXONOMY_UNCLASSIFIED_LABEL = "Неразобрано";
 export const GRIMOIRE_TAXONOMY_NEEDS_VERIFICATION = true;
 
 export const GRIMOIRE_TAXONOMY = [

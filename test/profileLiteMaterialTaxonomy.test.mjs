@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import {
   MATERIAL_GROUP_TABS,
   buildMaterialPayloadFromSelection,
+  getDefaultMaterialFilterSelection,
   getMaterialCategoryOptions,
   getMaterialSubcategoryOptions,
+  getUnclassifiedMaterialSelection,
   materialImageMatchesSelection,
   normalizeMaterialSelection
 } from "../src/pages/profile-lite/profileLiteMaterialTaxonomy.js";
@@ -27,18 +29,20 @@ assert.ok(greekEntities.some((entity) => entity.value === "hera" && entity.label
 assert.ok(greekEntities.some((entity) => entity.value === "athena" && entity.label === "Афина"));
 
 const daoCategories = getMaterialCategoryOptions("dao-ri");
-assert.ok(daoCategories[0].value.startsWith("level-"));
-assert.match(daoCategories[0].label, /^1\. /);
+assert.equal(daoCategories[0].value, "unclassified");
+assert.equal(daoCategories[0].label, "Неразобрано");
+assert.ok(daoCategories[1].value.startsWith("level-"));
+assert.match(daoCategories[1].label, /^1\. /);
 
-const daoSubcategories = getMaterialSubcategoryOptions("dao-ri", daoCategories[0].value);
+const daoSubcategories = getMaterialSubcategoryOptions("dao-ri", daoCategories[1].value);
 assert.ok(daoSubcategories.some((option) => option.step_id === "RY-L01-S01" && option.setting_title === "Лечение"));
 
 const channelsCategories = getMaterialCategoryOptions("channels");
 assert.deepEqual(
   channelsCategories.map((category) => category.label),
-  ["Сефирот", "Руны", "Планеты", "Деньги", "Жизнь"]
+  ["Неразобрано", "Сефирот", "Руны", "Планеты", "Деньги", "Жизнь"]
 );
-assert.deepEqual(getMaterialSubcategoryOptions("channels", channelsCategories[0].value), [
+assert.deepEqual(getMaterialSubcategoryOptions("channels", channelsCategories[1].value), [
   {
     value: "all-channels",
     label: "Все каналы",
@@ -50,7 +54,58 @@ assert.deepEqual(getMaterialSubcategoryOptions("channels", channelsCategories[0]
   }
 ]);
 
-const normalizedGodSelection = normalizeMaterialSelection("god-channels", daoCategories[0].value, daoSubcategories[0].value);
+const filterDefault = getDefaultMaterialFilterSelection();
+assert.deepEqual(
+  {
+    group: filterDefault.group,
+    categoryValue: filterDefault.categoryValue,
+    subcategoryValue: filterDefault.subcategoryValue
+  },
+  { group: "all", categoryValue: "all", subcategoryValue: "all" },
+  "material browser filter must start from Все, not the first concrete category"
+);
+
+const uploadDefault = getUnclassifiedMaterialSelection();
+assert.deepEqual(
+  {
+    group: uploadDefault.group,
+    categoryValue: uploadDefault.categoryValue,
+    subcategoryValue: uploadDefault.subcategoryValue
+  },
+  { group: "dao-ri", categoryValue: "unclassified", subcategoryValue: "unclassified" },
+  "material upload must default to explicit Неразобрано"
+);
+
+assert.deepEqual(buildMaterialPayloadFromSelection(uploadDefault), {
+  group: "unclassified",
+  category: "unclassified",
+  subcategory: "unclassified",
+  step_id: "",
+  step_title: "",
+  setting_title: "",
+  setting_index: null,
+  type: "mandala"
+});
+
+assert.equal(
+  materialImageMatchesSelection(
+    { kind: "material", material_group: "channels", category: "Деньги", subcategory: "Все каналы" },
+    filterDefault
+  ),
+  true,
+  "all material filter should show already-classified materials"
+);
+
+assert.equal(
+  materialImageMatchesSelection(
+    { kind: "material", material_group: "uncategorized", category: "uncategorized", subcategory: "uncategorized" },
+    uploadDefault
+  ),
+  true,
+  "unclassified filter should remain backward-compatible with legacy uncategorized rows"
+);
+
+const normalizedGodSelection = normalizeMaterialSelection("god-channels", "greek", "zeus");
 assert.equal(normalizedGodSelection.group, "god-channels");
 assert.equal(normalizedGodSelection.categoryValue, "greek");
 assert.equal(normalizedGodSelection.subcategoryValue, "zeus");
@@ -66,7 +121,7 @@ assert.deepEqual(buildMaterialPayloadFromSelection(normalizedGodSelection), {
   type: "mandala"
 });
 
-const daoSelection = normalizeMaterialSelection("dao-ri", daoCategories[0].value, daoSubcategories[0].value);
+const daoSelection = normalizeMaterialSelection("dao-ri", daoCategories[1].value, daoSubcategories[0].value);
 const daoPayload = buildMaterialPayloadFromSelection(daoSelection);
 assert.equal(daoPayload.group, "dao-ri");
 assert.equal(daoPayload.category, daoSelection.categoryOption.label);

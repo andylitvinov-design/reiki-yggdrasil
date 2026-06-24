@@ -7,8 +7,10 @@ import {
 import {
   MATERIAL_GROUP_TABS,
   buildMaterialPayloadFromSelection,
+  getDefaultMaterialFilterSelection,
   getMaterialCategoryOptions,
   getMaterialSubcategoryOptions,
+  getUnclassifiedMaterialSelection,
   materialImageMatchesSelection,
   normalizeMaterialSelection
 } from "./profileLiteMaterialTaxonomy.js";
@@ -47,6 +49,11 @@ const CLIENT_PHOTO_SUBCATEGORIES = [
   { value: "pro-more-clients", label: "Больше клиентов / Pro mode /", proOnly: true }
 ];
 
+const MATERIAL_FILTER_GROUP_TABS = [
+  { value: "all", label: "Все", fullLabel: "Все материалы" },
+  ...MATERIAL_GROUP_TABS
+];
+
 export default function ProfileLiteImagePicker({
   accountPlan = "start",
   mode = "center",
@@ -66,13 +73,14 @@ export default function ProfileLiteImagePicker({
   const [uploadTitle, setUploadTitle] = useState("");
   const [clientCategory, setClientCategory] = useState("all");
   const [symbolShelf, setSymbolShelf] = useState(() => symbolShelfForConstructorType(constructorType));
-  const defaultMaterialSelection = useMemo(() => normalizeMaterialSelection("dao-ri"), []);
-  const [materialGroup, setMaterialGroup] = useState(defaultMaterialSelection.group);
-  const [materialCategory, setMaterialCategory] = useState(defaultMaterialSelection.categoryValue);
-  const [materialSubcategory, setMaterialSubcategory] = useState(defaultMaterialSelection.subcategoryValue);
-  const [materialFilterGroup, setMaterialFilterGroup] = useState(defaultMaterialSelection.group);
-  const [materialFilterCategory, setMaterialFilterCategory] = useState(defaultMaterialSelection.categoryValue);
-  const [materialFilterSubcategory, setMaterialFilterSubcategory] = useState(defaultMaterialSelection.subcategoryValue);
+  const defaultUploadMaterialSelection = useMemo(() => getUnclassifiedMaterialSelection(), []);
+  const defaultMaterialFilterSelection = useMemo(() => getDefaultMaterialFilterSelection(), []);
+  const [materialGroup, setMaterialGroup] = useState(defaultUploadMaterialSelection.group);
+  const [materialCategory, setMaterialCategory] = useState(defaultUploadMaterialSelection.categoryValue);
+  const [materialSubcategory, setMaterialSubcategory] = useState(defaultUploadMaterialSelection.subcategoryValue);
+  const [materialFilterGroup, setMaterialFilterGroup] = useState(defaultMaterialFilterSelection.group);
+  const [materialFilterCategory, setMaterialFilterCategory] = useState(defaultMaterialFilterSelection.categoryValue);
+  const [materialFilterSubcategory, setMaterialFilterSubcategory] = useState(defaultMaterialFilterSelection.subcategoryValue);
   const [localUploadStatus, setLocalUploadStatus] = useState("idle");
   const [localUploadError, setLocalUploadError] = useState("");
   const [uploadFileCount, setUploadFileCount] = useState(0);
@@ -202,7 +210,7 @@ export default function ProfileLiteImagePicker({
             <div className="profileLiteMaterialGroupField">
               <span>Группа</span>
               <div className="imagePickerMaterialGroupTabs" role="tablist" aria-label="Группа материалов">
-                {MATERIAL_GROUP_TABS.map((group) => (
+                {MATERIAL_FILTER_GROUP_TABS.map((group) => (
                   <button
                     key={group.value}
                     className={materialFilterSelection.group === group.value ? "active" : ""}
@@ -210,7 +218,9 @@ export default function ProfileLiteImagePicker({
                     role="tab"
                     aria-selected={materialFilterSelection.group === group.value}
                     onClick={() => {
-                      const nextSelection = normalizeMaterialSelection(group.value);
+                      const nextSelection = group.value === "all"
+                        ? getDefaultMaterialFilterSelection()
+                        : normalizeMaterialSelection(group.value);
                       setMaterialFilterGroup(nextSelection.group);
                       setMaterialFilterCategory(nextSelection.categoryValue);
                       setMaterialFilterSubcategory(nextSelection.subcategoryValue);
