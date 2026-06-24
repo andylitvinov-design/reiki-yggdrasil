@@ -208,6 +208,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacInnerPositionImage[style],
 .profileLitePowerPlace .zodiacRibbonCellImage[style],
 .profileLitePowerPlace .starPositionImage[style],
+.profileLitePowerPlace .starAdditionalPositionImage[style],
 .profileLitePowerPlace .daoElementImage.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage,
 .powerPlacePdfOnlyArea .powerSource.hasImage,
@@ -219,6 +220,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacInnerPositionImage[style],
 .powerPlacePdfOnlyArea .zodiacRibbonCellImage[style],
 .powerPlacePdfOnlyArea .starPositionImage[style],
+.powerPlacePdfOnlyArea .starAdditionalPositionImage[style],
 .powerPlacePdfOnlyArea .daoElementImage.hasImage {
   background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
   background-repeat: no-repeat !important;
@@ -249,6 +251,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacRibbonCellImage[style]::after,
 .profileLitePowerPlace .starPositionImage[style]::before,
 .profileLitePowerPlace .starPositionImage[style]::after,
+.profileLitePowerPlace .starAdditionalPositionImage[style]::before,
+.profileLitePowerPlace .starAdditionalPositionImage[style]::after,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::before,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::after,
 .powerPlacePdfOnlyArea .powerSource.hasImage::before,
@@ -270,7 +274,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacRibbonCellImage[style]::before,
 .powerPlacePdfOnlyArea .zodiacRibbonCellImage[style]::after,
 .powerPlacePdfOnlyArea .starPositionImage[style]::before,
-.powerPlacePdfOnlyArea .starPositionImage[style]::after {
+.powerPlacePdfOnlyArea .starPositionImage[style]::after,
+.powerPlacePdfOnlyArea .starAdditionalPositionImage[style]::before,
+.powerPlacePdfOnlyArea .starAdditionalPositionImage[style]::after {
   display: none !important;
   content: none !important;
   box-shadow: none !important;

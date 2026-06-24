@@ -1091,9 +1091,30 @@ assert.match(publicationTaxonomyMigrations, /profile_cabinet_publications_materi
 assert.match(publicationTaxonomyMigrations, /notify\s+pgrst,\s*'reload schema'/i, "publication taxonomy migrations must reload the PostgREST schema cache");
 
 const supabaseMigrationRunnerSource = readFileSync("scripts/apply-reiki-supabase-migrations.mjs", "utf8");
+const starFormatVariantMigration = readFileSync("supabase/migrations/20260624120000_power_place_star_format_variant.sql", "utf8");
+
+assert.match(
+  starFormatVariantMigration,
+  /add column if not exists star_format_variant text not null default 'classic'/,
+  "Star format migration must add star_format_variant with Star 1 as the old-composition default"
+);
+
+assert.match(
+  starFormatVariantMigration,
+  /check \(star_format_variant in \('classic', 'star-2-10'\)\)/,
+  "Star format migration must constrain values to Star 1 and Star 2"
+);
+
+assert.match(
+  starFormatVariantMigration,
+  /notify\s+pgrst,\s*'reload schema'/i,
+  "Star format migration must reload PostgREST schema cache"
+);
+
 for (const migrationFile of [
   "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
-  "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql"
+  "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql",
+  "supabase/migrations/20260624120000_power_place_star_format_variant.sql"
 ]) {
   assert.match(
     supabaseMigrationRunnerSource,
@@ -1101,6 +1122,12 @@ for (const migrationFile of [
     `Supabase migration runner must allow ${migrationFile}`
   );
 }
+
+assert.match(
+  supabaseMigrationRunnerSource,
+  /profile_cabinet_power_place_compositions[\s\S]*column_name = 'star_format_variant'/,
+  "Supabase migration runner must verify profile_cabinet_power_place_compositions.star_format_variant"
+);
 
 for (const columnName of ["material_group", "material_type", "category", "subcategory"]) {
   assert.match(
@@ -1796,6 +1823,68 @@ assert.match(
   powerPlaceBaseSource,
   /zodiacInnerPosition/,
   "Zodiac JSX must render zodiacInnerPosition elements for inner ring slots"
+);
+
+// ── Star 1 / Star 2 format contract ─────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /STAR_2_VARIANT/,
+  "Base module must define STAR_2_VARIANT constant for the new Star 2 format"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /star-2-10/,
+  "Base module must use a stable star-2-10 variant value for Star 2"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /STAR_FORMAT_VARIANTS[\s\S]*Звезда 1[\s\S]*Звезда 2/,
+  "Star format selector must expose Звезда 1 and Звезда 2 labels"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /star_format_variant/,
+  "Star 1 / Star 2 must use a dedicated star_format_variant field instead of overloading star_variant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /STAR_ADDITIONAL_POINTS/,
+  "Star 2 must define five additional mandala slots separately from the existing five ray slots"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /if \(isStar2Format\(draft\.star_format_variant\)\) return \[\.\.\.starSlots, \.\.\.STAR_ADDITIONAL_POINTS/,
+  "Star 2 slot list must return the five existing star slots plus the five additional slots"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /aria-label="Формат звезды"[\s\S]*STAR_FORMAT_VARIANTS[\s\S]*onCompositionDraftChange\("star_format_variant"/,
+  "Star controls must include a dedicated format selector that writes star_format_variant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /aria-label="Вариант звезды"[\s\S]*STAR_VARIANTS[\s\S]*onCompositionDraftChange\("star_variant"/,
+  "Closed/open Star visual subtype must remain a separate star_variant selector"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /star-2-format/,
+  "Star JSX must apply star-2-format class when Star 2 is active"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /starAdditionalPosition/,
+  "Star JSX must render Star 2 additional slots with a separate wrapper class"
 );
 
 assert.match(
