@@ -133,6 +133,29 @@ export function materialStatusText(status) {
   return MATERIAL_STATUSES.find((item) => item.value === status)?.label || "черновик";
 }
 
+export function getGrimoirePreviewUrl(material) {
+  const displayUrl = cleanText(material?.display_url ?? material?.displayUrl);
+  if (displayUrl) return displayUrl;
+
+  const signedUrl = cleanText(material?.signed_url ?? material?.signedUrl);
+  if (signedUrl) return signedUrl;
+
+  const imageUrl = cleanText(material?.image_url ?? material?.imageUrl);
+  return isStorageRef(imageUrl) ? "" : imageUrl;
+}
+
+export function isGrimoireFeedVisible(material) {
+  return cleanStatus(material?.status) === "approved" || Boolean(material?.feed_item_id || material?.feedItemId);
+}
+
+export function getGrimoireFeedActionLabel(material) {
+  return isGrimoireFeedVisible(material) ? "Спрятать" : "Добавить в ленту";
+}
+
+export function getGrimoireNextVisibilityStatus(material) {
+  return isGrimoireFeedVisible(material) ? "draft" : "approved";
+}
+
 export function normalizeMaterialForm(form, requestedStatus = form?.status) {
   return {
     type: cleanType(form?.type),

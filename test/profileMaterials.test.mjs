@@ -5,6 +5,9 @@ import {
   MATERIAL_TYPES,
   createEmptyMaterialForm,
   detectMaterialTypeFromFile,
+  getGrimoireFeedActionLabel,
+  getGrimoireNextVisibilityStatus,
+  getGrimoirePreviewUrl,
   materialStatusText,
   normalizeMaterialForm,
   publicationTypeLabel,
@@ -98,3 +101,28 @@ assert.equal(detectMaterialTypeFromFile({ type: "text/markdown", name: "readme.m
 assert.equal(detectMaterialTypeFromFile({ type: "application/msword", name: "file.doc" }), "ri");
 assert.equal(detectMaterialTypeFromFile({ type: "", name: "unknown.xyz" }), "ri");
 assert.equal(detectMaterialTypeFromFile(null), "ri");
+
+assert.equal(
+  getGrimoirePreviewUrl({ display_url: "https://signed.example/img.jpg", image_url: "storage://profile-cabinet-media/p/img.jpg" }),
+  "https://signed.example/img.jpg",
+  "Grimoire cards should render the hydrated signed URL for private storage media"
+);
+assert.equal(
+  getGrimoirePreviewUrl({ signed_url: "https://signed.example/from-signed.jpg", image_url: "storage://profile-cabinet-media/p/img.jpg" }),
+  "https://signed.example/from-signed.jpg",
+  "Grimoire cards should accept signed_url when display_url is not present"
+);
+assert.equal(
+  getGrimoirePreviewUrl({ image_url: "storage://profile-cabinet-media/p/img.jpg" }),
+  "",
+  "Grimoire cards must not render raw private storage refs as image URLs"
+);
+assert.equal(
+  getGrimoirePreviewUrl({ image_url: "https://cdn.example/img.jpg" }),
+  "https://cdn.example/img.jpg",
+  "Legacy public image URLs should still render"
+);
+assert.equal(getGrimoireFeedActionLabel({ status: "approved" }), "Спрятать");
+assert.equal(getGrimoireNextVisibilityStatus({ status: "approved" }), "draft");
+assert.equal(getGrimoireFeedActionLabel({ status: "draft" }), "Добавить в ленту");
+assert.equal(getGrimoireNextVisibilityStatus({ status: "draft" }), "approved");

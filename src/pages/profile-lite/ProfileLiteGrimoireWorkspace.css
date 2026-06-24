@@ -266,7 +266,9 @@
 
 .profileLiteGrimoireModule .grimoirePostPreview {
   width: 100%;
-  min-height: 132px;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  overflow: hidden;
   display: grid;
   place-items: center;
   border: 1px solid rgba(176, 128, 70, 0.28);
@@ -274,12 +276,19 @@
   background:
     linear-gradient(135deg, rgba(45, 35, 25, 0.1), rgba(216, 176, 96, 0.28)),
     #ede0c8 center/cover no-repeat;
+  outline: 1px solid rgba(0, 0, 0, 0.1);
+  outline-offset: -1px;
 }
 
 .profileLiteGrimoireModule .grimoirePostPreview.hasImage {
-  min-height: 210px;
-  background-size: cover;
-  background-position: center;
+  background: #efe7da;
+}
+
+.profileLiteGrimoireModule .grimoireCardImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .profileLiteGrimoireModule .grimoirePostActions {
@@ -291,7 +300,14 @@
 }
 
 .profileLiteGrimoireModule .grimoirePostActions .grimoireActionBtn {
+  min-height: 40px;
   white-space: normal;
+}
+
+.profileLiteGrimoireModule .grimoireActionBtnVisibility {
+  border-color: rgba(71, 113, 66, 0.28);
+  background: #eef6e8;
+  color: #2f5f2f;
 }
 
 .profileLiteGrimoireModule .grimoireQuickActionsCard {
@@ -426,6 +442,7 @@
 
   .profileLiteGrimoireModule .grimoirePostPreview,
   .profileLiteGrimoireModule .grimoirePostPreview.hasImage {
-    min-height: 118px;
+    aspect-ratio: 4 / 3;
+    min-height: 0;
   }
 }
