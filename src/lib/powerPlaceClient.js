@@ -43,6 +43,7 @@ const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
 const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
 const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
+const CLIENT_WORK_REF_KEY = "__client_work";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
@@ -178,6 +179,11 @@ function cleanObjectRefs(value) {
   for (const [rawKey, rawItem] of Object.entries(cleanJsonObject(value))) {
     const key = cleanText(rawKey);
     if (!key) continue;
+    if (key === CLIENT_WORK_REF_KEY) {
+      const normalized = normalizeClientWorkRef(rawItem);
+      if (normalized) refs[CLIENT_WORK_REF_KEY] = normalized;
+      continue;
+    }
     if (key === MOTION_SETTINGS_REF_KEY) {
       refs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(rawItem);
       continue;
@@ -202,6 +208,65 @@ function cleanObjectRefs(value) {
     if (isPersistableImageRef(item)) refs[key] = item;
   }
   return refs;
+}
+
+function normalizeClientWorkRef(value) {
+  const source = cleanJsonObject(value);
+  const clientName = cleanText(source.client_name);
+  const clientProfileId = cleanText(source.client_profile_id);
+  if (!clientName && !clientProfileId) return null;
+  const explicitClientKey = cleanText(source.client_key).replace(/^(client|name):\s+/, "$1:");
+
+  return {
+    client_key: explicitClientKey || (clientProfileId ? `client:${clientProfileId}` : `name:${clientName}`),
+    client_profile_id: clientProfileId,
+    client_name: clientName || "Без имени",
+    client_photo_id: cleanText(source.client_photo_id),
+    request_text: cleanText(source.request_text),
+    source_composition_id: cleanText(source.source_composition_id),
+    result_composition_id: cleanText(source.result_composition_id),
+    status: cleanText(source.status) || "saved_for_client"
+  };
+}
+
+function legacyClientWorkFromTitle(composition = {}) {
+  const title = cleanText(composition?.title);
+  const match = title.match(/^(.+?)\s+·\s+(.+)$/);
+  if (!match) return null;
+
+  const clientName = cleanText(match[2]);
+  if (!clientName) return null;
+
+  return {
+    client_key: `name:${clientName}`,
+    client_profile_id: "",
+    client_name: clientName,
+    client_photo_id: "",
+    request_text: "",
+    source_composition_id: "",
+    result_composition_id: cleanText(composition?.id),
+    status: "saved_for_client",
+    legacy_inferred: true
+  };
+}
+
+export function getPowerPlaceClientWorkMeta(composition = {}) {
+  const explicit = normalizeClientWorkRef(composition?.object_refs?.[CLIENT_WORK_REF_KEY]);
+  if (explicit) {
+    return {
+      ...explicit,
+      result_composition_id: explicit.result_composition_id || cleanText(composition?.id)
+    };
+  }
+  return legacyClientWorkFromTitle(composition);
+}
+
+export function isClientScopedPowerPlaceComposition(composition = {}) {
+  return Boolean(getPowerPlaceClientWorkMeta(composition));
+}
+
+export function filterMasterPowerPlaceCompositions(compositions = []) {
+  return (compositions || []).filter((composition) => !isClientScopedPowerPlaceComposition(composition));
 }
 
 function clampNumericRef(value, min, max) {

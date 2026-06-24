@@ -258,6 +258,32 @@ assert.deepEqual(
   { src: "https://signed.example/center.png", message: "" }
 );
 
+const clientDirectoryWithLegacySavedWork = buildClientDirectoryFromOrders([], [], [
+  {
+    id: "legacy-kora-1",
+    title: "Кора · 1",
+    object_refs: {
+      __center_image: "storage://profile-cabinet-media/compositions/kora-1.png"
+    },
+    object_ref_urls: {
+      "storage://profile-cabinet-media/compositions/kora-1.png": "https://signed.example/kora-1.png"
+    }
+  },
+  {
+    id: "global-template",
+    title: "Шаблон мастера",
+    object_refs: {}
+  }
+]);
+assert.equal(clientDirectoryWithLegacySavedWork.length, 1, "legacy wrongly-routed client mandalas should prevent an empty Clients tab");
+assert.equal(clientDirectoryWithLegacySavedWork[0].client_name, "1");
+assert.equal(clientDirectoryWithLegacySavedWork[0].clientWorks[0].result_composition_id, "legacy-kora-1");
+assert.deepEqual(
+  getClientMandalaPreviewState(clientDirectoryWithLegacySavedWork[0].clientWorks[0]),
+  { src: "https://signed.example/kora-1.png", message: "" },
+  "legacy client mandalas should still use signed composition previews in Clients"
+);
+
 const clientDirectoryWithFilenameNames = buildClientDirectoryFromOrders([
   normalizeServiceOrder({
     id: "order-img",

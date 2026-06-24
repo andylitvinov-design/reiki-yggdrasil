@@ -6,7 +6,9 @@ import {
   clonePowerPlaceCompositionForOrder,
   createPowerPlaceCompositionWithDependencies,
   deletePowerPlaceComposition,
+  filterMasterPowerPlaceCompositions,
   getPlanLimits,
+  getPowerPlaceClientWorkMeta,
   normalizeAccountPlan,
   normalizeClientGoalPhoto,
   normalizeCoverRef,
@@ -116,6 +118,64 @@ assert.equal(normalizedUnsafeMotionRefs["client-1"], undefined, "data:image obje
 assert.equal(normalizedUnsafeMotionRefs["client-2"], undefined, "data:video object refs should not persist");
 assert.equal(normalizedUnsafeMotionRefs["client-3"], undefined, "signed storage URLs should not persist");
 assert.equal(normalizedUnsafeMotionRefs["client-4"], "https://example.com/durable.jpg", "ordinary durable refs should continue to persist");
+
+const normalizedClientWorkRefs = normalizePowerPlaceComposition({
+  id: "client-composition-1",
+  title: "Кора · 1",
+  object_refs: {
+    __client_work: {
+      client_key: " name: 1 ",
+      client_profile_id: " client-profile-1 ",
+      client_name: " 1 ",
+      client_photo_id: " photo-1 ",
+      request_text: " личный запрос ",
+      source_composition_id: " source-1 ",
+      result_composition_id: " result-1 ",
+      status: "saved_for_client",
+      ignored_object: { nested: true }
+    }
+  }
+}).object_refs;
+assert.deepEqual(
+  normalizedClientWorkRefs.__client_work,
+  {
+    client_key: "name:1",
+    client_profile_id: "client-profile-1",
+    client_name: "1",
+    client_photo_id: "photo-1",
+    request_text: "личный запрос",
+    source_composition_id: "source-1",
+    result_composition_id: "result-1",
+    status: "saved_for_client"
+  },
+  "save-for-client metadata should survive object_refs normalization and persist through refresh"
+);
+
+assert.deepEqual(
+  getPowerPlaceClientWorkMeta({ id: "legacy-kora-1", title: "Кора · 1", object_refs: {} }),
+  {
+    client_key: "name:1",
+    client_profile_id: "",
+    client_name: "1",
+    client_photo_id: "",
+    request_text: "",
+    source_composition_id: "",
+    result_composition_id: "legacy-kora-1",
+    status: "saved_for_client",
+    legacy_inferred: true
+  },
+  "legacy rows written by the old save-for-client title format should be recoverable as client work"
+);
+
+assert.deepEqual(
+  filterMasterPowerPlaceCompositions([
+    { id: "global-1", title: "Глобальный шаблон", object_refs: {} },
+    { id: "client-explicit", title: "Кора · 1", object_refs: { __client_work: { client_name: "1" } } },
+    { id: "client-legacy", title: "Кора · 2", object_refs: {} }
+  ]).map((item) => item.id),
+  ["global-1"],
+  "main saved mandala/template lists should exclude explicit and safely inferred client-scoped rows"
+);
 
 const hydratedComposition = __testPowerPlaceClient.hydrateCompositionRowsWithSignedUrls([
   {

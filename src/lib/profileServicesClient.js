@@ -1,4 +1,4 @@
-import { clonePowerPlaceCompositionForOrder } from "./powerPlaceClient.js";
+import { clonePowerPlaceCompositionForOrder, getPowerPlaceClientWorkMeta } from "./powerPlaceClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
@@ -250,9 +250,9 @@ export function groupServicesByStatus(services = []) {
 }
 
 function clientWorkFromComposition(composition = {}) {
-  const meta = composition?.object_refs?.__client_work || {};
+  const meta = getPowerPlaceClientWorkMeta(composition);
+  if (!meta) return null;
   const clientName = text(meta.client_name);
-  if (!clientName && !text(meta.client_profile_id)) return null;
   const previewUrl = displayableImageUrl(meta.preview_url || meta.image_url || meta.result_image_url) || compositionPreviewUrl(composition);
   return {
     id: text(composition.id),
