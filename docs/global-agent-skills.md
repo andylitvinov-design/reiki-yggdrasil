@@ -7,6 +7,7 @@ Status: shared skill and fallback policy for active project agents.
 Agents must treat these as shared global behaviors across active projects:
 
 - `/audit` - product, UX, UI, and technical audit with deep implementation-ready GitHub issue.
+- `/audit-ui` - UI/UX design audit from screenshot/link/route, with 5-7 ideas, 3 concept directions, sketches/mockup notes, concept comparison, recommended option, GitHub issue, and short `/delivery` prompt.
 - `/audit-fin` - numeric/calculation/source-layer audit with first divergence proof.
 - `/delivery` - implementation, checks, PR/merge/deploy/live proof when permitted by the project adapter.
 - UI polish - use the external feel-better skill when available, otherwise use the fallback checklist.
@@ -40,6 +41,27 @@ If unavailable:
 2. Run the project adapter's local fallback checklist.
 3. Mark `external skill: NOT VERIFIED` or `external skill: UNAVAILABLE`.
 4. Still include `UI POLISH / FEEL-BETTER PASS` in the final report for UI tasks.
+
+## `/audit-ui` Skill Contract
+
+For `/audit-ui`, use the shared protocol:
+
+```txt
+docs/audit-ui-mode.md
+```
+
+Minimum output:
+
+- current UI diagnosis;
+- 5-7 improvement ideas;
+- top 3 UI concepts;
+- sketch/mockup direction for each concept when possible;
+- comparison of the 3 concepts;
+- recommended concept;
+- GitHub issue link;
+- short `/delivery` prompt.
+
+Do not implement code during `/audit-ui` unless the user explicitly continues to `/delivery`.
 
 ## Skill Loading Order
 
