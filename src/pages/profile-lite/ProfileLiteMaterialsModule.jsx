@@ -7,10 +7,13 @@ import {
   getGrimoireNextVisibilityStatus,
   getGrimoirePreviewUrl,
   GRIMOIRE_CATEGORIES,
+  grimoireTaxonomyFilterLevelOptions,
   grimoireTaxonomyCompactLabel,
   grimoireTaxonomyLevelOptions,
   isGrimoireTaxonomyUnclassified,
+  materialMatchesGrimoireTaxonomyFilter,
   TAXONOMY_UNCLASSIFIED,
+  TAXONOMY_ALL,
   materialStatusText,
   normalizeGrimoireTaxonomy,
   publicationTypeLabel,
@@ -127,6 +130,39 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete, onToggleV
   );
 }
 
+function GrimoireMaterialFilterPanel({ filter, options, onChange, onReset }) {
+  return (
+    <div className="grimoireMaterialFilterPanel" aria-label="Фильтр материалов">
+      <b>Фильтр материалов</b>
+      <label>
+        <span>Уровень 1</span>
+        <select value={filter.level1} onChange={(event) => onChange("level1", event.target.value)}>
+          {options.level1.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>Уровень 2</span>
+        <select value={filter.level2} onChange={(event) => onChange("level2", event.target.value)}>
+          {options.level2.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>Уровень 3</span>
+        <select value={filter.level3} onChange={(event) => onChange("level3", event.target.value)}>
+          {options.level3.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+      <button className="grimoireMaterialFilterReset" type="button" onClick={onReset}>Сбросить</button>
+    </div>
+  );
+}
+
 function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
   const initialTaxonomy = normalizeGrimoireTaxonomy(material);
   const [form, setForm] = useState({
@@ -233,8 +269,18 @@ export default function ProfileLiteMaterialsModule({
   const [uploadStatus, setUploadStatus] = useState("");
   const [composerStatus, setComposerStatus] = useState("");
   const [localMaterials, setLocalMaterials] = useState([]);
+  const [taxonomyFilter, setTaxonomyFilter] = useState({
+    level1: TAXONOMY_ALL,
+    level2: TAXONOMY_ALL,
+    level3: TAXONOMY_ALL
+  });
 
   const allMaterials = useMemo(() => mergeMaterials(localMaterials, materials), [localMaterials, materials]);
+  const taxonomyFilterOptions = useMemo(() => ({
+    level1: grimoireTaxonomyFilterLevelOptions(1, taxonomyFilter),
+    level2: grimoireTaxonomyFilterLevelOptions(2, taxonomyFilter),
+    level3: grimoireTaxonomyFilterLevelOptions(3, taxonomyFilter)
+  }), [taxonomyFilter]);
   const uncategorizedCount = allMaterials.filter((m) => isGrimoireTaxonomyUnclassified(m)).length;
   const readyCount = Math.max(allMaterials.length - uncategorizedCount, 0);
 
@@ -243,6 +289,20 @@ export default function ProfileLiteMaterialsModule({
     if (activeFilter === TAXONOMY_UNCLASSIFIED) return isGrimoireTaxonomyUnclassified(m);
     const taxonomy = normalizeGrimoireTaxonomy(m);
     return taxonomy.level1 === activeFilter || m.type === activeFilter;
+  }).filter((m) => materialMatchesGrimoireTaxonomyFilter(m, taxonomyFilter));
+
+  const handleTaxonomyFilterChange = (level, value) => {
+    setTaxonomyFilter((current) => ({
+      level1: level === "level1" ? value : current.level1,
+      level2: level === "level1" ? TAXONOMY_ALL : level === "level2" ? value : current.level2,
+      level3: level === "level1" || level === "level2" ? TAXONOMY_ALL : value
+    }));
+  };
+
+  const resetTaxonomyFilter = () => setTaxonomyFilter({
+    level1: TAXONOMY_ALL,
+    level2: TAXONOMY_ALL,
+    level3: TAXONOMY_ALL
   });
 
   const setPendingFiles = (files) => {
@@ -428,6 +488,12 @@ export default function ProfileLiteMaterialsModule({
             <p className="cabinetEyebrow">Записи гримуара</p>
             <span className="cabinetStatus">{materialsStatus === "loading" || composerStatus === "loading" ? "..." : filteredMaterials.length}</span>
           </div>
+          <GrimoireMaterialFilterPanel
+            filter={taxonomyFilter}
+            options={taxonomyFilterOptions}
+            onChange={handleTaxonomyFilterChange}
+            onReset={resetTaxonomyFilter}
+          />
           {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
           {materialsFeedMessage && <div className="cabinetNotice">{materialsFeedMessage}</div>}
           {materialsStatus === "loading" && <p>Загружаю гримуар...</p>}

@@ -11,12 +11,14 @@ import {
   createEmptyMaterialForm,
   detectMaterialTypeFromFile,
   grimoireTaxonomyCompactLabel,
+  grimoireTaxonomyFilterLevelOptions,
   grimoireTaxonomyFromMaterial,
   grimoireTaxonomyLevelOptions,
   isGrimoireTaxonomyUnclassified,
   getGrimoireFeedActionLabel,
   getGrimoireNextVisibilityStatus,
   getGrimoirePreviewUrl,
+  materialMatchesGrimoireTaxonomyFilter,
   materialStatusText,
   normalizeMaterialForm,
   publicationTypeLabel,
@@ -115,6 +117,30 @@ assert.equal(
 );
 assert.equal(grimoireTaxonomyCompactLabel({}), "");
 assert.equal(isGrimoireTaxonomyUnclassified({ category: "dao-ri", subcategory: "unclassified", material_group: "dao-ri-practices" }), true);
+
+assert.ok(grimoireTaxonomyFilterLevelOptions(1)[0].value === "all" && grimoireTaxonomyFilterLevelOptions(1)[0].label === "Все", "feed level 1 filter should include Все");
+assert.ok(grimoireTaxonomyFilterLevelOptions(1).some((option) => option.value === TAXONOMY_UNCLASSIFIED && option.label === TAXONOMY_UNCLASSIFIED_LABEL), "feed level 1 filter should include Неразобранно");
+assert.ok(grimoireTaxonomyFilterLevelOptions(2, { level1: "dao-ri" }).some((option) => option.value === "dao-ri-foundation"), "feed level 2 filter should depend on level 1");
+assert.ok(!grimoireTaxonomyFilterLevelOptions(2, { level1: "dao-ri" }).some((option) => option.value === "client-work"), "feed level 2 filter should hide other level 1 branches");
+assert.ok(grimoireTaxonomyFilterLevelOptions(3, { level1: "dao-ri", level2: "dao-ri-foundation" }).some((option) => option.value === "dao-ri-practices"), "feed level 3 filter should depend on level 2");
+assert.equal(
+  materialMatchesGrimoireTaxonomyFilter(
+    { category: "dao-ri", subcategory: "dao-ri-foundation", material_group: "dao-ri-practices" },
+    { level1: "dao-ri", level2: "dao-ri-foundation", level3: "dao-ri-practices" }
+  ),
+  true,
+  "classified rows should match all selected taxonomy levels"
+);
+assert.equal(
+  materialMatchesGrimoireTaxonomyFilter(
+    { category: "dao-ri", subcategory: "dao-ri-foundation", material_group: "dao-ri-practices" },
+    { level1: "channels", level2: "all", level3: "all" }
+  ),
+  false,
+  "level 1 mismatch should hide classified rows"
+);
+assert.equal(materialMatchesGrimoireTaxonomyFilter({ title: "old row", type: "ri" }, { level1: "all", level2: "all", level3: "all" }), true, "legacy rows without taxonomy stay visible under Все");
+assert.equal(materialMatchesGrimoireTaxonomyFilter({ title: "old row", type: "ri" }, { level1: TAXONOMY_UNCLASSIFIED, level2: "all", level3: "all" }), true, "legacy rows without taxonomy match Неразобранно");
 
 // stripFileExtension
 assert.equal(stripFileExtension("image.jpg"), "image");
