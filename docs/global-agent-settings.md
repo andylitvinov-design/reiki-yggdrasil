@@ -27,9 +27,10 @@ Do not rely only on folder names. Resolve the canonical GitHub remote before cre
 Read these shared files first for global behavior:
 
 1. `docs/global-agent-settings.md` - this index and operating contract.
-2. `docs/global-command-protocols.md` - `/audit`, `/audit-fin`, `/delivery`, UI polish, design quality gate, and issue-writing contracts.
-3. `docs/global-project-adapters.md` - project routing, repo mapping, local path notes, and adapter requirements.
-4. `docs/global-agent-skills.md` - shared skill requirements and fallback behavior.
+2. `docs/global-command-protocols.md` - `/audit`, `/audit-ui`, `/audit-fin`, `/delivery`, UI polish, design quality gate, and issue-writing contracts.
+3. `docs/audit-ui-mode.md` - specialized UI/UX concept audit protocol.
+4. `docs/global-project-adapters.md` - project routing, repo mapping, local path notes, and adapter requirements.
+5. `docs/global-agent-skills.md` - shared skill requirements and fallback behavior.
 
 Then read the target repo's local adapter:
 
@@ -55,6 +56,14 @@ For audits:
 /audit
 Task:
 Audit <URL/screenshot/problem>. Create or update the GitHub issue and return the short /delivery prompt.
+```
+
+For UI concept audits:
+
+```txt
+/audit-ui
+Task:
+Audit <screenshot/link/route>. Propose 5-7 ideas, select 3 concepts, create sketch/mockup directions, choose the recommended concept, create or update the GitHub issue, and return the short /delivery prompt.
 ```
 
 For numeric audits:
