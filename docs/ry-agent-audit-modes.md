@@ -32,6 +32,12 @@ https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/.claude/command
 /audit protocol:
 https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/audit-loop.md
 
+/audit deep technical issue writing:
+https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/audit-deep-technical-issue-writing.md
+
+/audit UI polish:
+https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/docs/audit-ui-polish-skill.md
+
 /audit-fin command:
 https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/.claude/commands/audit-fin.md
 
@@ -69,6 +75,9 @@ Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
 
 Live URL: https://reiki-yggdrasil.vercel.app
 Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
+
+Live URL: https://ezohata-incoming-ledger.vercel.app
+Canonical GitHub repo: andylitvinov-design/finance
 ```
 
 If `andylitvinov-design/reports` returns Not Found, try `andylitvinov-design/report` before declaring GitHub issue creation unavailable.
@@ -79,7 +88,13 @@ For `https://2mentalica.vercel.app`, create GitHub audit issues in:
 https://github.com/andylitvinov-design/report/issues
 ```
 
-Do not fall back to `andylitvinov-design/reiki-yggdrasil` for 2mentalica implementation issues unless the user explicitly says the issue belongs there.
+For finance, create GitHub audit issues in:
+
+```txt
+https://github.com/andylitvinov-design/finance/issues
+```
+
+Do not fall back to `andylitvinov-design/reiki-yggdrasil` for another project implementation issue unless the user explicitly says the issue belongs there.
 
 ## 4. `/audit` mode
 
@@ -102,6 +117,7 @@ understand target
 -> resolve project repo
 -> inspect project rules
 -> inspect relevant code deeply when available
+-> trace route/component/state/data/style/test chain
 -> evaluate UX/UI/product/technical layers
 -> map symptoms to code-level findings
 -> create/update GitHub issue with full technical instructions
@@ -129,34 +145,47 @@ The audit must evaluate:
 - implementation slicing;
 - rollback/safety plan.
 
-Default output:
+## 5. Deep technical issue writing gate
+
+Before creating the issue or `/delivery` prompt, the RY agent must run the deep technical issue-writing gate.
+
+The issue must be detailed enough that another agent can implement without rediscovering the whole codebase.
+
+Required trace:
 
 ```txt
-STATUS: AUDIT_COMPLETE | AUDIT_PARTIAL_AUTH_LIMITATION | AUDIT_BLOCKED | AUDIT_COMPLETE_ISSUE_NOT_CREATED
-
-GitHub issue:
-<issue URL>
-
-Короткий prompt для Codex/Claude:
-/delivery
-Task:
-Исправить проблему по issue <issue URL>.
-Ключевые требования: ...
+route/page -> layout shell -> visible component -> child component -> state/store -> data/API/persistence -> formatting/rendering -> styles/responsive rules -> tests/checks
 ```
 
-Do not duplicate the full issue body in chat if the GitHub issue was created.
-
-## 5. `/audit-fin` mode
-
-Trigger examples:
+For finance projects, use the finance trace:
 
 ```txt
-/audit-fin
-/audit-fin проверь цифры на скрине
-/audit-fin проверь расчеты
-/audit-fin почему финансовые показатели неверные?
-/audit-fin проверь таблицу/график/проценты/итоги
+route/page -> UI component -> state/selection -> read-only API proof -> data normalization -> formula/aggregation -> rendering -> styles -> tests
 ```
+
+Every `/audit` issue must include:
+
+- technical code trace;
+- inspected files table;
+- confirmed vs suspected findings;
+- implementation map;
+- do-not-touch rules;
+- verification plan;
+- ready-to-run `/delivery` prompt.
+
+Use evidence labels:
+
+```txt
+CODE VERIFIED
+API VERIFIED
+RUNTIME VERIFIED
+LIKELY
+NOT VERIFIED
+```
+
+Do not present guesses as facts. If code access was unavailable, mark `PARTIAL_CODE_LIMITATION`.
+
+## 6. `/audit-fin` mode
 
 When `/audit-fin` is invoked, the RY agent must run the numeric/calculation/financial audit protocol.
 
@@ -179,43 +208,9 @@ understand numeric target
 -> return short /delivery prompt with issue link
 ```
 
-## 6. `/audit-fin` source-layer matrix
+Before generating hypotheses, the agent must check source layers. For finance, also prove production source-of-truth and read-only API evidence before blaming formulas.
 
-Before generating hypotheses, the agent must check all source layers:
-
-1. Visual/displayed value.
-2. Raw data availability.
-3. Input parsing and normalization.
-4. State and selection.
-5. Formula and business logic.
-6. Calculation helper/code.
-7. Persistence and hydration.
-8. Formatting and rounding.
-9. Rendering and component binding.
-10. Chart/gauge/indicator.
-11. Async/loading/race.
-12. Auth/environment.
-13. Test fixture and proof.
-
-For each layer, assign:
-
-```txt
-Layer status: PASS | ISSUE | NOT VERIFIED | NOT APPLICABLE
-Problem level: NONE | LOW | MEDIUM | HIGH | BLOCKER
-Evidence:
-Gap:
-Next verification:
-```
-
-Important rule:
-
-If raw data availability, formula/business logic, state/selection, or persistence/hydration is `ISSUE` or `NOT VERIFIED`, do not prematurely classify the problem as display/rendering. State the upstream uncertainty first.
-
-## 7. `/audit-fin` failed-repair mode
-
-If the user says previous fixes did not work, or if repeated hypotheses were already tried, the RY agent must also run the failed-repair addendum.
-
-Required questions:
+If prior fixes failed, run failed-repair analysis:
 
 ```txt
 Why did the previous fix not solve the problem?
@@ -224,21 +219,11 @@ What should not be repeated?
 Is the source data sufficient?
 ```
 
-Required sections in the GitHub issue:
-
-```txt
-Failed repair analysis
-Data sufficiency gate
-First divergence point
-Do-not-repeat list
-Proof fixture
-```
-
 Do not repeat a prior failed hypothesis unless new evidence changes the conclusion.
 
 Do not keep applying display/rendering fixes when the source-layer matrix shows raw data, formula, state, or persistence problems.
 
-## 8. GitHub issue behavior
+## 7. GitHub issue behavior
 
 When GitHub access is available, `/audit` and `/audit-fin` should create or update a GitHub issue.
 
@@ -258,7 +243,7 @@ STATUS: AUDIT_COMPLETE_ISSUE_NOT_CREATED
 STATUS: AUDIT_FIN_COMPLETE_ISSUE_NOT_CREATED
 ```
 
-## 9. Auth-safe behavior
+## 8. Auth-safe behavior
 
 For profile, cabinet, admin, results, intake, client, or private pages behind Google/Supabase auth:
 
@@ -268,7 +253,7 @@ For profile, cabinet, admin, results, intake, client, or private pages behind Go
 - use screenshot, code-level proof, local/demo/fixture state, public route, login entry, protected redirect, and owner-provided expected values as safe substitute evidence;
 - use `STATUS: AUDIT_PARTIAL_AUTH_LIMITATION` or `STATUS: AUDIT_FIN_PARTIAL_AUTH_LIMITATION` when only authenticated production proof is unavailable.
 
-## 10. Handoff to `/delivery`
+## 9. Handoff to `/delivery`
 
 The final chat response should always include a short implementation prompt.
 
@@ -283,8 +268,6 @@ Do not start the prompt block with:
 /audit-fin -> /delivery handoff
 ```
 
-Those are labels, not executable handoff commands. Use labels outside the prompt block only.
-
 General audit handoff:
 
 ```txt
@@ -292,7 +275,8 @@ General audit handoff:
 Task:
 Исправить проблему по issue <issue URL>.
 Ключевые требования:
-- follow the technical implementation plan;
+- follow the technical code trace;
+- follow the implementation map;
 - preserve auth/data/history safety;
 - verify mobile and desktop;
 - do not touch unrelated flows.
@@ -312,7 +296,7 @@ Task:
 - verify with deterministic expected values.
 ```
 
-## 11. Required behavior
+## 10. Required behavior
 
 Do not say “everything is fine” unless the audit contract was checked.
 
@@ -325,5 +309,7 @@ Do not invent values from an unclear screenshot. Use `VISUAL UNCLEAR` or `NOT VE
 Do not invent code evidence. Use `NOT VERIFIED` for unknowns.
 
 Do not generate a huge unfocused hypothesis list. Prefer fewer, evidence-backed hypotheses tied to source layers.
+
+Do not create vague issues. Map symptom -> file/component/function -> likely cause -> change direction -> verification.
 
 Do not write implementation code in audit mode unless the user explicitly asks to continue to `/delivery`.
