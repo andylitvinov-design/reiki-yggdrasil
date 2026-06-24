@@ -62,6 +62,7 @@ import {
   createTraditionAsset,
   deleteClientGoalPhoto,
   deletePowerPlaceComposition,
+  filterMasterPowerPlaceCompositions,
   getPlanLimits,
   getPowerPlaceCompositionById,
   listClientGoalPhotos,
@@ -685,6 +686,10 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   const clientDirectory = useMemo(
     () => buildClientDirectoryFromOrders(orders, clientGoalPhotos, powerPlaceCompositions, clientInvites),
     [orders, clientGoalPhotos, powerPlaceCompositions, clientInvites]
+  );
+  const masterPowerPlaceCompositions = useMemo(
+    () => filterMasterPowerPlaceCompositions(powerPlaceCompositions),
+    [powerPlaceCompositions]
   );
   const selectedClient = useMemo(
     () => clientDirectory.find((client) => client.key === selectedClientKey) || null,
@@ -1938,7 +1943,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       return;
     }
     setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.limit);
-    const currentSavedCompositionCount = powerPlaceCompositions.length;
+    const currentSavedCompositionCount = masterPowerPlaceCompositions.length;
     const currentCompositionLimit = planLimits.compositions || getPlanLimits(accountPlan).compositions;
     if (currentSavedCompositionCount >= currentCompositionLimit) {
       setMandalasStatus("needs-verification");
@@ -1953,7 +1958,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       const createPayload = {
         ...withDefaultMotionSettings(compositionDraft),
         id: undefined,
-        title: uniqueCompositionCopyTitle(compositionDraft.title, powerPlaceCompositions),
+        title: uniqueCompositionCopyTitle(compositionDraft.title, masterPowerPlaceCompositions),
         profile_id: profile.id
       };
       delete createPayload.id;
@@ -2166,7 +2171,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       const createPayload = {
         ...withDefaultMotionSettings(composition),
         id: undefined,
-        title: uniqueCompositionCopyTitle(composition?.title, powerPlaceCompositions),
+        title: uniqueCompositionCopyTitle(composition?.title, masterPowerPlaceCompositions),
         profile_id: profile.id
       };
       delete createPayload.id;
@@ -2667,7 +2672,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     planLimits,
     powerPlaceFeedForm,
     powerPlaceFeedStatus,
-    powerPlaceCompositions,
+    powerPlaceCompositions: masterPowerPlaceCompositions,
     profile,
     profileError,
     profileStatus,
