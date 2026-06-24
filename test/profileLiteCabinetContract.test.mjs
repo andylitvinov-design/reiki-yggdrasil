@@ -220,6 +220,7 @@ const moduleSource = readdirSync(moduleDir)
   .map((file) => readFileSync(join(moduleDir, file), "utf8"))
   .join("\n");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const profileMaterialsClientSource = readFileSync("src/lib/profileMaterialsClient.js", "utf8");
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
 const profileLiteShellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
@@ -691,9 +692,10 @@ assert.match(powerPlaceSource, /className={`coverPreview[\s\S]*onClick=\{\(\) =>
 assert.doesNotMatch(powerPlaceSource, /zodiac-plus-\$\{compositionDraft\.zodiac_visible_count \|\| 12\}[\s\S]*visibleCount === 8[\s\S]*ZODIAC_PLUS_SLOT_LAYOUT\[8\]/, "Zodiac 8+ must not append the old four plus slots");
 
 assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwnMaterial/, "image picker material uploads should use the existing material publication save flow");
-assert.match(profileLitePageSource, /material_group:\s*material\?\.group \|\| material\?\.material_group/, "image picker material upload should persist the selected material group");
-assert.match(profileLitePageSource, /category:\s*material\?\.category/, "image picker material upload should persist the selected step/category");
-assert.match(profileLitePageSource, /subcategory:\s*material\?\.subcategory/, "image picker material upload should persist the selected material subcategory");
+assert.match(profileLitePageSource, /buildMaterialUploadPublicationPayload\(\{[\s\S]*material,[\s\S]*status:\s*"draft"/, "image picker material uploads should build DB-safe draft material publications");
+assert.match(profileMaterialsClientSource, /material_group:\s*cleanText\(material\?\.material_group \?\? material\?\.group\)/, "image picker material upload should persist the selected material group");
+assert.match(profileMaterialsClientSource, /category\s*=\s*cleanText\(material\?\.category\)/, "image picker material upload should persist the selected step/category");
+assert.match(profileMaterialsClientSource, /subcategory\s*=\s*cleanText\(material\?\.subcategory\)/, "image picker material upload should persist the selected material subcategory");
 assert.match(powerPlaceBaseSource, /materialGroup:\s*item\.material_group \|\| item\.group/, "saved material images should preserve material group metadata for picker filters");
 assert.match(powerPlaceBaseSource, /materialType:\s*item\.material_type \|\| item\.type/, "saved material images should preserve material type metadata for picker filters");
 assert.match(powerPlaceBaseSource, /settingTitle:\s*item\.setting_title \|\| item\.settingTitle/, "saved material images should preserve setting/subcategory metadata for picker filters");
@@ -1026,16 +1028,18 @@ assert.match(profileLitePageSource, /handleGrimoireUpdate/, "ProfileLitePage sho
 assert.match(profileLitePageSource, /handleGrimoireDelete/, "ProfileLitePage should expose handleGrimoireDelete");
 assert.match(profileLitePageSource, /deleteOwnMaterial/, "ProfileLitePage should import deleteOwnMaterial");
 assert.match(profileLitePageSource, /updateOwnMaterial/, "ProfileLitePage should import updateOwnMaterial");
+assert.match(profileLitePageSource, /buildMaterialUploadPublicationPayload/, "ProfileLitePage should use the DB-safe material upload payload helper");
+assert.match(profileLitePageSource, /Promise\.allSettled\(uploadFiles\.map/, "ProfileLitePage material library uploads should save one publication row per selected file");
 assert.match(profileLitePageSource, /detectMaterialTypeFromFile/, "ProfileLitePage should use detectMaterialTypeFromFile for grimoire uploads");
 assert.match(profileLitePageSource, /stripFileExtension/, "ProfileLitePage should use stripFileExtension for grimoire title derivation");
 
-const profileMaterialsClientSource = readFileSync("src/lib/profileMaterialsClient.js", "utf8");
 assert.match(profileMaterialsClientSource, /export.*GRIMOIRE_CATEGORIES/, "profileMaterialsClient.js should export GRIMOIRE_CATEGORIES");
 assert.match(profileMaterialsClientSource, /export function detectMaterialTypeFromFile/, "profileMaterialsClient.js should export detectMaterialTypeFromFile");
 assert.match(profileMaterialsClientSource, /export function stripFileExtension/, "profileMaterialsClient.js should export stripFileExtension");
 assert.match(profileMaterialsClientSource, /export async function updateOwnMaterial/, "profileMaterialsClient.js should export updateOwnMaterial");
 assert.match(profileMaterialsClientSource, /export async function deleteOwnMaterial/, "profileMaterialsClient.js should export deleteOwnMaterial");
 assert.match(profileMaterialsClientSource, /export function getGrimoirePreviewUrl/, "profileMaterialsClient.js should expose Grimoire preview URL resolution");
+assert.match(profileMaterialsClientSource, /export function buildMaterialUploadPublicationPayload/, "profileMaterialsClient.js should expose a DB-safe material upload payload builder");
 assert.match(profileMaterialsClientSource, /Спрятать/, "visible Grimoire feed items should expose the Hide action label");
 
 const profileMediaClientSource = readFileSync("src/lib/profileMediaClient.js", "utf8");
@@ -1309,6 +1313,18 @@ assert.match(
   imagePickerSource,
   /clientCategory === "all" \|\| image\.clientCategory === clientCategory \|\| image\.client_category === clientCategory/,
   "ProfileLiteImagePicker visibleImages should filter client-1/client-2/client-3 by saved category"
+);
+
+assert.match(
+  imagePickerSource,
+  /multiple=\{uploadDestination === "materials"\}/,
+  "ProfileLiteImagePicker should enable multi-file selection for material uploads"
+);
+
+assert.match(
+  imagePickerSource,
+  /files:\s*selectedFiles/,
+  "ProfileLiteImagePicker should pass all selected material files through the upload chain"
 );
 
 assert.doesNotMatch(

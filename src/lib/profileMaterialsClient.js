@@ -355,6 +355,38 @@ export function normalizeMaterialForm(form, requestedStatus = form?.status) {
   };
 }
 
+export function buildMaterialUploadPublicationPayload({
+  profileId = "",
+  file = null,
+  title = "",
+  imageUrl = "",
+  material = {},
+  status = "draft",
+  updatedAt = new Date().toISOString()
+} = {}) {
+  const materialType = detectMaterialTypeFromFile(file);
+  const category = cleanText(material?.category);
+  const subcategory = cleanText(material?.subcategory);
+
+  return {
+    profile_id: cleanText(profileId),
+    type: DB_SAFE_GRIMOIRE_TYPE,
+    material_group: cleanText(material?.material_group ?? material?.group),
+    material_type: materialType || DB_SAFE_GRIMOIRE_TYPE,
+    title: cleanText(title) || cleanText(file?.name) || "Материал",
+    description: cleanText(material?.description) || [material?.group, category, subcategory].map(cleanText).filter(Boolean).join(" · "),
+    image_url: cleanText(imageUrl),
+    step_id: cleanText(material?.step_id),
+    step_title: cleanText(material?.step_title),
+    setting_title: cleanText(material?.setting_title),
+    setting_index: cleanSettingIndex(material?.setting_index),
+    category,
+    subcategory,
+    status: cleanStatus(status),
+    updated_at: updatedAt
+  };
+}
+
 async function request(path, options = {}) {
   if (!supabaseEnv.isConfigured) {
     throw materialError("Кабинет материалов требует настройки подключения Supabase.");

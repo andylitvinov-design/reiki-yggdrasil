@@ -10,6 +10,7 @@ import {
 } from "../lib/profileCoursesClient.js";
 import {
   DB_SAFE_GRIMOIRE_TYPE,
+  buildMaterialUploadPublicationPayload,
   createEmptyMaterialForm,
   createOwnMaterial,
   deleteOwnMaterial,
@@ -1466,6 +1467,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
 
   const handleLibraryClientPhotoUpload = async ({
     file,
+    files = null,
     title = "",
     notes = "",
     destination = "clients",
@@ -1480,28 +1482,35 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       }
 
       try {
-        validateProfileMediaFile(file);
-        const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
-        const materialPayload = buildMaterialPayload({
-          ...EMPTY_MATERIAL,
-          type: material?.type || "mandala",
-          material_group: material?.group || material?.material_group || "",
-          material_type: material?.type || material?.material_type || "mandala",
-          title: title || file.name || "Материал",
-          description: [material?.group, material?.category, material?.subcategory].filter(Boolean).join(" · "),
-          image_url: uploaded.ref,
-          step_id: material?.step_id || "",
-          step_title: material?.step_title || "",
-          setting_title: material?.setting_title || "",
-          setting_index: material?.setting_index ?? null,
-          category: material?.category || "",
-          subcategory: material?.subcategory || ""
-        }, profile.id, "draft");
-        const saved = await createOwnMaterial(materialPayload, session);
-        setMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+        const uploadFiles = (Array.isArray(files) && files.length > 0 ? files : [file]).filter(Boolean);
+        const results = await Promise.allSettled(uploadFiles.map(async (uploadFile) => {
+          validateProfileMediaFile(uploadFile);
+          const uploaded = await uploadProfileMedia(uploadFile, { profileId: profile.id, kind: "material" }, session);
+          const materialPayload = buildMaterialUploadPublicationPayload({
+            profileId: profile.id,
+            file: uploadFile,
+            title: uploadFiles.length === 1 ? title || uploadFile.name || "Материал" : uploadFile.name || "Материал",
+            imageUrl: uploaded.ref,
+            material,
+            status: "draft"
+          });
+          const saved = await createOwnMaterial(materialPayload, session);
+          return uploaded?.signedUrl ? {
+            ...saved,
+            display_url: saved?.display_url || uploaded.signedUrl,
+            signed_url: saved?.signed_url || uploaded.signedUrl
+          } : saved;
+        }));
+        const saved = results.filter((result) => result.status === "fulfilled").map((result) => result.value).filter(Boolean);
+        const failed = results.filter((result) => result.status === "rejected");
+        setMaterials((current) => [...saved, ...current.filter((item) => !saved.some((savedItem) => savedItem?.id === item.id))].filter(Boolean));
         setMaterialsStatus("success");
+        if (failed.length > 0) {
+          setMaterialsError(`${failed.length} файл(ов) не загрузилось: ${moduleError(failed[0]?.reason, "upload or save failed")}`);
+          throw new Error(`${failed.length} файл(ов) не загрузилось.`);
+        }
         setMaterialsError("");
-        return saved;
+        return uploadFiles.length === 1 ? saved[0] || null : saved;
       } catch (error) {
         setMaterialsStatus("needs-verification");
         setMaterialsError(moduleError(error, "profile_cabinet_publications material upload failed or Storage/RLS not applied"));
