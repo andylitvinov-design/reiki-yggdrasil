@@ -44,97 +44,56 @@ Do not claim local/live/auth/mobile verification passed unless it was actually p
 Before changing this repo, read:
 
 1. `AGENTS.md`
-2. `docs/codex-cloud-setup.md`
-3. `docs/smoke-test-plan.md`
-4. `README.md`
-5. `STATE.md`
-6. `LOG.md`
-7. `docs/release-workflow.md`
-8. `docs/deploy-fallback.md`
-9. `.github/workflows/deploy-production.yml`
-10. `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
-11. `src/data/reikiKnowledgeBase.js`
-12. `src/main.jsx`
-13. `src/index.css`
-14. `package.json`
-15. `vercel.json`
-16. `src/lib/supabaseClient.js`
+2. `docs/global-agent-settings.md`
+3. `docs/global-command-protocols.md`
+4. `docs/global-project-adapters.md`
+5. `docs/global-agent-skills.md`
+6. `docs/codex-cloud-setup.md`
+7. `docs/smoke-test-plan.md`
+8. `README.md`
+9. `STATE.md`
+10. `LOG.md`
+11. `docs/release-workflow.md`
+12. `docs/deploy-fallback.md`
+13. `.github/workflows/deploy-production.yml`
+14. `docs/knowledge-base/REIKI_STEPS_KNOWLEDGE_BASE.md`
+15. `src/data/reikiKnowledgeBase.js`
+16. `src/main.jsx`
+17. `src/index.css`
+18. `package.json`
+19. `vercel.json`
+20. `src/lib/supabaseClient.js`
 
 If a file is missing, report `not found`.
 
-## RY agent audit modes
+## Global agent settings adapter
 
-For RY agent setup or custom agent instructions, use:
+This repo hosts the shared global agent settings layer for active projects.
+
+Use these shared docs as the source of truth for `/audit`, `/audit-fin`, `/delivery`, UI polish, design quality gates, deep technical issue writing, deep numeric implementation trace, project routing, and future active project adapters:
+
+- `docs/global-agent-settings.md`
+- `docs/global-command-protocols.md`
+- `docs/global-project-adapters.md`
+- `docs/global-agent-skills.md`
+
+Keep runtime prompts short. Put durable behavior in the shared docs and GitHub issues, not in repeated chat prompts or one-off repo-local command blocks.
+
+Reiki-specific local protocol details still live in:
 
 - `docs/ry-agent-audit-modes.md`
-
-This document is the reusable instruction block that teaches the RY agent to route `/audit` and `/audit-fin` to the project audit protocols and return GitHub issue links plus short `/delivery` prompts.
-
-## Delivery design quality gate
-
-For `/delivery` tasks that affect UI, UX, mobile/desktop layout, screenshots, first screen, hero, landing, navigation, tabs/chips/buttons, cards, forms, profile/cabinet pages, visual polish, or user-facing copy, follow:
-
+- `docs/audit-loop.md`
+- `docs/audit-deep-technical-issue-writing.md`
+- `docs/audit-ui-polish-skill.md`
+- `docs/audit-fin-loop.md`
+- `docs/audit-fin-failed-repair.md`
 - `docs/delivery-design-quality-gate.md`
+- `docs/delivery-auth-boundary-standard.md`
+- `docs/delivery-loop-program.md`
+- `docs/delivery-loop-technical-details.md`
+- `docs/delivery-loop-source-patterns-and-live-proof.md`
 
-Build/check/live proof is not enough for UI delivery. Before `STATUS: SUCCESS`, `/delivery` must include a `DESIGN QUALITY GATE` and `UI POLISH / FEEL-BETTER PASS`.
-
-The polish pass must use `jakubkrehel/make-interfaces-feel-better` when installed, or the fallback checklist from `docs/audit-ui-polish-skill.md` when the external skill is unavailable.
-
-If any required design item is `FAIL` or `NOT VERIFIED`, `/delivery` must run another improvement loop or report an exact blocker/auth limitation instead of claiming success.
-
-## Audit-first diagnostic mode
-
-When the user asks for audit, UI review, UX simplification, problem analysis, regression check, screenshot review, or “what is wrong”, follow `docs/audit-loop.md` before implementation.
-
-`/audit` is diagnostic by default. It should not edit app code, commit product fixes, push implementation changes, merge, or deploy unless the user explicitly asks to continue to `/delivery`.
-
-For screenshots and UI complaints, audit must:
-
-- diagnose what is wrong;
-- propose a more user-friendly target interface;
-- inspect likely route/component/style/data/state files deeply when repository access is available;
-- follow imports to shared components and helpers;
-- evaluate UX, desktop/mobile layout, clickability, saving/history, auth/privacy, code quality, regression risk, language quality, accessibility, product flow, root cause, priority/effort, edge cases, testability, observability, implementation slicing, and rollback safety;
-- map UI symptoms to code-level findings, hypotheses, and technical change directions;
-- identify confirmed code problems separately from UX/product improvements;
-- create or update a GitHub issue with the full technical implementation instruction;
-- return only a short chat response with audit status, issue link, and a concise `/delivery` prompt pointing to that issue.
-
-For auth-gated cabinet screens, use auth-safe evidence. Never request credentials, cookies, tokens, or secrets, and never claim authenticated production visual verification unless actually performed.
-
-If GitHub Issues are unavailable during audit, output the full issue body in chat and mark `STATUS: AUDIT_COMPLETE_ISSUE_NOT_CREATED`.
-
-## Audit-fin numeric diagnostic mode
-
-When the user asks for `/audit-fin`, numeric audit, finance audit, calculation audit, formula check, score check, dashboard/table/report check, or asks whether numbers/percentages/totals/metrics are correct, follow `docs/audit-fin-loop.md` before implementation.
-
-If prior numeric fixes/hypotheses failed or the user says earlier fixes had no effect, also follow `docs/audit-fin-failed-repair.md` before proposing another solution.
-
-`/audit-fin` is diagnostic by default. It should not edit app code, commit product fixes, push implementation changes, merge, deploy, modify production data, or change formulas unless the user explicitly asks to continue to `/delivery`.
-
-For screenshots, reports, tables, dashboards, scores, results pages, calculators, and numeric complaints, audit-fin must:
-
-- extract the numeric contract: expected values, formulas, labels, thresholds, date periods, units, and display rules;
-- inspect visible numbers and mark unclear screenshot values as `VISUAL UNCLEAR`;
-- inspect code deeply to find where numbers are computed, stored, loaded, transformed, rounded, formatted, and displayed;
-- trace data flow from input to state, calculation, derived value, persistence, hydration, and display;
-- run the mandatory source-layer matrix before generating hypotheses: visual/displayed value, raw data availability, input parsing, state/selection, formula/business logic, calculation helpers, persistence/hydration, formatting/rounding, rendering/component binding, chart/gauge, async/loading/race, auth/environment, and test fixture/proof;
-- assign each source layer `PASS`, `ISSUE`, `NOT VERIFIED`, or `NOT APPLICABLE`, plus problem level `NONE`, `LOW`, `MEDIUM`, `HIGH`, or `BLOCKER`;
-- if previous fixes failed, analyze why they failed, run a data sufficiency gate, identify the first divergence point, and create a do-not-repeat list;
-- compare expected vs actual values using `MATCH`, `MISMATCH`, `MISSING`, `DUPLICATE`, `STALE`, `NOT VERIFIED`, or `NOT APPLICABLE`;
-- evaluate formula correctness, financial/business logic, data source, rounding/formatting, missing/inconsistent values, persistence/history safety, charts/gauges, desktop/mobile display, edge cases, regression risk, and proof plan;
-- produce a problem list split into `CONFIRMED`, `SUSPECTED`, and `NOT VERIFIED RISK`, each tied to a source layer;
-- generate focused hypotheses only from source layers marked `ISSUE`, `HIGH`, `BLOCKER`, or important `NOT VERIFIED`; do not generate a huge generic hypothesis list;
-- evaluate each hypothesis against source-layer evidence, supporting and contradicting evidence, confidence, and verification step;
-- choose the most likely root cause or root-cause set, or state `MOST LIKELY: NOT VERIFIED` with exact proof needed;
-- compare solution options and select a recommended solution path before writing the `/delivery` prompt;
-- identify confirmed numeric/code problems separately from unverified hypotheses;
-- create or update a GitHub issue with the full numeric technical instruction;
-- return only a short chat response with audit-fin status, issue link, and a concise `/delivery` prompt pointing to that issue.
-
-For auth-gated cabinet screens, use auth-safe evidence. Never request credentials, cookies, tokens, or secrets, and never claim authenticated production numeric verification unless actually performed.
-
-If GitHub Issues are unavailable during audit-fin, output the full issue body in chat and mark `STATUS: AUDIT_FIN_COMPLETE_ISSUE_NOT_CREATED`.
+Local `.claude/commands/*` files must reference the shared global docs first, then this Reiki adapter and project-specific docs. Do not duplicate the full shared protocol in local command files.
 
 ## Terminal prompt safety rules
 

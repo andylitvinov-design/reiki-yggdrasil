@@ -2,6 +2,16 @@
 
 Required for every `/delivery` task that changes or verifies UI, UX, mobile/desktop layout, screenshots, first screen, hero, landing, navigation, cards, forms, profile/cabinet pages, visual polish, or user-facing copy.
 
+Shared source of truth:
+
+```txt
+docs/global-agent-settings.md
+docs/global-command-protocols.md
+docs/global-agent-skills.md
+```
+
+This file is the Reiki local design-gate adapter. Other active projects should reference the shared global docs and add only project-specific visual QA details.
+
 ## Core rule
 
 Build/check/live proof is not enough for UI delivery.

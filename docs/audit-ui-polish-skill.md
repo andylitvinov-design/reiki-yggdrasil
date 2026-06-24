@@ -1,5 +1,15 @@
 # /audit — UI Polish Skill Addendum
 
+Shared source of truth:
+
+```txt
+docs/global-agent-settings.md
+docs/global-command-protocols.md
+docs/global-agent-skills.md
+```
+
+This file is the Reiki local fallback checklist for UI polish. Other active projects should reference the shared global docs and add only project-specific UI checks.
+
 Status: optional addendum for `/audit`  
 External skill: `jakubkrehel/make-interfaces-feel-better`  
 Install command when supported by the local agent environment:
