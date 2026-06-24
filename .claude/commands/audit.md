@@ -2,12 +2,12 @@
 
 `/audit` is sufficient by itself.
 
-The user must not need to add extra wording such as “study the code”, “create an issue”, “write technical instructions”, “check mobile”, “check save”, “make interface feel better”, or “return a delivery prompt”.
+The user must not need to add extra wording such as “study the code”, “create an issue”, “write technical instructions”, “check mobile”, “check save”, “make interface feel better”, “trace the code”, “map files”, or “return a delivery prompt”.
 
 When the user invokes `/audit`, that invocation means full safe audit delegation for this repository:
 
 ```txt
-understand target -> inspect project rules -> inspect code deeply -> evaluate UX/UI/product/technical layers -> run optional UI polish pass -> create/update GitHub issue -> return short /delivery prompt with issue link
+understand target -> inspect project rules -> inspect code deeply -> trace route/component/state/data/style/test chain -> evaluate UX/UI/product/technical layers -> run UI polish pass -> create/update GitHub issue -> return short /delivery prompt with issue link
 ```
 
 ## Source of truth
@@ -16,12 +16,13 @@ Follow all source-of-truth docs in order:
 
 1. `.claude/commands/audit.md`
 2. `docs/audit-loop.md` — full audit protocol, mandatory dimensions, GitHub issue format, final response format
-3. `docs/audit-ui-polish-skill.md` — optional UI polish skill addendum, including `make-interfaces-feel-better` integration
-4. `AGENTS.md` — project adapter and safety rules
-5. `.claude/commands/delivery.md` — implementation handoff contract
-6. `docs/delivery-auth-boundary-standard.md` — auth-gated cabinet verification boundary
-7. `docs/delivery-loop-program.md` — delivery handoff context
-8. `docs/delivery-loop-source-patterns-and-live-proof.md` — live proof context for final implementation
+3. `docs/audit-deep-technical-issue-writing.md` — required code-trace chain and high-quality technical issue format
+4. `docs/audit-ui-polish-skill.md` — optional UI polish skill addendum, including `make-interfaces-feel-better` integration
+5. `AGENTS.md` — project adapter and safety rules
+6. `.claude/commands/delivery.md` — implementation handoff contract
+7. `docs/delivery-auth-boundary-standard.md` — auth-gated cabinet verification boundary
+8. `docs/delivery-loop-program.md` — delivery handoff context
+9. `docs/delivery-loop-source-patterns-and-live-proof.md` — live proof context for final implementation
 
 If a local source-of-truth doc is missing, report `needs verification` and do not invent replacement rules.
 
@@ -75,31 +76,16 @@ Run the full audit chain:
 2. Extract the audit contract from the user request.
 3. Read the source-of-truth docs listed above.
 4. Inspect likely route/component/style/data/state files deeply. Follow imports to shared components and helpers.
-5. If a screenshot is provided, redesign the visible interface conceptually into a friendlier, simpler version.
-6. Evaluate all mandatory audit dimensions from `docs/audit-loop.md`, including:
-   - user friendliness and visual quality;
-   - desktop layout;
-   - mobile layout;
-   - interaction and clickability;
-   - data saving, persistence, and history;
-   - auth, privacy, and protected routes;
-   - technical code quality;
-   - regression risk and blast radius;
-   - content and language quality;
-   - accessibility and resilience;
-   - product flow and user journey;
-   - root-cause analysis;
-   - priority, severity, effort, and confidence;
-   - edge cases and negative paths;
-   - testability and verification design;
-   - observability and debug evidence;
-   - implementation slicing;
-   - rollback and safety plan.
-7. Run the UI polish pass from `docs/audit-ui-polish-skill.md`, using `make-interfaces-feel-better` if installed.
-8. Map UI/product symptoms to specific code-level findings, hypotheses, and technical change directions.
-9. Identify confirmed code problems separately from UX/product improvements.
-10. Create or update a GitHub issue with the full audit report and technical implementation instructions.
-11. Return only a short response: audit status, issue link, and concise `/delivery` prompt pointing to that issue.
+5. Build the required code-trace chain from `docs/audit-deep-technical-issue-writing.md`:
+   `route/page -> layout shell -> visible component -> child component -> state/store -> data/API/persistence -> formatting/rendering -> styles/responsive rules -> tests/checks`.
+6. For each inspected file, record why it matters, what it controls, evidence found, and risk if changed.
+7. If a screenshot is provided, redesign the visible interface conceptually into a friendlier, simpler version.
+8. Evaluate all mandatory audit dimensions from `docs/audit-loop.md`, including UX, desktop/mobile layout, clickability, saving/history, auth/privacy, code quality, regression risk, language quality, accessibility, product flow, root cause, priority/effort, edge cases, testability, observability, implementation slicing, and rollback safety.
+9. Run the UI polish pass from `docs/audit-ui-polish-skill.md`, using `make-interfaces-feel-better` if installed.
+10. Map UI/product symptoms to specific code-level findings, hypotheses, and technical change directions.
+11. Identify `CODE VERIFIED`, `RUNTIME VERIFIED`, `LIKELY`, and `NOT VERIFIED` findings separately.
+12. Create or update a GitHub issue with the full audit report and technical implementation instructions.
+13. Return only a short response: audit status, issue link, and concise `/delivery` prompt pointing to that issue.
 
 ## Auth-gated cabinet rule
 
@@ -122,6 +108,10 @@ The GitHub issue must contain the full technical detail:
 - target;
 - audit contract;
 - user-friendly target interface;
+- technical code trace table;
+- inspected files table;
+- confirmed vs suspected findings;
+- implementation map;
 - mandatory audit dimensions table;
 - UI polish pass;
 - findings;
@@ -165,7 +155,7 @@ GitHub issue:
 /delivery
 Task:
 Исправить проблему по issue <issue URL>.
-Ключевые требования: ...
+Ключевые требования: follow the code-trace chain, implementation map, do-not-touch rules, and verification plan from the issue.
 ```
 
 The copy-pasteable handoff prompt must start with `/delivery` as the first non-empty line.
@@ -174,10 +164,12 @@ Do not start the prompt block with `/audit -> /delivery handoff`, `/audit → /d
 
 ## Required behavior
 
-Do not say “everything is fine” unless the audit contract was actually checked.
+Do not say “everything is fine” unless the audit contract was checked.
 
 Do not say “verified” unless there is evidence.
 
 Do not invent code evidence. Use `NOT VERIFIED` for unknowns.
+
+Do not create vague issues. The issue must map symptom -> file/component/function -> likely cause -> change direction -> verification.
 
 Do not write code during `/audit` unless the user explicitly asks to continue to `/delivery`.
