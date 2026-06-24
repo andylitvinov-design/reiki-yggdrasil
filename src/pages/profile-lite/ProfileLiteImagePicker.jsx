@@ -75,6 +75,7 @@ export default function ProfileLiteImagePicker({
   const [materialFilterSubcategory, setMaterialFilterSubcategory] = useState(defaultMaterialSelection.subcategoryValue);
   const [localUploadStatus, setLocalUploadStatus] = useState("idle");
   const [localUploadError, setLocalUploadError] = useState("");
+  const [uploadFileCount, setUploadFileCount] = useState(0);
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
   const currentUploadError = uploadError || localUploadError;
   const isUploading = currentUploadStatus === "loading";
@@ -117,17 +118,21 @@ export default function ProfileLiteImagePicker({
   };
 
   const handleUpload = async (event) => {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []);
     event.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
 
     const activeUploadDestination = uploadDestination || defaultLibraryTab;
+    const selectedFiles = activeUploadDestination === "materials" ? files : files.slice(0, 1);
+    const file = selectedFiles[0];
     setLocalUploadStatus("loading");
     setLocalUploadError("");
+    setUploadFileCount(selectedFiles.length);
     try {
       await onUpload({
         destination: activeUploadDestination,
         file,
+        files: selectedFiles,
         title: activeUploadDestination === "clients" ? (uploadTitle.trim() || file.name || "") : file.name || "",
         notes: "",
         clientCategory: activeUploadDestination === "clients" ? clientCategory || "all" : undefined,
@@ -135,10 +140,12 @@ export default function ProfileLiteImagePicker({
       });
       setLocalUploadStatus("success");
       setUploadTitle("");
+      setUploadFileCount(0);
       onClose?.();
     } catch (error) {
       setLocalUploadStatus("error");
       setLocalUploadError(error?.message || "Загрузка не завершилась.");
+      setUploadFileCount(0);
     }
   };
 
@@ -341,8 +348,14 @@ export default function ProfileLiteImagePicker({
             )}
 
             <label className="clientPhotoPickerUploadDirectButton profileLiteUploadFileButton">
-              <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" disabled={isUploading} onChange={handleUpload} />
-              {isUploading ? "Загружаю..." : "Загрузить фото"}
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                multiple={uploadDestination === "materials"}
+                disabled={isUploading}
+                onChange={handleUpload}
+              />
+              {isUploading ? `Загружаю${uploadFileCount > 1 ? ` ${uploadFileCount} фото` : ""}...` : "Загрузить фото"}
             </label>
           </div>
         )}

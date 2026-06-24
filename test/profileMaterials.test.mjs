@@ -18,6 +18,7 @@ import {
   getGrimoireFeedActionLabel,
   getGrimoireNextVisibilityStatus,
   getGrimoirePreviewUrl,
+  buildMaterialUploadPublicationPayload,
   materialMatchesGrimoireTaxonomyFilter,
   materialStatusText,
   normalizeMaterialForm,
@@ -181,3 +182,33 @@ assert.equal(getGrimoireFeedActionLabel({ status: "approved" }), "Спрятат
 assert.equal(getGrimoireNextVisibilityStatus({ status: "approved" }), "draft");
 assert.equal(getGrimoireFeedActionLabel({ status: "draft" }), "Добавить в ленту");
 assert.equal(getGrimoireNextVisibilityStatus({ status: "draft" }), "approved");
+
+const moneyChannelUpload = buildMaterialUploadPublicationPayload({
+  profileId: "profile-1",
+  file: { type: "image/png", name: "money-channel.png" },
+  title: "money-channel.png",
+  imageUrl: "storage://profile-cabinet-media/profile-1/material/money-channel.png",
+  material: {
+    group: "channels",
+    category: "Деньги",
+    subcategory: "Все каналы",
+    step_id: "all-channels",
+    step_title: "Все каналы",
+    setting_title: "Все каналы",
+    setting_index: null,
+    type: "photo"
+  }
+});
+
+assert.equal(moneyChannelUpload.type, DB_SAFE_GRIMOIRE_TYPE);
+assert.equal(moneyChannelUpload.material_type, "photo");
+assert.equal(moneyChannelUpload.material_group, "channels");
+assert.equal(moneyChannelUpload.category, "Деньги");
+assert.equal(moneyChannelUpload.subcategory, "Все каналы");
+assert.equal(moneyChannelUpload.step_id, "all-channels");
+assert.equal(moneyChannelUpload.step_title, "Все каналы");
+assert.equal(moneyChannelUpload.setting_title, "Все каналы");
+assert.equal(moneyChannelUpload.setting_index, null);
+assert.equal(moneyChannelUpload.status, "draft");
+assert.equal(moneyChannelUpload.image_url, "storage://profile-cabinet-media/profile-1/material/money-channel.png");
+assert.ok(!["photo", "channels", "money", "all-channels"].includes(moneyChannelUpload.type));
