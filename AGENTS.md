@@ -6,10 +6,29 @@ Canonical runnable app repo: `andylitvinov-design/reiki-yggdrasil`.
 
 Do not use `andylitvinov-design/psitrends-work` for app-code tasks. `psitrends-work` is docs/ops only and may not contain `package.json`, app source, or build scripts.
 
+Current 2mentalica draft/staging URL: `https://2mentalica.vercel.app`.
 Target production URL: `https://mentalica.vercel.app`.
 Current/legacy live URL until migration is verified: `https://reiki-yggdrasil.vercel.app`.
 Framework: Vite + React.
 Hosting: Vercel, `npm run build`, output `dist`.
+
+## Routing safety rules
+
+`https://2mentalica.vercel.app` is part of this Reiki Yggdrasil project. App-code, audit, delivery, and GitHub issue work for `2mentalica` `/profile`, `/masters`, `/profile/admin`, Power Place formats, master cabinet, publications, templates, services, clients, or Reiki UI must use this repo: `andylitvinov-design/reiki-yggdrasil`.
+
+Do not route `https://2mentalica.vercel.app` tasks to `andylitvinov-design/report`. The `report` repo is a different PsiTherapy/client-report product with a different schema.
+
+Before creating an audit or delivery issue from a URL, verify at least:
+
+```txt
+1. user-stated product and route;
+2. live title/brand or screenshot brand;
+3. repo-local AGENTS.md / README domain rules;
+4. build markers or JS markers when public;
+5. recent PRs/issues in the candidate repo for the requested feature area.
+```
+
+If those signals conflict, stop with `STATUS: ROUTING_CONFLICT_NEEDS_VERIFICATION` instead of implementing in a guessed repo.
 
 ## Wrong workspace stop rule
 
@@ -170,21 +189,14 @@ If install/build/check fails due to `ENOSPC`, proxy/network, missing workspace, 
 
 ## Domain migration rules
 
+- The current draft/staging domain is `https://2mentalica.vercel.app`.
 - The desired production domain is `https://mentalica.vercel.app`.
 - Keep `https://reiki-yggdrasil.vercel.app` as legacy/current until the Vercel production alias and Supabase auth flow are verified.
 - Do not remove old Supabase redirect URLs during the migration window.
-- For Supabase Auth and Google OAuth, allow both target and legacy redirects until live QA passes:
+- For Supabase Auth and Google OAuth, allow draft, target, and legacy redirects until live QA passes:
+  - `https://2mentalica.vercel.app/profile`
+  - `https://2mentalica.vercel.app/profile/admin`
   - `https://mentalica.vercel.app/profile`
   - `https://mentalica.vercel.app/profile/admin`
   - `https://reiki-yggdrasil.vercel.app/profile`
   - `https://reiki-yggdrasil.vercel.app/profile/admin`
-
-## Final report format
-
-Every task must end with:
-
-1. Summary.
-2. Files changed.
-3. Verification commands and exact results.
-4. Manual checks still required.
-5. Limitations or blockers.
