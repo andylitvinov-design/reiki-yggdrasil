@@ -11,6 +11,7 @@ import {
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const cssSource = readFileSync(join(__dir, "../src/profileMandalaWorkspace.css"), "utf8");
+const symbolLibrarySource = readFileSync(join(__dir, "../src/data/powerPlaceSymbolLibrary.js"), "utf8");
 
 // ─── innerFieldScaleValue ────────────────────────────────────────────────────
 
@@ -103,11 +104,30 @@ assert.ok(
   "has-custom-inner-cover must set cover sizing and repeat"
 );
 
+const outerContainFitBlock = (() => {
+  const idx = cssSource.indexOf(".profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain {");
+  const end = cssSource.indexOf("}", idx);
+  return idx >= 0 ? cssSource.slice(idx, end + 1) : "";
+})();
+
+assert.ok(outerContainFitBlock, "outer cover contain-fit selector must be defined");
+assert.ok(outerContainFitBlock.includes("background-size: auto, contain, auto"), "contain-fit outer covers must size only the image layer as contain");
+assert.ok(outerContainFitBlock.includes("background-repeat: no-repeat"), "contain-fit outer covers must not repeat the image");
+assert.ok(outerContainFitBlock.includes("background-position: center, center, center"), "contain-fit outer covers must stay centered");
+
+const globalBackgroundSizeContainRules = [...cssSource.matchAll(/(^|\n)([^{}]+)\{[^{}]*background-size:\s*contain/g)]
+  .map((match) => match[2].trim())
+  .filter((selector) => selector.includes("powerMandalaPanel"))
+  .filter((selector) => !selector.includes("outer-cover-fit-contain"));
+assert.deepEqual(globalBackgroundSizeContainRules, [], "powerMandalaPanel background-size contain must stay scoped to outer-cover-fit-contain");
+
 // ─── Dynamic style: inner field uses absolute centering (no top/left bias) ────
 // The dynamic CSS in ProfileLitePowerPlaceModule must use position:absolute +
 // translate(-50%,-50%) so the inner surface expands symmetrically from center.
 
 const moduleSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx"), "utf8");
+const layoutFinalFixSource = readFileSync(join(__dir, "../public/profile-lite-layout-final-fix.js"), "utf8");
+const mobileFieldBoostSource = readFileSync(join(__dir, "../public/profile-power-place-mobile-field-boost.js"), "utf8");
 
 assert.ok(
   moduleSource.includes("position: absolute !important") && moduleSource.includes("translate(-50%, -50%)"),
@@ -239,6 +259,16 @@ assert.ok(
 );
 
 assert.ok(
+  baseModuleSource.includes("outerCoverFitClassName") && baseModuleSource.includes("outer-cover-fit-contain"),
+  "outer cover contain fit metadata must add a panel class"
+);
+
+assert.ok(
+  baseModuleSource.includes("coverFitValue(item?.fit || item?.cover_fit || item?.coverFit)"),
+  "cover image assignment must preserve contain fit metadata from library items"
+);
+
+assert.ok(
   baseModuleSource.includes("payload.type === \"power-place-background\" && slotKey !== \"cover_ref.outer\""),
   "background drag payloads must not be dropped into regular mini-mandala slots"
 );
@@ -281,8 +311,60 @@ assert.ok(
 );
 
 assert.ok(
-  /style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/.test(baseSource),
-  "DAO inner surface must keep coverDisplaySrc flowing into innerCoverImageStyle while adding the fulu contour CSS variable"
+  baseSource.includes("function isDaoFuluContourAsset(src)") &&
+  baseSource.includes("/symbols/power-place/dao/fulu/"),
+  "Base module must define isDaoFuluContourAsset(src) for separating fulu contour assets from user covers"
+);
+
+assert.ok(
+  baseSource.includes('const legacyDaoLayoutStyle = compositionDraft.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID') &&
+  baseSource.includes('const daoStyle = legacyDaoLayoutStyle ? "style-1" : compositionDraft.__dao_style || "style-1"') &&
+  baseSource.includes("const isDaoStyle1 = daoStyle === \"style-1\"") &&
+  baseSource.includes("const isDaoTalisman1 = daoStyle === \"talisman-1\"") &&
+  baseSource.includes("const isDaoTalisman2 = daoStyle === \"talisman-2\"") &&
+  baseSource.includes("const isDaoFulu = DAO_FULU_STYLES.has(daoStyle)") &&
+  baseSource.includes("const innerCoverSrc = coverDisplaySrc(innerCover)") &&
+  baseSource.includes("const innerCoverIsFuluContour = isDaoFuluContourAsset(innerCoverSrc)"),
+  "DAO style state must be computed once before render branches"
+);
+
+assert.ok(
+  baseSource.includes("const daoBaseCoverStyle") &&
+  baseSource.includes("const daoFuluStyle") &&
+  baseSource.includes("const daoOuterStyle"),
+  "DAO renderer must split base cover, fulu, and outer style objects"
+);
+
+assert.ok(
+  !/style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/.test(baseSource),
+  "DAO outer surface must not blindly merge generic inner cover and fulu contour styles"
+);
+
+assert.ok(
+  /daoBaseCoverStyle[\s\S]*!isDaoFulu[\s\S]*!innerCoverIsFuluContour[\s\S]*innerCoverImageStyle\(innerCover, innerCoverSrc\)/.test(baseSource),
+  "Non-fulu DAO styles must ignore built-in fulu SVG contours as generic inner covers"
+);
+
+assert.ok(
+  /daoFuluStyle[\s\S]*daoFuluContourStyle\(daoStyle\)[\s\S]*"--dao-fulu-user-cover-image"/.test(baseSource),
+  "Fulu styles must pass contour and user cover through separate CSS variables"
+);
+
+assert.ok(
+  baseSource.includes("const daoStyleGeometry") &&
+  baseSource.includes('aspectRatio: "9 / 16"') &&
+  baseSource.includes('aspectRatio: "1 / 2.9"') &&
+  /daoOuterStyle[\s\S]*daoStyleGeometry/.test(baseSource),
+  "DAO outer style must override field-scale geometry for talisman and fulu variants"
+);
+
+for (const helperName of ["renderDaoStyle1", "renderDaoTalisman1", "renderDaoTalisman2", "renderDaoFulu", "renderDaoFuOutlineLayout"]) {
+  assert.ok(baseSource.includes(`function ${helperName}()`), `DAO renderer must define ${helperName}()`);
+}
+
+assert.ok(
+  /isDaoTalisman2 \? renderDaoTalisman2\(\)[\s\S]*isDaoTalisman1 \? renderDaoTalisman1\(\)[\s\S]*isDaoFulu \? renderDaoFulu\(\)[\s\S]*isDaoFuOutline \? renderDaoFuOutlineLayout\(\)[\s\S]*renderDaoStyle1\(\)/.test(baseSource),
+  "DAO render selection must route every style to its own helper branch"
 );
 
 assert.ok(
@@ -295,6 +377,170 @@ assert.ok(
   "Base module must define DAO_FULU_STYLE_VALUES for fulu contour assets"
 );
 
+const expectedDaoFuOutlineVariants = [
+  ["dao-fu-wide-gate-roof", "ДАО: широкие врата"],
+  ["dao-fu-narrow-banner-roof", "ДАО: узкий свиток"],
+  ["dao-fu-grand-gate-p", "ДАО: большие врата P"],
+  ["dao-fu-bottle-p", "ДАО: сосуд P"],
+  ["dao-fu-node-column", "ДАО: колонна с узлами"],
+  ["dao-fu-soft-shoulder-banner", "ДАО: мягкий свиток"]
+];
+
+for (const [styleValue, label] of expectedDaoFuOutlineVariants) {
+  assert.ok(baseSource.includes(`value: "${styleValue}"`), `${styleValue} must be selectable in DAO_STYLE_VARIANTS`);
+  assert.ok(baseSource.includes(`label: "${label}"`), `${styleValue} must keep the requested Russian label`);
+  assert.ok(baseSource.includes(`"${styleValue}": {`), `${styleValue} must have a stable DAO_FU_OUTLINE_STYLE_VALUES record`);
+  assert.ok(moduleSource.includes(`value === "${styleValue}"`), `${styleValue} must be accepted by ProfileLitePowerPlaceModule daoStyleValue()`);
+}
+
+assert.ok(baseSource.includes("const DAO_FU_OUTLINE_STYLES = new Set"), "DAO outline styles must be grouped for stable rendering checks");
+assert.ok(baseSource.includes("function renderDaoFuReferenceOutline()"), "DAO outline styles must keep a dedicated contour-only helper");
+assert.ok(baseSource.includes("function renderDaoFuOutlineLayout()"), "DAO outline styles must render through a working layout helper");
+assert.ok(baseSource.includes("isDaoFuOutline ? renderDaoFuOutlineLayout()"), "DAO render selection must route outline styles to the working layout helper");
+assert.ok(baseSource.includes("!isDaoFulu && !isDaoFuOutline && !innerCoverIsFuluContour"), "DAO outline styles must keep user/background covers out of the empty contour interiors");
+assert.ok(baseSource.includes("className: \"daoFuReferenceOutline\""), "DAO outline SVG must use a stable class for visual QA");
+assert.ok(baseSource.includes("className=\"daoFuTopSignP\"") && baseSource.includes("y=\"116\""), "P variants must position the Latin P as a top sign in the roof/body gap");
+
+const daoFuOutlineHelperSource = (() => {
+  const start = baseSource.indexOf("function renderDaoFuReferenceOutline()");
+  const end = baseSource.indexOf("const daoClassName", start);
+  return start >= 0 && end > start ? baseSource.slice(start, end) : "";
+})();
+
+assert.ok(daoFuOutlineHelperSource, "new DAO outline SVG helper source must be extractable");
+assert.doesNotMatch(daoFuOutlineHelperSource, /[\u3400-\u9fff]/u, "new DAO outline SVG helper must not add Chinese/Japanese text or internal calligraphy");
+assert.doesNotMatch(daoFuOutlineHelperSource, /trigram|seal|sigil/i, "new DAO outline SVG helper must not add internal trigrams, seals, or sigils");
+
+const daoFuOutlineLayoutSource = (() => {
+  const start = baseSource.indexOf("function renderDaoFuOutlineLayout()");
+  const end = baseSource.indexOf("function renderDaoStyle2()", start);
+  return start >= 0 && end > start ? baseSource.slice(start, end) : "";
+})();
+
+assert.ok(daoFuOutlineLayoutSource, "DAO outline working layout helper source must be extractable");
+assert.ok(daoFuOutlineLayoutSource.includes("daoFuOutlineScroll"), "DAO outline layout must wrap the contour in daoFuOutlineScroll");
+assert.ok(daoFuOutlineLayoutSource.includes("daoFuOutlineCenterArea"), "DAO outline layout must render a center/client photo area");
+assert.ok(daoFuOutlineLayoutSource.includes('renderCenterPhotoWithMode("daoCenterPhoto")'), "DAO outline layout must render the shared center photo picker");
+assert.ok(daoFuOutlineLayoutSource.includes("daoFuOutlineNodeColumn"), "DAO outline layout must render a vertical mini-window column");
+assert.ok(daoFuOutlineLayoutSource.includes("`${daoStyle}-${index + 1}`"), "DAO outline layout must use style-specific stable slot ids");
+assert.ok(daoFuOutlineLayoutSource.includes("openObjectPicker(slotId)"), "DAO outline slots must open the object picker");
+assert.ok(daoFuOutlineLayoutSource.includes("slotImageStyle(slotId, displaySrc)"), "DAO outline slots must preserve saved pan/zoom display style");
+assert.ok(daoFuOutlineLayoutSource.includes("getSlotImagePanZoomHandlers(slotId)"), "DAO outline slots must support pan/zoom when an image is present");
+assert.ok(daoFuOutlineLayoutSource.includes("getPowerPlaceSlotDropHandlers(slotId)"), "DAO outline slots must support drag/drop");
+
+for (const selector of [
+  ".daoMandalaSheet.dao-fu-outline",
+  ".daoFuOutlineScroll",
+  ".daoFuOutlineCenterArea .daoCenterPhoto",
+  ".daoFuOutlineNodeColumn",
+  ".daoFuOutlineSlot",
+  ".daoFuReferenceOutline",
+  ".daoFuReferenceOutline .daoFuTopSignP",
+  ".daoMandalaSheet.dao-fu-bottle-p .daoFuTopSignP"
+]) {
+  assert.ok(cssSource.includes(selector), `${selector} must be styled for the new DAO outline variants`);
+}
+
+assert.ok(
+  baseSource.includes('const DAO_LAYOUT_TEMPLATE_STYLE_ID = "dao-layout-template"') &&
+  baseSource.includes('{ value: "dao-layout", label: "ДАО-Макет" }') &&
+  baseSource.includes('const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options"') &&
+  baseSource.includes('const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options"'),
+  "DAO layout format must keep the legacy style id and register new plus legacy object_refs option keys"
+);
+
+assert.ok(
+  baseSource.includes("function normalizeDaoLayoutTemplateOptions(value)") &&
+  baseSource.includes('source.topCrown === "three_checks"') &&
+  baseSource.includes("sideNodesVisible") &&
+  baseSource.includes("sideNodeCount"),
+  "DAO layout template options must be normalized for top ornament and side node controls"
+);
+
+assert.ok(
+  baseSource.includes("function renderDaoLayoutOverlay(") &&
+  baseSource.includes("daoLayoutTemplateTopMarker") &&
+  baseSource.includes("daoLayoutTemplateRoofLine") &&
+  baseSource.includes("daoLayoutTemplateCheck") &&
+  baseSource.includes("daoLayoutTemplateSideNode"),
+  "DAO layout overlay renderer must provide P marker plus roof/check variants without Chinese/Japanese characters"
+);
+const daoLayoutOverlaySource = baseSource.slice(baseSource.indexOf("function renderDaoLayoutOverlay("), baseSource.indexOf("function renderDaoTalismanOverlay("));
+assert.doesNotMatch(daoLayoutOverlaySource, /[三清印]/u, "DAO layout overlay renderer must not include Chinese/Japanese marker text");
+
+assert.ok(
+  baseSource.includes("const DAO_LAYOUT_MINI_SLOT_NUMBERS = [3, 4, 5, 7]") &&
+  baseSource.includes("const DAO_LAYOUT_INNER_SLOTS = DAO_LAYOUT_MINI_SLOT_NUMBERS.map") &&
+  baseSource.includes("function renderDaoLayoutInnerStack()") &&
+  baseSource.includes('data-slot-order={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}'),
+  "DAO layout must use explicit 3,4,5,7 mini slots rendered as one ordered inner stack"
+);
+
+assert.ok(
+  baseSource.includes("const DAO_SHARED_STAGE_STYLE_VALUES = new Set") &&
+  baseSource.includes("function renderDaoSharedStage(") &&
+  baseSource.includes("function renderDaoFieldBackgroundLayer(") &&
+  baseSource.includes("function renderDaoInnerContentStack(") &&
+  baseSource.includes("function renderDaoTalismanOverlay("),
+  "DAO layout, new DAO styles, and shared DAO variants must use one shared stage/layer renderer"
+);
+
+assert.ok(
+  /isDaoSharedStageStyle \? renderDaoSharedStage\(\)[\s\S]*isDaoLayoutTemplate \? renderDaoSharedStage\(\)/.test(baseSource) ||
+  /isDaoLayoutTemplate \|\| isDaoSharedStageStyle[\s\S]*renderDaoSharedStage\(\)/.test(baseSource),
+  "DAO render selection must route DAO-Макет and new DAO styles through the shared stage before legacy branches"
+);
+
+for (const styleValue of [
+  "dao-fu-wide-gate-roof",
+  "dao-fu-narrow-banner-roof",
+  "dao-fu-grand-gate-p",
+  "dao-fu-bottle-p",
+  "dao-fu-node-column",
+  "dao-fu-soft-shoulder-banner"
+]) {
+  assert.ok(
+    baseSource.includes(`"${styleValue}"`) &&
+    baseSource.includes("DAO_SHARED_STAGE_STYLE_VALUES") &&
+    baseSource.includes(`layoutZone: "${styleValue}"`),
+    `${styleValue} must be registered as a shared DAO stage style with a style-aware safe zone`
+  );
+}
+
+assert.ok(
+  baseSource.includes("DAO_SHARED_STAGE_MINI_SLOTS = DAO_LAYOUT_INNER_SLOTS") &&
+  baseSource.includes('data-slot-order={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}'),
+  "new DAO shared-stage styles and DAO-Макет must use the same 3,4,5,7 mini slot order"
+);
+
+assert.ok(
+  baseSource.includes('topMarker: "P"') &&
+  baseSource.includes('daoStyle === "dao-fu-grand-gate-p"') &&
+  baseSource.includes('daoStyle === "dao-fu-bottle-p"'),
+  "P-based DAO styles must render Latin P as a top marker in the shared overlay"
+);
+
+assert.doesNotMatch(
+  baseSource.slice(baseSource.indexOf("function renderDaoTalismanOverlay("), baseSource.indexOf("const daoClassName")),
+  /renderCenterPhotoWithMode/,
+  "DAO top marker overlay must not render the client photo; client photo belongs inside the talisman body"
+);
+
+assert.ok(
+  cssSource.includes(".daoLayoutTemplateInnerStack") &&
+  cssSource.includes(".daoLayoutTemplateCenterArea .daoCenterPhoto") &&
+  cssSource.includes(".daoLayoutTemplateMiniStack") &&
+  cssSource.includes(".daoLayoutTemplateMiniSlot") &&
+  cssSource.includes(".daoLayoutTemplateTopMarker"),
+  "DAO layout CSS must style P marker, centered client photo, and continuous mini-mandala stack"
+);
+
+assert.match(
+  cssSource,
+  /\.daoLayoutTemplateBody \{[\s\S]*top: 23%;/,
+  "DAO layout body must be shifted downward to leave room for the P marker above"
+);
+
 for (const [styleValue, assetPath] of [
   ["fu-paper-slip", "/symbols/power-place/dao/fulu/fu-paper-slip.svg"],
   ["cloud-register", "/symbols/power-place/dao/fulu/cloud-register.svg"],
@@ -304,7 +550,25 @@ for (const [styleValue, assetPath] of [
   assert.ok(baseSource.includes(`"${styleValue}"`), `DAO_FULU_STYLE_VALUES must include ${styleValue}`);
   assert.ok(baseSource.includes(`contourAsset: "${assetPath}"`), `DAO_FULU_STYLE_VALUES must map ${styleValue} to ${assetPath}`);
   assert.equal(existsSync(join(__dir, `../public${assetPath}`)), true, `${assetPath} must exist in public assets`);
+  const assetSource = readFileSync(join(__dir, `../public${assetPath}`), "utf8");
+  assert.match(assetSource, /<title[^>]*>DAO /, `${assetPath} must keep a descriptive DAO title`);
+  assert.match(assetSource, /contour|silhouette|outline|frame/i, `${assetPath} must describe its distinct contour-only talisman direction`);
+  assert.doesNotMatch(assetSource, /pseudo-calligraphic|registry marks|angular marks|decorative abstract linework/i, `${assetPath} must not describe internal pseudo-calligraphy`);
+  assert.doesNotMatch(assetSource, /<text\b|[\u3400-\u9fff]/u, `${assetPath} must not include readable sacred script or copied Chinese text`);
+  assert.doesNotMatch(assetSource, /<circle\b|<defs\b|fill="url\(|filter=/, `${assetPath} must avoid glossy icon effects and generated filter/gradient internals`);
+  assert.match(assetSource, /<path\b[^>]*fill="#/, `${assetPath} must include a paper-like filled slip surface`);
+  assert.ok((assetSource.match(/<path\b/g) || []).length <= 4, `${assetPath} must stay contour-only without dense internal mark paths`);
+  assert.ok((assetSource.match(/stroke-width=/g) || []).length <= 3, `${assetPath} must not keep internal pseudo-calligraphy strokes`);
 }
+
+const fuluAssetSources = [
+  "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
+  "/symbols/power-place/dao/fulu/cloud-register.svg",
+  "/symbols/power-place/dao/fulu/thunder-tablet.svg",
+  "/symbols/power-place/dao/fulu/taofu-charm.svg"
+].map((assetPath) => readFileSync(join(__dir, `../public${assetPath}`), "utf8"));
+
+assert.equal(new Set(fuluAssetSources).size, 4, "All four DAO fulu SVG files must remain visually/source distinct");
 
 assert.ok(
   !baseSource.includes("style={imageStyle(coverDisplaySrc(innerCover))}"),
@@ -331,16 +595,50 @@ for (const selector of [
   );
 }
 
+assert.ok(cssSource.includes(".daoFuluScroll"), ".daoFuluScroll must remain as the fulu content wrapper");
+assert.ok(cssSource.includes(".daoFuluContourLayer"), ".daoFuluContourLayer must remain as the single visual contour system");
+assert.ok(cssSource.includes(".dao-fulu"), "CSS must define shared .dao-fulu modifier for fulu technical holder");
+assert.ok(cssSource.includes("--dao-fulu-user-cover-image"), "CSS must consume --dao-fulu-user-cover-image for subtle user cover layer");
+
 for (const selector of [
-  ".daoFuluScroll",
   ".daoFuluFallbackPaper",
-  ".daoFuluContourLayer",
   ".daoFuluTopHead",
   ".daoFuluSideRail",
-  ".daoFuluBottomBase"
+  ".daoFuluBottomBase",
+  ".daoFuluHeader",
+  ".daoFuluFooter",
+  ".daoFuluSealBox",
+  ".daoFuluPureMarks"
 ]) {
-  assert.ok(cssSource.includes(selector), `${selector} must be defined for non-destructive fulu fallback/contour rendering`);
+  assert.equal(cssSource.includes(selector), false, `${selector} must not remain in CSS for fulu styles`);
+  assert.equal(baseSource.includes(selector.slice(1)), false, `${selector} must not be rendered for fulu styles`);
 }
+
+assert.equal(
+  (baseSource.match(/className="daoFuluContourLayer"/g) || []).length,
+  1,
+  "Fulu styles must render exactly one contour layer"
+);
+
+const style1Branch = baseSource.slice(baseSource.indexOf("function renderDaoStyle1()"), baseSource.indexOf("function renderDaoTalisman1()"));
+const talisman1Branch = baseSource.slice(baseSource.indexOf("function renderDaoTalisman1()"), baseSource.indexOf("function renderDaoTalisman2()"));
+const talisman2Branch = baseSource.slice(baseSource.indexOf("function renderDaoTalisman2()"), baseSource.indexOf("function renderDaoFulu()"));
+const fuluBranch = baseSource.slice(baseSource.indexOf("function renderDaoFulu()"), baseSource.indexOf("function renderDaoStyle2()"));
+const outlineBranch = baseSource.slice(baseSource.indexOf("function renderDaoFuOutlineLayout()"), baseSource.indexOf("function renderDaoStyle2()"));
+const style2Branch = baseSource.slice(baseSource.indexOf("function renderDaoStyle2()"), baseSource.indexOf("const daoClassName"));
+
+assert.ok(style1Branch.includes("daoUsinCore"), "style-1 branch must render classic daoUsinCore");
+assert.doesNotMatch(style1Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalisman2Scroll/, "style-1 branch must not render talisman or fulu layers");
+assert.ok(talisman1Branch.includes("daoTalismanScroll") && talisman1Branch.includes("daoTalismanBody"), "talisman-1 branch must render its circular talisman frame");
+assert.doesNotMatch(talisman1Branch, /daoFuluContourLayer|daoTalisman2Scroll|daoUsinCore/, "talisman-1 branch must not render fulu, talisman-2, or style-1 layers");
+assert.ok(talisman2Branch.includes("daoTalisman2Scroll") && talisman2Branch.includes("dao-talisman-2-${index + 1}"), "talisman-2 branch must render vertical generated nodes");
+assert.doesNotMatch(talisman2Branch, /daoFuluContourLayer|daoTalismanBody|daoUsinCore/, "talisman-2 branch must not render fulu, talisman-1 body, or style-1 layers");
+assert.ok(fuluBranch.includes("daoFuluContourLayer"), "fulu branch must render the single contour layer");
+assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu branch must not render talisman or style-1 layers");
+assert.ok(outlineBranch.includes("renderDaoFuReferenceOutline()") && outlineBranch.includes("daoFuOutlineNodeColumn"), "DAO outline branch must combine contour and working mini-window layout");
+assert.doesNotMatch(outlineBranch, /daoFuluContourLayer|daoTalismanScroll|daoTalismanBody|daoTalisman2Scroll|daoUsinCore/, "DAO outline branch must not render fulu, talisman, talisman-2, or style-1 layers");
+assert.ok(style2Branch.includes("daoStyle2Scroll") && style2Branch.includes("dao-style-2-${index + 1}"), "style-2 branch must render its own vertical mini-window row");
+assert.doesNotMatch(style2Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalismanBody|daoTalisman2Scroll|daoUsinCore/, "style-2 branch must not render fulu, talisman, talisman-2, or style-1 layers");
 
 assert.ok(
   cssSource.includes("background-image: var(--dao-fulu-contour-image)") &&
@@ -348,6 +646,88 @@ assert.ok(
   cssSource.includes("background-repeat: no-repeat") &&
   cssSource.includes("background-position: center"),
   ".daoFuluContourLayer must render the style-specific SVG contour through --dao-fulu-contour-image"
+);
+
+assert.ok(
+  cssSource.includes(".daoMandalaSheet .daoElementImage") &&
+  cssSource.includes(".daoTalisman2Node .daoElementImage") &&
+  cssSource.includes(".daoFuluSlot .daoElementImage"),
+  "DAO node flattening must stay scoped to DAO sheet, talisman-2, and fulu selectors"
+);
+
+assert.ok(
+  fuluBranch.includes("compositionDraft.__dao_talisman_node_count") &&
+  fuluBranch.includes("daoFuluNodeColumn") &&
+  fuluBranch.includes("dao-fulu-${index + 1}"),
+  "fulu branch must reuse the shared DAO talisman node count while keeping distinct fulu slot IDs"
+);
+
+assert.ok(
+  cssSource.includes(".daoFuluNodeColumn") &&
+  cssSource.includes(".daoFuluSlot") &&
+  cssSource.includes("flex-direction: column"),
+  "fulu mini windows must render as a vertical column"
+);
+
+assert.ok(
+  cssSource.includes("width: min(calc(var(--power-field-scale, 96%) * 2.28), 58vw)"),
+  "mobile fulu width must keep responding to Размер поля through --power-field-scale"
+);
+
+assert.ok(
+  baseSource.includes("renderDaoStyle2") &&
+  baseSource.includes("isDaoStyle2 ? renderDaoStyle2()") &&
+  baseSource.includes('isDaoStyle2 ? " dao-style-2"'),
+  "Base module must add and route an isolated DAO style-2 render branch"
+);
+
+assert.ok(
+  baseSource.includes("--dao-field-cover-image") &&
+  baseSource.includes("--dao-field-cover-opacity") &&
+  baseSource.includes("daoFieldCoverLayer") &&
+  cssSource.includes(".daoFieldCoverLayer") &&
+  cssSource.includes(".daoStyle2UserCoverLayer") &&
+  cssSource.includes("width: var(--power-field-scale, 78%)") &&
+  cssSource.includes("background-image: var(--dao-field-cover-image, none)") &&
+  cssSource.includes("opacity: var(--dao-field-cover-opacity, 0)"),
+  "DAO Размер поля must scale a real borderless inner/user cover layer while staying invisible without an image"
+);
+
+const daoSharedStageSource = baseSource.slice(baseSource.indexOf("function renderDaoSharedStage("), baseSource.indexOf("const daoClassName"));
+assert.ok(
+  daoSharedStageSource.includes('renderDaoFieldBackgroundLayer("daoSharedFieldLayer")') &&
+  daoSharedStageSource.indexOf("renderDaoFieldBackgroundLayer") < daoSharedStageSource.indexOf("renderDaoTalismanOverlay"),
+  "new DAO outline layouts must render the shared field/background image layer behind the red contour overlay"
+);
+
+assert.ok(
+  cssSource.includes(".daoSharedFieldLayer") &&
+  cssSource.includes("width: var(--power-field-scale, 78%)") &&
+  cssSource.includes("background-image: var(--dao-field-cover-image, none)") &&
+  !/\.daoMandalaSheet\.dao-fu-outline\s*\{[\s\S]*?--dao-field-cover-image:\s*none;/.test(cssSource),
+  "new DAO outline styles must keep the selected field image and Размер поля scale wired through shared CSS variables"
+);
+
+assert.ok(
+  cssSource.includes(".daoStyle2CenterArea .daoCenterPhoto") &&
+  cssSource.includes("aspect-ratio: 1 / 1") &&
+  cssSource.includes("border-radius: 50%") &&
+  cssSource.includes("background-size: cover") &&
+  cssSource.includes("width: clamp(74px, 100%, 108px)") &&
+  cssSource.includes(".daoFuluCenterArea .daoCenterPhoto") &&
+  cssSource.includes(".daoTalisman2CenterArea .daoCenterPhoto") &&
+  cssSource.includes(".daoFuOutlineCenterArea .daoCenterPhoto"),
+  "vertical DAO styles must keep central photo prominent near the upper axis"
+);
+
+assert.ok(
+  moduleSource.includes(".profileLitePowerPlace .daoStyle2CenterArea .daoCenterPhoto") &&
+  moduleSource.includes(".profileLitePowerPlace .daoTalisman2CenterArea .daoCenterPhoto") &&
+  moduleSource.includes(".profileLitePowerPlace .daoFuluCenterArea .daoCenterPhoto") &&
+  moduleSource.includes(".profileLitePowerPlace .daoFuOutlineCenterArea .daoCenterPhoto") &&
+  moduleSource.includes("width: clamp(74px, 100%, 108px) !important") &&
+  moduleSource.includes("height: clamp(74px, 100%, 108px) !important"),
+  "dynamic center-frame CSS must not squeeze vertical DAO center photos with the generic daoCenterPhoto width"
 );
 
 // ─── Chess cover-none is fully transparent (outer background shows through) ────
@@ -516,16 +896,16 @@ assert.ok(
   "CSS must define active state for .coverVariantSwatch"
 );
 
-// ─── Top photoScaleControl removed; slot photo editor has Масштаб фото ────────
+// ─── Center photoScaleControl and slot photo editor both expose Масштаб фото ───
 
 assert.ok(
-  !baseSource.includes('className: "photoScaleControl"') && !baseSource.includes('className="photoScaleControl"'),
-  "top photoScaleControl must no longer be rendered in constructor controls"
+  baseSource.includes('className: "photoScaleControl"') || baseSource.includes('className="photoScaleControl"'),
+  "center photoScaleControl must be rendered in constructor controls"
 );
 
 assert.ok(
   baseSource.includes("Масштаб фото"),
-  "renderSlotPhotoEditor must include Масштаб фото zoom slider"
+  "constructor controls and renderSlotPhotoEditor must include Масштаб фото sliders"
 );
 
 // ─── DAO style selector: __dao_style stored in object_refs ───────────────────
@@ -546,8 +926,8 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && moduleSource.includes('"style-1"'),
-  "daoStyleValue must handle style-1, legacy talisman→talisman-1 mapping, talisman-1, and talisman-2 values"
+  moduleSource.includes('function daoStyleValue(') && moduleSource.includes('"style-2"') && moduleSource.includes('"talisman-2"') && moduleSource.includes('"talisman"') && moduleSource.includes('"talisman-1"') && moduleSource.includes('"style-1"'),
+  "daoStyleValue must handle style-1, style-2, legacy talisman→talisman-1 mapping, talisman-1, and talisman-2 values"
 );
 
 for (const fuluVal of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]) {
@@ -607,8 +987,8 @@ assert.ok(
 );
 
 assert.ok(
-  baseSource.includes('"style-1"') && baseSource.includes('"talisman-1"') && baseSource.includes('"talisman-2"'),
-  "DAO_STYLE_VARIANTS must include style-1, talisman-1, and talisman-2 values"
+  baseSource.includes('"style-1"') && baseSource.includes('"style-2"') && baseSource.includes('"talisman-1"') && baseSource.includes('"talisman-2"'),
+  "DAO_STYLE_VARIANTS must include style-1, style-2, talisman-1, and talisman-2 values"
 );
 
 assert.ok(
@@ -667,6 +1047,11 @@ assert.ok(
 );
 
 assert.ok(
+  baseSource.includes("data-node-count={nodeCount}") && cssSource.includes('.daoTalisman2Scroll[data-node-count="9"]'),
+  "Talisman 2 must expose node-count hooks for 3/5/7/9 vertical spacing"
+);
+
+assert.ok(
   !baseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
   "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
 );
@@ -680,6 +1065,46 @@ for (const value of ["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu
   );
 }
 
+const daoIdeographSymbolIds = [
+  "symbol-dao-ideograph-water",
+  "symbol-dao-ideograph-wood",
+  "symbol-dao-ideograph-fire",
+  "symbol-dao-ideograph-earth",
+  "symbol-dao-ideograph-metal",
+  "symbol-dao-ideograph-health",
+  "symbol-dao-ideograph-wealth",
+  "symbol-dao-ideograph-love"
+];
+const daoIdeographAssets = [
+  "water.svg",
+  "wood.svg",
+  "fire.svg",
+  "earth.svg",
+  "metal.svg",
+  "health.svg",
+  "wealth.svg",
+  "love.svg"
+];
+
+for (const id of daoIdeographSymbolIds) {
+  assert.ok(symbolLibrarySource.includes(`id: "${id}"`), `DAO symbol library must include ${id}`);
+}
+
+for (const asset of daoIdeographAssets) {
+  assert.equal(
+    existsSync(join(__dir, `../public/symbols/power-place/dao/dao-ideograph-${asset}`)),
+    true,
+    `DAO ideograph asset must exist: ${asset}`
+  );
+}
+
+assert.ok(
+  symbolLibrarySource.includes('shelf: "dao"') &&
+  symbolLibrarySource.includes("/symbols/power-place/dao/dao-ideograph-") &&
+  !symbolLibrarySource.includes('kind: "power-place-background",\n    src: "/symbols/power-place/dao/dao-ideograph-'),
+  "DAO ideographs must be registered as DAO symbols, not DAO backgrounds"
+);
+
 assert.ok(
   baseSource.includes("DAO_FULU_STYLES"),
   "Base module must define DAO_FULU_STYLES set for new fulu style variants"
@@ -691,13 +1116,13 @@ assert.ok(
 );
 
 assert.ok(
-  cssSource.includes(".daoFuluPureMarks"),
-  "CSS must define .daoFuluPureMarks for fulu header marks"
+  cssSource.includes(".daoFuluContourLayer"),
+  "CSS must define .daoFuluContourLayer as the single fulu visual frame"
 );
 
 assert.ok(
-  cssSource.includes(".daoFuluSlot--water") && cssSource.includes(".daoFuluSlot--fire"),
-  "CSS must define .daoFuluSlot-- positions for all fulu element slots"
+  cssSource.includes(".daoFuluNodeColumn") && !cssSource.includes(".daoFuluSlot--water") && !cssSource.includes(".daoFuluSlot--fire"),
+  "CSS must use a counted vertical .daoFuluNodeColumn instead of fixed five-position fulu slots"
 );
 
 for (const cls of ["dao-fu-paper-slip", "dao-cloud-register", "dao-thunder-tablet", "dao-taofu-charm"]) {
@@ -713,9 +1138,31 @@ assert.ok(
 );
 
 assert.ok(
-  moduleSource.includes("aspect-ratio: 1 / 2.85") || moduleSource.includes("aspect-ratio: 1/2.85"),
-  "profileLiteFitFixStyles must include aspect-ratio 1/2.85 override for fulu DAO styles"
+  moduleSource.includes("aspect-ratio: 1 / 2.9") || moduleSource.includes("aspect-ratio: 1/2.9"),
+  "profileLiteFitFixStyles must include aspect-ratio 1/2.9 override for fulu DAO styles"
 );
+
+assert.ok(
+  moduleSource.includes(".daoMandalaSheet.dao-talisman") &&
+  moduleSource.includes(".daoMandalaSheet.dao-talisman-2") &&
+  moduleSource.includes("aspect-ratio: 9 / 16"),
+  "profileLiteFitFixStyles must preserve tall 9/16 proportions for talisman-1 and talisman-2"
+);
+
+assert.ok(
+  cssSource.includes(".profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-talisman-2") &&
+  cssSource.includes(".profileLitePowerPlace .daoMandalaSheet.dao-talisman-2 .daoTalisman2Node .daoElementImage"),
+  "mobile DAO scale overrides must preserve talisman-2 proportions and node caps"
+);
+
+for (const scriptSource of [layoutFinalFixSource, mobileFieldBoostSource]) {
+  assert.ok(
+    scriptSource.includes("isolatedDaoGeometry") &&
+    scriptSource.includes("dao-talisman-2") &&
+    scriptSource.includes("dao-fu-paper-slip"),
+    "public layout hotfix scripts must not overwrite isolated DAO talisman/fulu geometry with generic field scale"
+  );
+}
 
 assert.ok(
   moduleSource.includes("dao-fu-paper-slip") && moduleSource.includes("dao-cloud-register") &&
@@ -762,6 +1209,12 @@ assert.ok(
   "CSS must define .zodiacInnerPositionImage for inner ring slot buttons"
 );
 
+assert.match(
+  cssSource,
+  /\.zodiacInnerPositionImage\s*\{[\s\S]*width:\s*min\(28px,\s*100%\)/,
+  "Zodiac 2 inner slot base size must stay compact enough to avoid the center photo"
+);
+
 assert.ok(
   cssSource.includes(".zodiacInnerPosition.inner-1"),
   "CSS must define absolute position for .zodiacInnerPosition.inner-1"
@@ -777,13 +1230,30 @@ assert.ok(
   "CSS must include both zodiac-2-format and zodiacInnerPositionImage rules"
 );
 
+assert.match(
+  cssSource,
+  /\.zodiacMandalaSheet\.zodiac-2-format\s+\.zodiacInnerPositionImage\s*\{[\s\S]*transform:\s*scale\(calc\(var\(--power-source-slot-scale,\s*1\)\s*\*\s*1\.5\)\)/,
+  "Zodiac 2 inner slot images must be scaled 1.5x through a scoped zodiac-2-format rule"
+);
+
 {
-  const mobileStart = cssSource.lastIndexOf("@media (max-width: 640px)");
+  const mobileStart = cssSource.indexOf("@media (max-width: 640px)", cssSource.indexOf(".zodiacMandalaSheet.zodiac-2-format"));
+  const mobileBlock = mobileStart === -1 ? "" : cssSource.slice(mobileStart, cssSource.indexOf("/* ─── Zodiac style", mobileStart));
   assert.ok(
-    mobileStart !== -1 && cssSource.slice(mobileStart).includes("zodiacInnerPositionImage"),
+    mobileStart !== -1 && mobileBlock.includes("zodiacInnerPositionImage"),
     "CSS must include mobile sizing for .zodiacInnerPositionImage in a max-width:640px media query"
   );
+  assert.ok(
+    mobileStart !== -1 && /zodiacInnerPositionImage\s*\{[\s\S]*width:\s*min\(18px,\s*100%\)/.test(mobileBlock),
+    "Mobile Zodiac 2 inner slot base size must avoid center overlap at 390px"
+  );
 }
+
+assert.match(
+  cssSource,
+  /@media \(max-width:\s*640px\)\s*\{[\s\S]*\.zodiacMandalaSheet\.zodiac-2-format\s+\.zodiacInnerPositionImage\s*\{[\s\S]*width:\s*min\(18px,\s*100%\)/,
+  "Later mobile CSS must preserve the scoped 18px Zodiac 2 inner slot size"
+);
 
 assert.ok(
   moduleSource.includes(".zodiacInnerPositionImage[style]"),
@@ -791,6 +1261,49 @@ assert.ok(
 );
 
 console.log("Zodiac 2 CSS contract: all assertions passed.");
+
+// ─── Star 2 CSS contract ────────────────────────────────────────────────────
+
+assert.ok(
+  cssSource.includes(".starMandalaSheet.star-2-format"),
+  "CSS must define .starMandalaSheet.star-2-format for the expanded Star 2 layout"
+);
+
+assert.ok(
+  cssSource.includes(".starAdditionalPosition"),
+  "CSS must define .starAdditionalPosition for the five additional Star 2 slots"
+);
+
+assert.ok(
+  cssSource.includes(".starAdditionalPositionImage"),
+  "CSS must define .starAdditionalPositionImage for Star 2 additional slot buttons"
+);
+
+for (let index = 1; index <= 5; index += 1) {
+  assert.ok(
+    cssSource.includes(`.starAdditionalPosition.extra-${index}`),
+    `CSS must position Star 2 additional slot ${index}`
+  );
+}
+
+assert.match(
+  cssSource,
+  /\.starAdditionalPositionImage\s*\{[\s\S]*min-width:\s*30px[\s\S]*min-height:\s*30px/,
+  "Star 2 additional slots must keep a tappable minimum size"
+);
+
+assert.match(
+  cssSource,
+  /@media \(max-width:\s*640px\)\s*\{[\s\S]*\.starMandalaSheet\.star-2-format\s+\.starAdditionalPositionImage\s*\{[\s\S]*width:\s*min\(34px,\s*100%\)/,
+  "Mobile Star 2 additional slot buttons must be sized for 390px screens"
+);
+
+assert.ok(
+  moduleSource.includes(".starAdditionalPositionImage[style]"),
+  "Wrapper module dynamic CSS must include .starAdditionalPositionImage[style] for pan/zoom support"
+);
+
+console.log("Star 2 CSS contract: all assertions passed.");
 
 // ─── Zodiac style CSS contract ────────────────────────────────────────────────
 

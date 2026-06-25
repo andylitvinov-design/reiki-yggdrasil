@@ -1,114 +1,67 @@
 # /delivery
 
-Follow all three source-of-truth docs in order:
+`/delivery` is full safe delivery delegation for the resolved project: implement, check, PR, merge when green/permitted, deploy, and verify the requested behavior on the target environment or documented auth-safe substitute.
 
-1. `docs/delivery-loop-program.md` — full protocol, stop states, final report format
-2. `docs/delivery-loop-technical-details.md` — scripts, commands, CI/CD checks, agent decision table
-3. `docs/delivery-loop-source-patterns-and-live-proof.md` — embedded loop patterns and live proof contract
-4. `AGENTS.md` — project adapter and command registry
+## Source of truth
 
-Act as release owner for this project.
+Read in order:
 
-Input format:
+1. `docs/global-agent-settings.md`
+2. `docs/global-command-protocols.md` - shared `/delivery`, UI polish, design quality gate, and final report requirements
+3. `docs/global-project-adapters.md` - URL/repo routing and future project adapter rules
+4. `docs/global-agent-skills.md` - shared skill/fallback behavior
+5. `AGENTS.md` - Reiki project adapter and safety rules
+6. `docs/delivery-auth-boundary-standard.md` - auth-gated live verification and `SUCCESS_WITH_AUTH_LIMITATION`
+7. `docs/delivery-loop-program.md` - local full delivery loop
+8. `docs/delivery-loop-technical-details.md` - local checks, scripts, CI/CD details
+9. `docs/delivery-loop-source-patterns-and-live-proof.md` - local live proof contract
+10. `docs/delivery-design-quality-gate.md` - local UI/design gate details
 
+If a local source file is missing, report `needs verification`; do not invent replacement rules.
+
+## Input
+
+```txt
 Task:
 $ARGUMENTS
+```
 
-Project adapter for this repo:
-- Repository: andylitvinov-design/reiki-yggdrasil
-- Default branch: main
-- Target branch: main (features) / production (client releases)
-- Package manager: npm
+## Reiki project adapter
+
+- Repository: `andylitvinov-design/reiki-yggdrasil`
+- Default branch: `main`
+- Target branch: `main` for normal feature work; `production` only for explicit client release tasks
+- Package manager: `npm`
 - Framework: Vite + React SPA
-- Build: npm run build
-- Check: npm run check
+- Build: `npm run build`
+- Check: `npm run check`
 - CI: GitHub Actions
-- Deployment: Vercel (auto-deploy from GitHub)
-- Primary live URL: https://2mentalica.vercel.app  ← default SUCCESS target
-- Secondary production URL: https://mentalica.vercel.app
-- Legacy fallback URL: https://reiki-yggdrasil.vercel.app
+- Deployment: Vercel from GitHub
+- Default delivery target: `https://2mentalica.vercel.app`
+- Secondary production URL: `https://mentalica.vercel.app`
+- Legacy URL during migration: `https://reiki-yggdrasil.vercel.app`
 
-SUCCESS requires live proof on the primary live URL (https://2mentalica.vercel.app) unless another target is explicitly requested by the user.
+## Required behavior
 
-## FINAL RESULT VERIFICATION GATE
-
-Implementation is not completion. Verification against the original request is
-completion.
-
-Before saying `STATUS: SUCCESS`, `done`, `fixed`, `implemented`, `ready`, or
-`ready to merge`, extract the Original Request Contract from the user's task:
-
-- explicit requirements;
-- edge cases;
-- small UI details;
-- explicit exclusions and do-not-touch rules;
-- required live/staging/mobile/desktop proof.
-
-Verify every contract item:
-
-| Requirement | Status | Evidence | Verification method |
-|---|---|---|---|
-
-Allowed statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`.
-
-Do not use completion language if any required item is `PARTIAL`, `FAIL`, or
-`NOT VERIFIED`. Say `Implemented but not verified.` or
-`Cannot verify because ...` instead.
-
-After implementation, reread the original task and compare it with the diff:
-requirements covered, UI details covered, no unrelated files changed,
-mobile/desktop layout preserved, existing behavior preserved, regression risks
-identified, PR mergeable, and live/staging proof complete when applicable.
-
-If the gate fails, repair and rerun it. After 2 failed gate repair attempts,
-stop with `STATUS: BLOCKED` and report the remaining gap, why it was not fixed,
-the next file/function to inspect, and any required user action.
-
-Required final status:
-
-- STATUS: SUCCESS — task implemented, PR merged (or direct-to-main confirmed), deployed, and verified live.
-- STATUS: BLOCKED — exact external blocker, evidence, and required user action.
-
-Do not stop after code, PR, checks, merge, or deploy.
-
-Cost-control rules:
-
-- Treat the stable docs (1-4 above) as cached/stable context. Do not duplicate the full protocol in dynamic prompts.
-- Put current task / logs / diffs / PR status after the stable protocol context.
-- Prefer diffs over full files. Do not scan the full repository unless necessary.
-- Stop after 3 failed fix attempts on the same issue — return STATUS: BLOCKED.
-- Never touch env vars, secrets, billing, production database, or auth-sensitive settings without explicit user approval.
-- Use cheapest capable model/tooling for routine status checks; use stronger reasoning only for architecture, hard debug, or final delivery-risk review.
-- Final report must include COST CONTROL section.
-
-SUCCESS requires a completed live proof block:
+Follow the shared `/delivery` chain and preserve all explicit do-not-touch rules. For UI tasks, the final report must include:
 
 ```txt
-LIVE PROOF:
-- Live URL:
-- Checked route/page:
-- Final deployed commit:
-- Expected live behavior:
-- Actual live behavior:
-- Evidence:
+DESIGN QUALITY GATE
+UI POLISH / FEEL-BETTER PASS
 ```
 
-SUCCESS also requires a completed result verification block:
+Never touch secrets, env values, billing, production data, auth/OAuth/security rules, or finance formulas unless the user explicitly requests that scope.
+
+Final status must be one of:
 
 ```txt
-RESULT VERIFICATION:
-| Requirement | Status | Evidence | Verification method |
-|---|---|---|---|
+STATUS: SUCCESS
+STATUS: SUCCESS_WITH_AUTH_LIMITATION
+STATUS: BLOCKED
 ```
 
-BLOCKED requires:
+## Final Result Verification Gate compatibility
 
-```txt
-- Where the loop stopped:
-- What is complete:
-- What is not complete:
-- Exact blocker:
-- Evidence:
-- Required user action:
-- Next prompt to run after unblocking:
-```
+Before any completion claim, build an Original Request Contract from the user's task and verify every requirement. Allowed verification statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`. Implementation is not completion.
+
+Run the Spiral Validator-Critic Loop from the shared delivery docs when a repair pass needs requirement-by-requirement critique before merge/deploy.

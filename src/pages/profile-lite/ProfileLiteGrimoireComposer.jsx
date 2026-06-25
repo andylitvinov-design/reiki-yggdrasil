@@ -1,11 +1,19 @@
 import React, { useState } from "react";
-import { MATERIAL_TYPES } from "../../lib/profileMaterialsClient.js";
+import {
+  createDefaultTaxonomy,
+  grimoireTaxonomyLevelOptions,
+  TAXONOMY_UNCLASSIFIED
+} from "../../lib/profileMaterialsClient.js";
 
-const DEFAULT_TYPE = "uncategorized";
+const DEFAULT_TAXONOMY = createDefaultTaxonomy();
 
-function filenameLabel(file) {
-  if (!file) return "Файл не выбран";
-  return `${file.name || "файл"}${file.size ? ` · ${Math.ceil(file.size / 1024)} KB` : ""}`;
+function filenamesLabel(files) {
+  if (!files.length) return "Файлы не выбраны";
+  if (files.length === 1) {
+    const file = files[0];
+    return `${file.name || "файл"}${file.size ? ` · ${Math.ceil(file.size / 1024)} KB` : ""}`;
+  }
+  return `Выбрано файлов: ${files.length}`;
 }
 
 export default function ProfileLiteGrimoireComposer({
@@ -14,30 +22,28 @@ export default function ProfileLiteGrimoireComposer({
   onCreate = async () => {},
   onShowUncategorized = () => {}
 }) {
-  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState(DEFAULT_TYPE);
-  const [file, setFile] = useState(null);
+  const [taxonomy, setTaxonomy] = useState(DEFAULT_TAXONOMY);
+  const [files, setFiles] = useState([]);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
-    setTitle("");
     setDescription("");
-    setType(DEFAULT_TYPE);
-    setFile(null);
+    setTaxonomy(DEFAULT_TAXONOMY);
+    setFiles([]);
   };
 
   const handleFileChange = (event) => {
-    setFile(event.target.files?.[0] || null);
+    setFiles(Array.from(event.target.files || []));
     event.target.value = "";
     setMessage("");
   };
 
   const handleSubmit = async (forceUncategorized = false) => {
     if (disabled || submitting) return;
-    if (!title.trim() && !description.trim() && !file) {
-      setMessage("Добавьте текст, название или файл.");
+    if (!description.trim() && !files.length) {
+      setMessage("Добавьте заметку или файл.");
       return;
     }
 
@@ -45,10 +51,9 @@ export default function ProfileLiteGrimoireComposer({
     setMessage("Сохраняю в Гримуарий...");
     try {
       await onCreate({
-        title,
         description,
-        type: forceUncategorized ? DEFAULT_TYPE : type,
-        file,
+        taxonomy: forceUncategorized ? createDefaultTaxonomy() : taxonomy,
+        files,
         forceUncategorized
       });
       reset();
@@ -60,43 +65,66 @@ export default function ProfileLiteGrimoireComposer({
     }
   };
 
+  const level1Options = grimoireTaxonomyLevelOptions(1);
+  const level2Options = grimoireTaxonomyLevelOptions(2, taxonomy);
+  const level3Options = grimoireTaxonomyLevelOptions(3, taxonomy);
+
+  const handleTaxonomyChange = (level, value) => {
+    setMessage("");
+    setTaxonomy((current) => {
+      if (level === "level1") {
+        return createDefaultTaxonomy({ level1: value, level2: TAXONOMY_UNCLASSIFIED, level3: TAXONOMY_UNCLASSIFIED });
+      }
+      if (level === "level2") {
+        return createDefaultTaxonomy({ ...current, level2: value, level3: TAXONOMY_UNCLASSIFIED });
+      }
+      return createDefaultTaxonomy({ ...current, level3: value });
+    });
+  };
+
   return (
     <section className="grimoireComposer" aria-label="Быстро добавить материал в Гримуарий">
       <div className="grimoireComposerHeader">
         <div className="grimoireComposerAvatar" aria-hidden="true">✦</div>
-        <div>
+        <div className="grimoireComposerIntro">
           <p className="cabinetEyebrow">Мастерская</p>
-          <h3>Что вы хотите добавить в мастерскую?</h3>
-          <small>Сначала запись сохраняется как черновик. Позже её можно разобрать и отправить в ленту.</small>
+          <h3>Что хотите добавить?</h3>
         </div>
       </div>
 
       <label className="grimoireComposerField">
-        <span>Название / тема</span>
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Например: Мандала силы, заметка о практике, статья..."
-          disabled={disabled || submitting}
-        />
-      </label>
-
-      <label className="grimoireComposerField">
-        <span>Заметка</span>
         <textarea
-          rows={4}
+          rows={3}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Заметка, идея, описание мандалы, статья или материал..."
+          placeholder="Поделитесь заметкой, практикой, описанием мандалы..."
           disabled={disabled || submitting}
         />
       </label>
 
       <div className="grimoireComposerTools">
         <label className="grimoireComposerField compact">
-          <span>Тип</span>
-          <select value={type} onChange={(event) => setType(event.target.value)} disabled={disabled || submitting}>
-            {MATERIAL_TYPES.map((item) => (
+          <span>Уровень 1</span>
+          <select value={taxonomy.level1} onChange={(event) => handleTaxonomyChange("level1", event.target.value)} disabled={disabled || submitting}>
+            {level1Options.map((item) => (
+              <option key={item.value} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grimoireComposerField compact">
+          <span>Уровень 2</span>
+          <select value={taxonomy.level2} onChange={(event) => handleTaxonomyChange("level2", event.target.value)} disabled={disabled || submitting}>
+            {level2Options.map((item) => (
+              <option key={item.value} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="grimoireComposerField compact">
+          <span>Уровень 3</span>
+          <select value={taxonomy.level3} onChange={(event) => handleTaxonomyChange("level3", event.target.value)} disabled={disabled || submitting}>
+            {level3Options.map((item) => (
               <option key={item.value} value={item.value}>{item.label}</option>
             ))}
           </select>
@@ -105,14 +133,23 @@ export default function ProfileLiteGrimoireComposer({
         <label className="grimoireComposerFile">
           <input
             type="file"
+            multiple
             accept="image/jpeg,image/png,image/webp,image/gif,audio/mpeg,audio/mp4,audio/wav,audio/webm,audio/ogg,audio/aac,application/pdf,text/plain,text/markdown,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             onChange={handleFileChange}
             disabled={disabled || submitting}
           />
-          <span>+ Фото / файл</span>
-          <small>{filenameLabel(file)}</small>
+          <span>+ Фото / файлы</span>
+          <small>{filenamesLabel(files)}</small>
         </label>
       </div>
+
+      {files.length > 0 && (
+        <ul className="grimoireComposerFiles" aria-label="Файлы для записи">
+          {files.map((file) => (
+            <li key={`${file.name}-${file.size}`}>{file.name}</li>
+          ))}
+        </ul>
+      )}
 
       <div className="grimoireComposerActions">
         <button className="cabinetPrimary" type="button" onClick={() => handleSubmit(false)} disabled={disabled || submitting}>

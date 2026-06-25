@@ -16,13 +16,14 @@ const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
 const VALID_PLANS = ["start", "pro"];
-const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac", "star", "chess"];
+const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "dao-layout", "zodiac", "star", "chess"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 9, 12];
 const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
+const VALID_STAR_FORMAT_VARIANTS = ["classic", "star-2-10"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const SLOT_SCALE_REF_KEY = "__slot_scale";
@@ -41,11 +42,16 @@ const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
+const CLIENT_WORK_REF_KEY = "__client_work";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
 const VALID_MOTION_MODES = ["photo", "video"];
 const VALID_VIDEO_COUNTS = [1, 4];
 const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
 const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
+const VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS = ["roof_double_line", "three_checks"];
+const VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS = [2, 3];
 const DEFAULT_MOTION_SETTINGS = {
   mode: "photo",
   count: 1,
@@ -132,6 +138,18 @@ function normalizeMotionSettings(value) {
   };
 }
 
+function normalizeDaoLayoutTemplateOptions(value) {
+  const source = cleanJsonObject(value);
+  const topCrown = cleanText(source.topCrown);
+  const sideNodeCount = Number(source.sideNodeCount);
+
+  return {
+    topCrown: VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS.includes(topCrown) ? topCrown : "roof_double_line",
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS.includes(sideNodeCount) ? sideNodeCount : 2
+  };
+}
+
 function clampSlotOffset(v) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.min(80, Math.max(20, n)) : 50;
@@ -140,6 +158,12 @@ function clampSlotOffset(v) {
 function clampSlotZoom(v) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.min(1.8, Math.max(0.65, n)) : 1;
+}
+
+function clampSlotRotation(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n / 90) * 90;
 }
 
 function normalizeSlotTransforms(value) {
@@ -151,7 +175,8 @@ function normalizeSlotTransforms(value) {
     result[id] = {
       x: clampSlotOffset(raw.x),
       y: clampSlotOffset(raw.y),
-      zoom: clampSlotZoom(raw.zoom)
+      zoom: clampSlotZoom(raw.zoom),
+      rotate: clampSlotRotation(raw.rotate ?? raw.rotation)
     };
   }
   return Object.keys(result).length > 0 ? result : undefined;
@@ -162,6 +187,11 @@ function cleanObjectRefs(value) {
   for (const [rawKey, rawItem] of Object.entries(cleanJsonObject(value))) {
     const key = cleanText(rawKey);
     if (!key) continue;
+    if (key === CLIENT_WORK_REF_KEY) {
+      const normalized = normalizeClientWorkRef(rawItem);
+      if (normalized) refs[CLIENT_WORK_REF_KEY] = normalized;
+      continue;
+    }
     if (key === MOTION_SETTINGS_REF_KEY) {
       refs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(rawItem);
       continue;
@@ -177,11 +207,74 @@ function cleanObjectRefs(value) {
       }
       continue;
     }
+    if (key === DAO_LAYOUT_OPTIONS_REF_KEY || key === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+      refs[key] = normalizeDaoLayoutTemplateOptions(rawItem);
+      continue;
+    }
     if (rawItem && typeof rawItem === "object") continue;
     const item = cleanText(rawItem);
     if (isPersistableImageRef(item)) refs[key] = item;
   }
   return refs;
+}
+
+function normalizeClientWorkRef(value) {
+  const source = cleanJsonObject(value);
+  const clientName = cleanText(source.client_name);
+  const clientProfileId = cleanText(source.client_profile_id);
+  if (!clientName && !clientProfileId) return null;
+  const explicitClientKey = cleanText(source.client_key).replace(/^(client|name):\s+/, "$1:");
+
+  return {
+    client_key: explicitClientKey || (clientProfileId ? `client:${clientProfileId}` : `name:${clientName}`),
+    client_profile_id: clientProfileId,
+    client_name: clientName || "Без имени",
+    client_photo_id: cleanText(source.client_photo_id),
+    request_text: cleanText(source.request_text),
+    source_composition_id: cleanText(source.source_composition_id),
+    result_composition_id: cleanText(source.result_composition_id),
+    status: cleanText(source.status) || "saved_for_client"
+  };
+}
+
+function legacyClientWorkFromTitle(composition = {}) {
+  const title = cleanText(composition?.title);
+  const match = title.match(/^(.+?)\s+·\s+(.+)$/);
+  if (!match) return null;
+
+  const clientName = cleanText(match[2]);
+  if (!clientName) return null;
+
+  return {
+    client_key: `name:${clientName}`,
+    client_profile_id: "",
+    client_name: clientName,
+    client_photo_id: "",
+    request_text: "",
+    source_composition_id: "",
+    result_composition_id: cleanText(composition?.id),
+    status: "saved_for_client",
+    legacy_inferred: true
+  };
+}
+
+export function getPowerPlaceClientWorkMeta(composition = {}) {
+  const explicit = normalizeClientWorkRef(composition?.object_refs?.[CLIENT_WORK_REF_KEY]);
+  if (explicit) {
+    return {
+      ...explicit,
+      result_composition_id: explicit.result_composition_id || cleanText(composition?.id)
+    };
+  }
+  return legacyClientWorkFromTitle(composition);
+}
+
+export function isClientScopedPowerPlaceComposition(composition = {}) {
+  return Boolean(getPowerPlaceClientWorkMeta(composition));
+}
+
+export function filterMasterPowerPlaceCompositions(compositions = []) {
+  return (compositions || []).filter((composition) => !isClientScopedPowerPlaceComposition(composition));
 }
 
 function clampNumericRef(value, min, max) {
@@ -364,8 +457,8 @@ export function normalizeAccountPlan(plan) {
 
 export function getPlanLimits(plan) {
   return normalizeAccountPlan(plan) === "pro"
-    ? { compositions: 20, clientPhotos: 30 }
-    : { compositions: 7, clientPhotos: 25 };
+    ? { compositions: 25, clientPhotos: 30 }
+    : { compositions: 25, clientPhotos: 25 };
 }
 
 export function normalizeClientGoalPhoto(photo) {
@@ -417,29 +510,34 @@ export function normalizeCoverRef(coverRef) {
     const src = cleanText(value);
     return isPersistableImageRef(src) ? src : "";
   };
+  const cleanCoverFit = (...values) => values.some((value) => cleanText(value) === "contain") ? "contain" : "";
 
   const normalizeLayer = (layer, fallback = {}) => {
     const source = cleanJsonObject(layer);
     const layerId = cleanText(source.id) || cleanText(fallback.id) || "no-cover";
     const rawType = cleanText(source.type) || cleanText(fallback.type);
     const type = rawType === "image" ? "image" : rawType === "none" ? "none" : "placeholder";
+    const fit = cleanCoverFit(source.fit, source.cover_fit, source.coverFit, fallback.fit, fallback.cover_fit, fallback.coverFit);
 
     return {
       id: layerId,
       label: cleanText(source.label) || cleanText(fallback.label) || (type === "none" ? "Без фона" : "Заставка места силы"),
       type,
       tone: cleanText(source.tone) || cleanText(fallback.tone),
-      src: cleanCoverSrc(source.src) || cleanCoverSrc(fallback.src)
+      src: cleanCoverSrc(source.src) || cleanCoverSrc(fallback.src),
+      ...(fit ? { fit, cover_fit: fit } : {})
     };
   };
 
   const type = cleanText(cover.type) === "image" ? "image" : cleanText(cover.type) === "none" ? "none" : "placeholder";
+  const fit = cleanCoverFit(cover.fit, cover.cover_fit, cover.coverFit);
   const legacy = {
     id,
     label: cleanText(cover.label) || "Заставка места силы",
     type,
     tone: cleanText(cover.tone),
-    src: cleanCoverSrc(cover.src)
+    src: cleanCoverSrc(cover.src),
+    ...(fit ? { fit, cover_fit: fit } : {})
   };
 
   if (!cover.inner && !cover.outer) return legacy;
@@ -461,17 +559,21 @@ const CENTER_FRAME_SCALE_MIN = 0.72;
 const CENTER_FRAME_SCALE_MAX = 1.85;
 
 export function normalizePowerPlaceComposition(composition) {
-  const constructorType = VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
-    ? composition.constructor_type
-    : "client";
+  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
+  const legacyDaoLayout = sourceObjectRefs.__dao_style === "dao-layout-template";
+  const constructorType = legacyDaoLayout
+    ? "dao-layout"
+    : VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
+      ? composition.constructor_type
+      : "client";
   const geometry = Number(composition?.geometry);
   const ratio = cleanText(composition?.altar_center_ratio);
   const businessZoneCount = Number(composition?.business_vertex_zone_count);
   const zodiacVisibleCount = Number(composition?.zodiac_visible_count);
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
+  const starFormatVariant = cleanText(composition?.star_format_variant);
   const chessVariant = cleanText(composition?.chess_variant);
-  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
   const slotScale = composition?.slot_scale ?? sourceObjectRefs[SLOT_SCALE_REF_KEY];
   const fieldScale = composition?.field_scale ?? sourceObjectRefs[INNER_FIELD_SCALE_REF_KEY];
   const centerImageScale = composition?.__center_image_scale ?? sourceObjectRefs[CENTER_IMAGE_SCALE_REF_KEY];
@@ -508,6 +610,12 @@ export function normalizePowerPlaceComposition(composition) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
   }
   objectRefs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(sourceObjectRefs[MOTION_SETTINGS_REF_KEY]);
+  if (legacyDaoLayout) {
+    objectRefs.__dao_style = "style-1";
+  }
+  if (Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_OPTIONS_REF_KEY) || Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY)) {
+    objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(sourceObjectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || sourceObjectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
+  }
   if (Object.hasOwn(sourceObjectRefs, SLOT_TRANSFORMS_REF_KEY)) {
     const slotTransforms = normalizeSlotTransforms(sourceObjectRefs[SLOT_TRANSFORMS_REF_KEY]);
     if (slotTransforms) objectRefs[SLOT_TRANSFORMS_REF_KEY] = slotTransforms;
@@ -522,6 +630,9 @@ export function normalizePowerPlaceComposition(composition) {
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
     business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
     star_variant: VALID_STAR_VARIANTS.includes(starVariant) ? starVariant : "closed",
+    ...(constructorType === "star"
+      ? { star_format_variant: VALID_STAR_FORMAT_VARIANTS.includes(starFormatVariant) ? starFormatVariant : "classic" }
+      : {}),
     chess_variant: VALID_CHESS_VARIANTS.includes(chessVariant) ? chessVariant : "classic-14",
     cover_ref: normalizeCoverRef(composition?.cover_ref),
     object_refs: objectRefs,
@@ -586,6 +697,28 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
     session,
     prefer: "return=representation",
     body: payload
+  });
+
+  const hydrated = await hydrateMediaRows(rows, session);
+  return hydrated?.[0] || null;
+}
+
+export async function updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session = getStoredSession()) {
+  requireSession(session);
+  const cleanPhotoId = cleanText(photoId);
+  const cleanProfileId = cleanText(profileId);
+  const normalizedCategory = cleanText(clientCategory) || "all";
+
+  if (!cleanPhotoId || !cleanProfileId) throw powerPlaceError("Не удалось определить фото для перемещения.");
+  if (!VALID_CLIENT_PHOTO_CATEGORIES.includes(normalizedCategory)) {
+    throw powerPlaceError("Неизвестная папка фото клиента.");
+  }
+
+  const rows = await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}?id=eq.${encodeURIComponent(cleanPhotoId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: { client_category: normalizedCategory }
   });
 
   const hydrated = await hydrateMediaRows(rows, session);
@@ -734,4 +867,28 @@ export async function updatePowerPlaceComposition(compositionId, composition, se
 
   const hydrated = await hydrateCompositionRows(rows, session);
   return hydrated?.[0] || null;
+}
+
+export async function deletePowerPlaceComposition(compositionId, profileId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanCompositionId = cleanText(compositionId);
+  const cleanProfileId = cleanText(profileId);
+  if (!cleanCompositionId || !cleanProfileId) throw powerPlaceError("Не удалось определить мандалу.");
+
+  try {
+    await request(
+      `/rest/v1/${COMPOSITIONS_TABLE}?id=eq.${encodeURIComponent(cleanCompositionId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`,
+      {
+        method: "DELETE",
+        session
+      }
+    );
+  } catch (error) {
+    throw powerPlaceError("Не удалось удалить мандалу.", {
+      stage: "DELETE",
+      error: safeErrorText(error)
+    });
+  }
+
+  return true;
 }

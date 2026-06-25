@@ -63,6 +63,11 @@ assert.equal(userError.user, null);
 assert.doesNotMatch(userError.error, /example\.supabase\.co/);
 assert.doesNotMatch(userError.error, /abc\.def\.ghi/);
 
+assert.equal(
+  safeProfileLiteError(new Error("Could not find the 'category' column of 'profile_cabinet_publications' in the schema cache")),
+  "В Supabase не применена миграция таксономии материалов: отсутствует колонка category в profile_cabinet_publications. Нужно применить migration 20260617120000_profile_cabinet_publication_material_taxonomy.sql на staging/2mentalica."
+);
+
 const profileError = await loadProfileLiteViewModel({
   supabaseConfigured: true,
   session: { profileSessionPresent: true },

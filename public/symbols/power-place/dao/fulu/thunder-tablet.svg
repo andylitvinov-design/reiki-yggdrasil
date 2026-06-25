@@ -1,22 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1800" role="img" aria-labelledby="title desc">
-  <title id="title">DAO fulu contour - Thunder tablet</title>
-  <desc id="desc">Decorative vertical tablet contour with abstract lightning geometry and seal areas; no ritual formulas or sacred text.</desc>
-  <defs>
-    <linearGradient id="tablet" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f4d88c" stop-opacity="0.22"/>
-      <stop offset="0.5" stop-color="#6a4517" stop-opacity="0.1"/>
-      <stop offset="1" stop-color="#10151a" stop-opacity="0.16"/>
-    </linearGradient>
-    <filter id="tabletShadow" x="-12%" y="-8%" width="124%" height="116%">
-      <feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#07090a" flood-opacity="0.24"/>
-    </filter>
-  </defs>
-  <g filter="url(#tabletShadow)">
-    <path d="M255 82c78 34 142 34 195 0 54 34 118 34 195 0 28 204 36 410 22 618 14 312 6 636-22 972-76 18-140 52-195 102-55-50-119-84-195-102-28-336-36-660-22-972-14-208-6-414 22-618z" fill="url(#tablet)" stroke="#61451c" stroke-width="16" stroke-linejoin="round"/>
-    <path d="M308 206c58 16 106 12 142-12 38 24 86 28 142 12M308 1532c56 14 104 44 142 90 38-46 86-76 142-90" fill="none" stroke="#d7a541" stroke-width="14" stroke-linecap="round"/>
-    <path d="M356 348h188l-80 236h132L386 936l82-252H330z" fill="none" stroke="#b26a18" stroke-width="34" stroke-linejoin="round"/>
-    <path d="M300 1038h300M334 1150h232M312 1260h276" fill="none" stroke="#d2a746" stroke-width="22" stroke-linecap="round"/>
-    <path d="M300 424c-42 58-60 128-54 210M600 424c42 58 60 128 54 210M296 772c-42 40-70 92-84 156M604 772c42 40 70 92 84 156" fill="none" stroke="#7f4d16" stroke-width="18" stroke-linecap="round"/>
-    <rect x="344" y="1370" width="212" height="118" rx="10" fill="none" stroke="#9a2c18" stroke-width="14"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO thunder tablet contour</title>
+  <desc id="desc">Decorative Daoist-inspired thunder tablet silhouette with contour frame only; not a ritual formula or sacred text.</desc>
+  <path d="M60 11l20 22h12l7 16v297H21V49l7-16h12z" fill="#f1df9c" opacity=".7"/>
+  <g fill="none" stroke="#483716" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 12l20 22h12l7 16v296H21V50l7-16h12z" stroke-width="2.55"/>
+    <path d="M60 23l14 17h10l5 12v283H31V52l5-12h10z" stroke-width="1.35" opacity=".66"/>
   </g>
 </svg>

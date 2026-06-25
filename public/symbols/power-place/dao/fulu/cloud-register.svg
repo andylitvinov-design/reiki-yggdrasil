@@ -1,22 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1800" role="img" aria-labelledby="title desc">
-  <title id="title">DAO fulu contour - Cloud register</title>
-  <desc id="desc">Decorative vertical cloud-register contour with abstract rails and seal areas; no ritual formulas or sacred text.</desc>
-  <defs>
-    <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f9fff1" stop-opacity="0.3"/>
-      <stop offset="0.55" stop-color="#dcecc9" stop-opacity="0.14"/>
-      <stop offset="1" stop-color="#3d5b3c" stop-opacity="0.1"/>
-    </linearGradient>
-    <filter id="softShadow" x="-12%" y="-8%" width="124%" height="116%">
-      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#1d351d" flood-opacity="0.18"/>
-    </filter>
-  </defs>
-  <g filter="url(#softShadow)">
-    <path d="M215 132c55-66 112-66 172 0 45-54 91-54 138 0 59-66 116-66 172 0v1424c-60 68-120 68-178 0-44 50-88 50-132 0-58 68-116 68-172 0z" fill="url(#mist)" stroke="#54763f" stroke-width="14" stroke-linejoin="round"/>
-    <path d="M268 264c56-38 112-35 168 10 38-38 82-48 132-30 48 18 80 52 96 102M236 418c80-50 148-42 204 24 42-58 96-74 162-48 58 23 94 68 108 134" fill="none" stroke="#9a7624" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M282 646v620M618 646v620" fill="none" stroke="#476737" stroke-width="10" stroke-linecap="round" opacity="0.72"/>
-    <path d="M294 768c90-64 174-58 252 18 54-52 108-66 162-42M268 960c80-44 154-38 222 18 54-54 112-68 174-42M292 1148c92-54 180-44 264 30" fill="none" stroke="#406330" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M304 1464c80-42 146-36 198 18 44-44 96-56 156-36" fill="none" stroke="#a6812c" stroke-width="18" stroke-linecap="round"/>
-    <rect x="344" y="1324" width="212" height="106" rx="50" fill="none" stroke="#9b3c22" stroke-width="14"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO cloud register contour</title>
+  <desc id="desc">Decorative Daoist-inspired cloud register silhouette with contour frame only; not a ritual formula or sacred text.</desc>
+  <path d="M20 17c10-8 22-6 28 3c7-12 18-12 25 0c8-8 20-8 27-1v324H20z" fill="#f5edc4" opacity=".72"/>
+  <g fill="none" stroke="#486836" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 24c9-12 22-11 29-1c6-15 18-15 25 0c7-10 20-11 26 1v322H20z" stroke-width="2.25"/>
+    <path d="M27 43c8-7 18-7 26 0c8-7 18-7 26 0c5-5 11-5 16 0v293H27z" stroke-width="1.25" opacity=".58"/>
   </g>
 </svg>

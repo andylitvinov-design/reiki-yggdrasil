@@ -18,6 +18,8 @@ const CENTER_SHAPE_REF_KEY = "__center_shape";
 const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
 const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
 const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 
 const CONSTRUCTOR_LABELS = {
   zodiac: "Зодиак",
@@ -26,7 +28,8 @@ const CONSTRUCTOR_LABELS = {
   client: "Мандала",
   altar: "Алтарь",
   business: "Бизнес",
-  dao: "ДАО"
+  dao: "ДАО",
+  "dao-layout": "ДАО-Макет"
 };
 
 function coverOffsetValue(value) {
@@ -70,15 +73,32 @@ function clampCenterImageZoom(value) {
 }
 
 function daoStyleValue(value) {
+  if (value === "style-2") return "style-2";
   if (value === "talisman" || value === "talisman-1") return "talisman-1";
   if (value === "talisman-2") return "talisman-2";
   if (
     value === "fu-paper-slip" ||
     value === "cloud-register" ||
     value === "thunder-tablet" ||
-    value === "taofu-charm"
+    value === "taofu-charm" ||
+    value === "dao-fu-wide-gate-roof" ||
+    value === "dao-fu-narrow-banner-roof" ||
+    value === "dao-fu-grand-gate-p" ||
+    value === "dao-fu-bottle-p" ||
+    value === "dao-fu-node-column" ||
+    value === "dao-fu-soft-shoulder-banner"
   ) return value;
   return "style-1";
+}
+
+function normalizeDaoLayoutOptions(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const sideNodeCount = Number(source.sideNodeCount);
+  return {
+    topCrown: source.topCrown === "three_checks" ? "three_checks" : "roof_double_line",
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: sideNodeCount === 3 ? 3 : 2
+  };
 }
 
 function zodiacStyleValue(value) {
@@ -118,6 +138,66 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   background-repeat: no-repeat !important;
   background-position: var(--power-center-bg-pos, center) !important;
 }
+.profileLitePowerPlace .powerCenterPhoto.hasImage,
+.profileLitePowerPlace .altarCenterPhoto.hasImage,
+.profileLitePowerPlace .businessCenterPhoto.hasImage,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage,
+.profileLitePowerPlace .starCenterPhoto.hasImage,
+.profileLitePowerPlace .daoCenterPhoto.hasImage,
+.profileLitePowerPlace .power-place-chess__center.hasImage,
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage,
+.powerPlacePdfOnlyArea .powerCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .altarCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .businessCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .starCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .daoCenterPhoto.hasImage,
+.powerPlacePdfOnlyArea .power-place-chess__center.hasImage,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage {
+  position: relative !important;
+  overflow: hidden !important;
+  background-image: none !important;
+}
+.profileLitePowerPlace .powerCenterPhoto.hasImage::before,
+.profileLitePowerPlace .altarCenterPhoto.hasImage::before,
+.profileLitePowerPlace .businessCenterPhoto.hasImage::before,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage::before,
+.profileLitePowerPlace .starCenterPhoto.hasImage::before,
+.profileLitePowerPlace .daoCenterPhoto.hasImage::before,
+.profileLitePowerPlace .power-place-chess__center.hasImage::before,
+.powerPlacePdfOnlyArea .powerCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .altarCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .businessCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .starCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .daoCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .power-place-chess__center.hasImage::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background-image: var(--power-center-image, none) !important;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
+  background-repeat: no-repeat !important;
+  background-position: var(--power-center-bg-pos, center) !important;
+  transform: rotate(var(--slot-bg-rotate, 0deg)) !important;
+  transform-origin: center !important;
+}
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage::before,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background-image: var(--slot-bg-image, none) !important;
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
+  background-repeat: no-repeat !important;
+  background-position: var(--slot-bg-pos, center) !important;
+  transform: rotate(var(--slot-bg-rotate, 0deg)) !important;
+  transform-origin: center !important;
+}
 .profileLitePowerPlace .power-place-chess__slot.hasImage,
 .profileLitePowerPlace .powerSource.hasImage,
 .profileLitePowerPlace .altarTopSource.hasImage,
@@ -128,6 +208,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacInnerPositionImage[style],
 .profileLitePowerPlace .zodiacRibbonCellImage[style],
 .profileLitePowerPlace .starPositionImage[style],
+.profileLitePowerPlace .starAdditionalPositionImage[style],
 .profileLitePowerPlace .daoElementImage.hasImage,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage,
 .powerPlacePdfOnlyArea .powerSource.hasImage,
@@ -139,6 +220,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacInnerPositionImage[style],
 .powerPlacePdfOnlyArea .zodiacRibbonCellImage[style],
 .powerPlacePdfOnlyArea .starPositionImage[style],
+.powerPlacePdfOnlyArea .starAdditionalPositionImage[style],
 .powerPlacePdfOnlyArea .daoElementImage.hasImage {
   background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
   background-repeat: no-repeat !important;
@@ -169,6 +251,8 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .profileLitePowerPlace .zodiacRibbonCellImage[style]::after,
 .profileLitePowerPlace .starPositionImage[style]::before,
 .profileLitePowerPlace .starPositionImage[style]::after,
+.profileLitePowerPlace .starAdditionalPositionImage[style]::before,
+.profileLitePowerPlace .starAdditionalPositionImage[style]::after,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::before,
 .powerPlacePdfOnlyArea .power-place-chess__slot.hasImage::after,
 .powerPlacePdfOnlyArea .powerSource.hasImage::before,
@@ -190,11 +274,53 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .zodiacRibbonCellImage[style]::before,
 .powerPlacePdfOnlyArea .zodiacRibbonCellImage[style]::after,
 .powerPlacePdfOnlyArea .starPositionImage[style]::before,
-.powerPlacePdfOnlyArea .starPositionImage[style]::after {
+.powerPlacePdfOnlyArea .starPositionImage[style]::after,
+.powerPlacePdfOnlyArea .starAdditionalPositionImage[style]::before,
+.powerPlacePdfOnlyArea .starAdditionalPositionImage[style]::after {
   display: none !important;
   content: none !important;
   box-shadow: none !important;
   background: transparent !important;
+}
+.profileLitePowerPlace .powerCenterPhoto.hasImage::before,
+.profileLitePowerPlace .altarCenterPhoto.hasImage::before,
+.profileLitePowerPlace .businessCenterPhoto.hasImage::before,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage::before,
+.profileLitePowerPlace .starCenterPhoto.hasImage::before,
+.profileLitePowerPlace .daoCenterPhoto.hasImage::before,
+.profileLitePowerPlace .power-place-chess__center.hasImage::before,
+.powerPlacePdfOnlyArea .powerCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .altarCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .businessCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .zodiacCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .starCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .daoCenterPhoto.hasImage::before,
+.powerPlacePdfOnlyArea .power-place-chess__center.hasImage::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background-image: var(--power-center-image, none) !important;
+  background-size: calc(100% * var(--power-center-image-scale, 1)) auto !important;
+  background-repeat: no-repeat !important;
+  background-position: var(--power-center-bg-pos, center) !important;
+  transform: rotate(var(--slot-bg-rotate, 0deg)) !important;
+  transform-origin: center !important;
+}
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage::before,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  background-image: var(--slot-bg-image, none) !important;
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto !important;
+  background-repeat: no-repeat !important;
+  background-position: var(--slot-bg-pos, center) !important;
+  transform: rotate(var(--slot-bg-rotate, 0deg)) !important;
+  transform-origin: center !important;
 }
 .profileLitePowerPlace .power-place-chess__cell:has(.power-place-chess__slot.hasImage),
 .profileLitePowerPlace .zodiacPosition.hasImage,
@@ -339,6 +465,53 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   overflow: hidden !important;
   box-shadow: 0 18px 42px rgba(86, 55, 16, 0.12), inset 0 0 26px rgba(255, 250, 234, 0.22) !important;
 }
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage {
+  height: min(500px, 88%) !important;
+  width: auto !important;
+  max-width: 92% !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-wide-gate-roof,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-wide-gate-roof {
+  aspect-ratio: 5 / 7 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-narrow-banner-roof,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-narrow-banner-roof {
+  aspect-ratio: 3 / 7 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-grand-gate-p,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-grand-gate-p {
+  aspect-ratio: 5 / 6.5 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-bottle-p,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-bottle-p {
+  aspect-ratio: 3 / 5.8 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-node-column,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-node-column {
+  aspect-ratio: 3 / 6.2 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-soft-shoulder-banner,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-shared-stage.dao-fu-soft-shoulder-banner {
+  aspect-ratio: 3 / 6.5 !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman {
+  width: min(336px, 82%) !important;
+  max-width: min(336px, 82%) !important;
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman-2,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman-2 {
+  width: min(292px, 78%) !important;
+  max-width: min(292px, 78%) !important;
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+}
 .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-fu-paper-slip,
 .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
 .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
@@ -347,9 +520,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-taofu-charm {
-  width: min(260px, 64%) !important;
-  max-width: min(260px, 64%) !important;
-  aspect-ratio: 1 / 2.85 !important;
+  width: min(248px, 60%) !important;
+  max-width: min(248px, 60%) !important;
+  aspect-ratio: 1 / 2.9 !important;
   border-radius: 10px !important;
   overflow: visible !important;
 }
@@ -362,9 +535,19 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-cloud-register,
   .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-thunder-tablet,
   .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-taofu-charm {
-    width: min(230px, 62vw) !important;
-    max-width: min(230px, 62vw) !important;
-    aspect-ratio: 1 / 2.8 !important;
+    width: min(220px, 58vw) !important;
+    max-width: min(220px, 58vw) !important;
+    aspect-ratio: 1 / 2.9 !important;
+  }
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman {
+    width: min(190px, 64%) !important;
+    max-width: min(190px, 64%) !important;
+  }
+  .profileLitePowerPlace .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman-2,
+  .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .daoMandalaSheet.dao-talisman-2 {
+    width: min(190px, 64%) !important;
+    max-width: min(190px, 64%) !important;
   }
 }
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .power-place-chess,
@@ -397,6 +580,16 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet {
   aspect-ratio: 9 / 19.5 !important;
 }
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-talisman,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-talisman,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-talisman,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-talisman,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-talisman-2,
+.profileLitePowerPlace .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-talisman-2,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-talisman-2,
+.powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+}
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-fu-paper-slip,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-cloud-register,
 .profileLitePowerPlace .powerMandalaPanel.field-layout-vertical[style] > .daoMandalaSheet.dao-thunder-tablet,
@@ -413,9 +606,9 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-cloud-register,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-thunder-tablet,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-rectangle[style] > .daoMandalaSheet.dao-taofu-charm {
-  aspect-ratio: 1 / 2.85 !important;
-  width: min(260px, 64%) !important;
-  max-width: min(260px, 64%) !important;
+  aspect-ratio: 1 / 2.9 !important;
+  width: min(248px, 60%) !important;
+  max-width: min(248px, 60%) !important;
   border-radius: 10px !important;
   overflow: visible !important;
 }
@@ -454,6 +647,46 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .power-place-chess--compact-5 .power-place-chess__center {
   width: calc(28% * var(--power-center-frame-scale, 1)) !important;
   height: auto !important;
+}
+.profileLitePowerPlace .daoTalisman2CenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoTalisman2CenterArea .daoCenterPhoto {
+  width: clamp(58px, 100%, 88px) !important;
+  height: clamp(58px, 100%, 88px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.profileLitePowerPlace .daoStyle2CenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoStyle2CenterArea .daoCenterPhoto {
+  width: clamp(74px, 100%, 108px) !important;
+  height: clamp(74px, 100%, 108px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.profileLitePowerPlace .daoFuluCenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoFuluCenterArea .daoCenterPhoto {
+  width: clamp(52px, 32%, 78px) !important;
+  height: clamp(52px, 32%, 78px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.profileLitePowerPlace .daoFuOutlineCenterArea .daoCenterPhoto,
+.powerPlacePdfOnlyArea .daoFuOutlineCenterArea .daoCenterPhoto {
+  width: clamp(52px, 35%, 86px) !important;
+  height: clamp(52px, 35%, 86px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .profileLitePowerPlace .powerMandalaPanel[style] .zodiacClockFace,
 .profileLitePowerPlace .powerMandalaPanel[style] .daoUsinCore,
@@ -633,10 +866,13 @@ export default function ProfileLitePowerPlaceModule(props) {
   const centerImageOffsetY = clampCenterImageOffset(objectRefs[CENTER_IMAGE_OFFSET_Y_REF_KEY]);
   const centerImageZoom = clampCenterImageZoom(objectRefs[CENTER_IMAGE_ZOOM_REF_KEY]);
   const mandalaStyle = objectRefs[MANDALA_STYLE_REF_KEY] || "style-1";
+  const legacyDaoLayoutStyle = objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template";
+  const constructorType = legacyDaoLayoutStyle ? "dao-layout" : props.compositionDraft?.constructor_type;
   const daoStyle = daoStyleValue(objectRefs[DAO_STYLE_REF_KEY]);
+  const daoLayoutOptions = normalizeDaoLayoutOptions(objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
   const zodiacStyle = zodiacStyleValue(objectRefs[ZODIAC_STYLE_REF_KEY]);
   const daoTalismanNodeCount = daoTalismanNodeCountValue(objectRefs[DAO_TALISMAN_NODE_COUNT_REF_KEY]);
-  const formatLabel = CONSTRUCTOR_LABELS[props.compositionDraft?.constructor_type || ""] || "Место силы";
+  const formatLabel = CONSTRUCTOR_LABELS[constructorType || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
     [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom]
@@ -652,7 +888,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     refreshNodes();
     const timeoutId = window.setTimeout(refreshNodes, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [props.compositionDraft?.constructor_type, props.compositionDraft?.chess_variant, props.compositionDraft?.field_layout, props.compositionDraft?.cover_ref]);
+  }, [constructorType, props.compositionDraft?.chess_variant, props.compositionDraft?.field_layout, props.compositionDraft?.cover_ref]);
 
   const writeObjectRefs = useCallback((nextRefs) => {
     props.onCompositionObjectRefsChange?.(JSON.stringify(nextRefs, null, 2));
@@ -663,6 +899,11 @@ export default function ProfileLitePowerPlaceModule(props) {
   }, [objectRefs, writeObjectRefs]);
 
   const handleDraftChange = useCallback((field, value) => {
+    if (field === CENTER_IMAGE_SCALE_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [CENTER_IMAGE_SCALE_REF_KEY]: String(centerImageScaleValue(value)) });
+      return;
+    }
+
     if (field === CENTER_FRAME_SCALE_REF_KEY) {
       writeObjectRefs({ ...objectRefs, [CENTER_FRAME_SCALE_REF_KEY]: String(centerFrameScaleValue(value)) });
       return;
@@ -675,6 +916,14 @@ export default function ProfileLitePowerPlaceModule(props) {
 
     if (field === DAO_STYLE_REF_KEY) {
       writeObjectRefs({ ...objectRefs, [DAO_STYLE_REF_KEY]: daoStyleValue(value) });
+      if (constructorType === "dao-layout" && props.compositionDraft?.constructor_type !== "dao-layout") {
+        props.onCompositionDraftChange?.("constructor_type", "dao-layout");
+      }
+      return;
+    }
+
+    if (field === DAO_LAYOUT_OPTIONS_REF_KEY || field === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+      writeObjectRefs({ ...objectRefs, [DAO_LAYOUT_OPTIONS_REF_KEY]: normalizeDaoLayoutOptions(value) });
       return;
     }
 
@@ -688,11 +937,27 @@ export default function ProfileLitePowerPlaceModule(props) {
       return;
     }
 
+    if (field === "constructor_type") {
+      const nextRefs = { ...objectRefs };
+      if (value === "dao-layout" && objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template") {
+        nextRefs[DAO_STYLE_REF_KEY] = "style-1";
+      }
+      if (value === "dao-layout" && !nextRefs[DAO_LAYOUT_OPTIONS_REF_KEY]) {
+        nextRefs[DAO_LAYOUT_OPTIONS_REF_KEY] = daoLayoutOptions;
+      }
+      if (value === "dao-layout" || objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template") {
+        writeObjectRefs(nextRefs);
+      }
+      props.onCompositionDraftChange?.(field, value);
+      return;
+    }
+
     props.onCompositionDraftChange?.(field, value);
-  }, [objectRefs, props, writeObjectRefs]);
+  }, [constructorType, daoLayoutOptions, objectRefs, props, writeObjectRefs]);
 
   const enhancedDraft = useMemo(() => ({
     ...props.compositionDraft,
+    constructor_type: constructorType,
     field_scale: innerFieldScale,
     __center_image_scale: centerImageScale,
     __center_frame_scale: centerFrameScale,
@@ -704,7 +969,7 @@ export default function ProfileLitePowerPlaceModule(props) {
     __center_image_offset_y: centerImageOffsetY,
     __center_image_zoom: centerImageZoom,
     cover_ref: normalizeLayeredCoverRef(props.compositionDraft?.cover_ref)
-  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, daoTalismanNodeCount, innerFieldScale, mandalaStyle, props.compositionDraft]);
+  }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, constructorType, daoStyle, daoTalismanNodeCount, innerFieldScale, mandalaStyle, props.compositionDraft, zodiacStyle]);
 
   const externalTitle = (
     <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">

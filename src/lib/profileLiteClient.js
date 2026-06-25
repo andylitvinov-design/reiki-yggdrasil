@@ -8,9 +8,36 @@ export const PROFILE_LITE_TABS = [
   { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
   { id: "courses", label: "Курсы", href: "/profile/courses" },
   { id: "services", label: "Услуги", href: "/profile/services" },
+  { id: "clients", label: "Клиенты", href: "/profile?tab=clients" },
   { id: "orders", label: "Заказы", href: "/profile/orders" },
   { id: "chats", label: "Чаты", href: "/profile/chats" }
 ];
+
+export const PROFILE_LITE_CABINET_ROLES = [
+  { id: "client", label: "Кабинет Личный", defaultTabId: "orders" },
+  { id: "master", label: "Кабинет Мастера", defaultTabId: "mandalas" }
+];
+
+export const PROFILE_LITE_ROLE_NAV = {
+  client: [
+    { label: "Мои заказы", tabId: "orders" },
+    { label: "Мои фото", tabId: "media" },
+    { label: "Чаты", tabId: "chats" },
+    { label: "Профиль", tabId: "profile" }
+  ],
+  master: [
+    { label: "Мастерская", tabId: "mandalas" },
+    { label: "Услуги", tabId: "services" },
+    { label: "Клиенты", tabId: "clients" },
+    { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" },
+    { label: "Гримуар", tabId: "materials" }
+  ]
+};
+
+const PROFILE_LITE_ROLE_TAB_IDS = {
+  client: ["orders", "media", "chats", "profile"],
+  master: ["mandalas", "services", "clients", "materials", "orders"]
+};
 
 const PROFILE_LITE_INTERNAL_TABS = [
   ...PROFILE_LITE_TABS,
@@ -41,6 +68,26 @@ export function getProfileLiteRouteByTabId(tabId) {
   return getProfileLiteTabById(tabId).href;
 }
 
+export function getProfileLiteRoleById(roleId) {
+  return PROFILE_LITE_CABINET_ROLES.find((role) => role.id === roleId) || PROFILE_LITE_CABINET_ROLES[0];
+}
+
+export function getProfileLiteRoleForTab(tabId, preferredRole = "") {
+  if (tabId === "orders" && preferredRole === "master") return "master";
+  return ["mandalas", "services", "clients", "materials"].includes(tabId) ? "master" : "client";
+}
+
+export function getProfileLiteRoleNav(roleId) {
+  const role = getProfileLiteRoleById(roleId);
+  return PROFILE_LITE_ROLE_NAV[role.id] || PROFILE_LITE_ROLE_NAV.client;
+}
+
+export function getProfileLiteTabsForRole(roleId) {
+  const role = getProfileLiteRoleById(roleId);
+  const allowedIds = PROFILE_LITE_ROLE_TAB_IDS[role.id] || PROFILE_LITE_ROLE_TAB_IDS.client;
+  return PROFILE_LITE_TABS.filter((tab) => allowedIds.includes(tab.id));
+}
+
 export function getProfileLiteInitialTabFromLocation(pathname = "/profile", search = "") {
   const routeTabMap = {
     "/profile/mandalas": "mandalas",
@@ -55,10 +102,19 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
 
   if (pathname === "/profile" || pathname === "/profile-lite") {
     const queryTab = new URLSearchParams(search).get("tab");
-    return getProfileLiteTabById(queryTab).id;
+    return queryTab ? getProfileLiteTabById(queryTab).id : getProfileLiteRoleById("client").defaultTabId;
   }
 
   return "mandalas";
+}
+
+export function getProfileLiteInitialRoleFromLocation(pathname = "/profile", search = "") {
+  const tabId = getProfileLiteInitialTabFromLocation(pathname, search);
+  const params = new URLSearchParams(search);
+  const requestedRole = params.get("role") || params.get("cabinet");
+  if (requestedRole === "master" && tabId === "orders") return "master";
+  if (requestedRole === "client" && tabId === "orders") return "client";
+  return getProfileLiteRoleForTab(tabId);
 }
 
 export function hasProfileLiteSessionCredential(session) {
@@ -74,6 +130,19 @@ export function shortUserId(value) {
 
 export function safeProfileLiteError(error, fallback = "Не удалось загрузить данные кабинета.") {
   const message = hasText(error?.message) ? error.message : fallback;
+  const lowerMessage = message.toLowerCase();
+  if (
+    lowerMessage.includes("schema cache")
+    && lowerMessage.includes("profile_cabinet_publications")
+    && (
+      lowerMessage.includes("'category'")
+      || lowerMessage.includes("category")
+      || lowerMessage.includes("material_group")
+      || lowerMessage.includes("subcategory")
+    )
+  ) {
+    return "В Supabase не применена миграция таксономии материалов: отсутствует колонка category в profile_cabinet_publications. Нужно применить migration 20260617120000_profile_cabinet_publication_material_taxonomy.sql на staging/2mentalica.";
+  }
   return message
     .replace(/https?:\/\/\S+/gi, "[url hidden]")
     .replace(/[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}/g, "[token hidden]")

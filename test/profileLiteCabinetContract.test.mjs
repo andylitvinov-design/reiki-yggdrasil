@@ -8,8 +8,14 @@ import {
   createProfileLiteSavePayload,
   createProfileLiteShellViewModel,
   getProfileLiteInitialTabFromLocation,
+  getProfileLiteInitialRoleFromLocation,
+  getProfileLiteRoleById,
+  getProfileLiteRoleForTab,
+  getProfileLiteRoleNav,
   getProfileLiteRouteByTabId,
   getProfileLiteTabById,
+  PROFILE_LITE_CABINET_ROLES,
+  PROFILE_LITE_ROLE_NAV,
   PROFILE_LITE_TABS,
   safeProfileLiteError
 } from "../src/lib/profileLiteClient.js";
@@ -21,6 +27,7 @@ const expectedTabs = [
   ["materials", "Гримуар"],
   ["courses", "Курсы"],
   ["services", "Услуги"],
+  ["clients", "Клиенты"],
   ["orders", "Заказы"],
   ["chats", "Чаты"]
 ];
@@ -40,6 +47,7 @@ assert.deepEqual(
     ["materials", "/profile?tab=materials"],
     ["courses", "/profile/courses"],
     ["services", "/profile/services"],
+    ["clients", "/profile?tab=clients"],
     ["orders", "/profile/orders"],
     ["chats", "/profile/chats"]
   ],
@@ -61,13 +69,47 @@ assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
 assert.equal(getProfileLiteRouteByTabId("settings"), "/profile/settings");
 assert.equal(getProfileLiteRouteByTabId("diagnostics"), "/profile?tab=diagnostics");
 assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
-assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "mandalas");
-assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "orders");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/unknown", ""), "mandalas");
+assert.equal(getProfileLiteInitialRoleFromLocation("/profile/orders", ""), "client");
+assert.equal(getProfileLiteInitialRoleFromLocation("/profile/orders", "?role=master"), "master");
+assert.equal(getProfileLiteInitialRoleFromLocation("/profile/orders", "?cabinet=master"), "master");
+
+assert.deepEqual(
+  PROFILE_LITE_CABINET_ROLES.map((role) => [role.id, role.label, role.defaultTabId]),
+  [
+    ["client", "Кабинет Личный", "orders"],
+    ["master", "Кабинет Мастера", "mandalas"]
+  ],
+  "Profile Lite should expose the two cabinet role switcher labels without adding routes"
+);
+
+assert.deepEqual(
+  PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
+  ["Мои заказы", "Мои фото", "Чаты", "Профиль"],
+  "client cabinet nav should expose only client role items"
+);
+
+assert.deepEqual(
+  PROFILE_LITE_ROLE_NAV.master.map((item) => item.label),
+  ["Мастерская", "Услуги", "Клиенты", "Заявки", "Гримуар"],
+  "master cabinet nav should expose only master role items"
+);
+
+assert.equal(getProfileLiteRoleById("missing").label, "Кабинет Личный");
+assert.equal(getProfileLiteRoleForTab("orders"), "client");
+assert.equal(getProfileLiteRoleForTab("orders", "master"), "master");
+assert.equal(getProfileLiteRoleForTab("mandalas"), "master");
+assert.equal(getProfileLiteRoleForTab("services"), "master");
+assert.equal(getProfileLiteRoleForTab("clients"), "master");
+assert.equal(getProfileLiteRoleForTab("profile"), "client");
+assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "clients", "orders", "materials"]);
+assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" });
 
 const fullForm = createProfileLiteForm({
   display_name: "Master",
@@ -178,22 +220,36 @@ const moduleSource = readdirSync(moduleDir)
   .map((file) => readFileSync(join(moduleDir, file), "utf8"))
   .join("\n");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const profileMaterialsClientSource = readFileSync("src/lib/profileMaterialsClient.js", "utf8");
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
+const profileLiteShellSource = readFileSync(join(moduleDir, "ProfileLiteShell.jsx"), "utf8");
 const profileServicesModuleSource = readFileSync(join(moduleDir, "ProfileLiteServicesModule.jsx"), "utf8");
 const profileOrdersModuleSource = readFileSync(join(moduleDir, "ProfileLiteOrdersModule.jsx"), "utf8");
+const profileChatsModuleSource = readFileSync(join(moduleDir, "ProfileLiteChatsModule.jsx"), "utf8");
 const profileServicesManagerSource = `${profileServicesModuleSource}\n${profileServicesClientSource}`;
+const profileLiteMediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 const profileMaterialsModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsModule.jsx"), "utf8");
+const profileGrimoireComposerSource = readFileSync(join(moduleDir, "ProfileLiteGrimoireComposer.jsx"), "utf8");
 const profileCoursesClientSource = readFileSync("src/lib/profileCoursesClient.js", "utf8");
 const profileCoursesModuleSource = readFileSync(join(moduleDir, "ProfileLiteCoursesModule.jsx"), "utf8");
 const adminCoursesPanelSource = readFileSync("src/pages/admin/AdminCoursesPanel.jsx", "utf8");
 const powerPlaceWrapperSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModule.jsx"), "utf8");
 const powerPlaceBaseSource = readFileSync(join(moduleDir, "ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+const imagePickerSource = readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8");
 const powerPlaceSource = `${powerPlaceWrapperSource}\n${powerPlaceBaseSource}`;
 const profileMandalaCss = readFileSync("src/profileMandalaWorkspace.css", "utf8");
 const grimoireWorkspaceCss = readFileSync(join(moduleDir, "ProfileLiteGrimoireWorkspace.css"), "utf8");
 const mobileOrderCss = readFileSync("public/profile-lite-mobile-order-hotfix.css", "utf8");
 const layoutFinalFix = readFileSync("public/profile-lite-layout-final-fix.js", "utf8");
+const clientOrdersViewSource = profileOrdersModuleSource.slice(
+  profileOrdersModuleSource.indexOf("function ClientOrdersView"),
+  profileOrdersModuleSource.indexOf("function MasterOrdersView")
+);
+const masterOrdersViewSource = profileOrdersModuleSource.slice(
+  profileOrdersModuleSource.indexOf("function MasterOrdersView"),
+  profileOrdersModuleSource.indexOf("export default function ProfileLiteOrdersModule")
+);
 
 for (const label of expectedTabs.map(([, label]) => label)) {
   assert.match(moduleSource, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `module source should include ${label}`);
@@ -219,6 +275,31 @@ assert.match(profileCoursesClientSource, /listAvailableCoursesForProfile/, "Cour
 assert.match(profileCoursesClientSource, /listAvailableCourseSteps/, "Course client should load steps for current profile");
 assert.match(profileCoursesClientSource, /listAvailableCourseLessons/, "Course client should load lessons for current profile");
 assert.doesNotMatch(`${profileCoursesClientSource}\n${profileCoursesModuleSource}\n${adminCoursesPanelSource}`, /lesson_access|per[-_ ]lesson/i, "Courses MVP should not implement per-lesson access");
+assert.match(profileLiteShellSource, /<div className="profileLiteRoleSwitcher"[\s\S]*<header className="cabinetTopbar profileLiteTopbar"/, "Profile Lite role switcher must render before the cabinet topbar");
+assert.doesNotMatch(profileLiteShellSource, /PROFILE_LITE_TABS\.map|profileLiteTabs/, "Profile Lite shell must not render the global tab rail that leaks master tabs into client mode");
+assert.match(profileLiteShellSource, /const href = item\.href \|\| getProfileLiteRouteByTabId\(item\.tabId\);/, "Profile Lite shell should keep role-aware master navigation hrefs");
+assert.match(profileLitePageSource, /initialRole = ""/, "ProfileLitePage should accept an initial role for ambiguous shared routes");
+assert.match(profileLitePageSource, /getProfileLiteInitialRoleFromLocation/, "ProfileLitePage should preserve master role when opened through a role-aware URL");
+assert.doesNotMatch(profileOrdersModuleSource, /Кабинет Мастера", "Заявки"/, "personal orders sidebar must not include master-only items");
+assert.match(profileOrdersModuleSource, /isMasterRole[\s\S]*<MasterOrdersView/, "master requests panel should render only for the master role");
+assert.doesNotMatch(profileOrdersModuleSource, /needs verification: \{ordersError\}/, "orders UI must not expose raw Supabase errors to users");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить личные заказы\. Попробуйте обновить страницу\./, "client orders UI should show a clean temporary failure message");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить заявки мастера\. Попробуйте обновить страницу\./, "master orders UI should show a clean temporary failure message");
+assert.doesNotMatch(profileOrdersModuleSource, /clientGoalPhotos\.length\}\/4/, "orders photo summary must not render raw count slash limit text");
+assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders photo panel should explain the order selection limit in user-facing RU copy");
+assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders photo panel should summarize hidden media without dumping filenames");
+assert.match(profileLitePageSource, /listApprovedMasterProfiles/, "ProfileLitePage should load approved master profiles for chat creation");
+assert.match(profileLitePageSource, /createConversationWithMaster/, "ProfileLitePage should create or open conversations through the shared chat client");
+assert.match(profileLitePageSource, /listApprovedMasterProfiles\(session\)/, "approved chat profiles should keep the existing Supabase auth session flow");
+assert.match(profileLitePageSource, /createConversationWithMaster\(profile\.id, masterProfileId, session\)/, "chat creation should preserve profile/session ownership flow");
+assert.match(profileLitePageSource, /<ProfileLiteChatsModule[\s\S]*onStartChatWithMaster=\{handleStartChatWithMaster\}/, "ProfileLitePage should pass the start-chat action into the chat module");
+assert.match(profileChatsModuleSource, /approvedChatProfiles = \[\]/, "chats module should accept approved master profiles");
+assert.match(profileChatsModuleSource, /onStartChatWithMaster\(master\.id\)/, "approved master buttons should create or open a conversation");
+assert.match(profileChatsModuleSource, /Начните диалог с мастером/, "empty chat state should invite selecting an approved master");
+assert.match(profileChatsModuleSource, /Выберите мастера из одобренных профилей/, "empty chat state should explain the approved-master flow");
+assert.match(profileChatsModuleSource, /disabled=\{!selectedThread \|\| !hasDraft\}/, "send button should require a selected thread and non-empty draft");
+assert.doesNotMatch(profileChatsModuleSource, /needs verification/i, "chats UI must not expose raw needs verification text");
+assert.doesNotMatch(profileChatsModuleSource, /Источник данных|profile_cabinet_chat_\*|Статические разделы чатов|Места силы", "Фото клиентов"|Создание новых диалогов/, "chats UI must not expose debug source or old placeholder copy");
 
 for (const requiredPowerPlaceText of [
   "Мастерская мандал",
@@ -229,6 +310,7 @@ for (const requiredPowerPlaceText of [
   "Добавить фото",
   "Добавить в мои услуги",
   "В услугах ✓",
+  "Удалить",
   "Пока нет мандал, добавленных в услуги.",
   "Группа",
   "Категория",
@@ -253,7 +335,14 @@ for (const requiredPowerPlaceText of [
   "Перенести в услуги",
   "Опубликовать как услугу",
   "Скачать PDF",
-  "Печать"
+  "Печать",
+  "ДАО-Макет",
+  "Верхушка",
+  "Крыша",
+  "3 галочки",
+  "Боковые точки",
+  "Показывать",
+  "Количество точек"
 ]) {
   assert.match(`${powerPlaceSource}\n${moduleSource}`, new RegExp(requiredPowerPlaceText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Lite Power Place should include UX text: ${requiredPowerPlaceText}`);
 }
@@ -297,10 +386,37 @@ assert.match(profileLitePageSource, /const accountPlan = normalizeAccountPlan\(f
 assert.match(profileLitePageSource, /const moduleProps = \{[\s\S]*accountPlan,[\s\S]*compositionDraft/, "ProfileLitePage should pass the real normalized accountPlan when it is available");
 assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8"), /accountPlan = "start"[\s\S]*const isProAccount = accountPlan === "pro"[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "ProfileLiteImagePicker should keep Pro-only client options disabled unless accountPlan is exactly pro");
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
+assert.match(powerPlaceBaseSource, /rotateSlotPhoto[\s\S]*↺ 90°[\s\S]*↻ 90°/, "selected photo editor must expose compact rotate-left and rotate-right controls");
+assert.match(`${powerPlaceBaseSource}\n${powerPlaceSource}`, /--slot-bg-rotate[\s\S]*rotate\(var\(--slot-bg-rotate, 0deg\)\)/, "slot image rendering must compose persisted rotation into the selected photo layer transform");
+assert.match(powerPlaceBaseSource, /writeSlotImageTransform\(selectedSlotId,\s*50,\s*50,\s*1,\s*0\)/, "slot photo reset must also reset persisted rotation to 0");
+assert.match(powerPlaceBaseSource, /clearCoverLayer[\s\S]*coverLayerDeleteButton/, "inner and outer background tabs must expose direct delete controls");
 assert.doesNotMatch(powerPlaceSource, /renderCoverDropIcon|coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon row should be removed from the React module");
-assert.match(powerPlaceBaseSource, /DAO_FULU_STYLES\.has\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
-assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true">[\s\S]*<span className="daoFuluTopHead" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--left" \/>[\s\S]*<span className="daoFuluSideRail daoFuluSideRail--right" \/>[\s\S]*<span className="daoFuluBottomBase" \/>[\s\S]*<\/div>/, "DAO fulu render branch should include an explicit overlay contour layer");
-assert.match(powerPlaceBaseSource, /className=\{\`daoMandalaSheet[\s\S]*dao-fu-paper-slip[\s\S]*dao-cloud-register[\s\S]*dao-thunder-tablet[\s\S]*dao-taofu-charm[\s\S]*style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet should keep all fulu style classes while receiving the inner cover image style and fulu contour image variable");
+assert.match(powerPlaceBaseSource, /const legacyDaoLayoutStyle = compositionDraft\.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID[\s\S]*const daoStyle = legacyDaoLayoutStyle \? "style-1" : compositionDraft\.__dao_style \|\| "style-1"/, "DAO style should be computed once before rendering with legacy layout normalization");
+assert.match(powerPlaceBaseSource, /const isDaoFulu = DAO_FULU_STYLES\.has\(daoStyle\)/, "DAO fulu detection should use computed daoStyle");
+assert.match(powerPlaceBaseSource, /function isDaoFuluContourAsset\(src\)/, "DAO renderer should detect built-in fulu contour assets");
+assert.match(powerPlaceBaseSource, /function renderDaoFulu\(\)[\s\S]*<div className="daoFuluScroll" aria-label="Даосский талисман">/, "DAO fulu styles should keep the dedicated fulu render branch");
+assert.match(powerPlaceBaseSource, /function renderDaoStyle2\(\)[\s\S]*daoStyle2Scroll[\s\S]*dao-style-2-\$\{index \+ 1\}/, "DAO style-2 should keep a dedicated vertical mini-window render branch");
+assert.match(powerPlaceBaseSource, /function renderDaoFuReferenceOutline\(\)[\s\S]*className: "daoFuReferenceOutline"/, "DAO outline contour helper should remain the pure SVG contour helper");
+assert.match(powerPlaceBaseSource, /const DAO_SHARED_STAGE_STYLE_VALUES = new Set[\s\S]*function renderDaoSharedStage\(\)[\s\S]*renderDaoFieldBackgroundLayer\("daoSharedFieldLayer"\)[\s\S]*renderDaoInnerContentStack\(\)[\s\S]*renderDaoTalismanOverlay\(config\)/, "DAO outline styles should render through the shared stage/layer stack");
+assert.match(powerPlaceBaseSource, /function renderDaoInnerContentStack\(\)[\s\S]*DAO_SHARED_STAGE_MINI_SLOTS\.map[\s\S]*DAO_LAYOUT_MINI_SLOT_NUMBERS\[index\][\s\S]*openObjectPicker\(slotId\)[\s\S]*slotImageStyle\(slotId, displaySrc\)[\s\S]*getSlotImagePanZoomHandlers\(slotId\)[\s\S]*getPowerPlaceSlotDropHandlers\(slotId\)/, "shared DAO slots should keep picker, saved pan/zoom, drag/drop, and 3,4,5,7 visual slots");
+assert.match(powerPlaceBaseSource, /function renderDaoTalismanOverlay\(config = \{\}\)[\s\S]*renderDaoFuReferenceOutline\(\)[\s\S]*daoSharedTopMarker/, "new DAO outline overlays should use the shared contour layer plus an optional top marker");
+assert.match(powerPlaceBaseSource, /<div className="daoFuluContourLayer" aria-hidden="true" \/>/, "DAO fulu render branch should include exactly one self-contained contour layer");
+for (const removedFuluLayer of ["daoFuluFallbackPaper", "daoFuluTopHead", "daoFuluSideRail", "daoFuluBottomBase", "daoFuluHeader", "daoFuluFooter", "daoFuluSealBox", "daoFuluPureMarks"]) {
+  assert.doesNotMatch(powerPlaceBaseSource, new RegExp(removedFuluLayer), `DAO fulu render branch must not render ${removedFuluLayer}`);
+  assert.doesNotMatch(profileMandalaCss, new RegExp(removedFuluLayer), `DAO fulu CSS must not define ${removedFuluLayer}`);
+}
+assert.doesNotMatch(powerPlaceBaseSource, /style=\{\{[\s\S]*innerCoverImageStyle\(innerCover, coverDisplaySrc\(innerCover\)\)[\s\S]*daoFuluContourStyle\(compositionDraft\.__dao_style \|\| "style-1"\)[\s\S]*\}\}/, "DAO outer sheet must not merge user cover and fulu contour variables blindly");
+assert.match(powerPlaceBaseSource, /const daoBaseCoverStyle[\s\S]*!isDaoFulu[\s\S]*!innerCoverIsFuluContour[\s\S]*innerCoverImageStyle\(innerCover, innerCoverSrc\)/, "Non-fulu DAO styles should ignore built-in fulu contours as inner covers");
+assert.match(powerPlaceBaseSource, /const daoFuluStyle[\s\S]*daoFuluContourStyle\(daoStyle\)[\s\S]*"--dao-fulu-user-cover-image"/, "Fulu style should separate contour and subtle user cover variables");
+assert.match(powerPlaceBaseSource, /className=\{daoClassName\} style=\{daoOuterStyle\}/, "DAO outer sheet should receive the isolated DAO class and style objects");
+assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-fulu/, "CSS should define shared dao-fulu holder");
+assert.match(profileMandalaCss, /\.daoMandalaSheet\.dao-style-2/, "CSS should define shared dao-style-2 holder");
+assert.match(profileMandalaCss, /--dao-fulu-user-cover-image/, "CSS should consume --dao-fulu-user-cover-image");
+assert.match(profileMandalaCss, /--dao-field-cover-image[\s\S]*\.daoFieldCoverLayer|\.daoFieldCoverLayer[\s\S]*--dao-field-cover-image/, "CSS should consume borderless DAO field-cover layer for Размер поля");
+assert.match(profileMandalaCss, /\.daoFieldCoverLayer \{[\s\S]*background-image: var\(--dao-field-cover-image, none\)[\s\S]*opacity: var\(--dao-field-cover-opacity, 0\)/, "DAO field cover layer should be invisible without a real uploaded image");
+assert.match(profileMandalaCss, /\.daoSharedStage \.daoSharedFieldLayer \{[\s\S]*z-index: 0;/, "shared DAO field layer should sit behind the talisman overlay");
+assert.match(profileMandalaCss, /\.daoFieldCoverLayer \{[\s\S]*width: var\(--power-field-scale, 78%\)[\s\S]*background-image: var\(--dao-field-cover-image, none\)/, "DAO shared field layer must scale the selected field background with Размер поля");
+assert.doesNotMatch(profileMandalaCss, /\.daoMandalaSheet\.dao-fu-outline \{[\s\S]*--dao-field-cover-image: none;/, "DAO outline styles must not reset the shared field background image variable");
 for (const assetPath of [
   "/symbols/power-place/dao/fulu/fu-paper-slip.svg",
   "/symbols/power-place/dao/fulu/cloud-register.svg",
@@ -310,8 +426,10 @@ for (const assetPath of [
   assert.equal(existsSync(join("public", assetPath)), true, `${assetPath} should exist for DAO fulu contours`);
   assert.match(powerPlaceBaseSource, new RegExp(assetPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `DAO fulu style values should map ${assetPath}`);
 }
-assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "inner"[\s\S]*dragOverSlotId === "cover_ref\.inner"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("inner"\)\}[\s\S]*aria-label="Фон внутри\. Можно перетащить фото"[\s\S]*title="Фон внутри\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "existing inner cover tab should be the cover_ref.inner drop target without opening the picker");
-assert.match(powerPlaceSource, /className=\{`coverLayerTabButton[\s\S]*coverLayerMode === "outer"[\s\S]*dragOverSlotId === "cover_ref\.outer"[\s\S]*power-place-slot--drag-over[\s\S]*onClick=\{\(\) => setCoverLayerMode\("outer"\)\}[\s\S]*aria-label="Фон снаружи\. Можно перетащить фото"[\s\S]*title="Фон снаружи\. Можно перетащить фото"[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)/, "existing outer cover tab should be the cover_ref.outer drop target without opening the picker");
+assert.match(powerPlaceBaseSource, /className="coverLayerTabShell"[\s\S]*coverLayerMode === "inner"[\s\S]*dragOverSlotId === "cover_ref\.inner"[\s\S]*onClick=\{\(\) => setCoverLayerMode\("inner"\)\}[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.inner"\)/, "inner cover tab should target cover_ref.inner without opening the picker");
+assert.match(powerPlaceBaseSource, /className="coverLayerTabShell"[\s\S]*coverLayerMode === "outer"[\s\S]*dragOverSlotId === "cover_ref\.outer"[\s\S]*onClick=\{\(\) => setCoverLayerMode\("outer"\)\}[\s\S]*getPowerPlaceSlotDropHandlers\("cover_ref\.outer"\)/, "outer cover tab should target cover_ref.outer without opening the picker");
+assert.match(powerPlaceBaseSource, />\s*Внутрь\s*<\/button>/, "inner cover tab should use the compact Внутрь label");
+assert.match(powerPlaceBaseSource, />\s*Снаружи\s*<\/button>/, "outer cover tab should use the compact Снаружи label");
 assert.match(powerPlaceSource, /draggable=\{Boolean\(item\.src\)\}/, "Only valid saved source cards should be draggable");
 assert.match(powerPlaceSource, /onDragStart=\{\(event\) => handleSavedImageDragStart\(event, item\)\}/, "Saved source cards should write the compact payload on drag start");
 assert.match(powerPlaceSource, /const buildCompositionDragItem = \(composition, previewSrc = ""\) => \{[\s\S]*kind: "saved-mandala"[\s\S]*displaySrc: previewSrc/, "saved mandala cards should create a compatible drag item from their preview image");
@@ -324,6 +442,13 @@ assert.match(powerPlaceSource, /onChange=\{\(event\) => selectedSlot && assignPo
 assert.match(profileMandalaCss, /\.power-place-slot--drag-over/, "Power Place drop targets should have a subtle drag-over state");
 assert.doesNotMatch(profileMandalaCss, /coverDropIconRow|coverDropIconButton/, "duplicate cover drop icon CSS should be removed");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.coverLayerTabs button\.power-place-slot--drag-over/, "cover layer tab drag-over styling should be scoped");
+assert.match(profileLiteMediaModuleSource, /Все файлы[\s\S]*Клиенты \/ Все[\s\S]*Клиент 1[\s\S]*Клиент 2[\s\S]*Клиент 3[\s\S]*Больше клиентов \/ Pro[\s\S]*Материалы/, "Profile Lite media manager should expose the requested folder navigation");
+assert.match(profileLiteMediaModuleSource, /draggable=\{photoDraggable\}[\s\S]*handleClientPhotoDragStart\(event, photo\)/, "client photo cards should be draggable");
+assert.match(profileLiteMediaModuleSource, /onDrop=\{\(event\) => handleFolderDrop\(event, folder\)\}/, "client folders should be droppable");
+assert.match(profileLiteMediaModuleSource, /Переместить в…[\s\S]*onChange=\{\(event\) => handleClientPhotoMove\(photo, event\.target\.value\)\}/, "client photo cards should expose a non-drag move action");
+assert.match(profileLiteMediaModuleSource, /option\.proOnly && !isProAccount[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "Start plan should disable the Pro folder in move controls");
+assert.match(profileLiteMediaModuleSource, /folder\.proOnly && !isProAccount[\s\S]*Доступно в Pro/, "Start plan should block dropping into the Pro folder with a hint");
+assert.match(profileLiteMediaModuleSource, /kind: "client-photo"[\s\S]*kind: "material"/, "media manager should build one mixed file browser across client photos and materials");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four Power Place sliders should share the desktop grid contract");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl button,[\s\S]*\.profileLitePowerPlace \.photoScaleControl button \{[\s\S]*width: 28px;[\s\S]*height: 28px;[\s\S]*display: grid;[\s\S]*place-items: center;/, "all four Power Place slider buttons should share compact square sizing");
 assert.match(profileMandalaCss, /@media \(max-width: 640px\) \{[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) 28px minmax\(110px, 1fr\) 28px;/, "all four Power Place sliders should keep a no-overlap mobile grid");
@@ -342,22 +467,49 @@ assert.match(powerPlaceSource, /centerImageStyle/, "center photo renderer should
 assert.match(profileMandalaCss, /--power-center-image-scale/, "Mandala workspace CSS should include independent center photo scaling");
 assert.match(powerPlaceSource, /CENTER_FRAME_SCALE_REF_KEY = "__center_frame_scale"/, "center frame/window scale should persist through object_refs without a schema change");
 assert.match(powerPlaceSource, /__center_frame_scale: centerFrameScale/, "center frame/window scale should be passed through enhanced draft only");
-assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"/, "Power Place constructor controls should map slot-window, field, and center sliders to distinct fields");
+assert.match(powerPlaceSource, /Размер окон[\s\S]*field: "slot_scale"[\s\S]*Размер поля[\s\S]*field: "field_scale"[\s\S]*Размер центра[\s\S]*field: "__center_frame_scale"[\s\S]*Масштаб фото[\s\S]*field: "__center_image_scale"/, "Power Place constructor controls should map slot-window, field, center frame, and center photo sliders to distinct fields");
 assert.match(powerPlaceBaseSource, /Масштаб фото[\s\S]*writeSlotImageTransform/, "Масштаб фото slider must be in renderSlotPhotoEditor and call writeSlotImageTransform");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "sourceSlotScaleControl"/g) || []).length, 1, "Размер окон slider should render once from the base module");
-assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 0, "top Размер фоток photoScaleControl slider must be removed from constructor controls");
+assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Масштаб фото center photo slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
+assert.match(powerPlaceBaseSource, /className: "photoScaleControl"[\s\S]*label: "Масштаб фото"[\s\S]*value: centerImageScale[\s\S]*min: "0\.65"[\s\S]*max: "2"[\s\S]*step: "0\.01"[\s\S]*field: "__center_image_scale"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Масштаб фото must target center image scale and share the center visibility toggle");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four size sliders should share the requested desktop grid");
 assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*grid-template-columns: minmax\(0, 1fr\) 28px minmax\(110px, 1fr\) 28px;/, "all four size sliders should share the requested mobile grid");
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
 assert.match(powerPlaceSource, /powerSavedMandalaSelect[\s\S]*placeholder: "Сохранённые мандалы"|<option value="">\s*Сохранённые мандалы\s*<\/option>/, "saved mandala select should expose the fixed placeholder");
 assert.match(powerPlaceSource, /compositionMessage[\s\S]*compactNotice/, "composition message should remain a compact message below controls/select");
-assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Создать новую\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose save, create-new, transfer, and publish buttons in order");
-assert.match(powerPlaceSource, /Опубликовать в ленту[\s\S]*Название для ленты[\s\S]*Публичное описание/, "Power Place should expose a public projection form before creating a feed event");
+assert.match(powerPlaceSource, />\s*Обновить\s*<\/button>[\s\S]*>\s*Сохранить как шаблон\s*<\/button>[\s\S]*isMasterWorkflow[\s\S]*>\s*Сохранить для клиента\s*<\/button>[\s\S]*>Перенести в услуги<\/button>[\s\S]*>Опубликовать как услугу<\/button>/, "Power Place actions should expose update, template save, client save, transfer, and publish buttons in order for master workflow");
+assert.match(powerPlaceSource, /SHOW_POWER_PLACE_FEED_PROJECTION[\s\S]*Опубликовать в ленту[\s\S]*Название для ленты[\s\S]*Публичное описание/, "Power Place should keep feed projection handlers/form code behind the visibility flag");
+assert.match(powerPlaceSource, /const SHOW_POWER_PLACE_FEED_PROJECTION = false;/, "Power Place public projection must be hidden from the builder UI");
 const powerPlaceFeedProjectionSource = powerPlaceSource.match(/<div className="powerPlaceFeedProjection"[\s\S]*?<\/div>\s*<p className="powerPrintColorHint">/)?.[0] || "";
 assert.doesNotMatch(powerPlaceFeedProjectionSource, /object_refs|storage:\/\/|signed URL|profile-cabinet-media/i, "Power Place feed projection UI must not render private refs");
-assert.match(profileMaterialsModuleSource, /Добавить в ленту/, "materials should expose an explicit feed action");
+assert.match(profileMaterialsModuleSource, /getGrimoireFeedActionLabel/, "materials should derive feed action labels from publication visibility");
+assert.match(profileMaterialsModuleSource, /getGrimoireNextVisibilityStatus/, "materials should hide visible feed items by changing status, not deleting");
+assert.match(profileMaterialsModuleSource, /grimoireTaxonomyFilterLevelOptions/, "Grimoire feed filter should use the shared 3-level taxonomy source");
+assert.match(profileMaterialsModuleSource, /materialMatchesGrimoireTaxonomyFilter/, "Grimoire feed filter should use shared taxonomy matching with legacy fallback");
+assert.match(profileMaterialsModuleSource, /Фильтр материалов/, "Grimoire feed should render the compact taxonomy filter label");
+assert.match(profileMaterialsModuleSource, /Уровень 1[\s\S]*Уровень 2[\s\S]*Уровень 3/, "Grimoire feed should render all three taxonomy filter dropdown labels");
+assert.match(profileMaterialsModuleSource, /Сбросить/, "Grimoire feed should expose a reset action for taxonomy filters");
+assert.match(profileMaterialsModuleSource, /grimoireMaterialFilterPanel/, "Grimoire feed should render a dedicated compact filter panel above records");
+assert.match(profileMaterialsModuleSource, /grimoireTaxonomyMeta/, "Grimoire record cards should render compact taxonomy metadata");
+assert.match(profileMaterialsModuleSource, /<img[\s\S]*className="grimoireCardImage"[\s\S]*onError/, "materials should render actual image previews and fall back only after load failure");
+assert.match(profileMaterialsModuleSource, /attachments,[\s\S]*display_url:\s*saved\.display_url \|\| firstUpload\?\.uploaded\?\.signedUrl/, "composer should keep signed preview URLs for newly uploaded parent galleries");
+assert.match(profileMaterialsModuleSource, /function GrimoirePhotoGallery/, "Grimoire cards should render photos through one parent gallery component");
+assert.match(profileMaterialsModuleSource, /getGrimoirePhotoGalleryItems/, "Grimoire gallery should use normalized parent attachments");
+assert.match(profileMaterialsModuleSource, /buildGrimoireDescriptionValue\(cleanDescription, attachments\)/, "composer should persist multi-photo attachments under one parent material");
+assert.doesNotMatch(profileMaterialsModuleSource, /const records = selectedFiles\.length \? selectedFiles : \[null\]/, "composer must not create one parent material per selected file");
+assert.match(profileLitePageSource, /buildGrimoireDescriptionValue\("", attachments\)/, "bulk Grimoire upload should persist selected files as one parent attachment batch");
+for (const gallerySelector of [
+  ".grimoirePhotoGallery--count-1",
+  ".grimoirePhotoGallery--count-2",
+  ".grimoirePhotoGallery--count-3",
+  ".grimoirePhotoGallery--count-4",
+  ".grimoirePhotoGallery--count-5",
+  ".grimoirePhotoMore"
+]) {
+  assert.match(grimoireWorkspaceCss, new RegExp(gallerySelector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Grimoire gallery CSS should include ${gallerySelector}`);
+}
 assert.match(profileServicesModuleSource, /Добавить в ленту[\s\S]*Опубликовать обновление/, "published services should expose explicit feed create/update actions");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions powerPlaceActions--save">[\s\S]*>\s*Обновить\s*<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
 assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
@@ -369,7 +521,9 @@ assert.match(powerPlaceBaseSource, /<p className="powerPlaceActionsMeta"[\s\S]*\
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions button:disabled[\s\S]*cursor: not-allowed[\s\S]*opacity:/, "Power Place disabled action buttons should have obvious scoped disabled styling");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActionsMeta[\s\S]*width: 100%[\s\S]*pointer-events: none/, "Power Place saved-count meta should not be able to cover or intercept action buttons");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActions \{[\s\S]*order: 2 !important;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.profileLitePowerPlaceActionFeedback \{[\s\S]*order: 3;[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions > \.powerPlaceActionsMeta \{[\s\S]*order: 4;/, "Profile Lite action card should force buttons, stage feedback, then saved-count meta even when public mobile hotfixes assign action order");
-assert.match(powerPlaceBaseSource, /powerPlacePrintArea[\s\S]*renderPowerPlaceActions\(\)[\s\S]*reportAdded/, "Power Place actions should render in the central mandala area before report output");
+assert.doesNotMatch(powerPlaceBaseSource, /powerPlacePrintArea[\s\S]*renderPowerPlaceActions\(\)[\s\S]*reportAdded/, "Power Place actions must not render inside the central printable mandala flow before report output");
+assert.match(powerPlaceBaseSource, /workspaceRightColumn[\s\S]*renderReportModule\(\)[\s\S]*renderPowerPlaceActions\(\)/, "Power Place actions should render after the library, cover, and report modules for mobile ordering");
+assert.match(profileMandalaCss, /@media \(max-width: 980px\) \{[\s\S]*\.profileLitePowerPlace \.profileLitePowerPlaceActions \{[\s\S]*order: 5 !important;[\s\S]*\.profileLitePowerPlace \.powerLibrarySidebar \{[\s\S]*order: 99 !important;/, "mobile Power Place layout should keep title/actions above sources and move Источники силы to the bottom");
 assert.match(profileLitePageSource, /handleCompositionSaveNew/, "Profile Lite page should split composition create into handleCompositionSaveNew");
 assert.match(profileLitePageSource, /const message = "Сначала сохраните профиль мастера\.";[\s\S]*setMandalasError\(message\);[\s\S]*setCompositionMessage\(powerPlaceSaveFailureMessage\("profile", \{ message \}, message\)\);/, "Save preflight failure should render near the Power Place action controls as a visible staged composition message");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting/, "Profile Lite page should split composition update into handleCompositionUpdateExisting");
@@ -378,7 +532,7 @@ assert.match(profileLitePageSource, /копия/, "Duplicate saved mandala title
 assert.match(profileLitePageSource, /Сначала создайте новую мандалу или откройте сохранённую/, "Update without an existing composition should show the required message");
 assert.match(profileLitePageSource, /updatePowerPlaceComposition\(compositionDraft\.id/, "Update should call updatePowerPlaceComposition for the current saved composition");
 assert.match(profileLitePageSource, /Лимит 7 сохранённых мандал достигнут/, "Save-new should show a clear RU limit message before backend create");
-assert.match(profileLitePageSource, /currentSavedCompositionCount[\s\S]*powerPlaceCompositions\.length[\s\S]*currentCompositionLimit[\s\S]*planLimits\.compositions[\s\S]*currentSavedCompositionCount >= currentCompositionLimit[\s\S]*return;[\s\S]*createPowerPlaceComposition/, "Save-new should return before createPowerPlaceComposition when saved mandalas reach the current plan limit");
+assert.match(profileLitePageSource, /currentSavedCompositionCount[\s\S]*masterPowerPlaceCompositions\.length[\s\S]*currentCompositionLimit[\s\S]*planLimits\.compositions[\s\S]*currentSavedCompositionCount >= currentCompositionLimit[\s\S]*return;[\s\S]*createPowerPlaceComposition/, "Save-new should return before createPowerPlaceComposition when master saved mandalas reach the current plan limit");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting[\s\S]*updatePowerPlaceComposition\(compositionDraft\.id/, "Update existing should keep using updatePowerPlaceComposition even when the save-new limit guard exists");
 assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const createNewDisabled = savedCompositionCount >= savedCompositionLimit[\s\S]*const updateExistingDisabled = !compositionDraft\.id/, "Power Place UI should compute separate create-new and update-existing disabled flags");
 assert.match(powerPlaceBaseSource, /disabled=\{updateExistingDisabled\}[\s\S]*title=\{updateExistingDisabled[\s\S]*aria-label=\{updateExistingDisabled/, "Update button should show an explanatory title and aria-label when disabled");
@@ -387,6 +541,9 @@ assert.doesNotMatch(powerPlaceBaseSource, /handleSaveCompositionClick/, "handleS
 assert.match(profileLitePageSource, /const handlePrintComposition[\s\S]*openPowerPlacePdfPrintView/, "handlePrintComposition must use the clean print window, not direct window.print");
 assert.doesNotMatch(profileLitePageSource, /handlePrintComposition[\s\S]*body\.classList\.add\("printMandalaOnly"\)/, "handlePrintComposition must not apply printMandalaOnly to the main body");
 assert.doesNotMatch(powerPlaceBaseSource, /const createNewDisabled\s*=.*!compositionDraft\.id/, "createNewDisabled definition must not depend on compositionDraft.id — only on the plan limit");
+assert.match(profileLitePageSource, /function injectPrintablePhotoImages\(sourceArea, clonedArea\)/, "print/PDF should convert CSS background photo layers into real img nodes for Safari/iOS print");
+assert.match(profileLitePageSource, /isPrintablePhotoLayer[\s\S]*powerCenterPhoto\.hasImage[\s\S]*zodiacPositionImage\[style\][\s\S]*has-custom-inner-cover[\s\S]*has-custom-outer-cover/, "print/PDF image injection should include center, mini slot, inner cover, and outer cover photo layers");
+assert.match(profileLitePageSource, /clonedNode\.style\.backgroundImage = "none"/, "print/PDF image injection should disable the cloned photo background after inserting a real img to avoid print artifacts");
 assert.match(powerPlaceBaseSource, /powerPlaceUpdateButton/, "Update button must carry powerPlaceUpdateButton class for scoped targeting");
 assert.match(powerPlaceBaseSource, /powerPlaceCreateButton/, "Create-new button must carry powerPlaceCreateButton class for scoped targeting");
 assert.match(powerPlaceSource, /\{savedCompositionCount\}\/\{savedCompositionLimit\} сохранённых мест силы/, "Power Place UI should show count text like 7/7 сохранённых мест силы");
@@ -394,6 +551,20 @@ for (const servicesManagerText of [
   "Черновики",
   "Опубликованные",
   "Архив",
+  "Клиенты",
+  "Клиенты и материалы",
+  "Клиентов пока нет",
+  "Клиенты появятся, когда вы сохраните мандалу через \"Сохранить для клиента\" или когда клиент оформит заказ.",
+  "В этом разделе пока нет материалов клиента.",
+  "Открыть мандалу",
+  "Превью мандалы пока не создано",
+  "Превью недоступно",
+  "Сохранено для клиента",
+  "Готово к отправке",
+  "Отправлено клиенту",
+  "Ошибка сохранения/отправки",
+  "Ссылка скопирована",
+  "Ссылка появится после отправки мандалы клиенту.",
   "Опубликовать",
   "Вернуть в черновик",
   "Архивировать",
@@ -407,21 +578,96 @@ for (const servicesManagerText of [
 ]) {
   assert.match(profileServicesManagerSource, new RegExp(servicesManagerText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `/profile/services should include ${servicesManagerText}`);
 }
+assert.match(profileServicesModuleSource, /clientDirectory = \[\]/, "services manager should accept clientDirectory");
+assert.match(profileServicesModuleSource, /selectedClientKey = ""/, "services manager should accept selected client key");
+assert.match(profileServicesModuleSource, /onClientSelect = \(\) => \{\}/, "services manager should accept client selection callback");
+assert.doesNotMatch(profileServicesModuleSource, /<select[\s\S]*clientDirectory/, "services client selector should not use a native select for mobile client lists");
+assert.match(profileServicesModuleSource, /profileLiteClientSelectorButton/, "services client selector should render a custom selected-client button");
+assert.match(profileServicesModuleSource, /profileLiteClientOption/, "services client selector should render inline client options");
+assert.match(profileServicesModuleSource, /client_display_name/, "services client selector should use safe display names");
+assert.doesNotMatch(profileServicesModuleSource, /profile_cabinet_services|\/services\/:serviceId/, "services manager should not show table names or unfinished route debug text in the normal UI");
+assert.doesNotMatch(profileServicesModuleSource, /composition_id:|delivery modes MVP|formats persistence|raw success|needs verification/, "services manager normal UI must not expose implementation/debug labels");
+assert.match(profileServicesModuleSource, /Клиентов пока нет[\s\S]*Сохранить для клиента/, "services manager should show a useful no-clients empty state instead of an empty selector-first UI");
+assert.match(profileServicesModuleSource, /activeView = "services"/, "services/clients module should accept an explicit active view");
+assert.match(profileServicesModuleSource, /isClientsView \? "Клиентская база" : "Услуги и шаблоны"/, "Услуги and Клиенты should render distinct compact hero headings");
+assert.match(profileServicesModuleSource, /Список клиентов, фильтр, сохранённые мандалы, заказы и статусы\./, "Клиенты should describe client materials instead of service editing");
+assert.match(profileServicesModuleSource, /Черновики, публикации и действия по услугам\./, "Услуги should use a short helper line instead of a heavy desktop paragraph");
+assert.match(profileServicesModuleSource, /isClientsView \? renderClientWorkspace\(\) : renderServiceGroups\(\)/, "Клиенты should show client materials while Услуги should show service groups");
+assert.match(profileLitePageSource, /clients:\s*\([\s\S]*<ProfileLiteServicesModule[\s\S]*activeView="clients"/, "Profile Lite should render a dedicated clients tab module");
+assert.match(profileLitePageSource, /services:\s*\([\s\S]*<ProfileLiteServicesModule[\s\S]*activeView="services"/, "Profile Lite should render a dedicated services tab module");
+assert.match(profileLiteShellSource, /onTabNavigate\(\{ id: item\.tabId, href, role: item\.role \}\)/, "Profile Lite shell should pass master-only role metadata through tab navigation");
+assert.match(profileServicesModuleSource, /profileLiteEditorToggle[\s\S]*Создать услугу/, "services manager should hide the editor behind a create/edit action on compact screens");
+assert.match(profileServicesModuleSource, /serviceUiStatusText/, "services manager should map raw service load/action statuses to RU UI labels");
+assert.match(profileServicesModuleSource, /function ServiceThumbnail[\s\S]*service\?\.display_url \|\| service\?\.image_url[\s\S]*profileLiteServiceThumb[\s\S]*Фото услуги/, "service cards should render an existing service image as a left thumbnail");
+assert.match(profileServicesModuleSource, /profileLiteServiceThumb[\s\S]*<span>◇<\/span>/, "service cards should render a designed placeholder thumbnail when no image exists");
+assert.match(profileServicesModuleSource, /handleServiceStatusAction[\s\S]*onStatusChange\(status, service\)/, "service card publish/hide actions should pass the clicked service without relying on stale selected form state");
+assert.match(profileServicesModuleSource, /Редактировать[\s\S]*Спрятать[\s\S]*Опубликовать/, "service cards should expose edit, hide, and publish actions");
+assert.match(profileServicesModuleSource, /navigator\.clipboard\?\.writeText\(url\)/, "sent mandala copy button should use Clipboard API");
+assert.match(profileServicesModuleSource, /window\.prompt\("Ссылка на мандалу", url\)/, "sent mandala copy should fall back to prompt");
+assert.doesNotMatch(profileServicesModuleSource, /Внутренняя ссылка на мандалу/, "services manager should not expose internal mandala-link labels in normal cards");
+assert.doesNotMatch(profileServicesModuleSource, />К<\/div>/, "saved client mandala cards must not use a hardcoded K as a fake preview");
+assert.doesNotMatch(profileServicesModuleSource, /orderStatusText\(order\.status\)\.slice\(0,\s*1\)/, "client order cards must not use a status-letter thumbnail as a fake mandala preview");
+assert.match(profileServicesModuleSource, /getClientMandalaPreviewState/, "client mandala cards should resolve real preview state before rendering");
+assert.match(profileServicesModuleSource, /profileLiteMandalaPreview/, "client mandala cards should render a dedicated preview or clear empty state");
+assert.match(profileLitePageSource, /buildClientDirectoryFromOrders\(orders,\s*clientGoalPhotos,\s*powerPlaceCompositions,\s*clientInvites\)/, "ProfileLitePage should derive the Services client database from master orders, saved client work, and invites");
+assert.match(profileLitePageSource, /listOwnClientInvites\(profile\.id,\s*session\)/, "ProfileLitePage should load master client invites into the client database");
+assert.match(profileLitePageSource, /claimClientInvite\(token,\s*session\)/, "ProfileLitePage should claim invite links only after authenticated login");
+assert.match(profileLitePageSource, /selectedClientKey/, "ProfileLitePage should own selected client state");
+assert.match(powerPlaceBaseSource, /Сохранить как шаблон/, "Power Place save UI should preserve create-new behavior under the template label");
+assert.match(powerPlaceBaseSource, /Сохранить для клиента/, "Power Place save UI should expose client save intent");
+assert.match(powerPlaceBaseSource, /onOpenClientSave/, "Power Place save UI should open the client save modal");
+assert.match(powerPlaceBaseSource, /cabinetRole = "client"/, "Power Place should default to the client role when role context is absent");
+assert.match(powerPlaceBaseSource, /const isMasterWorkflow = cabinetRole === "master"/, "Power Place client-save UI should be explicitly gated to master workflow");
+assert.match(powerPlaceBaseSource, /\{isMasterWorkflow && \([\s\S]*powerPlaceClientSaveButton/, "Power Place should render the client-save button only in master workflow");
+assert.match(powerPlaceBaseSource, /\{isMasterWorkflow && clientSaveForm\.isOpen && \(/, "Power Place should render the client-save form only in master workflow");
+assert.match(powerPlaceBaseSource, /className="profileLiteClientSaveField"[\s\S]*Клиент[\s\S]*className="profileLiteClientSaveField"[\s\S]*Имя клиента[\s\S]*className="profileLiteClientSaveField"[\s\S]*Комментарий \/ запрос клиента[\s\S]*className="profileLiteClientSaveField"[\s\S]*Фото клиента \/ цель/, "client save fields should expose scoped field wrappers for stable mobile layout");
+assert.match(profileLitePageSource, /handleSaveCompositionForClient/, "ProfileLitePage should save a client-specific composition");
+assert.match(profileLitePageSource, /__client_work/, "client save should persist client metadata in saved composition object_refs");
+assert.match(profileLitePageSource, /masterPowerPlaceCompositions[\s\S]*filterMasterPowerPlaceCompositions\(powerPlaceCompositions\)/, "ProfileLitePage should derive master-only saved mandalas from all compositions");
+assert.match(profileLitePageSource, /powerPlaceCompositions:\s*masterPowerPlaceCompositions/, "ProfileLitePage should pass only master/global mandalas into the mandala selector and saved list");
 assert.match(profileServicesModuleSource, /onServiceSelect[\s\S]*serviceForm[\s\S]*selectedServiceId/, "services manager should support selecting a service and editing it in the form");
+assert.match(profileLitePageSource, /handleServiceStatusChange = async \(status, serviceOverride = null\)[\s\S]*const targetService = serviceOverride\?\.id \? createEmptyServiceForm\(serviceOverride\) : serviceForm[\s\S]*updateOwnService\(targetService\.id/, "service status changes should preserve create/edit/publish handlers and support card-level actions");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.profileLiteClientSaveForm \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveField \{[\s\S]*display: grid;[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm input,[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm select,[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm textarea \{[\s\S]*box-sizing: border-box;[\s\S]*width: 100%;/, "client save form should have a base one-column field layout, not only a mobile media override");
+assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm \{[\s\S]*display: grid;[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm label \{[\s\S]*display: grid;[\s\S]*\.profileLitePowerPlace \.profileLiteClientSaveForm \.cabinetActions \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "client save form should stack labels, inputs, and actions as one mobile card");
+assert.match(profileMandalaCss, /\.profileLiteServices \.profileLiteClientMandalaCard \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "mobile saved client material cards should stack preview and text to avoid overlap");
+assert.match(profileMandalaCss, /\.profileLiteServices \.profileLiteServiceCard \{[\s\S]*grid-template-columns: 88px minmax\(0, 1fr\);/, "service cards should use a left media thumbnail in the base layout");
+assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLiteServicesView \.mandalaHeroSeal \{[\s\S]*display: none;[\s\S]*\.profileLiteServicesView \.mandalaHero h2 \{[\s\S]*font-size: clamp\(1\.32rem, 6vw, 1\.72rem\);/, "mobile Services hero should be compact and remove squeezed ornamental seal");
+assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLiteServices \.profileLiteServicesColumns \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLiteServices \.profileLiteServiceGroup \{[\s\S]*width: 100%;/, "mobile Services layout should override the desktop split so groups and cards can use full width");
+assert.match(profileMandalaCss, /\.profileLiteServices\.profileLiteServicesView \.profileLiteServicesColumns \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "mobile Services layout should include a final high-order full-width override for the actual combined module class");
+assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLiteServices \.profileLiteServiceCard \{[\s\S]*grid-template-columns: 82px minmax\(0, 1fr\);/, "mobile service cards should keep a 72-88px left thumbnail and full-width text area");
+assert.match(profileMandalaCss, /\.profileLiteServices \.profileLiteServiceThumb \{[\s\S]*width: 88px;[\s\S]*\.profileLiteServices \.profileLiteServiceThumb img \{[\s\S]*object-fit: cover;/, "service thumbnail CSS should size real images and placeholders consistently");
+assert.match(profileMandalaCss, /\.profileLiteServices \.mandalaHeroStats \{[\s\S]*grid-template-columns: repeat\(auto-fit, minmax\(128px, 1fr\)\);/, "services/client stats chips should wrap without clipping on mobile");
+assert.match(profileMandalaCss, /@media \(max-width: 760px\)[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \{[\s\S]*display: grid;[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \.cabinetTwoColumns \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);[\s\S]*\.profileLiteServices \.profileLiteServiceEditorForm \.cabinetActions \{[\s\S]*grid-template-columns: minmax\(0, 1fr\);/, "services editor should stack fields and action buttons vertically on mobile");
+assert.match(profileServicesModuleSource, /className="cabinetCard profileLiteServiceEditorForm"/, "services editor form should expose a scoped class for mobile stacking");
 assert.match(profileLitePageSource, /restoreFreshPendingServiceCart/, "Profile Lite should restore a fresh pending cart after auth");
 assert.match(profileLitePageSource, /createServiceOrderDraft/, "checkout should create an order draft after auth, not a public new order");
 assert.match(profileLitePageSource, /submitServiceOrderToMaster/, "order flow should require explicit submit to master");
 assert.match(profileLitePageSource, /listClientServiceOrders\(profile\.id/, "client cabinet should load own client orders");
 assert.match(profileLitePageSource, /listOwnServiceOrders\(profile\.id/, "master cabinet should load incoming orders for own services");
+assert.match(profileLitePageSource, /cabinetRole,/, "ProfileLitePage should pass the existing cabinetRole into module props");
+assert.match(profileLitePageSource, /authGateCabinetLabel = getProfileLiteRoleById\(cabinetRole\)\.label/, "logged-out Profile Lite shell should use the selected role label");
+assert.doesNotMatch(profileLitePageSource, /<h1>Кабинет мастера Lite<\/h1>/, "logged-out Profile Lite shell must not hardcode the master cabinet title");
+assert.doesNotMatch(profileLitePageSource, /<ProfileLiteDiagnosticsModule diagnostics=\{diagnostics\} moduleStates=\{moduleStates\} \/>[\s\S]*<\/main>[\s\S]*<\/div>[\s\S]*\);\n  \}/, "logged-out Profile Lite shell must not render the diagnostics block");
 assert.match(profileOrdersModuleSource, /Кабинет Личный/, "orders module should expose personal cabinet mode");
-assert.match(profileOrdersModuleSource, /Мои Заказы/, "orders module should expose client orders");
-assert.match(profileOrdersModuleSource, /Мои Фото/, "orders module should expose client photos");
+assert.match(profileOrdersModuleSource, /function ClientOrdersView/, "orders module should split the personal cabinet branch");
+assert.match(profileOrdersModuleSource, /function MasterOrdersView/, "orders module should split the master cabinet branch");
+assert.match(profileOrdersModuleSource, /Мои заказы/, "orders module should expose client orders");
+assert.match(profileOrdersModuleSource, /Мои фото/, "orders module should expose client photos");
 assert.match(profileOrdersModuleSource, /Кабинет Мастера/, "orders module should expose master cabinet mode");
 assert.match(profileOrdersModuleSource, /Заявки/, "orders module should expose master requests");
-assert.match(profileOrdersModuleSource, /Можно хранить до 4 фото\. Удалите старое фото или выберите одно из существующих\./, "orders module should show exact 4-photo limit message");
+assert.match(profileOrdersModuleSource, /Заявок пока нет[\s\S]*Здесь будут заявки клиентов\./, "master requests should have the required empty state copy");
+assert.doesNotMatch(profileOrdersModuleSource, /\["Мои Заказы", "Мои Фото", "Кабинет Мастера", "Заявки"\]/, "orders module must not render a hardcoded mixed inner sidebar");
+assert.doesNotMatch(profileOrdersModuleSource, /Источник данных/, "orders module must not expose source table debug text");
+assert.doesNotMatch(profileOrdersModuleSource, /needs verification/, "orders module must not expose raw needs verification text");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить личные заказы\. Попробуйте обновить страницу\./, "client orders errors should be non-technical");
+assert.match(profileOrdersModuleSource, /Не удалось загрузить заявки мастера\. Попробуйте обновить страницу\./, "master orders errors should be non-technical");
+assert.match(profileOrdersModuleSource, /Можно выбрать до 4 фото для заказа/, "orders module should show the order photo selection limit");
+assert.match(profileOrdersModuleSource, /ещё \{extraPhotoCount\} в медиатеке/, "orders module should summarize extra media photos instead of listing every filename");
 assert.match(profileOrdersModuleSource, /Загрузите своё фото, чтобы отправить заказ в работу Мастеру\./, "orders module should block submit without a client photo");
 assert.match(profileOrdersModuleSource, /Отправить заказ мастеру/, "orders module should require explicit submit button");
 assert.doesNotMatch(profileOrdersModuleSource, /onSubmit=\{\(event\) => \{ event\.preventDefault\(\); onOrderUpdate\(\); \}\}/, "orders module should not silently submit via generic form update");
+assert.doesNotMatch(clientOrdersViewSource, /Кабинет Мастера|Заявки мастера|Создать мандалу заказа|Комментарий мастера|Отправить клиенту/, "client orders branch must not render master cabinet controls");
+assert.doesNotMatch(masterOrdersViewSource, /Мои фото|Отправить заказ мастеру|Название фото|Загрузить фото/, "master orders branch must not render personal photo upload or client submit controls");
 for (const phase5OrderText of [
   "Создать мандалу заказа",
   "Открыть мандалу заказа",
@@ -436,12 +682,16 @@ for (const phase5OrderText of [
 }
 assert.match(profileLitePageSource, /generateDraftResultComposition/, "Profile Lite page should call Phase 5 draft generation helper");
 assert.match(profileLitePageSource, /sendOrderResultToClient/, "Profile Lite page should call Phase 5 send result helper");
-assert.doesNotMatch(profileOrdersModuleSource, /draft_result_composition_id[^]*Кабинет Личный/, "client UI must not expose draft_result_composition_id before sent");
+assert.doesNotMatch(clientOrdersViewSource, /draft_result_composition_id/, "client UI must not expose draft_result_composition_id before sent");
+assert.match(profileServicesModuleSource, /Ссылка для клиента/, "/profile/services client database should include invite-link UI");
+assert.match(profileServicesModuleSource, /без привязки только по имени/, "/profile/services should explain invite-only client linking");
+assert.match(profileServicesModuleSource, /buildClientInviteUrl/, "/profile/services should build invite URLs through the client helper");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
 assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
-assert.doesNotMatch(powerPlaceSource, /Макет|макет/, "Profile Lite Power Place UI should not show the word Макет");
+assert.match(powerPlaceSource, /"dao-layout": "ДАО-Макет"/, "Profile Lite Power Place UI should expose ДАО-Макет as a dedicated format label");
+assert.doesNotMatch(powerPlaceBaseSource, /\{ value: DAO_LAYOUT_TEMPLATE_STYLE_ID, label: "ДАО: Макет" \}/, "ДАО-Макет must not remain registered as a normal DAO style");
 assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "resource comparison mini-block should not be visible in the React report/settings UI");
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
@@ -470,6 +720,16 @@ assert.match(powerPlaceSource, /className={`coverPreview[\s\S]*onClick=\{\(\) =>
 assert.doesNotMatch(powerPlaceSource, /zodiac-plus-\$\{compositionDraft\.zodiac_visible_count \|\| 12\}[\s\S]*visibleCount === 8[\s\S]*ZODIAC_PLUS_SLOT_LAYOUT\[8\]/, "Zodiac 8+ must not append the old four plus slots");
 
 assert.match(profileLitePageSource, /destination === "materials"[\s\S]*createOwnMaterial/, "image picker material uploads should use the existing material publication save flow");
+assert.match(profileLitePageSource, /buildMaterialUploadPublicationPayload\(\{[\s\S]*material,[\s\S]*status:\s*"draft"/, "image picker material uploads should build DB-safe draft material publications");
+assert.match(profileMaterialsClientSource, /material_group:\s*cleanText\(material\?\.material_group \?\? material\?\.group\)/, "image picker material upload should persist the selected material group");
+assert.match(profileMaterialsClientSource, /category\s*=\s*cleanText\(material\?\.category\)/, "image picker material upload should persist the selected step/category");
+assert.match(profileMaterialsClientSource, /subcategory\s*=\s*cleanText\(material\?\.subcategory\)/, "image picker material upload should persist the selected material subcategory");
+assert.match(powerPlaceBaseSource, /materialGroup:\s*item\.material_group \|\| item\.group/, "saved material images should preserve material group metadata for picker filters");
+assert.match(powerPlaceBaseSource, /materialType:\s*item\.material_type \|\| item\.type/, "saved material images should preserve material type metadata for picker filters");
+assert.match(powerPlaceBaseSource, /settingTitle:\s*item\.setting_title \|\| item\.settingTitle/, "saved material images should preserve setting/subcategory metadata for picker filters");
+assert.match(imagePickerSource, /materialFilterGroup[\s\S]*materialFilterCategory[\s\S]*materialFilterSubcategory/, "saved Materials picker should use group/category/subcategory material filters");
+assert.doesNotMatch(imagePickerSource, /materialFilterType/, "saved Materials picker should not require material type filters");
+assert.match(imagePickerSource, /materialImageMatchesSelection/, "saved Materials picker should use shared normalized metadata matching");
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
@@ -555,8 +815,10 @@ assert.match(mobileOrderCss, /powerLibrarySidebar\{order:99/, "mobile order CSS 
 assert.match(mobileOrderCss, /reportSettingsPanel\{order:20/, "mobile order CSS should move report analysis lower on mobile");
 assert.match(mobileOrderCss, /coverPickerPanel\{order:[23]/, "mobile order CSS should place Power Place background near the top on mobile");
 
-assert.match(layoutFinalFix, /preferMandalasRoute/, "layout fix should prefer mandalas on bare profile route");
-assert.match(layoutFinalFix, /window\.location\.search \|\| window\.location\.hash/, "mandalas default redirect should leave callback/query URLs untouched");
+assert.match(layoutFinalFix, /preferClientCabinetRoute/, "layout fix should prefer the client cabinet on bare profile route");
+assert.match(layoutFinalFix, /window\.history\.replaceState\(\{\}, "", "\/profile\/orders"\)/, "bare profile route should redirect to client orders instead of the master workshop");
+assert.doesNotMatch(layoutFinalFix, /replaceState\(\{\}, "", "\/profile\/mandalas"\)/, "bare profile route must not redirect ordinary clients to the master workshop");
+assert.match(layoutFinalFix, /window\.location\.search \|\| window\.location\.hash/, "client default redirect should leave callback/query URLs untouched");
 assert.match(layoutFinalFix, /Отчёт и анализ/, "layout fix should merge report and analysis labels");
 assert.match(layoutFinalFix, /mergedResourceComparison/, "layout fix should move resource comparison into the report card");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "layout fix should not convert cover controls into legacy diagonal arrows");
@@ -628,6 +890,11 @@ assert.match(powerPlaceBaseSource, /Пока нет мандал, добавле
 assert.match(powerPlaceBaseSource, /\(services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "Услуги tab should filter services by composition_id");
 assert.match(profileLitePageSource, /handleSendCompositionToServices/, "ProfileLitePage should expose handleSendCompositionToServices");
 assert.match(profileLitePageSource, /handlePublishCompositionAsService/, "ProfileLitePage should expose handlePublishCompositionAsService");
+assert.match(profileLitePageSource, /deletePowerPlaceComposition/, "ProfileLitePage should import and use deletePowerPlaceComposition for saved mandala deletion");
+assert.match(profileLitePageSource, /Удалить сохранённую мандалу\? Фото и источники силы не удалятся\./, "saved mandala deletion should confirm that photos and sources are preserved");
+assert.match(profileLitePageSource, /handleCompositionDelete[\s\S]*deletePowerPlaceComposition\(composition\.id, profile\.id, session\)[\s\S]*setPowerPlaceCompositions\(\(current\) => current\.filter\(\(item\) => item\.id !== composition\.id\)\)/, "saved mandala deletion should remove only the composition row and local card");
+assert.match(profileLitePageSource, /compositionDraft\.id === composition\.id[\s\S]*setCompositionDraft\(withDefaultMotionSettings\(\{ \.\.\.EMPTY_COMPOSITION \}\)\)/, "deleting the open saved mandala should reset the current draft to a fresh empty composition");
+assert.match(powerPlaceBaseSource, /profileLiteCompositionDeleteButton[\s\S]*event\.stopPropagation\(\)[\s\S]*onCompositionDelete\?\.\(composition\)/, "saved mandala delete button should be visible and should not open the composition card");
 assert.match(profileLitePageSource, /saveCompositionForServiceAction/, "service actions should save or update the composition before creating a service");
 assert.match(profileLitePageSource, /upsertOwnServiceForComposition/, "service actions should reuse the service for profile_id + composition_id");
 assert.match(profileLitePageSource, /setActiveTab\("services"\)/, "service transfer/publish actions should open the /profile/services tab");
@@ -687,13 +954,18 @@ const grimoireModuleSource = readFileSync(join(moduleDir, "ProfileLiteMaterialsM
 
 assert.match(grimoireModuleSource, /Гримуар мастера/, "Grimoire hero should say 'Гримуар мастера'");
 assert.match(grimoireModuleSource, /Соберите фото, статьи, практики, аудио и документы\. Сначала загрузите всё без структуры, потом разложите по категориям\./, "Grimoire hero should explain the collect-first workflow");
-assert.match(grimoireModuleSource, /Без категории[\s\S]*Готово к работе/, "Grimoire hero should expose uncategorized and ready-to-work stats");
+assert.match(grimoireModuleSource, /Неразобранно[\s\S]*Готово к работе/, "Grimoire hero should expose unclassified and ready-to-work stats");
 assert.match(grimoireModuleSource, /Фильтр гримуара/, "Grimoire left column should say 'Фильтр гримуара'");
 assert.match(grimoireModuleSource, /Записи гримуара/, "Grimoire center column should say 'Записи гримуара'");
 assert.match(grimoireModuleSource, /Загрузить в гримуар/, "Grimoire right column should say 'Загрузить в гримуар'");
 assert.match(grimoireModuleSource, /type="file"[\s\S]*multiple/, "Grimoire uploader should be a multi-file input");
 assert.match(grimoireModuleSource, /Перетащите файлы сюда или выберите с телефона/, "Grimoire uploader should expose a clear drop-zone instruction");
 assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should keep selected files before upload");
+assert.match(grimoireModuleSource, /grimoireTaxonomyLevelOptions\(1\)/, "Grimoire edit select should use level 1 taxonomy options");
+assert.doesNotMatch(grimoireModuleSource, /РИ по умолчанию/, "Grimoire uploader should not present flat RI as the new default");
+assert.match(grimoireModuleSource, /const uploadedFiles = \[\]/, "Grimoire composer save should collect selected files before creating one parent post");
+assert.match(grimoireModuleSource, /const saved = await createOwnMaterial\(localMaterialPayload/, "Grimoire composer save should create one parent material record for the batch");
+assert.doesNotMatch(grimoireModuleSource, /for \(const file of records\)[\s\S]*createOwnMaterial/, "Grimoire composer save must not create one material record per selected file");
 assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
 assert.match(grimoireModuleSource, /Разберите позже/, "Uncategorized records should be treated as the main working state");
 assert.match(grimoireModuleSource, /Гримуар пуст/, "Empty grimoire should use the dedicated empty state title");
@@ -747,6 +1019,12 @@ assert.match(
 );
 
 assert.match(
+  powerPlaceWrapperSource,
+  /field === CENTER_IMAGE_SCALE_REF_KEY[\s\S]*objectRefs[\s\S]*CENTER_IMAGE_SCALE_REF_KEY[\s\S]*centerImageScaleValue\(value\)/,
+  "ProfileLitePowerPlaceModule handleDraftChange must persist __center_image_scale into object_refs"
+);
+
+assert.match(
   profileLitePageSource,
   /raf2\(window\)[\s\S]*cloneNode/,
   "openPowerPlacePdfPrintView must defer DOM clone with raf2(window) so React flushes slider state before print"
@@ -779,15 +1057,21 @@ assert.match(profileLitePageSource, /handleGrimoireUpdate/, "ProfileLitePage sho
 assert.match(profileLitePageSource, /handleGrimoireDelete/, "ProfileLitePage should expose handleGrimoireDelete");
 assert.match(profileLitePageSource, /deleteOwnMaterial/, "ProfileLitePage should import deleteOwnMaterial");
 assert.match(profileLitePageSource, /updateOwnMaterial/, "ProfileLitePage should import updateOwnMaterial");
+assert.match(profileLitePageSource, /buildMaterialUploadPublicationPayload/, "ProfileLitePage should use the DB-safe material upload payload helper");
+assert.match(profileLitePageSource, /Promise\.allSettled\(uploadFiles\.map/, "ProfileLitePage material library uploads should save one publication row per selected file");
 assert.match(profileLitePageSource, /detectMaterialTypeFromFile/, "ProfileLitePage should use detectMaterialTypeFromFile for grimoire uploads");
 assert.match(profileLitePageSource, /stripFileExtension/, "ProfileLitePage should use stripFileExtension for grimoire title derivation");
 
-const profileMaterialsClientSource = readFileSync("src/lib/profileMaterialsClient.js", "utf8");
 assert.match(profileMaterialsClientSource, /export.*GRIMOIRE_CATEGORIES/, "profileMaterialsClient.js should export GRIMOIRE_CATEGORIES");
+assert.match(profileMaterialsClientSource, /reikiLevels\.map/, "profileMaterialsClient.js should derive Grimoire course taxonomy from all Reiki levels");
+assert.match(profileMaterialsClientSource, /mysteryTraditions\.map/, "profileMaterialsClient.js should derive deity taxonomy from all mystery traditions");
 assert.match(profileMaterialsClientSource, /export function detectMaterialTypeFromFile/, "profileMaterialsClient.js should export detectMaterialTypeFromFile");
 assert.match(profileMaterialsClientSource, /export function stripFileExtension/, "profileMaterialsClient.js should export stripFileExtension");
 assert.match(profileMaterialsClientSource, /export async function updateOwnMaterial/, "profileMaterialsClient.js should export updateOwnMaterial");
 assert.match(profileMaterialsClientSource, /export async function deleteOwnMaterial/, "profileMaterialsClient.js should export deleteOwnMaterial");
+assert.match(profileMaterialsClientSource, /export function getGrimoirePreviewUrl/, "profileMaterialsClient.js should expose Grimoire preview URL resolution");
+assert.match(profileMaterialsClientSource, /export function buildMaterialUploadPublicationPayload/, "profileMaterialsClient.js should expose a DB-safe material upload payload builder");
+assert.match(profileMaterialsClientSource, /Спрятать/, "visible Grimoire feed items should expose the Hide action label");
 
 const profileMediaClientSource = readFileSync("src/lib/profileMediaClient.js", "utf8");
 assert.match(profileMediaClientSource, /export function validateGrimoireFile/, "profileMediaClient.js should export validateGrimoireFile");
@@ -796,6 +1080,69 @@ assert.match(profileMediaClientSource, /application\/pdf/, "PROFILE_MEDIA_ALLOWE
 
 const grimoireMigration = readFileSync("supabase/migrations/20260605120000_grimoire_publication_types.sql", "utf8");
 assert.match(grimoireMigration, /uncategorized.*photo.*article.*document.*audio/, "Grimoire migration should add uncategorized, photo, article, document, audio type values");
+
+const publicationTaxonomyMigrations = [
+  readFileSync("supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql", "utf8"),
+  readFileSync("supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql", "utf8")
+].join("\n");
+assert.match(publicationTaxonomyMigrations, /add column if not exists category text not null default ''/, "publication taxonomy migrations must add the category column idempotently");
+assert.match(publicationTaxonomyMigrations, /add column if not exists subcategory text not null default ''/, "publication taxonomy migrations must add the subcategory column idempotently");
+assert.match(publicationTaxonomyMigrations, /add column if not exists material_group text not null default ''/, "publication taxonomy migrations must add material_group idempotently");
+assert.match(publicationTaxonomyMigrations, /add column if not exists material_type text not null default ''/, "publication taxonomy migrations must add material_type idempotently");
+assert.match(publicationTaxonomyMigrations, /profile_cabinet_publications_material_taxonomy_idx/, "publication taxonomy migrations must preserve the taxonomy index");
+assert.match(publicationTaxonomyMigrations, /notify\s+pgrst,\s*'reload schema'/i, "publication taxonomy migrations must reload the PostgREST schema cache");
+
+const supabaseMigrationRunnerSource = readFileSync("scripts/apply-reiki-supabase-migrations.mjs", "utf8");
+const starFormatVariantMigration = readFileSync("supabase/migrations/20260624120000_power_place_star_format_variant.sql", "utf8");
+
+assert.match(
+  starFormatVariantMigration,
+  /add column if not exists star_format_variant text not null default 'classic'/,
+  "Star format migration must add star_format_variant with Star 1 as the old-composition default"
+);
+
+assert.match(
+  starFormatVariantMigration,
+  /check \(star_format_variant in \('classic', 'star-2-10'\)\)/,
+  "Star format migration must constrain values to Star 1 and Star 2"
+);
+
+assert.match(
+  starFormatVariantMigration,
+  /notify\s+pgrst,\s*'reload schema'/i,
+  "Star format migration must reload PostgREST schema cache"
+);
+
+for (const migrationFile of [
+  "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
+  "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql",
+  "supabase/migrations/20260624120000_power_place_star_format_variant.sql"
+]) {
+  assert.match(
+    supabaseMigrationRunnerSource,
+    new RegExp(migrationFile.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    `Supabase migration runner must allow ${migrationFile}`
+  );
+}
+
+assert.match(
+  supabaseMigrationRunnerSource,
+  /profile_cabinet_power_place_compositions[\s\S]*column_name = 'star_format_variant'/,
+  "Supabase migration runner must verify profile_cabinet_power_place_compositions.star_format_variant"
+);
+
+for (const columnName of ["material_group", "material_type", "category", "subcategory"]) {
+  assert.match(
+    supabaseMigrationRunnerSource,
+    new RegExp(`profile_cabinet_publications[\\s\\S]*column_name = '${columnName}'`),
+    `Supabase migration runner must verify profile_cabinet_publications.${columnName}`
+  );
+  assert.match(
+    supabaseMigrationRunnerSource,
+    new RegExp(`profile_cabinet_publications_${columnName}`),
+    `Supabase migration runner schema check must expose profile_cabinet_publications_${columnName}`
+  );
+}
 
 // ── F: Cover layer separation and mobile width contract ───────────────────────
 
@@ -931,27 +1278,64 @@ assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileL
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerTools\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer tools should stack full width");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoireComposerActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "mobile grimoire composer buttons should stack full width");
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireQuickActionsCard\s+a\s*\{[\s\S]*display: flex/, "Grimoire quick actions should render as separated vertical links");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireMaterialFilterPanel[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/, "Grimoire material filter should be a compact three-select panel on desktop");
+assert.match(profileMaterialsModuleSource, /className=\{`grimoireRecordCard grimoirePostCard/, "Grimoire records should render through the post-card contract");
+assert.match(profileMaterialsModuleSource, /className="grimoirePostHeader"/, "Grimoire records should have a post header");
+assert.match(profileMaterialsModuleSource, /className="grimoirePostActions"/, "Grimoire records should keep add/edit/delete actions in the post footer");
+assert.match(profileMaterialsModuleSource, /feedActionLabel === "Спрятать" \? onToggleVisibility\(material\) : onAddToFeed\(material\)/, "Grimoire feed action should add hidden items and hide already-visible items");
+assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onEdit\(material\)\}/, "Grimoire edit handler must remain wired");
+assert.match(profileMaterialsModuleSource, /onClick=\{\(\) => onDelete\(material\)\}/, "Grimoire delete handler must remain wired");
+assert.match(profileGrimoireComposerSource, /type="file"/, "Grimoire composer should keep file upload support");
+assert.match(profileGrimoireComposerSource, /type="file"[\s\S]*multiple/, "Grimoire composer file input should support multiple files");
+assert.match(profileGrimoireComposerSource, /useState\(\[\]\)/, "Grimoire composer should store selected files as an array");
+assert.match(profileGrimoireComposerSource, /Array\.from\(event\.target\.files \|\| \[\]\)/, "Grimoire composer should keep all selected files");
+assert.match(profileGrimoireComposerSource, /grimoireComposerFiles/, "Grimoire composer should render the selected file list");
+assert.match(profileGrimoireComposerSource, /Уровень 1/, "Grimoire composer should render taxonomy level 1");
+assert.match(profileGrimoireComposerSource, /Уровень 2/, "Grimoire composer should render taxonomy level 2");
+assert.match(profileGrimoireComposerSource, /Уровень 3/, "Grimoire composer should render taxonomy level 3");
+assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(2, taxonomy\)/, "Grimoire composer level 2 should depend on selected level 1");
+assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(3, taxonomy\)/, "Grimoire composer level 3 should depend on selected level 2");
+assert.doesNotMatch(profileGrimoireComposerSource, /<span>Тип<\/span>/, "Grimoire composer should not use the old flat Type select");
+assert.doesNotMatch(profileGrimoireComposerSource, /Название \/ тема/, "Grimoire composer should not expose the removed title/topic field");
+assert.doesNotMatch(profileGrimoireComposerSource, /safe interim, needs verification/, "Grimoire composer should not expose taxonomy debug text");
+assert.match(profileGrimoireComposerSource, /Что хотите добавить\?/, "Grimoire composer should use a compact composer prompt");
+assert.match(profileGrimoireComposerSource, /Поделитесь заметкой, практикой, описанием мандалы/, "Grimoire composer should keep the compact note field");
+assert.match(profileMaterialsModuleSource, /grimoireTaxonomyCompactLabel/, "Grimoire feed cards should render compact taxonomy");
+assert.match(profileMaterialsModuleSource, /isGrimoireTaxonomyUnclassified/, "Grimoire unclassified logic should inspect all taxonomy levels");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFile input\[type="file"\]\s*\{[\s\S]*opacity: 0/, "Grimoire composer native file input should be visually hidden");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireComposerFiles\s*\{/, "Grimoire composer selected files should have compact styled list");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Grimoire post card should override the legacy side-rail grid");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireRecordCard\.grimoirePostCard\s*\{[\s\S]*padding: 9px/, "Grimoire feed cards should use compact padding");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostIdentity b,[\s\S]*overflow-wrap: anywhere/, "Grimoire post header text should wrap long category/date values");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostPreview\s*\{[\s\S]*aspect-ratio: 16 \/ 9[\s\S]*overflow: hidden/, "Grimoire media block should use a stable desktop aspect ratio");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostPreview\s*\{[\s\S]*max-height: 150px/, "Grimoire media previews should be capped to compact height");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireCardImage\s*\{[\s\S]*object-fit: cover/, "Grimoire image previews should fill the media block without layout shift");
+assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*display: flex[\s\S]*flex-wrap: wrap/, "Grimoire post actions should be a wrapping footer row");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostHeader\s*\{[\s\S]*grid-template-columns: 38px minmax\(0, 1fr\)/, "Mobile Grimoire post header should avoid a three-column side rail");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview\.hasImage\s*\{[\s\S]*aspect-ratio: 4 \/ 3/, "Mobile Grimoire media block should keep a stable 4:3 aspect ratio");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*max-height: 118px/, "mobile Grimoire media previews should stay compact");
+assert.doesNotMatch(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Mobile Grimoire post actions should not regress to a full-width stacked side column");
 
-// ── Media module: filter applies to both photos and materials ─────────────────
+// ── Media module: folder browser applies to both photos and materials ─────────
 
 const mediaModuleSource = readFileSync(join(moduleDir, "ProfileLiteMediaModule.jsx"), "utf8");
 
 assert.match(
   mediaModuleSource,
-  /filteredMaterials/,
-  "ProfileLiteMediaModule should compute filteredMaterials from the filter state"
+  /const mediaItems = useMemo/,
+  "ProfileLiteMediaModule should build one mediaItems collection from photos and materials"
 );
 
 assert.match(
   mediaModuleSource,
-  /matchesMediaFilter/,
-  "ProfileLiteMediaModule should define a shared matchesMediaFilter helper"
+  /const visibleItems = useMemo/,
+  "ProfileLiteMediaModule should compute visibleItems from the selected folder"
 );
 
-assert.doesNotMatch(
+assert.match(
   mediaModuleSource,
-  /materials\.map\(/,
-  "ProfileLiteMediaModule must not render materials.map() directly — use filteredMaterials.map() instead"
+  /activeFolder\.type === "materials"[\s\S]*item\.kind === "material"/,
+  "ProfileLiteMediaModule should keep materials visible only in material/all folders"
 );
 
 assert.match(
@@ -964,6 +1348,132 @@ assert.match(
   mediaModuleSource,
   /profileLiteMediaCard/,
   "ProfileLiteMediaModule cards must use profileLiteMediaCard class"
+);
+
+assert.match(
+  mediaModuleSource,
+  /const \[activeFolderId, setActiveFolderId\] = useState\("all-files"\)/,
+  "ProfileLiteMediaModule should expose an all-files folder browser state"
+);
+
+assert.match(
+  mediaModuleSource,
+  /onClientPhotoCategoryMove/,
+  "ProfileLiteMediaModule should call a category move handler for metadata-only moves"
+);
+
+assert.match(
+  mediaModuleSource,
+  /draggable=\{photoDraggable\}/,
+  "ProfileLiteMediaModule should make client photo cards draggable"
+);
+
+assert.match(
+  mediaModuleSource,
+  /option\.proOnly && !isProAccount[\s\S]*Больше клиентов доступно в Pro/,
+  "Start plan should keep the Pro client folder disabled with a clear message"
+);
+
+assert.match(
+  imagePickerSource,
+  /clientCategory === "all" \|\| image\.clientCategory === clientCategory \|\| image\.client_category === clientCategory/,
+  "ProfileLiteImagePicker visibleImages should filter client-1/client-2/client-3 by saved category"
+);
+
+assert.match(
+  imagePickerSource,
+  /multiple=\{uploadDestination === "materials"\}/,
+  "ProfileLiteImagePicker should enable multi-file selection for material uploads"
+);
+
+assert.match(
+  imagePickerSource,
+  /files:\s*selectedFiles/,
+  "ProfileLiteImagePicker should pass all selected material files through the upload chain"
+);
+
+assert.match(
+  imagePickerSource,
+  /getUnclassifiedMaterialSelection/,
+  "ProfileLiteImagePicker should expose Неразобранно for material upload defaults"
+);
+
+assert.match(
+  imagePickerSource,
+  /getDefaultMaterialFilterSelection/,
+  "ProfileLiteImagePicker material browser should default to Все, not the first concrete category"
+);
+
+assert.doesNotMatch(
+  imagePickerSource,
+  /const defaultMaterialSelection = useMemo\(\(\) => normalizeMaterialSelection\("dao-ri"\)/,
+  "ProfileLiteImagePicker must not reuse the first concrete ДАО РИ selection for both upload and browsing"
+);
+
+assert.match(
+  imagePickerSource,
+  /value: "all", label: "Все"/,
+  "ProfileLiteImagePicker materials browser should render an explicit Все filter option"
+);
+
+assert.match(
+  imagePickerSource,
+  /\{ id: "clients", label: "Клиенты" \}[\s\S]*\{ id: "materials", label: "Материалы" \}[\s\S]*\{ id: "backgrounds", label: "Фон" \}[\s\S]*\{ id: "symbols", label: "Символы" \}/,
+  "ProfileLiteImagePicker source tabs should put Фон immediately after Материалы"
+);
+
+assert.match(
+  imagePickerSource,
+  /mode === "cover" \? "backgrounds"/,
+  "cover picker should open the real Фон source tab by default"
+);
+
+assert.match(
+  imagePickerSource,
+  /activeTab === "backgrounds"[\s\S]*isBackgroundCompatibleImage[\s\S]*newestImagesFirst/,
+  "Фон source should filter background-compatible images and sort newest first"
+);
+
+assert.match(
+  imagePickerSource,
+  /handleSourceTabClick[\s\S]*\["clients", "materials", "backgrounds"\]\.includes\(tabId\)[\s\S]*setUploadDestination\(tabId\)/,
+  "selecting Фон should carry the background destination into the upload tab"
+);
+
+assert.match(
+  imagePickerSource,
+  /uploadDestination === "backgrounds"[\s\S]*>Фон<\/button>/,
+  "upload destination tabs should include separate Фон uploads"
+);
+
+assert.match(
+  imagePickerSource,
+  /BACKGROUND_UPLOAD_MATERIAL[\s\S]*group: "backgrounds"[\s\S]*subcategory: "Фон места силы"/,
+  "background uploads should persist separate background metadata"
+);
+
+assert.match(
+  imagePickerSource,
+  /materialFilterSelection\.group === "all"[\s\S]*sort\(newestImagesFirst\)/,
+  "Материалы / Все should show recent uploaded material photos newest first"
+);
+
+assert.match(
+  imagePickerSource,
+  /kind === "power-place-background"[\s\S]*destination === "background"[\s\S]*destination === "backgrounds"[\s\S]*destination === "cover"[\s\S]*\/фон\|обложк\//,
+  "Фон source should use existing background/cover metadata instead of a visual-only label"
+);
+
+assert.match(
+  profileMaterialsClientSource,
+  /Неразобранно/,
+  "ProfileLiteImagePicker should render the corrected Неразобранно label for material uploads"
+);
+
+assert.doesNotMatch(
+  imagePickerSource,
+  /setClientCategory\("all"\)/,
+  "ProfileLiteImagePicker should preserve the selected client folder after upload"
 );
 
 assert.match(
@@ -1000,8 +1510,8 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /compositionDraft\.constructor_type === "dao"/,
-  "DAO style selector must be gated on constructor_type === dao"
+  /isDaoConstructorType\(compositionDraft\.constructor_type\)/,
+  "DAO style selector must be gated on DAO and DAO layout constructor types"
 );
 
 assert.match(
@@ -1012,14 +1522,14 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /__dao_style.*talisman-1|talisman-1.*__dao_style/,
-  "Base module must branch on talisman-1 value of __dao_style"
+  /const isDaoTalisman1 = daoStyle === "talisman-1"/,
+  "Base module must branch on talisman-1 through computed daoStyle"
 );
 
 assert.match(
   powerPlaceBaseSource,
-  /daoTalismanScroll/,
-  "Base module must render daoTalismanScroll div for talisman mode"
+  /function renderDaoTalisman1\(\)[\s\S]*daoTalismanScroll/,
+  "Base module must render daoTalismanScroll only inside talisman-1 helper"
 );
 
 assert.match(
@@ -1040,6 +1550,12 @@ assert.match(
   "Wrapper module must define daoStyleValue normalizer"
 );
 
+assert.ok(
+  powerPlaceSource.includes('objectRefs[DAO_STYLE_REF_KEY] === "dao-layout-template"') &&
+    powerPlaceSource.includes('const constructorType = legacyDaoLayoutStyle ? "dao-layout"'),
+  "Wrapper module must normalize the legacy DAO layout template style into the dao-layout format"
+);
+
 // Talisman must be nested inside daoMandalaSheet — outer surface preserved
 assert.match(
   powerPlaceBaseSource,
@@ -1047,13 +1563,13 @@ assert.match(
   "daoMandalaSheet must receive dao-talisman modifier class in talisman mode"
 );
 
-// daoTalismanScroll must appear after daoMandalaSheet in source (nested, not standalone root)
+// daoTalismanScroll is rendered by helper inside daoMandalaSheet selection.
 {
   const mandalaSheetIdx = powerPlaceBaseSource.indexOf("daoMandalaSheet");
   const talismanScrollIdx = powerPlaceBaseSource.indexOf("daoTalismanScroll");
   assert.ok(
-    mandalaSheetIdx >= 0 && talismanScrollIdx > mandalaSheetIdx,
-    "daoTalismanScroll must be nested inside daoMandalaSheet (daoMandalaSheet must appear first in source)"
+    mandalaSheetIdx >= 0 && talismanScrollIdx >= 0 && /className=\{daoClassName\} style=\{daoOuterStyle\}[\s\S]*renderDaoTalisman1\(\)/.test(powerPlaceBaseSource),
+    "daoTalismanScroll must be routed through the daoMandalaSheet helper selection"
   );
 }
 
@@ -1071,10 +1587,76 @@ assert.ok(
   "Talisman 2 must generate slot IDs as dao-talisman-2-${index + 1}"
 );
 
+assert.ok(
+  powerPlaceBaseSource.includes("dao-fulu-${index + 1}") || powerPlaceBaseSource.includes("`dao-fulu-${index + 1}`"),
+  "Fulu styles must generate vertical slot IDs as dao-fulu-${index + 1}"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /isDaoTalisman2 \|\| isDaoFulu[\s\S]*DAO_TALISMAN_NODE_COUNTS\.map/,
+  "DAO node-count selector must be visible for talisman-2 and fulu styles"
+);
+
+assert.ok(
+  powerPlaceBaseSource.includes("const DAO_LAYOUT_MINI_SLOT_NUMBERS = [3, 4, 5, 7]"),
+  "ДАО-Макет must use mini-mandala slots 3,4,5,7 instead of the normal DAO count list"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function renderDaoInnerContentStack\(\)[\s\S]*daoLayoutTemplateCenterArea[\s\S]*renderCenterPhotoWithMode\("daoCenterPhoto"\)[\s\S]*DAO_SHARED_STAGE_MINI_SLOTS\.map/,
+  "ДАО-Макет and shared DAO styles must render the central client photo inside the talisman before the mini-mandala stack"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /isDaoLayoutTemplate \|\| isDaoSharedStageStyle \? renderDaoSharedStage\(\)[\s\S]*isDaoTalisman2 \? renderDaoTalisman2\(\)/,
+  "ДАО-Макет and new DAO styles must use the shared stack without changing the legacy talisman-2 branch"
+);
+
 // Talisman 2 must not use DAO_ELEMENTS.slice
 assert.ok(
   !powerPlaceBaseSource.match(/talisman-2[\s\S]{0,300}DAO_ELEMENTS\.slice/),
   "Talisman 2 must not use DAO_ELEMENTS.slice for node generation"
+);
+
+{
+  const style1Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoStyle1()"), powerPlaceBaseSource.indexOf("function renderDaoTalisman1()"));
+  const talisman1Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoTalisman1()"), powerPlaceBaseSource.indexOf("function renderDaoTalisman2()"));
+  const talisman2Branch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoTalisman2()"), powerPlaceBaseSource.indexOf("function renderDaoFulu()"));
+  const fuluBranch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoFulu()"), powerPlaceBaseSource.indexOf("function renderDaoFuOutlineLayout()"));
+  const outlineBranch = powerPlaceBaseSource.slice(powerPlaceBaseSource.indexOf("function renderDaoSharedStage()"), powerPlaceBaseSource.indexOf("const daoClassName"));
+
+  assert.match(style1Branch, /daoUsinCore/, "style-1 helper must keep classic DAO core");
+  assert.doesNotMatch(style1Branch, /daoFuluContourLayer|daoTalismanScroll|daoTalisman2Scroll/, "style-1 helper must not render other DAO style layers");
+  assert.match(talisman1Branch, /daoTalismanScroll[\s\S]*daoTalismanBody/, "talisman-1 helper must keep its circular frame/body");
+  assert.doesNotMatch(talisman1Branch, /daoFuluContourLayer|daoTalisman2Scroll|daoUsinCore/, "talisman-1 helper must not render other DAO style layers");
+  assert.match(talisman2Branch, /daoTalisman2Scroll[\s\S]*dao-talisman-2-\$\{index \+ 1\}/, "talisman-2 helper must keep generated vertical nodes");
+  assert.doesNotMatch(talisman2Branch, /daoFuluContourLayer|daoTalismanBody|daoUsinCore/, "talisman-2 helper must not render other DAO style layers");
+  assert.match(fuluBranch, /daoFuluContourLayer/, "fulu helper must render the contour layer");
+  assert.match(fuluBranch, /compositionDraft\.__dao_talisman_node_count[\s\S]*daoFuluNodeColumn/, "fulu helper must render the counted vertical node column");
+  assert.doesNotMatch(fuluBranch, /daoTalismanScroll|daoTalismanBody|daoUsinCore/, "fulu helper must not render old DAO or talisman layers");
+  assert.match(outlineBranch, /renderDaoFieldBackgroundLayer\("daoSharedFieldLayer"\)[\s\S]*renderDaoInnerContentStack\(\)[\s\S]*renderDaoTalismanOverlay\(config\)/, "DAO outline helper must render field, inner stack, and contour through the shared stage");
+  assert.doesNotMatch(outlineBranch, /daoFuluContourLayer|daoTalismanScroll|daoTalismanBody|daoUsinCore/, "DAO outline helper must not render old DAO, fulu, or talisman layers");
+}
+
+assert.match(
+  profileMandalaCss,
+  /\.profileLitePowerPlace \.powerMandalaPanel \.daoMandalaSheet\.dao-fu-paper-slip,[\s\S]*width: min\(calc\(var\(--power-field-scale, 96%\) \* 2\.28\), 58vw\) !important;/,
+  "mobile fulu styles must keep Размер поля wired to actual rendered width"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.daoFuluCenterArea \.daoCenterPhoto \{[\s\S]*width: clamp\(52px, 32%, 78px\) !important;[\s\S]*aspect-ratio: 1 \/ 1 !important;[\s\S]*border-radius: 50% !important;/,
+  "fulu center photo must stay readable, round, and square instead of collapsing or stretching"
+);
+
+assert.match(
+  profileMandalaCss,
+  /\.daoMandalaSheet\.dao-shared-stage \.daoLayoutTemplateCenterArea \.daoCenterPhoto \{[\s\S]*aspect-ratio: 1 \/ 1 !important;[\s\S]*border-radius: 50% !important;/,
+  "DAO outline center photo must be readable, round, and square"
 );
 
 // Legacy "talisman" value must map to talisman-1 in wrapper daoStyleValue
@@ -1112,6 +1694,7 @@ assert.match(powerPlaceBaseSource, /Фон внутри/, "PowerPlaceModuleBase 
 assert.match(powerPlaceBaseSource, /label: "Размер окон"[\s\S]*visibilityKey: "slots"[\s\S]*visibilityLabel: "Мини-мандалы"/, "Размер окон must inline the slots visibility toggle");
 assert.match(powerPlaceBaseSource, /label: "Размер поля"[\s\S]*visibilityKey: "inner_cover"[\s\S]*visibilityLabel: "Фон внутри"/, "Размер поля must inline the inner cover visibility toggle");
 assert.match(powerPlaceBaseSource, /label: "Размер центра"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Размер центра must inline the center visibility toggle");
+assert.match(powerPlaceBaseSource, /label: "Масштаб фото"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Масштаб фото must inline the center visibility toggle");
 assert.match(powerPlaceBaseSource, /coverOuterVisibilityToggle[\s\S]*setVisibilitySetting\("outer_cover"/, "outer cover visibility must remain next to the cover selector");
 assert.match(powerPlaceBaseSource, /power-place-hide-center/, "PowerPlaceModuleBase must apply power-place-hide-center class");
 assert.match(powerPlaceBaseSource, /power-place-hide-slots/, "PowerPlaceModuleBase must apply power-place-hide-slots class");
@@ -1124,6 +1707,36 @@ assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandala\.cover-n
 assert.match(profileMandalaCss, /\.powerMandalaPanel\.power-place-hide-inner-cover \.businessMandalaSheet,[\s\S]*background: transparent !important;[\s\S]*background-color: transparent !important;/, "hidden inner cover must clear full background on all inner constructor surfaces");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.inlineVisibilityScaleToggle/, "inline visibility toggle CSS must exist");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl > input\[type="range"\]/, "slider range inputs must remain aligned without stretching inline checkboxes");
+
+// ── Power Place preview slot labels ──────────────────────────────────────────
+
+for (const [pattern, label] of [
+  [/<b>\{slot\.label\}<\/b>/, "generic slot labels"],
+  [/<b>\{element\.label\}<\/b>/, "DAO element labels"],
+  [/<b>\{node\.label\}<\/b>/, "DAO node labels"],
+  [/<b>\{resolvedSlot\.label\}<\/b>/, "DAO shared mini-slot labels"],
+  [/<b>\{`Окно \$\{slotNumber\}`\}<\/b>/, "DAO outline window labels"],
+  [/<b>\{vertex\.label\}<\/b>/, "business vertex labels"]
+]) {
+  assert.doesNotMatch(
+    powerPlaceBaseSource,
+    pattern,
+    `Power Place preview must not render visible ${label} inside the composition`
+  );
+}
+
+for (const requiredAccessiblePattern of [
+  /title=\{slot\.label\}/,
+  /aria-label=\{`Выбрать \$\{slot\.label\.toLowerCase\(\)\}`\}/,
+  /title=\{element\.label\}/,
+  /aria-label=\{`Выбрать элемент \$\{element\.label\}`\}/
+]) {
+  assert.match(
+    powerPlaceBaseSource,
+    requiredAccessiblePattern,
+    "Power Place preview must keep title and aria-label names for slot buttons"
+  );
+}
 
 // ── Zodiac 2 format contract ──────────────────────────────────────────────────
 
@@ -1153,14 +1766,68 @@ assert.match(
 
 assert.match(
   powerPlaceBaseSource,
-  /ZODIAC_2_INNER_SLOTS/,
-  "Base module must define ZODIAC_2_INNER_SLOTS array"
+  /buildZodiac2InnerSlots/,
+  "Base module must define a dynamic Zodiac 2 inner slot builder"
 );
 
 assert.match(
   powerPlaceBaseSource,
   /zodiac-inner-\$\{|`zodiac-inner-|"zodiac-inner-/,
-  "ZODIAC_2_INNER_SLOTS must generate slot ids with zodiac-inner- prefix"
+  "Zodiac 2 inner slot builder must generate slot ids with zodiac-inner- prefix"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function buildZodiac2InnerSlots\(count\)/,
+  "Zodiac 2 inner slots must be generated from the selected visible count"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /function getZodiacRingPosition\(index,\s*count,\s*radius\)/,
+  "Zodiac 2 must use a shared ring-position helper for count-aware inner/outer geometry"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const ZODIAC_2_OUTER_RADIUS\s*=\s*43/,
+  "Zodiac 2 outer ring radius must be explicit and close to the legacy outer CSS ring"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const ZODIAC_2_INNER_RADIUS\s*=\s*31/,
+  "Zodiac 2 inner ring radius must be explicit and keep inner slots near the center without overlapping it"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /ZODIAC_2_INNER_SLOTS\s*=\s*Array\.from\(\{\s*length:\s*12\s*\}/,
+  "Zodiac 2 inner slots must not be hardcoded to 12"
+);
+
+assert.doesNotMatch(
+  powerPlaceBaseSource,
+  /baseVisibleCount\s*=\s*zodiac2\s*\?\s*12\s*:\s*visibleCount/,
+  "Zodiac 2 outer slots must use zodiac_visible_count instead of forcing 12"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /if \(zodiac2\) return \[\.\.\.signSlots, \.\.\.buildZodiac2InnerSlots\(visibleCount\)\]/,
+  "Zodiac 2 must render the same number of inner slots as the selected visible count"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_COUNT_OPTIONS/,
+  "Zodiac count choices must be separate from the Zodiac 1 / Zodiac 2 format choice"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /ZODIAC_FORMAT_VARIANTS/,
+  "Zodiac format choices must allow Zodiac 1 / Zodiac 2 without resetting the selected count"
 );
 
 assert.match(
@@ -1179,6 +1846,80 @@ assert.match(
   powerPlaceBaseSource,
   /zodiacInnerPosition/,
   "Zodiac JSX must render zodiacInnerPosition elements for inner ring slots"
+);
+
+// ── Star 1 / Star 2 format contract ─────────────────────────────────────────
+
+assert.match(
+  powerPlaceBaseSource,
+  /STAR_2_VARIANT/,
+  "Base module must define STAR_2_VARIANT constant for the new Star 2 format"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /star-2-10/,
+  "Base module must use a stable star-2-10 variant value for Star 2"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /STAR_FORMAT_VARIANTS[\s\S]*Звезда 1[\s\S]*Звезда 2/,
+  "Star format selector must expose Звезда 1 and Звезда 2 labels"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /star_format_variant/,
+  "Star 1 / Star 2 must use a dedicated star_format_variant field instead of overloading star_variant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /STAR_ADDITIONAL_POINTS/,
+  "Star 2 must define five additional mandala slots separately from the existing five ray slots"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /if \(isStar2Format\(draft\.star_format_variant\)\) return \[\.\.\.starSlots, \.\.\.STAR_ADDITIONAL_POINTS/,
+  "Star 2 slot list must return the five existing star slots plus the five additional slots"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /aria-label="Формат звезды"[\s\S]*STAR_FORMAT_VARIANTS[\s\S]*onCompositionDraftChange\("star_format_variant"/,
+  "Star controls must include a dedicated format selector that writes star_format_variant"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /aria-label="Вариант звезды"[\s\S]*STAR_VARIANTS[\s\S]*onCompositionDraftChange\("star_variant"/,
+  "Closed/open Star visual subtype must remain a separate star_variant selector"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /star-2-format/,
+  "Star JSX must apply star-2-format class when Star 2 is active"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /starAdditionalPosition/,
+  "Star JSX must render Star 2 additional slots with a separate wrapper class"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const innerPos = getZodiacRingPosition\(index,\s*zodiacVisibleCount,\s*ZODIAC_2_INNER_RADIUS\)[\s\S]*className=\{`zodiacInnerPosition[\s\S]*style=\{innerPos\}/,
+  "Zodiac 2 inner wrappers must receive count-aware inline positions"
+);
+
+assert.match(
+  powerPlaceBaseSource,
+  /const outerPos = isZodiac2 \? getZodiacRingPosition\(index,\s*zodiacVisibleCount,\s*ZODIAC_2_OUTER_RADIUS\) : undefined[\s\S]*className=\{`zodiacPosition[\s\S]*style=\{outerPos\}/,
+  "Zodiac 2 outer wrappers must use the same count-aware angle grid as the inner ring"
 );
 
 assert.match(

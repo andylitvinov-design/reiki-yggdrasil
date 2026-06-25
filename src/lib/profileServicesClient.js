@@ -1,15 +1,17 @@
-import { clonePowerPlaceCompositionForOrder } from "./powerPlaceClient.js";
+import { clonePowerPlaceCompositionForOrder, getPowerPlaceClientWorkMeta } from "./powerPlaceClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const SERVICES_TABLE = "profile_cabinet_services";
 const ORDERS_TABLE = "profile_cabinet_service_orders";
+const CLIENT_INVITES_TABLE = "profile_cabinet_client_invites";
 const PUBLIC_SERVICE_FIELDS = "id,profile_id,composition_id,title,description,image_url,image_bucket,image_path,price_amount,price_currency,status,created_at,updated_at";
 const PENDING_CART_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 export const SERVICE_STATUSES = ["draft", "published", "archived"];
 export const ORDER_STATUSES = ["draft", "photo_required", "new", "ready_for_review", "in_progress", "sent", "closed"];
+export const CLIENT_INVITE_STATUSES = ["pending", "claimed", "expired", "revoked"];
 export const SERVICE_FORMAT_OPTIONS = [
   { value: "signature", label: "С подписью мастера" },
   { value: "no_signature", label: "Без подписи мастера" },
@@ -17,6 +19,7 @@ export const SERVICE_FORMAT_OPTIONS = [
 ];
 export const SERVICE_CART_KEY = "reiki-yggdrasil-service-cart";
 export const PENDING_SERVICE_CART_KEY = "reiki-yggdrasil-pending-service-cart";
+export const PENDING_CLIENT_INVITE_KEY = "reiki-yggdrasil-pending-client-invite";
 export const PUBLIC_SERVICE_NOT_FOUND_MESSAGE = "Услуга не найдена";
 export const PUBLIC_SERVICE_UNAVAILABLE_MESSAGE = "Услуга недоступна или снята с публикации";
 
@@ -30,12 +33,36 @@ function text(value) {
   return String(value || "").trim();
 }
 
+function isFilenameLikeName(value) {
+  const name = text(value);
+  if (!name) return false;
+  return (
+    /^img[_-]?\d+\.(jpe?g|png|webp|heic|gif)$/i.test(name) ||
+    /^[\w\s().-]+\.(jpe?g|png|webp|heic|gif|pdf)$/i.test(name)
+  );
+}
+
+export function getClientDisplayName(client = {}) {
+  const rawName = text(client.client_name || client.name || client.title);
+  if (rawName && !isFilenameLikeName(rawName)) return rawName;
+  return "Клиент без имени";
+}
+
+function getClientDisplayNote(client = {}) {
+  const rawName = text(client.client_name || client.name || client.title);
+  return rawName && rawName !== getClientDisplayName(client) ? "Имя клиента не заполнено" : "";
+}
+
 function serviceStatus(value) {
   return SERVICE_STATUSES.includes(value) ? value : "draft";
 }
 
 function orderStatus(value) {
   return ORDER_STATUSES.includes(value) ? value : "new";
+}
+
+function clientInviteStatus(value) {
+  return CLIENT_INVITE_STATUSES.includes(value) ? value : "pending";
 }
 
 function price(value) {
@@ -83,6 +110,67 @@ export function orderStatusText(status) {
   })[status] || "Новая";
 }
 
+export function clientMandalaStatusText(status) {
+  return ({
+    draft: "Черновик",
+    photo_required: "Черновик",
+    new: "Черновик",
+    in_progress: "Черновик",
+    saved_for_client: "Сохранено для клиента",
+    ready_for_review: "Готово к отправке",
+    sent: "Отправлено клиенту",
+    closed: "Отправлено клиенту",
+    save_error: "Ошибка сохранения/отправки",
+    send_error: "Ошибка сохранения/отправки",
+    error: "Ошибка сохранения/отправки"
+  })[text(status)] || "Черновик";
+}
+
+function displayableImageUrl(value) {
+  const url = text(value);
+  return url && (/^https?:\/\//.test(url) || url.startsWith("data:image/") || url.startsWith("/")) ? url : "";
+}
+
+function compositionPreviewUrl(composition = {}) {
+  const objectRefs = composition?.object_refs || {};
+  const objectRefUrls = composition?.object_ref_urls || {};
+  const cover = composition?.cover_ref || {};
+  const candidates = [
+    composition.preview_url,
+    composition.preview_image_url,
+    composition.thumbnail_url,
+    composition.image_url,
+    objectRefs.__preview_image,
+    objectRefs.__mandala_preview,
+    objectRefs.__center_image,
+    cover.inner?.display_src,
+    cover.display_src,
+    cover.outer?.display_src,
+    cover.inner?.src,
+    cover.src,
+    cover.outer?.src,
+    ...Object.values(objectRefs || {}).filter((value) => typeof value === "string")
+  ];
+
+  for (const candidate of candidates) {
+    const direct = displayableImageUrl(candidate);
+    if (direct) return direct;
+    const signed = displayableImageUrl(objectRefUrls?.[candidate]);
+    if (signed) return signed;
+  }
+
+  return "";
+}
+
+export function getClientMandalaPreviewState(item = {}) {
+  const imageUrl = displayableImageUrl(item.preview_url || item.display_url || item.result_image_url || item.image_url);
+  if (imageUrl) return { src: imageUrl, message: "" };
+  if (item.result_image_bucket || item.result_image_path || item.image_bucket || item.image_path) {
+    return { src: "", message: "Превью недоступно" };
+  }
+  return { src: "", message: "Превью мандалы пока не создано" };
+}
+
 export function formatServicePrice(service = {}) {
   const amount = price(service.price_amount);
   if (!amount) return "Бесплатно";
@@ -113,6 +201,12 @@ export function buildServicePublicUrl(service = {}, origin = globalThis.location
   const id = encodeURIComponent(text(service.id));
   const base = text(origin).replace(/\/$/, "");
   return id && base ? `${base}/services/${id}` : "";
+}
+
+export function buildCompositionResultUrl(compositionId, origin = globalThis.location?.origin || "") {
+  const id = text(compositionId);
+  const base = text(origin).replace(/\/$/, "");
+  return id && base ? `${base}/profile/mandalas?composition=${encodeURIComponent(id)}` : "";
 }
 
 export function filterPublishedServices(services = []) {
@@ -153,6 +247,97 @@ export function groupServicesByStatus(services = []) {
     groups[status].push(service);
     return groups;
   }, { draft: [], published: [], archived: [] });
+}
+
+function clientWorkFromComposition(composition = {}) {
+  const meta = getPowerPlaceClientWorkMeta(composition);
+  if (!meta) return null;
+  const clientName = text(meta.client_name);
+  const previewUrl = displayableImageUrl(meta.preview_url || meta.image_url || meta.result_image_url) || compositionPreviewUrl(composition);
+  return {
+    id: text(composition.id),
+    title: text(composition.title) || "Мандала",
+    client_profile_id: text(meta.client_profile_id),
+    client_name: clientName || "Без имени",
+    client_photo_id: text(meta.client_photo_id),
+    request_text: text(meta.request_text),
+    result_composition_id: text(meta.result_composition_id || composition.id),
+    preview_url: previewUrl,
+    image_url: previewUrl,
+    image_bucket: text(meta.image_bucket || composition.image_bucket) || null,
+    image_path: text(meta.image_path || composition.image_path) || null,
+    status: text(meta.status || "saved_for_client"),
+    created_at: composition.created_at || null
+  };
+}
+
+export function buildClientDirectoryFromOrders(orders = [], clientGoalPhotos = [], clientCompositions = [], clientInvites = []) {
+  const clientsByKey = new Map();
+  const ensureClient = ({ key, client_profile_id = "", client_name = "Без имени" }) => {
+    const safeKey = text(key);
+    const normalizedName = text(client_name) || "Без имени";
+    const displayName = getClientDisplayName({ client_name: normalizedName, client_profile_id });
+    const existing = clientsByKey.get(safeKey) || {
+      key: safeKey,
+      client_profile_id: text(client_profile_id),
+      client_name: normalizedName,
+      client_display_name: displayName,
+      client_display_note: getClientDisplayNote({ client_name: normalizedName, client_profile_id }),
+      invites: [],
+      orders: [],
+      photos: [],
+      clientWorks: [],
+      status: text(client_profile_id) ? "claimed" : "manual"
+    };
+    if (existing.client_display_name === "Клиент без имени" && displayName !== "Клиент без имени") {
+      existing.client_name = normalizedName;
+      existing.client_display_name = displayName;
+      existing.client_display_note = "";
+    }
+    clientsByKey.set(safeKey, existing);
+    return existing;
+  };
+
+  for (const invite of clientInvites || []) {
+    const normalizedInvite = normalizeClientInvite(invite);
+    const key = normalizedInvite.client_profile_id
+      ? `client:${normalizedInvite.client_profile_id}`
+      : `invite:${normalizedInvite.id}`;
+    const client = ensureClient({
+      key,
+      client_profile_id: normalizedInvite.client_profile_id,
+      client_name: normalizedInvite.client_name || "Без имени"
+    });
+    client.invites.push(normalizedInvite);
+    client.status = normalizedInvite.client_profile_id ? "claimed" : normalizedInvite.status;
+  }
+
+  for (const order of orders || []) {
+    const normalizedOrder = normalizeServiceOrder(order);
+    const key = normalizedOrder.client_profile_id
+      ? `client:${normalizedOrder.client_profile_id}`
+      : `name:${normalizedOrder.client_name || "Без имени"}`;
+    const client = ensureClient({
+      key,
+      client_profile_id: normalizedOrder.client_profile_id,
+      client_name: normalizedOrder.client_name || "Без имени"
+    });
+    client.orders.push(normalizedOrder);
+    client.status = normalizedOrder.client_profile_id ? "claimed" : client.status;
+  }
+
+  for (const work of (clientCompositions || []).map(clientWorkFromComposition).filter(Boolean)) {
+    const key = work.client_profile_id ? `client:${work.client_profile_id}` : `name:${work.client_name}`;
+    ensureClient({
+      key,
+      client_profile_id: work.client_profile_id,
+      client_name: work.client_name
+    }).clientWorks.push(work);
+  }
+
+  return [...clientsByKey.values()].sort((a, b) => (
+    (a.client_display_name || a.client_name).localeCompare((b.client_display_name || b.client_name), "ru")
+  ));
 }
 
 export function normalizeServiceForm(form = {}, requestedStatus = form?.status) {
@@ -211,6 +396,24 @@ export function normalizeServiceOrder(row = {}) {
     created_at: row.created_at || null,
     updated_at: row.updated_at || null,
     service: service ? normalizeServiceRow(service) : null
+  };
+}
+
+export function normalizeClientInvite(row = {}) {
+  return {
+    id: text(row.id),
+    master_profile_id: text(row.master_profile_id),
+    client_profile_id: text(row.client_profile_id),
+    client_name: text(row.client_name) || "Без имени",
+    service_id: text(row.service_id),
+    service_order_id: text(row.service_order_id),
+    invite_token: text(row.invite_token),
+    invite_url: text(row.invite_url),
+    status: clientInviteStatus(row.status),
+    expires_at: row.expires_at || null,
+    claimed_at: row.claimed_at || null,
+    created_at: row.created_at || null,
+    updated_at: row.updated_at || null
   };
 }
 
@@ -336,6 +539,71 @@ export function buildServiceOrderSubmitPayload({ orderId, clientProfileId, photo
 
 export function orderHasClientVisibleResult(order = {}) {
   return orderStatus(order.status) === "sent" && Boolean(text(order.final_result_composition_id));
+}
+
+export function buildClientOrderResultUrl(order = {}, origin = globalThis.location?.origin || "") {
+  const orderId = encodeURIComponent(text(order.id));
+  const base = text(origin).replace(/\/$/, "");
+  return orderId && base && orderHasClientVisibleResult(order) ? `${base}/profile/orders?order=${orderId}` : "";
+}
+
+export function buildClientInviteUrl(invite = {}, origin = globalThis.location?.origin || "") {
+  const token = encodeURIComponent(text(invite.invite_token || invite.token));
+  const base = text(origin).replace(/\/$/, "");
+  return token && base ? `${base}/profile/orders?invite=${token}` : text(invite.invite_url);
+}
+
+export function buildClientDirectory({ orders = [], clientInvites = [], clientGoalPhotos = [] } = {}) {
+  const byKey = new Map();
+
+  for (const invite of clientInvites || []) {
+    const normalizedInvite = normalizeClientInvite(invite);
+    const key = normalizedInvite.client_profile_id || `invite:${normalizedInvite.id}`;
+    const existing = byKey.get(key) || {
+      key,
+      source: "invite",
+      client_name: normalizedInvite.client_name,
+      client_profile_id: normalizedInvite.client_profile_id,
+      invites: [],
+      orders: [],
+      photos: [],
+      status: normalizedInvite.status
+    };
+    existing.invites.push(normalizedInvite);
+    existing.client_name = existing.client_name || normalizedInvite.client_name;
+    existing.client_profile_id = existing.client_profile_id || normalizedInvite.client_profile_id;
+    existing.status = normalizedInvite.client_profile_id ? "claimed" : normalizedInvite.status;
+    byKey.set(key, existing);
+  }
+
+  for (const order of orders || []) {
+    const normalizedOrder = normalizeServiceOrder(order);
+    const key = normalizedOrder.client_profile_id || `name:${normalizedOrder.client_name || "Без имени"}`;
+    const existing = byKey.get(key) || {
+      key,
+      source: "order",
+      client_name: normalizedOrder.client_name || "Без имени",
+      client_profile_id: normalizedOrder.client_profile_id,
+      invites: [],
+      orders: [],
+      photos: [],
+      status: normalizedOrder.client_profile_id ? "claimed" : "manual"
+    };
+    existing.orders.push(normalizedOrder);
+    existing.client_name = existing.client_name || normalizedOrder.client_name || "Без имени";
+    existing.client_profile_id = existing.client_profile_id || normalizedOrder.client_profile_id;
+    if (normalizedOrder.client_profile_id) existing.status = "claimed";
+    byKey.set(key, existing);
+  }
+
+  for (const photo of clientGoalPhotos || []) {
+    const ownerKey = text(photo.client_profile_id) ? text(photo.client_profile_id) : "";
+    if (!ownerKey) continue;
+    const existing = byKey.get(ownerKey);
+    if (existing) existing.photos.push(photo);
+  }
+
+  return [...byKey.values()].sort((a, b) => text(a.client_name).localeCompare(text(b.client_name), "ru"));
 }
 
 export function buildSendOrderResultPayload({ orderId, resultCompositionId, comment = "" } = {}) {
@@ -597,6 +865,41 @@ export async function listClientServiceOrders(profileId, session = getStoredSess
   const select = "*,profile_cabinet_services(id,profile_id,composition_id,title,description,image_url,image_bucket,image_path,price_amount,price_currency,status)";
   const rows = await request(`/rest/v1/${ORDERS_TABLE}?client_profile_id=eq.${encodeURIComponent(profileId)}&select=${select}&order=created_at.desc`, { session });
   return Array.isArray(rows) ? rows.map(normalizeServiceOrder) : [];
+}
+
+export async function listOwnClientInvites(profileId, session = getStoredSession()) {
+  if (!profileId || !session?.access_token) return [];
+  const rows = await request(`/rest/v1/${CLIENT_INVITES_TABLE}?master_profile_id=eq.${encodeURIComponent(profileId)}&select=*&order=updated_at.desc`, { session });
+  return Array.isArray(rows) ? rows.map(normalizeClientInvite) : [];
+}
+
+export async function createClientInvite(invite = {}, session = getStoredSession()) {
+  if (!session?.access_token) throw makeError("Auth required.");
+  const rows = await request("/rest/v1/rpc/create_client_invite", {
+    method: "POST",
+    session,
+    body: {
+      p_client_name: text(invite.client_name),
+      p_service_id: text(invite.service_id) || null,
+      p_service_order_id: text(invite.service_order_id) || null,
+      p_expires_at: invite.expires_at || null
+    }
+  });
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return normalizeClientInvite(row || {});
+}
+
+export async function claimClientInvite(inviteToken, session = getStoredSession()) {
+  if (!session?.access_token) throw makeError("Auth required.");
+  const token = text(inviteToken);
+  if (!token) throw makeError("Missing invite token.");
+  const rows = await request("/rest/v1/rpc/claim_client_invite", {
+    method: "POST",
+    session,
+    body: { p_invite_token: token }
+  });
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  return normalizeClientInvite(row || {});
 }
 
 export async function submitServiceOrderToMaster(orderId, { clientProfileId, photo, requestText = "" } = {}, session = getStoredSession()) {

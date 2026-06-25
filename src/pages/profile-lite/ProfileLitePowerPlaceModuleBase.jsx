@@ -17,7 +17,8 @@ const CONSTRUCTOR_TYPES = [
   { value: "client", label: "Мандала" },
   { value: "altar", label: "Алтарь" },
   { value: "business", label: "Бизнес" },
-  { value: "dao", label: "ДАО" }
+  { value: "dao", label: "ДАО" },
+  { value: "dao-layout", label: "ДАО-Макет" }
 ];
 
 const GEOMETRIES = [2, 4, 6, 8, 12];
@@ -26,14 +27,29 @@ const MANDALA_STYLE_VARIANTS = [
   { value: "style-2", label: "Стиль 2" },
   { value: "style-3", label: "Стиль 3" }
 ];
+const DAO_LAYOUT_TEMPLATE_STYLE_ID = "dao-layout-template";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
+const DAO_LAYOUT_TEMPLATE_TOP_CROWNS = [
+  { value: "roof_double_line", label: "Крыша" },
+  { value: "three_checks", label: "3 галочки" }
+];
+const DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS = [2, 3];
 const DAO_STYLE_VARIANTS = [
   { value: "style-1", label: "Стиль 1" },
+  { value: "style-2", label: "Стиль 2" },
   { value: "talisman-1", label: "Талисман 1" },
   { value: "talisman-2", label: "Талисман 2" },
   { value: "fu-paper-slip", label: "Фу-лист" },
   { value: "cloud-register", label: "Облачный реестр" },
   { value: "thunder-tablet", label: "Громовая табличка" },
-  { value: "taofu-charm", label: "Таофу" }
+  { value: "taofu-charm", label: "Таофу" },
+  { value: "dao-fu-wide-gate-roof", label: "ДАО: широкие врата" },
+  { value: "dao-fu-narrow-banner-roof", label: "ДАО: узкий свиток" },
+  { value: "dao-fu-grand-gate-p", label: "ДАО: большие врата P" },
+  { value: "dao-fu-bottle-p", label: "ДАО: сосуд P" },
+  { value: "dao-fu-node-column", label: "ДАО: колонна с узлами" },
+  { value: "dao-fu-soft-shoulder-banner", label: "ДАО: мягкий свиток" }
 ];
 const DAO_FULU_STYLES = new Set(["fu-paper-slip", "cloud-register", "thunder-tablet", "taofu-charm"]);
 const DAO_FULU_STYLE_VALUES = {
@@ -54,20 +70,65 @@ const DAO_FULU_STYLE_VALUES = {
     contourAsset: "/symbols/power-place/dao/fulu/taofu-charm.svg"
   }
 };
+const DAO_FU_OUTLINE_STYLE_VALUES = {
+  "dao-fu-wide-gate-roof": {
+    className: "dao-fu-wide-gate-roof",
+    geometry: { width: "min(372px, 88%) !important", maxWidth: "min(372px, 88%) !important", aspectRatio: "5 / 7" }
+  },
+  "dao-fu-narrow-banner-roof": {
+    className: "dao-fu-narrow-banner-roof",
+    geometry: { width: "min(230px, 62%) !important", maxWidth: "min(230px, 62%) !important", aspectRatio: "3 / 7" }
+  },
+  "dao-fu-grand-gate-p": {
+    className: "dao-fu-grand-gate-p",
+    geometry: { width: "min(410px, 92%) !important", maxWidth: "min(410px, 92%) !important", aspectRatio: "5 / 6.5" }
+  },
+  "dao-fu-bottle-p": {
+    className: "dao-fu-bottle-p",
+    geometry: { width: "min(276px, 68%) !important", maxWidth: "min(276px, 68%) !important", aspectRatio: "3 / 5.8" }
+  },
+  "dao-fu-node-column": {
+    className: "dao-fu-node-column",
+    geometry: { width: "min(292px, 72%) !important", maxWidth: "min(292px, 72%) !important", aspectRatio: "3 / 6.2" }
+  },
+  "dao-fu-soft-shoulder-banner": {
+    className: "dao-fu-soft-shoulder-banner",
+    geometry: { width: "min(260px, 68%) !important", maxWidth: "min(260px, 68%) !important", aspectRatio: "3 / 6.5" }
+  }
+};
+const DAO_FU_OUTLINE_STYLES = new Set(Object.keys(DAO_FU_OUTLINE_STYLE_VALUES));
+const DAO_SHARED_STAGE_STYLE_VALUES = new Set(Object.keys(DAO_FU_OUTLINE_STYLE_VALUES));
+const DAO_SHARED_STAGE_CONFIG = {
+  "dao-fu-wide-gate-roof": { layoutZone: "dao-fu-wide-gate-roof" },
+  "dao-fu-narrow-banner-roof": { layoutZone: "dao-fu-narrow-banner-roof" },
+  "dao-fu-grand-gate-p": { layoutZone: "dao-fu-grand-gate-p", topMarker: "P" },
+  "dao-fu-bottle-p": { layoutZone: "dao-fu-bottle-p", topMarker: "P" },
+  "dao-fu-node-column": { layoutZone: "dao-fu-node-column" },
+  "dao-fu-soft-shoulder-banner": { layoutZone: "dao-fu-soft-shoulder-banner" }
+};
 const DAO_TALISMAN_NODE_COUNTS = [3, 5, 7, 9];
+const DAO_LAYOUT_MINI_SLOT_NUMBERS = [3, 4, 5, 7];
+const DAO_LAYOUT_INNER_SLOTS = DAO_LAYOUT_MINI_SLOT_NUMBERS.map((slotNumber) => ({
+  id: `dao-talisman-2-${slotNumber}`,
+  label: `Мини-мандала ${slotNumber}`
+}));
+const DAO_SHARED_STAGE_MINI_SLOTS = DAO_LAYOUT_INNER_SLOTS;
 const ZODIAC_2_VARIANT = "zodiac-2-12";
-const ZODIAC_VARIANTS = [
-  { value: "classic-2", label: "2", visibleCount: 2 },
-  { value: "classic-4", label: "4", visibleCount: 4 },
-  { value: "classic-6", label: "6", visibleCount: 6 },
-  { value: "classic-8", label: "8", visibleCount: 8 },
-  { value: "plus-8", label: "8+", visibleCount: 8 },
-  { value: "classic-12", label: "Зодиак 1", visibleCount: 12 },
-  { value: ZODIAC_2_VARIANT, label: "Зодиак 2", visibleCount: 12 }
+const ZODIAC_COUNT_OPTIONS = GEOMETRIES;
+const ZODIAC_FORMAT_VARIANTS = [
+  { value: "classic", label: "Зодиак 1" },
+  { value: ZODIAC_2_VARIANT, label: "Зодиак 2" },
+  { value: "plus-8", label: "8+" }
 ];
+const ZODIAC_VARIANTS = ZODIAC_FORMAT_VARIANTS;
 const STAR_VARIANTS = [
   { value: "closed", label: "Закрытая" },
   { value: "open", label: "Открытая" }
+];
+const STAR_2_VARIANT = "star-2-10";
+const STAR_FORMAT_VARIANTS = [
+  { value: "classic", label: "Звезда 1" },
+  { value: STAR_2_VARIANT, label: "Звезда 2" }
 ];
 const STAR_POINTS = [
   { id: "top", className: "top", label: "Верхний луч" },
@@ -75,6 +136,13 @@ const STAR_POINTS = [
   { id: "lower-right", className: "lowerRight", label: "Нижний правый луч" },
   { id: "lower-left", className: "lowerLeft", label: "Нижний левый луч" },
   { id: "left", className: "left", label: "Левый луч" }
+];
+const STAR_ADDITIONAL_POINTS = [
+  { id: "star-extra-1", className: "extra-1", label: "Дополнительная мандала 1" },
+  { id: "star-extra-2", className: "extra-2", label: "Дополнительная мандала 2" },
+  { id: "star-extra-3", className: "extra-3", label: "Дополнительная мандала 3" },
+  { id: "star-extra-4", className: "extra-4", label: "Дополнительная мандала 4" },
+  { id: "star-extra-5", className: "extra-5", label: "Дополнительная мандала 5" }
 ];
 const CHESS_VARIANTS = [
   { value: "classic-14", label: "15 фоток", slotCount: 14, layout: "grid-5x3" },
@@ -91,6 +159,7 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const SHOW_POWER_PLACE_FEED_PROJECTION = false;
 
 const EMPTY_VISIBILITY_SETTINGS = {
   center: true,
@@ -190,12 +259,14 @@ const ZODIAC_PLUS_SLOT_LAYOUT = {
     { id: "zodiac-plus-corner-br", className: "plus-corner-br", label: "Угол низ-прав", classPrefix: "plus" }
   ]
 };
-const ZODIAC_2_INNER_SLOTS = Array.from({ length: 12 }, (_, index) => ({
-  id: `zodiac-inner-${index + 1}`,
-  className: `inner-${index + 1}`,
-  label: `Внутренняя мандала ${index + 1}`,
-  classPrefix: "inner"
-}));
+function buildZodiac2InnerSlots(count) {
+  return Array.from({ length: count }, (_, index) => ({
+    id: `zodiac-inner-${index + 1}`,
+    className: `inner-${index + 1}`,
+    label: `Внутренняя мандала ${index + 1}`,
+    classPrefix: "inner"
+  }));
+}
 export const ZODIAC_STYLE_REF_KEY = "__zodiac_style";
 export const ZODIAC_STYLE_VARIANTS = [
   { value: "sun", label: "Солнце" },
@@ -208,7 +279,44 @@ export function zodiacStyleValue(value) {
 }
 
 function isZodiac2Variant(value) {
-  return String(value || "") === ZODIAC_2_VARIANT;
+  return String(value || "").startsWith("zodiac-2");
+}
+
+function normalizeZodiacVisibleCount(value) {
+  const count = Number(value);
+  return ZODIAC_COUNT_OPTIONS.includes(count) ? count : 12;
+}
+
+const ZODIAC_2_OUTER_RADIUS = 43;
+const ZODIAC_2_INNER_RADIUS = 31;
+
+function getZodiacRingPosition(index, count, radius) {
+  const safeCount = Math.max(1, Number(count) || 1);
+  const angle = -90 + (360 / safeCount) * index;
+  const radians = angle * (Math.PI / 180);
+  return {
+    left: `${50 + radius * Math.cos(radians)}%`,
+    top: `${50 + radius * Math.sin(radians)}%`
+  };
+}
+
+function classicZodiacVariantForCount(count) {
+  return count === 12 ? "classic-12" : `classic-${count}`;
+}
+
+function zodiacVariantFormat(value) {
+  const variant = String(value || "");
+  if (isZodiac2Variant(variant)) return ZODIAC_2_VARIANT;
+  if (variant.startsWith("plus")) return "plus-8";
+  return "classic";
+}
+
+function isStar2Format(value) {
+  return String(value || "") === STAR_2_VARIANT;
+}
+
+function starFormatValue(value) {
+  return isStar2Format(value) ? STAR_2_VARIANT : "classic";
 }
 const CHANNELS_SUBCATEGORIES = [
   { value: "sefirot", label: "Сефирот", thirdLevels: [{ value: "major-arcana", label: "Большие арканы" }, { value: "minor-arcana", label: "Малые арканы" }, { value: "sephirot-siphers", label: "Сиферы" }] },
@@ -309,9 +417,14 @@ function imageStyle(src) {
   return isImagePreview(src) ? { backgroundImage: `url(${src})` } : undefined;
 }
 
+function coverFitValue(value) {
+  return String(value || "").trim() === "contain" ? "contain" : "";
+}
+
 function buildPowerPlaceDragPayload(item) {
   const objectRef = String(item?.src || item?.object_ref || "");
   if (!objectRef) return null;
+  const fit = coverFitValue(item?.fit || item?.cover_fit || item?.coverFit);
 
   return {
     id: String(item?.id || ""),
@@ -326,7 +439,8 @@ function buildPowerPlaceDragPayload(item) {
         : item?.kind === "power-place-background"
           ? "power-place-background"
           : String(item?.kind || "profile-media"),
-    photoId: item?.photoId ? String(item.photoId) : ""
+    photoId: item?.photoId ? String(item.photoId) : "",
+    ...(fit ? { fit, cover_fit: fit } : {})
   };
 }
 
@@ -339,6 +453,7 @@ function parsePowerPlaceDragPayload(dataTransfer) {
     const parsed = JSON.parse(raw);
     const objectRef = String(parsed?.object_ref || "").trim();
     if (!objectRef) return null;
+    const fit = coverFitValue(parsed?.fit || parsed?.cover_fit || parsed?.coverFit);
     return {
       id: String(parsed?.id || "").trim(),
       title: String(parsed?.title || parsed?.name || "").trim(),
@@ -346,7 +461,8 @@ function parsePowerPlaceDragPayload(dataTransfer) {
       src: String(parsed?.src || "").trim(),
       object_ref: objectRef,
       type: ["saved-mandala", "profile-media", "client-photo", "tradition-asset", "material", "power-place-background"].includes(parsed?.type) ? parsed.type : "profile-media",
-      photoId: String(parsed?.photoId || "").trim()
+      photoId: String(parsed?.photoId || "").trim(),
+      ...(fit ? { fit, cover_fit: fit } : {})
     };
   } catch {
     return null;
@@ -365,6 +481,10 @@ function innerCoverImageStyle(cover, displaySrc) {
 function daoFuluContourStyle(styleValue) {
   const asset = DAO_FULU_STYLE_VALUES[styleValue]?.contourAsset;
   return asset ? { "--dao-fulu-contour-image": `url("${asset}")` } : {};
+}
+
+function isDaoFuluContourAsset(src) {
+  return typeof src === "string" && src.includes("/symbols/power-place/dao/fulu/");
 }
 
 function slotScaleValue(value) {
@@ -417,6 +537,12 @@ export function clampSlotImageZoom(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 1;
   return Math.min(1.8, Math.max(0.65, parsed));
+}
+
+export function clampSlotImageRotation(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 0;
+  return Math.round(parsed / 90) * 90;
 }
 
 // Classify a saved image item as an inner-cover, outer-cover, or legacy (both) shortcut.
@@ -496,8 +622,23 @@ function normalizeVisibilitySettings(value) {
   };
 }
 
+function normalizeDaoLayoutTemplateOptions(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const topCrown = source.topCrown === "three_checks" ? "three_checks" : "roof_double_line";
+  const sideNodeCount = Number(source.sideNodeCount);
+  return {
+    topCrown,
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS.includes(sideNodeCount) ? sideNodeCount : 2
+  };
+}
+
 function formatLabel(type) {
   return CONSTRUCTOR_TYPES.find((item) => item.value === type)?.label || "Место силы";
+}
+
+function isDaoConstructorType(type) {
+  return type === "dao" || type === "dao-layout";
 }
 
 function buildSlotList(draft) {
@@ -509,11 +650,11 @@ function buildSlotList(draft) {
     }));
   }
   if (type === "zodiac") {
-    const visibleCount = Number(draft.zodiac_visible_count) || 12;
-    const variant = draft.zodiac_variant || (visibleCount === 8 ? "classic-8" : visibleCount === 12 ? "classic-12" : `classic-${visibleCount}`);
+    const visibleCount = normalizeZodiacVisibleCount(draft.zodiac_visible_count);
+    const variant = draft.zodiac_variant || classicZodiacVariantForCount(visibleCount);
     const zodiac2 = isZodiac2Variant(variant);
     const isPlusVariant = !zodiac2 && variant.startsWith("plus");
-    const baseVisibleCount = zodiac2 ? 12 : visibleCount;
+    const baseVisibleCount = visibleCount;
     const signSlots = ZODIAC_SIGNS.slice(0, isPlusVariant ? 8 : baseVisibleCount).map((sign, index) => ({
       id: `zodiac-${index + 1}`,
       label: sign.label,
@@ -521,17 +662,19 @@ function buildSlotList(draft) {
       classPrefix: "classic"
     }));
 
-    if (zodiac2) return [...signSlots, ...ZODIAC_2_INNER_SLOTS];
+    if (zodiac2) return [...signSlots, ...buildZodiac2InnerSlots(visibleCount)];
     if (!isPlusVariant) return signSlots;
     if (visibleCount === 8) return signSlots;
     return [...signSlots, ...(ZODIAC_PLUS_SLOT_LAYOUT[visibleCount] || ZODIAC_PLUS_SLOT_LAYOUT[8])];
   }
   if (type === "star") {
-    return STAR_POINTS.map((point, index) => ({
+    const starSlots = STAR_POINTS.map((point, index) => ({
       id: `star-${index + 1}`,
       label: point.label,
       className: point.className
     }));
+    if (isStar2Format(draft.star_format_variant)) return [...starSlots, ...STAR_ADDITIONAL_POINTS];
+    return starSlots;
   }
   if (type === "chess") {
     return CHESS_SLOT_LAYOUTS[draft.chess_variant] || CHESS_SLOT_LAYOUTS["classic-14"];
@@ -552,7 +695,7 @@ function buildSlotList(draft) {
       }))
     );
   }
-  if (type === "dao") return DAO_ELEMENTS.map((element) => ({
+  if (isDaoConstructorType(type)) return DAO_ELEMENTS.map((element) => ({
     id: `dao-${element.id}`,
     label: element.label,
     className: element.className
@@ -615,7 +758,7 @@ const CHESS_MOTION_RADIUS = 24;
 function getMotionPositionsForComposition(draft, slots) {
   const type = draft?.constructor_type || "zodiac";
   if (type === "client") return clockPositions(Number(draft.geometry) || slots.length || 4, CLIENT_MOTION_RADIUS);
-  if (type === "zodiac") return clockPositions(Number(draft.zodiac_visible_count) || 12, ZODIAC_VIDEO_COPY_SAFE_RADIUS);
+  if (type === "zodiac") return clockPositions(normalizeZodiacVisibleCount(draft.zodiac_visible_count), ZODIAC_VIDEO_COPY_SAFE_RADIUS);
   if (type === "star") {
     return [
       { left: 50, top: 22 },
@@ -625,7 +768,7 @@ function getMotionPositionsForComposition(draft, slots) {
       { left: 27, top: 40 }
     ];
   }
-  if (type === "dao") return clockPositions(5, DAO_MOTION_RADIUS, -90);
+  if (isDaoConstructorType(type)) return clockPositions(5, DAO_MOTION_RADIUS, -90);
   if (type === "business") {
     return [
       { left: 50, top: 24 },
@@ -677,6 +820,12 @@ function coverKindClass(cover, layer) {
   return "";
 }
 
+function outerCoverFitClass(cover) {
+  return cover?.type === "image" && coverFitValue(cover?.fit || cover?.cover_fit || cover?.coverFit) === "contain"
+    ? "outer-cover-fit-contain"
+    : "";
+}
+
 function coverToneClass(cover) {
   if (!cover || cover.type === "none" || cover.id === "no-cover") return "cover-none";
   if (cover.type === "image") return "cover-image";
@@ -685,7 +834,10 @@ function coverToneClass(cover) {
 
 export default function ProfileLitePowerPlaceModule({
   accountPlan = "start",
-  clientGoalPhotos,
+  cabinetRole = "client",
+  clientGoalPhotos = [],
+  clientDirectory = [],
+  clientSaveForm = { isOpen: false, clientKey: "", clientName: "", requestText: "", clientPhotoId: "", status: "idle", message: "" },
   compositionDraft,
   compositionMessage,
   mandalasError,
@@ -696,7 +848,11 @@ export default function ProfileLitePowerPlaceModule({
   onFeedFormChange,
   onAddCompositionToServices,
   onClientPhotoDelete,
+  onClientSaveCancel = () => {},
+  onClientSaveFormChange = () => {},
+  onClientSaveSubmit = () => {},
   onCompositionCoverSelect,
+  onCompositionDelete,
   onCompositionDraftChange,
   onCompositionLoad,
   onCompositionObjectRefSelect,
@@ -705,6 +861,7 @@ export default function ProfileLitePowerPlaceModule({
   onDownload,
   onLibraryPhotoUpload,
   onObjectFileUpload,
+  onOpenClientSave = () => {},
   onPrint,
   onPublishAsService,
   onPublishToFeed,
@@ -772,8 +929,25 @@ export default function ProfileLitePowerPlaceModule({
   const innerCover = coverLayer(compositionDraft.cover_ref, "inner");
   const outerCover = coverLayer(compositionDraft.cover_ref, "outer");
   const visibleCover = coverLayerMode === "outer" ? outerCover : innerCover;
+  const hasInnerCoverImage = innerCover?.type === "image" && Boolean(innerCover?.src);
+  const hasOuterCoverImage = outerCover?.type === "image" && Boolean(outerCover?.src);
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
+  const outerCoverFitClassName = outerCoverFitClass(outerCover);
+  const isDaoLayoutFormat = compositionDraft.constructor_type === "dao-layout";
+  const legacyDaoLayoutStyle = compositionDraft.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID;
+  const daoStyle = legacyDaoLayoutStyle ? "style-1" : compositionDraft.__dao_style || "style-1";
+  const isDaoStyle1 = daoStyle === "style-1";
+  const isDaoStyle2 = daoStyle === "style-2";
+  const isDaoTalisman1 = daoStyle === "talisman-1";
+  const isDaoTalisman2 = daoStyle === "talisman-2";
+  const isDaoLayoutTemplate = isDaoLayoutFormat || legacyDaoLayoutStyle;
+  const isDaoFulu = DAO_FULU_STYLES.has(daoStyle);
+  const isDaoFuOutline = DAO_FU_OUTLINE_STYLES.has(daoStyle);
+  const isDaoSharedStageStyle = DAO_SHARED_STAGE_STYLE_VALUES.has(daoStyle);
+  const daoLayoutTemplateOptions = normalizeDaoLayoutTemplateOptions(objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
+  const innerCoverSrc = coverDisplaySrc(innerCover);
+  const innerCoverIsFuluContour = isDaoFuluContourAsset(innerCoverSrc);
   const sourceSlotScale = slotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const fieldScale = fieldScaleValue(compositionDraft.field_scale ?? objectRefs.__inner_field_scale);
   const centerImageScale = centerImageScaleValue(compositionDraft.__center_image_scale ?? objectRefs.__center_image_scale);
@@ -782,14 +956,19 @@ export default function ProfileLitePowerPlaceModule({
   const centerImageOffsetY = clampCenterImageOffset(compositionDraft.__center_image_offset_y ?? objectRefs.__center_image_offset_y);
   const centerImageZoom = clampCenterImageZoom(compositionDraft.__center_image_zoom ?? objectRefs.__center_image_zoom);
   const chessVariant = compositionDraft.chess_variant || "classic-14";
-  const zodiacVariant = compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count || 12}`;
+  const zodiacVisibleCount = normalizeZodiacVisibleCount(compositionDraft.zodiac_visible_count);
+  const zodiacVariant = compositionDraft.zodiac_variant || classicZodiacVariantForCount(zodiacVisibleCount);
+  const zodiacFormat = zodiacVariantFormat(zodiacVariant);
   const isZodiac2 = compositionDraft.constructor_type === "zodiac" && isZodiac2Variant(zodiacVariant);
   const zodiacStyle = zodiacStyleValue(compositionDraft.__zodiac_style);
+  const starFormat = starFormatValue(compositionDraft.star_format_variant);
+  const isStar2 = compositionDraft.constructor_type === "star" && isStar2Format(compositionDraft.star_format_variant);
   const chessSlotScale = chessSlotScaleValue(objectRefs.__slot_scale ?? compositionDraft.slot_scale ?? compositionDraft.chess_slot_scale ?? 1);
   const savedCompositionCount = powerPlaceCompositions.length;
   const savedCompositionLimit = planLimits.compositions;
   const createNewDisabled = savedCompositionCount >= savedCompositionLimit;
   const updateExistingDisabled = !compositionDraft.id;
+  const isMasterWorkflow = cabinetRole === "master";
   const defaultSymbolShelf = symbolShelfForConstructorType(compositionDraft.constructor_type);
   const activeSymbolShelf = symbolShelfState.value || defaultSymbolShelf;
   const activeSymbolShelfItems = useMemo(() => listPowerPlaceSymbolsByShelf(activeSymbolShelf), [activeSymbolShelf]);
@@ -823,6 +1002,7 @@ export default function ProfileLitePowerPlaceModule({
     if (createNewDisabled) return;
     onSaveNew();
   };
+  const isClientSaveLoading = clientSaveForm.status === "loading";
 
   const writeCenterImageTransform = useCallback((offsetX, offsetY, zoom) => {
     const nextRefs = {
@@ -841,23 +1021,32 @@ export default function ProfileLitePowerPlaceModule({
     return {
       x: clampSlotImageOffset(t?.x ?? 50),
       y: clampSlotImageOffset(t?.y ?? 50),
-      zoom: clampSlotImageZoom(t?.zoom ?? 1)
+      zoom: clampSlotImageZoom(t?.zoom ?? 1),
+      rotate: clampSlotImageRotation(t?.rotate ?? t?.rotation ?? 0)
     };
   }
 
-  const writeSlotImageTransform = useCallback((slotId, x, y, zoom) => {
+  const writeSlotImageTransform = useCallback((slotId, x, y, zoom, rotate) => {
     const currentTransforms = cleanObjectRefs(objectRefs.__slot_transforms);
+    const currentSlotTransform = cleanObjectRefs(currentTransforms[slotId]);
     const nextTransforms = {
       ...currentTransforms,
       [slotId]: {
         x: clampSlotImageOffset(x),
         y: clampSlotImageOffset(y),
-        zoom: clampSlotImageZoom(zoom)
+        zoom: clampSlotImageZoom(zoom),
+        rotate: clampSlotImageRotation(rotate ?? currentSlotTransform.rotate ?? currentSlotTransform.rotation ?? 0)
       }
     };
     const nextRefs = { ...objectRefs, __slot_transforms: nextTransforms };
     onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
   }, [objectRefs, onCompositionObjectRefsChange]);
+
+  const rotateSlotPhoto = useCallback((slotId, delta) => {
+    if (!slotId) return;
+    const t = slotImageTransformFor(slotId);
+    writeSlotImageTransform(slotId, t.x, t.y, t.zoom, t.rotate + delta);
+  }, [slotImageTransformFor, writeSlotImageTransform]);
 
   const slotAdjustments = cleanObjectRefs(objectRefs.__slot_adjustments);
 
@@ -886,12 +1075,14 @@ export default function ProfileLitePowerPlaceModule({
 
   function slotImageStyle(slotId, displaySrc) {
     if (!isImagePreview(displaySrc)) return imageStyle(displaySrc);
-    const { x, y, zoom } = slotImageTransformFor(slotId);
+    const { x, y, zoom, rotate } = slotImageTransformFor(slotId);
     const { brightness, contrast } = slotImageAdjustmentFor(slotId);
     return {
-      backgroundImage: `url(${displaySrc})`,
+      backgroundImage: "none",
+      "--slot-bg-image": `url(${displaySrc})`,
       "--slot-bg-pos": `${x}% ${y}%`,
       "--slot-bg-zoom": String(zoom),
+      "--slot-bg-rotate": `${rotate}deg`,
       filter: `brightness(${brightness}%) contrast(${contrast}%)`,
       touchAction: "none"
     };
@@ -966,7 +1157,7 @@ export default function ProfileLitePowerPlaceModule({
           if (pinch.pointers.length < 2) {
             pinch.active = false;
             const t = slotImageTransformFor(slotId);
-            writeSlotImageTransform(slotId, t.x, t.y, pinch.currentZoom ?? t.zoom);
+            writeSlotImageTransform(slotId, t.x, t.y, pinch.currentZoom ?? t.zoom, t.rotate);
             e.currentTarget.style.removeProperty("--slot-bg-zoom");
           }
           return;
@@ -978,7 +1169,7 @@ export default function ProfileLitePowerPlaceModule({
         e.currentTarget.style.removeProperty("--slot-bg-pos");
         if (drag.moved) {
           const t = slotImageTransformFor(slotId);
-          writeSlotImageTransform(slotId, drag.currentOffsetX, drag.currentOffsetY, t.zoom);
+          writeSlotImageTransform(slotId, drag.currentOffsetX, drag.currentOffsetY, t.zoom, t.rotate);
         }
         if (pinch) {
           const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
@@ -994,7 +1185,7 @@ export default function ProfileLitePowerPlaceModule({
         e.preventDefault();
         const t = slotImageTransformFor(slotId);
         const delta = e.deltaY > 0 ? -0.05 : 0.05;
-        writeSlotImageTransform(slotId, t.x, t.y, clampSlotImageZoom(t.zoom + delta));
+        writeSlotImageTransform(slotId, t.x, t.y, clampSlotImageZoom(t.zoom + delta), t.rotate);
       }
     };
   }
@@ -1113,14 +1304,48 @@ export default function ProfileLitePowerPlaceModule({
     "--power-center-frame-scale": centerFrameScale
   };
   const centerImageAdj = slotImageAdjustmentFor("__center_image");
+  const centerImageTransform = slotImageTransformFor("__center_image");
   const centerImageStyle = {
-    ...(imageStyle(centralImage) || {}),
+    ...(centralImage ? { backgroundImage: "none", "--power-center-image": `url(${centralImage})` } : {}),
     "--power-center-image-scale": centerImageScale,
+    "--slot-bg-rotate": `${centerImageTransform.rotate}deg`,
     ...(centralImage ? { filter: `brightness(${centerImageAdj.brightness}%) contrast(${centerImageAdj.contrast}%)` } : {})
   };
   const chessCoverStyle = {
     ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}),
     ...sourceSlotScaleStyle
+  };
+  const daoBaseCoverStyle = !isDaoFulu && !isDaoFuOutline && !innerCoverIsFuluContour
+    ? innerCoverImageStyle(innerCover, innerCoverSrc) || {}
+    : {};
+  const daoFuluStyle = isDaoFulu
+    ? {
+      ...daoFuluContourStyle(daoStyle),
+      ...(!innerCoverIsFuluContour && isImagePreview(innerCoverSrc)
+        ? { "--dao-fulu-user-cover-image": `url(${innerCoverSrc})` }
+      : {})
+    }
+    : {};
+  const daoFieldLayerStyle = !innerCoverIsFuluContour && isImagePreview(innerCoverSrc)
+    ? {
+      "--dao-field-cover-image": `url(${innerCoverSrc})`,
+      "--dao-field-cover-opacity": 0.18
+    }
+    : {};
+  const daoStyleGeometry = isDaoTalisman1
+    ? { width: "min(336px, 82%) !important", maxWidth: "min(336px, 82%) !important", aspectRatio: "9 / 16" }
+    : isDaoTalisman2
+      ? { width: "min(292px, 78%) !important", maxWidth: "min(292px, 78%) !important", aspectRatio: "9 / 16" }
+      : isDaoFulu || isDaoStyle2
+        ? { width: "min(248px, 60%) !important", maxWidth: "min(248px, 60%) !important", aspectRatio: "1 / 2.9" }
+        : isDaoFuOutline && !isDaoSharedStageStyle
+          ? DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].geometry
+          : {};
+  const daoOuterStyle = {
+    ...daoBaseCoverStyle,
+    ...daoFuluStyle,
+    ...daoFieldLayerStyle,
+    ...daoStyleGeometry
   };
 
   const savedImages = useMemo(() => uniqueImageSources([
@@ -1181,7 +1406,13 @@ export default function ProfileLitePowerPlaceModule({
       signingError: item.media_signing_error || "",
       kind: "material",
       group: item.material_group || item.group || "",
+      materialGroup: item.material_group || item.group || "",
+      materialType: item.material_type || item.type || "",
       stepId: item.step_id || "",
+      stepTitle: item.step_title || item.stepTitle || "",
+      settingTitle: item.setting_title || item.settingTitle || "",
+      category: item.category || "",
+      subcategory: item.subcategory || item.material_subcategory || "",
       type: item.type || "",
       favorite: Boolean(item.favorite || item.is_favorite || item.pinned),
       updatedAt: item.updated_at || item.created_at || ""
@@ -1522,12 +1753,14 @@ export default function ProfileLitePowerPlaceModule({
 
     if (slotKey === "cover_ref.inner" || slotKey === "cover_ref.outer") {
       const layer = slotKey === "cover_ref.outer" ? "outer" : "inner";
+      const fit = coverFitValue(item?.fit || item?.cover_fit || item?.coverFit);
       onCompositionCoverSelect(layer, {
         id: item?.id || (layer === "outer" ? "custom-outer-cover" : "custom-cover"),
         label: item?.label || item?.title || item?.name || "Своё изображение",
         type: "image",
         src: ref,
-        display_src: displaySrc
+        display_src: displaySrc,
+        ...(fit ? { fit, cover_fit: fit } : {})
       });
       return;
     }
@@ -1597,6 +1830,11 @@ export default function ProfileLitePowerPlaceModule({
   const openCoverPickerForLayer = (layer) => {
     setCoverLayerMode(layer);
     openPicker("cover");
+  };
+
+  const clearCoverLayer = (layer, event) => {
+    event?.stopPropagation();
+    onCompositionCoverSelect(layer, FALLBACK_COVERS[0]);
   };
 
   const hideCoverShortcut = (cover, event) => {
@@ -1727,6 +1965,505 @@ export default function ProfileLitePowerPlaceModule({
     );
   };
 
+  function renderDaoElementSlot(element, className) {
+    const slotId = `dao-${element.id}`;
+    const src = objectRefs[slotId] || "";
+    const displaySrc = objectRefUrls[src] || src;
+
+    return (
+      <div className={className} key={element.id}>
+        <button
+          className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+          onClick={() => {
+            if (suppressSlotPickerClickRef.current[slotId]) {
+              suppressSlotPickerClickRef.current[slotId] = false;
+              return;
+            }
+            openObjectPicker(slotId);
+          }}
+          style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+          type="button"
+          title={element.label}
+          aria-label={`Выбрать элемент ${element.label}`}
+          {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+          {...getPowerPlaceSlotDropHandlers(slotId)}
+        >
+          {!src && <span>◎</span>}
+        </button>
+      </div>
+    );
+  }
+
+  function renderDaoStyle1() {
+    return (
+      <>
+        {renderCenterPhotoWithMode("daoCenterPhoto")}
+        {renderPowerPlaceMotionLayer()}
+        <div className="daoUsinCore" aria-hidden="true">
+          <span>УСИН</span>
+        </div>
+        {DAO_ELEMENTS.map((element) => renderDaoElementSlot(element, `daoElement ${element.className}`))}
+      </>
+    );
+  }
+
+  function renderDaoTalisman1() {
+    return (
+      <div className="daoTalismanScroll" aria-label="Даосский талисман">
+        <div className="daoFieldCoverLayer" aria-hidden="true" />
+        <div className="daoTalismanRoof" aria-hidden="true">
+          <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
+          <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
+        </div>
+        <div className="daoTalismanAxis" aria-hidden="true" />
+        <div className="daoTalismanBody">
+          <div className="daoTalismanCenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          {DAO_ELEMENTS.map((element) => renderDaoElementSlot(element, `daoTalismanSlot daoTalismanSlot--${element.className}`))}
+        </div>
+        {renderPowerPlaceMotionLayer()}
+        <div className="daoTalismanSeal" aria-hidden="true">
+          <span className="daoTalismanSealCircle">印</span>
+        </div>
+      </div>
+    );
+  }
+
+  function renderDaoTalisman2() {
+    const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
+
+    return (
+      <div className="daoTalismanScroll daoTalisman2Scroll" data-node-count={nodeCount} aria-label="Даосский вертикальный свиток">
+        <div className="daoFieldCoverLayer" aria-hidden="true" />
+        <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
+          <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
+          <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
+        </div>
+        <div className="daoTalisman2Body">
+          <div className="daoTalisman2CenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          {Array.from(
+            { length: nodeCount },
+            (_, index) => ({
+              id: `dao-talisman-2-${index + 1}`,
+              label: `Узел ${index + 1}`
+            })
+          ).map((node) => {
+            const slotId = node.id;
+            const src = objectRefs[slotId] || "";
+            const displaySrc = objectRefUrls[src] || src;
+            return (
+              <div className="daoTalisman2Node" key={node.id}>
+                <button
+                  className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                  onClick={() => {
+                    if (suppressSlotPickerClickRef.current[slotId]) {
+                      suppressSlotPickerClickRef.current[slotId] = false;
+                      return;
+                    }
+                    openObjectPicker(slotId);
+                  }}
+                  style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                  type="button"
+                  title={node.label}
+                  aria-label={`Выбрать элемент ${node.label}`}
+                  {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                  {...getPowerPlaceSlotDropHandlers(slotId)}
+                >
+                  {!src && <span>◎</span>}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {renderPowerPlaceMotionLayer()}
+        <div className="daoTalismanSeal" aria-hidden="true">
+          <span className="daoTalismanSealCircle">印</span>
+        </div>
+      </div>
+    );
+  }
+
+  function renderDaoFulu() {
+    const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
+
+    return (
+      <div className="daoFuluScroll" aria-label="Даосский талисман">
+        <div className="daoFuluUserCoverLayer" aria-hidden="true" />
+        <div className="daoFuluContourLayer" aria-hidden="true" />
+        <div className="daoFuluBody">
+          <div className="daoFuluCenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          <div className="daoFuluNodeColumn" data-node-count={nodeCount}>
+            {Array.from(
+              { length: nodeCount },
+              (_, index) => ({
+                id: `dao-fulu-${index + 1}`,
+                label: `Узел ${index + 1}`
+              })
+            ).map((node) => {
+              const slotId = node.id;
+              const src = objectRefs[slotId] || "";
+              const displaySrc = objectRefUrls[src] || src;
+              return (
+                <div className="daoFuluSlot" key={node.id}>
+                  <button
+                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                    onClick={() => {
+                      if (suppressSlotPickerClickRef.current[slotId]) {
+                        suppressSlotPickerClickRef.current[slotId] = false;
+                        return;
+                      }
+                      openObjectPicker(slotId);
+                    }}
+                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                    type="button"
+                    title={node.label}
+                    aria-label={`Выбрать элемент ${node.label}`}
+                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                  >
+                    {!src && <span>◎</span>}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {renderPowerPlaceMotionLayer()}
+      </div>
+    );
+  }
+
+  function renderDaoFuReferenceOutline() {
+    const common = {
+      className: "daoFuReferenceOutline",
+      viewBox: "0 0 300 440",
+      role: "img",
+      "aria-label": DAO_STYLE_VARIANTS.find((variant) => variant.value === daoStyle)?.label || "ДАО фу-талисман"
+    };
+    const node = (cx, cy, r = 7) => <circle cx={cx} cy={cy} r={r} key={`${cx}-${cy}-${r}`} />;
+    const roof = (leftX = 70, leftY = 75, topX = 150, topY = 32, rightX = 230, rightY = 75) => (
+      <g className="daoFuRoof">
+        <path d={`M ${leftX} ${leftY} L ${topX} ${topY} L ${rightX} ${rightY}`} />
+        {[node(leftX, leftY), node(topX, topY), node(rightX, rightY)]}
+      </g>
+    );
+    const topSignP = (
+      <text className="daoFuTopSignP" x="150" y="116" textAnchor="middle">P</text>
+    );
+
+    if (daoStyle === "dao-fu-wide-gate-roof") {
+      return (
+        <svg {...common}>
+          {roof(52, 76, 150, 28, 248, 76)}
+          <path d="M 86 110 L 214 110 L 224 142 L 236 154 L 236 392" />
+          <path d="M 86 110 L 76 142 L 64 154 L 64 392" />
+          <path d="M 64 136 H 30" />
+          <path d="M 236 136 H 270" />
+          {node(30, 136, 7)}
+          {node(270, 136, 7)}
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-narrow-banner-roof") {
+      return (
+        <svg {...common}>
+          {roof(94, 72, 150, 30, 206, 72)}
+          <path d="M 102 116 L 198 116 L 208 136 L 208 396" />
+          <path d="M 102 116 L 92 136 L 92 396" />
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-grand-gate-p") {
+      return (
+        <svg {...common}>
+          {roof(46, 70, 150, 30, 254, 70)}
+          <path className="daoFuCurvedRoofLine" d="M 48 93 C 92 96 126 80 150 62 C 174 80 208 96 252 93" />
+          <path d="M 40 130 H 260" />
+          {topSignP}
+          <path d="M 38 130 L 52 142 L 52 398" />
+          <path d="M 262 130 L 248 142 L 248 398" />
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-bottle-p") {
+      return (
+        <svg {...common}>
+          {roof(96, 68, 150, 32, 204, 68)}
+          {topSignP}
+          <path d="M 100 176 C 100 132 200 132 200 176 L 200 286 C 200 346 178 388 158 414" />
+          <path d="M 100 176 L 100 286 C 100 346 122 388 142 414" />
+          {[node(72, 234, 7), node(72, 286, 7), node(228, 234, 7), node(228, 286, 7)]}
+        </svg>
+      );
+    }
+
+    if (daoStyle === "dao-fu-node-column") {
+      return (
+        <svg {...common}>
+          {roof(72, 74, 150, 36, 228, 74)}
+          <path className="daoFuCurvedRoofLine" d="M 70 96 C 106 96 132 86 150 66 C 168 86 194 96 230 96" />
+          <path d="M 64 120 Q 64 134 52 140 L 52 398" />
+          <path d="M 236 120 Q 236 134 248 140 L 248 398" />
+          <path d="M 64 120 H 236" />
+          {[160, 216, 272].flatMap((y) => [node(52, y, 7), node(248, y, 7)])}
+        </svg>
+      );
+    }
+
+    return (
+      <svg {...common}>
+        {roof(88, 72, 150, 32, 212, 72)}
+        <path d="M 100 124 Q 92 132 92 146 L 92 398" />
+        <path d="M 200 124 Q 208 132 208 146 L 208 398" />
+        <path d="M 100 124 Q 150 114 200 124" />
+        <path d="M 92 174 Q 104 162 104 148" />
+        <path d="M 208 174 Q 196 162 196 148" />
+      </svg>
+    );
+  }
+
+  function renderDaoFieldBackgroundLayer(className = "") {
+    return <div className={`daoFieldCoverLayer${className ? ` ${className}` : ""}`} aria-hidden="true" />;
+  }
+
+  function resolveDaoSharedSlot(slot, index) {
+    if (isDaoLayoutTemplate) {
+      return { ...slot, slotId: slot.id, legacySlotIds: [] };
+    }
+
+    const slotNumber = DAO_LAYOUT_MINI_SLOT_NUMBERS[index];
+    return {
+      ...slot,
+      id: `${daoStyle}-${slotNumber}`,
+      slotId: `${daoStyle}-${slotNumber}`,
+      label: `Мини-мандала ${slotNumber}`,
+      legacySlotIds: [`${daoStyle}-${index + 1}`, `dao-talisman-2-${slotNumber}`]
+    };
+  }
+
+  function renderDaoInnerContentStack() {
+    return (
+      <div className="daoLayoutTemplateInnerStack daoSharedInnerStack" aria-label="ДАО: внутренний вертикальный ряд">
+        <div className="daoLayoutTemplateCenterArea daoSharedCenterArea">
+          {renderCenterPhotoWithMode("daoCenterPhoto")}
+        </div>
+        <div className="daoLayoutTemplateMiniStack daoSharedMiniStack" data-slot-order={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}>
+          {DAO_SHARED_STAGE_MINI_SLOTS.map((slot, index) => {
+            const resolvedSlot = resolveDaoSharedSlot(slot, index);
+            const slotId = resolvedSlot.slotId;
+            const src = objectRefs[slotId] || resolvedSlot.legacySlotIds.map((legacyId) => objectRefs[legacyId]).find(Boolean) || "";
+            const displaySrc = objectRefUrls[src] || objectRefUrls[slotId] || src;
+            const slotNumber = DAO_LAYOUT_MINI_SLOT_NUMBERS[index];
+            return (
+              <div className="daoLayoutTemplateMiniSlot daoSharedMiniSlot" key={slotId}>
+                <button
+                  className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                  onClick={() => {
+                    if (suppressSlotPickerClickRef.current[slotId]) {
+                      suppressSlotPickerClickRef.current[slotId] = false;
+                      return;
+                    }
+                    openObjectPicker(slotId);
+                  }}
+                  style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                  type="button"
+                  title={resolvedSlot.label}
+                  aria-label={`Выбрать ${resolvedSlot.label.toLowerCase()}`}
+                  {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                  {...getPowerPlaceSlotDropHandlers(slotId)}
+                >
+                  {!src && <span>{slotNumber}</span>}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+        {renderPowerPlaceMotionLayer()}
+      </div>
+    );
+  }
+
+  function renderDaoFuOutlineLayout() {
+    return (
+      <div className="daoFuOutlineScroll" aria-label="Даосский контур" data-node-count={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}>
+        {renderDaoFieldBackgroundLayer("daoFuOutlineFieldLayer")}
+        {renderDaoFuReferenceOutline()}
+        <div className="daoFuOutlineBody">
+          <div className="daoFuOutlineCenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          <div className="daoFuOutlineNodeColumn" data-node-count={DAO_LAYOUT_MINI_SLOT_NUMBERS.join(",")}>
+            {DAO_LAYOUT_MINI_SLOT_NUMBERS.map((slotNumber, index) => {
+              const slotId = `${daoStyle}-${slotNumber}`;
+              const src = objectRefs[slotId] || objectRefs[`${daoStyle}-${index + 1}`] || "";
+              const displaySrc = objectRefUrls[src] || src;
+              return (
+                <div className="daoFuOutlineSlot" key={slotId}>
+                  <button
+                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                    onClick={() => {
+                      if (suppressSlotPickerClickRef.current[slotId]) {
+                        suppressSlotPickerClickRef.current[slotId] = false;
+                        return;
+                      }
+                      openObjectPicker(slotId);
+                    }}
+                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                    type="button"
+                    title={`Окно ${slotNumber}`}
+                    aria-label={`Выбрать элемент окно ${slotNumber}`}
+                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                  >
+                    {!src && <span>◎</span>}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {renderPowerPlaceMotionLayer()}
+      </div>
+    );
+  }
+
+  function renderDaoLayoutInnerStack() {
+    return renderDaoInnerContentStack();
+  }
+
+  function renderDaoStyle2() {
+    const nodeCount = compositionDraft.__dao_talisman_node_count || 5;
+
+    return (
+      <div className="daoStyle2Scroll" aria-label="Даосский стиль 2" data-node-count={nodeCount}>
+        <div className="daoStyle2UserCoverLayer" aria-hidden="true" />
+        <div className="daoStyle2Body">
+          <div className="daoStyle2CenterArea">
+            {renderCenterPhotoWithMode("daoCenterPhoto")}
+          </div>
+          <div className="daoStyle2NodeColumn" data-node-count={nodeCount}>
+            {Array.from(
+              { length: nodeCount },
+              (_, index) => ({
+                id: `dao-style-2-${index + 1}`,
+                label: `Окно ${index + 1}`
+              })
+            ).map((node) => {
+              const slotId = node.id;
+              const src = objectRefs[slotId] || "";
+              const displaySrc = objectRefUrls[src] || src;
+              return (
+                <div className="daoStyle2Slot" key={node.id}>
+                  <button
+                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
+                    onClick={() => {
+                      if (suppressSlotPickerClickRef.current[slotId]) {
+                        suppressSlotPickerClickRef.current[slotId] = false;
+                        return;
+                      }
+                      openObjectPicker(slotId);
+                    }}
+                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
+                    type="button"
+                    title={node.label}
+                    aria-label={`Выбрать элемент ${node.label}`}
+                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
+                    {...getPowerPlaceSlotDropHandlers(slotId)}
+                  >
+                    {!src && <span>◎</span>}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {renderPowerPlaceMotionLayer()}
+      </div>
+    );
+  }
+
+  function renderDaoLayoutOverlay(options = {}) {
+    const sideNodes = Array.from({ length: daoLayoutTemplateOptions.sideNodeCount }, (_, index) => index + 1);
+    const {
+      className = "",
+      topMarker = "P",
+      sideNodesEnabled = true
+    } = options;
+
+    return (
+      <div
+        className={`daoLayoutTemplateOverlay top-crown-${daoLayoutTemplateOptions.topCrown}${daoLayoutTemplateOptions.sideNodesVisible && sideNodesEnabled ? "" : " side-nodes-hidden"}${className ? ` ${className}` : ""}`}
+        aria-label="ДАО-Макет: контур"
+      >
+        <div className="daoLayoutTemplateCrown" aria-hidden="true">
+          {daoLayoutTemplateOptions.topCrown === "three_checks" ? (
+            <>
+              <span className="daoLayoutTemplateCheck check-1" />
+              <span className="daoLayoutTemplateCheck check-2" />
+              <span className="daoLayoutTemplateCheck check-3" />
+            </>
+          ) : (
+            <>
+              <span className="daoLayoutTemplateRoofLine roof-left" />
+              <span className="daoLayoutTemplateRoofLine roof-right" />
+              <span className="daoLayoutTemplateRoofNode node-left" />
+              <span className="daoLayoutTemplateRoofNode node-top" />
+              <span className="daoLayoutTemplateRoofNode node-right" />
+            </>
+          )}
+        </div>
+        {topMarker && <span className="daoLayoutTemplateTopMarker" aria-hidden="true">{topMarker}</span>}
+        <div className="daoLayoutTemplateBody" data-side-node-count={daoLayoutTemplateOptions.sideNodeCount} aria-hidden="true">
+          {daoLayoutTemplateOptions.sideNodesVisible && sideNodesEnabled && sideNodes.flatMap((node) => [
+            <span className={`daoLayoutTemplateSideNode left node-${node}`} key={`left-${node}`} />,
+            <span className={`daoLayoutTemplateSideNode right node-${node}`} key={`right-${node}`} />
+          ])}
+        </div>
+      </div>
+    );
+  }
+
+  function renderDaoTalismanOverlay(config = {}) {
+    if (isDaoLayoutTemplate) {
+      return renderDaoLayoutOverlay({
+        className: "daoSharedTalismanOverlay daoSharedTalismanOverlay--layout",
+        topMarker: config.topMarker || "P",
+        sideNodesEnabled: true
+      });
+    }
+
+    return (
+      <div className="daoSharedTalismanOverlay daoSharedTalismanOverlay--outline" aria-label="ДАО: контур">
+        {renderDaoFuReferenceOutline()}
+        {config.topMarker && <span className="daoLayoutTemplateTopMarker daoSharedTopMarker" aria-hidden="true">{config.topMarker}</span>}
+      </div>
+    );
+  }
+
+  function renderDaoSharedStage() {
+    const config = isDaoLayoutTemplate
+      ? { layoutZone: "dao-layout", topMarker: "P" }
+      : DAO_SHARED_STAGE_CONFIG[daoStyle] || { layoutZone: daoStyle };
+
+    return (
+      <div className={`daoSharedStage daoSharedStage--${config.layoutZone}`} data-dao-layout-zone={config.layoutZone}>
+        {renderDaoFieldBackgroundLayer("daoSharedFieldLayer")}
+        {renderDaoInnerContentStack()}
+        {renderDaoTalismanOverlay(config)}
+      </div>
+    );
+  }
+
+  const daoClassName = `daoMandalaSheet${isDaoStyle2 ? " dao-style-2" : ""}${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoLayoutTemplate ? " dao-layout-template" : ""}${isDaoSharedStageStyle ? " dao-shared-stage" : ""}${isDaoFulu ? " dao-fulu" : ""}${isDaoFuOutline ? " dao-fu-outline" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""}${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim();
+
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
     const displaySrc = objectRefUrls[src] || objectRefUrls[slot.id] || src;
@@ -1796,6 +2533,7 @@ export default function ProfileLitePowerPlaceModule({
     const isCenterSlot = selectedSlotId === "__center_image";
     const { brightness, contrast } = slotImageAdjustmentFor(selectedSlotId);
     const zoom = isCenterSlot ? centerImageZoom : slotImageTransformFor(selectedSlotId).zoom;
+    const rotation = slotImageTransformFor(selectedSlotId).rotate;
     const editorLabel = isCenterSlot ? "Фото клиента / цели" : selectedSlot?.label || selectedSlotId;
     return (
       <div className="slotPhotoEditor" aria-label="Редактор мини-фото">
@@ -1813,12 +2551,22 @@ export default function ProfileLitePowerPlaceModule({
                 writeCenterImageTransform(centerImageOffsetX, centerImageOffsetY, Number(e.target.value));
               } else {
                 const t = slotImageTransformFor(selectedSlotId);
-                writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value));
+                writeSlotImageTransform(selectedSlotId, t.x, t.y, Number(e.target.value), t.rotate);
               }
             }}
           />
           <span>{Math.round(zoom * 100)}%</span>
         </label>
+        <div className="slotPhotoEditorRotate" role="group" aria-label="Поворот фото">
+          <span>Поворот</span>
+          <button className="cabinetSecondary" type="button" onClick={() => rotateSlotPhoto(selectedSlotId, -90)} aria-label="Повернуть фото влево на 90 градусов">
+            ↺ 90°
+          </button>
+          <button className="cabinetSecondary" type="button" onClick={() => rotateSlotPhoto(selectedSlotId, 90)} aria-label="Повернуть фото вправо на 90 градусов">
+            ↻ 90°
+          </button>
+          <small>{rotation}°</small>
+        </div>
         <label className="slotPhotoEditorControl">
           Яркость фото
           <input
@@ -1847,8 +2595,9 @@ export default function ProfileLitePowerPlaceModule({
           onClick={() => {
             if (isCenterSlot) {
               writeCenterImageTransform(50, 50, 1);
+              writeSlotImageTransform(selectedSlotId, 50, 50, 1, 0);
             } else {
-              writeSlotImageTransform(selectedSlotId, 50, 50, 1);
+              writeSlotImageTransform(selectedSlotId, 50, 50, 1, 0);
             }
             writeSlotImageAdjustment(selectedSlotId, 100, 100);
           }}
@@ -1880,11 +2629,99 @@ export default function ProfileLitePowerPlaceModule({
           type="button"
           onClick={handleSaveNewClick}
           disabled={createNewDisabled}
-          title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Создать новую мандалу из текущей композиции"}
-          aria-label={createNewDisabled ? "Создать новую: лимит сохранённых мандал достигнут" : "Создать новую мандалу"}>
-          Создать новую
+          title={createNewDisabled ? "Лимит сохранённых мандал достигнут" : "Сохранить текущую композицию как шаблон"}
+          aria-label={createNewDisabled ? "Сохранить как шаблон: лимит сохранённых мандал достигнут" : "Сохранить как шаблон"}>
+          Сохранить как шаблон
         </button>
+        {isMasterWorkflow && (
+          <button
+            className="cabinetSecondary powerPlaceClientSaveButton"
+            type="button"
+            onClick={onOpenClientSave}
+            disabled={isClientSaveLoading}
+            aria-label="Сохранить для клиента">
+            Сохранить для клиента
+          </button>
+        )}
       </div>
+      {isMasterWorkflow && clientSaveForm.isOpen && (
+        <div className="cabinetCardInline profileLiteClientSaveForm" role="dialog" aria-label="Сохранить для клиента">
+          <div className="cabinetFormHeader">
+            <div>
+              <p className="cabinetEyebrow">Клиент</p>
+              <h3>Сохранить для клиента</h3>
+            </div>
+            <span className="cabinetStatus">{clientSaveForm.status}</span>
+          </div>
+          <label className="profileLiteClientSaveField">
+            Клиент
+            <select
+              disabled={isClientSaveLoading}
+              value={clientSaveForm.clientKey || ""}
+              onChange={(event) => onClientSaveFormChange("clientKey", event.target.value)}
+            >
+              <option value="">Выберите клиента</option>
+              {clientDirectory.map((client) => (
+                <option key={client.key} value={client.key}>{client.client_name}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="cabinetSecondary profileLiteClientSaveNewButton"
+            disabled={isClientSaveLoading}
+            type="button"
+            onClick={() => {
+              onClientSaveFormChange("clientKey", "");
+              onClientSaveFormChange("clientName", "");
+            }}
+          >
+            Добавить нового клиента
+          </button>
+          <label className="profileLiteClientSaveField">
+            Имя клиента
+            <input
+              disabled={isClientSaveLoading}
+              value={clientSaveForm.clientName || ""}
+              onChange={(event) => onClientSaveFormChange("clientName", event.target.value)}
+              placeholder="Имя клиента"
+            />
+          </label>
+          <label className="profileLiteClientSaveField">
+            Комментарий / запрос клиента
+            <textarea
+              disabled={isClientSaveLoading}
+              rows={3}
+              value={clientSaveForm.requestText || ""}
+              onChange={(event) => onClientSaveFormChange("requestText", event.target.value)}
+              placeholder="Комментарий / запрос клиента"
+            />
+          </label>
+          <label className="profileLiteClientSaveField">
+            Фото клиента / цель
+            <select
+              disabled={isClientSaveLoading}
+              value={clientSaveForm.clientPhotoId || ""}
+              onChange={(event) => onClientSaveFormChange("clientPhotoId", event.target.value)}
+            >
+              <option value="">Без фото</option>
+              {clientGoalPhotos.map((photo) => (
+                <option key={photo.id} value={photo.id}>{photo.title || photo.notes || photo.id}</option>
+              ))}
+            </select>
+          </label>
+          {clientSaveForm.message && (
+            <p className={clientSaveForm.status === "error" ? "cabinetSecondaryDataWarning" : "cabinetNotice"}>
+              {clientSaveForm.message}
+            </p>
+          )}
+          <div className="cabinetActions">
+            <button className="cabinetSecondary" disabled={isClientSaveLoading} type="button" onClick={onClientSaveCancel}>Отмена</button>
+            <button className="cabinetPrimary" disabled={isClientSaveLoading} type="button" onClick={onClientSaveSubmit}>
+              {isClientSaveLoading ? "Сохраняю для клиента…" : "Сохранить для клиента"}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="powerPlaceActions powerPlaceActions--export">
         <button className="cabinetPrimary" type="button" onClick={onPrint}>Печать</button>
         <button className="cabinetSecondary" type="button" onClick={onDownload}>Скачать PDF</button>
@@ -1895,46 +2732,48 @@ export default function ProfileLitePowerPlaceModule({
       </div>
       {compositionMessage && <div className="cabinetSuccess compactNotice profileLitePowerPlaceActionFeedback">{compositionMessage}</div>}
       <p className="powerPlaceActionsMeta">{savedCompositionCount}/{savedCompositionLimit} сохранённых мест силы · Storage refs сохраняются без data:image.</p>
-      <div className="powerPlaceFeedProjection" aria-label="Публичная проекция для ленты">
-        <div className="cabinetFormHeader">
-          <div>
-            <p className="cabinetEyebrow">публичная проекция</p>
-            <h3>Опубликовать в ленту</h3>
+      {SHOW_POWER_PLACE_FEED_PROJECTION && (
+        <div className="powerPlaceFeedProjection" aria-label="Публичная проекция для ленты">
+          <div className="cabinetFormHeader">
+            <div>
+              <p className="cabinetEyebrow">публичная проекция</p>
+              <h3>Опубликовать в ленту</h3>
+            </div>
+            <span className="cabinetStatus">{powerPlaceFeedStatus}</span>
           </div>
-          <span className="cabinetStatus">{powerPlaceFeedStatus}</span>
-        </div>
-        <label>
-          Название для ленты
-          <input
-            value={powerPlaceFeedForm.title}
-            onChange={(event) => onFeedFormChange?.("title", event.target.value)}
-            placeholder={compositionDraft.title || "Место силы"}
-          />
-        </label>
-        <label>
-          Публичное описание
-          <textarea
-            value={powerPlaceFeedForm.body}
-            onChange={(event) => onFeedFormChange?.("body", event.target.value)}
-            rows={3}
-            placeholder="Опишите только публичный смысл мандалы, без клиентских фото и приватных заметок"
-          />
-        </label>
-        <div className="powerPlaceFeedProjectionGrid">
           <label>
-            Категория
-            <input value={powerPlaceFeedForm.category} onChange={(event) => onFeedFormChange?.("category", event.target.value)} placeholder="mandalas" />
+            Название для ленты
+            <input
+              value={powerPlaceFeedForm.title}
+              onChange={(event) => onFeedFormChange?.("title", event.target.value)}
+              placeholder={compositionDraft.title || "Место силы"}
+            />
           </label>
           <label>
-            Теги
-            <input value={powerPlaceFeedForm.tags} onChange={(event) => onFeedFormChange?.("tags", event.target.value)} placeholder="мандала, рэйки" />
+            Публичное описание
+            <textarea
+              value={powerPlaceFeedForm.body}
+              onChange={(event) => onFeedFormChange?.("body", event.target.value)}
+              rows={3}
+              placeholder="Опишите только публичный смысл мандалы, без клиентских фото и приватных заметок"
+            />
           </label>
+          <div className="powerPlaceFeedProjectionGrid">
+            <label>
+              Категория
+              <input value={powerPlaceFeedForm.category} onChange={(event) => onFeedFormChange?.("category", event.target.value)} placeholder="mandalas" />
+            </label>
+            <label>
+              Теги
+              <input value={powerPlaceFeedForm.tags} onChange={(event) => onFeedFormChange?.("tags", event.target.value)} placeholder="мандала, рэйки" />
+            </label>
+          </div>
+          <button className="cabinetSecondary" type="button" onClick={() => onPublishToFeed?.(compositionDraft)} disabled={!compositionDraft.id || powerPlaceFeedStatus === "loading"}>
+            Опубликовать в ленту
+          </button>
+          {!compositionDraft.id && <p className="cabinetMuted">Сначала сохраните мандалу. В ленту отправляется только эта публичная форма, без приватных данных композиции.</p>}
         </div>
-        <button className="cabinetSecondary" type="button" onClick={() => onPublishToFeed?.(compositionDraft)} disabled={!compositionDraft.id || powerPlaceFeedStatus === "loading"}>
-          Опубликовать в ленту
-        </button>
-        {!compositionDraft.id && <p className="cabinetMuted">Сначала сохраните мандалу. В ленту отправляется только эта публичная форма, без приватных данных композиции.</p>}
-      </div>
+      )}
       <p className="powerPrintColorHint">Для цветной печати включите в окне печати: Background graphics / Фоновая графика.</p>
     </div>
   );
@@ -2073,6 +2912,16 @@ export default function ProfileLitePowerPlaceModule({
                     Добавить в мои услуги
                   </button>
                 )}
+                <button
+                  className="cabinetGhost profileLiteCompositionDeleteButton"
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onCompositionDelete?.(composition);
+                  }}
+                >
+                  Удалить
+                </button>
               </div>
             </div>
           );
@@ -2293,11 +3142,34 @@ export default function ProfileLitePowerPlaceModule({
                 {compositionDraft.constructor_type === "zodiac" && (
                   <div className="zodiacCountSelector" aria-label="Формат зодиака">
                     <span>Формат зодиака</span>
-                    {ZODIAC_VARIANTS.map((variant) => (
-                      <button className={(compositionDraft.zodiac_variant || `classic-${compositionDraft.zodiac_visible_count}`) === variant.value ? "active" : ""} key={variant.value} onClick={() => {
+                    {ZODIAC_FORMAT_VARIANTS.map((variant) => (
+                      <button className={zodiacFormat === variant.value ? "active" : ""} key={variant.value} onClick={() => {
+                        if (variant.value === "classic") {
+                          onCompositionDraftChange("zodiac_variant", classicZodiacVariantForCount(zodiacVisibleCount));
+                          return;
+                        }
+                        if (variant.value === "plus-8") {
+                          onCompositionDraftChange("zodiac_variant", "plus-8");
+                          onCompositionDraftChange("zodiac_visible_count", 8);
+                          return;
+                        }
                         onCompositionDraftChange("zodiac_variant", variant.value);
-                        onCompositionDraftChange("zodiac_visible_count", variant.visibleCount);
                       }} type="button">{variant.label}</button>
+                    ))}
+                  </div>
+                )}
+                {compositionDraft.constructor_type === "zodiac" && (
+                  <div className="zodiacCountSelector" aria-label="Количество кружочков зодиака">
+                    <span>Кружочки</span>
+                    {ZODIAC_COUNT_OPTIONS.map((count) => (
+                      <button className={zodiacVisibleCount === count ? "active" : ""} key={count} onClick={() => {
+                        onCompositionDraftChange("zodiac_visible_count", count);
+                        if (isZodiac2) {
+                          onCompositionDraftChange("zodiac_variant", ZODIAC_2_VARIANT);
+                          return;
+                        }
+                        onCompositionDraftChange("zodiac_variant", classicZodiacVariantForCount(count));
+                      }} type="button">{count}</button>
                     ))}
                   </div>
                 )}
@@ -2311,6 +3183,14 @@ export default function ProfileLitePowerPlaceModule({
                 )}
                 {compositionDraft.constructor_type === "star" && (
                   <div className="starVariantSelector" aria-label="Формат звезды">
+                    <span>Формат звезды</span>
+                    {STAR_FORMAT_VARIANTS.map((variant) => (
+                      <button className={starFormat === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("star_format_variant", variant.value)} type="button">{variant.label}</button>
+                    ))}
+                  </div>
+                )}
+                {compositionDraft.constructor_type === "star" && (
+                  <div className="starVariantSelector" aria-label="Вариант звезды">
                     <span>Вариант звезды</span>
                     {STAR_VARIANTS.map((variant) => (
                       <button className={compositionDraft.star_variant === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("star_variant", variant.value)} type="button">{variant.label}</button>
@@ -2325,23 +3205,69 @@ export default function ProfileLitePowerPlaceModule({
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && (
+                {isDaoConstructorType(compositionDraft.constructor_type) && (
                   <div className="mandalaStyleSelector daoStyleSelector" aria-label="Стиль ДАО">
                     {DAO_STYLE_VARIANTS.map((variant) => (
                       <button className={(compositionDraft.__dao_style || "style-1") === variant.value ? "active" : ""} key={variant.value} onClick={() => onCompositionDraftChange("__dao_style", variant.value)} type="button">{variant.label}</button>
                     ))}
                   </div>
                 )}
-                {compositionDraft.constructor_type === "dao" && (compositionDraft.__dao_style || "style-1") === "talisman-2" && (
-                  <div className="mandalaStyleSelector daoTalisman2NodeSelector" aria-label="Узлов в Талисмане 2">
+                {isDaoConstructorType(compositionDraft.constructor_type) && (isDaoTalisman2 || isDaoFulu || isDaoStyle2 || (isDaoFuOutline && !isDaoSharedStageStyle)) && (
+                  <div className="mandalaStyleSelector daoTalisman2NodeSelector" aria-label="Узлов в вертикальном талисмане">
                     {DAO_TALISMAN_NODE_COUNTS.map((n) => (
                       <button className={(compositionDraft.__dao_talisman_node_count || 5) === n ? "active" : ""} key={n} onClick={() => onCompositionDraftChange("__dao_talisman_node_count", n)} type="button">{n}</button>
                     ))}
                   </div>
                 )}
+                {isDaoLayoutTemplate && (
+                  <div className="daoLayoutTemplateOptions" aria-label="Параметры ДАО">
+                    <div className="daoLayoutTemplateOptionRow">
+                      <span>Верхушка</span>
+                      <div className="mandalaStyleSelector" role="group" aria-label="Верхушка ДАО">
+                        {DAO_LAYOUT_TEMPLATE_TOP_CROWNS.map((option) => (
+                          <button
+                            className={daoLayoutTemplateOptions.topCrown === option.value ? "active" : ""}
+                            key={option.value}
+                            onClick={() => onCompositionDraftChange(DAO_LAYOUT_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, topCrown: option.value })}
+                            type="button"
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="daoLayoutTemplateOptionRow">
+                      <span>Боковые точки</span>
+                      <label className="daoLayoutTemplateCheckbox">
+                        <input
+                          checked={daoLayoutTemplateOptions.sideNodesVisible}
+                          onChange={(event) => onCompositionDraftChange(DAO_LAYOUT_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, sideNodesVisible: event.target.checked })}
+                          type="checkbox"
+                        />
+                        Показывать
+                      </label>
+                    </div>
+                    <div className="daoLayoutTemplateOptionRow">
+                      <span>Количество точек</span>
+                      <div className="mandalaStyleSelector" role="group" aria-label="Количество боковых точек">
+                        {DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS.map((count) => (
+                          <button
+                            className={daoLayoutTemplateOptions.sideNodeCount === count ? "active" : ""}
+                            key={count}
+                            onClick={() => onCompositionDraftChange(DAO_LAYOUT_OPTIONS_REF_KEY, { ...daoLayoutTemplateOptions, sideNodeCount: count })}
+                            type="button"
+                          >
+                            {count}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale", visibilityKey: "slots", visibilityLabel: "Мини-мандалы" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale", visibilityKey: "inner_cover", visibilityLabel: "Фон внутри" })}
                 {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
+                {renderScaleControl({ className: "photoScaleControl", label: "Масштаб фото", value: centerImageScale, min: "0.65", max: "2", step: "0.01", field: "__center_image_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">
@@ -2354,8 +3280,7 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
-                  {renderInMandalaCoverDropTargets()}
+                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass} ${outerCoverFitClassName}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
@@ -2391,7 +3316,6 @@ export default function ProfileLitePowerPlaceModule({
                       <div className="businessTriangleLines" aria-hidden="true" />
                       {BUSINESS_VERTICES.map((vertex) => (
                         <div className={`businessVertex ${vertex.className}`} key={vertex.id}>
-                          <b>{vertex.label}</b>
                           <div className="businessVertexZones">
                             {Array.from({ length: Number(compositionDraft.business_vertex_zone_count) === 3 ? 3 : 1 }, (_, index) => {
                               const slot = { id: `business-${vertex.id}-${index + 1}`, label: Number(compositionDraft.business_vertex_zone_count) === 3 ? `${vertex.label} · зона ${index + 1}` : vertex.label };
@@ -2431,7 +3355,6 @@ export default function ProfileLitePowerPlaceModule({
                                   >
                                     {!src && <span>{index + 1}</span>}
                                   </button>
-                                  <b>{slot.label}</b>
                                 </div>
                               );
                             })}
@@ -2439,7 +3362,7 @@ export default function ProfileLitePowerPlaceModule({
                         </div>
                       ) : (
                         <>
-                          <div className={`zodiacMandalaSheet zodiac-${compositionDraft.zodiac_visible_count || 12} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${compositionDraft.zodiac_visible_count || 12}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                          <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                             {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                             {renderPowerPlaceMotionLayer()}
                             <div className="zodiacClockFace" aria-hidden="true">
@@ -2448,8 +3371,9 @@ export default function ProfileLitePowerPlaceModule({
                             {isZodiac2 && slots.filter((slot) => slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
                               const src = objectRefs[slot.id] || "";
                               const displaySrc = objectRefUrls[src] || src;
+                              const innerPos = getZodiacRingPosition(index, zodiacVisibleCount, ZODIAC_2_INNER_RADIUS);
                               return (
-                                <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
+                                <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id} style={innerPos}>
                                   <button
                                     className={`zodiacInnerPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {
@@ -2474,8 +3398,9 @@ export default function ProfileLitePowerPlaceModule({
                             {slots.filter((slot) => slot.id.startsWith("zodiac-") && !slot.id.startsWith("zodiac-plus") && !slot.id.startsWith("zodiac-inner-")).map((slot, index) => {
                               const src = objectRefs[slot.id] || "";
                               const displaySrc = objectRefUrls[src] || src;
+                              const outerPos = isZodiac2 ? getZodiacRingPosition(index, zodiacVisibleCount, ZODIAC_2_OUTER_RADIUS) : undefined;
                               return (
-                                <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                                <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id} style={outerPos}>
                                   <button
                                     className={`zodiacPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {
@@ -2494,7 +3419,6 @@ export default function ProfileLitePowerPlaceModule({
                                   >
                                     {!src && <span>{index + 1}</span>}
                                   </button>
-                                  <b>{slot.label}</b>
                                 </div>
                               );
                             })}
@@ -2522,7 +3446,6 @@ export default function ProfileLitePowerPlaceModule({
                                 >
                                   {!src && <span>{index + 1}</span>}
                                 </button>
-                                <b>{slot.label}</b>
                               </div>
                             );
                           })}
@@ -2530,7 +3453,7 @@ export default function ProfileLitePowerPlaceModule({
                       )}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${isStar2 ? "star-2-format" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -2552,7 +3475,7 @@ export default function ProfileLitePowerPlaceModule({
                         <span className="starOpenLine starOpenRight" />
                         <span className="starOpenLine starOpenLowerLeft" />
                       </div>
-                      {slots.map((slot, index) => {
+                      {slots.filter((slot) => !slot.id.startsWith("star-extra-")).map((slot, index) => {
                         const src = objectRefs[slot.id] || "";
                         const displaySrc = objectRefUrls[src] || src;
                         return (
@@ -2575,7 +3498,32 @@ export default function ProfileLitePowerPlaceModule({
                             >
                               {!src && <span>{index + 1}</span>}
                             </button>
-                            <b>{slot.label}</b>
+                          </div>
+                        );
+                      })}
+                      {isStar2 && slots.filter((slot) => slot.id.startsWith("star-extra-")).map((slot, index) => {
+                        const src = objectRefs[slot.id] || "";
+                        const displaySrc = objectRefUrls[src] || src;
+                        return (
+                          <div className={`starAdditionalPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
+                            <button
+                              className={`starAdditionalPositionImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                              onClick={() => {
+                                if (suppressSlotPickerClickRef.current[slot.id]) {
+                                  suppressSlotPickerClickRef.current[slot.id] = false;
+                                  return;
+                                }
+                                openObjectPicker(slot.id);
+                              }}
+                              style={src ? slotImageStyle(slot.id, displaySrc) : imageStyle(displaySrc)}
+                              type="button"
+                              title={slot.label}
+                              aria-label={`Выбрать ${slot.label.toLowerCase()}`}
+                              {...(src ? getSlotImagePanZoomHandlers(slot.id) : {})}
+                              {...getPowerPlaceSlotDropHandlers(slot.id)}
+                            >
+                              {!src && <span>{index + 6}</span>}
+                            </button>
                           </div>
                         );
                       })}
@@ -2614,195 +3562,28 @@ export default function ProfileLitePowerPlaceModule({
                         )}
                       </div>
                     </div>
+                  ) : isDaoConstructorType(compositionDraft.constructor_type) ? (
+                    <div className={daoClassName} style={daoOuterStyle}>
+                      {isDaoLayoutTemplate || isDaoSharedStageStyle ? renderDaoSharedStage()
+                        : isDaoTalisman2 ? renderDaoTalisman2()
+                          : isDaoTalisman1 ? renderDaoTalisman1()
+                            : isDaoFulu ? renderDaoFulu()
+                              : isDaoFuOutline ? renderDaoFuOutlineLayout()
+                                : isDaoStyle2 ? renderDaoStyle2()
+                                  : isDaoStyle1 ? renderDaoStyle1()
+                                    : renderDaoStyle1()}
+                    </div>
                   ) : (
-                    <div className={`daoMandalaSheet${{"talisman-1": " dao-talisman", "talisman-2": " dao-talisman-2", "fu-paper-slip": " dao-fu-paper-slip", "cloud-register": " dao-cloud-register", "thunder-tablet": " dao-thunder-tablet", "taofu-charm": " dao-taofu-charm"}[compositionDraft.__dao_style || "style-1"] || ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={{ ...(innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover)) || {}), ...daoFuluContourStyle(compositionDraft.__dao_style || "style-1") }}>
-                      {(compositionDraft.__dao_style || "style-1") === "talisman-2" ? (
-                        <div className="daoTalismanScroll daoTalisman2Scroll" aria-label="Даосский вертикальный свиток">
-                          <div className="daoTalismanRoof daoTalisman2Roof" aria-hidden="true">
-                            <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
-                            <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
-                          </div>
-                          <div className="daoTalisman2Body">
-                            {Array.from(
-                              { length: compositionDraft.__dao_talisman_node_count || 5 },
-                              (_, index) => ({
-                                id: `dao-talisman-2-${index + 1}`,
-                                label: `Узел ${index + 1}`
-                              })
-                            ).map((node) => {
-                              const slotId = node.id;
-                              const src = objectRefs[slotId] || "";
-                              const displaySrc = objectRefUrls[src] || src;
-                              return (
-                                <div className="daoTalisman2Node" key={node.id}>
-                                  <button
-                                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
-                                    onClick={() => {
-                                      if (suppressSlotPickerClickRef.current[slotId]) {
-                                        suppressSlotPickerClickRef.current[slotId] = false;
-                                        return;
-                                      }
-                                      openObjectPicker(slotId);
-                                    }}
-                                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
-                                    type="button"
-                                    title={node.label}
-                                    aria-label={`Выбрать элемент ${node.label}`}
-                                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
-                                    {...getPowerPlaceSlotDropHandlers(slotId)}
-                                  >
-                                    {!src && <span>◎</span>}
-                                  </button>
-                                  <b>{node.label}</b>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          {renderPowerPlaceMotionLayer()}
-                          <div className="daoTalismanSeal" aria-hidden="true">
-                            <span className="daoTalismanSealCircle">印</span>
-                          </div>
-                        </div>
-                      ) : (compositionDraft.__dao_style || "style-1") === "talisman-1" ? (
-                        <div className="daoTalismanScroll" aria-label="Даосский талисман">
-                          <div className="daoTalismanRoof" aria-hidden="true">
-                            <span className="daoTalismanPureMarks" aria-hidden="true">✓ ✓ ✓</span>
-                            <span className="daoTalismanThreePure" aria-hidden="true">三清</span>
-                          </div>
-                          <div className="daoTalismanAxis" aria-hidden="true" />
-                          <div className="daoTalismanBody">
-                            <div className="daoTalismanCenterArea">
-                              {renderCenterPhotoWithMode("daoCenterPhoto")}
-                            </div>
-                            {DAO_ELEMENTS.map((element) => {
-                              const slotId = `dao-${element.id}`;
-                              const src = objectRefs[slotId] || "";
-                              const displaySrc = objectRefUrls[src] || src;
-                              return (
-                                <div className={`daoTalismanSlot daoTalismanSlot--${element.className}`} key={element.id}>
-                                  <button
-                                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
-                                    onClick={() => {
-                                      if (suppressSlotPickerClickRef.current[slotId]) {
-                                        suppressSlotPickerClickRef.current[slotId] = false;
-                                        return;
-                                      }
-                                      openObjectPicker(slotId);
-                                    }}
-                                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
-                                    type="button"
-                                    title={element.label}
-                                    aria-label={`Выбрать элемент ${element.label}`}
-                                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
-                                    {...getPowerPlaceSlotDropHandlers(slotId)}
-                                  >
-                                    {!src && <span>◎</span>}
-                                  </button>
-                                  <b>{element.label}</b>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          {renderPowerPlaceMotionLayer()}
-                          <div className="daoTalismanSeal" aria-hidden="true">
-                            <span className="daoTalismanSealCircle">印</span>
-                          </div>
-                        </div>
-                      ) : DAO_FULU_STYLES.has(compositionDraft.__dao_style || "style-1") ? (
-                        <div className="daoFuluScroll" aria-label="Даосский талисман">
-                          <div className="daoFuluFallbackPaper" aria-hidden="true" />
-                          <div className="daoFuluContourLayer" aria-hidden="true">
-                            <span className="daoFuluTopHead" />
-                            <span className="daoFuluSideRail daoFuluSideRail--left" />
-                            <span className="daoFuluSideRail daoFuluSideRail--right" />
-                            <span className="daoFuluBottomBase" />
-                          </div>
-                          <div className="daoFuluHeader" aria-hidden="true">
-                            <span className="daoFuluPureMarks" aria-hidden="true">✓ ✓ ✓</span>
-                          </div>
-                          <div className="daoFuluBody">
-                            <div className="daoFuluCenterArea">
-                              {renderCenterPhotoWithMode("daoCenterPhoto")}
-                            </div>
-                            {DAO_ELEMENTS.map((element) => {
-                              const slotId = `dao-${element.id}`;
-                              const src = objectRefs[slotId] || "";
-                              const displaySrc = objectRefUrls[src] || src;
-                              return (
-                                <div className={`daoFuluSlot daoFuluSlot--${element.className}`} key={element.id}>
-                                  <button
-                                    className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
-                                    onClick={() => {
-                                      if (suppressSlotPickerClickRef.current[slotId]) {
-                                        suppressSlotPickerClickRef.current[slotId] = false;
-                                        return;
-                                      }
-                                      openObjectPicker(slotId);
-                                    }}
-                                    style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
-                                    type="button"
-                                    title={element.label}
-                                    aria-label={`Выбрать элемент ${element.label}`}
-                                    {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
-                                    {...getPowerPlaceSlotDropHandlers(slotId)}
-                                  >
-                                    {!src && <span>◎</span>}
-                                  </button>
-                                  <b>{element.label}</b>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          {renderPowerPlaceMotionLayer()}
-                          <div className="daoFuluFooter" aria-hidden="true">
-                            <span className="daoFuluSealBox" aria-hidden="true" />
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {renderCenterPhotoWithMode("daoCenterPhoto")}
-                          {renderPowerPlaceMotionLayer()}
-                          <div className="daoUsinCore" aria-hidden="true">
-                            <span>УСИН</span>
-                          </div>
-                          {DAO_ELEMENTS.map((element) => {
-                            const slotId = `dao-${element.id}`;
-                            const src = objectRefs[slotId] || "";
-                            const displaySrc = objectRefUrls[src] || src;
-                            return (
-                              <div className={`daoElement ${element.className}`} key={element.id}>
-                                <button
-                                  className={`daoElementImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slotId ? " selected" : ""}${dragOverSlotId === slotId ? " power-place-slot--drag-over" : ""}`}
-                                  onClick={() => {
-                                    if (suppressSlotPickerClickRef.current[slotId]) {
-                                      suppressSlotPickerClickRef.current[slotId] = false;
-                                      return;
-                                    }
-                                    openObjectPicker(slotId);
-                                  }}
-                                  style={src ? slotImageStyle(slotId, displaySrc) : imageStyle(displaySrc)}
-                                  type="button"
-                                  title={element.label}
-                                  aria-label={`Выбрать элемент ${element.label}`}
-                                  {...(src ? getSlotImagePanZoomHandlers(slotId) : {})}
-                                  {...getPowerPlaceSlotDropHandlers(slotId)}
-                                >
-                                  {!src && <span>◎</span>}
-                                </button>
-                                <b>{element.label}</b>
-                              </div>
-                            );
-                          })}
-                        </>
-                      )}
+                    <div className={daoClassName} style={daoOuterStyle}>
+                      {renderDaoStyle1()}
                     </div>
                   )}
                 </div>
               </div>
 
-              {workspaceTab === "power-place" && selectedSlotId && (selectedSlotId === "__center_image" ? centralImage : selectedSlotImage) && renderSlotPhotoEditor()}
+              {renderInMandalaCoverDropTargets()}
 
-              {workspaceTab === "power-place" && renderPowerPlaceActions()}
+              {workspaceTab === "power-place" && selectedSlotId && (selectedSlotId === "__center_image" ? centralImage : selectedSlotImage) && renderSlotPhotoEditor()}
 
               {reportAdded && (
                 <section className="powerReportOutput" aria-label="Отчёт по мандале">
@@ -2841,26 +3622,40 @@ export default function ProfileLitePowerPlaceModule({
             <div className="coverSelector coverPickerPanel">
               <p className="cabinetEyebrow" aria-label="Фон места силы">Фон Места Силы</p>
               <div className="coverLayerTabs" role="tablist" aria-label="Слой фона">
-                <button
-                  className={`coverLayerTabButton${coverLayerMode === "inner" ? " active" : ""}${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
-                  type="button"
-                  onClick={() => setCoverLayerMode("inner")}
-                  aria-label="Фон внутри. Можно перетащить фото"
-                  title="Фон внутри. Можно перетащить фото"
-                  {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
-                >
-                  Фон внутри
-                </button>
-                <button
-                  className={`coverLayerTabButton${coverLayerMode === "outer" ? " active" : ""}${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
-                  type="button"
-                  onClick={() => setCoverLayerMode("outer")}
-                  aria-label="Фон снаружи. Можно перетащить фото"
-                  title="Фон снаружи. Можно перетащить фото"
-                  {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
-                >
-                  Фон снаружи
-                </button>
+                <span className="coverLayerTabShell">
+                  <button
+                    className={`coverLayerTabButton${coverLayerMode === "inner" ? " active" : ""}${dragOverSlotId === "cover_ref.inner" ? " power-place-slot--drag-over" : ""}`}
+                    type="button"
+                    onClick={() => setCoverLayerMode("inner")}
+                    aria-label="Фон внутрь. Можно перетащить фото"
+                    title="Фон внутрь. Можно перетащить фото"
+                    {...getPowerPlaceSlotDropHandlers("cover_ref.inner")}
+                  >
+                    Внутрь
+                  </button>
+                  {hasInnerCoverImage && (
+                    <button className="coverLayerDeleteButton" type="button" onClick={(event) => clearCoverLayer("inner", event)} aria-label="Удалить внутренний фон" title="Удалить внутренний фон">
+                      ×
+                    </button>
+                  )}
+                </span>
+                <span className="coverLayerTabShell">
+                  <button
+                    className={`coverLayerTabButton${coverLayerMode === "outer" ? " active" : ""}${dragOverSlotId === "cover_ref.outer" ? " power-place-slot--drag-over" : ""}`}
+                    type="button"
+                    onClick={() => setCoverLayerMode("outer")}
+                    aria-label="Фон снаружи. Можно перетащить фото"
+                    title="Фон снаружи. Можно перетащить фото"
+                    {...getPowerPlaceSlotDropHandlers("cover_ref.outer")}
+                  >
+                    Снаружи
+                  </button>
+                  {hasOuterCoverImage && (
+                    <button className="coverLayerDeleteButton" type="button" onClick={(event) => clearCoverLayer("outer", event)} aria-label="Удалить внешний фон" title="Удалить внешний фон">
+                      ×
+                    </button>
+                  )}
+                </span>
               </div>
               <label className={`coverOuterVisibilityToggle${visibilitySettings.outer_cover ? "" : " power-place-layer-hidden"}`}>
                 <input
@@ -2959,6 +3754,8 @@ export default function ProfileLitePowerPlaceModule({
             </div>
           </aside>
         </div>
+
+        {workspaceTab === "power-place" && renderPowerPlaceActions()}
 
         {workspaceTab === "power-place" && (
           <details className="profileLiteAdvancedJson" open={advancedOpen} onToggle={(event) => setAdvancedOpen(event.currentTarget.open)}>

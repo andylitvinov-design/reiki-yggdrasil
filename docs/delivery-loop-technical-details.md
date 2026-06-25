@@ -41,10 +41,33 @@ section:
 - `not_verified_items`
 - `merge_readiness`
 - `repair_attempts`
+- optional top-level `spiralValidatorCritic`
 
 Allowed requirement statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`.
 `PARTIAL`, `FAIL`, and `NOT VERIFIED` block completion language and block
 `STATUS: SUCCESS`.
+
+Optional machine-readable `spiralValidatorCritic` fields:
+
+- `loopNumber` — integer 1 through 3;
+- `verdict` — `READY_FOR_MERGE`, `READY_WITH_NOTES`, `IMPROVE`, `IMPROVE_MINOR`, `SAFETY_STOP`, or `NEEDS_HUMAN_DECISION`;
+- `requirements` — critic requirement rows with `requirement`, `status`, `evidence`, and `nextAction`;
+- `nextImprovementPlan` — concrete next patch steps for improvement verdicts;
+- `safetyRisks` — required for `SAFETY_STOP`;
+- optional `notVerified`, `missing`, and `notes`.
+
+`spiralValidatorCritic` is top-level and optional. Do not put it inside
+`result_verification`, because existing status files and
+`result_verification.additionalProperties: false` must remain compatible.
+
+Validation rules:
+
+- legacy status files without `spiralValidatorCritic` remain valid;
+- `READY_FOR_MERGE` requires all critic requirements `PASS`;
+- `READY_WITH_NOTES` may include non-`PASS` requirements only when gaps are documented and have `nextAction`;
+- `IMPROVE` and `IMPROVE_MINOR` require a non-empty `nextImprovementPlan`;
+- `SAFETY_STOP` requires non-empty `safetyRisks`;
+- `loopNumber: 3` cannot remain `IMPROVE`.
 
 ---
 
@@ -105,7 +128,7 @@ Purpose:
 
 - teach the agent what `/delivery` means;
 - route the command to the delivery docs;
-- force final states: `SUCCESS` or `BLOCKED`.
+- force final states: `SUCCESS`, `SUCCESS_WITH_AUTH_LIMITATION`, or `BLOCKED`.
 
 ### Layer 2 — Project Configuration
 
@@ -419,6 +442,8 @@ Checkpoint:
 - [ ] Script runs available checks.
 - [ ] Script does not fail only because optional scripts are missing.
 - [ ] Script fails when an actual check fails.
+- [ ] Script validates `spiralValidatorCritic` when present.
+- [ ] Script preserves legacy `.delivery/status.json` files without `spiralValidatorCritic`.
 
 ---
 
@@ -476,6 +501,8 @@ chmod +x scripts/delivery-status.sh
 Checkpoint:
 
 - [ ] Script prints branch, commits, PR, checks, and optional live URL status.
+- [ ] Script prints `Spiral Validator-Critic Status` when `spiralValidatorCritic` is present.
+- [ ] Script reports legacy status files without `spiralValidatorCritic` as not recorded, not failed.
 - [ ] Agent can use this output as final report evidence.
 
 ---
@@ -1284,3 +1311,8 @@ The final rule for all agents:
 ```txt
 /delivery is not done when code is written. It is done only when the requested change is proven live, or when a precise external blocker is reported.
 ```
+
+
+## Expected Auth Boundary
+
+Follow `docs/delivery-auth-boundary-standard.md` when Google OAuth, Supabase auth, private cabinet login, or an owner-only session blocks automated post-login live verification. Expected auth boundaries are not delivery failures by themselves. Use `STATUS: SUCCESS_WITH_AUTH_LIMITATION` when safe public/login/protected-redirect/local-or-code proof passes and the only missing proof is authenticated post-login live verification.

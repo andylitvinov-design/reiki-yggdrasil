@@ -1,24 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1800" role="img" aria-labelledby="title desc">
-  <title id="title">DAO fulu contour - Taofu charm</title>
-  <desc id="desc">Decorative vertical charm contour with abstract rails and seal panels; no ritual formulas or sacred text.</desc>
-  <defs>
-    <linearGradient id="redWash" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ff6d2c" stop-opacity="0.22"/>
-      <stop offset="0.52" stop-color="#b62916" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="#43100a" stop-opacity="0.1"/>
-    </linearGradient>
-    <filter id="warmShadow" x="-12%" y="-8%" width="124%" height="116%">
-      <feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#3b0905" flood-opacity="0.2"/>
-    </filter>
-  </defs>
-  <g filter="url(#warmShadow)">
-    <path d="M170 92h560c24 0 44 20 44 44v1528c0 24-20 44-44 44H170c-24 0-44-20-44-44V136c0-24 20-44 44-44z" fill="url(#redWash)" stroke="#9a2415" stroke-width="18"/>
-    <rect x="216" y="178" width="468" height="198" rx="20" fill="none" stroke="#d69a32" stroke-width="16"/>
-    <path d="M266 278h368M266 1488h368" stroke="#f0bd55" stroke-width="20" stroke-linecap="round"/>
-    <path d="M250 468v808M650 468v808" fill="none" stroke="#d69a32" stroke-width="12" stroke-linecap="round"/>
-    <path d="M450 468c-98 78-138 166-120 264 12 62 50 114 114 156 68 44 96 100 84 168-14 80-84 150-210 210" fill="none" stroke="#ffd06b" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M548 560c-122 12-216 60-282 144M584 808c-104-22-202-8-294 42M588 1054c-104 4-196 38-276 102" fill="none" stroke="#7e1e12" stroke-width="18" stroke-linecap="round"/>
-    <rect x="290" y="1320" width="320" height="150" rx="18" fill="none" stroke="#ffd06b" stroke-width="16"/>
-    <path d="M360 1396h180" stroke="#8b2114" stroke-width="12" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO taofu charm contour</title>
+  <desc id="desc">Decorative Daoist-inspired narrow taofu charm silhouette with contour frame only; not a ritual formula or sacred text.</desc>
+  <path d="M31 13h58v32h7v301H24V45h7z" fill="#f8e8a6" opacity=".72"/>
+  <g fill="none" stroke="#982416" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 14h58v32h7v300H24V46h7z" stroke-width="2.5"/>
+    <path d="M36 24h48v18H36zM32 55h56v278H32z" stroke-width="1.55" opacity=".62"/>
   </g>
 </svg>

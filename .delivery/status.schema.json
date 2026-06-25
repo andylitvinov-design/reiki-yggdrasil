@@ -19,7 +19,8 @@
       "type": "string",
       "enum": [
         "SUCCESS",
-        "BLOCKED"
+        "BLOCKED",
+        "SUCCESS_WITH_AUTH_LIMITATION"
       ]
     },
     "loop": {
@@ -166,6 +167,35 @@
         },
         "evidence": {
           "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "PUBLIC_LIVE",
+            "PREVIEW_DEPLOYMENT",
+            "LOCAL_AUTH_SIMULATION",
+            "AUTH_BOUNDARY",
+            "OWNER_REQUIRED"
+          ]
+        },
+        "authBoundary": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "GOOGLE_OAUTH_EXPECTED",
+            "SUPABASE_AUTH_EXPECTED",
+            "PRIVATE_CABINET_EXPECTED",
+            "OWNER_SESSION_REQUIRED"
+          ]
+        },
+        "postLoginStatus": {
+          "type": "string",
+          "enum": [
+            "VERIFIED",
+            "SKIPPED_EXPECTED_AUTH_BOUNDARY",
+            "OWNER_REQUIRED",
+            "NOT_APPLICABLE"
+          ]
         }
       }
     },
@@ -185,6 +215,100 @@
           }
         }
       }
+    },
+    "spiralValidatorCritic": {
+      "type": "object",
+      "required": [
+        "loopNumber",
+        "verdict",
+        "requirements",
+        "nextImprovementPlan",
+        "safetyRisks"
+      ],
+      "properties": {
+        "loopNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "READY_FOR_MERGE",
+            "READY_WITH_NOTES",
+            "IMPROVE",
+            "IMPROVE_MINOR",
+            "SAFETY_STOP",
+            "NEEDS_HUMAN_DECISION"
+          ]
+        },
+        "requirements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "requirement",
+              "status",
+              "evidence",
+              "nextAction"
+            ],
+            "properties": {
+              "requirement": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "IMPROVE",
+                  "PARTIAL",
+                  "FAIL",
+                  "NOT VERIFIED"
+                ]
+              },
+              "evidence": {
+                "type": "string"
+              },
+              "nextAction": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "nextImprovementPlan": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "safetyRisks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notVerified": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
     },
     "result_verification": {
       "type": "object",

@@ -1,9 +1,24 @@
 import React, { useMemo, useState } from "react";
 import {
+  buildGrimoireDescriptionValue,
   createOwnMaterial,
+  DB_SAFE_GRIMOIRE_TYPE,
   detectMaterialTypeFromFile,
+  getGrimoireFeedActionLabel,
+  getGrimoireNextVisibilityStatus,
+  getGrimoireDescriptionText,
+  getGrimoirePhotoGalleryItems,
+  getGrimoirePreviewUrl,
   GRIMOIRE_CATEGORIES,
+  grimoireTaxonomyFilterLevelOptions,
+  grimoireTaxonomyCompactLabel,
+  grimoireTaxonomyLevelOptions,
+  isGrimoireTaxonomyUnclassified,
+  materialMatchesGrimoireTaxonomyFilter,
+  TAXONOMY_UNCLASSIFIED,
+  TAXONOMY_ALL,
   materialStatusText,
+  normalizeGrimoireTaxonomy,
   publicationTypeLabel,
   stripFileExtension
 } from "../../lib/profileMaterialsClient.js";
@@ -17,12 +32,6 @@ function safeText(value) {
   return String(value || "").trim();
 }
 
-function safePreviewUrl(material) {
-  const url = safeText(material?.display_url || material?.displayUrl || "");
-  if (/^https?:\/\//i.test(url) && !url.includes("/storage/v1/object/sign/")) return url;
-  return "";
-}
-
 function materialDate(material) {
   const value = material?.updated_at || material?.updatedAt || material?.created_at || material?.createdAt || "";
   if (!value) return "черновик";
@@ -33,10 +42,13 @@ function materialDate(material) {
   }
 }
 
-function localMaterialPayload({ profileId, title, description, type, imageUrl }) {
+function localMaterialPayload({ profileId, title, description, type, taxonomy, materialType, imageUrl }) {
+  const normalizedTaxonomy = normalizeGrimoireTaxonomy(taxonomy);
   return {
     profile_id: profileId,
-    type: type || "uncategorized",
+    type: type || DB_SAFE_GRIMOIRE_TYPE,
+    material_group: normalizedTaxonomy.level3,
+    material_type: materialType || "",
     title: title || "Запись гримуара",
     description: description || "",
     image_url: imageUrl || "",
@@ -44,9 +56,44 @@ function localMaterialPayload({ profileId, title, description, type, imageUrl })
     step_title: "",
     setting_title: "",
     setting_index: null,
+    category: normalizedTaxonomy.level1,
+    subcategory: normalizedTaxonomy.level2,
     status: "draft",
     updated_at: new Date().toISOString()
   };
+}
+
+function GrimoirePhotoGallery({ material, onImageError }) {
+  const photos = getGrimoirePhotoGalleryItems(material);
+  const visiblePhotos = photos.slice(0, 4);
+  const hiddenCount = Math.max(photos.length - visiblePhotos.length, 0);
+
+  if (!visiblePhotos.length) {
+    return (
+      <div className="grimoirePostPreview">
+        <span className="grimoireCardIcon">◎</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`grimoirePhotoGallery grimoirePhotoGallery--count-${Math.min(photos.length, 5)}`} data-count={photos.length}>
+      {visiblePhotos.map((photo, index) => {
+        const isOverlayTile = hiddenCount > 0 && index === visiblePhotos.length - 1;
+        return (
+          <figure className="grimoirePhotoTile" key={`${photo.display_url}-${index}`}>
+            <img
+              alt={photo.title || material.title || "Фото гримуара"}
+              loading="lazy"
+              src={photo.display_url}
+              onError={onImageError}
+            />
+            {isOverlayTile && <figcaption className="grimoirePhotoMore">+{hiddenCount}</figcaption>}
+          </figure>
+        );
+      })}
+    </div>
+  );
 }
 
 function mergeMaterials(localMaterials, sourceMaterials) {
@@ -59,11 +106,16 @@ function mergeMaterials(localMaterials, sourceMaterials) {
   });
 }
 
-function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
-  const isUncategorized = !material.type || material.type === "uncategorized";
-  const noteText = material.description || "Комментарий ещё не добавлен";
+function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete, onToggleVisibility }) {
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const isUncategorized = isGrimoireTaxonomyUnclassified(material);
+  const noteText = getGrimoireDescriptionText(material) || "Комментарий ещё не добавлен";
   const canAddToFeed = Boolean(material.id && feedActivityTypeForMaterial(material));
-  const previewUrl = safePreviewUrl(material);
+  const feedActionLabel = getGrimoireFeedActionLabel(material);
+  const previewUrl = previewFailed ? "" : getGrimoirePreviewUrl(material);
+  const galleryMaterial = previewFailed ? { ...material, attachments: [], image_url: "", display_url: "" } : material;
+  const showFeedAction = canAddToFeed || feedActionLabel === "Спрятать";
+  const compactTaxonomy = grimoireTaxonomyCompactLabel(material);
 
   return (
     <article className={`grimoireRecordCard grimoirePostCard${isUncategorized ? " grimoireRecordCard--uncategorized grimoirePostCard--uncategorized" : ""}`} key={material.id || material.title}>
@@ -78,17 +130,35 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
 
       <div className="grimoirePostBody">
         <h3>{material.title || "Без названия"}</h3>
-        <p className={material.description ? "" : "grimoirePostEmptyText"}>{noteText}</p>
-        <div className={previewUrl ? "grimoirePostPreview hasImage" : "grimoirePostPreview"} style={previewUrl ? { backgroundImage: `url(${previewUrl})` } : undefined}>
-          {!previewUrl && <span className="grimoireCardIcon">◎</span>}
-        </div>
+        <p className={getGrimoireDescriptionText(material) ? "" : "grimoirePostEmptyText"}>{noteText}</p>
+        <GrimoirePhotoGallery material={galleryMaterial} onImageError={() => setPreviewFailed(true)} />
+        {!getGrimoirePhotoGalleryItems(material).length && previewUrl && (
+          <div className="grimoirePostPreview hasImage">
+            <img
+              alt={material.title || "Изображение гримуара"}
+              className="grimoireCardImage"
+              loading="lazy"
+              src={previewUrl}
+              onError={() => setPreviewFailed(true)}
+            />
+          </div>
+        )}
         {(material.step_id || material.step_title || material.setting_title) && (
           <small className="grimoirePostMeta">{[material.step_id, material.step_title, material.setting_title].filter(Boolean).join(" · ")}</small>
         )}
+        {compactTaxonomy && <small className="grimoirePostMeta grimoireTaxonomyMeta">{compactTaxonomy}</small>}
       </div>
 
       <footer className="grimoirePostActions">
-        {canAddToFeed && <button className="grimoireActionBtn" type="button" onClick={() => onAddToFeed(material)}>Добавить в ленту</button>}
+        {showFeedAction && (
+          <button
+            className="grimoireActionBtn grimoireActionBtnVisibility"
+            type="button"
+            onClick={() => feedActionLabel === "Спрятать" ? onToggleVisibility(material) : onAddToFeed(material)}
+          >
+            {feedActionLabel}
+          </button>
+        )}
         <button className="grimoireActionBtn" type="button" onClick={() => onEdit(material)}>Редактировать</button>
         <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material)}>Удалить</button>
       </footer>
@@ -96,14 +166,72 @@ function GrimoireRecordCard({ material, onAddToFeed, onEdit, onDelete }) {
   );
 }
 
+function GrimoireMaterialFilterPanel({ filter, options, onChange, onReset }) {
+  return (
+    <div className="grimoireMaterialFilterPanel" aria-label="Фильтр материалов">
+      <b>Фильтр материалов</b>
+      <label>
+        <span>Уровень 1</span>
+        <select value={filter.level1} onChange={(event) => onChange("level1", event.target.value)}>
+          {options.level1.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>Уровень 2</span>
+        <select value={filter.level2} onChange={(event) => onChange("level2", event.target.value)}>
+          {options.level2.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <span>Уровень 3</span>
+        <select value={filter.level3} onChange={(event) => onChange("level3", event.target.value)}>
+          {options.level3.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+      <button className="grimoireMaterialFilterReset" type="button" onClick={onReset}>Сбросить</button>
+    </div>
+  );
+}
+
 function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
+  const initialTaxonomy = normalizeGrimoireTaxonomy(material);
   const [form, setForm] = useState({
     title: material.title || "",
-    description: material.description || "",
-    type: material.type || "uncategorized",
+    description: getGrimoireDescriptionText(material) || "",
+    taxonomy: initialTaxonomy,
     step_title: material.step_title || "",
     setting_title: material.setting_title || ""
   });
+  const level1Options = grimoireTaxonomyLevelOptions(1);
+  const level2Options = grimoireTaxonomyLevelOptions(2, form.taxonomy);
+  const level3Options = grimoireTaxonomyLevelOptions(3, form.taxonomy);
+
+  const handleTaxonomyChange = (level, value) => {
+    setForm((current) => {
+      if (level === "level1") {
+        return {
+          ...current,
+          taxonomy: { level1: value, level2: TAXONOMY_UNCLASSIFIED, level3: TAXONOMY_UNCLASSIFIED }
+        };
+      }
+      if (level === "level2") {
+        return {
+          ...current,
+          taxonomy: { ...current.taxonomy, level2: value, level3: TAXONOMY_UNCLASSIFIED }
+        };
+      }
+      return {
+        ...current,
+        taxonomy: { ...current.taxonomy, level3: value }
+      };
+    });
+  };
 
   return (
     <div className="grimoireEditBackdrop" role="dialog" aria-modal="true" aria-label="Редактировать запись гримуара">
@@ -118,9 +246,25 @@ function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
           <textarea rows={3} value={form.description} onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))} />
         </label>
         <label>
-          Категория
-          <select value={form.type} onChange={(e) => setForm((s) => ({ ...s, type: e.target.value }))}>
-            {GRIMOIRE_CATEGORIES.filter((c) => c.value !== "all").map((c) => (
+          Уровень 1
+          <select value={form.taxonomy.level1} onChange={(e) => handleTaxonomyChange("level1", e.target.value)}>
+            {level1Options.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Уровень 2
+          <select value={form.taxonomy.level2} onChange={(e) => handleTaxonomyChange("level2", e.target.value)}>
+            {level2Options.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Уровень 3
+          <select value={form.taxonomy.level3} onChange={(e) => handleTaxonomyChange("level3", e.target.value)}>
+            {level3Options.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
@@ -134,7 +278,7 @@ function GrimoireEditModal({ material, onClose, onSave, onDelete }) {
           <input value={form.setting_title} onChange={(e) => setForm((s) => ({ ...s, setting_title: e.target.value }))} />
         </label>
         <div className="cabinetActions grimoireEditActions">
-          <button className="cabinetPrimary" type="button" onClick={() => onSave(material.id, form)}>Сохранить</button>
+          <button className="cabinetPrimary" type="button" onClick={() => onSave(material.id, { ...form, description: buildGrimoireDescriptionValue(form.description, material.attachments) })}>Сохранить</button>
           <button className="cabinetSecondary" type="button" onClick={onClose}>Отмена</button>
           <button className="grimoireActionBtn grimoireActionBtnDelete" type="button" onClick={() => onDelete(material).then(onClose)}>Удалить</button>
         </div>
@@ -161,15 +305,40 @@ export default function ProfileLiteMaterialsModule({
   const [uploadStatus, setUploadStatus] = useState("");
   const [composerStatus, setComposerStatus] = useState("");
   const [localMaterials, setLocalMaterials] = useState([]);
+  const [taxonomyFilter, setTaxonomyFilter] = useState({
+    level1: TAXONOMY_ALL,
+    level2: TAXONOMY_ALL,
+    level3: TAXONOMY_ALL
+  });
 
   const allMaterials = useMemo(() => mergeMaterials(localMaterials, materials), [localMaterials, materials]);
-  const uncategorizedCount = allMaterials.filter((m) => !m.type || m.type === "uncategorized").length;
+  const taxonomyFilterOptions = useMemo(() => ({
+    level1: grimoireTaxonomyFilterLevelOptions(1, taxonomyFilter),
+    level2: grimoireTaxonomyFilterLevelOptions(2, taxonomyFilter),
+    level3: grimoireTaxonomyFilterLevelOptions(3, taxonomyFilter)
+  }), [taxonomyFilter]);
+  const uncategorizedCount = allMaterials.filter((m) => isGrimoireTaxonomyUnclassified(m)).length;
   const readyCount = Math.max(allMaterials.length - uncategorizedCount, 0);
 
   const filteredMaterials = allMaterials.filter((m) => {
     if (activeFilter === "all") return true;
-    if (activeFilter === "uncategorized") return !m.type || m.type === "uncategorized";
-    return m.type === activeFilter;
+    if (activeFilter === TAXONOMY_UNCLASSIFIED) return isGrimoireTaxonomyUnclassified(m);
+    const taxonomy = normalizeGrimoireTaxonomy(m);
+    return taxonomy.level1 === activeFilter || m.type === activeFilter;
+  }).filter((m) => materialMatchesGrimoireTaxonomyFilter(m, taxonomyFilter));
+
+  const handleTaxonomyFilterChange = (level, value) => {
+    setTaxonomyFilter((current) => ({
+      level1: level === "level1" ? value : current.level1,
+      level2: level === "level1" ? TAXONOMY_ALL : level === "level2" ? value : current.level2,
+      level3: level === "level1" || level === "level2" ? TAXONOMY_ALL : value
+    }));
+  };
+
+  const resetTaxonomyFilter = () => setTaxonomyFilter({
+    level1: TAXONOMY_ALL,
+    level2: TAXONOMY_ALL,
+    level3: TAXONOMY_ALL
   });
 
   const setPendingFiles = (files) => {
@@ -189,11 +358,12 @@ export default function ProfileLiteMaterialsModule({
     setPendingFiles(event.dataTransfer?.files || []);
   };
 
-  const handleComposerCreate = async ({ title = "", description = "", type = "uncategorized", file = null, forceUncategorized = false } = {}) => {
+  const handleComposerCreate = async ({ title = "", description = "", taxonomy = {}, files = [], forceUncategorized = false } = {}) => {
     const session = getStoredSession();
     const cleanTitle = safeText(title);
     const cleanDescription = safeText(description);
-    if (!cleanTitle && !cleanDescription && !file) throw new Error("Добавьте текст, название или файл.");
+    const selectedFiles = Array.from(files || []).filter(Boolean);
+    if (!cleanTitle && !cleanDescription && !selectedFiles.length) throw new Error("Добавьте заметку или файл.");
     if (!session?.access_token) throw new Error("Нужно войти в кабинет.");
 
     setComposerStatus("loading");
@@ -202,31 +372,51 @@ export default function ProfileLiteMaterialsModule({
       const profile = await getOwnProfile(user?.id, session);
       if (!profile?.id) throw new Error("Сначала сохраните профиль мастера.");
 
-      let imageUrl = "";
-      let finalType = forceUncategorized ? "uncategorized" : (type || "uncategorized");
-      let finalTitle = cleanTitle;
-
-      if (file) {
+      const uploadedFiles = [];
+      for (const file of selectedFiles) {
         validateGrimoireFile(file);
         const uploaded = await uploadProfileMedia(file, { profileId: profile.id, kind: "material" }, session);
-        imageUrl = uploaded.ref;
-        if (!finalTitle) finalTitle = stripFileExtension(file.name) || "Запись гримуара";
-        if (!forceUncategorized && (!type || type === "uncategorized")) finalType = detectMaterialTypeFromFile(file);
+        uploadedFiles.push({ file, uploaded });
       }
 
-      if (!finalTitle) finalTitle = cleanDescription.slice(0, 64) || "Запись гримуара";
-
+      const finalTaxonomy = forceUncategorized
+        ? normalizeGrimoireTaxonomy({})
+        : normalizeGrimoireTaxonomy(taxonomy);
+      const firstUpload = uploadedFiles[0];
+      const attachments = uploadedFiles.map(({ file, uploaded }) => ({
+        image_url: uploaded.ref,
+        signed_url: uploaded.signedUrl || "",
+        title: stripFileExtension(file.name) || file.name || "Фото",
+        type: detectMaterialTypeFromFile(file)
+      }));
+      const materialType = firstUpload ? detectMaterialTypeFromFile(firstUpload.file) : "";
+      const imageUrl = firstUpload?.uploaded?.ref || "";
+      const finalTitle = cleanTitle
+        || (selectedFiles.length > 1 ? `Фото (${selectedFiles.length})` : stripFileExtension(firstUpload?.file?.name) || "")
+        || cleanDescription.slice(0, 64)
+        || "Запись гримуара";
       const saved = await createOwnMaterial(localMaterialPayload({
         profileId: profile.id,
         title: finalTitle,
-        description: cleanDescription,
-        type: finalType,
+        description: buildGrimoireDescriptionValue(cleanDescription, attachments),
+        type: DB_SAFE_GRIMOIRE_TYPE,
+        taxonomy: finalTaxonomy,
+        materialType,
         imageUrl
       }), session);
+      const savedRecords = saved ? [{
+        ...saved,
+        attachments,
+        display_url: saved.display_url || firstUpload?.uploaded?.signedUrl || saved.display_url,
+        signed_url: saved.signed_url || firstUpload?.uploaded?.signedUrl || saved.signed_url
+      }] : [];
 
-      setLocalMaterials((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
+      setLocalMaterials((current) => [
+        ...savedRecords,
+        ...current.filter((item) => !savedRecords.some((saved) => saved?.id === item.id))
+      ].filter(Boolean));
       setComposerStatus("success");
-      return saved;
+      return savedRecords;
     } catch (error) {
       setComposerStatus("needs-verification");
       throw error;
@@ -266,6 +456,20 @@ export default function ProfileLiteMaterialsModule({
     }
   };
 
+  const handleToggleVisibility = async (material) => {
+    try {
+      const nextStatus = getGrimoireNextVisibilityStatus(material);
+      if (material?.id && onUpdate) await onUpdate(material.id, { status: nextStatus });
+      setLocalMaterials((current) => current.map((item) => (
+        item === material || item?.id === material?.id
+          ? { ...item, status: nextStatus, updated_at: new Date().toISOString() }
+          : item
+      )));
+    } catch (error) {
+      alert("Не удалось изменить видимость: " + String(error?.message || error));
+    }
+  };
+
   return (
     <section className="profileLiteModule profileLiteMaterialsModule profileLiteGrimoireModule mandalaWorkspace" aria-label="Гримуар">
       <div className="mandalaHero">
@@ -277,7 +481,7 @@ export default function ProfileLiteMaterialsModule({
         </div>
         <div className="mandalaHeroStats">
           <span><b>{allMaterials.length}</b> Всего записей</span>
-          <span><b>{uncategorizedCount}</b> Без категории</span>
+          <span><b>{uncategorizedCount}</b> Неразобранно</span>
           <span><b>{readyCount}</b> Готово к работе</span>
         </div>
       </div>
@@ -288,10 +492,10 @@ export default function ProfileLiteMaterialsModule({
           <h3>Категория</h3>
           <div className="grimoireFilterList" aria-label="Фильтры гримуара">
             {GRIMOIRE_CATEGORIES.map((cat) => {
-              const isPriority = cat.value === "uncategorized";
-              const count = cat.value === "uncategorized"
-                ? allMaterials.filter((m) => !m.type || m.type === "uncategorized").length
-                : allMaterials.filter((m) => m.type === cat.value).length;
+              const isPriority = cat.value === TAXONOMY_UNCLASSIFIED;
+              const count = cat.value === TAXONOMY_UNCLASSIFIED
+                ? allMaterials.filter((m) => isGrimoireTaxonomyUnclassified(m)).length
+                : allMaterials.filter((m) => normalizeGrimoireTaxonomy(m).level1 === cat.value || m.type === cat.value).length;
               return (
                 <button
                   className={`grimoireFilterBtn${activeFilter === cat.value ? " active" : ""}${isPriority ? " grimoireFilterBtn--priority" : ""}`}
@@ -312,13 +516,19 @@ export default function ProfileLiteMaterialsModule({
             disabled={materialsStatus === "loading" || composerStatus === "loading"}
             status={composerStatus || materialsStatus}
             onCreate={handleComposerCreate}
-            onShowUncategorized={() => setActiveFilter("uncategorized")}
+	            onShowUncategorized={() => setActiveFilter(TAXONOMY_UNCLASSIFIED)}
           />
 
           <div className="grimoireCenterHeader">
             <p className="cabinetEyebrow">Записи гримуара</p>
             <span className="cabinetStatus">{materialsStatus === "loading" || composerStatus === "loading" ? "..." : filteredMaterials.length}</span>
           </div>
+          <GrimoireMaterialFilterPanel
+            filter={taxonomyFilter}
+            options={taxonomyFilterOptions}
+            onChange={handleTaxonomyFilterChange}
+            onReset={resetTaxonomyFilter}
+          />
           {materialsError && <div className="cabinetNotice cabinetSecondaryDataWarning">needs verification: {materialsError}</div>}
           {materialsFeedMessage && <div className="cabinetNotice">{materialsFeedMessage}</div>}
           {materialsStatus === "loading" && <p>Загружаю гримуар...</p>}
@@ -338,6 +548,7 @@ export default function ProfileLiteMaterialsModule({
                   onAddToFeed={onAddToFeed}
                   onEdit={setEditingMaterial}
                   onDelete={handleDelete}
+                  onToggleVisibility={handleToggleVisibility}
                 />
               ))}
             </div>
@@ -348,7 +559,7 @@ export default function ProfileLiteMaterialsModule({
           <div className="cabinetCard grimoireUploaderCard">
             <p className="cabinetEyebrow">Быстрая загрузка</p>
             <h3>Добавить записи</h3>
-            <p className="grimoireUploaderHint">Загрузите один или несколько файлов. Категория и описание — необязательны при загрузке, их можно добавить после.</p>
+            <p className="grimoireUploaderHint">Загрузите один или несколько файлов. Быстрая загрузка сохранит их как неразобранные; три уровня можно уточнить после.</p>
             <label className="grimoireFileInputLabel" onDragOver={(event) => event.preventDefault()} onDrop={handleFileDrop}>
               <input
                 type="file"
@@ -360,7 +571,7 @@ export default function ProfileLiteMaterialsModule({
               <span className="grimoireFileInputText">
                 Перетащите файлы сюда или выберите с телефона
               </span>
-              <small>Без категории по умолчанию. Разберите позже.</small>
+	              <small>Неразобранно на всех уровнях. Можно разобрать после загрузки.</small>
             </label>
             {selectedFiles.length > 0 && (
               <div className="grimoireSelectedFiles" aria-label="Выбранные файлы">
@@ -382,8 +593,8 @@ export default function ProfileLiteMaterialsModule({
           <div className="cabinetCard grimoireQuickStatsCard">
             <p className="cabinetEyebrow">Неразобранное</p>
             <h3>{uncategorizedCount} материалов</h3>
-            <p>Быстрый вход в материалы, которые нужно назвать, описать и разложить.</p>
-            <button className="cabinetSecondary" type="button" onClick={() => setActiveFilter("uncategorized")}>Показать</button>
+            <p>Разберите позже: быстрый вход в материалы, которые нужно назвать, описать и разложить.</p>
+            <button className="cabinetSecondary" type="button" onClick={() => setActiveFilter(TAXONOMY_UNCLASSIFIED)}>Показать</button>
           </div>
 
           <div className="cabinetCard grimoireQuickActionsCard">

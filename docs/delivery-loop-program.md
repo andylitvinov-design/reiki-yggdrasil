@@ -5,7 +5,7 @@ Command name: `/delivery`
 Internal name: `PRODUCTION_DELIVERY_LOOP`  
 Scope: all user software projects  
 Primary goal: eliminate manual release-management checks after an agent coding task  
-Final result: `STATUS: SUCCESS` or `STATUS: BLOCKED`
+Final result: `STATUS: SUCCESS`, `STATUS: SUCCESS_WITH_AUTH_LIMITATION`, or `STATUS: BLOCKED`
 
 ---
 
@@ -14,6 +14,8 @@ Final result: `STATUS: SUCCESS` or `STATUS: BLOCKED`
 `/delivery` is a reusable release-owner workflow for coding agents.
 
 It is not just a prompt. It is an operating protocol that tells the agent to own the whole path from task to live verification.
+
+`/delivery` is sufficient by itself. The user must not need to add extra wording such as "I explicitly delegate merge", "continue to live", "please deploy", or "please verify live".
 
 The user should be able to write:
 
@@ -53,9 +55,9 @@ task before the final report:
 
 - explicit requirements;
 - edge cases;
-- small UI details;
+- UI/API/data invariants relevant to the project adapter;
 - explicit exclusions and do-not-touch rules;
-- required live/staging/mobile/desktop proof.
+- required live/staging/API/sheet/mobile/desktop proof.
 
 Every contract item must be verified requirement by requirement:
 
@@ -74,6 +76,49 @@ with the diff, local checks, PR state, deployment state, and live proof. If a
 gap is found, repair and rerun the gate. After 2 failed gate repair attempts,
 stop with `STATUS: BLOCKED` and report the remaining gap, reason, next
 file/function to inspect, and any required user action.
+
+---
+
+## SPIRAL VALIDATOR-CRITIC LOOP
+
+The Spiral Validator-Critic Loop is an improvement loop, not a hard blocker.
+
+Run it after implementation and local checks, before merge readiness is claimed:
+
+```txt
+implement
+-> critic review
+-> concrete improvement plan
+-> patch next loop
+-> critic review again
+```
+
+The critic must compare the implementation against the Original Request Contract requirement by requirement and output concrete next actions. The critic may run up to 3 loops.
+
+Allowed critic requirement statuses:
+
+- `PASS`
+- `IMPROVE`
+- `PARTIAL`
+- `FAIL`
+- `NOT VERIFIED`
+
+Allowed critic verdicts:
+
+- `READY_FOR_MERGE` — all critic requirements are `PASS`.
+- `READY_WITH_NOTES` — merge may proceed with documented, non-blocking notes or externally limited gaps.
+- `IMPROVE` — another improvement loop is required.
+- `IMPROVE_MINOR` — a small improvement loop is required.
+- `SAFETY_STOP` — continuing is unsafe or externally blocked.
+- `NEEDS_HUMAN_DECISION` — owner/product judgment is required.
+
+Use `SAFETY_STOP` only for dangerous or externally impossible cases such as data-loss risk, auth/security risk, missing permission, missing secret/env, destructive action, or a finance semantics risk that cannot be proven safely.
+
+Missing polish, weak evidence, or partial UI/API quality should normally become `IMPROVE`, `IMPROVE_MINOR`, or `READY_WITH_NOTES` with a concrete `nextAction`, not `BLOCKED`.
+
+Record machine-readable critic output in optional top-level `.delivery/status.json` field `spiralValidatorCritic`. Do not put it inside `result_verification`, because `result_verification` is the final request-verification gate and remains backward-compatible.
+
+Merge readiness is separate from final `STATUS: SUCCESS`: a `READY_FOR_MERGE` or `READY_WITH_NOTES` critic verdict can allow merge/PR progress, but final `SUCCESS` still requires deployment and live proof.
 
 ---
 
@@ -111,6 +156,7 @@ Task
 -> Project adapter
 -> Code implementation
 -> Local checks
+-> Spiral Validator-Critic Loop
 -> PR creation/update
 -> PR health check
 -> CI/checks until green
@@ -608,6 +654,7 @@ $ARGUMENTS
 Required final status:
 
 - STATUS: SUCCESS
+- STATUS: SUCCESS_WITH_AUTH_LIMITATION
 - STATUS: BLOCKED
 
 Do not stop after code, PR, checks, merge, or deploy.
@@ -638,6 +685,7 @@ You are responsible for implementation, PR, checks, merge if permitted, deployme
 Final answer must be exactly one of:
 
 - STATUS: SUCCESS
+- STATUS: SUCCESS_WITH_AUTH_LIMITATION
 - STATUS: BLOCKED
 
 Never claim success from PR creation, merge, or deployment alone.
@@ -661,7 +709,7 @@ First read docs/delivery-loop-program.md and the project's agent/rules files.
 
 Create the project adapter.
 
-Then execute the delivery loop until STATUS: SUCCESS or STATUS: BLOCKED.
+Then execute the delivery loop until STATUS: SUCCESS, STATUS: SUCCESS_WITH_AUTH_LIMITATION, or STATUS: BLOCKED.
 ```
 
 Checkpoint: this works even when the agent does not support slash commands natively.
@@ -1041,7 +1089,7 @@ Allowed only when a real external blocker prevents completion, such as:
 The agent must always end exactly with:
 
 ```txt
-STATUS: SUCCESS or BLOCKED
+STATUS: SUCCESS, SUCCESS_WITH_AUTH_LIMITATION, or BLOCKED
 
 LOOP:
 - /delivery / PRODUCTION_DELIVERY_LOOP
@@ -1390,3 +1438,8 @@ PROJECT-SPECIFIC DELIVERY SETTINGS
 - Merge policy: squash preferred; do not push directly to production
 - Docs to read first: AGENTS.md, README.md, STATE.md, docs/release-workflow.md, docs/deploy-fallback.md
 ```
+
+
+## Expected Auth Boundary
+
+Follow `docs/delivery-auth-boundary-standard.md` when Google OAuth, Supabase auth, private cabinet login, or an owner-only session blocks automated post-login live verification. Expected auth boundaries are not delivery failures by themselves. Use `STATUS: SUCCESS_WITH_AUTH_LIMITATION` when safe public/login/protected-redirect/local-or-code proof passes and the only missing proof is authenticated post-login live verification.
