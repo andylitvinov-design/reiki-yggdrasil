@@ -12,7 +12,7 @@ A valid `/audit-ui` response or issue must include all of these:
 2. Confirmed / likely / not verified issues.
 3. 5-7 improvement ideas.
 4. Top 3 concepts.
-5. Visual sketch/mockup direction for each of the 3 concepts.
+5. Visual sketch/mockup output for each of the 3 concepts.
 6. Scored comparison table for the 3 concepts.
 7. Recommended concept.
 8. Explanation why this concept wins over the other two.
@@ -42,7 +42,7 @@ Use `STATUS: AUDIT_UI_COMPLETE` only after the user has chosen a concept and the
 
 ## Visual output rule
 
-Prefer actual visual outputs for the 3 concepts when image generation, Figma, Canva, or drawing tools are available:
+If the current environment has an image generation, drawing, Figma, Canva, or visual design tool, `/audit-ui` must produce 3 approximate visual concept images:
 
 ```txt
 Concept A image
@@ -50,9 +50,17 @@ Concept B image
 Concept C image
 ```
 
-If visual generation is unavailable, provide structured wireframes for all 3 concepts.
+For ChatGPT with image generation available, use the image tool and generate the 3 concept mockups directly in the chat.
 
-Do not skip visual/sketch output.
+Do not silently replace images with text wireframes when a visual tool is available.
+
+If visual generation is unavailable, say explicitly:
+
+```txt
+VISUAL_IMAGE_TOOL_UNAVAILABLE
+```
+
+Then provide structured wireframes for all 3 concepts.
 
 ## Chat output minimum
 
@@ -70,9 +78,9 @@ Recommended: Concept X
 Why: <short reason>
 
 Visual concepts:
-A: image attached / wireframe described
-B: image attached / wireframe described
-C: image attached / wireframe described
+A: image attached OR VISUAL_IMAGE_TOOL_UNAVAILABLE + wireframe
+B: image attached OR VISUAL_IMAGE_TOOL_UNAVAILABLE + wireframe
+C: image attached OR VISUAL_IMAGE_TOOL_UNAVAILABLE + wireframe
 
 GitHub issue:
 <full URL>
@@ -96,7 +104,7 @@ The issue must include:
 
 - 5-7 ideas;
 - 3 concepts;
-- visual/sketch/mockup directions or image references;
+- visual image references or explicit `VISUAL_IMAGE_TOOL_UNAVAILABLE` with wireframes;
 - scoring table;
 - recommended concept;
 - selected concept: `PENDING_USER_CHOICE`;
@@ -106,7 +114,7 @@ If the issue only contains one recommended option, it is not a valid `/audit-ui`
 
 ## Wireframe fallback
 
-If visual sketch generation is unavailable, provide structured wireframes:
+If visual image generation is unavailable, provide structured wireframes:
 
 ```txt
 Concept A
