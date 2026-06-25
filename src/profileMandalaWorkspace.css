@@ -8655,6 +8655,11 @@
   width: 100%;
 }
 
+.profileLiteServices .profileLiteServiceCard.active {
+  border-color: rgba(116, 76, 24, 0.42);
+  box-shadow: 0 14px 30px rgba(79, 54, 18, 0.13);
+}
+
 .profileLiteServices .profileLiteServiceThumb {
   align-items: center;
   aspect-ratio: 1;
@@ -8687,6 +8692,22 @@
   min-width: 0;
 }
 
+.profileLiteServices .profileLiteServiceCardHeader {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteServiceCardHeader h3 {
+  margin-bottom: 3px;
+}
+
+.profileLiteServices .profileLiteServiceCardHeader .cabinetStatus {
+  white-space: nowrap;
+}
+
 .profileLiteServices .profileLiteServiceMeta {
   color: rgba(44, 29, 12, 0.66);
   font-weight: 850;
@@ -8697,6 +8718,13 @@
   margin-top: 0;
   overflow-wrap: anywhere;
   text-wrap: pretty;
+}
+
+.profileLiteServices .profileLiteServiceCardActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .profileLiteServices .profileLiteEditorClosedCard,
@@ -9395,8 +9423,20 @@
     gap: 9px;
   }
 
-  .profileLiteServices .profileLiteServiceCard .materialThumb {
+  .profileLiteServices .profileLiteServiceThumb {
+    flex-basis: 38px;
     min-height: 38px;
+    width: 38px;
+  }
+
+  .profileLiteServices .profileLiteServiceCardHeader {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .profileLiteServices .profileLiteServiceCardHeader .cabinetStatus {
+    justify-self: start;
+    white-space: normal;
   }
 
   .profileLiteServices .profileLiteServiceCard h3,

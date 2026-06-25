@@ -1471,19 +1471,6 @@ export default function ProfileLitePowerPlaceModule({
     });
     return next;
   }, [services]);
-  const compositionById = useMemo(() => {
-    const next = new Map();
-    (powerPlaceCompositions || []).forEach((composition) => {
-      const compositionId = String(composition?.id || "").trim();
-      if (compositionId) next.set(compositionId, composition);
-    });
-    return next;
-  }, [powerPlaceCompositions]);
-  const compositionServices = useMemo(
-    () => (services || []).filter((service) => String(service?.composition_id || "").trim()),
-    [services]
-  );
-
   const resolveCompositionPreviewSrc = (composition) => {
     const coverRef = composition?.cover_ref || {};
     const innerCoverRef = coverRef?.inner || {};
@@ -2931,40 +2918,6 @@ export default function ProfileLitePowerPlaceModule({
     </section>
   );
 
-  const renderServicesTab = () => (
-    <section className="cabinetCard mandalaGallery">
-      <div className="cabinetFormHeader">
-        <div>
-          <p className="cabinetEyebrow">Услуги</p>
-          <h2>Мандалы в услугах</h2>
-        </div>
-        <span className="cabinetStatus">{compositionServices.length}</span>
-      </div>
-      <div className="profileLiteServicesList">
-        {compositionServices.map((service) => {
-          const composition = compositionById.get(String(service.composition_id));
-          const previewSrc = composition ? resolveCompositionPreviewSrc(composition) : service.display_url || service.image_url || "";
-          const title = composition?.title || service.title || "Мандала Места Силы";
-          const typeLabel = composition ? formatLabel(composition.constructor_type) : "Услуга";
-          return (
-            <article className="profileLiteServicesItem profileLiteCompositionItem profileLiteCompositionItem--card" key={service.id || service.composition_id}>
-              {renderCompositionPreview(previewSrc, title)}
-              <span className="profileLiteCompositionBody">
-                <b>{title}</b>
-                <span>{typeLabel} · {service.updated_at || service.created_at || "needs verification"}</span>
-                <small>{service.description || composition?.tradition_title || "Услуга подготовлена из сохранённой мандалы."}</small>
-              </span>
-              <div className="profileLiteCompositionActions">
-                <span className="profileLiteServiceLinkedStatus">В услугах ✓</span>
-              </div>
-            </article>
-          );
-        })}
-        {compositionServices.length === 0 && <p>Пока нет мандал, добавленных в услуги.</p>}
-      </div>
-    </section>
-  );
-
   return (
     <section className="profileLiteModule profileLitePowerPlace mandalaWorkspace" aria-label="Мои мандалы">
       <div className="mandalaHero">
@@ -2987,7 +2940,6 @@ export default function ProfileLitePowerPlaceModule({
         <div className="workspaceTabs" role="tablist" aria-label="Раздел мастерской мандал">
           <button className={workspaceTab === "power-place" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("power-place")}>Место силы</button>
           <button className={workspaceTab === "mandalas" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("mandalas")}>Мои мандалы</button>
-          <button className={workspaceTab === "services" ? "active" : ""} type="button" onClick={() => setWorkspaceTab("services")}>Услуги</button>
         </div>
       </div>
 
@@ -3084,7 +3036,7 @@ export default function ProfileLitePowerPlaceModule({
         </aside>
 
         <div className="workspaceCenterColumn">
-          {workspaceTab === "mandalas" ? renderMandalasTab() : workspaceTab === "services" ? renderServicesTab() : (
+          {workspaceTab === "mandalas" ? renderMandalasTab() : (
             <section className="powerPlaceConstructor" aria-label="Конструктор магической мандалы места силы">
               <div className="powerPlaceHeader">
                 <div>

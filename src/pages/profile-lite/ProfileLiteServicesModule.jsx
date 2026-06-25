@@ -363,7 +363,7 @@ export default function ProfileLiteServicesModule({
           <h3>Услуги и шаблоны</h3>
           <p className="cabinetMuted">Черновики, публикации и быстрые действия.</p>
         </div>
-        <button className="cabinetSecondary profileLiteEditorToggle" type="button" onClick={openNewServiceEditor}>
+        <button className="cabinetPrimary profileLiteEditorToggle" type="button" onClick={openNewServiceEditor}>
           Создать услугу
         </button>
       </div>
@@ -377,51 +377,59 @@ export default function ProfileLiteServicesModule({
               </div>
               <span className="cabinetStatus">{groupedServices[status].length}</span>
             </div>
-            {groupedServices[status].map((service) => (
-              <article
-                className={`materialCard profileLiteServiceCard ${selectedServiceId === service.id ? "active" : ""}`}
-                key={service.id || service.title}
-              >
-                <ServiceThumbnail service={service} />
-                <div className="profileLiteServiceCardBody">
-                  <h3>{service.title || "Без названия"}</h3>
-                  <small className="profileLiteServiceMeta">{serviceStatusText(service.status)} · {formatServicePrice(service)}</small>
-                  <p>{service.description || "Описание не заполнено."}</p>
-                  <p className={status === "published" ? "cabinetNotice" : "cabinetMuted"}>
-                    {getServicePublicLinkState(service).message}
-                  </p>
-                  <div className="cabinetActions">
-                    {getServicePublicLinkState(service).isActive && (
-                      <button
-                        className="cabinetSecondary"
-                        disabled={isSaving}
-                        onClick={() => void copyPublicLink(service)}
-                        type="button"
-                      >
-                        Скопировать ссылку
+            {groupedServices[status].map((service) => {
+              const publicLinkState = getServicePublicLinkState(service);
+              return (
+                <article
+                  className={`profileLiteServiceCard profileLiteCompositionItem--card ${selectedServiceId === service.id ? "active" : ""}`}
+                  key={service.id || service.title}
+                >
+                  <ServiceThumbnail service={service} />
+                  <div className="profileLiteServiceCardBody">
+                    <div className="profileLiteServiceCardHeader">
+                      <div>
+                        <h3>{service.title || "Без названия"}</h3>
+                        <small className="profileLiteServiceMeta">{formatServicePrice(service)}</small>
+                      </div>
+                      <span className="cabinetStatus">{serviceStatusText(service.status)}</span>
+                    </div>
+                    <p>{service.description || "Описание не заполнено."}</p>
+                    <p className={publicLinkState.isActive ? "cabinetNotice" : "cabinetMuted"}>
+                      {publicLinkState.message}
+                    </p>
+                    <div className="cabinetActions profileLiteServiceCardActions">
+                      {publicLinkState.isActive && (
+                        <button
+                          className="cabinetSecondary"
+                          disabled={isSaving}
+                          onClick={() => void copyPublicLink(service)}
+                          type="button"
+                        >
+                          Скопировать ссылку
+                        </button>
+                      )}
+                      <button className="cabinetSecondary" disabled={isSaving} onClick={() => handleServiceEdit(service)} type="button">
+                        Редактировать
                       </button>
-                    )}
-                    <button className="cabinetSecondary" disabled={isSaving} onClick={() => handleServiceEdit(service)} type="button">
-                      Редактировать
-                    </button>
-                    {service.status === "published" ? (
-                      <button className="cabinetSecondary" disabled={isSaving} onClick={() => handleServiceStatusAction(service, "archived")} type="button">
-                        Спрятать
-                      </button>
-                    ) : (
-                      <button
-                        className="cabinetSecondary"
-                        disabled={isSaving || !service.composition_id}
-                        onClick={() => handleServiceStatusAction(service, "published")}
-                        type="button"
-                      >
-                        Опубликовать
-                      </button>
-                    )}
+                      {service.status === "published" ? (
+                        <button className="cabinetSecondary" disabled={isSaving} onClick={() => handleServiceStatusAction(service, "archived")} type="button">
+                          Спрятать
+                        </button>
+                      ) : (
+                        <button
+                          className="cabinetSecondary"
+                          disabled={isSaving || !service.composition_id}
+                          onClick={() => handleServiceStatusAction(service, "published")}
+                          type="button"
+                        >
+                          Опубликовать
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
             {groupedServices[status].length === 0 && <p>Нет записей в этом разделе.</p>}
           </section>
         ))}
