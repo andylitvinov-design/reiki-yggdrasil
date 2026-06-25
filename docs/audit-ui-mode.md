@@ -117,42 +117,44 @@ Follow:
 docs/audit-ui-visual-artifact-contract.md
 ```
 
-If image generation, drawing, Figma, Canva, or another visual tool is available, create 3 low/mid-fidelity visual mockups:
+For `/audit-ui`, do **not** stop at `VISUAL_ARTIFACT_UNAVAILABLE` just because native image generation is unavailable. Use this mandatory fallback order:
 
-```txt
-Concept A image
-Concept B image
-Concept C image
-```
+1. **Native image generation / drawing / Figma / Canva available:** create 3 separate standalone low/mid-fidelity visual mockups and place them inline in the chat when the platform supports inline preview.
+
+   ```txt
+   Concept A image
+   Concept B image
+   Concept C image
+   ```
+
+2. **No native image generation, but file artifact creation is available:** create 3 separate downloadable visual artifact files instead of plain text only. Use PNG, SVG, or HTML via Python/PIL, SVG, canvas, or another available file-writing method.
+
+   ```txt
+   audit-ui-concept-a.png | audit-ui-concept-a.svg
+   audit-ui-concept-b.png | audit-ui-concept-b.svg
+   audit-ui-concept-c.png | audit-ui-concept-c.svg
+   ```
+
+   One HTML artifact is allowed only if it has three distinct viewable sections and explicit anchors/paths for A, B, and C:
+
+   ```txt
+   audit-ui-concepts.html#concept-a
+   audit-ui-concepts.html#concept-b
+   audit-ui-concepts.html#concept-c
+   ```
+
+3. **Chat output:** prefer inserting each concept image directly under its concept summary. If inline preview is not possible, provide direct downloadable links for Concept A, Concept B, and Concept C.
+
+4. **Last resort only:** use `VISUAL_ARTIFACT_UNAVAILABLE` only when all visual creation paths are unavailable: no native image generation, no Python/PIL/canvas/SVG/HTML artifact creation, and no file output mechanism.
 
 These must be **three separate standalone visual outputs**. A single combined comparison board, poster, collage, or infographic showing A/B/C together is not enough.
 
-If running in Claude Code / Codex without image generation, create 3 visual artifact files instead of plain text only:
-
-```txt
-audit-ui-concept-a.svg
-audit-ui-concept-b.svg
-audit-ui-concept-c.svg
-```
-
-or one viewable HTML artifact with explicit separate sections/anchors for A, B, and C:
-
-```txt
-audit-ui-concepts.html#concept-a
-audit-ui-concepts.html#concept-b
-audit-ui-concepts.html#concept-c
-```
-
-If no visual tool or file write is available, say explicitly:
-
-```txt
-VISUAL_ARTIFACT_UNAVAILABLE
-```
-
-Then provide structured wireframes for all 3 concepts.
-
 Do not silently replace images/artifacts with plain text wireframes.
+Do not mark visual artifacts unavailable when downloadable PNG/SVG/HTML mockups can be created.
+Do not use only text wireframes when file artifact creation is available.
 Do not silently replace three standalone concept visuals with one combined board.
+
+If `VISUAL_ARTIFACT_UNAVAILABLE` is truly required, explain the blocker and then provide structured wireframes for all 3 concepts.
 
 ## Completeness gate
 
@@ -179,15 +181,16 @@ Hard visual artifact table required before final answer:
 
 | Concept | Required standalone visual | Status | Reference |
 |---|---|---|---|
-| A | Concept A image/artifact only | PASS/FAIL | ... |
-| B | Concept B image/artifact only | PASS/FAIL | ... |
-| C | Concept C image/artifact only | PASS/FAIL | ... |
+| A | Concept A image/artifact only | PASS/FAIL | inline image / downloadable link / `VISUAL_ARTIFACT_UNAVAILABLE` with blocker |
+| B | Concept B image/artifact only | PASS/FAIL | inline image / downloadable link / `VISUAL_ARTIFACT_UNAVAILABLE` with blocker |
+| C | Concept C image/artifact only | PASS/FAIL | inline image / downloadable link / `VISUAL_ARTIFACT_UNAVAILABLE` with blocker |
 
 The audit is incomplete if:
 
 - A/B/C are only present inside one combined poster, collage, infographic, or board;
 - the chat response does not include a per-concept visual references table;
-- the GitHub issue does not include per-concept image/artifact references or `VISUAL_ARTIFACT_UNAVAILABLE` for each concept.
+- the GitHub issue does not include per-concept image/artifact references or `VISUAL_ARTIFACT_UNAVAILABLE` for each concept;
+- `VISUAL_ARTIFACT_UNAVAILABLE` is used while file/artifact creation is available.
 
 If any required block is missing, return `STATUS: AUDIT_UI_INCOMPLETE`, list missing blocks, and complete them before finalizing.
 
@@ -221,7 +224,7 @@ The issue must include:
 - missed opportunities;
 - 5-7 improvement ideas;
 - top 3 concepts;
-- per-concept image references, SVG/HTML artifact paths, or explicit `VISUAL_ARTIFACT_UNAVAILABLE` for Concept A, Concept B, and Concept C;
+- per-concept image references, downloadable PNG/SVG/HTML artifact paths, or explicit `VISUAL_ARTIFACT_UNAVAILABLE` with blocker for Concept A, Concept B, and Concept C;
 - visual artifact PASS/FAIL table for A/B/C;
 - scored comparison table from `docs/audit-ui-decision-rubric.md`;
 - recommended concept;
@@ -234,6 +237,7 @@ The issue must include:
 
 If the issue only contains one recommended option and not 3 concepts, it is not a valid `/audit-ui` issue.
 If the issue only contains one combined A/B/C board and not three standalone concept visuals/artifacts, it is not a valid `/audit-ui` issue.
+If the issue uses `VISUAL_ARTIFACT_UNAVAILABLE` while downloadable artifact creation was available, it is not a valid `/audit-ui` issue.
 
 ## Chat output
 
@@ -253,9 +257,9 @@ Recommended: Concept X
 Why: ...
 
 Visual concepts:
-A: standalone image attached | standalone artifact path | VISUAL_ARTIFACT_UNAVAILABLE
-B: standalone image attached | standalone artifact path | VISUAL_ARTIFACT_UNAVAILABLE
-C: standalone image attached | standalone artifact path | VISUAL_ARTIFACT_UNAVAILABLE
+A: inline image attached | downloadable artifact link | VISUAL_ARTIFACT_UNAVAILABLE with blocker
+B: inline image attached | downloadable artifact link | VISUAL_ARTIFACT_UNAVAILABLE with blocker
+C: inline image attached | downloadable artifact link | VISUAL_ARTIFACT_UNAVAILABLE with blocker
 
 Optional overview board, if any:
 <overview image/artifact path; does not count as A/B/C visual proof>
