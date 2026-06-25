@@ -305,13 +305,11 @@ for (const requiredPowerPlaceText of [
   "Мастерская мандал",
   "Место силы",
   "Мои мандалы",
-  "Услуги",
   "Источники силы",
   "Добавить фото",
   "Добавить в мои услуги",
   "В услугах ✓",
   "Удалить",
-  "Пока нет мандал, добавленных в услуги.",
   "Группа",
   "Категория",
   "Подкатегория / Ступень",
@@ -696,8 +694,8 @@ assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "re
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
 assert.match(powerPlaceSource, /has-custom-inner-cover/, "inner custom covers should be rendered through React-owned classes");
 assert.match(powerPlaceSource, /has-custom-outer-cover/, "outer custom covers should be rendered through React-owned classes");
-assert.match(powerPlaceSource, /workspaceTab === "services"/, "Power Place workshop should expose an internal services tab");
-assert.match(powerPlaceSource, /services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "internal services tab should list only services linked by composition_id");
+assert.doesNotMatch(powerPlaceBaseSource, /workspaceTab === "services"/, "Power Place workshop should not expose an internal services tab");
+assert.doesNotMatch(powerPlaceBaseSource, /renderServicesTab/, "Power Place workshop should not render a duplicate internal services panel");
 assert.match(powerPlaceSource, /serviceByCompositionId\.get\(String\(composition\.id\)\)/, "saved mandala cards should detect services linked by composition_id");
 assert.match(powerPlaceSource, /profileLiteCompositionCard profileLiteCompositionCard--horizontal/, "saved mandala cards should use horizontal card class");
 assert.match(powerPlaceSource, /profileLiteCompositionPreview/, "saved mandala and service cards should render a preview or placeholder");
@@ -881,13 +879,13 @@ assert.match(powerPlaceClientSource, /__hydration_warning[\s\S]*hydration/, "cre
 assert.match(profileLitePageSource, /refreshSavedCompositions\(saved\)[\s\S]*catch[\s\S]*setCompositionMessage[\s\S]*Мандала сохранена[\s\S]*список не обновился/, "refresh failure after create should keep the optimistic row and show a visible safe message");
 assert.match(powerPlaceBaseSource, /profileLitePowerPlaceActionFeedback[\s\S]*compositionMessage/, "action-area feedback should render near the Power Place Save button");
 
-// --- C: Услуги internal workshop tab ---
+// --- C: top-level Услуги is the only services-management tab ---
 assert.match(powerPlaceBaseSource, /onAddCompositionToServices/, "ProfileLitePowerPlaceModuleBase should accept onAddCompositionToServices prop");
 assert.match(powerPlaceBaseSource, /Добавить в мои услуги/, "composition cards in Мои мандалы should expose the add-to-services button");
 assert.match(powerPlaceBaseSource, /Эта мандала уже есть в Моих услугах/, "add-to-services button should be disabled with the required message when already in services");
-assert.match(powerPlaceBaseSource, /workspaceTab === "services" \? renderServicesTab\(\)/, "workspace should expose a dedicated internal Услуги tab");
-assert.match(powerPlaceBaseSource, /Пока нет мандал, добавленных в услуги/, "empty Услуги tab should show the required placeholder text");
-assert.match(powerPlaceBaseSource, /\(services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "Услуги tab should filter services by composition_id");
+assert.doesNotMatch(powerPlaceBaseSource, /workspaceTab === "services" \? renderServicesTab\(\)/, "workspace should not expose a dedicated internal Услуги tab");
+assert.doesNotMatch(powerPlaceBaseSource, /Пока нет мандал, добавленных в услуги/, "empty duplicate Услуги panel should be removed from Мастерская");
+assert.doesNotMatch(powerPlaceBaseSource, /\(services \|\| \[\]\)\.filter\(\(service\) => String\(service\?\.composition_id/, "Мастерская should not keep a duplicate services list filtered by composition_id");
 assert.match(profileLitePageSource, /handleSendCompositionToServices/, "ProfileLitePage should expose handleSendCompositionToServices");
 assert.match(profileLitePageSource, /handlePublishCompositionAsService/, "ProfileLitePage should expose handlePublishCompositionAsService");
 assert.match(profileLitePageSource, /deletePowerPlaceComposition/, "ProfileLitePage should import and use deletePowerPlaceComposition for saved mandala deletion");
