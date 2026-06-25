@@ -72,7 +72,6 @@ import {
   listClientGoalPhotos,
   listPowerPlaceCompositions,
   listTraditionAssets,
-  normalizeAccountPlan,
   updateClientGoalPhotoCategory,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
@@ -96,6 +95,12 @@ import {
   hasProfileLiteSessionCredential,
   safeProfileLiteError
 } from "../lib/profileLiteClient.js";
+import {
+  canCreateWithinPlanLimit,
+  isPaidServiceDraft,
+  masterPlanLimitMessage,
+  resolveProfileMasterPlan
+} from "../lib/masterPlans.js";
 import ProfileLiteShell from "./profile-lite/ProfileLiteShell.jsx";
 import ProfileLiteOverview from "./profile-lite/ProfileLiteOverview.jsx";
 import ProfileLiteProfileModule from "./profile-lite/ProfileLiteProfileModule.jsx";
@@ -218,7 +223,7 @@ const EMPTY_CLIENT_INVITE_FORM = {
   service_order_id: "",
   expires_at: ""
 };
-const POWER_PLACE_START_LIMIT_MESSAGE = "Лимит 7 сохранённых мандал достигнут. Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
+const POWER_PLACE_LIMIT_HELP = "Выберите мандалу из списка и нажмите «Обновить» или удалите одну мандалу.";
 const ROUTE_CHANGE_EVENT = "reiki-route-change";
 const POWER_PLACE_SAVE_STAGE_MESSAGES = {
   clicked: "Нажали сохранить…",
@@ -701,7 +706,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     [clientDirectory, selectedClientKey]
   );
   const activeSettings = useMemo(() => settingsForStep(materialForm.step_id), [materialForm.step_id]);
-  const accountPlan = normalizeAccountPlan(form.account_plan || profile?.account_plan);
+  const accountPlan = resolveProfileMasterPlan({ account_plan: form.account_plan || profile?.account_plan }, user, supabaseEnv.adminEmail);
   const planLimits = getPlanLimits(accountPlan);
   const diagnostics = useMemo(() => createProfileLiteDiagnostics({
     supabaseConfigured: supabaseEnv.isConfigured,
@@ -1289,6 +1294,13 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       throw new Error("Сначала сохраните профиль мастера.");
     }
     const uploadFiles = Array.from(files || []).filter(Boolean);
+    const uploadEntitlement = canCreateWithinPlanLimit(accountPlan, "dailyPhotoUploads", uploadFiles.length - 1);
+    if (uploadFiles.length > uploadEntitlement.limit) {
+      const message = masterPlanLimitMessage(accountPlan, "dailyPhotoUploads");
+      setMaterialsError(message);
+      setMaterialsStatus("needs-verification");
+      throw new Error(message);
+    }
     try {
       const results = await Promise.allSettled(uploadFiles.map(async (file) => {
         validateGrimoireFile(file);
@@ -1356,6 +1368,11 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     }
     try {
       const updatePatch = { ...patch };
+      if (updatePatch.status === "draft") {
+        const hiddenCount = materials.filter((item) => item.id !== id && item.status !== "approved").length;
+        const entitlement = canCreateWithinPlanLimit(accountPlan, "hiddenPublications", hiddenCount);
+        if (!entitlement.allowed) throw new Error(entitlement.message);
+      }
       if (patch?.taxonomy) {
         const taxonomy = normalizeGrimoireTaxonomy(patch.taxonomy);
         updatePatch.category = taxonomy.level1;
@@ -1415,6 +1432,12 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   const handleClientPhotoSave = async () => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setMediaError("Сначала сохраните профиль мастера.");
+      setMediaStatus("needs-verification");
+      return;
+    }
+    const entitlement = canCreateWithinPlanLimit(accountPlan, "clientPhotos", clientGoalPhotos.length);
+    if (!entitlement.allowed) {
+      setMediaError(entitlement.message);
       setMediaStatus("needs-verification");
       return;
     }
@@ -1545,6 +1568,12 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       setMediaError("Сначала сохраните профиль мастера.");
       setMediaStatus("needs-verification");
       throw new Error("Сначала сохраните профиль мастера.");
+    }
+    const entitlement = canCreateWithinPlanLimit(accountPlan, "clientPhotos", clientGoalPhotos.length);
+    if (!entitlement.allowed) {
+      setMediaError(entitlement.message);
+      setMediaStatus("needs-verification");
+      throw new Error(entitlement.message);
     }
 
     try {
@@ -1993,11 +2022,12 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     }
     setCompositionMessage(POWER_PLACE_SAVE_STAGE_MESSAGES.limit);
     const currentSavedCompositionCount = masterPowerPlaceCompositions.length;
-    const currentCompositionLimit = planLimits.compositions || getPlanLimits(accountPlan).compositions;
-    if (currentSavedCompositionCount >= currentCompositionLimit) {
+    const entitlement = canCreateWithinPlanLimit(accountPlan, "compositions", currentSavedCompositionCount);
+    if (!entitlement.allowed) {
+      const message = `${entitlement.message} ${POWER_PLACE_LIMIT_HELP}`;
       setMandalasStatus("needs-verification");
-      setMandalasError(POWER_PLACE_START_LIMIT_MESSAGE);
-      setCompositionMessage(powerPlaceSaveFailureMessage("limit", { message: POWER_PLACE_START_LIMIT_MESSAGE }, POWER_PLACE_START_LIMIT_MESSAGE));
+      setMandalasError(message);
+      setCompositionMessage(powerPlaceSaveFailureMessage("limit", { message }, message));
       return;
     }
     setMandalasError("");
@@ -2369,6 +2399,17 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     }
   };
 
+  const ensureServiceEntitlement = (payload, currentId = "") => {
+    const paid = isPaidServiceDraft(payload);
+    const limitKey = paid ? "paidServices" : "trialServices";
+    const count = services.filter((service) => {
+      if (currentId && service.id === currentId) return false;
+      return paid ? isPaidServiceDraft(service) : !isPaidServiceDraft(service);
+    }).length;
+    const entitlement = canCreateWithinPlanLimit(accountPlan, limitKey, count);
+    if (!entitlement.allowed) throw new Error(entitlement.message);
+  };
+
   const handleServiceSave = async (nextStatus = "draft") => {
     if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
       setServicesError("Сначала сохраните профиль мастера.");
@@ -2380,6 +2421,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     setServicesError("");
     try {
       const payload = { ...serviceForm, profile_id: profile.id, status: nextStatus };
+      if (!serviceForm.id) ensureServiceEntitlement(payload, "");
       const saved = serviceForm.id
         ? await updateOwnService(serviceForm.id, payload, session)
         : await createOwnService(payload, session);
@@ -2406,6 +2448,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     setServiceMessage("");
     setServicesError("");
     try {
+      ensureServiceEntitlement({ ...serviceForm, profile_id: profile.id, status: "published" }, serviceForm.id);
       const saved = await publishOwnService({ ...serviceForm, profile_id: profile.id }, null, session);
       setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
       setServiceForm(createEmptyServiceForm(saved || { ...serviceForm, status: "published" }));
@@ -2437,6 +2480,9 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     setServiceMessage("");
     setServicesError("");
     try {
+      if (normalizedStatus === "published") {
+        ensureServiceEntitlement({ ...targetService, profile_id: profile.id, status: normalizedStatus }, targetService.id);
+      }
       const saved = await updateOwnService(targetService.id, { ...targetService, profile_id: profile.id, status: normalizedStatus }, session);
       setServices((current) => [saved, ...current.filter((item) => item.id !== saved?.id)].filter(Boolean));
       setServiceForm(createEmptyServiceForm(saved || { ...targetService, status: normalizedStatus }));

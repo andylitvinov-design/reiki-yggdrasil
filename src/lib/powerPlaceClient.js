@@ -6,6 +6,14 @@ import {
   parseStorageRef,
 } from "./profileMediaClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
+import {
+  MASTER_PLAN_CONFIG,
+  canCreateWithinPlanLimit,
+  getMasterPlan,
+  getMasterPlanLimit,
+  masterPlanLimitMessage,
+  normalizeMasterPlan
+} from "./masterPlans.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
@@ -15,7 +23,6 @@ const CLIENT_PHOTOS_TABLE = "profile_cabinet_client_goal_photos";
 const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
-const VALID_PLANS = ["start", "pro"];
 const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "dao-layout", "zodiac", "star", "chess"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 9, 12];
 const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
@@ -69,10 +76,10 @@ const VALID_CLIENT_PHOTO_CATEGORIES = [
   "pro-more-clients"
 ];
 
-export const ACCOUNT_PLANS = [
-  { value: "start", label: "Start" },
-  { value: "pro", label: "Pro" }
-];
+export const ACCOUNT_PLANS = MASTER_PLAN_CONFIG.map((plan) => ({
+  value: plan.value,
+  label: plan.label
+}));
 
 function powerPlaceError(message, details = null) {
   const error = new Error(message);
@@ -451,14 +458,21 @@ export const __testPowerPlaceClient = {
 };
 
 export function normalizeAccountPlan(plan) {
-  const normalized = cleanText(plan).toLowerCase();
-  return VALID_PLANS.includes(normalized) ? normalized : "start";
+  return normalizeMasterPlan(plan);
 }
 
 export function getPlanLimits(plan) {
-  return normalizeAccountPlan(plan) === "pro"
-    ? { compositions: 25, clientPhotos: 30 }
-    : { compositions: 25, clientPhotos: 25 };
+  const activePlan = getMasterPlan(plan);
+  return {
+    compositions: getMasterPlanLimit(activePlan.value, "compositions"),
+    clientPhotos: getMasterPlanLimit(activePlan.value, "clientPhotos"),
+    dailyPhotoUploads: getMasterPlanLimit(activePlan.value, "dailyPhotoUploads"),
+    clients: getMasterPlanLimit(activePlan.value, "clients"),
+    trialServices: getMasterPlanLimit(activePlan.value, "trialServices"),
+    paidServices: getMasterPlanLimit(activePlan.value, "paidServices"),
+    hiddenPublications: getMasterPlanLimit(activePlan.value, "hiddenPublications"),
+    serviceItems: getMasterPlanLimit(activePlan.value, "serviceItems")
+  };
 }
 
 export function normalizeClientGoalPhoto(photo) {
@@ -687,9 +701,9 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
   requireSession(session);
   const payload = normalizeClientGoalPhoto(photo);
   const count = await countRows(CLIENT_PHOTOS_TABLE, payload.profile_id, session);
-  const limits = getPlanLimits(plan);
-  if (count >= limits.clientPhotos) {
-    throw powerPlaceError(`Лимит ${limits.clientPhotos} фото клиентов / целей для плана ${normalizeAccountPlan(plan) === "pro" ? "Pro" : "Start"} достигнут.`);
+  const entitlement = canCreateWithinPlanLimit(plan, "clientPhotos", count);
+  if (!entitlement.allowed) {
+    throw powerPlaceError(entitlement.message);
   }
 
   const rows = await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}`, {
@@ -813,9 +827,9 @@ export async function createPowerPlaceCompositionWithDependencies(composition, p
       error: safeErrorText(error)
     });
   }
-  const limits = getPlanLimits(plan);
-  if (count >= limits.compositions) {
-    throw powerPlaceError(`Лимит ${limits.compositions} сохранённых мест силы для плана ${normalizeAccountPlan(plan) === "pro" ? "Pro" : "Start"} достигнут.`);
+  const entitlement = canCreateWithinPlanLimit(plan, "compositions", count);
+  if (!entitlement.allowed) {
+    throw powerPlaceError(masterPlanLimitMessage(plan, "compositions"));
   }
 
   let rows = null;

@@ -344,14 +344,24 @@ await assert.rejects(
   assert.match(created.__hydration_error, /signed URL service stalled/);
 }
 
-assert.equal(normalizeAccountPlan("pro"), "pro");
+assert.equal(normalizeAccountPlan("pro"), "practic");
+assert.equal(normalizeAccountPlan("master"), "master");
 assert.equal(normalizeAccountPlan("unknown"), "start");
 
-assert.deepEqual(getPlanLimits("start"), { compositions: 25, clientPhotos: 25 });
-assert.deepEqual(getPlanLimits("pro"), { compositions: 25, clientPhotos: 30 });
-assert.deepEqual(getPlanLimits("enterprise"), { compositions: 25, clientPhotos: 25 });
-assert.equal(getPlanLimits("start").compositions, 25);
-assert.ok(getPlanLimits("pro").compositions >= 25);
+assert.deepEqual(getPlanLimits("start"), {
+  compositions: 7,
+  clientPhotos: 5,
+  dailyPhotoUploads: 7,
+  clients: 5,
+  trialServices: 0,
+  paidServices: 0,
+  hiddenPublications: 0,
+  serviceItems: 0
+});
+assert.equal(getPlanLimits("practic").compositions, 25);
+assert.equal(getPlanLimits("pro").clientPhotos, 10);
+assert.equal(getPlanLimits("master").compositions, 50);
+assert.equal(getPlanLimits("enterprise").compositions, 7);
 
 {
   const originalFetch = globalThis.fetch;

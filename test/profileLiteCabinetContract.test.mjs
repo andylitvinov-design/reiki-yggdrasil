@@ -119,9 +119,10 @@ const fullForm = createProfileLiteForm({
   telegram: "@master",
   website: "https://example.com",
   avatar_url: "https://example.com/avatar.jpg",
-  account_plan: "pro",
+  account_plan: "practic",
   status: "approved"
 });
+assert.equal(fullForm.account_plan, "practic", "legacy Pro profile rows should normalize to Practic");
 
 for (const field of [
   "display_name",
@@ -145,7 +146,7 @@ const payload = createProfileLiteSavePayload({
   telegram: " @master ",
   website: " https://example.com ",
   avatar_url: " https://example.com/avatar.jpg ",
-  account_plan: "pro",
+  account_plan: "practic",
   status: "approved"
 }, { id: "user-1" }, "pending");
 
@@ -158,7 +159,7 @@ assert.deepEqual(payload, {
   telegram: "@master",
   website: "https://example.com",
   avatar_url: "https://example.com/avatar.jpg",
-  account_plan: "pro",
+  account_plan: "practic",
   status: "pending"
 });
 
@@ -380,9 +381,9 @@ assert.match(powerPlaceSource, /handleSavedImageDragStart\(event, item\)/, "Powe
 assert.match(powerPlaceSource, /onClick=\{\(\) => chooseImage\(item\)\}/, "Power Place symbol clicks should reuse the existing image selection path");
 assert.match(powerPlaceBaseSource, /export default function ProfileLitePowerPlaceModule\(\{[\s\S]*accountPlan = "start"[\s\S]*\}\) \{/, "Power Place base module should default accountPlan so opening the image picker cannot throw when the parent omits it");
 assert.match(powerPlaceBaseSource, /<ProfileLiteImagePicker[\s\S]*accountPlan=\{accountPlan\}/, "Power Place image picker should receive the safe accountPlan prop");
-assert.match(profileLitePageSource, /const accountPlan = normalizeAccountPlan\(form\.account_plan \|\| profile\?\.account_plan\)/, "ProfileLitePage should derive accountPlan only from the real profile form/row");
+assert.match(profileLitePageSource, /const accountPlan = resolveProfileMasterPlan\(\{ account_plan: form\.account_plan \|\| profile\?\.account_plan \}, user, supabaseEnv\.adminEmail\)/, "ProfileLitePage should derive accountPlan through the real profile form/row and owner/admin resolver");
 assert.match(profileLitePageSource, /const moduleProps = \{[\s\S]*accountPlan,[\s\S]*compositionDraft/, "ProfileLitePage should pass the real normalized accountPlan when it is available");
-assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8"), /accountPlan = "start"[\s\S]*const isProAccount = accountPlan === "pro"[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "ProfileLiteImagePicker should keep Pro-only client options disabled unless accountPlan is exactly pro");
+assert.match(readFileSync(join(moduleDir, "ProfileLiteImagePicker.jsx"), "utf8"), /accountPlan = "start"[\s\S]*const isProAccount = accountPlan !== "start"[\s\S]*disabled=\{option\.proOnly && !isProAccount\}/, "ProfileLiteImagePicker should keep expanded client options disabled for Start");
 assert.match(powerPlaceSource, /const openCoverPickerForLayer = \(layer\) => \{[\s\S]*setCoverLayerMode\(layer\)[\s\S]*openPicker\("cover"\)/, "the existing cover picker helper should remain available for the choose-photo button");
 assert.match(powerPlaceBaseSource, /rotateSlotPhoto[\s\S]*↺ 90°[\s\S]*↻ 90°/, "selected photo editor must expose compact rotate-left and rotate-right controls");
 assert.match(`${powerPlaceBaseSource}\n${powerPlaceSource}`, /--slot-bg-rotate[\s\S]*rotate\(var\(--slot-bg-rotate, 0deg\)\)/, "slot image rendering must compose persisted rotation into the selected photo layer transform");
@@ -529,8 +530,8 @@ assert.match(profileLitePageSource, /createPowerPlaceComposition\(\s*\{\s*\.\.\.
 assert.match(profileLitePageSource, /копия/, "Duplicate saved mandala titles should be saved as copy titles");
 assert.match(profileLitePageSource, /Сначала создайте новую мандалу или откройте сохранённую/, "Update without an existing composition should show the required message");
 assert.match(profileLitePageSource, /updatePowerPlaceComposition\(compositionDraft\.id/, "Update should call updatePowerPlaceComposition for the current saved composition");
-assert.match(profileLitePageSource, /Лимит 7 сохранённых мандал достигнут/, "Save-new should show a clear RU limit message before backend create");
-assert.match(profileLitePageSource, /currentSavedCompositionCount[\s\S]*masterPowerPlaceCompositions\.length[\s\S]*currentCompositionLimit[\s\S]*planLimits\.compositions[\s\S]*currentSavedCompositionCount >= currentCompositionLimit[\s\S]*return;[\s\S]*createPowerPlaceComposition/, "Save-new should return before createPowerPlaceComposition when master saved mandalas reach the current plan limit");
+assert.match(profileLitePageSource, /canCreateWithinPlanLimit\(accountPlan, "compositions", currentSavedCompositionCount\)/, "Save-new should use the shared plan entitlement helper before backend create");
+assert.match(profileLitePageSource, /currentSavedCompositionCount[\s\S]*masterPowerPlaceCompositions\.length[\s\S]*canCreateWithinPlanLimit\(accountPlan, "compositions", currentSavedCompositionCount\)[\s\S]*!entitlement\.allowed[\s\S]*return;[\s\S]*createPowerPlaceComposition/, "Save-new should return before createPowerPlaceComposition when master saved mandalas reach the current plan limit");
 assert.match(profileLitePageSource, /handleCompositionUpdateExisting[\s\S]*updatePowerPlaceComposition\(compositionDraft\.id/, "Update existing should keep using updatePowerPlaceComposition even when the save-new limit guard exists");
 assert.match(powerPlaceBaseSource, /const savedCompositionCount = powerPlaceCompositions\.length[\s\S]*const savedCompositionLimit = planLimits\.compositions[\s\S]*const createNewDisabled = savedCompositionCount >= savedCompositionLimit[\s\S]*const updateExistingDisabled = !compositionDraft\.id/, "Power Place UI should compute separate create-new and update-existing disabled flags");
 assert.match(powerPlaceBaseSource, /disabled=\{updateExistingDisabled\}[\s\S]*title=\{updateExistingDisabled[\s\S]*aria-label=\{updateExistingDisabled/, "Update button should show an explanatory title and aria-label when disabled");
