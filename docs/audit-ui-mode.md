@@ -30,14 +30,43 @@ understand target
 -> list problems and opportunities
 -> generate 5-7 improvement ideas
 -> select top 3 UI concepts
--> create 3 sketch/mockup directions when possible
+-> create 3 visual sketch/mockup concepts when tools are available
 -> score concepts with decision rubric
 -> compare the 3 concepts
 -> choose recommended concept
 -> run completeness gate
 -> create/update GitHub issue
--> return short report + /delivery prompt
+-> return concepts-ready report
+-> wait for user concept choice or explicit /delivery
 ```
+
+## Two-stage workflow
+
+`/audit-ui` has two stages.
+
+### Stage 1 — concept audit
+
+Return:
+
+```txt
+STATUS: AUDIT_UI_CONCEPTS_READY
+```
+
+This means:
+
+- 3 concepts are ready;
+- sketch/mockup directions are ready;
+- issue is created or issue body is available;
+- recommended concept is selected;
+- implementation has not started.
+
+### Stage 2 — selected concept handoff
+
+Only after the user chooses a concept or explicitly invokes `/delivery`, prepare the final implementation handoff.
+
+If the user writes `Concept B`, `second option`, `сделай второй`, or similar, use that concept as selected. Update/comment the GitHub issue if needed, then produce a `/delivery` prompt for that selected concept.
+
+Do not auto-implement recommended concept only because it was recommended.
 
 ## Expert framework stack
 
@@ -75,7 +104,32 @@ Use:
 - UX clarity, progressive disclosure, cognitive load, navigation clarity;
 - mobile-first first-screen quality and desktop regression checks.
 
-If image generation or drawing tools are available and the user asked for sketches, produce 3 low/mid-fidelity visual concept sketches. If not available, provide structured ASCII/wireframe/layout descriptions for the 3 concepts.
+## Visual concept requirement
+
+Prefer actual visual outputs for the 3 concepts.
+
+If image generation, drawing, Figma, Canva, or another visual tool is available, create 3 low/mid-fidelity visual mockups:
+
+```txt
+Concept A image
+Concept B image
+Concept C image
+```
+
+Each image should be an approximate graphical solution, not final production UI.
+
+If visual generation is unavailable, provide structured wireframes for all 3 concepts:
+
+```txt
+Concept A
+[Header]
+[Primary navigation]
+[Main card]
+[CTA]
+[Secondary/details]
+```
+
+Do not skip visual/sketch output. The user must be able to compare the 3 directions visually or structurally before implementation.
 
 ## Completeness gate
 
@@ -94,7 +148,7 @@ It is incomplete unless it includes:
 - recommended concept;
 - why this concept wins over the other two;
 - GitHub issue full URL or issue body;
-- short `/delivery` prompt.
+- short `/delivery` prompt for future use, but no automatic implementation.
 
 If any required block is missing, return `STATUS: AUDIT_UI_INCOMPLETE`, list missing blocks, and complete them before finalizing.
 
@@ -128,25 +182,26 @@ The issue must include:
 - missed opportunities;
 - 5-7 improvement ideas;
 - top 3 concepts;
-- sketch/mockup notes for all 3 concepts;
+- sketch/mockup notes or image references for all 3 concepts;
 - scored comparison table from `docs/audit-ui-decision-rubric.md`;
 - recommended concept;
-- implementation direction;
+- selected concept: `PENDING_USER_CHOICE` until user chooses;
+- implementation direction for each concept;
 - do-not-touch rules;
 - mobile and desktop verification plan;
 - design quality gate;
-- ready-to-run `/delivery` prompt.
+- ready-to-run `/delivery` prompt for recommended concept and note how to switch to Concept 2 or 3.
 
 If the issue only contains one recommended option and not 3 concepts, it is not a valid `/audit-ui` issue.
 
 ## Chat output
 
-When an issue is created, do not duplicate the full issue body in chat, but still include the concept summary.
+When an issue is created, do not duplicate the full issue body in chat, but still include the concept summary and visual/sketch references.
 
 Return:
 
 ```txt
-STATUS: AUDIT_UI_COMPLETE | AUDIT_UI_PARTIAL | AUDIT_UI_BLOCKED | AUDIT_UI_COMPLETE_ISSUE_NOT_CREATED
+STATUS: AUDIT_UI_CONCEPTS_READY | AUDIT_UI_PARTIAL | AUDIT_UI_BLOCKED | AUDIT_UI_COMPLETE_ISSUE_NOT_CREATED
 
 3 best concepts:
 1. Concept A — ...
@@ -156,18 +211,23 @@ STATUS: AUDIT_UI_COMPLETE | AUDIT_UI_PARTIAL | AUDIT_UI_BLOCKED | AUDIT_UI_COMPL
 Recommended: Concept X
 Why: ...
 
-Sketch directions:
-A: ...
-B: ...
-C: ...
+Visual concepts:
+A: image attached / wireframe described
+B: image attached / wireframe described
+C: image attached / wireframe described
 
 GitHub issue:
 <full issue URL>
 
-Prompt:
+Choose one:
+- Concept A
+- Concept B
+- Concept C
+
+Future prompt after choice:
 /delivery
 Task:
-Implement the recommended UI concept from issue <issue URL>. Keep Concept 2 and Concept 3 as fallback alternatives if the recommended concept proves risky. Follow the design quality gate and do not touch unrelated flows.
+Implement the selected UI concept from issue <issue URL>. Follow the design quality gate and do not touch unrelated flows.
 ```
 
 Do not return only one concept. The user must be able to choose Concept 1, 2, or 3 from the chat response.
