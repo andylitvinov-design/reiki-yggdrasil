@@ -30,7 +30,7 @@ understand target
 -> list problems and opportunities
 -> generate 5-7 improvement ideas
 -> select top 3 UI concepts
--> create 3 visual sketch/mockup concepts when tools are available
+-> create 3 visual artifacts or images
 -> score concepts with decision rubric
 -> compare the 3 concepts
 -> choose recommended concept
@@ -55,7 +55,7 @@ STATUS: AUDIT_UI_CONCEPTS_READY
 This means:
 
 - 3 concepts are ready;
-- sketch/mockup directions are ready;
+- visual artifacts/images or explicit visual-tool limitation are provided;
 - issue is created or issue body is available;
 - recommended concept is selected;
 - implementation has not started.
@@ -76,6 +76,7 @@ Before proposing concepts, run:
 docs/audit-ui-expert-frameworks.md
 docs/audit-ui-decision-rubric.md
 docs/audit-ui-completeness-gate.md
+docs/audit-ui-visual-artifact-contract.md
 ```
 
 Required lenses:
@@ -98,6 +99,7 @@ Use:
 - `docs/audit-ui-expert-frameworks.md`;
 - `docs/audit-ui-decision-rubric.md`;
 - `docs/audit-ui-completeness-gate.md`;
+- `docs/audit-ui-visual-artifact-contract.md`;
 - fallback checklist from `docs/audit-ui-polish-skill.md` or equivalent;
 - `docs/delivery-design-quality-gate.md`;
 - visual hierarchy, spacing/rhythm, typography, density, contrast, CTA clarity;
@@ -106,7 +108,11 @@ Use:
 
 ## Visual concept requirement
 
-Prefer actual visual outputs for the 3 concepts.
+Follow:
+
+```txt
+docs/audit-ui-visual-artifact-contract.md
+```
 
 If image generation, drawing, Figma, Canva, or another visual tool is available, create 3 low/mid-fidelity visual mockups:
 
@@ -116,20 +122,29 @@ Concept B image
 Concept C image
 ```
 
-Each image should be an approximate graphical solution, not final production UI.
-
-If visual generation is unavailable, provide structured wireframes for all 3 concepts:
+If running in Claude Code / Codex without image generation, create 3 visual artifact files instead of plain text only:
 
 ```txt
-Concept A
-[Header]
-[Primary navigation]
-[Main card]
-[CTA]
-[Secondary/details]
+audit-ui-concept-a.svg
+audit-ui-concept-b.svg
+audit-ui-concept-c.svg
 ```
 
-Do not skip visual/sketch output. The user must be able to compare the 3 directions visually or structurally before implementation.
+or one viewable HTML artifact:
+
+```txt
+audit-ui-concepts.html
+```
+
+If no visual tool or file write is available, say explicitly:
+
+```txt
+VISUAL_ARTIFACT_UNAVAILABLE
+```
+
+Then provide structured wireframes for all 3 concepts.
+
+Do not silently replace images/artifacts with plain text wireframes.
 
 ## Completeness gate
 
@@ -143,7 +158,7 @@ It is incomplete unless it includes:
 
 - 5-7 improvement ideas;
 - 3 concepts;
-- sketch/mockup direction for all 3 concepts;
+- visual image/artifact or explicit `VISUAL_ARTIFACT_UNAVAILABLE` for all 3 concepts;
 - scored comparison table;
 - recommended concept;
 - why this concept wins over the other two;
@@ -182,7 +197,7 @@ The issue must include:
 - missed opportunities;
 - 5-7 improvement ideas;
 - top 3 concepts;
-- sketch/mockup notes or image references for all 3 concepts;
+- image references, SVG/HTML artifact paths, or explicit `VISUAL_ARTIFACT_UNAVAILABLE` for all 3 concepts;
 - scored comparison table from `docs/audit-ui-decision-rubric.md`;
 - recommended concept;
 - selected concept: `PENDING_USER_CHOICE` until user chooses;
@@ -196,7 +211,7 @@ If the issue only contains one recommended option and not 3 concepts, it is not 
 
 ## Chat output
 
-When an issue is created, do not duplicate the full issue body in chat, but still include the concept summary and visual/sketch references.
+When an issue is created, do not duplicate the full issue body in chat, but still include the concept summary and visual references.
 
 Return:
 
@@ -212,9 +227,9 @@ Recommended: Concept X
 Why: ...
 
 Visual concepts:
-A: image attached / wireframe described
-B: image attached / wireframe described
-C: image attached / wireframe described
+A: image attached | artifact path | VISUAL_ARTIFACT_UNAVAILABLE
+B: image attached | artifact path | VISUAL_ARTIFACT_UNAVAILABLE
+C: image attached | artifact path | VISUAL_ARTIFACT_UNAVAILABLE
 
 GitHub issue:
 <full issue URL>
