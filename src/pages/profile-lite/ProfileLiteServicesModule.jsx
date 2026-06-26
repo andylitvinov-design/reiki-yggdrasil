@@ -91,6 +91,7 @@ export default function ProfileLiteServicesModule({
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientSearch, setClientSearch] = useState("");
   const [clientMaterialFilter, setClientMaterialFilter] = useState("all");
+  const [clientInviteOpen, setClientInviteOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const serviceGroups = [
     ["draft", "Черновики"],
@@ -98,10 +99,16 @@ export default function ProfileLiteServicesModule({
     ["archived", "Архив"]
   ];
   const hasClients = clientDirectory.length > 0;
-  const effectiveSelectedClient = selectedClient || clientDirectory[0] || null;
-  const selectedClientDisplayName = effectiveSelectedClient ? getClientDisplayName(effectiveSelectedClient) : "Выберите клиента";
-  const selectedClientOrders = effectiveSelectedClient?.orders || [];
-  const selectedClientWorks = effectiveSelectedClient?.clientWorks || [];
+  const isAllClientsSelected = !selectedClientKey;
+  const effectiveSelectedClient = isAllClientsSelected ? null : selectedClient || clientDirectory[0] || null;
+  const selectedClientDisplayName = effectiveSelectedClient ? getClientDisplayName(effectiveSelectedClient) : "Все клиенты";
+  const visibleClients = effectiveSelectedClient ? [effectiveSelectedClient] : clientDirectory;
+  const selectedClientOrders = visibleClients.flatMap((client) =>
+    (client.orders || []).map((item) => ({ ...item, __clientName: getClientDisplayName(client) }))
+  );
+  const selectedClientWorks = visibleClients.flatMap((client) =>
+    (client.clientWorks || []).map((item) => ({ ...item, __clientName: getClientDisplayName(client) }))
+  );
   const selectedClientMaterials = [
     ...selectedClientOrders.map((item) => ({ type: "order", item })),
     ...selectedClientWorks.map((item) => ({ type: "saved", item }))
@@ -207,6 +214,10 @@ export default function ProfileLiteServicesModule({
     setClientPickerOpen(false);
     setClientSearch("");
   };
+  const openClientInvite = () => {
+    setClientInviteOpen(true);
+    setClientPickerOpen(false);
+  };
   const handleServiceEdit = (service) => {
     setIsEditorOpen(true);
     onServiceSelect(service);
@@ -218,13 +229,50 @@ export default function ProfileLiteServicesModule({
   const openNewServiceEditor = () => {
     setIsEditorOpen(true);
   };
+  const renderClientInviteForm = (className = "") => (
+    <form
+      className={`cabinetCard profileLiteClientInviteForm ${className}`.trim()}
+      onSubmit={(event) => {
+        event.preventDefault();
+        onCreateClientInvite();
+      }}
+    >
+      <div className="cabinetFormHeader">
+        <div>
+          <p className="cabinetEyebrow">Ссылка для клиента</p>
+          <h3>Новый клиент</h3>
+        </div>
+        <button className="cabinetSecondary profileLiteClientInviteClose" onClick={() => setClientInviteOpen(false)} type="button">
+          Свернуть
+        </button>
+      </div>
+      <label>
+        Имя клиента
+        <input disabled={isSaving} value={clientInviteForm.client_name || ""} onChange={(event) => onClientInviteFieldChange("client_name", event.target.value)} placeholder="Анна" />
+      </label>
+      <label>
+        Услуга
+        <select disabled={isSaving} value={clientInviteForm.service_id || selectedServiceId || ""} onChange={(event) => onClientInviteFieldChange("service_id", event.target.value)}>
+          <option value="">Без услуги</option>
+          {services.map((service) => (
+            <option key={service.id} value={service.id}>{service.title || "Без названия"}</option>
+          ))}
+        </select>
+      </label>
+      <div className="cabinetActions">
+        <button className="cabinetSecondary" disabled={isSaving || !(clientInviteForm.client_name || "").trim()} type="submit">
+          Создать ссылку для клиента
+        </button>
+      </div>
+      <p className="cabinetMuted">Клиент привязывается после входа по invite-ссылке.</p>
+    </form>
+  );
   const renderClientWorkspace = () => (
     <section className="cabinetCard profileLiteClientDatabase profileLiteClientWorkspace" aria-label="Клиенты и материалы клиента">
       <div className="cabinetFormHeader">
         <div>
           <p className="cabinetEyebrow">Клиенты</p>
           <h3>Клиенты и материалы</h3>
-          <p className="cabinetMuted">Список клиентов, фильтр, сохранённые мандалы, заказы и статусы.</p>
         </div>
         <span className="cabinetStatus">{hasClients ? `${clientDirectory.length} клиентов` : "Пусто"}</span>
       </div>
@@ -244,18 +292,31 @@ export default function ProfileLiteServicesModule({
         <>
           <div className="profileLiteClientSelector">
             <span className="profileLiteClientSelectorLabel">Клиент</span>
-            <button
-              aria-controls="profile-lite-client-options"
-              aria-expanded={clientPickerOpen}
-              className="profileLiteClientSelectorButton"
-              onClick={() => setClientPickerOpen((open) => !open)}
-              type="button"
-            >
-              <span>{selectedClientDisplayName}</span>
-              <small>Заказы и мандалы клиента</small>
-            </button>
+            <div className="profileLiteClientSelectorRow">
+              <button
+                aria-controls="profile-lite-client-options"
+                aria-expanded={clientPickerOpen}
+                className="profileLiteClientSelectorButton"
+                onClick={() => setClientPickerOpen((open) => !open)}
+                type="button"
+              >
+                <span>{selectedClientDisplayName}</span>
+                <small>{isAllClientsSelected ? "Все заказы и мандалы" : "Заказы и мандалы клиента"}</small>
+              </button>
+              <button className="cabinetSecondary profileLiteClientAddButton" onClick={openClientInvite} type="button">
+                + Новый
+              </button>
+            </div>
             {clientPickerOpen && (
               <div className="profileLiteClientSelectorPanel" id="profile-lite-client-options">
+                <button
+                  className={`profileLiteClientOption ${isAllClientsSelected ? "active" : ""}`}
+                  onClick={() => handleClientPick("")}
+                  type="button"
+                >
+                  <span>Все клиенты</span>
+                  <small>Показать все сохранённые материалы</small>
+                </button>
                 {clientDirectory.length > 6 && (
                   <input
                     aria-label="Поиск клиента"
@@ -288,22 +349,24 @@ export default function ProfileLiteServicesModule({
             )}
           </div>
 
+          {clientInviteOpen && renderClientInviteForm("profileLiteClientInviteDrawer")}
+
           <div className="profileLiteClientSummaryGrid" aria-label="Сводка клиента">
             <span><b>{selectedClientOrders.length}</b> Заказы</span>
             <span><b>{selectedClientWorks.length}</b> Сохранено</span>
-            <span><b>{effectiveSelectedClient?.invites?.length || 0}</b> Ссылки</span>
+            <span><b>{visibleClients.reduce((sum, client) => sum + (client.invites?.length || 0), 0)}</b> Ссылки</span>
             <span><b>{readyCount}</b> Готово</span>
             <span><b>{sentCount}</b> Отправлено</span>
           </div>
 
-          {effectiveSelectedClient?.invites?.length > 0 && (
+          {visibleClients.some((client) => client.invites?.length > 0) && (
             <div className="profileLiteClientInviteList">
-              {effectiveSelectedClient.invites.map((invite) => {
+              {visibleClients.flatMap((client) => (client.invites || []).map((invite) => ({ invite, client }))).map(({ invite, client }) => {
                 const inviteUrl = buildClientInviteUrl(invite, window.location.origin);
                 return (
                   <article className="cabinetCardInline" key={invite.id}>
                     <p className="cabinetEyebrow">Ссылка для клиента</p>
-                    <h4>{invite.client_name || selectedClientDisplayName}</h4>
+                    <h4>{invite.client_name || getClientDisplayName(client)}</h4>
                     <p className="cabinetMuted">
                       {invite.client_profile_id ? "Клиент привязан" : invite.status === "pending" ? "Ожидает регистрации" : "Проверьте статус ссылки"}
                     </p>
@@ -342,7 +405,7 @@ export default function ProfileLiteServicesModule({
             {filteredClientMaterials.map(({ type, item }) => renderClientMandalaCard({
               item,
               title: type === "order" ? item.service?.title || "Мандала клиента" : item.title || "Сохранённая мандала",
-              subtitle: `Клиент: ${selectedClientDisplayName}`,
+              subtitle: `Клиент: ${item.__clientName || selectedClientDisplayName}`,
               description: item.request_text || (type === "order" ? "Запрос клиента не заполнен." : "Комментарий / запрос клиента не заполнен."),
               meta: type === "order" ? item.order_format : "Сохранённая работа клиента",
               key: `${type}-${item.id}`
@@ -537,32 +600,6 @@ export default function ProfileLiteServicesModule({
             {isClientsView ? renderClientWorkspace() : renderServiceGroups()}
           </section>
         </div>
-
-        {isClientsView && (
-          <div className="workspaceRightColumn">
-            <form className="cabinetCard" onSubmit={(event) => { event.preventDefault(); onCreateClientInvite(); }}>
-              <p className="cabinetEyebrow">Услуги → Клиенты</p>
-              <h2>Ссылка для клиента</h2>
-              <label>
-                Имя клиента
-                <input disabled={isSaving} value={clientInviteForm.client_name || ""} onChange={(event) => onClientInviteFieldChange("client_name", event.target.value)} placeholder="Анна" />
-              </label>
-              <label>
-                Услуга
-                <select disabled={isSaving} value={clientInviteForm.service_id || selectedServiceId || ""} onChange={(event) => onClientInviteFieldChange("service_id", event.target.value)}>
-                  <option value="">Без услуги</option>
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>{service.title || "Без названия"}</option>
-                  ))}
-                </select>
-              </label>
-              <button className="cabinetSecondary" disabled={isSaving || !(clientInviteForm.client_name || "").trim()} type="submit">
-                Создать ссылку для клиента
-              </button>
-              <p className="cabinetMuted">Клиент привязывается только после входа по invite-ссылке, без привязки только по имени.</p>
-            </form>
-          </div>
-        )}
 
         {!isClientsView && (
           <div className="workspaceRightColumn">
