@@ -1446,8 +1446,20 @@ assert.match(
 
 assert.match(
   imagePickerSource,
-  /\{ id: "clients", label: "Клиенты" \}[\s\S]*\{ id: "materials", label: "Материалы" \}[\s\S]*\{ id: "backgrounds", label: "Фон" \}[\s\S]*\{ id: "symbols", label: "Символы" \}/,
-  "ProfileLiteImagePicker source tabs should put Фон immediately after Материалы"
+  /\{ id: "clients", label: "Клиенты" \}[\s\S]*\{ id: "materials", label: "Материалы" \}[\s\S]*\{ id: "backgrounds", label: "Фон" \}[\s\S]*\{ id: "symbols", label: "Символы" \}[\s\S]*\{ id: "upload", label: "Загрузить своё" \}[\s\S]*\{ id: "all", label: "Все" \}/,
+  "ProfileLiteImagePicker source tabs should keep existing tabs and add Все as a top-level source"
+);
+
+assert.match(
+  imagePickerSource,
+  /activeTab === "all"[\s\S]*\[\.\.\.validImages\]\.sort\(newestImagesFirst\)/,
+  "ProfileLiteImagePicker Все tab should show all valid image records newest first without category filters"
+);
+
+assert.match(
+  imagePickerSource,
+  /uploadedAt \|\| image\?\.uploaded_at \|\| image\?\.createdAt \|\| image\?\.created_at \|\| image\?\.updatedAt \|\| image\?\.updated_at/,
+  "ProfileLiteImagePicker newest-first sorting should prefer upload/create/update timestamps"
 );
 
 assert.match(
