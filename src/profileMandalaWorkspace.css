@@ -8395,6 +8395,64 @@
   grid-template-columns: minmax(0, 1fr) minmax(280px, 0.36fr);
 }
 
+.profileLiteOrdersClientMode {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.profileLiteOrdersServiceCta,
+.profileLiteOrdersEmptyState {
+  background: rgba(255, 252, 246, 0.92);
+  border: 1px solid rgba(150, 97, 31, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(71, 44, 14, 0.08);
+  min-width: 0;
+}
+
+.profileLiteOrdersServiceCta {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(130px, 0.42fr) minmax(0, 1fr);
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.profileLiteOrdersServiceCta h3,
+.profileLiteOrdersServiceCta p,
+.profileLiteOrdersEmptyState h3,
+.profileLiteOrdersEmptyState p {
+  margin: 0;
+}
+
+.profileLiteOrdersServiceSearch {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  min-width: 0;
+}
+
+.profileLiteOrdersServiceSearch input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.profileLiteOrdersServiceSearch .cabinetPrimary,
+.profileLiteOrdersServiceSearch .cabinetSecondary {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.profileLiteOrdersEmptyState {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
 .profileLiteServices .profileLiteClientEmptyState {
   display: grid;
   gap: 10px;
@@ -11728,6 +11786,23 @@
   .profileLiteServices .profileLiteServicesColumns {
     grid-template-columns: minmax(0, 1fr);
     width: 100%;
+  }
+
+  .profileLiteOrdersServiceCta {
+    align-items: stretch;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .profileLiteOrdersServiceSearch {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profileLiteOrdersServiceSearch .cabinetSecondary {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 34px;
   }
 
   .profileLiteServices .profileLiteServicesColumns .workspaceCenterColumn,

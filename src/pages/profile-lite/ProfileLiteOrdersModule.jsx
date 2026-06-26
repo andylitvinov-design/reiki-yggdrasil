@@ -2,7 +2,6 @@ import React from "react";
 import { formatServicePrice, orderHasClientVisibleResult, orderStatusText } from "../../lib/profileServicesClient.js";
 
 const ORDER_PHOTO_SELECTION_LIMIT = 4;
-const ORDER_PHOTO_SELECTION_MESSAGE = "Можно выбрать до 4 фото для заказа";
 const PHOTO_REQUIRED_MESSAGE = "Загрузите своё фото, чтобы отправить заказ в работу Мастеру.";
 const CLIENT_ORDERS_ERROR_MESSAGE = "Не удалось загрузить личные заказы. Попробуйте обновить страницу.";
 const MASTER_ORDERS_ERROR_MESSAGE = "Не удалось загрузить заявки мастера. Попробуйте обновить страницу.";
@@ -22,12 +21,7 @@ function photoTitle(photo, index) {
 function ClientOrdersView({
   clientGoalPhotos,
   clientOrders,
-  clientPhotoForm,
   extraPhotoCount,
-  hasPhotoStorageLimit,
-  onClientPhotoFieldChange,
-  onClientPhotoFileChange,
-  onClientPhotoSave,
   onDownloadOrderResult,
   onOpenOrderResult,
   onOrderConfirmationChange,
@@ -48,6 +42,17 @@ function ClientOrdersView({
           </div>
           {pendingCartMessage && <div className="cabinetNotice">{pendingCartMessage}</div>}
           {visibleOrdersError && <div className="cabinetNotice cabinetSecondaryDataWarning">{visibleOrdersError}</div>}
+          <section className="profileLiteOrdersServiceCta" aria-label="Поиск услуг">
+            <div>
+              <p className="cabinetEyebrow">Поиск услуг</p>
+              <h3>Найти услугу</h3>
+            </div>
+            <form className="profileLiteOrdersServiceSearch" action="/profile/services">
+              <input aria-label="Что хотите заказать?" name="q" placeholder="Что хотите заказать?" />
+              <button className="cabinetPrimary" type="submit">Найти</button>
+              <a className="cabinetSecondary" href="/profile/services">К услугам</a>
+            </form>
+          </section>
           <div className="profileLiteServiceList">
             {clientOrders.map((order) => (
               <article className="materialCard profileLiteOrderCard" key={order.id}>
@@ -104,43 +109,13 @@ function ClientOrdersView({
                 </div>
               </article>
             ))}
-            {ordersStatus === "success" && clientOrders.length === 0 && <p>Личные заказы пока не найдены.</p>}
+            {ordersStatus === "success" && clientOrders.length === 0 && (
+              <div className="profileLiteOrdersEmptyState">
+                <h3>Личные заказы пока не найдены.</h3>
+                <p>Найдите услугу или вернитесь сюда после ответа мастера.</p>
+              </div>
+            )}
           </div>
-        </section>
-      </div>
-
-      <div className="workspaceRightColumn">
-        <section className="cabinetCard" aria-label="Кабинет Личный Мои фото">
-          <p className="cabinetEyebrow">Кабинет Личный</p>
-          <h2>Мои фото</h2>
-          <p className="cabinetMuted">{ORDER_PHOTO_SELECTION_MESSAGE}</p>
-          <span className="cabinetStatus">Выбрано {Math.min(clientGoalPhotos.length, ORDER_PHOTO_SELECTION_LIMIT)}</span>
-          {hasPhotoStorageLimit && <p className="cabinetSecondaryDataWarning">Лимит медиатеки для текущего плана достигнут.</p>}
-          <div className="profileLiteOrderPhotoList">
-            {visibleOrderPhotos.map((photo, index) => (
-              <article className="materialCard profileLiteOrderPhotoCard" key={photo.id || index}>
-                <div className="materialThumb">{index + 1}</div>
-                <div>
-                  <h3>{photoTitle(photo, index)}</h3>
-                  <small>{photo.image_bucket || photo.image_ref ? "Фото в медиатеке" : "Фото без файла"}</small>
-                </div>
-              </article>
-            ))}
-          </div>
-          {extraPhotoCount > 0 && <p className="cabinetMuted">ещё {extraPhotoCount} в медиатеке</p>}
-          {!hasPhotoStorageLimit && (
-            <>
-              <label>
-                Название фото
-                <input value={clientPhotoForm.title || ""} onChange={(event) => onClientPhotoFieldChange("title", event.target.value)} placeholder="Фото для услуги" />
-              </label>
-              <label>
-                Файл
-                <input accept="image/*" onChange={onClientPhotoFileChange} type="file" />
-              </label>
-              <button className="cabinetSecondary" onClick={onClientPhotoSave} type="button">Загрузить фото</button>
-            </>
-          )}
         </section>
       </div>
     </>
@@ -217,10 +192,6 @@ export default function ProfileLiteOrdersModule({
   cabinetRole = "client",
   clientGoalPhotos = [],
   clientOrders = [],
-  clientPhotoForm = {},
-  onClientPhotoFieldChange,
-  onClientPhotoFileChange,
-  onClientPhotoSave,
   onDownloadOrderResult,
   onGenerateDraftResult,
   onOpenOrderResult,
@@ -234,14 +205,11 @@ export default function ProfileLiteOrdersModule({
   ordersError,
   ordersStatus,
   pendingCartMessage = "",
-  planLimits = {},
   shellChrome
 }) {
   const isMasterRole = cabinetRole === "master";
   const visibleOrderPhotos = clientGoalPhotos.slice(0, ORDER_PHOTO_SELECTION_LIMIT);
   const extraPhotoCount = Math.max(clientGoalPhotos.length - visibleOrderPhotos.length, 0);
-  const clientPhotoLimit = Number(planLimits.clientPhotos) || 4;
-  const hasPhotoStorageLimit = clientGoalPhotos.length >= clientPhotoLimit;
   const visibleOrdersError = ordersError ? (isMasterRole ? MASTER_ORDERS_ERROR_MESSAGE : CLIENT_ORDERS_ERROR_MESSAGE) : "";
 
   if (ordersError && import.meta.env.DEV) {
@@ -279,12 +247,7 @@ export default function ProfileLiteOrdersModule({
           <ClientOrdersView
             clientGoalPhotos={clientGoalPhotos}
             clientOrders={clientOrders}
-            clientPhotoForm={clientPhotoForm}
             extraPhotoCount={extraPhotoCount}
-            hasPhotoStorageLimit={hasPhotoStorageLimit}
-            onClientPhotoFieldChange={onClientPhotoFieldChange}
-            onClientPhotoFileChange={onClientPhotoFileChange}
-            onClientPhotoSave={onClientPhotoSave}
             onDownloadOrderResult={onDownloadOrderResult}
             onOpenOrderResult={onOpenOrderResult}
             onOrderConfirmationChange={onOrderConfirmationChange}
