@@ -61,7 +61,7 @@ const BACKGROUND_UPLOAD_MATERIAL = {
 };
 
 function imageTimestamp(image) {
-  const parsed = Date.parse(image?.updatedAt || image?.updated_at || image?.createdAt || image?.created_at || image?.uploadedAt || image?.uploaded_at || "");
+  const parsed = Date.parse(image?.uploadedAt || image?.uploaded_at || image?.createdAt || image?.created_at || image?.updatedAt || image?.updated_at || "");
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
@@ -154,6 +154,7 @@ export default function ProfileLiteImagePicker({
   const materialFilterSubcategoryOptions = getMaterialSubcategoryOptions(materialFilterSelection.group, materialFilterSelection.categoryValue);
   const visibleImages = useMemo(() => {
     const validImages = images.filter((image) => image?.id || image?.src || image?.displaySrc);
+    if (activeTab === "all") return [...validImages].sort(newestImagesFirst);
     if (activeTab === "clients") {
       return validImages.filter((image) => (
         image.kind === "client-photo"
@@ -184,7 +185,8 @@ export default function ProfileLiteImagePicker({
       { id: "materials", label: "Материалы" },
       { id: "backgrounds", label: "Фон" },
       { id: "symbols", label: "Символы" },
-      { id: "upload", label: "Загрузить своё" }
+      { id: "upload", label: "Загрузить своё" },
+      { id: "all", label: "Все" }
     ];
 
   const handleSourceTabClick = (tabId) => {
