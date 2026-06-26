@@ -1,6 +1,17 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-24
+Last updated: 2026-06-26
+
+## 2026-06-26 — Master profile tab in master cabinet
+
+- Branch target: `codex/master-profile-tab-packages`.
+- Live target: `https://2mentalica.vercel.app`.
+- Scope: add the master-cabinet button `Профиль Мастера` after `Гримуар` and route it to the profile editor panel.
+- Persistence: reuses existing `profile_cabinet_profiles.bio` for `О себе` and existing `profile_cabinet_profiles.account_plan` for Start / Практик / Мастер through `src/lib/masterPlans.js`; no new backend table is introduced.
+- Notes:
+  - current `main` includes migration `20260625120000_profile_master_plan_modes.sql`, expanding `account_plan` to `start`, `pro`, `practic`, `master`;
+  - the tab is implemented as `masterProfile` and renders the existing profile save flow with the requested master-profile heading/helper copy;
+  - live authenticated Supabase save remains to be verified after merge/deploy.
 
 ## 2026-06-24 — Grimoire multi-photo parent gallery
 

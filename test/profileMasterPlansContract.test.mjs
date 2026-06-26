@@ -23,9 +23,12 @@ assert.doesNotMatch(powerPlaceClientSource, /normalizeAccountPlan\(plan\) === "p
 
 assert.match(profileModuleSource, /MASTER_PLAN_CONFIG\.map/, "Profile module should render the visible three-plan switcher from config");
 assert.match(profileModuleSource, /Режим кабинета|Тариф мастера/, "Profile module should label the plan switcher in Russian");
+assert.match(profileModuleSource, /О себе/, "Profile module should expose the master about textarea with Russian copy");
 assert.match(profileModuleSource, /getMasterPlanPaymentLink/, "Profile module should use frontend-safe payment links for paid plan CTA");
+assert.match(masterPlansSource, /label:\s*"Start"[\s\S]*label:\s*"Практик"[\s\S]*label:\s*"Мастер"/, "Master plan selector should expose Start / Практик / Мастер labels");
 assert.match(masterPlansSource, /VITE_PRACTIC_PAYMENT_LINK[\s\S]*VITE_MASTER_PAYMENT_LINK/, "Payment bridge should reference only public Vite payment-link env names");
 assert.match(settingsModuleSource, /getMasterPlan\(profile\?\.account_plan/, "Settings should display the normalized cabinet plan label");
 assert.match(profileCabinetCss, /\.masterPlanSwitcher/, "Profile cabinet CSS should style the responsive plan switcher");
+assert.match(profileCabinetCss, /\.profileLiteRoleNav[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/, "master cabinet role nav should keep two-column mobile button rows");
 
 console.log("profileMasterPlansContract: all assertions passed.");

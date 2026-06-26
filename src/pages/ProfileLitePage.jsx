@@ -2774,6 +2774,15 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         onSave={handleSaveProfile}
       />
     ),
+    masterProfile: (
+      <ProfileLiteProfileModule
+        {...moduleProps}
+        onFieldChange={(field, value) => setForm((current) => ({ ...current, [field]: value }))}
+        onSave={handleSaveProfile}
+        profileHelperText="Расскажите о себе, своём опыте и формате работы."
+        profileTitle="Профиль Мастера"
+      />
+    ),
     mandalas: (
       <ProfileLiteMandalasModule
         {...moduleProps}

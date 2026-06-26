@@ -8,6 +8,8 @@ import {
   normalizeMasterPlan
 } from "../../lib/masterPlans.js";
 
+const MASTER_PROFILE_TITLE = "Профиль Мастера";
+
 export default function ProfileLiteProfileModule({
   form,
   onFieldChange,
@@ -15,12 +17,16 @@ export default function ProfileLiteProfileModule({
   profile,
   profileError,
   profileStatus,
+  profileTitle,
+  profileHelperText,
   saveMessage,
   saveStatus,
   shellChrome
 }) {
   const activePlan = getMasterPlan(form.account_plan);
   const activePlanValue = activePlan.value;
+  const title = profileTitle || profile?.display_name || "Новый профиль";
+  const helperText = profileHelperText || "Редактируйте публичную карточку мастера, статус модерации и лимиты кабинета в той же светло-золотой рабочей оболочке.";
   const handlePaymentClick = (planValue) => {
     const link = getMasterPlanPaymentLink(planValue);
     if (link) window.open(link, "_blank", "noopener,noreferrer");
@@ -32,8 +38,8 @@ export default function ProfileLiteProfileModule({
         <div className="mandalaHeroSeal">◉</div>
         <div>
           <p className="cabinetEyebrow">Профиль мастера</p>
-          <h2>{profile?.display_name || "Новый профиль"}</h2>
-          <p>Редактируйте публичную карточку мастера, статус модерации и лимиты кабинета в той же светло-золотой рабочей оболочке.</p>
+          <h2>{title}</h2>
+          <p>{helperText}</p>
         </div>
         <div className="mandalaHeroStats">
           <span><b>{activePlan.label}</b> План</span>
@@ -46,7 +52,7 @@ export default function ProfileLiteProfileModule({
         <div className="cabinetFormHeader">
           <div>
             <p className="cabinetEyebrow">Профиль мастера</p>
-            <h2>{profile?.display_name || "Новый профиль"}</h2>
+            <h2>{title}</h2>
             {profile?.id && <small className="cabinetPublicId">ID: {formatCabinetId(profile.id)}</small>}
           </div>
           <span className={`cabinetStatus status-${form.status || "draft"}`}>{form.status || "draft"}</span>
@@ -60,7 +66,7 @@ export default function ProfileLiteProfileModule({
           <input value={form.display_name} onChange={(event) => onFieldChange("display_name", event.target.value)} placeholder="Имя для публикации" required />
         </label>
         <label>
-          Описание
+          О себе
           <textarea value={form.bio} onChange={(event) => onFieldChange("bio", event.target.value)} placeholder="Практика, подход, чем вы помогаете ученикам" rows={5} />
         </label>
         <div className="cabinetTwoColumns">
