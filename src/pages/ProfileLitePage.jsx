@@ -10,16 +10,14 @@ import {
 } from "../lib/profileCoursesClient.js";
 import {
   DB_SAFE_GRIMOIRE_TYPE,
-  buildGrimoireDescriptionValue,
+  buildGrimoireBatchUploadPayload,
   buildMaterialUploadPublicationPayload,
   createEmptyMaterialForm,
   createOwnMaterial,
   deleteOwnMaterial,
-  detectMaterialTypeFromFile,
   listOwnMaterials,
   normalizeGrimoireTaxonomy,
   normalizeMaterialForm,
-  stripFileExtension,
   updateOwnMaterial
 } from "../lib/profileMaterialsClient.js";
 import {
@@ -1301,40 +1299,18 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         throw failed[0].reason || new Error("Файлы не загрузились.");
       }
 
-      const firstUpload = uploadedFiles[0];
-      const detectedType = detectMaterialTypeFromFile(firstUpload?.file);
-      const attachments = uploadedFiles.map(({ file, uploaded }) => ({
-        image_url: uploaded.ref,
-        signed_url: uploaded.signedUrl || "",
-        title: stripFileExtension(file.name) || file.name || "Фото",
-        type: detectMaterialTypeFromFile(file)
-      }));
-      const title = uploadedFiles.length > 1
-        ? `Фото (${uploadedFiles.length})`
-        : stripFileExtension(firstUpload?.file?.name) || "Запись гримуара";
-      const payload = {
-        profile_id: profile.id,
-        type: DB_SAFE_GRIMOIRE_TYPE,
-        material_type: detectedType,
-        title,
-        description: buildGrimoireDescriptionValue("", attachments),
-        image_url: firstUpload?.uploaded?.ref || "",
-        step_id: "",
-        step_title: "",
-        setting_title: "",
-        setting_index: null,
-        category: "unclassified",
-        subcategory: "unclassified",
-        material_group: "unclassified",
-        status: "draft",
-        updated_at: new Date().toISOString()
-      };
+      const { payload, attachments, firstSignedUrl } = buildGrimoireBatchUploadPayload({
+        profileId: profile.id,
+        uploadedFiles,
+        taxonomy: normalizeGrimoireTaxonomy({}),
+        status: "draft"
+      });
       const saved = await createOwnMaterial(payload, session);
-      const savedWithPreview = firstUpload?.uploaded?.signedUrl ? {
+      const savedWithPreview = firstSignedUrl ? {
         ...saved,
         attachments,
-        display_url: saved?.display_url || firstUpload.uploaded.signedUrl,
-        signed_url: saved?.signed_url || firstUpload.uploaded.signedUrl
+        display_url: saved?.display_url || firstSignedUrl,
+        signed_url: saved?.signed_url || firstSignedUrl
       } : { ...saved, attachments };
       setMaterials((current) => [savedWithPreview, ...current.filter((item) => item.id !== savedWithPreview?.id)].filter(Boolean));
       setMaterialsStatus("success");

@@ -492,12 +492,15 @@ assert.match(profileMaterialsModuleSource, /Сбросить/, "Grimoire feed sh
 assert.match(profileMaterialsModuleSource, /grimoireMaterialFilterPanel/, "Grimoire feed should render a dedicated compact filter panel above records");
 assert.match(profileMaterialsModuleSource, /grimoireTaxonomyMeta/, "Grimoire record cards should render compact taxonomy metadata");
 assert.match(profileMaterialsModuleSource, /<img[\s\S]*className="grimoireCardImage"[\s\S]*onError/, "materials should render actual image previews and fall back only after load failure");
-assert.match(profileMaterialsModuleSource, /attachments,[\s\S]*display_url:\s*saved\.display_url \|\| firstUpload\?\.uploaded\?\.signedUrl/, "composer should keep signed preview URLs for newly uploaded parent galleries");
+assert.match(profileMaterialsModuleSource, /attachments,[\s\S]*display_url:\s*saved\.display_url \|\| firstSignedUrl/, "composer should keep signed preview URLs for newly uploaded parent galleries");
 assert.match(profileMaterialsModuleSource, /function GrimoirePhotoGallery/, "Grimoire cards should render photos through one parent gallery component");
 assert.match(profileMaterialsModuleSource, /getGrimoirePhotoGalleryItems/, "Grimoire gallery should use normalized parent attachments");
-assert.match(profileMaterialsModuleSource, /buildGrimoireDescriptionValue\(cleanDescription, attachments\)/, "composer should persist multi-photo attachments under one parent material");
+assert.match(profileMaterialsModuleSource, /buildGrimoireBatchUploadPayload\(\{[\s\S]*uploadedFiles,[\s\S]*description:\s*cleanDescription/, "composer should persist multi-photo attachments under one parent material");
 assert.doesNotMatch(profileMaterialsModuleSource, /const records = selectedFiles\.length \? selectedFiles : \[null\]/, "composer must not create one parent material per selected file");
-assert.match(profileLitePageSource, /buildGrimoireDescriptionValue\("", attachments\)/, "bulk Grimoire upload should persist selected files as one parent attachment batch");
+assert.match(profileLitePageSource, /buildGrimoireBatchUploadPayload\(\{[\s\S]*uploadedFiles,[\s\S]*taxonomy:\s*normalizeGrimoireTaxonomy\(\{\}\)/, "bulk Grimoire upload should persist selected files as one parent attachment batch");
+assert.match(profileGrimoireComposerSource, /grimoireComposerGroupPills/, "Grimoire composer should render large top group pills like the image picker material filter");
+assert.match(profileGrimoireComposerSource, /grimoireComposerTaxonomyPanel[\s\S]*Категория[\s\S]*Подкатегория \/ ступень/, "Grimoire composer should render compact grouped taxonomy selects instead of a plain vertical level stack");
+assert.doesNotMatch(profileGrimoireComposerSource, />Уровень 1<[\s\S]*>Уровень 2<[\s\S]*>Уровень 3</, "Grimoire composer should not expose the old plain Level 1/2/3 stack");
 for (const gallerySelector of [
   ".grimoirePhotoGallery--count-1",
   ".grimoirePhotoGallery--count-2",
@@ -508,6 +511,8 @@ for (const gallerySelector of [
 ]) {
   assert.match(grimoireWorkspaceCss, new RegExp(gallerySelector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Grimoire gallery CSS should include ${gallerySelector}`);
 }
+assert.match(grimoireWorkspaceCss, /grimoirePhotoGallery[\s\S]*max-height:\s*280px/, "Grimoire gallery should have a controlled desktop height");
+assert.match(grimoireWorkspaceCss, /grimoireComposerGroupPills[\s\S]*button\.active/, "Grimoire composer CSS should include picker-style group pill controls");
 assert.match(profileServicesModuleSource, /Добавить в ленту[\s\S]*Опубликовать обновление/, "published services should expose explicit feed create/update actions");
 assert.match(powerPlaceBaseSource, /<label className="compositionTitleField">[\s\S]*Название мандалы[\s\S]*<input className="compositionTitleInput"[\s\S]*<\/label>[\s\S]*<div className="powerPlaceActions powerPlaceActions--save">[\s\S]*>\s*Обновить\s*<\/button>/, "Power Place title field should appear before action buttons in the DOM contract");
 assert.doesNotMatch(profileMandalaCss, /\.profileLitePowerPlace \.powerPlaceActions\s*\{[^}]*?(?<![a-z])order\s*:/, "mobile CSS must not reorder the Power Place action button group above the title field");
@@ -962,7 +967,7 @@ assert.match(grimoireModuleSource, /selectedFiles/, "Grimoire uploader should ke
 assert.match(grimoireModuleSource, /grimoireTaxonomyLevelOptions\(1\)/, "Grimoire edit select should use level 1 taxonomy options");
 assert.doesNotMatch(grimoireModuleSource, /РИ по умолчанию/, "Grimoire uploader should not present flat RI as the new default");
 assert.match(grimoireModuleSource, /const uploadedFiles = \[\]/, "Grimoire composer save should collect selected files before creating one parent post");
-assert.match(grimoireModuleSource, /const saved = await createOwnMaterial\(localMaterialPayload/, "Grimoire composer save should create one parent material record for the batch");
+assert.match(grimoireModuleSource, /const saved = await createOwnMaterial\(payload,\s*session\)/, "Grimoire composer save should create one parent material record for the batch");
 assert.doesNotMatch(grimoireModuleSource, /for \(const file of records\)[\s\S]*createOwnMaterial/, "Grimoire composer save must not create one material record per selected file");
 assert.match(grimoireModuleSource, /Комментарий ещё не добавлен/, "Grimoire cards should show a note placeholder when description is missing");
 assert.match(grimoireModuleSource, /Разберите позже/, "Uncategorized records should be treated as the main working state");
@@ -1057,8 +1062,9 @@ assert.match(profileLitePageSource, /deleteOwnMaterial/, "ProfileLitePage should
 assert.match(profileLitePageSource, /updateOwnMaterial/, "ProfileLitePage should import updateOwnMaterial");
 assert.match(profileLitePageSource, /buildMaterialUploadPublicationPayload/, "ProfileLitePage should use the DB-safe material upload payload helper");
 assert.match(profileLitePageSource, /Promise\.allSettled\(uploadFiles\.map/, "ProfileLitePage material library uploads should save one publication row per selected file");
-assert.match(profileLitePageSource, /detectMaterialTypeFromFile/, "ProfileLitePage should use detectMaterialTypeFromFile for grimoire uploads");
-assert.match(profileLitePageSource, /stripFileExtension/, "ProfileLitePage should use stripFileExtension for grimoire title derivation");
+assert.match(profileLitePageSource, /buildGrimoireBatchUploadPayload/, "ProfileLitePage should use the shared Grimoire batch helper for quick uploads");
+assert.match(profileMaterialsClientSource, /detectMaterialTypeFromFile\(firstFile\)/, "Grimoire batch helper should detect material type for uploads");
+assert.match(profileMaterialsClientSource, /stripFileExtension\(firstFile\?\.name\)/, "Grimoire batch helper should derive batch titles from file names");
 
 assert.match(profileMaterialsClientSource, /export.*GRIMOIRE_CATEGORIES/, "profileMaterialsClient.js should export GRIMOIRE_CATEGORIES");
 assert.match(profileMaterialsClientSource, /reikiLevels\.map/, "profileMaterialsClient.js should derive Grimoire course taxonomy from all Reiki levels");
@@ -1288,9 +1294,9 @@ assert.match(profileGrimoireComposerSource, /type="file"[\s\S]*multiple/, "Grimo
 assert.match(profileGrimoireComposerSource, /useState\(\[\]\)/, "Grimoire composer should store selected files as an array");
 assert.match(profileGrimoireComposerSource, /Array\.from\(event\.target\.files \|\| \[\]\)/, "Grimoire composer should keep all selected files");
 assert.match(profileGrimoireComposerSource, /grimoireComposerFiles/, "Grimoire composer should render the selected file list");
-assert.match(profileGrimoireComposerSource, /Уровень 1/, "Grimoire composer should render taxonomy level 1");
-assert.match(profileGrimoireComposerSource, /Уровень 2/, "Grimoire composer should render taxonomy level 2");
-assert.match(profileGrimoireComposerSource, /Уровень 3/, "Grimoire composer should render taxonomy level 3");
+assert.match(profileGrimoireComposerSource, /Группа материалов/, "Grimoire composer should render taxonomy group pills");
+assert.match(profileGrimoireComposerSource, /Категория/, "Grimoire composer should render compact taxonomy category select");
+assert.match(profileGrimoireComposerSource, /Подкатегория \/ ступень/, "Grimoire composer should render compact taxonomy subcategory select");
 assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(2, taxonomy\)/, "Grimoire composer level 2 should depend on selected level 1");
 assert.match(profileGrimoireComposerSource, /grimoireTaxonomyLevelOptions\(3, taxonomy\)/, "Grimoire composer level 3 should depend on selected level 2");
 assert.doesNotMatch(profileGrimoireComposerSource, /<span>Тип<\/span>/, "Grimoire composer should not use the old flat Type select");
@@ -1311,7 +1317,8 @@ assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoireCardIm
 assert.match(grimoireWorkspaceCss, /\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*display: flex[\s\S]*flex-wrap: wrap/, "Grimoire post actions should be a wrapping footer row");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostHeader\s*\{[\s\S]*grid-template-columns: 38px minmax\(0, 1fr\)/, "Mobile Grimoire post header should avoid a three-column side rail");
 assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview\.hasImage\s*\{[\s\S]*aspect-ratio: 4 \/ 3/, "Mobile Grimoire media block should keep a stable 4:3 aspect ratio");
-assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*max-height: 118px/, "mobile Grimoire media previews should stay compact");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostPreview,[\s\S]*max-height: 170px/, "mobile Grimoire media previews should use a controlled compact cap");
+assert.match(grimoireWorkspaceCss, /@media \(max-width: 520px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePhotoGallery,[\s\S]*max-height: 230px/, "mobile Grimoire galleries should use a controlled compact cap");
 assert.doesNotMatch(grimoireWorkspaceCss, /@media \(max-width: 980px\)[\s\S]*\.profileLiteGrimoireModule \.grimoirePostActions\s*\{[\s\S]*grid-template-columns: minmax\(0, 1fr\)/, "Mobile Grimoire post actions should not regress to a full-width stacked side column");
 
 // ── Media module: folder browser applies to both photos and materials ─────────

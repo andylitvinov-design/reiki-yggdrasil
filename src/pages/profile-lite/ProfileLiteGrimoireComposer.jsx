@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   createDefaultTaxonomy,
+  grimoireTaxonomyCompactLabel,
   grimoireTaxonomyLevelOptions,
   TAXONOMY_UNCLASSIFIED
 } from "../../lib/profileMaterialsClient.js";
@@ -68,6 +69,7 @@ export default function ProfileLiteGrimoireComposer({
   const level1Options = grimoireTaxonomyLevelOptions(1);
   const level2Options = grimoireTaxonomyLevelOptions(2, taxonomy);
   const level3Options = grimoireTaxonomyLevelOptions(3, taxonomy);
+  const taxonomySummary = grimoireTaxonomyCompactLabel(taxonomy) || "Неразобранно";
 
   const handleTaxonomyChange = (level, value) => {
     setMessage("");
@@ -80,6 +82,10 @@ export default function ProfileLiteGrimoireComposer({
       }
       return createDefaultTaxonomy({ ...current, level3: value });
     });
+  };
+
+  const chooseRootTaxonomy = (value) => {
+    handleTaxonomyChange("level1", value);
   };
 
   return (
@@ -103,32 +109,48 @@ export default function ProfileLiteGrimoireComposer({
       </label>
 
       <div className="grimoireComposerTools">
-        <label className="grimoireComposerField compact">
-          <span>Уровень 1</span>
-          <select value={taxonomy.level1} onChange={(event) => handleTaxonomyChange("level1", event.target.value)} disabled={disabled || submitting}>
+        <div className="grimoireComposerTaxonomy">
+          <div className="grimoireComposerGroupPills" role="tablist" aria-label="Группа материалов">
             {level1Options.map((item) => (
-              <option key={item.value} value={item.value}>{item.label}</option>
+              <button
+                key={item.value}
+                className={taxonomy.level1 === item.value ? "active" : ""}
+                type="button"
+                role="tab"
+                aria-selected={taxonomy.level1 === item.value}
+                onClick={() => chooseRootTaxonomy(item.value)}
+                disabled={disabled || submitting}
+              >
+                {item.label}
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
 
-        <label className="grimoireComposerField compact">
-          <span>Уровень 2</span>
-          <select value={taxonomy.level2} onChange={(event) => handleTaxonomyChange("level2", event.target.value)} disabled={disabled || submitting}>
-            {level2Options.map((item) => (
-              <option key={item.value} value={item.value}>{item.label}</option>
-            ))}
-          </select>
-        </label>
+          <div className="grimoireComposerTaxonomyPanel">
+            <div className="grimoireComposerTaxonomySummary">
+              <span>Выбрано</span>
+              <b>{taxonomySummary}</b>
+            </div>
 
-        <label className="grimoireComposerField compact">
-          <span>Уровень 3</span>
-          <select value={taxonomy.level3} onChange={(event) => handleTaxonomyChange("level3", event.target.value)} disabled={disabled || submitting}>
-            {level3Options.map((item) => (
-              <option key={item.value} value={item.value}>{item.label}</option>
-            ))}
-          </select>
-        </label>
+            <label className="grimoireComposerField compact">
+              <span>Категория</span>
+              <select value={taxonomy.level2} onChange={(event) => handleTaxonomyChange("level2", event.target.value)} disabled={disabled || submitting}>
+                {level2Options.map((item) => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="grimoireComposerField compact">
+              <span>Подкатегория / ступень</span>
+              <select value={taxonomy.level3} onChange={(event) => handleTaxonomyChange("level3", event.target.value)} disabled={disabled || submitting}>
+                {level3Options.map((item) => (
+                  <option key={item.value} value={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </div>
 
         <label className="grimoireComposerFile">
           <input

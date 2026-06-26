@@ -1,9 +1,8 @@
 import React, { useMemo, useState } from "react";
 import {
+  buildGrimoireBatchUploadPayload,
   buildGrimoireDescriptionValue,
   createOwnMaterial,
-  DB_SAFE_GRIMOIRE_TYPE,
-  detectMaterialTypeFromFile,
   getGrimoireFeedActionLabel,
   getGrimoireNextVisibilityStatus,
   getGrimoireDescriptionText,
@@ -19,8 +18,7 @@ import {
   TAXONOMY_ALL,
   materialStatusText,
   normalizeGrimoireTaxonomy,
-  publicationTypeLabel,
-  stripFileExtension
+  publicationTypeLabel
 } from "../../lib/profileMaterialsClient.js";
 import { feedActivityTypeForMaterial } from "../../lib/profileActivityFeedClient.js";
 import { getCurrentUser, getOwnProfile, getStoredSession } from "../../lib/supabaseClient.js";
@@ -40,27 +38,6 @@ function materialDate(material) {
   } catch {
     return "черновик";
   }
-}
-
-function localMaterialPayload({ profileId, title, description, type, taxonomy, materialType, imageUrl }) {
-  const normalizedTaxonomy = normalizeGrimoireTaxonomy(taxonomy);
-  return {
-    profile_id: profileId,
-    type: type || DB_SAFE_GRIMOIRE_TYPE,
-    material_group: normalizedTaxonomy.level3,
-    material_type: materialType || "",
-    title: title || "Запись гримуара",
-    description: description || "",
-    image_url: imageUrl || "",
-    step_id: "",
-    step_title: "",
-    setting_title: "",
-    setting_index: null,
-    category: normalizedTaxonomy.level1,
-    subcategory: normalizedTaxonomy.level2,
-    status: "draft",
-    updated_at: new Date().toISOString()
-  };
 }
 
 function GrimoirePhotoGallery({ material, onImageError }) {
@@ -382,33 +359,20 @@ export default function ProfileLiteMaterialsModule({
       const finalTaxonomy = forceUncategorized
         ? normalizeGrimoireTaxonomy({})
         : normalizeGrimoireTaxonomy(taxonomy);
-      const firstUpload = uploadedFiles[0];
-      const attachments = uploadedFiles.map(({ file, uploaded }) => ({
-        image_url: uploaded.ref,
-        signed_url: uploaded.signedUrl || "",
-        title: stripFileExtension(file.name) || file.name || "Фото",
-        type: detectMaterialTypeFromFile(file)
-      }));
-      const materialType = firstUpload ? detectMaterialTypeFromFile(firstUpload.file) : "";
-      const imageUrl = firstUpload?.uploaded?.ref || "";
-      const finalTitle = cleanTitle
-        || (selectedFiles.length > 1 ? `Фото (${selectedFiles.length})` : stripFileExtension(firstUpload?.file?.name) || "")
-        || cleanDescription.slice(0, 64)
-        || "Запись гримуара";
-      const saved = await createOwnMaterial(localMaterialPayload({
+      const { payload, attachments, firstSignedUrl } = buildGrimoireBatchUploadPayload({
         profileId: profile.id,
-        title: finalTitle,
-        description: buildGrimoireDescriptionValue(cleanDescription, attachments),
-        type: DB_SAFE_GRIMOIRE_TYPE,
+        uploadedFiles,
+        description: cleanDescription,
         taxonomy: finalTaxonomy,
-        materialType,
-        imageUrl
-      }), session);
+        title: cleanTitle,
+        status: "draft"
+      });
+      const saved = await createOwnMaterial(payload, session);
       const savedRecords = saved ? [{
         ...saved,
         attachments,
-        display_url: saved.display_url || firstUpload?.uploaded?.signedUrl || saved.display_url,
-        signed_url: saved.signed_url || firstUpload?.uploaded?.signedUrl || saved.signed_url
+        display_url: saved.display_url || firstSignedUrl || saved.display_url,
+        signed_url: saved.signed_url || firstSignedUrl || saved.signed_url
       }] : [];
 
       setLocalMaterials((current) => [
