@@ -11289,9 +11289,34 @@
 }
 
 /* Slot image pan/zoom: grab cursor only on assigned images */
-.profileLitePowerPlace .slotImagePanZoomTarget.hasImage {
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage {
+  position: relative;
+  overflow: hidden;
+  background-image: none;
   cursor: grab;
 }
+
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage::before,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--slot-bg-image, none);
+  background-repeat: no-repeat;
+  background-position: var(--slot-bg-pos, center);
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto;
+  transform: rotate(var(--slot-bg-rotate, 0deg));
+  transform-origin: center;
+}
+
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage > span,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage > span {
+  display: none;
+}
+
 .profileLitePowerPlace .slotImagePanZoomTarget.hasImage.is-panning,
 .profileLitePowerPlace .slotImagePanZoomTarget.hasImage.is-pinching {
   cursor: grabbing;

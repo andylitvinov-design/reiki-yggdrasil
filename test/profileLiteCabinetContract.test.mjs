@@ -785,11 +785,32 @@ assert.match(powerPlaceBaseSource, /slotPinchRef/, "slot pan/zoom: slotPinchRef 
 assert.match(powerPlaceBaseSource, /Math\.hypot/, "slot pan/zoom: pinch distance must use Math.hypot");
 assert.match(powerPlaceBaseSource, /slotImagePanZoomTarget/, "slot pan/zoom: slotImagePanZoomTarget class must be applied to slot buttons");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.slotImagePanZoomTarget\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for slot images");
+assert.match(profileMandalaCss, /\.profileLitePowerPlace \.slotImagePanZoomTarget\.hasImage::before[\s\S]*background-image:\s*var\(--slot-bg-image, none\)/, "slot image CSS must render the selected photo from --slot-bg-image");
+assert.match(profileMandalaCss, /\.powerPlacePdfOnlyArea \.slotImagePanZoomTarget\.hasImage::before[\s\S]*background-image:\s*var\(--slot-bg-image, none\)/, "PDF/export slot image CSS must render the selected photo from --slot-bg-image");
 
 // Part C: slot renderers must use slotImageStyle and attach pan/zoom handlers only when image exists
 assert.match(powerPlaceBaseSource, /slotImageStyle\(slot\.id/, "renderObjectImageButton must use slotImageStyle");
 assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers\(slot\.id/, "renderObjectImageButton must attach slot pan/zoom handlers");
 assert.match(powerPlaceBaseSource, /getSlotImagePanZoomHandlers\(slotId/, "inline DAO/zodiac/star renderers must attach slot pan/zoom handlers");
+assert.match(
+  powerPlaceBaseSource,
+  /className=\{`\$\{className\} slotImagePanZoomTarget\$\{src \? " hasImage" : ""\}/,
+  "shared slot renderer must apply hasImage to the same slotImagePanZoomTarget element that receives slotImageStyle"
+);
+for (const slotImageClass of [
+  "zodiacInnerPositionImage",
+  "zodiacPositionImage",
+  "zodiacFieldPlusPositionImage",
+  "starPositionImage",
+  "starAdditionalPositionImage",
+  "daoElementImage"
+]) {
+  assert.match(
+    powerPlaceBaseSource,
+    new RegExp(`${slotImageClass}[^\\n]*slotImagePanZoomTarget[^\\n]*\\$\\{src \\? " hasImage" : ""\\}`),
+    `${slotImageClass} button must apply hasImage to the same slotImagePanZoomTarget element that receives slotImageStyle`
+  );
+}
 
 // Part C: cover pan/zoom must NOT have been introduced
 assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must remain absent");

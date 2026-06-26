@@ -3327,7 +3327,7 @@ export default function ProfileLitePowerPlaceModule({
                               return (
                                 <div className={`zodiacInnerPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id} style={innerPos}>
                                   <button
-                                    className={`zodiacInnerPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                    className={`zodiacInnerPositionImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {
                                       if (suppressSlotPickerClickRef.current[slot.id]) {
                                         suppressSlotPickerClickRef.current[slot.id] = false;
@@ -3354,7 +3354,7 @@ export default function ProfileLitePowerPlaceModule({
                               return (
                                 <div className={`zodiacPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id} style={outerPos}>
                                   <button
-                                    className={`zodiacPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                    className={`zodiacPositionImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                     onClick={() => {
                                       if (suppressSlotPickerClickRef.current[slot.id]) {
                                         suppressSlotPickerClickRef.current[slot.id] = false;
@@ -3381,7 +3381,7 @@ export default function ProfileLitePowerPlaceModule({
                             return (
                               <div className={`zodiacFieldPlusPosition ${slot.className || ""}${src ? " hasImage" : ""}`} key={slot.id}>
                                 <button
-                                  className={`zodiacFieldPlusPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                                  className={`zodiacFieldPlusPositionImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                                   onClick={() => {
                                     if (suppressSlotPickerClickRef.current[slot.id]) {
                                       suppressSlotPickerClickRef.current[slot.id] = false;
@@ -3433,7 +3433,7 @@ export default function ProfileLitePowerPlaceModule({
                         return (
                           <div className={`starPosition ${slot.className}${src ? " hasImage" : ""}`} key={slot.id}>
                             <button
-                              className={`starPositionImage slotImagePanZoomTarget${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
+                              className={`starPositionImage slotImagePanZoomTarget${src ? " hasImage" : ""}${selectedSlotId === slot.id ? " selected" : ""}${dragOverSlotId === slot.id ? " power-place-slot--drag-over" : ""}`}
                               onClick={() => {
                                 if (suppressSlotPickerClickRef.current[slot.id]) {
                                   suppressSlotPickerClickRef.current[slot.id] = false;
