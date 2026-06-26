@@ -19,6 +19,7 @@ import {
   getGrimoireNextVisibilityStatus,
   getGrimoirePhotoGalleryItems,
   getGrimoirePreviewUrl,
+  buildGrimoireBatchUploadPayload,
   buildMaterialUploadPublicationPayload,
   materialMatchesGrimoireTaxonomyFilter,
   materialStatusText,
@@ -227,6 +228,33 @@ assert.equal(getGrimoireFeedActionLabel({ status: "approved" }), "Спрятат
 assert.equal(getGrimoireNextVisibilityStatus({ status: "approved" }), "draft");
 assert.equal(getGrimoireFeedActionLabel({ status: "draft" }), "Добавить в ленту");
 assert.equal(getGrimoireNextVisibilityStatus({ status: "draft" }), "approved");
+
+const grimoireBatch = buildGrimoireBatchUploadPayload({
+  profileId: "profile-1",
+  uploadedFiles: [
+    { file: { type: "image/png", name: "one.png" }, uploaded: { ref: "storage://profile-cabinet-media/profile-1/material/one.png", signedUrl: "https://signed.example/one.png" } },
+    { file: { type: "image/jpeg", name: "two.jpg" }, uploaded: { ref: "storage://profile-cabinet-media/profile-1/material/two.jpg", signedUrl: "https://signed.example/two.jpg" } }
+  ],
+  taxonomy: { level1: "dao-ri", level2: "dao-ri-foundation", level3: "dao-ri-materials" },
+  status: "draft"
+});
+
+assert.equal(grimoireBatch.payload.type, DB_SAFE_GRIMOIRE_TYPE);
+assert.equal(grimoireBatch.payload.title, "Фото (2)");
+assert.equal(grimoireBatch.payload.image_url, "storage://profile-cabinet-media/profile-1/material/one.png");
+assert.equal(grimoireBatch.payload.category, "dao-ri");
+assert.equal(grimoireBatch.payload.subcategory, "dao-ri-foundation");
+assert.equal(grimoireBatch.payload.material_group, "dao-ri-materials");
+assert.equal(grimoireBatch.attachments.length, 2);
+assert.equal(grimoireBatch.firstSignedUrl, "https://signed.example/one.png");
+assert.deepEqual(
+  getGrimoirePhotoGalleryItems({
+    ...grimoireBatch.payload,
+    attachments: grimoireBatch.attachments
+  }).map((item) => item.display_url),
+  ["https://signed.example/one.png", "https://signed.example/two.jpg"],
+  "Batch upload helper should create one parent material with hydrated attachment previews"
+);
 
 const moneyChannelUpload = buildMaterialUploadPublicationPayload({
   profileId: "profile-1",

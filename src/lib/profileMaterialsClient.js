@@ -415,6 +415,54 @@ export function buildGrimoireDescriptionValue(description = "", attachments = []
   return `${text}${GRIMOIRE_ATTACHMENT_META_PREFIX}${JSON.stringify({ attachments: normalizedAttachments })}`;
 }
 
+export function buildGrimoireBatchUploadPayload({
+  profileId = "",
+  uploadedFiles = [],
+  description = "",
+  taxonomy = {},
+  status = "draft",
+  title = "",
+  updatedAt = new Date().toISOString()
+} = {}) {
+  const files = Array.isArray(uploadedFiles) ? uploadedFiles.filter((item) => item?.uploaded || item?.file) : [];
+  const firstUpload = files[0] || null;
+  const firstFile = firstUpload?.file || null;
+  const attachments = files.map(({ file, uploaded }) => ({
+    image_url: uploaded?.ref || "",
+    signed_url: uploaded?.signedUrl || "",
+    title: stripFileExtension(file?.name) || file?.name || "Фото",
+    type: detectMaterialTypeFromFile(file)
+  }));
+  const normalizedTaxonomy = normalizeGrimoireTaxonomy(taxonomy);
+  const materialType = firstFile ? detectMaterialTypeFromFile(firstFile) : DB_SAFE_GRIMOIRE_TYPE;
+  const cleanTitleValue = cleanText(title)
+    || (files.length > 1 ? `Фото (${files.length})` : stripFileExtension(firstFile?.name) || "")
+    || cleanText(description).slice(0, 64)
+    || "Запись гримуара";
+
+  return {
+    payload: {
+      profile_id: cleanText(profileId),
+      type: DB_SAFE_GRIMOIRE_TYPE,
+      material_group: normalizedTaxonomy.level3,
+      material_type: materialType,
+      title: cleanTitleValue,
+      description: buildGrimoireDescriptionValue(description, attachments),
+      image_url: firstUpload?.uploaded?.ref || "",
+      step_id: "",
+      step_title: "",
+      setting_title: "",
+      setting_index: null,
+      category: normalizedTaxonomy.level1,
+      subcategory: normalizedTaxonomy.level2,
+      status: cleanStatus(status),
+      updated_at: updatedAt
+    },
+    attachments,
+    firstSignedUrl: firstUpload?.uploaded?.signedUrl || ""
+  };
+}
+
 export function getGrimoireDescriptionText(material = {}) {
   return splitGrimoireDescription(material.description).text;
 }
