@@ -1,5 +1,24 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-26 — Add master profile tab/packages button
+
+- Target branch: `codex/master-profile-tab-packages`.
+- Target URL: `https://2mentalica.vercel.app`.
+- Changed:
+  - added master cabinet nav item `Профиль Мастера` after `Гримуар`;
+  - added `masterProfile` tab routing/role mapping;
+  - reused `ProfileLiteProfileModule` for the new master profile section with heading `Профиль Мастера`, helper text `Расскажите о себе, своём опыте и формате работы.`, `О себе` textarea, and save flow;
+  - localized plan labels to `Start / Практик / Мастер`;
+  - reused the existing `account_plan` persistence path and current master-plan migration instead of adding a new table.
+- Verification:
+  - focused Profile Lite contract tests;
+  - master plan contract tests;
+  - `npm run check`;
+  - `npm run delivery:checks`;
+  - local browser QA for desktop and mobile-ish master cabinet layout with mock Supabase.
+- Remaining risk:
+  - live authenticated Supabase save/load must be verified on `2mentalica` after branch merge/deploy.
+
 ## 2026-06-24 — Group Grimoire multi-photo uploads into one gallery card
 
 - Branch: `codex/issue104-multi-photo-gallery`.

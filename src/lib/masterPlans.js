@@ -26,7 +26,7 @@ export const MASTER_PLAN_CONFIG = [
   },
   {
     value: "practic",
-    label: "Practic",
+    label: "Практик",
     priceLabel: "10 €/мес",
     summary: "Для регулярной практики и пробных услуг.",
     ctaLabel: "Подключить Practic",
@@ -44,7 +44,7 @@ export const MASTER_PLAN_CONFIG = [
   },
   {
     value: "master",
-    label: "Master",
+    label: "Мастер",
     priceLabel: "25 €/мес",
     summary: "Для платных услуг, большего каталога и управления видимостью публикаций.",
     ctaLabel: "Подключить Master",

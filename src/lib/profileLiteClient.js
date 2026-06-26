@@ -9,6 +9,7 @@ export const PROFILE_LITE_TABS = [
   { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
   { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
   { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
+  { id: "masterProfile", label: "Профиль Мастера", href: "/profile?tab=masterProfile" },
   { id: "courses", label: "Курсы", href: "/profile/courses" },
   { id: "services", label: "Услуги", href: "/profile/services" },
   { id: "clients", label: "Клиенты", href: "/profile?tab=clients" },
@@ -33,13 +34,14 @@ export const PROFILE_LITE_ROLE_NAV = {
     { label: "Услуги", tabId: "services" },
     { label: "Клиенты", tabId: "clients" },
     { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" },
-    { label: "Гримуар", tabId: "materials" }
+    { label: "Гримуар", tabId: "materials" },
+    { label: "Профиль Мастера", tabId: "masterProfile" }
   ]
 };
 
 const PROFILE_LITE_ROLE_TAB_IDS = {
   client: ["orders", "media", "chats", "profile"],
-  master: ["mandalas", "services", "clients", "materials", "orders"]
+  master: ["mandalas", "services", "clients", "materials", "masterProfile", "orders"]
 };
 
 const PROFILE_LITE_INTERNAL_TABS = [
@@ -76,7 +78,7 @@ export function getProfileLiteRoleById(roleId) {
 
 export function getProfileLiteRoleForTab(tabId, preferredRole = "") {
   if (tabId === "orders" && preferredRole === "master") return "master";
-  return ["mandalas", "services", "clients", "materials"].includes(tabId) ? "master" : "client";
+  return ["mandalas", "services", "clients", "materials", "masterProfile"].includes(tabId) ? "master" : "client";
 }
 
 export function getProfileLiteRoleNav(roleId) {
