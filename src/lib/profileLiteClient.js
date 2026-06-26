@@ -1,3 +1,6 @@
+import { normalizeMasterPlan, resolveProfileMasterPlan } from "./masterPlans.js";
+import { supabaseEnv } from "./supabaseClient.js";
+
 export const PROFILE_LITE_AUTH_STATUSES = ["idle", "loading", "success", "error"];
 export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "error"];
 
@@ -47,7 +50,6 @@ const PROFILE_LITE_INTERNAL_TABS = [
 
 const SAFE_STATUS_VALUES = ["draft", "pending", "approved", "rejected"];
 const SAVE_STATUS_VALUES = ["draft", "pending"];
-const SAFE_PLAN_VALUES = ["start", "pro"];
 const SESSION_CREDENTIAL_FIELD = ["access", "token"].join("_");
 
 function hasText(value) {
@@ -181,7 +183,7 @@ export function createProfileLiteForm(profile = null, user = null) {
     telegram: profile?.telegram || "",
     website: profile?.website || "",
     avatar_url: profile?.avatar_url || "",
-    account_plan: SAFE_PLAN_VALUES.includes(profile?.account_plan) ? profile.account_plan : "start",
+    account_plan: resolveProfileMasterPlan(profile, user, supabaseEnv.adminEmail),
     status: SAFE_STATUS_VALUES.includes(profile?.status) ? profile.status : "draft"
   };
 }
@@ -196,7 +198,7 @@ export function createProfileLiteSavePayload(form = {}, user = null, requestedSt
     telegram: String(form.telegram || "").trim(),
     website: String(form.website || "").trim(),
     avatar_url: String(form.avatar_url || "").trim(),
-    account_plan: SAFE_PLAN_VALUES.includes(form.account_plan) ? form.account_plan : "start",
+    account_plan: normalizeMasterPlan(form.account_plan),
     status: SAVE_STATUS_VALUES.includes(requestedStatus) ? requestedStatus : "draft"
   };
 }

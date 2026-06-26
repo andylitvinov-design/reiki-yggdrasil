@@ -144,7 +144,7 @@ export default function ProfileLiteImagePicker({
   const currentUploadStatus = uploadStatus === "idle" ? localUploadStatus : uploadStatus;
   const currentUploadError = uploadError || localUploadError;
   const isUploading = currentUploadStatus === "loading";
-  const isProAccount = accountPlan === "pro";
+  const isProAccount = accountPlan !== "start";
   const symbolImages = useMemo(() => listPowerPlaceSymbolsByShelf(symbolShelf), [symbolShelf]);
   const materialSelection = normalizeMaterialSelection(materialGroup, materialCategory, materialSubcategory);
   const materialFilterSelection = normalizeMaterialSelection(materialFilterGroup, materialFilterCategory, materialFilterSubcategory);

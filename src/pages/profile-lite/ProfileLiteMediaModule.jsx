@@ -56,7 +56,7 @@ export default function ProfileLiteMediaModule({
   clientPhotoForm,
   shellChrome
 }) {
-  const isProAccount = accountPlan === "pro";
+  const isProAccount = accountPlan !== "start";
   const [activeFolderId, setActiveFolderId] = useState("all-files");
   const [draggedPhoto, setDraggedPhoto] = useState(null);
   const [dragOverFolderId, setDragOverFolderId] = useState("");

@@ -1488,6 +1488,100 @@
   color: #24180e;
 }
 
+.masterPlanSwitcher {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(184, 121, 29, 0.26);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.7);
+}
+
+.masterPlanSwitcherHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.masterPlanSwitcherHeader h3,
+.masterPlanCard h4 {
+  margin: 0;
+}
+
+.masterPlanSwitcherHeader select {
+  min-width: 148px;
+}
+
+.masterPlanCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.masterPlanCard {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(152, 96, 24, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.masterPlanCard.is-active {
+  border-color: rgba(184, 121, 29, 0.74);
+  box-shadow: inset 0 0 0 1px rgba(184, 121, 29, 0.24);
+}
+
+.masterPlanCardTop {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.masterPlanCard strong {
+  display: block;
+  margin-top: 3px;
+  color: #8e5d18;
+  font-size: 14px;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.masterPlanCard p,
+.masterPlanCard ul {
+  margin: 0;
+}
+
+.masterPlanCard ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+  color: #5d4e3e;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.masterPlanCard .cabinetSecondary {
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+}
+
+@media (max-width: 760px) {
+  .masterPlanSwitcherHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .masterPlanCards {
+    grid-template-columns: 1fr;
+  }
+}
+
 .profileLiteMediaGrid {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
