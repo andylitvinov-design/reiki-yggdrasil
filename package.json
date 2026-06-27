@@ -16,6 +16,7 @@
     "test:master-plans": "node test/masterPlans.test.mjs && node test/profileMasterPlansContract.test.mjs",
     "test:power-place": "node test/powerPlaceClient.test.mjs && node test/powerPlaceSymbolLibrary.test.mjs && node test/powerPlaceStyleContract.test.mjs && node test/printUtils.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
+    "audit:reiki-materials": "node scripts/audit-reiki-step-materials.mjs",
     "validate:knowledge": "node scripts/validate-knowledge-base.mjs",
     "validate:videos": "node scripts/validate-reiki-step-videos.mjs",
     "validate:free-courses": "node scripts/validate-free-course-links.mjs",

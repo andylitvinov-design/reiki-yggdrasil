@@ -1,0 +1,826 @@
+{
+  "generatedAt": "2026-06-27T07:59:11.977Z",
+  "source": {
+    "knowledgeBase": "src/data/reikiKnowledgeBase.js",
+    "stepSettings": "src/data/reikiStepSettings.js"
+  },
+  "meta": {
+    "project": "Reiki Yggdrasil",
+    "language": "ru",
+    "source": "src/data/reikiKnowledgeBase.js",
+    "status": "course_structure_verified_draft_content_and_settings_needs_review",
+    "stableIdPattern": "RY-L{level}-S{step}",
+    "totalLevels": 7,
+    "totalSteps": 37,
+    "knownContentPolicy": "The 7-level / 37-step course structure is aligned with user-provided screenshots and follow-up corrections. Current learner-facing descriptions and settings are draft copy based on titles/themes and must be reviewed against author methodichki before being marked verified."
+  },
+  "summary": {
+    "totalLevels": 7,
+    "totalSteps": 37,
+    "expectedTotalLevels": 7,
+    "expectedTotalSteps": 37,
+    "stepsWithCustomDraftContent": 5,
+    "stepsWithGeneratedDraftOnly": 32,
+    "stepsWithSourcedSettings": 37,
+    "stepsMissingSourcedSettings": 0,
+    "publicReadyVerifiedSteps": 0
+  },
+  "levels": [
+    {
+      "id": 1,
+      "name": "Базовая программа Рейки Иггдрасиль",
+      "count": 5,
+      "stepLabel": "Уровень",
+      "theme": "здоровье, интуиция, защита, очищение, денежная активация, сила, видение и мастерский уровень"
+    },
+    {
+      "id": 2,
+      "name": "Инструкторский курс",
+      "count": 6,
+      "stepLabel": "Ступень",
+      "theme": "целительство, ресурсы, отношения, жизненная сила, сексуальная энергетика и управление энергией"
+    },
+    {
+      "id": 3,
+      "name": "Храмовая магия",
+      "count": 5,
+      "stepLabel": "Ступень",
+      "theme": "эгрегоры, египетская, греческая, толтекская и суфийская традиции"
+    },
+    {
+      "id": 4,
+      "name": "Восточная магия",
+      "count": 5,
+      "stepLabel": "Ступень",
+      "theme": "китайская медицина, прогнозирование, кундалини и денежная магия"
+    },
+    {
+      "id": 5,
+      "name": "Западноевропейская магия. Каббала и Таро",
+      "count": 5,
+      "stepLabel": "Ступень",
+      "theme": "Таро, стихии, Дерево Сефирот и предсказательная практика"
+    },
+    {
+      "id": 6,
+      "name": "Продвинутая магия рун",
+      "count": 5,
+      "stepLabel": "Ступень",
+      "theme": "руны, миры Древа Иггдрасиль, круг силы, предсказание и исцеление"
+    },
+    {
+      "id": 7,
+      "name": "Высшая магия",
+      "count": 6,
+      "stepLabel": "Ступень",
+      "theme": "телепорт, астральный полет, ясновидение, помощники, славянская магия и цивилизации"
+    }
+  ],
+  "missingSourcedSettings": [],
+  "generatedDraftOnly": [
+    {
+      "id": "RY-L02-S01",
+      "title": "Целительство",
+      "levelId": 2,
+      "number": 1
+    },
+    {
+      "id": "RY-L02-S02",
+      "title": "Золотой телец",
+      "levelId": 2,
+      "number": 2
+    },
+    {
+      "id": "RY-L02-S03",
+      "title": "Мужчина и женщина",
+      "levelId": 2,
+      "number": 3
+    },
+    {
+      "id": "RY-L02-S04",
+      "title": "Жизненная сила",
+      "levelId": 2,
+      "number": 4
+    },
+    {
+      "id": "RY-L02-S05",
+      "title": "Сексуальная энергетика",
+      "levelId": 2,
+      "number": 5
+    },
+    {
+      "id": "RY-L02-S06",
+      "title": "Файербол. Управление энергией",
+      "levelId": 2,
+      "number": 6
+    },
+    {
+      "id": "RY-L03-S01",
+      "title": "Работа с эгрегорами",
+      "levelId": 3,
+      "number": 1
+    },
+    {
+      "id": "RY-L03-S02",
+      "title": "Египетская магия",
+      "levelId": 3,
+      "number": 2
+    },
+    {
+      "id": "RY-L03-S03",
+      "title": "Греческая магия. Зодиак",
+      "levelId": 3,
+      "number": 3
+    },
+    {
+      "id": "RY-L03-S04",
+      "title": "Толтекская магия",
+      "levelId": 3,
+      "number": 4
+    },
+    {
+      "id": "RY-L03-S05",
+      "title": "Суфизм",
+      "levelId": 3,
+      "number": 5
+    },
+    {
+      "id": "RY-L04-S01",
+      "title": "Китайская медицина 1. Элементы",
+      "levelId": 4,
+      "number": 1
+    },
+    {
+      "id": "RY-L04-S02",
+      "title": "Китайская медицина 2. Сила",
+      "levelId": 4,
+      "number": 2
+    },
+    {
+      "id": "RY-L04-S03",
+      "title": "Китайское прогнозирование. И Цзин",
+      "levelId": 4,
+      "number": 3
+    },
+    {
+      "id": "RY-L04-S04",
+      "title": "Кундалини",
+      "levelId": 4,
+      "number": 4
+    },
+    {
+      "id": "RY-L04-S05",
+      "title": "Денежная магия",
+      "levelId": 4,
+      "number": 5
+    },
+    {
+      "id": "RY-L05-S01",
+      "title": "Великие арканы Таро",
+      "levelId": 5,
+      "number": 1
+    },
+    {
+      "id": "RY-L05-S02",
+      "title": "Силы стихий",
+      "levelId": 5,
+      "number": 2
+    },
+    {
+      "id": "RY-L05-S03",
+      "title": "Дерево Сефирот",
+      "levelId": 5,
+      "number": 3
+    },
+    {
+      "id": "RY-L05-S04",
+      "title": "Высшие арканы Таро",
+      "levelId": 5,
+      "number": 4
+    },
+    {
+      "id": "RY-L05-S05",
+      "title": "Предсказания в Таро",
+      "levelId": 5,
+      "number": 5
+    },
+    {
+      "id": "RY-L06-S01",
+      "title": "Руны и руническая традиция",
+      "levelId": 6,
+      "number": 1
+    },
+    {
+      "id": "RY-L06-S02",
+      "title": "Миры Древа Иггдрасиль",
+      "levelId": 6,
+      "number": 2
+    },
+    {
+      "id": "RY-L06-S03",
+      "title": "Круг силы",
+      "levelId": 6,
+      "number": 3
+    },
+    {
+      "id": "RY-L06-S04",
+      "title": "Руническое предсказание",
+      "levelId": 6,
+      "number": 4
+    },
+    {
+      "id": "RY-L06-S05",
+      "title": "Руническое исцеление",
+      "levelId": 6,
+      "number": 5
+    },
+    {
+      "id": "RY-L07-S01",
+      "title": "Телепорт. Астральный полет. Ясновидение",
+      "levelId": 7,
+      "number": 1
+    },
+    {
+      "id": "RY-L07-S02",
+      "title": "Машинный зал. Укрепление видения",
+      "levelId": 7,
+      "number": 2
+    },
+    {
+      "id": "RY-L07-S03",
+      "title": "Ифриты. Создание помощников",
+      "levelId": 7,
+      "number": 3
+    },
+    {
+      "id": "RY-L07-S04",
+      "title": "Славянская магия 1",
+      "levelId": 7,
+      "number": 4
+    },
+    {
+      "id": "RY-L07-S05",
+      "title": "Славянская магия 2",
+      "levelId": 7,
+      "number": 5
+    },
+    {
+      "id": "RY-L07-S06",
+      "title": "Цивилизации",
+      "levelId": 7,
+      "number": 6
+    }
+  ],
+  "customDraftContent": [
+    {
+      "id": "RY-L01-S01",
+      "title": "Здоровье · Интуиция · Защита",
+      "levelId": 1,
+      "number": 1
+    },
+    {
+      "id": "RY-L01-S02",
+      "title": "Очищение · Денежная активация",
+      "levelId": 1,
+      "number": 2
+    },
+    {
+      "id": "RY-L01-S03",
+      "title": "Предопределение · Сила",
+      "levelId": 1,
+      "number": 3
+    },
+    {
+      "id": "RY-L01-S04",
+      "title": "Сверхчувственное видение",
+      "levelId": 1,
+      "number": 4
+    },
+    {
+      "id": "RY-L01-S05",
+      "title": "Уровень мастера",
+      "levelId": 1,
+      "number": 5
+    }
+  ],
+  "steps": [
+    {
+      "id": "RY-L01-S01",
+      "levelId": 1,
+      "number": 1,
+      "label": "Уровень",
+      "title": "Здоровье · Интуиция · Защита",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": true,
+      "hasGeneratedDraftContent": false,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "draft_public_copy_needs_author_review"
+    },
+    {
+      "id": "RY-L01-S02",
+      "levelId": 1,
+      "number": 2,
+      "label": "Уровень",
+      "title": "Очищение · Денежная активация",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": true,
+      "hasGeneratedDraftContent": false,
+      "hasSourcedSettings": true,
+      "settingsCount": 5,
+      "missingFields": [],
+      "readiness": "draft_public_copy_needs_author_review"
+    },
+    {
+      "id": "RY-L01-S03",
+      "levelId": 1,
+      "number": 3,
+      "label": "Уровень",
+      "title": "Предопределение · Сила",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": true,
+      "hasGeneratedDraftContent": false,
+      "hasSourcedSettings": true,
+      "settingsCount": 8,
+      "missingFields": [],
+      "readiness": "draft_public_copy_needs_author_review"
+    },
+    {
+      "id": "RY-L01-S04",
+      "levelId": 1,
+      "number": 4,
+      "label": "Уровень",
+      "title": "Сверхчувственное видение",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": true,
+      "hasGeneratedDraftContent": false,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "draft_public_copy_needs_author_review"
+    },
+    {
+      "id": "RY-L01-S05",
+      "levelId": 1,
+      "number": 5,
+      "label": "Уровень",
+      "title": "Уровень мастера",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": true,
+      "hasGeneratedDraftContent": false,
+      "hasSourcedSettings": true,
+      "settingsCount": 2,
+      "missingFields": [],
+      "readiness": "draft_public_copy_needs_author_review"
+    },
+    {
+      "id": "RY-L02-S01",
+      "levelId": 2,
+      "number": 1,
+      "label": "Ступень",
+      "title": "Целительство",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L02-S02",
+      "levelId": 2,
+      "number": 2,
+      "label": "Ступень",
+      "title": "Золотой телец",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 3,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L02-S03",
+      "levelId": 2,
+      "number": 3,
+      "label": "Ступень",
+      "title": "Мужчина и женщина",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L02-S04",
+      "levelId": 2,
+      "number": 4,
+      "label": "Ступень",
+      "title": "Жизненная сила",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L02-S05",
+      "levelId": 2,
+      "number": 5,
+      "label": "Ступень",
+      "title": "Сексуальная энергетика",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 5,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L02-S06",
+      "levelId": 2,
+      "number": 6,
+      "label": "Ступень",
+      "title": "Файербол. Управление энергией",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 3,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L03-S01",
+      "levelId": 3,
+      "number": 1,
+      "label": "Ступень",
+      "title": "Работа с эгрегорами",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L03-S02",
+      "levelId": 3,
+      "number": 2,
+      "label": "Ступень",
+      "title": "Египетская магия",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 9,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L03-S03",
+      "levelId": 3,
+      "number": 3,
+      "label": "Ступень",
+      "title": "Греческая магия. Зодиак",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 5,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L03-S04",
+      "levelId": 3,
+      "number": 4,
+      "label": "Ступень",
+      "title": "Толтекская магия",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L03-S05",
+      "levelId": 3,
+      "number": 5,
+      "label": "Ступень",
+      "title": "Суфизм",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 3,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L04-S01",
+      "levelId": 4,
+      "number": 1,
+      "label": "Ступень",
+      "title": "Китайская медицина 1. Элементы",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 11,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L04-S02",
+      "levelId": 4,
+      "number": 2,
+      "label": "Ступень",
+      "title": "Китайская медицина 2. Сила",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 8,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L04-S03",
+      "levelId": 4,
+      "number": 3,
+      "label": "Ступень",
+      "title": "Китайское прогнозирование. И Цзин",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 6,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L04-S04",
+      "levelId": 4,
+      "number": 4,
+      "label": "Ступень",
+      "title": "Кундалини",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L04-S05",
+      "levelId": 4,
+      "number": 5,
+      "label": "Ступень",
+      "title": "Денежная магия",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 3,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L05-S01",
+      "levelId": 5,
+      "number": 1,
+      "label": "Ступень",
+      "title": "Великие арканы Таро",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L05-S02",
+      "levelId": 5,
+      "number": 2,
+      "label": "Ступень",
+      "title": "Силы стихий",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L05-S03",
+      "levelId": 5,
+      "number": 3,
+      "label": "Ступень",
+      "title": "Дерево Сефирот",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 3,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L05-S04",
+      "levelId": 5,
+      "number": 4,
+      "label": "Ступень",
+      "title": "Высшие арканы Таро",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L05-S05",
+      "levelId": 5,
+      "number": 5,
+      "label": "Ступень",
+      "title": "Предсказания в Таро",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 2,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L06-S01",
+      "levelId": 6,
+      "number": 1,
+      "label": "Ступень",
+      "title": "Руны и руническая традиция",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L06-S02",
+      "levelId": 6,
+      "number": 2,
+      "label": "Ступень",
+      "title": "Миры Древа Иггдрасиль",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 9,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L06-S03",
+      "levelId": 6,
+      "number": 3,
+      "label": "Ступень",
+      "title": "Круг силы",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 7,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L06-S04",
+      "levelId": 6,
+      "number": 4,
+      "label": "Ступень",
+      "title": "Руническое предсказание",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 3,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L06-S05",
+      "levelId": 6,
+      "number": 5,
+      "label": "Ступень",
+      "title": "Руническое исцеление",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 2,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L07-S01",
+      "levelId": 7,
+      "number": 1,
+      "label": "Ступень",
+      "title": "Телепорт. Астральный полет. Ясновидение",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L07-S02",
+      "levelId": 7,
+      "number": 2,
+      "label": "Ступень",
+      "title": "Машинный зал. Укрепление видения",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 5,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L07-S03",
+      "levelId": 7,
+      "number": 3,
+      "label": "Ступень",
+      "title": "Ифриты. Создание помощников",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 9,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L07-S04",
+      "levelId": 7,
+      "number": 4,
+      "label": "Ступень",
+      "title": "Славянская магия 1",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L07-S05",
+      "levelId": 7,
+      "number": 5,
+      "label": "Ступень",
+      "title": "Славянская магия 2",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 6,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    },
+    {
+      "id": "RY-L07-S06",
+      "levelId": 7,
+      "number": 6,
+      "label": "Ступень",
+      "title": "Цивилизации",
+      "contentStatus": "needs_review",
+      "hasCustomDraftContent": false,
+      "hasGeneratedDraftContent": true,
+      "hasSourcedSettings": true,
+      "settingsCount": 4,
+      "missingFields": [],
+      "readiness": "generated_draft_needs_author_content"
+    }
+  ]
+}
