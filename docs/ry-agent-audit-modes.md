@@ -1,7 +1,7 @@
 # RY Agent — Audit Modes
 
 Status: reusable instruction block for the RY agent  
-Purpose: make the RY agent understand `/audit` and `/audit-fin` as first-class diagnostic modes that prepare GitHub issues and short `/delivery` prompts.
+Purpose: make the RY agent understand `/audit`, `/audit-ui`, and `/audit-fin` as first-class diagnostic modes that prepare GitHub issues and short `/delivery` prompts.
 
 Global source of truth:
 
@@ -14,13 +14,11 @@ docs/global-agent-skills.md
 
 This file is the Reiki-specific adapter. Do not copy the full protocol into other projects; make those projects reference the global docs and add only local routing/check/safety details.
 
-Use this document as the RY agent instruction source for audit behavior.
-
 ## 1. Core behavior
 
-The RY agent should act as a product/technical analyst before implementation.
+The RY agent acts as a product/technical analyst before implementation.
 
-When the user writes `/audit` or `/audit-fin`, the agent must not immediately implement code. It must diagnose, inspect relevant project instructions, inspect code when available, create or update a GitHub issue with full technical instructions, and return a short `/delivery` prompt pointing to the issue.
+When the user writes `/audit`, `/audit-ui`, or `/audit-fin`, the agent must not immediately implement code. It must diagnose, inspect relevant project instructions, inspect code when available, create or update a GitHub issue with full technical instructions, and return a short `/delivery` prompt pointing to the issue.
 
 Critical handoff rule:
 
@@ -28,7 +26,7 @@ The implementation handoff prompt must begin with `/delivery`, not `/audit`, `/a
 
 ## 2. Source links
 
-Primary repository for audit protocols:
+Primary repository for Reiki/Mentalica audit protocols:
 
 ```txt
 https://github.com/andylitvinov-design/reiki-yggdrasil
@@ -77,21 +75,20 @@ https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/AGENTS.md
 https://github.com/andylitvinov-design/reiki-yggdrasil/blob/main/.claude/commands/delivery.md
 ```
 
-If the agent has direct repository access, it should read the local files instead of relying only on URLs.
-
-If the agent cannot access GitHub or local files, it should say that the source protocol was not verified and continue using the behavior summarized in this document.
+If the agent has direct repository access, it should read the local files instead of relying only on URLs. If a local source file is missing, report `needs verification`; do not invent replacement rules.
 
 ## 3. Project routing
 
-When auditing a URL or screenshot, first resolve the project repository. Do not assume the repo name from the local folder name.
+When auditing a URL, screenshot, or user-reported live behavior, first resolve the project repository. Do not assume the repo name from a local folder name, an old issue, or a stale mapping.
 
-Known mappings:
+Known current mappings:
 
 ```txt
 Live URL: https://2mentalica.vercel.app
-Canonical GitHub repo: andylitvinov-design/report
-Possible local path: /Users/andriilitvinov/projects/MYPROJECTS/reports
-Notes: local folder may be plural `reports`, but GitHub repo is singular `report`.
+Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
+GitHub issues: https://github.com/andylitvinov-design/reiki-yggdrasil/issues
+Possible local path: /Users/andriilitvinov/projects/MYPROJECTS/reiki-yggdrasil
+Notes: 2mentalica is the current Reiki Yggdrasil staging/draft site. Live title/brand is “Рейки Иггдрасиль”. Tasks for /profile, /masters, /profile/admin, Power Place formats, master cabinet, publications, templates, services, clients, or Reiki UI must go to this repo.
 
 Live URL: https://mentalica.vercel.app
 Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
@@ -99,25 +96,45 @@ Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
 Live URL: https://reiki-yggdrasil.vercel.app
 Canonical GitHub repo: andylitvinov-design/reiki-yggdrasil
 
+Live URL: https://psitherapy.vercel.app
+Canonical GitHub repo: andylitvinov-design/report
+Notes: PsiTherapy / client report / AI intake / Bach-DAO report cabinet project. Do not use this repo for Reiki Yggdrasil / 2mentalica profile work.
+
 Live URL: https://ezohata-incoming-ledger.vercel.app
 Canonical GitHub repo: andylitvinov-design/finance
 ```
 
-If `andylitvinov-design/reports` returns Not Found, try `andylitvinov-design/report` before declaring GitHub issue creation unavailable.
+### Hard correction rule for 2mentalica
 
-For `https://2mentalica.vercel.app`, create GitHub audit issues in:
+Do not route `https://2mentalica.vercel.app` to `andylitvinov-design/report`. That was a stale/incorrect historical mapping.
 
-```txt
-https://github.com/andylitvinov-design/report/issues
-```
-
-For finance, create GitHub audit issues in:
+For `https://2mentalica.vercel.app`, create GitHub audit and delivery issues in:
 
 ```txt
-https://github.com/andylitvinov-design/finance/issues
+https://github.com/andylitvinov-design/reiki-yggdrasil/issues
 ```
 
-Do not fall back to `andylitvinov-design/reiki-yggdrasil` for another project implementation issue unless the user explicitly says the issue belongs there.
+Do not attach `2mentalica.vercel.app` to the `report` Vercel project unless the user explicitly says they are migrating that domain away from Reiki Yggdrasil.
+
+### Routing verification gate
+
+Before creating an issue or `/delivery` prompt for a URL, gather these signals:
+
+```txt
+1. User-stated product target and route.
+2. Live title/brand or screenshot brand.
+3. Repo-local AGENTS.md / README / STATE / LOG domain rules.
+4. Current route behavior and public build markers if available.
+5. Recent PRs/issues in the candidate repo related to the requested feature area.
+```
+
+If signals disagree, stop with:
+
+```txt
+STATUS: ROUTING_CONFLICT_NEEDS_VERIFICATION
+```
+
+Then list the conflicting signals and do not create implementation issues in either repo until the target repo is resolved.
 
 ## 4. `/audit` mode
 
@@ -131,13 +148,13 @@ Trigger examples:
 /audit найди проблему и создай issue
 ```
 
-When `/audit` is invoked, the RY agent must run the general product/UX/technical audit protocol.
+When `/audit` is invoked, run the general product/UX/technical audit protocol.
 
 Required chain:
 
 ```txt
 understand target
--> resolve project repo
+-> resolve project repo with the routing verification gate
 -> inspect project rules
 -> inspect relevant code deeply when available
 -> trace route/component/state/data/style/test chain
@@ -170,7 +187,7 @@ The audit must evaluate:
 
 ## 5. Deep technical issue writing gate
 
-Before creating the issue or `/delivery` prompt, the RY agent must run the deep technical issue-writing gate.
+Before creating the issue or `/delivery` prompt, run the deep technical issue-writing gate.
 
 The issue must be detailed enough that another agent can implement without rediscovering the whole codebase.
 
@@ -210,13 +227,13 @@ Do not present guesses as facts. If code access was unavailable, mark `PARTIAL_C
 
 ## 6. `/audit-fin` mode
 
-When `/audit-fin` is invoked, the RY agent must run the numeric/calculation/financial audit protocol.
+When `/audit-fin` is invoked, run the numeric/calculation/financial audit protocol.
 
 Required chain:
 
 ```txt
 understand numeric target
--> resolve project repo
+-> resolve project repo with the routing verification gate
 -> extract numeric contract
 -> inspect visible numbers
 -> inspect code and data flow deeply
@@ -231,7 +248,7 @@ understand numeric target
 -> return short /delivery prompt with issue link
 ```
 
-Before generating hypotheses, the agent must check source layers. For finance, also prove production source-of-truth and read-only API evidence before blaming formulas.
+Before generating hypotheses, check source layers. For finance, also prove production source-of-truth and read-only API evidence before blaming formulas.
 
 If prior fixes failed, run failed-repair analysis:
 
@@ -244,17 +261,16 @@ Is the source data sufficient?
 
 Do not repeat a prior failed hypothesis unless new evidence changes the conclusion.
 
-Do not keep applying display/rendering fixes when the source-layer matrix shows raw data, formula, state, or persistence problems.
-
 ## 7. GitHub issue behavior
 
-When GitHub access is available, `/audit` and `/audit-fin` should create or update a GitHub issue.
+When GitHub access is available, `/audit`, `/audit-ui`, and `/audit-fin` should create or update a GitHub issue in the resolved canonical repo.
 
 Issue title formats:
 
 ```txt
 [AUDIT] <area/page/feature>: <short problem summary>
 [AUDIT-FIN] <area/page/metric>: <short numeric problem summary>
+[AUDIT-UI] <area/page/feature>: <short UI problem summary>
 ```
 
 If an existing open issue clearly covers the same target and problem, update/comment on that issue instead of creating a duplicate.
@@ -280,7 +296,7 @@ For profile, cabinet, admin, results, intake, client, or private pages behind Go
 
 The final chat response should always include a short implementation prompt.
 
-The handoff prompt is intended to be copy-pasted into an implementation agent. Therefore it must start exactly with `/delivery` as the first non-empty line of the prompt block.
+The copy-pasteable prompt must start exactly with `/delivery` as the first non-empty line.
 
 Do not start the prompt block with:
 
@@ -322,17 +338,11 @@ Task:
 ## 10. Required behavior
 
 Do not say “everything is fine” unless the audit contract was checked.
-
 Do not say “numbers are correct” unless the numeric contract was checked.
-
 Do not say “verified” unless there is evidence.
-
 Do not invent values from an unclear screenshot. Use `VISUAL UNCLEAR` or `NOT VERIFIED`.
-
 Do not invent code evidence. Use `NOT VERIFIED` for unknowns.
-
 Do not generate a huge unfocused hypothesis list. Prefer fewer, evidence-backed hypotheses tied to source layers.
-
 Do not create vague issues. Map symptom -> file/component/function -> likely cause -> change direction -> verification.
-
 Do not write implementation code in audit mode unless the user explicitly asks to continue to `/delivery`.
+Do not let stale routing docs override live product evidence or the current `docs/global-project-adapters.md` mapping.
