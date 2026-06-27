@@ -1,5 +1,43 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-27 — Implement Issue #480 course audio access
+
+- Target branch: `codex/full-course-audio-access-480`.
+- Target URL: `https://2mentalica.vercel.app`.
+- Changed:
+  - added `supabase/migrations/20260627190000_profile_course_audio_invites.sql`;
+  - added course step/lesson slugs, lesson audio metadata, private course-audio Storage policies, course invite hash storage, and create/claim RPCs;
+  - added `magic-money` / `degree-1` quick-create constants and helpers in `src/lib/profileCoursesClient.js`;
+  - added slug-aware course deep-link parsing, pending invite intent persistence, invite link building, claim URL cleanup, invite RPC helpers, and audio attach helpers;
+  - added audio-specific validation/upload/signing/display helpers in `src/lib/profileMediaClient.js`;
+  - updated Profile Lite Courses to select deep-linked course/step, claim course invites after login/OAuth, resolve signed audio only after access, and show RU empty/error audio states;
+  - updated `/profile/admin` courses panel with quick-create, private audio upload/attach, manual audio metadata fields, grant/revoke preservation, and invite link creation;
+  - added `test/profileCourseInviteContract.test.mjs` and extended focused client/media/Profile Lite contracts.
+- Checks run:
+  - `npm ci`
+  - `node test/profileCoursesClient.test.mjs`
+  - `node test/profileMediaClient.test.mjs`
+  - `node test/profileCourseInviteContract.test.mjs`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm run test:profile-media`
+  - `npm run test:profile-lite`
+  - `npm run build`
+  - `npm run check`
+  - `npm run delivery:checks`
+  - `git diff --check`
+- Local route smoke:
+  - `200 /`
+  - `200 /profile`
+  - `200 /profile?tab=courses&course=magic-money&step=degree-1`
+  - `200 /profile?claim=test-token&tab=courses&course=magic-money&step=degree-1`
+  - `200 /masters`
+  - `200 /profile/admin`
+  - `200 /profile/mandalas`
+- Not verified yet:
+  - live Supabase migration application;
+  - real authenticated admin upload/attach, grant/revoke, invite claim, and audio playback on `https://2mentalica.vercel.app`;
+  - Vercel staging deploy/commit proof.
+
 ## 2026-06-27 — Add admin participant cabinet-level controls
 
 - Target branch: `codex/admin-cabinet-levels-20260627`.

@@ -2,6 +2,33 @@
 
 Last updated: 2026-06-27
 
+## 2026-06-27 — Issue #480 course audio access for Магия Денег / Градус 1
+
+- Branch target: `codex/full-course-audio-access-480`.
+- Live target: `https://2mentalica.vercel.app`.
+- Scope: extend the existing private Courses MVP in Profile Lite and `/profile/admin` for the course `Магия Денег` (`magic-money`) and step `Градус 1` (`degree-1`), with private audio and invite/claim links.
+- CURRENT_STATE before implementation:
+  - Courses tab: found;
+  - Admin course editor: partial;
+  - Course access UI: partial;
+  - Deep-link handling: partial;
+  - Audio upload/rendering: partial;
+  - Invite/claim infrastructure: partial;
+  - Storage RLS: needs migration.
+- Changed:
+  - added migration `20260627190000_profile_course_audio_invites.sql` for step/lesson slugs, lesson audio metadata, private course audio Storage policies, course invite table, and create/claim RPCs;
+  - extended `profileCoursesClient` with `magic-money` quick-create helpers, slug intent parsing, pending claim intent storage, invite link helpers, course invite claim/create RPC helpers, and audio attach patching;
+  - extended `profileMediaClient` with 100 MB audio validation, course audio upload paths, private upload/sign helpers, and lesson audio display resolution;
+  - Profile Lite now preserves `/profile?tab=courses&course=magic-money&step=degree-1`, selects requested course/step by slug, stores invite intent across Google OAuth, claims `/profile?claim=<token>...`, clears `claim` from URL, and signs accessible lesson audio before rendering;
+  - `/profile/admin` can quick-create `Магия Денег / Градус 1`, edit lesson audio metadata, upload/attach private audio, grant/revoke access, and create invite links.
+- Verification status:
+  - `npm ci`, `npm run test:profile-media`, `npm run test:profile-lite`, `node test/profileCoursesClient.test.mjs`, `node test/profileCourseInviteContract.test.mjs`, `npm run build`, `npm run check`, `npm run delivery:checks`, and `git diff --check` passed locally;
+  - local route smoke returned `200` for `/`, `/profile`, `/profile?tab=courses&course=magic-money&step=degree-1`, `/profile?claim=test-token&tab=courses&course=magic-money&step=degree-1`, `/masters`, `/profile/admin`, and `/profile/mandalas`.
+- Not verified:
+  - live Supabase migration application;
+  - real authenticated admin upload/attach, grant/revoke, invite claim, and audio playback on `https://2mentalica.vercel.app`;
+  - live Vercel deploy/commit proof.
+
 ## 2026-06-27 — Admin participant cabinet-level management
 
 - Branch target: `codex/admin-cabinet-levels-20260627`.

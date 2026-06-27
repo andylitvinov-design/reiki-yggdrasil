@@ -2,17 +2,25 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import {
+  MAGIC_MONEY_COURSE,
+  MAGIC_MONEY_DEGREE_1,
+  PENDING_COURSE_INTENT_KEY,
+  buildCourseInviteLink,
   buildCourseAccessIndex,
+  buildLessonAudioPatch,
   courseAccessScopeText,
   courseAccessStatusText,
   courseStatusText,
   createEmptyCourseForm,
   createEmptyCourseLessonForm,
   createEmptyCourseStepForm,
+  findCourseBySlug,
+  findStepBySlug,
   normalizeCourseAccessForm,
   normalizeCourseForm,
   normalizeCourseLessonForm,
-  normalizeCourseStepForm
+  normalizeCourseStepForm,
+  parseCourseIntentFromLocation
 } from "../src/lib/profileCoursesClient.js";
 
 assert.deepEqual(createEmptyCourseForm({ title: "Курс" }), {
@@ -53,12 +61,14 @@ assert.deepEqual(normalizeCourseForm({ slug: "", title: "Курс" }), {
 assert.deepEqual(createEmptyCourseStepForm({ course_id: "course-1" }).course_id, "course-1");
 assert.deepEqual(normalizeCourseStepForm({
   course_id: " course-1 ",
+  slug: " degree-1 ",
   title: " Ступень 1 ",
   description: " Доступна ",
   position: "2",
   status: "published"
 }), {
   course_id: "course-1",
+  slug: "degree-1",
   title: "Ступень 1",
   description: "Доступна",
   status: "published",
@@ -69,19 +79,29 @@ assert.deepEqual(createEmptyCourseLessonForm({ step_id: "step-1" }).step_id, "st
 assert.deepEqual(normalizeCourseLessonForm({
   course_id: " course-1 ",
   step_id: " step-1 ",
+  slug: " lesson-1 ",
   title: " Урок ",
   body: " <b>plain text</b> ",
   video_url: " https://youtu.be/example ",
   audio_url: " https://cdn.example.com/audio.mp3 ",
+  audio_storage_bucket: " profile-cabinet-media ",
+  audio_storage_path: " courses/magic-money/degree-1/lesson-1/audio.mp3 ",
+  audio_mime_type: " audio/mpeg ",
+  audio_size_bytes: "12345",
   position: "3",
   status: "archived"
 }), {
   course_id: "course-1",
   step_id: "step-1",
+  slug: "lesson-1",
   title: "Урок",
   body: "<b>plain text</b>",
   video_url: "https://youtu.be/example",
   audio_url: "https://cdn.example.com/audio.mp3",
+  audio_storage_bucket: "profile-cabinet-media",
+  audio_storage_path: "courses/magic-money/degree-1/lesson-1/audio.mp3",
+  audio_mime_type: "audio/mpeg",
+  audio_size_bytes: 12345,
   status: "archived",
   position: 3
 });
@@ -133,9 +153,40 @@ assert.equal(accessIndex.stepIdsByCourseId.has("course-empty"), false, "step acc
 assert.equal(courseStatusText("published"), "Опубликован");
 assert.equal(courseAccessScopeText("course"), "Весь курс");
 assert.equal(courseAccessStatusText("revoked"), "Закрыт");
+assert.equal(MAGIC_MONEY_COURSE.slug, "magic-money");
+assert.equal(MAGIC_MONEY_DEGREE_1.slug, "degree-1");
+assert.equal(PENDING_COURSE_INTENT_KEY, "reiki-yggdrasil-pending-course-intent");
+
+assert.deepEqual(parseCourseIntentFromLocation("/profile", "?tab=courses&course=magic-money&step=degree-1&claim=token-1"), {
+  tab: "courses",
+  course: "magic-money",
+  step: "degree-1",
+  claim: "token-1",
+  hasCourseIntent: true
+});
+assert.equal(parseCourseIntentFromLocation("/profile/courses", "").tab, "courses");
+assert.equal(findCourseBySlug([{ id: "course-1", slug: "magic-money" }], "magic-money").id, "course-1");
+assert.equal(findStepBySlug([{ id: "step-1", slug: "degree-1" }], "degree-1").id, "step-1");
+assert.equal(
+  buildCourseInviteLink("raw-token-once", { origin: "https://2mentalica.vercel.app" }),
+  "https://2mentalica.vercel.app/profile?claim=raw-token-once&tab=courses&course=magic-money&step=degree-1"
+);
+assert.deepEqual(buildLessonAudioPatch({
+  bucket: "profile-cabinet-media",
+  path: "courses/magic-money/degree-1/lesson/audio.mp3",
+  ref: "storage://profile-cabinet-media/courses/magic-money/degree-1/lesson/audio.mp3",
+  metadata: { mimeType: "audio/mpeg", size: 4096 }
+}), {
+  audio_url: "storage://profile-cabinet-media/courses/magic-money/degree-1/lesson/audio.mp3",
+  audio_storage_bucket: "profile-cabinet-media",
+  audio_storage_path: "courses/magic-money/degree-1/lesson/audio.mp3",
+  audio_mime_type: "audio/mpeg",
+  audio_size_bytes: 4096
+});
 
 const clientSource = readFileSync("src/lib/profileCoursesClient.js", "utf8");
 const migrationSource = readFileSync("supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql", "utf8");
+const audioInviteMigrationSource = readFileSync("supabase/migrations/20260627190000_profile_course_audio_invites.sql", "utf8");
 
 assert.match(clientSource, /const COURSES_TABLE = "profile_cabinet_courses"/);
 assert.match(clientSource, /const COURSE_STEPS_TABLE = "profile_cabinet_course_steps"/);
@@ -147,5 +198,9 @@ assert.doesNotMatch(migrationSource, /profile_cabinet_course_lesson_access|lesso
 assert.match(migrationSource, /profile_course_access_unique_active_course/, "Migration should protect duplicate active full-course grants");
 assert.match(migrationSource, /profile_course_access_unique_active_step/, "Migration should protect duplicate active step grants");
 assert.match(migrationSource, /profile_cabinet_is_admin\(\)/, "Courses RLS should reuse existing DB-level admin helper");
+assert.match(audioInviteMigrationSource, /profile_cabinet_course_invites/, "Course invite migration should create invite table");
+assert.match(audioInviteMigrationSource, /token_hash text not null unique/, "Course invites must store only token hashes");
+assert.doesNotMatch(audioInviteMigrationSource, /raw_token|invite_token text not null/, "Course invite table must not persist raw tokens");
+assert.match(audioInviteMigrationSource, /profile_cabinet_can_access_course_audio_path/, "Course audio Storage RLS helper should be present");
 
 console.log("profileCoursesClient tests passed");

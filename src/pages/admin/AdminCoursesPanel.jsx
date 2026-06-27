@@ -5,12 +5,16 @@ import {
   courseAccessScopeText,
   courseAccessStatusText,
   courseStatusText,
+  attachLessonAudio,
+  buildCourseInviteLink,
   createCourse,
+  createCourseInvite,
   createCourseLesson,
   createCourseStep,
   createEmptyCourseForm,
   createEmptyCourseLessonForm,
   createEmptyCourseStepForm,
+  ensureMagicMoneyDegreeOne,
   grantCourseAccess,
   listAdminCourseAccess,
   listAdminCourseLessons,
@@ -22,6 +26,7 @@ import {
   updateCourseLesson,
   updateCourseStep
 } from "../../lib/profileCoursesClient.js";
+import { PROFILE_AUDIO_ALLOWED_TYPES, uploadCourseAudio } from "../../lib/profileMediaClient.js";
 
 const EMPTY_ACCESS_FORM = {
   profile_id: "",
@@ -29,6 +34,11 @@ const EMPTY_ACCESS_FORM = {
   course_id: "",
   step_id: "",
   access_scope: "course"
+};
+const EMPTY_INVITE_FORM = {
+  target_email: "",
+  access_scope: "step",
+  expires_at: ""
 };
 
 function text(value) {
@@ -80,6 +90,9 @@ export default function AdminCoursesPanel({ session }) {
   const [stepForm, setStepForm] = useState(() => createEmptyCourseStepForm());
   const [lessonForm, setLessonForm] = useState(() => createEmptyCourseLessonForm());
   const [accessForm, setAccessForm] = useState(EMPTY_ACCESS_FORM);
+  const [inviteForm, setInviteForm] = useState(EMPTY_INVITE_FORM);
+  const [audioFile, setAudioFile] = useState(null);
+  const [inviteLink, setInviteLink] = useState("");
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -219,6 +232,7 @@ export default function AdminCoursesPanel({ session }) {
   const setCourseField = (field, value) => setCourseForm((current) => ({ ...current, [field]: value }));
   const setStepField = (field, value) => setStepForm((current) => ({ ...current, [field]: value }));
   const setLessonField = (field, value) => setLessonForm((current) => ({ ...current, [field]: value }));
+  const setInviteField = (field, value) => setInviteForm((current) => ({ ...current, [field]: value }));
   const setAccessField = (field, value) => {
     if (field === "profile_id") {
       const profile = profiles.find((item) => item.id === value);
@@ -323,6 +337,57 @@ export default function AdminCoursesPanel({ session }) {
     }
   };
 
+  const handleQuickCreateMagicMoney = async () => {
+    setStatus("loading");
+    setError("");
+    setMessage("");
+    try {
+      const { course, step } = await ensureMagicMoneyDegreeOne(session);
+      const courseRows = await refreshCourses();
+      setSelectedCourseId(course?.id || courseRows[0]?.id || "");
+      const stepRows = await refreshSteps(course?.id);
+      setSelectedStepId(step?.id || stepRows[0]?.id || "");
+      setCourseForm(createEmptyCourseForm(course || {}));
+      setStepForm(createEmptyCourseStepForm(step || { course_id: course?.id || "" }));
+      setLessonForm(createEmptyCourseLessonForm({ course_id: course?.id || "", step_id: step?.id || "" }));
+      setMessage("Курс «Магия Денег» и ступень «Градус 1» готовы.");
+      setStatus("success");
+    } catch (err) {
+      setStatus("needs-verification");
+      setError(err.message || "Quick-create не выполнился.");
+    }
+  };
+
+  const handleAudioUpload = async () => {
+    if (!lessonForm.id) {
+      setError("Сначала сохраните урок, затем загрузите аудио.");
+      return;
+    }
+    if (!audioFile) {
+      setError("Выберите аудиофайл.");
+      return;
+    }
+    setStatus("loading");
+    setError("");
+    setMessage("");
+    try {
+      const uploadResult = await uploadCourseAudio(audioFile, {
+        courseSlug: selectedCourse?.slug || "course",
+        stepSlug: selectedStep?.slug || "step",
+        lessonId: lessonForm.id
+      }, session);
+      const saved = await attachLessonAudio(lessonForm.id, uploadResult, session);
+      await refreshLessons(selectedCourseId, selectedStepId);
+      setLessonForm(createEmptyCourseLessonForm(saved || lessonForm));
+      setAudioFile(null);
+      setMessage("Аудио загружено и прикреплено к уроку.");
+      setStatus("success");
+    } catch (err) {
+      setStatus("needs-verification");
+      setError(err.message || "Аудио не загрузилось. Проверьте Storage/RLS.");
+    }
+  };
+
   const handleGrantAccess = async (event) => {
     event.preventDefault();
     setStatus("loading");
@@ -358,6 +423,38 @@ export default function AdminCoursesPanel({ session }) {
     }
   };
 
+  const handleCreateCourseInvite = async (event) => {
+    event.preventDefault();
+    if (!selectedCourseId) {
+      setError("Сначала выберите курс.");
+      return;
+    }
+    setStatus("loading");
+    setError("");
+    setMessage("");
+    setInviteLink("");
+    try {
+      const invite = await createCourseInvite({
+        course_id: selectedCourseId,
+        step_id: inviteForm.access_scope === "step" ? selectedStepId : "",
+        access_scope: inviteForm.access_scope,
+        target_email: inviteForm.target_email,
+        expires_at: inviteForm.expires_at
+      }, session);
+      const link = buildCourseInviteLink(invite?.token, {
+        course: selectedCourse?.slug || "magic-money",
+        step: selectedStep?.slug || "degree-1",
+        origin: typeof window !== "undefined" ? window.location.origin : "https://2mentalica.vercel.app"
+      });
+      setInviteLink(link);
+      setMessage("Пригласительная ссылка создана. Raw token не сохраняется в таблицу.");
+      setStatus("success");
+    } catch (err) {
+      setStatus("needs-verification");
+      setError(err.message || "Пригласительная ссылка не создана.");
+    }
+  };
+
   return (
     <section className="cabinetCard adminCoursesPanel" aria-label="Курсы и доступы">
       <div className="cabinetFormHeader">
@@ -375,7 +472,10 @@ export default function AdminCoursesPanel({ session }) {
         <form className="adminCoursesBlock" onSubmit={handleCourseSave}>
           <div className="cabinetFormHeader">
             <h3>Курс</h3>
-            <button className="cabinetGhost" type="button" onClick={() => setCourseForm(createEmptyCourseForm())}>Новый</button>
+            <div className="cabinetActions">
+              <button className="cabinetGhost" type="button" onClick={handleQuickCreateMagicMoney}>Магия Денег · Градус 1</button>
+              <button className="cabinetGhost" type="button" onClick={() => setCourseForm(createEmptyCourseForm())}>Новый</button>
+            </div>
           </div>
           <Field label="Выбрать курс">
             <select value={selectedCourseId} onChange={(event) => handleCourseSelect(event.target.value)}>
@@ -468,6 +568,26 @@ export default function AdminCoursesPanel({ session }) {
             </Field>
           </div>
           <div className="cabinetTwoColumns">
+            <Field label="Audio storage path">
+              <input value={lessonForm.audio_storage_path || ""} onChange={(event) => setLessonField("audio_storage_path", event.target.value)} placeholder="courses/magic-money/degree-1/..." />
+            </Field>
+            <Field label="Audio MIME">
+              <input value={lessonForm.audio_mime_type || ""} onChange={(event) => setLessonField("audio_mime_type", event.target.value)} placeholder="audio/mpeg" />
+            </Field>
+          </div>
+          <div className="cabinetNotice compactNotice">
+            <b>Private audio upload</b>
+            <p>Загрузите аудио в private bucket `profile-cabinet-media`. Ученик получит signed URL только после проверки доступа к курсу.</p>
+            <input
+              accept={PROFILE_AUDIO_ALLOWED_TYPES.join(",")}
+              type="file"
+              onChange={(event) => setAudioFile(event.target.files?.[0] || null)}
+            />
+            <button className="cabinetSecondary" type="button" onClick={handleAudioUpload} disabled={!lessonForm.id || !audioFile}>
+              Загрузить и прикрепить аудио
+            </button>
+          </div>
+          <div className="cabinetTwoColumns">
             <Field label="Позиция">
               <input type="number" value={lessonForm.position} onChange={(event) => setLessonField("position", event.target.value)} />
             </Field>
@@ -518,6 +638,32 @@ export default function AdminCoursesPanel({ session }) {
             <b>Модель доступа:</b>
             <p>Весь курс = `access_scope=course` и `step_id=null`. Ступень = `access_scope=step` и выбранная ступень. Уроки наследуют доступ от ступени.</p>
           </div>
+        </form>
+
+        <form className="adminCoursesBlock" onSubmit={handleCreateCourseInvite}>
+          <h3>Invite / claim link</h3>
+          <Field label="Email получателя">
+            <input value={inviteForm.target_email} onChange={(event) => setInviteField("target_email", event.target.value)} placeholder="optional@example.com" />
+          </Field>
+          <Field label="Тип доступа">
+            <select value={inviteForm.access_scope} onChange={(event) => setInviteField("access_scope", event.target.value)}>
+              {COURSE_ACCESS_SCOPES.map((scope) => (
+                <option key={scope.value} value={scope.value}>{scope.label}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Истекает">
+            <input value={inviteForm.expires_at} onChange={(event) => setInviteField("expires_at", event.target.value)} placeholder="2026-07-01T12:00:00Z" />
+          </Field>
+          <button className="cabinetPrimary" type="submit" disabled={!selectedCourseId || (inviteForm.access_scope === "step" && !selectedStepId)}>
+            Создать invite link
+          </button>
+          {inviteLink && (
+            <div className="cabinetNotice compactNotice">
+              <b>Ссылка для ученика</b>
+              <p>{inviteLink}</p>
+            </div>
+          )}
         </form>
       </div>
 

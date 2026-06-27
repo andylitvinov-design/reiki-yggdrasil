@@ -270,7 +270,7 @@ assert.match(profileCoursesModuleSource, /Курсы пока не открыт�
 assert.match(profileCoursesModuleSource, /Для этого курса пока нет доступных ступеней\./, "Courses module should include empty step state");
 assert.match(profileCoursesModuleSource, /Уроки для этой ступени готовятся\./, "Courses module should include empty lesson state");
 assert.match(profileCoursesModuleSource, /safeVideoEmbedUrl/, "Courses module should only iframe recognized safe video URLs");
-assert.match(profileCoursesModuleSource, /<audio controls src=\{audioUrl\}/, "Courses module should render audio only after safe URL normalization");
+assert.match(profileCoursesModuleSource, /<audio controls preload="metadata" src=\{audioUrl\}/, "Courses module should render audio only after safe URL normalization");
 assert.doesNotMatch(profileCoursesModuleSource, /dangerouslySetInnerHTML/, "Courses lesson body must render as plain text");
 assert.match(adminCoursesPanelSource, /Курсы и доступы/, "Admin should expose courses and access section");
 assert.match(adminCoursesPanelSource, /Выдать доступ/, "Admin courses panel should grant access");
@@ -700,6 +700,17 @@ assert.match(profileLitePageSource, /generateDraftResultComposition/, "Profile L
 assert.match(profileLitePageSource, /sendOrderResultToClient/, "Profile Lite page should call Phase 5 send result helper");
 assert.doesNotMatch(clientOrdersViewSource, /draft_result_composition_id/, "client UI must not expose draft_result_composition_id before sent");
 assert.match(profileServicesModuleSource, /Ссылка для клиента/, "/profile/services client database should include invite-link UI");
+
+// --- Course audio access / invite claim (#480) ---
+assert.match(profileLitePageSource, /parseCourseIntentFromLocation/, "Profile Lite should parse /profile?tab=courses course deep links");
+assert.match(profileLitePageSource, /findCourseBySlug\(rows,\s*courseIntent\.course\)/, "Courses tab should select requested course slug from deep link");
+assert.match(profileLitePageSource, /findStepBySlug\(rows,\s*courseIntent\.step\)/, "Courses tab should select requested step slug from deep link");
+assert.match(profileLitePageSource, /resolveLessonAudioDisplayUrl\(lesson,\s*session\)/, "Accessible course lessons should resolve private audio to signed URLs");
+assert.match(profileLitePageSource, /claimCourseInvite\(token,\s*session\)/, "Profile Lite should claim course invites after login");
+assert.match(profileLitePageSource, /cleanupCourseClaimFromUrl\(\)/, "Profile Lite should remove claim token from the URL after processing");
+assert.match(profileCoursesModuleSource, /<audio controls preload="metadata" src=\{audioUrl\}>/, "Course lessons with audio should render an audio player");
+assert.match(profileCoursesModuleSource, /Аудио пока не добавлено/, "Course lessons without audio should show a RU empty audio state");
+assert.doesNotMatch(profileCoursesModuleSource, /claim=/, "Course module must not render raw claim tokens");
 assert.match(profileServicesModuleSource, /Клиент привязывается после входа по invite-ссылке\./, "/profile/services should explain invite-only client linking compactly");
 assert.match(profileServicesModuleSource, /buildClientInviteUrl/, "/profile/services should build invite URLs through the client helper");
 assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving an existing selected service should PATCH the existing service");

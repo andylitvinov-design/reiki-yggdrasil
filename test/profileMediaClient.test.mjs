@@ -1,16 +1,20 @@
 import assert from "node:assert/strict";
 
 import {
+  PROFILE_AUDIO_MAX_BYTES,
   PROFILE_MEDIA_BUCKET,
   PROFILE_MEDIA_MAX_BYTES,
+  buildCourseAudioPath,
   buildProfileMediaPath,
   encodeStorageObjectPath,
   hydrateMediaRowsForDisplay,
   isStorageRef,
   normalizeSignedStorageUrl,
   parseStorageRef,
+  resolveLessonAudioDisplayUrl,
   sanitizeMediaFilename,
   toStorageRef,
+  validateProfileAudioFile,
   validateProfileMediaFile
 } from "../src/lib/profileMediaClient.js";
 
@@ -92,9 +96,28 @@ assert.throws(
   /Файл слишком большой/
 );
 
+assert.doesNotThrow(() => validateProfileAudioFile({ name: "lesson.mp3", type: "audio/mpeg", size: 20 * 1024 * 1024 }));
+assert.throws(
+  () => validateProfileAudioFile({ name: "lesson.exe", type: "application/octet-stream", size: 100 }),
+  /Недопустимый тип аудио/
+);
+assert.throws(
+  () => validateProfileAudioFile({ name: "lesson.mp3", type: "audio/mpeg", size: PROFILE_AUDIO_MAX_BYTES + 1 }),
+  /Максимальный размер аудио — 100 MB/
+);
+assert.equal(
+  buildCourseAudioPath({ name: "Градус 1 Intro.MP3", type: "audio/mpeg", size: 1000 }, {
+    courseSlug: "magic money!",
+    stepSlug: "degree 1",
+    lessonId: "lesson-1"
+  }, "uuid-audio"),
+  "courses/magic-money/degree-1/lesson-1/uuid-audio-1-intro.mp3"
+);
+
 const ref = toStorageRef(PROFILE_MEDIA_BUCKET, "profile-1/client-goal/uuid-1-goal-01.png");
 assert.equal(ref, "storage://profile-cabinet-media/profile-1/client-goal/uuid-1-goal-01.png");
 assert.equal(isStorageRef(ref), true);
+assert.equal(isStorageRef("storage://other-bucket/path.mp3"), true);
 assert.deepEqual(parseStorageRef(ref), {
   bucket: PROFILE_MEDIA_BUCKET,
   path: "profile-1/client-goal/uuid-1-goal-01.png"
@@ -144,3 +167,29 @@ const externalRows = await hydrateMediaRowsForDisplay([{
 
 assert.equal(externalRows[0].image_ref, "https://example.com/old.jpg");
 assert.equal(externalRows[0].display_url, "https://example.com/old.jpg");
+
+const externalAudio = await resolveLessonAudioDisplayUrl({ audio_url: "https://cdn.example.com/lesson.mp3" }, {});
+assert.equal(externalAudio.audioUrl, "https://cdn.example.com/lesson.mp3");
+assert.equal(externalAudio.status, "external");
+
+const signedAudio = await resolveLessonAudioDisplayUrl({
+  audio_url: "storage://profile-cabinet-media/courses/magic-money/degree-1/lesson-1/audio.mp3"
+}, { access_token: "session-token" }, async (refOrPath, session) => {
+  assert.equal(refOrPath, "storage://profile-cabinet-media/courses/magic-money/degree-1/lesson-1/audio.mp3");
+  assert.equal(session.access_token, "session-token");
+  return "https://signed.example/audio.mp3";
+});
+assert.equal(signedAudio.audioUrl, "https://signed.example/audio.mp3");
+assert.equal(signedAudio.status, "signed");
+
+const failedAudio = await resolveLessonAudioDisplayUrl({
+  audio_storage_bucket: PROFILE_MEDIA_BUCKET,
+  audio_storage_path: "courses/magic-money/degree-1/lesson-1/audio.mp3"
+}, { access_token: "session-token" }, async () => {
+  throw new Error("403");
+});
+assert.equal(failedAudio.audioUrl, "");
+assert.equal(failedAudio.status, "error");
+assert.match(failedAudio.error, /signed URL не создан/);
+
+console.log("profileMediaClient tests passed");

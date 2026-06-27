@@ -7,11 +7,13 @@ const COURSES_TABLE = "profile_cabinet_courses";
 const COURSE_STEPS_TABLE = "profile_cabinet_course_steps";
 const COURSE_LESSONS_TABLE = "profile_cabinet_course_lessons";
 const COURSE_ACCESS_TABLE = "profile_cabinet_course_access";
+const COURSE_INVITES_RPC = "create_course_invite";
+const COURSE_CLAIM_RPC = "claim_course_invite";
 const PROFILES_TABLE = "profile_cabinet_profiles";
 
 const COURSE_FIELDS = "id,slug,title,description,cover_url,status,position,created_at,updated_at";
-const COURSE_STEP_FIELDS = "id,course_id,title,description,position,status,created_at,updated_at";
-const COURSE_LESSON_FIELDS = "id,course_id,step_id,title,body,video_url,audio_url,position,status,created_at,updated_at";
+const COURSE_STEP_FIELDS = "id,course_id,slug,title,description,position,status,created_at,updated_at";
+const COURSE_LESSON_FIELDS = "id,course_id,step_id,slug,title,body,video_url,audio_url,audio_storage_bucket,audio_storage_path,audio_mime_type,audio_size_bytes,position,status,created_at,updated_at";
 const COURSE_ACCESS_FIELDS = "id,profile_id,user_id,course_id,step_id,access_scope,status,created_at,updated_at";
 const COURSE_ACCESS_ADMIN_FIELDS = [
   COURSE_ACCESS_FIELDS,
@@ -19,6 +21,21 @@ const COURSE_ACCESS_ADMIN_FIELDS = [
   "profile_cabinet_courses(id,title,status)",
   "profile_cabinet_course_steps(id,title,status)"
 ].join(",");
+export const MAGIC_MONEY_COURSE = {
+  slug: "magic-money",
+  title: "Магия Денег",
+  description: "Курс по денежной магии. Содержимое и аудио доступны только по персональному доступу.",
+  status: "published",
+  position: 10
+};
+export const MAGIC_MONEY_DEGREE_1 = {
+  slug: "degree-1",
+  title: "Градус 1",
+  description: "Первая ступень курса Магия Денег.",
+  status: "published",
+  position: 1
+};
+export const PENDING_COURSE_INTENT_KEY = "reiki-yggdrasil-pending-course-intent";
 
 export const COURSE_STATUSES = [
   { value: "draft", label: "Черновик" },
@@ -93,6 +110,7 @@ export function createEmptyCourseStepForm(overrides = {}) {
   return {
     id: "",
     course_id: "",
+    slug: "",
     title: "",
     description: "",
     status: "draft",
@@ -106,10 +124,15 @@ export function createEmptyCourseLessonForm(overrides = {}) {
     id: "",
     course_id: "",
     step_id: "",
+    slug: "",
     title: "",
     body: "",
     video_url: "",
     audio_url: "",
+    audio_storage_bucket: "",
+    audio_storage_path: "",
+    audio_mime_type: "",
+    audio_size_bytes: 0,
     status: "draft",
     position: 0,
     ...overrides
@@ -130,6 +153,7 @@ export function normalizeCourseForm(form = {}, requestedStatus = form?.status) {
 export function normalizeCourseStepForm(form = {}, requestedStatus = form?.status) {
   return {
     course_id: text(form.course_id),
+    slug: text(form.slug),
     title: text(form.title),
     description: text(form.description),
     status: courseStatus(requestedStatus),
@@ -141,10 +165,15 @@ export function normalizeCourseLessonForm(form = {}, requestedStatus = form?.sta
   return {
     course_id: text(form.course_id),
     step_id: text(form.step_id),
+    slug: text(form.slug),
     title: text(form.title),
     body: text(form.body),
     video_url: text(form.video_url),
     audio_url: text(form.audio_url),
+    audio_storage_bucket: text(form.audio_storage_bucket || form.audioStorageBucket),
+    audio_storage_path: text(form.audio_storage_path || form.audioStoragePath),
+    audio_mime_type: text(form.audio_mime_type || form.audioMimeType),
+    audio_size_bytes: integer(form.audio_size_bytes || form.audioSizeBytes),
     status: courseStatus(requestedStatus),
     position: integer(form.position)
   };
@@ -219,6 +248,7 @@ function normalizeCourseStepRow(row = {}) {
     ...createEmptyCourseStepForm(row),
     id: text(row.id),
     course_id: text(row.course_id),
+    slug: text(row.slug),
     title: text(row.title),
     description: text(row.description),
     status: courseStatus(row.status),
@@ -234,15 +264,108 @@ function normalizeCourseLessonRow(row = {}) {
     id: text(row.id),
     course_id: text(row.course_id),
     step_id: text(row.step_id),
+    slug: text(row.slug),
     title: text(row.title),
     body: text(row.body),
     video_url: text(row.video_url),
     audio_url: text(row.audio_url),
+    audio_storage_bucket: text(row.audio_storage_bucket),
+    audio_storage_path: text(row.audio_storage_path),
+    audio_mime_type: text(row.audio_mime_type),
+    audio_size_bytes: integer(row.audio_size_bytes),
     status: courseStatus(row.status),
     position: integer(row.position),
     created_at: row.created_at || null,
     updated_at: row.updated_at || null
   };
+}
+
+function normalizeCourseInviteRow(row = {}) {
+  return {
+    id: text(row.id),
+    token: text(row.token),
+    target_email: text(row.target_email),
+    course_id: text(row.course_id),
+    step_id: text(row.step_id),
+    access_scope: accessScope(row.access_scope),
+    status: text(row.status) || "pending",
+    expires_at: row.expires_at || null,
+    claimed_at: row.claimed_at || null,
+    created_at: row.created_at || null,
+    updated_at: row.updated_at || null
+  };
+}
+
+export function parseCourseIntentFromLocation(pathname = "", search = "") {
+  const params = new URLSearchParams(search || "");
+  const course = text(params.get("course"));
+  const step = text(params.get("step"));
+  const claim = text(params.get("claim"));
+  const tab = text(params.get("tab"));
+  const pathTab = pathname === "/profile/courses" ? "courses" : "";
+  return {
+    tab: tab || pathTab || "",
+    course,
+    step,
+    claim,
+    hasCourseIntent: Boolean(course || step || claim || tab === "courses" || pathTab === "courses")
+  };
+}
+
+export function storePendingCourseIntent(intent = {}) {
+  if (typeof sessionStorage === "undefined") return null;
+  const payload = {
+    token: text(intent.token || intent.claim),
+    tab: text(intent.tab) || "courses",
+    course: text(intent.course) || MAGIC_MONEY_COURSE.slug,
+    step: text(intent.step) || MAGIC_MONEY_DEGREE_1.slug
+  };
+  sessionStorage.setItem(PENDING_COURSE_INTENT_KEY, JSON.stringify(payload));
+  return payload;
+}
+
+export function readPendingCourseIntent() {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(PENDING_COURSE_INTENT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    sessionStorage.removeItem(PENDING_COURSE_INTENT_KEY);
+    return null;
+  }
+}
+
+export function clearPendingCourseIntent() {
+  if (typeof sessionStorage !== "undefined") sessionStorage.removeItem(PENDING_COURSE_INTENT_KEY);
+}
+
+export function cleanupCourseClaimFromUrl() {
+  if (typeof window === "undefined") return "";
+  const url = new URL(window.location.href);
+  url.searchParams.delete("claim");
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState({}, document.title, next);
+  return next;
+}
+
+export function findCourseBySlug(courses = [], slug = "") {
+  const requested = text(slug);
+  return requested ? (courses || []).find((course) => text(course.slug) === requested) || null : null;
+}
+
+export function findStepBySlug(steps = [], slug = "") {
+  const requested = text(slug);
+  return requested ? (steps || []).find((step) => text(step.slug) === requested) || null : null;
+}
+
+export function buildCourseInviteLink(token, { course = MAGIC_MONEY_COURSE.slug, step = MAGIC_MONEY_DEGREE_1.slug, origin = "" } = {}) {
+  const base = origin || (typeof window !== "undefined" ? window.location.origin : "");
+  const url = new URL("/profile", base || "https://2mentalica.vercel.app");
+  url.searchParams.set("claim", text(token));
+  url.searchParams.set("tab", "courses");
+  url.searchParams.set("course", text(course) || MAGIC_MONEY_COURSE.slug);
+  url.searchParams.set("step", text(step) || MAGIC_MONEY_DEGREE_1.slug);
+  return base ? url.toString() : `${url.pathname}${url.search}`;
 }
 
 function normalizeCourseAccessRow(row = {}) {
@@ -403,6 +526,74 @@ export async function grantCourseAccess(access, session = getStoredSession()) {
     body
   });
   return rows?.[0] ? normalizeCourseAccessRow(rows[0]) : null;
+}
+
+export async function rpc(name, body = {}, session = getStoredSession()) {
+  requireSession(session, "Нужно войти в кабинет.");
+  return request(`/rest/v1/rpc/${name}`, {
+    method: "POST",
+    session,
+    body
+  });
+}
+
+export async function ensureMagicMoneyDegreeOne(session = getStoredSession()) {
+  requireSession(session, "Нужен вход администратора.");
+  const courses = await listAdminCourses(session);
+  let course = courses.find((item) => item.slug === MAGIC_MONEY_COURSE.slug);
+  if (!course) {
+    course = await createCourse(MAGIC_MONEY_COURSE, session);
+  } else if (course.status !== "published" || course.title !== MAGIC_MONEY_COURSE.title) {
+    course = await updateCourse(course.id, { ...course, ...MAGIC_MONEY_COURSE }, session);
+  }
+
+  const steps = await listAdminCourseSteps(course.id, session);
+  let step = steps.find((item) => item.slug === MAGIC_MONEY_DEGREE_1.slug);
+  if (!step) {
+    step = await createCourseStep({ ...MAGIC_MONEY_DEGREE_1, course_id: course.id }, session);
+  } else if (step.status !== "published" || step.title !== MAGIC_MONEY_DEGREE_1.title) {
+    step = await updateCourseStep(step.id, { ...step, ...MAGIC_MONEY_DEGREE_1, course_id: course.id }, session);
+  }
+
+  return { course, step };
+}
+
+export function buildLessonAudioPatch(uploadResult = {}) {
+  return {
+    audio_url: uploadResult.ref || "",
+    audio_storage_bucket: uploadResult.bucket || "",
+    audio_storage_path: uploadResult.path || "",
+    audio_mime_type: uploadResult.metadata?.mimeType || "",
+    audio_size_bytes: uploadResult.metadata?.size || 0
+  };
+}
+
+export async function attachLessonAudio(lessonId, uploadResult, session = getStoredSession()) {
+  requireSession(session, "Нужен вход администратора.");
+  if (!lessonId) throw makeError("Missing course lesson id.");
+  const rows = await request(`/rest/v1/${COURSE_LESSONS_TABLE}?id=eq.${encodeURIComponent(lessonId)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: { ...buildLessonAudioPatch(uploadResult), updated_at: new Date().toISOString() }
+  });
+  return rows?.[0] ? normalizeCourseLessonRow(rows[0]) : null;
+}
+
+export async function createCourseInvite(invite = {}, session = getStoredSession()) {
+  const rows = await rpc(COURSE_INVITES_RPC, {
+    p_course_id: text(invite.course_id || invite.courseId),
+    p_step_id: text(invite.step_id || invite.stepId) || null,
+    p_access_scope: accessScope(invite.access_scope || invite.accessScope),
+    p_target_email: text(invite.target_email || invite.targetEmail),
+    p_expires_at: text(invite.expires_at || invite.expiresAt) || null
+  }, session);
+  return rows?.[0] ? normalizeCourseInviteRow(rows[0]) : null;
+}
+
+export async function claimCourseInvite(token, session = getStoredSession()) {
+  const rows = await rpc(COURSE_CLAIM_RPC, { p_token: text(token) }, session);
+  return rows?.[0] ? normalizeCourseInviteRow(rows[0]) : null;
 }
 
 export async function revokeCourseAccess(accessId, session = getStoredSession()) {

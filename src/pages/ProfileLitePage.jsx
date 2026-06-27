@@ -4,9 +4,17 @@ import { reikiLevels } from "../data/reikiKnowledgeBase.js";
 import { sourcedStepSettings } from "../data/reikiStepSettings.js";
 import { mysteryTraditions } from "../data/mysteryTraditions.js";
 import {
+  claimCourseInvite,
+  cleanupCourseClaimFromUrl,
+  clearPendingCourseIntent,
+  findCourseBySlug,
+  findStepBySlug,
   listAvailableCourseLessons,
   listAvailableCoursesForProfile,
-  listAvailableCourseSteps
+  listAvailableCourseSteps,
+  parseCourseIntentFromLocation,
+  readPendingCourseIntent,
+  storePendingCourseIntent
 } from "../lib/profileCoursesClient.js";
 import {
   DB_SAFE_GRIMOIRE_TYPE,
@@ -74,7 +82,7 @@ import {
   updateClientGoalPhotoCategory,
   updatePowerPlaceComposition
 } from "../lib/powerPlaceClient.js";
-import { uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
+import { resolveLessonAudioDisplayUrl, uploadProfileMedia, validateProfileMediaFile } from "../lib/profileMediaClient.js";
 import { loadProfileCabinetBootstrap } from "../lib/profileBootstrapClient.js";
 import {
   createConversationWithMaster,
@@ -649,6 +657,10 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   const [courseLessons, setCourseLessons] = useState([]);
   const [courseLessonsStatus, setCourseLessonsStatus] = useState("idle");
   const [courseLessonsError, setCourseLessonsError] = useState("");
+  const [courseIntent, setCourseIntent] = useState(() => parseCourseIntentFromLocation(
+    typeof window !== "undefined" ? window.location.pathname : "/profile",
+    typeof window !== "undefined" ? window.location.search : ""
+  ));
 
   const [mediaStatus, setMediaStatus] = useState("idle");
   const [mediaError, setMediaError] = useState("");
@@ -721,12 +733,25 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
 
   useEffect(() => {
     const nextTab = getProfileLiteTabById(initialTab).id;
+    const nextIntent = parseCourseIntentFromLocation(
+      typeof window !== "undefined" ? window.location.pathname : "/profile",
+      typeof window !== "undefined" ? window.location.search : ""
+    );
+    setCourseIntent(nextIntent);
+    if (nextIntent.claim && !hasProfileLiteSessionCredential(session)) {
+      storePendingCourseIntent({
+        token: nextIntent.claim,
+        tab: "courses",
+        course: nextIntent.course,
+        step: nextIntent.step
+      });
+    }
     setActiveTab(nextTab);
     setCabinetRole(initialRole || getProfileLiteInitialRoleFromLocation(
       typeof window !== "undefined" ? window.location.pathname : "/profile",
       typeof window !== "undefined" ? window.location.search : ""
     ));
-  }, [initialRole, initialTab]);
+  }, [initialRole, initialTab, session]);
 
   const moduleStates = useMemo(() => ({
     profile: { status: profileStatus, count: profile ? 1 : 0, error: profileError },
@@ -963,6 +988,52 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
 
   useEffect(() => {
     let cancelled = false;
+    async function claimPendingCourseInvite() {
+      if (!hasProfileLiteSessionCredential(session) || !user?.id) return;
+      const currentIntent = parseCourseIntentFromLocation(
+        typeof window !== "undefined" ? window.location.pathname : "/profile",
+        typeof window !== "undefined" ? window.location.search : ""
+      );
+      const storedIntent = readPendingCourseIntent();
+      const token = currentIntent.claim || storedIntent?.token;
+      if (!token) return;
+
+      setCoursesStatus("loading");
+      setCoursesError("");
+      try {
+        await claimCourseInvite(token, session);
+        if (cancelled) return;
+        clearPendingCourseIntent();
+        cleanupCourseClaimFromUrl();
+        setCourseIntent({
+          tab: "courses",
+          course: currentIntent.course || storedIntent?.course || "",
+          step: currentIntent.step || storedIntent?.step || "",
+          claim: "",
+          hasCourseIntent: true
+        });
+        setActiveTab("courses");
+        setCoursesStatus("success");
+      } catch (error) {
+        if (cancelled) return;
+        storePendingCourseIntent({
+          token,
+          tab: "courses",
+          course: currentIntent.course || storedIntent?.course || "",
+          step: currentIntent.step || storedIntent?.step || ""
+        });
+        setCoursesStatus("needs-verification");
+        setCoursesError(moduleError(error, "Пригласительная ссылка курса не применена или миграция/RLS не применены."));
+      }
+    }
+    void claimPendingCourseInvite();
+    return () => {
+      cancelled = true;
+    };
+  }, [session, user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
     async function loadCourses() {
       if (!profile?.id || !hasProfileLiteSessionCredential(session)) {
         setCourses([]);
@@ -980,7 +1051,10 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         const rows = await listAvailableCoursesForProfile(profile.id, session);
         if (cancelled) return;
         setCourses(rows || []);
-        setSelectedCourseId((current) => (rows || []).some((course) => course.id === current) ? current : rows?.[0]?.id || "");
+        setSelectedCourseId((current) => {
+          if ((rows || []).some((course) => course.id === current)) return current;
+          return findCourseBySlug(rows, courseIntent.course)?.id || rows?.[0]?.id || "";
+        });
         setCoursesStatus("success");
       } catch (error) {
         if (cancelled) return;
@@ -994,7 +1068,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     return () => {
       cancelled = true;
     };
-  }, [profile?.id, session]);
+  }, [courseIntent.course, profile?.id, session]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1010,7 +1084,10 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         const rows = await listAvailableCourseSteps(profile.id, selectedCourseId, session);
         if (cancelled) return;
         setCourseSteps(rows || []);
-        setSelectedStepId((current) => (rows || []).some((step) => step.id === current) ? current : rows?.[0]?.id || "");
+        setSelectedStepId((current) => {
+          if ((rows || []).some((step) => step.id === current)) return current;
+          return findStepBySlug(rows, courseIntent.step)?.id || rows?.[0]?.id || "";
+        });
       } catch (error) {
         if (cancelled) return;
         setCourseSteps([]);
@@ -1024,7 +1101,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     return () => {
       cancelled = true;
     };
-  }, [profile?.id, selectedCourseId, session]);
+  }, [courseIntent.step, profile?.id, selectedCourseId, session]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1038,8 +1115,17 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       setCourseLessonsError("");
       try {
         const rows = await listAvailableCourseLessons(profile.id, selectedCourseId, selectedStepId, session);
+        const hydratedRows = await Promise.all((rows || []).map(async (lesson) => {
+          const display = await resolveLessonAudioDisplayUrl(lesson, session);
+          return {
+            ...lesson,
+            audio_display_url: display.audioUrl,
+            audio_display_status: display.status,
+            audio_display_error: display.error
+          };
+        }));
         if (cancelled) return;
-        setCourseLessons(rows || []);
+        setCourseLessons(hydratedRows);
         setCourseLessonsStatus("success");
       } catch (error) {
         if (cancelled) return;
@@ -1223,8 +1309,18 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   const handleGoogleLogin = async () => {
     setAuthError("");
     try {
-      const redirectPath = ["/profile-lite", "/profile/orders"].includes(window.location.pathname)
-        ? window.location.pathname
+      const currentPath = `${window.location.pathname}${window.location.search}`;
+      const intent = parseCourseIntentFromLocation(window.location.pathname, window.location.search);
+      if (intent.claim) {
+        storePendingCourseIntent({
+          token: intent.claim,
+          tab: "courses",
+          course: intent.course,
+          step: intent.step
+        });
+      }
+      const redirectPath = ["/profile-lite", "/profile/orders", "/profile/courses"].includes(window.location.pathname) || intent.hasCourseIntent
+        ? currentPath
         : "/profile";
       await signInWithGoogle(redirectPath);
     } catch (error) {
