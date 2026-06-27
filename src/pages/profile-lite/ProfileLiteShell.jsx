@@ -17,9 +17,13 @@ export default function ProfileLiteShell({
   onReset,
   onTabNavigate,
   profile,
+  isProfileAdmin = false,
   user
 }) {
   const roleNav = getProfileLiteRoleNav(cabinetRole);
+  const visibleRoleNav = isProfileAdmin
+    ? [...roleNav, { label: "Админ", tabId: "admin", href: "/profile?tab=admin" }]
+    : roleNav;
   const currentCabinetLabel = PROFILE_LITE_CABINET_ROLES.find((role) => role.id === cabinetRole)?.label || "Кабинет Личный";
 
   const roleSwitcher = (
@@ -41,7 +45,7 @@ export default function ProfileLiteShell({
   const shellChrome = (
     <div className="profileLiteShellChrome">
       <nav className="profileLiteRoleNav" aria-label={`Навигация ${cabinetRole === "master" ? "Кабинет Мастера" : "Кабинет Личный"}`}>
-        {roleNav.map((item) => {
+        {visibleRoleNav.map((item) => {
           const href = item.href || getProfileLiteRouteByTabId(item.tabId);
           const isActive = activeTab === item.tabId && (!item.role || cabinetRole === item.role);
           return (

@@ -22,6 +22,24 @@ Last updated: 2026-06-27
   - changing a participant plan through the deployed UI after merge/deploy;
   - participant-side `/profile` display after an admin-level change.
 
+## 2026-06-27 — Admin panel inside Profile Lite cabinet
+
+- Branch target: `codex/profile-admin-tab-20260627`.
+- UX clarification:
+  - the primary admin management surface belongs inside the authenticated Profile Lite cabinet;
+  - `/profile/admin` remains a direct compatibility route.
+- Changed:
+  - extracted participant management into reusable `ProfileAdminPanel`;
+  - Profile Lite shows an `Админ` nav item only when the current authenticated user is an admin;
+  - admin detection checks `profile_cabinet_admins` first and uses `VITE_ADMIN_EMAIL` only as fallback;
+  - `/profile?tab=admin` renders the shared panel inside the existing cabinet shell;
+  - the shared panel can update both participant `account_plan` and profile `status`.
+- Verification:
+  - focused admin/Profile Lite contracts, `npm run build`, `npm run check`, and `npm run delivery:checks` passed locally.
+- Not verified:
+  - authenticated live admin session in the cabinet;
+  - real participant status/plan save through the deployed UI after merge/deploy.
+
 ## 2026-06-26 — Master profile tab in master cabinet
 
 - Branch target: `codex/master-profile-tab-packages`.

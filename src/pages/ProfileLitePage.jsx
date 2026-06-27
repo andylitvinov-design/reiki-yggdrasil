@@ -52,6 +52,7 @@ import {
   getCurrentUser,
   getOwnProfile,
   getStoredSession,
+  isCurrentUserAdmin,
   isStoredSessionExpired,
   saveOwnProfile,
   signInWithGoogle,
@@ -111,6 +112,7 @@ import ProfileLiteOrdersModule from "./profile-lite/ProfileLiteOrdersModule.jsx"
 import ProfileLiteChatsModule from "./profile-lite/ProfileLiteChatsModule.jsx";
 import ProfileLiteSettingsModule from "./profile-lite/ProfileLiteSettingsModule.jsx";
 import ProfileLiteDiagnosticsModule from "./profile-lite/ProfileLiteDiagnosticsModule.jsx";
+import ProfileAdminPanel from "./profile-lite/ProfileAdminPanel.jsx";
 
 const stepOptions = reikiLevels.flatMap((level) =>
   level.steps.map((step) => ({
@@ -626,6 +628,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
   const [profileStatus, setProfileStatus] = useState("idle");
   const [authError, setAuthError] = useState("");
   const [profileError, setProfileError] = useState("");
+  const [isProfileAdmin, setIsProfileAdmin] = useState(false);
   const [form, setForm] = useState(() => createProfileLiteForm());
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveMessage, setSaveMessage] = useState("");
@@ -772,6 +775,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     setProfile(null);
     setAuthStatus("idle");
     setProfileStatus("idle");
+    setIsProfileAdmin(false);
     setAuthError("");
     setProfileError("");
     setForm(createProfileLiteForm());
@@ -830,17 +834,20 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
 
     if (!supabaseEnv.isConfigured) {
       setAuthStatus("idle");
+      setIsProfileAdmin(false);
       setAuthError("Supabase не настроен. Кабинет не зависает и ждёт настройки окружения.");
       return;
     }
 
     if (!nextSession) {
       setAuthStatus("idle");
+      setIsProfileAdmin(false);
       return;
     }
 
     if (isStoredSessionExpired(nextSession)) {
       setAuthStatus("error");
+      setIsProfileAdmin(false);
       setAuthError("Сессия устарела. Войдите заново.");
       return;
     }
@@ -850,14 +857,18 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       const { currentUser } = await loadProfileCabinetBootstrap({ session: nextSession, getCurrentUser });
       if (!currentUser?.id) {
         setAuthStatus("error");
+        setIsProfileAdmin(false);
         setAuthError("Пользователь не найден. Войдите заново.");
         return;
       }
+      const hasAdminAccess = await isCurrentUserAdmin(nextSession, currentUser);
       setUser(currentUser);
+      setIsProfileAdmin(hasAdminAccess);
       setForm(createProfileLiteForm(null, currentUser));
       setAuthStatus("success");
     } catch (error) {
       setAuthStatus("error");
+      setIsProfileAdmin(false);
       setAuthError(safeProfileLiteError(error, "Пользователь не загрузился."));
     }
   };
@@ -2347,6 +2358,12 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
     }
   };
 
+  useEffect(() => {
+    if (authStatus === "success" && activeTab === "admin" && !isProfileAdmin) {
+      handleProfileLiteTabNavigate({ id: "profile", href: "/profile?tab=profile" });
+    }
+  }, [activeTab, authStatus, isProfileAdmin]);
+
   const handleCabinetRoleChange = (role) => {
     const nextRole = getProfileLiteRoleById(role?.id);
     setCabinetRole(nextRole.id);
@@ -2919,6 +2936,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         onThreadSelect={setSelectedThreadId}
       />
     ),
+    admin: isProfileAdmin ? <ProfileAdminPanel session={session} /> : <ProfileLiteOverview {...moduleProps} />,
     settings: <ProfileLiteSettingsModule {...moduleProps} onReset={resetLocalState} />,
     diagnostics: <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
   }[activeTab] || <ProfileLiteOverview {...moduleProps} />;
@@ -2941,6 +2959,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
       onReset={resetLocalState}
       onTabNavigate={handleProfileLiteTabNavigate}
       profile={profile}
+      isProfileAdmin={isProfileAdmin}
       user={user}
     >
       {renderModuleWithShellChrome}

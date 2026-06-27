@@ -46,6 +46,7 @@ const PROFILE_LITE_ROLE_TAB_IDS = {
 
 const PROFILE_LITE_INTERNAL_TABS = [
   ...PROFILE_LITE_TABS,
+  { id: "admin", label: "Админ", href: "/profile?tab=admin" },
   { id: "settings", label: "Настройки", href: "/profile/settings" },
   { id: "diagnostics", label: "Диагностика", href: "/profile?tab=diagnostics" }
 ];
@@ -77,6 +78,7 @@ export function getProfileLiteRoleById(roleId) {
 }
 
 export function getProfileLiteRoleForTab(tabId, preferredRole = "") {
+  if (tabId === "admin") return preferredRole || "client";
   if (tabId === "orders" && preferredRole === "master") return "master";
   return ["mandalas", "services", "clients", "materials", "masterProfile"].includes(tabId) ? "master" : "client";
 }

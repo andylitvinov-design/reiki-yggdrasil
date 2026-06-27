@@ -262,10 +262,10 @@ export function isAdminUser(user) {
   return Boolean(user?.email && ADMIN_EMAIL && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
 }
 
-export async function getCurrentAdmin(session = getStoredSession()) {
+export async function getCurrentAdmin(session = getStoredSession(), currentUser = null) {
   if (!session?.access_token) return null;
 
-  const user = await getCurrentUser(session);
+  const user = currentUser?.id ? currentUser : await getCurrentUser(session);
   if (!user?.id) return null;
 
   const rows = await request(`/rest/v1/${ADMINS_TABLE}?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,email&limit=1`, {
@@ -275,18 +275,16 @@ export async function getCurrentAdmin(session = getStoredSession()) {
   return rows?.[0] || null;
 }
 
-export async function isCurrentUserAdmin(session = getStoredSession()) {
+export async function isCurrentUserAdmin(session = getStoredSession(), currentUser = null) {
   if (!session?.access_token) return false;
 
-  const user = await getCurrentUser(session);
-  if (isAdminUser(user)) return true;
+  const user = currentUser?.id ? currentUser : await getCurrentUser(session);
   if (!user?.id) return false;
 
-  const rows = await request(`/rest/v1/${ADMINS_TABLE}?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,email&limit=1`, {
-    accessToken: session.access_token
-  });
+  const adminRow = await getCurrentAdmin(session, user);
+  if (adminRow) return true;
 
-  return Boolean(rows?.[0]);
+  return isAdminUser(user);
 }
 
 export async function getOwnProfile(userId, session = getStoredSession()) {
@@ -372,11 +370,23 @@ export async function updateProfileAccountPlan(profileId, accountPlan, session =
   if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
   if (!profileId) throw cabinetError("Профиль участника не выбран.");
 
+  return updateProfileAdminFields(profileId, { accountPlan }, session);
+}
+
+export async function updateProfileAdminFields(profileId, { accountPlan, status } = {}, session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
+  if (!profileId) throw cabinetError("Профиль участника не выбран.");
+
+  const body = {};
+  if (accountPlan !== undefined) body.account_plan = normalizeMasterPlan(accountPlan);
+  if (status !== undefined) body.status = status;
+  if (!Object.keys(body).length) throw cabinetError("Нет изменений для сохранения.");
+
   const rows = await request(`/rest/v1/${PROFILES_TABLE}?id=eq.${encodeURIComponent(profileId)}`, {
     method: "PATCH",
     accessToken: session.access_token,
     prefer: "return=representation",
-    body: { account_plan: normalizeMasterPlan(accountPlan) }
+    body
   });
 
   return rows?.[0] || null;

@@ -35,6 +35,32 @@
   - live UI save flow after branch merge/deploy;
   - participant-side plan display after a real admin update.
 
+## 2026-06-27 — Move admin participant controls into Profile Lite cabinet
+
+- Target branch: `codex/profile-admin-tab-20260627`.
+- Changed:
+  - extracted participant plan/status management to `src/pages/profile-lite/ProfileAdminPanel.jsx`;
+  - reused `ProfileAdminPanel` from `/profile/admin` instead of keeping a duplicated participant-management implementation there;
+  - added internal Profile Lite tab route `/profile?tab=admin`;
+  - added `Админ` to the Profile Lite navigation only when `isProfileAdmin` is true;
+  - changed admin detection to query `profile_cabinet_admins` first, then fall back to `VITE_ADMIN_EMAIL`;
+  - added a combined admin PATCH helper for participant `account_plan` and `status`.
+- Checks run:
+  - `npm run test:master-plans`
+  - `npm run test:profile-lite`
+  - `npm ci`
+  - `npm run build`
+  - `npm run check`
+  - `npm run delivery:checks`
+- Check notes:
+  - final checks exited `0`;
+  - retained existing npm audit report: 1 high severity vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Not verified:
+  - authenticated admin cabinet tab with a real owner session;
+  - live participant plan/status save after merge/deploy.
+
 ## 2026-06-26 — Add master profile tab/packages button
 
 - Target branch: `codex/master-profile-tab-packages`.

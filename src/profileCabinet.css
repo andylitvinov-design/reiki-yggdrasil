@@ -298,7 +298,7 @@
 
 .adminParticipantRow {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) auto minmax(180px, 0.8fr) auto;
+  grid-template-columns: minmax(0, 1.4fr) auto minmax(150px, 0.7fr) minmax(150px, 0.7fr) auto;
   align-items: center;
   gap: 12px;
   border: 1px solid rgba(184, 121, 29, 0.2);
