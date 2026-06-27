@@ -70,7 +70,8 @@ Supabase setup steps:
 19. Apply `supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql`.
 20. Apply `supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`.
 21. Apply `supabase/migrations/20260624120000_power_place_star_format_variant.sql`.
-22. Verify `profile_cabinet_publications` has `material_group`, `material_type`, `category`, and `subcategory`, then reload PostgREST if needed:
+22. Apply `supabase/migrations/20260627190000_profile_course_audio_invites.sql`.
+23. Verify `profile_cabinet_publications` has `material_group`, `material_type`, `category`, and `subcategory`, then reload PostgREST if needed:
     ```sql
     select column_name
     from information_schema.columns
@@ -151,8 +152,10 @@ Power Place persistence setup:
 - `20260605153000_service_orders_client_phase4.sql` extends service orders for authenticated client drafts, `photo_required`, order format, selected client photo, and client/master RLS.
 - `20260605184500_service_orders_result_delivery_phase5.sql` extends service orders for draft/final result composition delivery, `ready_for_review`, `sent_at`, and final-result-only client composition reads.
 - `20260607120000_profile_courses_individual_access_mvp.sql` adds private course, step, lesson, and individual access tables with admin RLS plus profile-owner reads for personally accessible published content.
+- `20260627190000_profile_course_audio_invites.sql` adds course step/lesson slugs, lesson audio Storage metadata, private course-audio Storage policies, course invite hash storage, and create/claim RPCs.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
+- Course audio uploads use the same private bucket with paths like `courses/magic-money/degree-1/<lesson-id>/<uuid>-audio.mp3`; the app resolves signed URLs only for authenticated users with active course/step access.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.
 
 Master chat setup:

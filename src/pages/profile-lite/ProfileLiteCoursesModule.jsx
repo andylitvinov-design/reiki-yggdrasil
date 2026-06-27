@@ -27,6 +27,11 @@ function safeExternalUrl(value) {
   return url;
 }
 
+function safeResolvedAudioUrl(value) {
+  const url = text(value);
+  return isHttpUrl(url) ? url : "";
+}
+
 function safeVideoEmbedUrl(value) {
   const source = safeExternalUrl(value);
   if (!source) return "";
@@ -60,7 +65,8 @@ function safeVideoEmbedUrl(value) {
 function LessonMedia({ lesson }) {
   const videoUrl = safeExternalUrl(lesson?.video_url);
   const embedUrl = safeVideoEmbedUrl(videoUrl);
-  const audioUrl = safeExternalUrl(lesson?.audio_url);
+  const audioUrl = safeResolvedAudioUrl(lesson?.audio_display_url) || safeExternalUrl(lesson?.audio_url);
+  const hasPrivateAudio = Boolean(lesson?.audio_storage_path || text(lesson?.audio_url).startsWith("storage://"));
 
   return (
     <div className="courseLessonMedia">
@@ -79,9 +85,15 @@ function LessonMedia({ lesson }) {
         </a>
       )}
       {audioUrl && (
-        <audio controls src={audioUrl}>
+        <audio controls preload="metadata" src={audioUrl}>
           Ваш браузер не поддерживает аудио.
         </audio>
+      )}
+      {!audioUrl && hasPrivateAudio && (
+        <div className="cabinetNotice compactNotice">{lesson.audio_display_error || "Аудио пока недоступно. Проверьте доступ или Storage/RLS."}</div>
+      )}
+      {!audioUrl && !hasPrivateAudio && (
+        <div className="cabinetNotice compactNotice">Аудио пока не добавлено.</div>
       )}
     </div>
   );
@@ -128,7 +140,7 @@ export default function ProfileLiteCoursesModule({
             {courses.length === 0 && (
               <div className="cabinetNotice">
                 <b>Курсы пока не открыты.</b>
-                <p>Администратор выдаст вам доступ к нужному курсу или ступени.</p>
+                <p>Откройте пригласительную ссылку или попросите администратора выдать доступ к нужному курсу или ступени.</p>
               </div>
             )}
             {courses.map((course) => (
@@ -213,7 +225,7 @@ export default function ProfileLiteCoursesModule({
           <div className="cabinetCard">
             <p className="cabinetEyebrow">доступ</p>
             <h3>Индивидуальный доступ</h3>
-            <p>Курсы открываются персонально для профиля мастера. Доступ может быть ко всему курсу или к отдельной ступени.</p>
+            <p>Курсы открываются персонально для вашего кабинета. Доступ может быть ко всему курсу или к отдельной ступени.</p>
             <div className="cabinetNotice">
               <b>{profile?.display_name || "Профиль мастера"}</b>
               <p>Если нужного урока нет, попросите администратора проверить доступ к курсу или ступени.</p>
