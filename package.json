@@ -13,7 +13,7 @@
     "test:profile-services": "node test/profileServicesClient.test.mjs",
     "test:public-master": "node test/profilePublicMasterClient.test.mjs",
     "test:profile-feed": "node test/profileActivityFeedClient.test.mjs",
-    "test:master-plans": "node test/masterPlans.test.mjs && node test/profileMasterPlansContract.test.mjs",
+    "test:master-plans": "node test/masterPlans.test.mjs && node test/profileMasterPlansContract.test.mjs && node test/profileAdminCabinetLevelsContract.test.mjs",
     "test:power-place": "node test/powerPlaceClient.test.mjs && node test/powerPlaceSymbolLibrary.test.mjs && node test/powerPlaceStyleContract.test.mjs && node test/printUtils.test.mjs",
     "preview": "vite preview --host 0.0.0.0",
     "audit:reiki-materials": "node scripts/audit-reiki-step-materials.mjs",

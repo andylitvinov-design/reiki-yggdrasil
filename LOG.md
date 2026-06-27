@@ -1,5 +1,40 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-27 — Add admin participant cabinet-level controls
+
+- Target branch: `codex/admin-cabinet-levels-20260627`.
+- Target URL: `https://2mentalica.vercel.app`.
+- Changed:
+  - added Supabase client helpers for `profile_cabinet_admins` admin detection, admin profile listing, and account-plan updates;
+  - updated `/profile/admin` so access works from `profile_cabinet_admins` as well as the existing `VITE_ADMIN_EMAIL` fallback;
+  - added the admin section `Уровни кабинетов участников` with search, participant rows, shortened `user_id`, current plan, Start / Практик / Мастер selector, legacy Pro display, per-row save state, empty state, and success message;
+  - added mobile-friendly CSS for the new admin participant rows;
+  - added the existing plan-mode migration to the Supabase migration runner allowlist and extended read-only schema verification for the actual account-plan constraint plus admin policies;
+  - added `test/profileAdminCabinetLevelsContract.test.mjs` and wired it into `test:master-plans`.
+- Live Supabase:
+  - local vault-backed runner was unavailable, so the Supabase connector was used;
+  - before migration, live project `dvzioccidlwfuuqbfhjl` did not allow `practic/master` in the `account_plan` check;
+  - applied the existing repo migration as `20260627085634 profile_master_plan_modes`;
+  - ran PostgREST schema reload notification;
+  - read-only verification confirmed `account_plan` allows `start/pro/practic/master`, admin self-read policy exists, profile admin select/update policies exist, and there is one admin row plus one profile row without printing email values.
+- Checks run:
+  - `npm install`
+  - `npm run test:master-plans`
+  - `npm run test:profile-lite`
+  - `npm run check`
+  - `npm run build`
+  - `npm run delivery:checks`
+- Check notes:
+  - all final checks exited `0`;
+  - retained existing npm audit report: 1 high severity vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning;
+  - one standalone `npm run build` attempt failed while `delivery:checks` was concurrently running `npm ci`; rerun after `delivery:checks` passed.
+- Not verified:
+  - authenticated live owner/admin browser session on `/profile/admin`;
+  - live UI save flow after branch merge/deploy;
+  - participant-side plan display after a real admin update.
+
 ## 2026-06-26 — Add master profile tab/packages button
 
 - Target branch: `codex/master-profile-tab-packages`.

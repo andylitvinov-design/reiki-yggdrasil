@@ -266,6 +266,66 @@
   overflow-wrap: anywhere;
 }
 
+.adminParticipantPlans {
+  margin-bottom: 18px;
+}
+
+.adminParticipantSearch {
+  display: grid;
+  gap: 7px;
+  margin: 14px 0 16px;
+  color: #5f5142;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.adminParticipantSearch input,
+.adminParticipantRow select {
+  width: 100%;
+  border: 1px solid rgba(122, 99, 72, 0.24);
+  border-radius: 14px;
+  padding: 12px 13px;
+  background: rgba(255, 255, 255, 0.88);
+  color: #24180e;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.adminParticipantList {
+  display: grid;
+  gap: 12px;
+}
+
+.adminParticipantRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) auto minmax(180px, 0.8fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.adminParticipantRow h3,
+.adminParticipantRow p {
+  margin: 0 0 6px;
+}
+
+.adminParticipantRow small,
+.adminParticipantRow p {
+  color: #6f614f;
+  overflow-wrap: anywhere;
+}
+
+.adminParticipantRow label {
+  display: grid;
+  gap: 6px;
+  color: #5f5142;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .cabinetPublicId {
   display: inline-block;
   margin-top: 6px;
@@ -1868,6 +1928,7 @@
   .profileLiteOverview,
   .profileLiteMetricGrid,
   .cabinetTwoColumns,
+  .adminParticipantRow,
   .masterCatalogCard,
   .materialCard {
     grid-template-columns: 1fr;
