@@ -26,10 +26,15 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
   "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql",
   "supabase/migrations/20260623120000_service_orders_personal_schema_fix.sql",
-  "supabase/migrations/20260624120000_power_place_star_format_variant.sql"
+  "supabase/migrations/20260624120000_power_place_star_format_variant.sql",
+  "supabase/migrations/20260625120000_profile_master_plan_modes.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
+  profile_cabinet_profiles_account_plan_allows_practic_master: false,
+  profile_cabinet_admins_own_policy: false,
+  profile_cabinet_profiles_admin_select_policy: false,
+  profile_cabinet_profiles_admin_update_policy: false,
   profile_cabinet_client_goal_photos: false,
   profile_cabinet_tradition_assets: false,
   profile_cabinet_power_place_compositions: false,
@@ -228,6 +233,41 @@ select
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profile_cabinet_profiles' and column_name = 'account_plan'
   ) as profile_cabinet_profiles_account_plan,
+  exists (
+    select 1
+    from pg_constraint con
+    join pg_class rel on rel.oid = con.conrelid
+    join pg_namespace nsp on nsp.oid = rel.relnamespace
+    where nsp.nspname = 'public'
+      and rel.relname = 'profile_cabinet_profiles'
+      and con.contype = 'c'
+      and pg_get_constraintdef(con.oid) like '%account_plan%'
+      and pg_get_constraintdef(con.oid) like '%start%'
+      and pg_get_constraintdef(con.oid) like '%pro%'
+      and pg_get_constraintdef(con.oid) like '%practic%'
+      and pg_get_constraintdef(con.oid) like '%master%'
+  ) as profile_cabinet_profiles_account_plan_allows_practic_master,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profile_cabinet_admins'
+      and policyname = 'admins read own admin row'
+      and cmd = 'SELECT'
+  ) as profile_cabinet_admins_own_policy,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profile_cabinet_profiles'
+      and policyname = 'admin reads all profiles'
+      and cmd = 'SELECT'
+  ) as profile_cabinet_profiles_admin_select_policy,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profile_cabinet_profiles'
+      and policyname = 'admin moderates profiles'
+      and cmd = 'UPDATE'
+  ) as profile_cabinet_profiles_admin_update_policy,
   exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_client_goal_photos'

@@ -12,10 +12,13 @@ import {
   getCurrentUser,
   getStoredSession,
   isAdminUser,
+  isCurrentUserAdmin,
+  listProfilesForAdmin,
   listPendingProfiles,
   sendMagicLink,
   storeSessionFromUrlHash,
   supabaseEnv,
+  updateProfileAccountPlan,
   updateProfileStatus
 } from "../lib/supabaseClient.js";
 import AdminCoursesPanel from "./admin/AdminCoursesPanel.jsx";
@@ -29,6 +32,12 @@ const EMPTY_TEST_EVENT = {
   image_url: ""
 };
 
+const PLAN_OPTIONS = [
+  { value: "start", label: "Start" },
+  { value: "practic", label: "Практик" },
+  { value: "master", label: "Мастер" }
+];
+
 function preview(value, max = 160) {
   const text = String(value || "").trim();
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
@@ -41,11 +50,23 @@ function formatAdminDate(value) {
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
+function shortAdminUserId(value) {
+  const text = String(value || "").trim();
+  if (!text) return "нет";
+  if (text.length <= 12) return text;
+  return `${text.slice(0, 8)}...${text.slice(-4)}`;
+}
+
 export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
   const [user, setUser] = useState(null);
+  const [adminAccess, setAdminAccess] = useState(false);
   const [profiles, setProfiles] = useState([]);
+  const [participantSearch, setParticipantSearch] = useState("");
+  const [participantProfiles, setParticipantProfiles] = useState([]);
+  const [participantPlans, setParticipantPlans] = useState({});
+  const [savingPlanByProfileId, setSavingPlanByProfileId] = useState({});
   const [pendingEvents, setPendingEvents] = useState([]);
   const [testEventForm, setTestEventForm] = useState(EMPTY_TEST_EVENT);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
@@ -76,21 +97,28 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
 
       try {
         const currentUser = await getCurrentUser(session);
-        if (!isAdminUser(currentUser)) {
+        const hasAdminAccess = isAdminUser(currentUser) || await isCurrentUserAdmin(session);
+        if (!hasAdminAccess) {
           if (!cancelled) {
             setUser(currentUser);
+            setAdminAccess(false);
             setProfiles([]);
+            setParticipantProfiles([]);
           }
           return;
         }
 
-        const [profileRows, eventRows] = await Promise.all([
+        const [profileRows, participantRows, eventRows] = await Promise.all([
           listPendingProfiles(session),
+          listProfilesForAdmin(session, participantSearch),
           listPendingActivityEvents(session)
         ]);
         if (!cancelled) {
           setUser(currentUser);
+          setAdminAccess(true);
           setProfiles(profileRows || []);
+          setParticipantProfiles(participantRows || []);
+          setParticipantPlans(Object.fromEntries((participantRows || []).map((profile) => [profile.id, profile.account_plan || "start"])));
           setPendingEvents(eventRows || []);
         }
       } catch (err) {
@@ -105,7 +133,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
     return () => {
       cancelled = true;
     };
-  }, [session, message]);
+  }, [session, message, participantSearch]);
 
   const handleMagicLink = async (event) => {
     event.preventDefault();
@@ -146,6 +174,28 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
     }
   };
 
+  const changeParticipantPlan = (profileId, value) => {
+    setParticipantPlans((current) => ({ ...current, [profileId]: value }));
+  };
+
+  const saveParticipantPlan = async (profileId) => {
+    const nextPlan = participantPlans[profileId] || "start";
+    setError("");
+    setMessage("");
+    setSavingPlanByProfileId((current) => ({ ...current, [profileId]: true }));
+
+    try {
+      const updated = await updateProfileAccountPlan(profileId, nextPlan, session);
+      setParticipantProfiles((rows) => rows.map((row) => (row.id === profileId ? { ...row, ...(updated || {}), account_plan: updated?.account_plan || nextPlan } : row)));
+      setParticipantPlans((current) => ({ ...current, [profileId]: updated?.account_plan || nextPlan }));
+      setMessage("Уровень кабинета обновлён.");
+    } catch (err) {
+      setError(err.message || "Не удалось обновить уровень кабинета.");
+    } finally {
+      setSavingPlanByProfileId((current) => ({ ...current, [profileId]: false }));
+    }
+  };
+
   const updateTestEventField = (field, value) => {
     setTestEventForm((current) => ({ ...current, [field]: value }));
   };
@@ -174,7 +224,9 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
     clearStoredSession();
     setSession(null);
     setUser(null);
+    setAdminAccess(false);
     setProfiles([]);
+    setParticipantProfiles([]);
     setMessage("Вы вышли из админ-раздела.");
   };
 
@@ -205,7 +257,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
             <p className="cabinetEyebrow">Вход администратора</p>
             <h2>Войдите email администратора</h2>
-            <p>Доступ к модерации проверяется по VITE_ADMIN_EMAIL. Значение env не выводится в интерфейс.</p>
+            <p>Доступ к модерации проверяется по записи администратора или резервному VITE_ADMIN_EMAIL. Значение env не выводится в интерфейс.</p>
             <label>
               Email
               <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="admin@example.com" />
@@ -214,7 +266,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </form>
         )}
 
-        {!loading && user && !isAdminUser(user) && (
+        {!loading && user && !adminAccess && (
           <div className="cabinetError">
             <b>Доступ закрыт.</b>
             <p>Этот раздел доступен только администратору проекта.</p>
@@ -222,14 +274,14 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </div>
         )}
 
-        {!loading && user && isAdminUser(user) && profiles.length === 0 && (
+        {!loading && user && adminAccess && profiles.length === 0 && (
           <div className="cabinetNotice">
             <b>Нет профилей на модерации.</b>
             <p>Новые заявки появятся здесь после отправки из кабинета мастера.</p>
           </div>
         )}
 
-        {!loading && user && isAdminUser(user) && profiles.length > 0 && (
+        {!loading && user && adminAccess && profiles.length > 0 && (
           <div className="moderationList">
             {profiles.map((profile) => (
               <article className="cabinetCard moderationCard" key={profile.id}>
@@ -251,11 +303,73 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </div>
         )}
 
-        {!loading && user && isAdminUser(user) && (
+        {!loading && user && adminAccess && (
+          <section className="cabinetCard adminParticipantPlans" aria-label="Уровни кабинетов участников">
+            <div className="cabinetFormHeader">
+              <div>
+                <p className="cabinetEyebrow">админ-доступ</p>
+                <h2>Уровни кабинетов участников</h2>
+              </div>
+              <span className="cabinetStatus">{participantProfiles.length}</span>
+            </div>
+            <label className="adminParticipantSearch">
+              Поиск участника
+              <input
+                value={participantSearch}
+                onChange={(event) => setParticipantSearch(event.target.value)}
+                placeholder="Email или имя участника"
+              />
+            </label>
+            {participantProfiles.length === 0 && (
+              <div className="cabinetNotice compactNotice">
+                <b>Участники не найдены.</b>
+              </div>
+            )}
+            {participantProfiles.length > 0 && (
+              <div className="adminParticipantList">
+                {participantProfiles.map((profile) => {
+                  const currentPlan = profile.account_plan || "start";
+                  const selectedPlan = participantPlans[profile.id] || currentPlan;
+                  const options = currentPlan === "pro"
+                    ? [{ value: "pro", label: "Pro legacy / Практик" }, ...PLAN_OPTIONS]
+                    : PLAN_OPTIONS;
+                  return (
+                    <article className="adminParticipantRow" key={profile.id}>
+                      <div>
+                        <h3>{profile.display_name || "Без имени"}</h3>
+                        {profile.email && <p>{profile.email}</p>}
+                        <small>user_id: {shortAdminUserId(profile.user_id)}</small>
+                      </div>
+                      <span className="cabinetStatus">{currentPlan === "pro" ? "Pro legacy / Практик" : currentPlan}</span>
+                      <label>
+                        Уровень
+                        <select value={selectedPlan} onChange={(event) => changeParticipantPlan(profile.id, event.target.value)}>
+                          {options.map((option) => (
+                            <option key={option.value} value={option.value}>{option.label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <button
+                        className="cabinetPrimary"
+                        type="button"
+                        onClick={() => saveParticipantPlan(profile.id)}
+                        disabled={Boolean(savingPlanByProfileId[profile.id])}
+                      >
+                        {savingPlanByProfileId[profile.id] ? "Сохраняю..." : "Сохранить"}
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
+        {!loading && user && adminAccess && (
           <AdminCoursesPanel session={session} />
         )}
 
-        {!loading && user && isAdminUser(user) && (
+        {!loading && user && adminAccess && (
           <section className="cabinetCard adminTestEventCard" aria-label="Тестовое событие ленты">
             <div className="cabinetFormHeader">
               <div>
@@ -302,7 +416,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </section>
         )}
 
-        {!loading && user && isAdminUser(user) && (
+        {!loading && user && adminAccess && (
           <section className="moderationList adminActivityModeration" aria-label="Публикации и события на модерации">
             <div className="cabinetFormHeader">
               <div>

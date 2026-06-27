@@ -1,6 +1,26 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-26
+Last updated: 2026-06-27
+
+## 2026-06-27 — Admin participant cabinet-level management
+
+- Branch target: `codex/admin-cabinet-levels-20260627`.
+- Live target: `https://2mentalica.vercel.app`.
+- Scope: add `/profile/admin` controls for searching participant profiles and changing `profile_cabinet_profiles.account_plan` between Start, Практик, and Мастер.
+- Admin access:
+  - `/profile/admin` now accepts either the existing `VITE_ADMIN_EMAIL` fallback or the current authenticated user's row in `profile_cabinet_admins`;
+  - frontend reads only the current admin row through the existing `admins read own admin row` RLS policy.
+- Supabase:
+  - repo migration `20260625120000_profile_master_plan_modes.sql` is included in the migration runner allowlist;
+  - live Supabase project `dvzioccidlwfuuqbfhjl` now has migration `20260627085634 profile_master_plan_modes`;
+  - read-only live checks confirmed `account_plan` allows `start`, `pro`, `practic`, and `master`, and confirmed admin self-read plus profile admin select/update policies.
+- Verification:
+  - `npm install`, `npm run test:master-plans`, `npm run test:profile-lite`, `npm run check`, `npm run build`, and `npm run delivery:checks` passed;
+  - existing warnings remain: 1 high npm audit issue, `RY-L04-S04` / `RY-L04-S05` video placeholders, and Vite large chunk warning.
+- Not verified:
+  - real browser login as owner/admin on `https://2mentalica.vercel.app/profile/admin`;
+  - changing a participant plan through the deployed UI after merge/deploy;
+  - participant-side `/profile` display after an admin-level change.
 
 ## 2026-06-26 — Master profile tab in master cabinet
 
