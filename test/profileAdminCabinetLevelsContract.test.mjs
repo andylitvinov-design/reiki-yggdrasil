@@ -88,6 +88,12 @@ assert.match(
 );
 
 assert.match(
+  supabaseClientSource,
+  /display_name\.ilike\.\*\$\{term\}\*,email\.ilike\.\*\$\{term\}\*/,
+  "admin participant search should search profile display_name and email through profile_cabinet_profiles"
+);
+
+assert.match(
   profileAdminPanelSource,
   /updateProfileAdminFields\(profileId,\s*\{[\s\S]*accountPlan:\s*nextPlan[\s\S]*status:\s*nextStatus[\s\S]*\},\s*session\)/,
   "ProfileAdminPanel should save participant plan and status together through one admin helper"

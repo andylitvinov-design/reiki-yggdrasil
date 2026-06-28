@@ -350,7 +350,7 @@ assert.equal(normalizeAccountPlan("unknown"), "start");
 
 assert.deepEqual(getPlanLimits("start"), {
   compositions: 7,
-  clientPhotos: 5,
+  clientPhotos: 10,
   dailyPhotoUploads: 7,
   clients: 5,
   trialServices: 0,

@@ -27,7 +27,7 @@ assert.deepEqual(getMasterPlan("start").limits, {
   compositions: 7,
   dailyPhotoUploads: 7,
   clients: 5,
-  clientPhotos: 5,
+  clientPhotos: 10,
   trialServices: 0,
   paidServices: 0,
   hiddenPublications: 0,
@@ -42,6 +42,9 @@ assert.equal(getMasterPlanLimit("master", "hiddenPublications"), 10);
 assert.equal(canCreateWithinPlanLimit("start", "compositions", 6).allowed, true);
 assert.equal(canCreateWithinPlanLimit("start", "compositions", 7).allowed, false);
 assert.match(canCreateWithinPlanLimit("start", "compositions", 7).message, /Лимит 7/);
+assert.equal(canCreateWithinPlanLimit("start", "clientPhotos", 9).allowed, true);
+assert.equal(canCreateWithinPlanLimit("start", "clientPhotos", 10).allowed, false);
+assert.match(canCreateWithinPlanLimit("start", "clientPhotos", 10).message, /Лимит 10 фото клиентов \/ целей/);
 assert.equal(canCreateWithinPlanLimit("master", "paidServices", 9).allowed, true);
 assert.equal(canCreateWithinPlanLimit("practic", "paidServices", 0).allowed, false);
 
