@@ -127,6 +127,7 @@ assert.deepEqual(globalBackgroundSizeContainRules, [], "powerMandalaPanel backgr
 
 const moduleSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx"), "utf8");
 const moduleBaseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
+const legacyProfileSource = readFileSync(join(__dir, "../src/pages/ProfilePage.jsx"), "utf8");
 const layoutFinalFixSource = readFileSync(join(__dir, "../public/profile-lite-layout-final-fix.js"), "utf8");
 const mobileFieldBoostSource = readFileSync(join(__dir, "../public/profile-power-place-mobile-field-boost.js"), "utf8");
 
@@ -170,6 +171,49 @@ assert.ok(
 assert.ok(
   moduleSource.includes(".powerPlacePdfOnlyArea .has-custom-inner-cover"),
   "print area must also receive has-custom-inner-cover CSS variable override"
+);
+
+// ─── Power Place brand mark: constructor labels stay out of substrate/PDF ────
+
+assert.ok(
+  moduleBaseSource.includes('<div className="powerPlaceMentalicaBrand" aria-label="Бренд Mentalica">Mentalica</div>'),
+  "constructor preview panel must render the Mentalica brand mark inside the substrate"
+);
+
+assert.ok(
+  cssSource.includes(".powerPlaceMentalicaBrand") &&
+    cssSource.includes(".powerPlacePdfOnlyArea .powerMandalaPanel > .powerPlaceMentalicaBrand") &&
+    cssSource.includes("bottom: clamp("),
+  "Mentalica brand mark must be positioned in the lower-left substrate area for preview and PDF"
+);
+
+assert.ok(
+  !moduleSource.includes("CONSTRUCTOR_LABELS") && !moduleSource.includes("powerPlaceExternalTitle"),
+  "wrapper must not portal constructor labels as an external preview/export title"
+);
+
+assert.ok(
+  !layoutFinalFixSource.includes("powerPlaceExternalTitle") &&
+    layoutFinalFixSource.includes(".powerPlacePdfOnlyArea .powerMandalaPanel > .powerPlaceMentalicaBrand"),
+  "runtime layout fix must not preserve external constructor titles and must support the PDF brand mark"
+);
+
+assert.doesNotMatch(
+  moduleBaseSource,
+  /<div className="powerPrintMeta">[\s\S]*?formatLabel\(compositionDraft\.constructor_type\)[\s\S]*?<\/div>/,
+  "powerPrintMeta must not render constructor labels on the substrate"
+);
+
+assert.ok(
+  legacyProfileSource.includes('<div className="powerPlaceMentalicaBrand" aria-label="Бренд Mentalica">Mentalica</div>') &&
+    legacyProfileSource.includes("<p><b>Бренд:</b> Mentalica</p>"),
+  "legacy ProfilePage preview/export must use Mentalica instead of constructor labels"
+);
+
+assert.doesNotMatch(
+  legacyProfileSource,
+  /<div className="powerPrintMeta">[\s\S]*?constructorTypeLabel\(constructorType\)[\s\S]*?<\/div>/,
+  "legacy ProfilePage substrate must not render constructor labels in powerPrintMeta"
 );
 
 // ─── Dynamic style: center photos preserve source proportions ────────────────

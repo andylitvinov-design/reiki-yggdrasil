@@ -1535,6 +1535,27 @@
   line-height: 1.1;
 }
 
+.powerPlaceMentalicaBrand {
+  position: absolute;
+  left: clamp(14px, 3.2vw, 28px);
+  bottom: clamp(12px, 2.8vw, 24px);
+  z-index: 30;
+  pointer-events: none;
+  color: rgba(116, 84, 57, 0.82);
+  font-size: clamp(11px, 1.8vw, 14px);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-shadow: 0 1px 8px rgba(255, 248, 232, 0.8);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.profileLitePowerPlace .powerMandalaPanel > .powerPlaceMentalicaBrand,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .powerPlaceMentalicaBrand {
+  display: block;
+}
+
 .powerMandala {
   position: relative;
   width: min(440px, 100%);

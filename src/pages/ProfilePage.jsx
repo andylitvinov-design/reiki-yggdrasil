@@ -2800,7 +2800,7 @@ export default function ProfilePage({ onNavigateHome, onNavigateMasters, initial
 <body>
   <h1>${escapeHtml(compositionTitle || "Место силы")}</h1>
   <section>
-    <p><b>Формат:</b> ${escapeHtml(constructorTypeLabel(constructorType))}</p>
+    <p><b>Бренд:</b> Mentalica</p>
     <p><b>Режим:</b> ${escapeHtml(RESOURCE_COMPARISON_MODES.find((item) => item.value === resourceComparisonMode)?.label || "Фото цели")}</p>
     <p><b>Центральное изображение:</b> ${centerRef ? escapeHtml(centerRef) : "не выбрано"}</p>
     ${centerDisplay && isImagePreview(centerDisplay) ? `<img src="${escapeHtml(centerDisplay)}" alt="Центральное изображение">` : ""}
@@ -3624,10 +3624,7 @@ const resourceComparisonPanel = (
 
               <div className={`powerPlacePrintArea field-layout-${mandalaFieldLayout}`}>
                 <div className={`powerMandalaPanel field-layout-${mandalaFieldLayout} ${selectedOuterCoverClass}`} style={selectedOuterCoverStyle}>
-                  <div className="powerPrintMeta">
-                    <p className="cabinetEyebrow">Формат</p>
-                    <h3>{constructorTypeLabel(constructorType)}</h3>
-                  </div>
+                  <div className="powerPlaceMentalicaBrand" aria-label="Бренд Mentalica">Mentalica</div>
                   {resourceComparisonMode === "client_photo" ? (
                     <div className="powerPhotoOnlyFrame">
                       {renderCenterPhotoWithMode("powerCenterPhoto photoOnly")}
