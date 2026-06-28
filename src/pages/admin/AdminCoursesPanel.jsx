@@ -469,7 +469,7 @@ export default function AdminCoursesPanel({ session }) {
       {message && <div className="cabinetSuccess">{message}</div>}
 
       <div className="adminCoursesGrid">
-        <form className="adminCoursesBlock" onSubmit={handleCourseSave}>
+        <form className="adminCoursesBlock adminCourseCard" onSubmit={handleCourseSave}>
           <div className="cabinetFormHeader">
             <h3>Курс</h3>
             <div className="cabinetActions">
@@ -510,7 +510,7 @@ export default function AdminCoursesPanel({ session }) {
           <button className="cabinetPrimary" type="submit">{courseForm.id ? "Сохранить курс" : "Создать курс"}</button>
         </form>
 
-        <form className="adminCoursesBlock" onSubmit={handleStepSave}>
+        <form className="adminCoursesBlock adminStepCard" onSubmit={handleStepSave}>
           <div className="cabinetFormHeader">
             <h3>Ступень</h3>
             <button className="cabinetGhost" type="button" onClick={() => setStepForm(createEmptyCourseStepForm({ course_id: selectedCourseId }))}>Новая</button>
@@ -598,7 +598,7 @@ export default function AdminCoursesPanel({ session }) {
           <button className="cabinetPrimary" type="submit" disabled={!selectedCourseId || !selectedStepId}>{lessonForm.id ? "Сохранить урок" : "Создать урок"}</button>
         </form>
 
-        <form className="adminCoursesBlock" onSubmit={handleGrantAccess}>
+        <form className="adminCoursesBlock adminCourseAccessCard" onSubmit={handleGrantAccess}>
           <h3>Доступ мастера</h3>
           <Field label="Мастер">
             <select value={accessForm.profile_id} onChange={(event) => setAccessField("profile_id", event.target.value)}>
@@ -633,14 +633,14 @@ export default function AdminCoursesPanel({ session }) {
               </select>
             </Field>
           )}
-          <button className="cabinetPrimary" type="submit">Выдать доступ</button>
+          <button className="cabinetPrimary" type="submit">Сохранить доступ</button>
           <div className="cabinetNotice compactNotice">
             <b>Модель доступа:</b>
             <p>Весь курс = `access_scope=course` и `step_id=null`. Ступень = `access_scope=step` и выбранная ступень. Уроки наследуют доступ от ступени.</p>
           </div>
         </form>
 
-        <form className="adminCoursesBlock" onSubmit={handleCreateCourseInvite}>
+        <form className="adminCoursesBlock adminCourseInviteCard" onSubmit={handleCreateCourseInvite}>
           <h3>Invite / claim link</h3>
           <Field label="Email получателя">
             <input value={inviteForm.target_email} onChange={(event) => setInviteField("target_email", event.target.value)} placeholder="optional@example.com" />

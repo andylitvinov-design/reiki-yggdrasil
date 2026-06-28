@@ -12,6 +12,7 @@ const profileLiteClientSource = readFileSync("src/lib/profileLiteClient.js", "ut
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
 const profileLiteShellSource = readFileSync("src/pages/profile-lite/ProfileLiteShell.jsx", "utf8");
 const profileAdminPanelSource = readFileSync("src/pages/profile-lite/ProfileAdminPanel.jsx", "utf8");
+const profileCabinetCssSource = readFileSync("src/profileCabinet.css", "utf8");
 const supabaseClientSource = readFileSync("src/lib/supabaseClient.js", "utf8");
 const migrationSource = readFileSync("supabase/migrations/20260625120000_profile_master_plan_modes.sql", "utf8");
 
@@ -94,6 +95,25 @@ assert.match(
 );
 
 assert.match(
+  supabaseClientSource,
+  /safePostgrestSearch[\s\S]*\.toLowerCase\(\)/,
+  "admin participant search should trim and lowercase the sanitized search term"
+);
+
+for (const expectedCopy of [
+  "Введите email или имя участника",
+  "Ищу участника...",
+  "Участник не найден. Проверьте email или создайте профиль.",
+  "Сохранить уровень"
+]) {
+  assert.match(
+    profileAdminPanelSource,
+    new RegExp(expectedCopy.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+    `ProfileAdminPanel should include mobile-first admin copy: ${expectedCopy}`
+  );
+}
+
+assert.match(
   profileAdminPanelSource,
   /updateProfileAdminFields\(profileId,\s*\{[\s\S]*accountPlan:\s*nextPlan[\s\S]*status:\s*nextStatus[\s\S]*\},\s*session\)/,
   "ProfileAdminPanel should save participant plan and status together through one admin helper"
@@ -163,6 +183,18 @@ assert.match(
   adminPageSource,
   /isCurrentUserAdmin\(session,\s*currentUser\)/,
   "AdminPage compatibility route should grant access through profile_cabinet_admins first"
+);
+
+assert.match(
+  profileCabinetCssSource,
+  /@media \(max-width: 760px\)[\s\S]*\.adminCoursesGrid[\s\S]*grid-template-columns: 1fr[\s\S]*\.adminCoursesBlock[\s\S]*min-width: 0[\s\S]*\.adminCoursesBlock \.cabinetTwoColumns[\s\S]*grid-template-columns: 1fr/,
+  "admin courses panel should use a mobile one-column layout that prevents squeezed two-column fields"
+);
+
+assert.match(
+  profileCabinetCssSource,
+  /@media \(max-width: 760px\)[\s\S]*\.adminCoursesBlock \.cabinetActions[\s\S]*flex-wrap: wrap/,
+  "admin course action rows should wrap on mobile"
 );
 
 console.log("profileAdminCabinetLevelsContract: all assertions passed.");

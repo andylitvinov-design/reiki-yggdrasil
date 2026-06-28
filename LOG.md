@@ -1,5 +1,36 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-28 — Fix Issue #490 admin mobile UX and participant email search
+
+- Target branch: `codex/issue490-admin-mobile-search`.
+- Target URL: `https://2mentalica.vercel.app/profile/admin`.
+- Bug proof before patch:
+  - `git show HEAD^:src/lib/supabaseClient.js` showed `listProfilesForAdmin()` used only `display_name.ilike.*${term}*`;
+  - fresh `origin/main` already contained PR #491 adding `email.ilike.*${term}*`, but `safePostgrestSearch()` did not lowercase the term and the participant UI still showed generic loading/not-found states;
+  - `src/profileCabinet.css` had only a broad `@media (max-width: 980px)` collapse for admin course rows and did not constrain mobile form widths, wrapped action rows, or access-first mobile ordering.
+- Changed:
+  - lowercased sanitized participant search terms while preserving authenticated Supabase REST/RLS flow, `order=updated_at.desc`, and `limit=30`;
+  - added no-query, loading, not-found, and safe error states for participant admin search;
+  - renamed participant and access primary CTAs to `Сохранить уровень` and `Сохранить доступ`;
+  - added scoped mobile CSS for admin participant rows and course/access cards: one-column form rows below 760px, `min-width: 0`, wrapped actions, full-width mobile CTAs, and no horizontal overflow safeguards.
+- Checks run:
+  - `npm ci`
+  - `node test/profileAdminCabinetLevelsContract.test.mjs` first failed on lowercase normalization, then passed after implementation
+  - `npm run test:master-plans`
+  - `npm run test:profile-lite`
+  - `npm run build`
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4390/profile/admin`;
+  - mock Supabase server: `http://127.0.0.1:4391` with dummy public env names only;
+  - viewport: 390x844;
+  - verified initial guidance `Введите email или имя участника`;
+  - filled `Andy.litvinov@gmail.com` and observed result `andy.litvinov@gmail.com`;
+  - observed `Сохранить уровень` and `Сохранить доступ` in the mobile admin UI.
+- Not verified:
+  - real authenticated staging Supabase search/save on `https://2mentalica.vercel.app/profile/admin`;
+  - real iPhone Safari keyboard behavior;
+  - complete browser select/save interaction, because the MCP browser transport closed while changing comboboxes and local Chromium launch is blocked by macOS Mach-port permission.
+
 ## 2026-06-28 — Expose Issue #480 Courses in real Profile Lite cabinet nav
 
 - Target branch: `codex/profile-courses-nav-480`.

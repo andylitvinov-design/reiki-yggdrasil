@@ -301,10 +301,15 @@
   grid-template-columns: minmax(0, 1.4fr) auto minmax(150px, 0.7fr) minmax(150px, 0.7fr) auto;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   border: 1px solid rgba(184, 121, 29, 0.2);
   border-radius: 18px;
   padding: 14px;
   background: rgba(255, 255, 255, 0.5);
+}
+
+.adminParticipantIdentity {
+  min-width: 0;
 }
 
 .adminParticipantRow h3,
@@ -614,6 +619,8 @@
 .courseHelpColumn .cabinetCard,
 .courseCenterColumn .cabinetCard,
 .adminCoursesPanel {
+  max-width: 100%;
+  overflow-x: clip;
   border-radius: 8px;
 }
 
@@ -693,10 +700,36 @@
 .adminCoursesBlock {
   display: grid;
   gap: 10px;
+  min-width: 0;
   padding: 14px;
   border: 1px solid rgba(120, 88, 44, 0.16);
   border-radius: 8px;
   background: rgba(255, 252, 244, 0.7);
+}
+
+.adminCoursesBlock label {
+  min-width: 0;
+}
+
+.adminCoursesBlock input,
+.adminCoursesBlock select,
+.adminCoursesBlock textarea,
+.adminCoursesBlock button {
+  max-width: 100%;
+}
+
+.adminCoursesBlock .cabinetFormHeader,
+.adminCoursesBlock .cabinetActions {
+  min-width: 0;
+}
+
+.adminCoursesBlock .cabinetActions {
+  flex-wrap: wrap;
+}
+
+.adminCoursesBlock .cabinetNotice p,
+.adminCoursesAccessList p {
+  overflow-wrap: anywhere;
 }
 
 .adminLessonEditor {
@@ -731,6 +764,87 @@
   .adminCoursesGrid,
   .adminCourseAccessRow {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .adminParticipantPlans,
+  .adminCoursesPanel {
+    padding: 14px;
+  }
+
+  .adminParticipantSearch {
+    margin-top: 10px;
+  }
+
+  .adminParticipantRow {
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .adminParticipantRow .cabinetStatus {
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .adminParticipantRow button {
+    width: 100%;
+  }
+
+  .adminCoursesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .adminCoursesBlock {
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .adminCourseAccessCard {
+    order: 1;
+  }
+
+  .adminCourseCard {
+    order: 2;
+  }
+
+  .adminStepCard {
+    order: 3;
+  }
+
+  .adminLessonEditor {
+    order: 4;
+  }
+
+  .adminCourseInviteCard {
+    order: 5;
+  }
+
+  .adminCoursesBlock .cabinetFormHeader {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .adminCoursesBlock .cabinetTwoColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .adminCoursesBlock .cabinetActions {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .adminCoursesBlock .cabinetActions button,
+  .adminCoursesBlock > .cabinetPrimary,
+  .adminCourseAccessRow button {
+    width: 100%;
+  }
+
+  .adminCourseAccessRow {
+    align-items: stretch;
   }
 }
 

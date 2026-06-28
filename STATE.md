@@ -2,6 +2,29 @@
 
 Last updated: 2026-06-28
 
+## 2026-06-28 — Issue #490 admin mobile UX and participant email search
+
+- Branch target: `codex/issue490-admin-mobile-search`.
+- Live target: `https://2mentalica.vercel.app/profile/admin`.
+- Scope: `/profile/admin` and in-cabinet admin participant/course controls only; Supabase env values, RLS policies, auth redirects, public routes, and Vercel rewrites were not changed.
+- Root cause:
+  - Issue #490 documented that participant search failed for `Andy.litvinov@gmail.com` because the previous helper searched only `display_name`;
+  - fresh `origin/main` already included PR #491 adding `email.ilike`, but the search term still needed lowercase normalization and the panel still loaded generic/all-profile states before a query;
+  - the mobile admin course panel used desktop grid/form controls with limited mobile constraints, so course/access form rows could squeeze and overflow on iPhone width.
+- Changed:
+  - admin participant search now trims/lowercases/sanitizes the PostgREST term and keeps display-name plus email `ilike` search with existing limit/order/auth;
+  - participant admin states now show explicit no-query, loading, not-found, and safe error copy;
+  - participant result rows use the clearer primary CTA `Сохранить уровень`;
+  - admin course/access cards now have mobile card hooks, one-column field rows below 760px, wrapped actions, full-width mobile CTAs, and access-first mobile ordering with `Сохранить доступ`.
+- Verification status:
+  - focused admin contract RED check failed before implementation on lowercase normalization, then passed after the patch;
+  - `npm ci`, `npm run test:master-plans`, `npm run test:profile-lite`, and `npm run build` passed locally;
+  - local mocked browser at 390x844 reached `/profile/admin`, showed the no-query guidance, found `andy.litvinov@gmail.com` after mixed-case `Andy.litvinov@gmail.com` input, and showed `Сохранить уровень` / `Сохранить доступ`.
+- Not verified:
+  - real authenticated Supabase search/save on `https://2mentalica.vercel.app/profile/admin`;
+  - real iPhone Safari keyboard behavior;
+  - complete browser select/save interaction, because the MCP browser transport closed while changing comboboxes.
+
 ## 2026-06-28 — Issue #480 Profile Lite courses nav integration
 
 - Branch target: `codex/profile-courses-nav-480`.
