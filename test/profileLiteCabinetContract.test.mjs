@@ -746,6 +746,11 @@ assert.match(powerPlaceSource, /outerCover\?\.type === "image" \? "image" : oute
 assert.doesNotMatch(powerPlaceSource, /outer-cover-\$\{outerCover\?\.tone \|\| "none"\}/, "outer cover class must not use tone directly — image type would silently become outer-cover-none");
 assert.match(powerPlaceSource, /--power-outer-cover-image.*coverDisplaySrc\(outerCover\)/, "image outer cover must set --power-outer-cover-image CSS variable for the CSS rule to use");
 assert.match(profileMandalaCss, /\.powerMandalaPanel\.outer-cover-image[\s\S]*--power-outer-cover-image/, "CSS must render outer image cover via --power-outer-cover-image variable");
+assert.match(powerPlaceBaseSource, /getCoverImagePanZoomHandlers/, "Power Place image covers must expose mobile pan/pinch handlers");
+assert.match(powerPlaceBaseSource, /cover_ref\.inner[\s\S]*getCoverImagePanZoomHandlers\("inner"\)/, "inner cover must use the shared mobile pan/pinch handler");
+assert.match(powerPlaceBaseSource, /cover_ref\.outer[\s\S]*getCoverImagePanZoomHandlers\("outer"\)/, "outer cover must use the shared mobile pan/pinch handler");
+assert.match(powerPlaceBaseSource, /__slot_transforms[\s\S]*cover_ref\.inner[\s\S]*cover_ref\.outer/, "cover zoom must reuse object_refs.__slot_transforms for save/export parity");
+assert.match(profileMandalaCss, /\.powerMandalaCoverGestureTarget[\s\S]*touch-action: none/, "cover gesture target must isolate touch handling instead of blocking page scroll globally");
 assert.match(profileLitePageSource, /\[nextLayer\.src\]: nextLayer\.display_src/, "cover signed URLs should be stored by durable storage ref");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.has-custom-inner-cover/, "custom inner cover styling should be scoped to Profile Lite");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerMandalaPanel\.has-custom-outer-cover/, "custom outer cover styling should be scoped to the outer panel");
@@ -771,7 +776,7 @@ assert.match(imagePickerSource, /materialImageMatchesSelection/, "saved Material
 assert.doesNotMatch(profileLitePageSource, /создание image material без миграции пока не подтверждено/, "material image upload should no longer be blocked by the old placeholder error");
 assert.doesNotMatch(powerPlaceSource, /MutationObserver/, "Profile Lite React module must not introduce MutationObserver");
 assert.doesNotMatch(profileLitePageSource, /MutationObserver/, "Profile Lite page must not introduce MutationObserver");
-assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|__inner_cover_offset_x|__outer_cover_offset_x|imageOffsetStyle/, "base module must not reintroduce legacy cover pointer repositioning or inner/outer cover offset persistence");
+assert.doesNotMatch(powerPlaceBaseSource, /startImageReposition|clampImageOffset|imageOffsetStyle/, "base module must not reintroduce legacy cover pointer repositioning helpers");
 assert.doesNotMatch(powerPlaceSource, /startImageReposition|clampImageOffset|imageOffsetStyle/, "module wrapper must not reintroduce legacy cover pointer repositioning");
 assert.doesNotMatch(layoutFinalFix, /tuneInnerCoverArrows|nudgeInnerCover|coverOffsetCornerGroup|↖|↗|↙|↘/, "public Profile Lite layout fix should not inject legacy diagonal inner-cover arrows");
 
@@ -803,10 +808,11 @@ assert.match(powerPlaceBaseSource, /onPointerDown[\s\S]*handleCenterPointerDown|
 assert.match(powerPlaceBaseSource, /onPointerMove[\s\S]*handleCenterPointerMove|handleCenterPointerMove[\s\S]*onPointerMove/, "central pan/zoom: onPointerMove must be wired to center photo handler");
 assert.match(powerPlaceBaseSource, /onPointerUp[\s\S]*handleCenterPointerUp|handleCenterPointerUp[\s\S]*onPointerUp/, "central pan/zoom: onPointerUp must be wired to center photo handler");
 
-// Part B: cover slots must NOT have pointer pan/zoom handlers
-assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to inner cover slots");
-assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.outer|cover_ref\.outer[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to outer cover slots");
-assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must be absent from base module");
+// Part B: cover images now use mobile pointer pan/zoom handlers
+assert.match(powerPlaceBaseSource, /__inner_cover_offset_x/, "inner cover pan/zoom: __inner_cover_offset_x must be persisted");
+assert.match(powerPlaceBaseSource, /__outer_cover_offset_x/, "outer cover pan/zoom: __outer_cover_offset_x must be persisted");
+assert.match(powerPlaceBaseSource, /getCoverImagePanZoomHandlers/, "cover pan/zoom: shared handler must exist");
+assert.match(powerPlaceBaseSource, /e\.target !== e\.currentTarget/, "cover pan/zoom must ignore bubbled child slot/center gestures");
 
 // Part B: CSS must define grab cursor for center photo
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.powerCenterPhoto\.hasImage[\s\S]*cursor:\s*grab/, "CSS must define grab cursor for center photo with image");
@@ -852,10 +858,11 @@ for (const slotImageClass of [
   );
 }
 
-// Part C: cover pan/zoom must NOT have been introduced
-assert.doesNotMatch(powerPlaceBaseSource, /__inner_cover_offset_x|__outer_cover_offset_x/, "cover pan/zoom persistence keys must remain absent");
-assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.inner|cover_ref\.inner[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to inner cover slots");
-assert.doesNotMatch(powerPlaceBaseSource, /onPointerDown[\s\S]{0,200}cover_ref\.outer|cover_ref\.outer[\s\S]{0,200}onPointerDown/, "pointer handlers must not be applied to outer cover slots");
+// Part C: cover pan/zoom must share the persisted slot-transform model
+assert.match(powerPlaceBaseSource, /COVER_TRANSFORM_SLOT_BY_LAYER/, "cover pan/zoom should map cover layers to persisted transform slots");
+assert.match(powerPlaceBaseSource, /writeCoverImageTransform/, "cover pan/zoom should persist edits through a dedicated writer");
+assert.match(powerPlaceBaseSource, /innerCoverGestureHandlers/, "inner cover pan/zoom handlers must be conditionally wired");
+assert.match(powerPlaceBaseSource, /outerCoverGestureHandlers/, "outer cover pan/zoom handlers must be conditionally wired");
 
 // Part C: powerPlaceClient must preserve __slot_transforms
 assert.match(powerPlaceClientSource, /SLOT_TRANSFORMS_REF_KEY|__slot_transforms/, "powerPlaceClient must handle __slot_transforms");

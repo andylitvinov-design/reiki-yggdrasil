@@ -147,6 +147,21 @@ assert.ok(
 );
 
 assert.ok(
+  moduleSource.includes("innerCoverZoom") && moduleSource.includes("outerCoverZoom"),
+  "dynamic style must carry inner/outer cover zoom values for preview/export parity"
+);
+
+assert.ok(
+  moduleSource.includes("background-size: calc(100% * ${innerCoverZoom}) auto !important"),
+  "inner cover image must use the persisted cover zoom in generated preview/export CSS"
+);
+
+assert.ok(
+  moduleSource.includes("background-size: calc(100% * ${outerCoverZoom}) auto !important"),
+  "outer cover image must use the persisted cover zoom in generated preview/export CSS"
+);
+
+assert.ok(
   moduleSource.includes("background-image: var(--power-inner-cover-image, none) !important"),
   "dynamic style must apply CSS variable as background-image with !important to override cover-none"
 );

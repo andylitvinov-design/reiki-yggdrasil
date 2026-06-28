@@ -159,6 +159,14 @@ const CHESS_TOP_SLOTS = Array.from({ length: 5 }, (_, index) => ({
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const MOTION_SETTINGS_REF_KEY = "__motion_settings";
 const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
+const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
+const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
+const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const COVER_TRANSFORM_SLOT_BY_LAYER = {
+  inner: "cover_ref.inner",
+  outer: "cover_ref.outer"
+};
 const SHOW_POWER_PLACE_FEED_PROJECTION = false;
 
 const EMPTY_VISIBILITY_SETTINGS = {
@@ -934,6 +942,10 @@ export default function ProfileLitePowerPlaceModule({
   const innerCoverClass = coverKindClass(innerCover, "inner");
   const outerCoverClass = coverKindClass(outerCover, "outer");
   const outerCoverFitClassName = outerCoverFitClass(outerCover);
+  const innerCoverGestureHandlers = innerCover?.type === "image" ? getCoverImagePanZoomHandlers("inner") : {};
+  const outerCoverGestureHandlers = outerCover?.type === "image" ? getCoverImagePanZoomHandlers("outer") : {};
+  const innerCoverGestureClass = innerCover?.type === "image" ? " powerMandalaCoverGestureTarget" : "";
+  const outerCoverGestureClass = outerCover?.type === "image" ? " powerMandalaCoverGestureTarget" : "";
   const isDaoLayoutFormat = compositionDraft.constructor_type === "dao-layout";
   const legacyDaoLayoutStyle = compositionDraft.__dao_style === DAO_LAYOUT_TEMPLATE_STYLE_ID;
   const daoStyle = legacyDaoLayoutStyle ? "style-1" : compositionDraft.__dao_style || "style-1";
@@ -1042,6 +1054,29 @@ export default function ProfileLitePowerPlaceModule({
     onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
   }, [objectRefs, onCompositionObjectRefsChange]);
 
+  const writeCoverImageTransform = useCallback((layer, x, y, zoom) => {
+    const slotId = COVER_TRANSFORM_SLOT_BY_LAYER[layer];
+    if (!slotId) return;
+    const currentTransforms = cleanObjectRefs(objectRefs.__slot_transforms);
+    const currentSlotTransform = cleanObjectRefs(currentTransforms[slotId]);
+    const nextRefs = {
+      ...objectRefs,
+      [layer === "outer" ? OUTER_COVER_OFFSET_X_REF_KEY : INNER_COVER_OFFSET_X_REF_KEY]: String(clampSlotImageOffset(x)),
+      [layer === "outer" ? OUTER_COVER_OFFSET_Y_REF_KEY : INNER_COVER_OFFSET_Y_REF_KEY]: String(clampSlotImageOffset(y)),
+      __slot_transforms: {
+        ...currentTransforms,
+        [slotId]: {
+          ...currentSlotTransform,
+          x: clampSlotImageOffset(x),
+          y: clampSlotImageOffset(y),
+          zoom: clampSlotImageZoom(zoom),
+          rotate: clampSlotImageRotation(currentSlotTransform.rotate ?? currentSlotTransform.rotation ?? 0)
+        }
+      }
+    };
+    onCompositionObjectRefsChange(JSON.stringify(nextRefs, null, 2));
+  }, [objectRefs, onCompositionObjectRefsChange]);
+
   const rotateSlotPhoto = useCallback((slotId, delta) => {
     if (!slotId) return;
     const t = slotImageTransformFor(slotId);
@@ -1085,6 +1120,125 @@ export default function ProfileLitePowerPlaceModule({
       "--slot-bg-rotate": `${rotate}deg`,
       filter: `brightness(${brightness}%) contrast(${contrast}%)`,
       touchAction: "none"
+    };
+  }
+
+  function coverImageTransformFor(layer) {
+    const slotId = COVER_TRANSFORM_SLOT_BY_LAYER[layer];
+    const t = slotImageTransformFor(slotId);
+    return {
+      x: clampSlotImageOffset(objectRefs[layer === "outer" ? OUTER_COVER_OFFSET_X_REF_KEY : INNER_COVER_OFFSET_X_REF_KEY] ?? t.x),
+      y: clampSlotImageOffset(objectRefs[layer === "outer" ? OUTER_COVER_OFFSET_Y_REF_KEY : INNER_COVER_OFFSET_Y_REF_KEY] ?? t.y),
+      zoom: t.zoom
+    };
+  }
+
+  function setCoverPreviewStyle(target, x, y, zoom) {
+    target.style.setProperty("background-position", `${x}% ${y}%`, "important");
+    target.style.setProperty("background-size", `calc(100% * ${zoom}) auto`, "important");
+  }
+
+  function clearCoverPreviewStyle(target) {
+    target.style.removeProperty("background-position");
+    target.style.removeProperty("background-size");
+  }
+
+  function getCoverImagePanZoomHandlers(layer) {
+    const slotId = COVER_TRANSFORM_SLOT_BY_LAYER[layer];
+    return {
+      onPointerDown(e) {
+        if (!slotId || e.target !== e.currentTarget) return;
+        const pinch = slotPinchRef.current[slotId];
+        if (pinch && pinch.pointers.length === 1) {
+          pinch.pointers.push({ id: e.pointerId, x: e.clientX, y: e.clientY });
+          const [p1, p2] = pinch.pointers;
+          pinch.startDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          const t = coverImageTransformFor(layer);
+          pinch.startZoom = t.zoom;
+          pinch.currentZoom = t.zoom;
+          pinch.active = true;
+          const drag = slotDragRef.current[slotId];
+          if (drag) drag.active = false;
+          e.currentTarget.classList.add("is-pinching");
+          return;
+        }
+        const t = coverImageTransformFor(layer);
+        e.currentTarget.setPointerCapture(e.pointerId);
+        slotDragRef.current[slotId] = {
+          active: true,
+          startX: e.clientX,
+          startY: e.clientY,
+          startOffsetX: t.x,
+          startOffsetY: t.y,
+          pointerId: e.pointerId,
+          moved: false,
+          currentOffsetX: t.x,
+          currentOffsetY: t.y
+        };
+        slotPinchRef.current[slotId] = { pointers: [{ id: e.pointerId, x: e.clientX, y: e.clientY }], active: false, startDist: 0, startZoom: t.zoom, currentZoom: t.zoom };
+        e.currentTarget.classList.add("is-panning");
+      },
+      onPointerMove(e) {
+        const pinch = slotPinchRef.current[slotId];
+        if (pinch?.active) {
+          const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+          if (pIdx === -1) return;
+          pinch.pointers[pIdx] = { id: e.pointerId, x: e.clientX, y: e.clientY };
+          const [p1, p2] = pinch.pointers;
+          const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+          if (pinch.startDist > 0) {
+            const t = coverImageTransformFor(layer);
+            const newZoom = clampSlotImageZoom(pinch.startZoom * (dist / pinch.startDist));
+            pinch.currentZoom = newZoom;
+            setCoverPreviewStyle(e.currentTarget, t.x, t.y, newZoom);
+          }
+          return;
+        }
+        const drag = slotDragRef.current[slotId];
+        if (!drag?.active || e.pointerId !== drag.pointerId) return;
+        const dX = e.clientX - drag.startX;
+        const dY = e.clientY - drag.startY;
+        if (Math.abs(dX) > 3 || Math.abs(dY) > 3) drag.moved = true;
+        const rect = e.currentTarget.getBoundingClientRect();
+        drag.currentOffsetX = clampSlotImageOffset(drag.startOffsetX - (rect.width > 0 ? (dX / rect.width) * 100 : 0));
+        drag.currentOffsetY = clampSlotImageOffset(drag.startOffsetY - (rect.height > 0 ? (dY / rect.height) * 100 : 0));
+        const t = coverImageTransformFor(layer);
+        setCoverPreviewStyle(e.currentTarget, drag.currentOffsetX, drag.currentOffsetY, t.zoom);
+      },
+      onPointerUp(e) {
+        const pinch = slotPinchRef.current[slotId];
+        if (pinch?.active) {
+          const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+          if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
+          if (pinch.pointers.length < 2) {
+            pinch.active = false;
+            e.currentTarget.classList.remove("is-pinching");
+            clearCoverPreviewStyle(e.currentTarget);
+            const t = coverImageTransformFor(layer);
+            writeCoverImageTransform(layer, t.x, t.y, pinch.currentZoom ?? t.zoom);
+          }
+          return;
+        }
+        const drag = slotDragRef.current[slotId];
+        if (!drag?.active || e.pointerId !== drag.pointerId) return;
+        drag.active = false;
+        e.currentTarget.classList.remove("is-panning");
+        clearCoverPreviewStyle(e.currentTarget);
+        if (drag.moved) {
+          const t = coverImageTransformFor(layer);
+          writeCoverImageTransform(layer, drag.currentOffsetX, drag.currentOffsetY, t.zoom);
+        }
+        if (pinch) {
+          const pIdx = pinch.pointers.findIndex((p) => p.id === e.pointerId);
+          if (pIdx !== -1) pinch.pointers.splice(pIdx, 1);
+        }
+      },
+      onPointerCancel(e) {
+        delete slotDragRef.current[slotId];
+        delete slotPinchRef.current[slotId];
+        e.currentTarget.classList.remove("is-panning", "is-pinching");
+        clearCoverPreviewStyle(e.currentTarget);
+      }
     };
   }
 
@@ -2449,7 +2603,7 @@ export default function ProfileLitePowerPlaceModule({
     );
   }
 
-  const daoClassName = `daoMandalaSheet${isDaoStyle2 ? " dao-style-2" : ""}${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoLayoutTemplate ? " dao-layout-template" : ""}${isDaoSharedStageStyle ? " dao-shared-stage" : ""}${isDaoFulu ? " dao-fulu" : ""}${isDaoFuOutline ? " dao-fu-outline" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""}${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim();
+  const daoClassName = `daoMandalaSheet${isDaoStyle2 ? " dao-style-2" : ""}${isDaoTalisman1 ? " dao-talisman" : ""}${isDaoTalisman2 ? " dao-talisman-2" : ""}${isDaoLayoutTemplate ? " dao-layout-template" : ""}${isDaoSharedStageStyle ? " dao-shared-stage" : ""}${isDaoFulu ? " dao-fulu" : ""}${isDaoFuOutline ? " dao-fu-outline" : ""}${DAO_FULU_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FULU_STYLE_VALUES[daoStyle].className}` : ""}${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle]?.className ? ` ${DAO_FU_OUTLINE_STYLE_VALUES[daoStyle].className}` : ""} ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim();
 
   const renderObjectImageButton = (slot, index, className, labelPrefix = "") => {
     const src = objectRefs[slot.id] || "";
@@ -3232,19 +3386,19 @@ export default function ProfileLitePowerPlaceModule({
               </div>
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
-                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass} ${outerCoverFitClassName}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }}>
+                <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass} ${outerCoverFitClassName}${outerCoverGestureClass}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }} {...outerCoverGestureHandlers}>
                   <div className="powerPrintMeta">
                     <p className="cabinetEyebrow">Формат</p>
                     <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
                   </div>
                   {compositionDraft.constructor_type === "client" ? (
-                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} ${coverToneClass(innerCover)} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} ${coverToneClass(innerCover)} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}
                       {renderPowerPlaceMotionLayer()}
                       <div className="powerMandalaBase">{slots.map(renderSourceSlot)}</div>
                     </div>
                   ) : compositionDraft.constructor_type === "altar" ? (
-                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`altarMandalaSheet ratio-${compositionDraft.altar_center_ratio || "1"} ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                       <div className="altarTopRow" aria-label="Верхние источники алтаря">
                         {slots.slice(0, 5).map((slot, index) => renderObjectImageButton(
                           slot,
@@ -3262,7 +3416,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : compositionDraft.constructor_type === "business" ? (
-                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`businessMandalaSheet zones-${compositionDraft.business_vertex_zone_count || 1} ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                       {renderCenterPhotoWithMode("businessCenterPhoto")}
                       {renderPowerPlaceMotionLayer()}
                       <div className="businessTriangleLines" aria-hidden="true" />
@@ -3280,7 +3434,7 @@ export default function ProfileLitePowerPlaceModule({
                   ) : compositionDraft.constructor_type === "zodiac" ? (
                     <>
                       {zodiacStyle === "ribbon" ? (
-                        <div className={`zodiacRibbonSheet ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                        <div className={`zodiacRibbonSheet ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                           {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                           {renderPowerPlaceMotionLayer()}
                           <div className="zodiacRibbonTrack">
@@ -3314,7 +3468,7 @@ export default function ProfileLitePowerPlaceModule({
                         </div>
                       ) : (
                         <>
-                          <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                          <div className={`zodiacMandalaSheet zodiac-${zodiacVisibleCount} ${!isZodiac2 && (compositionDraft.zodiac_variant || "").startsWith("plus") ? `zodiac-plus-${zodiacVisibleCount}` : ""} ${isZodiac2 ? "zodiac-2-format" : ""} ${zodiacStyle === "stars" ? "zodiac-style-stars" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                             {renderCenterPhotoWithMode("zodiacCenterPhoto")}
                             {renderPowerPlaceMotionLayer()}
                             <div className="zodiacClockFace" aria-hidden="true">
@@ -3405,7 +3559,7 @@ export default function ProfileLitePowerPlaceModule({
                       )}
                     </>
                   ) : compositionDraft.constructor_type === "star" ? (
-                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${isStar2 ? "star-2-format" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))}>
+                    <div className={`starMandalaSheet star-${compositionDraft.star_variant || "closed"} ${isStar2 ? "star-2-format" : ""} ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                       <div className="starSacredLabel starElhai">ELHAI</div>
                       <div className="starSacredLabel starAdonay">ADONAY</div>
                       {renderCenterPhotoWithMode("starCenterPhoto")}
@@ -3481,7 +3635,7 @@ export default function ProfileLitePowerPlaceModule({
                       })}
                     </div>
                   ) : compositionDraft.constructor_type === "chess" ? (
-                    <div className={`power-place-chess power-place-chess--${chessVariant} ${coverToneClass(innerCover)} ${innerCoverClass}`.trim()} style={chessCoverStyle}>
+                    <div className={`power-place-chess power-place-chess--${chessVariant} ${coverToneClass(innerCover)} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={chessCoverStyle} {...innerCoverGestureHandlers}>
                       <div className="power-place-chess__board" aria-label="Шахматная раскладка">
                         {chessVariant === "plus-8" || chessVariant === "compact-5" ? (
                           <>
@@ -3515,7 +3669,7 @@ export default function ProfileLitePowerPlaceModule({
                       </div>
                     </div>
                   ) : isDaoConstructorType(compositionDraft.constructor_type) ? (
-                    <div className={daoClassName} style={daoOuterStyle}>
+                    <div className={daoClassName} style={daoOuterStyle} {...innerCoverGestureHandlers}>
                       {isDaoLayoutTemplate || isDaoSharedStageStyle ? renderDaoSharedStage()
                         : isDaoTalisman2 ? renderDaoTalisman2()
                           : isDaoTalisman1 ? renderDaoTalisman1()
@@ -3526,7 +3680,7 @@ export default function ProfileLitePowerPlaceModule({
                                     : renderDaoStyle1()}
                     </div>
                   ) : (
-                    <div className={daoClassName} style={daoOuterStyle}>
+                    <div className={daoClassName} style={daoOuterStyle} {...innerCoverGestureHandlers}>
                       {renderDaoStyle1()}
                     </div>
                   )}

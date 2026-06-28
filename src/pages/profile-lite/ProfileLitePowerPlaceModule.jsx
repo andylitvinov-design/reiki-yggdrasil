@@ -72,6 +72,12 @@ function clampCenterImageZoom(value) {
   return Math.min(1.8, Math.max(0.65, parsed));
 }
 
+function coverZoomValue(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.min(1.8, Math.max(0.65, parsed));
+}
+
 function daoStyleValue(value) {
   if (value === "style-2") return "style-2";
   if (value === "talisman" || value === "talisman-1") return "talisman-1";
@@ -112,7 +118,7 @@ function daoTalismanNodeCountValue(value) {
   return 5;
 }
 
-function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom) {
+function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outerOffsetY, innerCoverZoom, outerCoverZoom, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom) {
   const centerRadius = centerShape === "circle" ? "50%" : "24px";
   // innerFieldWidthDesktop / innerFieldWidthMobile kept for tests; absolute centering uses % directly.
   return `
@@ -399,7 +405,7 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
 .powerPlacePdfOnlyArea .has-custom-inner-cover {
   background-image: var(--power-inner-cover-image, none) !important;
   background-color: transparent !important;
-  background-size: cover !important;
+  background-size: calc(100% * ${innerCoverZoom}) auto !important;
   background-repeat: no-repeat !important;
   background-position: ${innerOffsetX}% ${innerOffsetY}% !important;
 }
@@ -417,6 +423,11 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   background-color: #fffaf0;
   print-color-adjust: exact !important;
   -webkit-print-color-adjust: exact !important;
+}
+.profileLitePowerPlace .powerMandalaPanel[style].outer-cover-image,
+.powerPlacePdfOnlyArea .powerMandalaPanel[style].outer-cover-image {
+  background-size: calc(100% * ${outerCoverZoom}) auto !important;
+  background-position: ${outerOffsetX}% ${outerOffsetY}% !important;
 }
 .profileLitePowerPlace .powerMandalaPanel.field-layout-square,
 .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-square {
@@ -825,6 +836,10 @@ function cleanRefs(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+function coverTransformZoom(objectRefs, slotId) {
+  return coverZoomValue(cleanRefs(cleanRefs(objectRefs.__slot_transforms)[slotId]).zoom);
+}
+
 function emptyOuterCover() {
   return { id: "no-cover", label: "Без фона", type: "none", tone: "none", src: "", display_src: "" };
 }
@@ -858,6 +873,8 @@ export default function ProfileLitePowerPlaceModule(props) {
   const innerCoverOffsetY = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_Y_REF_KEY]);
   const outerCoverOffsetX = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_X_REF_KEY]);
   const outerCoverOffsetY = coverOffsetValue(objectRefs[OUTER_COVER_OFFSET_Y_REF_KEY]);
+  const innerCoverZoom = coverTransformZoom(objectRefs, "cover_ref.inner");
+  const outerCoverZoom = coverTransformZoom(objectRefs, "cover_ref.outer");
   const innerFieldScale = innerFieldScaleValue(objectRefs[INNER_FIELD_SCALE_REF_KEY]);
   const centerImageScale = centerImageScaleValue(objectRefs[CENTER_IMAGE_SCALE_REF_KEY]);
   const centerFrameScale = centerFrameScaleValue(objectRefs[CENTER_FRAME_SCALE_REF_KEY]);
@@ -874,8 +891,8 @@ export default function ProfileLitePowerPlaceModule(props) {
   const daoTalismanNodeCount = daoTalismanNodeCountValue(objectRefs[DAO_TALISMAN_NODE_COUNT_REF_KEY]);
   const formatLabel = CONSTRUCTOR_LABELS[constructorType || ""] || "Место силы";
   const fitStyleText = useMemo(
-    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
-    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom]
+    () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerCoverZoom, outerCoverZoom, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
+    [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerCoverZoom, outerCoverZoom, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom]
   );
 
   useEffect(() => {
