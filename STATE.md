@@ -1,6 +1,6 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-27
+Last updated: 2026-06-28
 
 ## 2026-06-28 — Issue #480 Profile Lite courses nav integration
 
@@ -21,6 +21,27 @@ Last updated: 2026-06-27
 - Not verified:
   - post-merge live authenticated click-through on `https://2mentalica.vercel.app/profile/orders`;
   - real admin course upload/grant/invite workflow through the deployed UI after this nav fix deploys.
+
+## 2026-06-28 — Issue #482 Personal Cabinet orders UI polish
+
+- Branch target: `codex/profile-orders-ui-polish`.
+- Live target: `https://2mentalica.vercel.app/profile/orders`.
+- Scope: authenticated Profile Lite Personal Cabinet `/profile/orders` UI polish only; auth/session/data flows and existing cabinet routes were not changed.
+- CURRENT_STATE before implementation:
+  - `/profile/orders` rendered the correct client orders module but felt sparse when empty;
+  - client role navigation omitted the existing Courses module entry even though `/profile/courses` and `ProfileLiteCoursesModule` existed;
+  - orders search/empty guidance was functional but too flat for a premium personal cabinet surface.
+- Changed:
+  - added `Мои курсы` to Personal Cabinet role navigation and allowed client-role routing to the existing `courses` tab;
+  - updated client orders hero and section copy to `Мои заказы и материалы` with guidance for orders, audio, mandalas, and master responses;
+  - improved the services search block, empty orders state, and desktop helper panel `Что можно сделать сейчас`;
+  - strengthened active tab and orders-surface CSS with scoped hover/press states, balanced wrapping, tabular counters, card shadows, and mobile single-column behavior.
+- Verification status:
+  - focused Profile Lite route/contracts, `npm ci`, `npm run test:profile-lite`, standalone route/contract tests, `npm run build`, `npm run check`, `npm run delivery:checks`, and `git diff --check` passed locally;
+  - local mocked-auth browser QA passed for `/profile/orders` at desktop 1280px, mobile 390px, and mobile 430px with horizontal overflow `0`.
+- Not verified:
+  - real authenticated staging session on `https://2mentalica.vercel.app/profile/orders`;
+  - post-merge Vercel deploy/alias proof.
 
 ## 2026-06-27 — Issue #480 course audio access for Магия Денег / Градус 1
 

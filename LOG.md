@@ -33,6 +33,40 @@
   - live authenticated navigation/click-through after deploy;
   - live admin course flow after deploy.
 
+## 2026-06-28 — Polish Personal Cabinet / My Orders UI
+
+- Target branch: `codex/profile-orders-ui-polish`.
+- Target URL: `https://2mentalica.vercel.app/profile/orders`.
+- Changed:
+  - added `Мои курсы` to the Personal Cabinet role navigation and client tab allowlist;
+  - updated `/profile/orders` client hero and body copy to `Мои заказы и материалы`;
+  - replaced the sparse empty state with CTAs to services and courses;
+  - upgraded the service search block and added a desktop helper panel `Что можно сделать сейчас`;
+  - added scoped cabinet CSS for stronger active tabs, warmer orders surfaces, responsive search/empty/helper blocks, and 390/430px single-column behavior;
+  - extended `test/profileLiteCabinetContract.test.mjs` to cover courses nav and the new orders guidance.
+- Checks run:
+  - `npm ci`
+  - `npm run test:profile-lite`
+  - `node test/profileLiteRoute.test.mjs`
+  - `node test/profileLiteCabinetContract.test.mjs`
+  - `npm run build`
+  - `npm run check`
+  - `npm run delivery:checks`
+  - `git diff --check`
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4379/profile/orders`;
+  - mocked public Supabase/Auth only, with empty order/course/media responses;
+  - desktop 1280px confirmed hero, empty state, active `Мои заказы`, visible `Мои курсы`, helper panel, service CTA, console errors `0`, horizontal overflow `0`;
+  - mobile 390px and 430px confirmed single-column orders layout, active `Мои заказы`, visible `Мои курсы`, empty state, and horizontal overflow `0`.
+- Check notes:
+  - one standalone `npm run build` attempt failed while `npm run delivery:checks` was concurrently running `npm ci`; rerun after install completed passed;
+  - retained existing npm audit report: 1 high severity vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk warning.
+- Not verified:
+  - real authenticated staging session on `https://2mentalica.vercel.app/profile/orders`;
+  - post-merge deploy and live bundle proof.
+
 ## 2026-06-27 — Implement Issue #480 course audio access
 
 - Target branch: `codex/full-course-audio-access-480`.

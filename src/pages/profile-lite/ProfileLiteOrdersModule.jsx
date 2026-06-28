@@ -32,25 +32,34 @@ function ClientOrdersView({
   visibleOrderPhotos,
   visibleOrdersError
 }) {
+  const helperActions = [
+    { label: "Найти услугу", href: "/profile/services" },
+    { label: "Открыть курсы", href: "/profile/courses" },
+    { label: "Написать мастеру", href: "/profile/chats" },
+    { label: "Добавить фото для работы", href: "/profile?tab=media" }
+  ];
+
   return (
-    <>
+    <div className="profileLiteOrdersClientLayout">
       <div className="workspaceCenterColumn">
         <section className="chatPlaceholderWorkspace" aria-label="Кабинет Личный Мои заказы">
           <div className="chatPlaceholderHeader">
             <p className="cabinetEyebrow">Кабинет Личный</p>
-            <h2>Мои заказы</h2>
+            <h2>Мои заказы и материалы</h2>
+            <p>Здесь появляются ваши заказы, аудио, мандалы и ответы мастера.</p>
           </div>
           {pendingCartMessage && <div className="cabinetNotice">{pendingCartMessage}</div>}
           {visibleOrdersError && <div className="cabinetNotice cabinetSecondaryDataWarning">{visibleOrdersError}</div>}
           <section className="profileLiteOrdersServiceCta" aria-label="Поиск услуг">
             <div>
-              <p className="cabinetEyebrow">Поиск услуг</p>
-              <h3>Найти услугу</h3>
+              <p className="cabinetEyebrow">Подбор практики</p>
+              <h3>Найдите формат, который подходит сейчас</h3>
+              <p>Опишите запрос коротко: тема, состояние, желаемый результат. Каталог откроет доступные услуги мастеров.</p>
             </div>
             <form className="profileLiteOrdersServiceSearch" action="/profile/services">
-              <input aria-label="Что хотите заказать?" name="q" placeholder="Что хотите заказать?" />
+              <input aria-label="Что хотите заказать?" name="q" placeholder="Например: мандала, консультация, аудио" />
               <button className="cabinetPrimary" type="submit">Найти</button>
-              <a className="cabinetSecondary" href="/profile/services">К услугам</a>
+              <a className="cabinetSecondary" href="/profile/services">Все услуги</a>
             </form>
           </section>
           <div className="profileLiteServiceList">
@@ -111,14 +120,28 @@ function ClientOrdersView({
             ))}
             {ordersStatus === "success" && clientOrders.length === 0 && (
               <div className="profileLiteOrdersEmptyState">
-                <h3>Личные заказы пока не найдены.</h3>
-                <p>Найдите услугу или вернитесь сюда после ответа мастера.</p>
+                <p className="cabinetEyebrow">старт кабинета</p>
+                <h3>Пока здесь нет заказов</h3>
+                <p>Когда мастер примет заявку или отправит материал, он появится в этом разделе.</p>
+                <div className="cabinetActions">
+                  <a className="cabinetPrimary" href="/profile/services">Найти услугу</a>
+                  <a className="cabinetSecondary" href="/profile/courses">Открыть мои курсы</a>
+                </div>
               </div>
             )}
           </div>
         </section>
       </div>
-    </>
+      <aside className="profileLiteOrdersHelperPanel" aria-label="Что можно сделать сейчас">
+        <p className="cabinetEyebrow">быстрые шаги</p>
+        <h3>Что можно сделать сейчас</h3>
+        <div className="profileLiteOrdersHelperList">
+          {helperActions.map((item) => (
+            <a href={item.href} key={item.label}>{item.label}</a>
+          ))}
+        </div>
+      </aside>
+    </div>
   );
 }
 
@@ -222,8 +245,8 @@ export default function ProfileLiteOrdersModule({
         <div className="mandalaHeroSeal">□</div>
         <div>
           <p className="cabinetEyebrow">{isMasterRole ? "Кабинет Мастера" : "Кабинет Личный"}</p>
-          <h2>{isMasterRole ? "Заявки мастера" : "Мои заказы"}</h2>
-          <p>{isMasterRole ? "Входящие заявки клиентов и подготовка результата." : "Личные заказы, фото и отправка задания мастеру."}</p>
+          <h2>{isMasterRole ? "Заявки мастера" : "Мои заказы и материалы"}</h2>
+          <p>{isMasterRole ? "Входящие заявки клиентов и подготовка результата." : "Здесь появляются ваши заказы, аудио, мандалы и ответы мастера."}</p>
         </div>
         <div className="mandalaHeroStats">
           <span><b>{isMasterRole ? orders.length : clientOrders.length}</b> {isMasterRole ? "Заявки" : "Заказы"}</span>
