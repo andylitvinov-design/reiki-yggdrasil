@@ -329,6 +329,7 @@ export async function listPendingProfiles(session = getStoredSession()) {
 function safePostgrestSearch(value) {
   return String(value || "")
     .trim()
+    .toLowerCase()
     .replace(/[,%*()]/g, " ")
     .replace(/\s+/g, " ")
     .slice(0, 80);

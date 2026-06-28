@@ -32,6 +32,15 @@ function initialStatus(profile) {
   return profile?.status || "draft";
 }
 
+function safeParticipantErrorMessage(error) {
+  const details = error?.details || {};
+  const status = Number(details.status || details.code || 0);
+  if (status === 401 || status === 403) {
+    return "Нет доступа к поиску участников. Войдите администратором и попробуйте снова.";
+  }
+  return error?.message || "Не удалось найти участника. Проверьте Supabase/RLS и попробуйте ещё раз.";
+}
+
 export default function ProfileAdminPanel({ session }) {
   const [participantSearch, setParticipantSearch] = useState("");
   const [participantProfiles, setParticipantProfiles] = useState([]);
@@ -41,6 +50,7 @@ export default function ProfileAdminPanel({ session }) {
   const [loading, setLoading] = useState(Boolean(session?.access_token));
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const hasParticipantQuery = participantSearch.trim().length > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +59,15 @@ export default function ProfileAdminPanel({ session }) {
       if (!session?.access_token) {
         setParticipantProfiles([]);
         setLoading(false);
+        return;
+      }
+
+      if (!participantSearch.trim()) {
+        setParticipantProfiles([]);
+        setParticipantPlans({});
+        setParticipantStatuses({});
+        setLoading(false);
+        setError("");
         return;
       }
 
@@ -61,7 +80,7 @@ export default function ProfileAdminPanel({ session }) {
         setParticipantPlans(Object.fromEntries((rows || []).map((profile) => [profile.id, initialPlan(profile)])));
         setParticipantStatuses(Object.fromEntries((rows || []).map((profile) => [profile.id, initialStatus(profile)])));
       } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить участников.");
+        if (!cancelled) setError(safeParticipantErrorMessage(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -118,7 +137,12 @@ export default function ProfileAdminPanel({ session }) {
         <span className="cabinetStatus">{loading ? "..." : participantProfiles.length}</span>
       </div>
 
-      {error && <div className="cabinetError compactNotice">{error}</div>}
+      {error && (
+        <div className="cabinetError compactNotice">
+          <b>Ошибка поиска.</b>
+          <p>{error}</p>
+        </div>
+      )}
       {message && <div className="cabinetSuccess compactNotice">{message}</div>}
 
       <label className="adminParticipantSearch">
@@ -130,10 +154,16 @@ export default function ProfileAdminPanel({ session }) {
         />
       </label>
 
-      {loading && <div className="cabinetNotice compactNotice">Загружаю участников...</div>}
-      {!loading && participantProfiles.length === 0 && (
+      {!hasParticipantQuery && !loading && (
         <div className="cabinetNotice compactNotice">
-          <b>Участники не найдены.</b>
+          <b>Введите email или имя участника</b>
+          <p>Поиск откроет карточку участника для смены уровня и статуса.</p>
+        </div>
+      )}
+      {loading && <div className="cabinetNotice compactNotice">Ищу участника...</div>}
+      {hasParticipantQuery && !loading && participantProfiles.length === 0 && (
+        <div className="cabinetNotice compactNotice">
+          <b>Участник не найден. Проверьте email или создайте профиль.</b>
         </div>
       )}
 
@@ -148,7 +178,7 @@ export default function ProfileAdminPanel({ session }) {
               : PLAN_OPTIONS;
             return (
               <article className="adminParticipantRow" key={profile.id}>
-                <div>
+                <div className="adminParticipantIdentity">
                   <h3>{profile.display_name || "Без имени"}</h3>
                   {profile.email && <p>{profile.email}</p>}
                   <small>user_id: {shortAdminUserId(profile.user_id)}</small>
@@ -176,7 +206,7 @@ export default function ProfileAdminPanel({ session }) {
                   onClick={() => saveParticipant(profile.id)}
                   disabled={Boolean(savingByProfileId[profile.id])}
                 >
-                  {savingByProfileId[profile.id] ? "Сохраняю..." : "Сохранить"}
+                  {savingByProfileId[profile.id] ? "Сохраняю..." : "Сохранить уровень"}
                 </button>
               </article>
             );

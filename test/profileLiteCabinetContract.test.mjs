@@ -279,7 +279,7 @@ assert.match(profileCoursesModuleSource, /safeVideoEmbedUrl/, "Courses module sh
 assert.match(profileCoursesModuleSource, /<audio controls preload="metadata" src=\{audioUrl\}/, "Courses module should render audio only after safe URL normalization");
 assert.doesNotMatch(profileCoursesModuleSource, /dangerouslySetInnerHTML/, "Courses lesson body must render as plain text");
 assert.match(adminCoursesPanelSource, /Курсы и доступы/, "Admin should expose courses and access section");
-assert.match(adminCoursesPanelSource, /Выдать доступ/, "Admin courses panel should grant access");
+assert.match(adminCoursesPanelSource, /Сохранить доступ/, "Admin courses panel should grant access");
 assert.match(adminCoursesPanelSource, /Закрыть доступ/, "Admin courses panel should revoke access");
 assert.match(profileCoursesClientSource, /buildCourseAccessIndex/, "Course client should expose access index helper");
 assert.match(profileCoursesClientSource, /listAvailableCoursesForProfile/, "Course client should load courses for current profile");
