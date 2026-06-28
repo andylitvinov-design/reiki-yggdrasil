@@ -47,13 +47,13 @@ function innerFieldScaleValue(value) {
 function centerImageScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 1;
-  return Math.min(2, Math.max(0.65, parsed));
+  return Math.min(4, Math.max(0.65, parsed));
 }
 
 function centerFrameScaleValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 1;
-  return Math.min(1.85, Math.max(0.72, parsed));
+  return Math.min(3.7, Math.max(0.72, parsed));
 }
 
 function centerShapeValue(value) {

@@ -126,6 +126,7 @@ assert.deepEqual(globalBackgroundSizeContainRules, [], "powerMandalaPanel backgr
 // translate(-50%,-50%) so the inner surface expands symmetrically from center.
 
 const moduleSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModule.jsx"), "utf8");
+const moduleBaseSource = readFileSync(join(__dir, "../src/pages/profile-lite/ProfileLitePowerPlaceModuleBase.jsx"), "utf8");
 const layoutFinalFixSource = readFileSync(join(__dir, "../public/profile-lite-layout-final-fix.js"), "utf8");
 const mobileFieldBoostSource = readFileSync(join(__dir, "../public/profile-power-place-mobile-field-boost.js"), "utf8");
 
@@ -191,6 +192,36 @@ assert.ok(
 assert.ok(
   moduleSource.includes("--power-center-frame-scale"),
   "dynamic style must expose a center frame scale CSS variable"
+);
+
+assert.ok(
+  moduleSource.includes("return Math.min(4, Math.max(0.65, parsed))"),
+  "export/dynamic wrapper must clamp center image scale to the enlarged max 4"
+);
+
+assert.ok(
+  moduleSource.includes("return Math.min(3.7, Math.max(0.72, parsed))"),
+  "export/dynamic wrapper must clamp center frame scale to the enlarged max 3.7"
+);
+
+assert.ok(
+  moduleBaseSource.includes("return Math.min(1.85, Math.max(0.35, scale))"),
+  "constructor preview must allow outer mandala windows down to 0.35 scale"
+);
+
+assert.ok(
+  moduleBaseSource.includes('label: "Размер окон", value: sourceSlotScale, min: "0.35", max: "1.85"'),
+  "source slot slider min must match the smaller outer mandala minimum"
+);
+
+assert.ok(
+  moduleBaseSource.includes('label: "Размер центра", value: centerFrameScale, min: "0.72", max: "3.7"'),
+  "center frame slider max must match the enlarged center range"
+);
+
+assert.ok(
+  moduleBaseSource.includes('label: "Масштаб фото", value: centerImageScale, min: "0.65", max: "4"'),
+  "center photo scale slider max must match the enlarged photo range"
 );
 
 assert.ok(

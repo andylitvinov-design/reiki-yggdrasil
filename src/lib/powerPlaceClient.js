@@ -563,14 +563,14 @@ export function normalizeCoverRef(coverRef) {
   };
 }
 
-const SLOT_SCALE_MIN = 0.7;
+const SLOT_SCALE_MIN = 0.35;
 const SLOT_SCALE_MAX = 1.85;
 const FIELD_SCALE_MIN = 48;
 const FIELD_SCALE_MAX = 145;
 const CENTER_IMAGE_SCALE_MIN = 0.65;
-const CENTER_IMAGE_SCALE_MAX = 2;
+const CENTER_IMAGE_SCALE_MAX = 4;
 const CENTER_FRAME_SCALE_MIN = 0.72;
-const CENTER_FRAME_SCALE_MAX = 1.85;
+const CENTER_FRAME_SCALE_MAX = 3.7;
 
 export function normalizePowerPlaceComposition(composition) {
   const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
