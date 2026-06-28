@@ -11346,6 +11346,16 @@
   box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.22);
 }
 
+.profileLitePowerPlace .powerMandalaCoverGestureTarget {
+  touch-action: none;
+  cursor: grab;
+}
+
+.profileLitePowerPlace .powerMandalaCoverGestureTarget.is-panning,
+.profileLitePowerPlace .powerMandalaCoverGestureTarget.is-pinching {
+  cursor: grabbing;
+}
+
 /* Slot image pan/zoom: grab cursor only on assigned images */
 .profileLitePowerPlace .slotImagePanZoomTarget.hasImage,
 .powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage {
