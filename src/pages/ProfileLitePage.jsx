@@ -121,6 +121,7 @@ import ProfileLiteChatsModule from "./profile-lite/ProfileLiteChatsModule.jsx";
 import ProfileLiteSettingsModule from "./profile-lite/ProfileLiteSettingsModule.jsx";
 import ProfileLiteDiagnosticsModule from "./profile-lite/ProfileLiteDiagnosticsModule.jsx";
 import ProfileAdminPanel from "./profile-lite/ProfileAdminPanel.jsx";
+import AdminCoursesPanel from "./admin/AdminCoursesPanel.jsx";
 
 const stepOptions = reikiLevels.flatMap((level) =>
   level.steps.map((step) => ({
@@ -3032,7 +3033,12 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         onThreadSelect={setSelectedThreadId}
       />
     ),
-    admin: isProfileAdmin ? <ProfileAdminPanel session={session} /> : <ProfileLiteOverview {...moduleProps} />,
+    admin: isProfileAdmin ? (
+      <>
+        <ProfileAdminPanel session={session} />
+        <AdminCoursesPanel session={session} />
+      </>
+    ) : <ProfileLiteOverview {...moduleProps} />,
     settings: <ProfileLiteSettingsModule {...moduleProps} onReset={resetLocalState} />,
     diagnostics: <ProfileLiteDiagnosticsModule diagnostics={diagnostics} moduleStates={moduleStates} />
   }[activeTab] || <ProfileLiteOverview {...moduleProps} />;
