@@ -498,7 +498,7 @@ function isDaoFuluContourAsset(src) {
 function slotScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.85, Math.max(0.7, scale));
+  return Math.min(1.85, Math.max(0.35, scale));
 }
 
 function chessSlotScaleValue(value) {
@@ -514,13 +514,13 @@ function fieldScaleValue(value) {
 function centerImageScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(2, Math.max(0.65, scale));
+  return Math.min(4, Math.max(0.65, scale));
 }
 
 function centerFrameScaleValue(value) {
   const scale = Number(value);
   if (!Number.isFinite(scale)) return 1;
-  return Math.min(1.85, Math.max(0.72, scale));
+  return Math.min(3.7, Math.max(0.72, scale));
 }
 
 export function clampCenterImageOffset(value) {
@@ -3370,10 +3370,10 @@ export default function ProfileLitePowerPlaceModule({
                     </div>
                   </div>
                 )}
-                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.7", max: "1.85", step: "0.01", field: "slot_scale", visibilityKey: "slots", visibilityLabel: "Мини-мандалы" })}
+                {renderScaleControl({ className: "sourceSlotScaleControl", label: "Размер окон", value: sourceSlotScale, min: "0.35", max: "1.85", step: "0.01", field: "slot_scale", visibilityKey: "slots", visibilityLabel: "Мини-мандалы" })}
                 {renderScaleControl({ className: "innerFieldScaleControl", label: "Размер поля", value: fieldScale, min: "48", max: "145", step: "1", field: "field_scale", visibilityKey: "inner_cover", visibilityLabel: "Фон внутри" })}
-                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "1.85", step: "0.01", field: "__center_frame_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
-                {renderScaleControl({ className: "photoScaleControl", label: "Масштаб фото", value: centerImageScale, min: "0.65", max: "2", step: "0.01", field: "__center_image_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
+                {renderScaleControl({ className: "centerFrameScaleControl", label: "Размер центра", value: centerFrameScale, min: "0.72", max: "3.7", step: "0.01", field: "__center_frame_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
+                {renderScaleControl({ className: "photoScaleControl", label: "Масштаб фото", value: centerImageScale, min: "0.65", max: "4", step: "0.01", field: "__center_image_scale", visibilityKey: "center", visibilityLabel: "Центр мандалы" })}
                 {renderMotionControls()}
                 {compositionDraft.constructor_type === "business" && (
                   <div className="businessZoneSelector" aria-label="Зон в каждой вершине">

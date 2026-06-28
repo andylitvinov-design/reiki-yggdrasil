@@ -490,7 +490,7 @@ assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "sou
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "photoScaleControl"/g) || []).length, 1, "Масштаб фото center photo slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "innerFieldScaleControl"/g) || []).length, 1, "Размер поля slider should render once from the base module");
 assert.equal((powerPlaceBaseSource.match(/renderScaleControl\(\{ className: "centerFrameScaleControl"/g) || []).length, 1, "Размер центра slider should render once from the base module");
-assert.match(powerPlaceBaseSource, /className: "photoScaleControl"[\s\S]*label: "Масштаб фото"[\s\S]*value: centerImageScale[\s\S]*min: "0\.65"[\s\S]*max: "2"[\s\S]*step: "0\.01"[\s\S]*field: "__center_image_scale"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Масштаб фото must target center image scale and share the center visibility toggle");
+assert.match(powerPlaceBaseSource, /className: "photoScaleControl"[\s\S]*label: "Масштаб фото"[\s\S]*value: centerImageScale[\s\S]*min: "0\.65"[\s\S]*max: "4"[\s\S]*step: "0\.01"[\s\S]*field: "__center_image_scale"[\s\S]*visibilityKey: "center"[\s\S]*visibilityLabel: "Центр мандалы"/, "Масштаб фото must target center image scale and share the center visibility toggle");
 assert.match(profileMandalaCss, /\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*\.profileLitePowerPlace \.innerFieldScaleControl,[\s\S]*\.profileLitePowerPlace \.centerFrameScaleControl,[\s\S]*\.profileLitePowerPlace \.photoScaleControl \{[\s\S]*grid-template-columns: minmax\(140px, 190px\) 28px minmax\(180px, 1fr\) 28px;/, "all four size sliders should share the requested desktop grid");
 assert.match(profileMandalaCss, /@media \(max-width: 640px\)[\s\S]*\.profileLitePowerPlace \.sourceSlotScaleControl,[\s\S]*grid-template-columns: minmax\(0, 1fr\) 28px minmax\(110px, 1fr\) 28px;/, "all four size sliders should share the requested mobile grid");
 assert.match(profileMandalaCss, /@media \(max-width: 980px\)[\s\S]*\.profileLitePowerPlace \.powerLayoutPanel\.compactFieldLayoutSwitch \{[\s\S]*order: 1 !important;/, "source CSS should keep compact layout controls above the background card on mobile");
@@ -1062,14 +1062,14 @@ assert.match(
 
 assert.match(
   powerPlaceClientSource,
-  /CENTER_IMAGE_SCALE_MAX\s*=\s*2/,
-  "powerPlaceClient.js must define CENTER_IMAGE_SCALE_MAX = 2 to match UI slider max"
+  /CENTER_IMAGE_SCALE_MAX\s*=\s*4/,
+  "powerPlaceClient.js must define CENTER_IMAGE_SCALE_MAX = 4 to match UI slider max"
 );
 
 assert.match(
   powerPlaceClientSource,
-  /CENTER_FRAME_SCALE_MAX\s*=\s*1\.85/,
-  "powerPlaceClient.js must define CENTER_FRAME_SCALE_MAX = 1.85 to match UI slider max"
+  /CENTER_FRAME_SCALE_MAX\s*=\s*3\.7/,
+  "powerPlaceClient.js must define CENTER_FRAME_SCALE_MAX = 3.7 to match UI slider max"
 );
 
 assert.match(

@@ -1273,7 +1273,7 @@ assert.deepEqual(
     central_photo_id: ""
   }).object_refs,
   {
-    "__center_frame_scale": "1.85",
+    "__center_frame_scale": "3.7",
     "__center_image_scale": "1",
     "__center_shape": "square",
     "__inner_cover_offset_x": "20",
@@ -1303,13 +1303,13 @@ assert.equal(compactChessComposition.object_refs.__slot_scale, "1.14", "shared s
 assert.equal(
   normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "zodiac",
-    slot_scale: "0.83",
+    slot_scale: "0.35",
     object_refs: {
       "zodiac-1": "https://example.com/zodiac-1.jpg"
     }
   }).object_refs.__slot_scale,
-  "0.83",
-  "shared slot scale should survive save normalization from the top-level slot_scale field"
+  "0.35",
+  "zodiac slot scale should preserve the smaller new minimum"
 );
 
 assert.equal(
@@ -1334,7 +1334,7 @@ assert.equal(
   "shared slot scale persisted in object_refs should be clamped to new max"
 );
 
-// ── Scale limits: new enlarged maximums (PR #317/#318 fix) ───────────────────
+// ── Scale limits: enlarged zodiac slider ranges ──────────────────────────────
 
 assert.equal(
   normalizePowerPlaceCompositionWithoutDefaultMotion({
@@ -1343,6 +1343,24 @@ assert.equal(
   }).object_refs.__slot_scale,
   "1.85",
   "slot scale at new max 1.85 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "zodiac",
+    object_refs: { __slot_scale: "0.35" }
+  }).object_refs.__slot_scale,
+  "0.35",
+  "zodiac slot scale at new min 0.35 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "zodiac",
+    object_refs: { __slot_scale: "0.2" }
+  }).object_refs.__slot_scale,
+  "0.35",
+  "zodiac slot scale below new min should clamp to 0.35"
 );
 
 assert.equal(
@@ -1375,37 +1393,37 @@ assert.equal(
 assert.equal(
   normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "client",
-    object_refs: { __center_image_scale: "2" }
+    object_refs: { __center_image_scale: "4" }
   }).object_refs.__center_image_scale,
-  "2",
-  "center image scale at new max 2 should be preserved"
+  "4",
+  "center image scale at new max 4 should be preserved"
 );
 
 assert.equal(
   normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "client",
-    object_refs: { __center_image_scale: "3" }
+    object_refs: { __center_image_scale: "5" }
   }).object_refs.__center_image_scale,
-  "2",
-  "center image scale above new max should clamp to 2"
+  "4",
+  "center image scale above new max should clamp to 4"
 );
 
 assert.equal(
   normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "client",
-    object_refs: { __center_frame_scale: "1.85" }
+    object_refs: { __center_frame_scale: "3.7" }
   }).object_refs.__center_frame_scale,
-  "1.85",
-  "center frame scale at new max 1.85 should be preserved"
+  "3.7",
+  "center frame scale at new max 3.7 should be preserved"
 );
 
 assert.equal(
   normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "client",
-    object_refs: { __center_frame_scale: "3" }
+    object_refs: { __center_frame_scale: "4" }
   }).object_refs.__center_frame_scale,
-  "1.85",
-  "center frame scale above new max should clamp to 1.85"
+  "3.7",
+  "center frame scale above new max should clamp to 3.7"
 );
 
 // ── Cover ref data contract ───────────────────────────────────────────────────
