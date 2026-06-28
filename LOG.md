@@ -9,6 +9,7 @@
   - that nav did not include `courses`, so logged-in users on `/profile/orders` could not reach `Мои курсы`.
 - Changed:
   - added `Мои курсы` to the client role nav and client tab id list;
+  - added `/profile/photos` and `/profile/profile` aliases for the existing photo/profile tabs;
   - added `AdminCoursesPanel` to the in-cabinet `Админ` tab so course quick-create, lesson/audio, access, and invite tools are reachable from visible admin UI;
   - extended Profile Lite route/cabinet contracts for real nav and `/profile/courses?course=magic-money&step=degree-1`.
 - Checks run:

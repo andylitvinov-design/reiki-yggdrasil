@@ -204,6 +204,14 @@ function RootRouter() {
     return <ProfileLitePage initialTab="courses" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path === "/profile/photos") {
+    return <ProfileLitePage initialTab="media" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
+  if (path === "/profile/profile") {
+    return <ProfileLitePage initialTab="profile" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
   if (path === "/profile/services") {
     return <ProfileLitePage initialRole="master" initialTab="services" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
