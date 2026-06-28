@@ -25,6 +25,7 @@ export const PROFILE_LITE_CABINET_ROLES = [
 export const PROFILE_LITE_ROLE_NAV = {
   client: [
     { label: "Мои заказы", tabId: "orders" },
+    { label: "Мои курсы", tabId: "courses" },
     { label: "Мои фото", tabId: "media" },
     { label: "Чаты", tabId: "chats" },
     { label: "Профиль", tabId: "profile" }
@@ -40,7 +41,7 @@ export const PROFILE_LITE_ROLE_NAV = {
 };
 
 const PROFILE_LITE_ROLE_TAB_IDS = {
-  client: ["orders", "media", "chats", "profile"],
+  client: ["orders", "courses", "media", "chats", "profile"],
   master: ["mandalas", "services", "clients", "materials", "masterProfile", "orders"]
 };
 

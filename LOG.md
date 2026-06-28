@@ -1,5 +1,37 @@
 # Reiki Yggdrasil — LOG
 
+## 2026-06-28 — Expose Issue #480 Courses in real Profile Lite cabinet nav
+
+- Target branch: `codex/profile-courses-nav-480`.
+- Target URL: `https://2mentalica.vercel.app`.
+- Root cause:
+  - course routes/module were present, but the visible personal cabinet navigation comes from `PROFILE_LITE_ROLE_NAV.client`;
+  - that nav did not include `courses`, so logged-in users on `/profile/orders` could not reach `Мои курсы`.
+- Changed:
+  - added `Мои курсы` to the client role nav and client tab id list;
+  - added `AdminCoursesPanel` to the in-cabinet `Админ` tab so course quick-create, lesson/audio, access, and invite tools are reachable from visible admin UI;
+  - extended Profile Lite route/cabinet contracts for real nav and `/profile/courses?course=magic-money&step=degree-1`.
+- Checks run:
+  - `npm ci`;
+  - `npm run test:profile-lite`;
+  - `node test/profileLiteRoute.test.mjs`;
+  - `node test/profileLiteCabinetContract.test.mjs`;
+  - `node test/profileCoursesClient.test.mjs`;
+  - `node test/profileCourseInviteContract.test.mjs`;
+  - `npm run build`;
+  - `npm run check`;
+  - `npm run delivery:checks`;
+  - `git diff --check`.
+- Check notes:
+  - final checks exited `0`;
+  - retained existing npm audit report: 1 high severity vulnerability;
+  - retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - retained existing Vite large-chunk / plugin timing warnings;
+  - one parallel `npm run check` attempt failed at `vite: command not found` while `npm run delivery:checks` was concurrently running `npm ci`; rerun alone passed.
+- Not verified yet:
+  - live authenticated navigation/click-through after deploy;
+  - live admin course flow after deploy.
+
 ## 2026-06-27 — Implement Issue #480 course audio access
 
 - Target branch: `codex/full-course-audio-access-480`.

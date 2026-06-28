@@ -2,6 +2,25 @@
 
 Last updated: 2026-06-27
 
+## 2026-06-28 — Issue #480 Profile Lite courses nav integration
+
+- Branch target: `codex/profile-courses-nav-480`.
+- Live target: `https://2mentalica.vercel.app`.
+- Root cause:
+  - `/profile/courses`, query deep-links, and `ProfileLiteCoursesModule` already existed, but the real `Кабинет Личный` navigation is driven by `PROFILE_LITE_ROLE_NAV.client`;
+  - that role nav exposed `Мои заказы`, `Мои фото`, `Чаты`, `Профиль`, and admin-only `Админ`, but did not include the existing `courses` tab.
+- Changed:
+  - added `Мои курсы` to the real client-cabinet role navigation;
+  - included `courses` in the client role tab allowlist;
+  - rendered the existing `AdminCoursesPanel` inside the authenticated in-cabinet `Админ` tab, while keeping `/profile/admin` as the direct admin route;
+  - extended route/nav contract tests for the real courses tab and `/profile/courses?...` deep-link support.
+- Verification status:
+  - `npm ci`, `npm run test:profile-lite`, `node test/profileLiteRoute.test.mjs`, `node test/profileLiteCabinetContract.test.mjs`, `node test/profileCoursesClient.test.mjs`, `node test/profileCourseInviteContract.test.mjs`, `npm run build`, `npm run check`, `npm run delivery:checks`, and `git diff --check` passed locally;
+  - retained existing warnings: one high-severity npm audit item, `RY-L04-S04` / `RY-L04-S05` video placeholder warnings, and Vite large-chunk / plugin timing warnings.
+- Not verified:
+  - post-merge live authenticated click-through on `https://2mentalica.vercel.app/profile/orders`;
+  - real admin course upload/grant/invite workflow through the deployed UI after this nav fix deploys.
+
 ## 2026-06-27 — Issue #480 course audio access for Магия Денег / Градус 1
 
 - Branch target: `codex/full-course-audio-access-480`.

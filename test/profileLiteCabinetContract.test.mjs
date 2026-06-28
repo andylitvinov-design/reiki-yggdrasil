@@ -94,8 +94,8 @@ assert.deepEqual(
 
 assert.deepEqual(
   PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
-  ["Мои заказы", "Мои фото", "Чаты", "Профиль"],
-  "client cabinet nav should expose only client role items"
+  ["Мои заказы", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
+  "client cabinet nav should expose personal course access between orders and photos"
 );
 
 assert.deepEqual(
@@ -112,6 +112,7 @@ assert.equal(getProfileLiteRoleForTab("services"), "master");
 assert.equal(getProfileLiteRoleForTab("clients"), "master");
 assert.equal(getProfileLiteRoleForTab("masterProfile"), "master");
 assert.equal(getProfileLiteRoleForTab("profile"), "client");
+assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "courses", "media", "chats", "profile"]);
 assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "clients", "orders", "materials", "masterProfile"]);
 assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" });
 
@@ -264,6 +265,8 @@ assert.match(profileLitePageSource, /listAvailableCoursesForProfile/, "ProfileLi
 assert.match(profileLitePageSource, /listAvailableCourseSteps/, "ProfileLitePage should load course steps separately");
 assert.match(profileLitePageSource, /listAvailableCourseLessons/, "ProfileLitePage should load lessons separately");
 assert.match(profileLitePageSource, /courses:\s*\(\s*<ProfileLiteCoursesModule/, "ProfileLitePage should render the courses module by tab id");
+assert.match(profileLitePageSource, /import AdminCoursesPanel from "\.\/admin\/AdminCoursesPanel\.jsx";/, "Profile Lite admin tab should import the shared course admin tools");
+assert.match(profileLitePageSource, /admin:\s*isProfileAdmin\s*\?[\s\S]*<ProfileAdminPanel session=\{session\} \/>[\s\S]*<AdminCoursesPanel session=\{session\} \/>/, "Profile Lite admin tab should expose participant admin and course admin tools");
 assert.match(profileLitePageSource, /setSelectedCourseId\(courseId\)[\s\S]*setSelectedStepId\(""\)[\s\S]*setCourseLessons\(\[\]\)/, "Course selection should reset selected step and lessons");
 assert.match(profileCoursesModuleSource, /Курсы Академии/, "Courses module should expose the RU course heading");
 assert.match(profileCoursesModuleSource, /Курсы пока не открыты\./, "Courses module should include empty course state");
