@@ -1436,9 +1436,11 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   padding: 10px;
-  border: 1px solid rgba(184, 121, 29, 0.16);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.66);
+  box-shadow:
+    0 0 0 1px rgba(92, 58, 19, 0.08),
+    0 12px 28px rgba(64, 42, 18, 0.06);
 }
 
 .profileLiteRoleNav a {
@@ -1447,7 +1449,7 @@
   justify-content: center;
   min-width: 0;
   min-height: 36px;
-  border: 1px solid rgba(184, 121, 29, 0.26);
+  border: 1px solid rgba(184, 121, 29, 0.18);
   border-radius: 8px;
   padding: 1px 6px;
   background: rgba(255, 255, 255, 0.74);
@@ -1456,11 +1458,28 @@
   overflow-wrap: anywhere;
   text-align: center;
   text-decoration: none;
+  transition-property: background-color, border-color, box-shadow, color, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
 }
 
 .profileLiteRoleNav a.active {
-  background: rgba(184, 121, 29, 0.14);
-  border-color: rgba(184, 121, 29, 0.68);
+  background: #fff7e8;
+  border-color: rgba(184, 121, 29, 0.74);
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 121, 29, 0.18),
+    0 8px 18px rgba(136, 84, 20, 0.14);
+  color: #7c4d0e;
+  font-weight: 800;
+}
+
+.profileLiteRoleNav a:hover {
+  background: rgba(255, 250, 242, 0.96);
+  border-color: rgba(184, 121, 29, 0.44);
+}
+
+.profileLiteRoleNav a:active {
+  transform: scale(0.96);
 }
 
 .profileLiteTabs {
@@ -1687,6 +1706,200 @@
 .profileLiteMediaCard,
 .profileLiteOrderCard {
   min-width: 0;
+}
+
+.profileLiteOrders.profileLiteModule {
+  gap: 18px;
+}
+
+.profileLiteOrders .mandalaHero {
+  align-items: center;
+  background:
+    linear-gradient(135deg, rgba(255, 250, 242, 0.96), rgba(244, 237, 224, 0.84)),
+    radial-gradient(circle at 12% 18%, rgba(184, 121, 29, 0.16), transparent 34%);
+  box-shadow:
+    0 0 0 1px rgba(92, 58, 19, 0.08),
+    0 18px 40px rgba(64, 42, 18, 0.08);
+}
+
+.profileLiteOrders .mandalaHero h2,
+.profileLiteOrders .chatPlaceholderHeader h2,
+.profileLiteOrdersServiceCta h3,
+.profileLiteOrdersEmptyState h3,
+.profileLiteOrdersHelperPanel h3 {
+  text-wrap: balance;
+}
+
+.profileLiteOrders .mandalaHero p,
+.profileLiteOrders .chatPlaceholderHeader p,
+.profileLiteOrdersServiceCta p,
+.profileLiteOrdersEmptyState p {
+  text-wrap: pretty;
+}
+
+.profileLiteOrders .mandalaHeroSeal {
+  background: #fff7e8;
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 121, 29, 0.18),
+    0 10px 22px rgba(136, 84, 20, 0.12);
+  color: #8a5512;
+}
+
+.profileLiteOrders .mandalaHeroStats span {
+  font-variant-numeric: tabular-nums;
+}
+
+.profileLiteOrdersClientLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.34fr);
+  gap: 14px;
+  width: 100%;
+}
+
+.profileLiteOrdersClientLayout > .workspaceCenterColumn {
+  min-width: 0;
+}
+
+.profileLiteOrders .chatPlaceholderWorkspace,
+.profileLiteOrdersHelperPanel,
+.profileLiteOrdersServiceCta,
+.profileLiteOrdersEmptyState {
+  border: 0;
+  box-shadow:
+    0 0 0 1px rgba(92, 58, 19, 0.08),
+    0 10px 24px rgba(64, 42, 18, 0.06);
+}
+
+.profileLiteOrders .chatPlaceholderWorkspace {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.profileLiteOrders .chatPlaceholderHeader {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.profileLiteOrders .chatPlaceholderHeader h2 {
+  margin-bottom: 0;
+}
+
+.profileLiteOrders .chatPlaceholderHeader p:last-child {
+  max-width: 650px;
+  margin: 0;
+  color: #5f5142;
+}
+
+.profileLiteOrdersServiceCta {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(260px, 1.05fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.82);
+}
+
+.profileLiteOrdersServiceCta h3,
+.profileLiteOrdersServiceCta p {
+  margin: 0;
+}
+
+.profileLiteOrdersServiceCta p:not(.cabinetEyebrow) {
+  margin-top: 6px;
+  color: #5f5142;
+}
+
+.profileLiteOrdersServiceSearch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.profileLiteOrdersServiceSearch input {
+  min-width: 0;
+  min-height: 42px;
+}
+
+.profileLiteOrdersServiceSearch .cabinetPrimary,
+.profileLiteOrdersServiceSearch .cabinetSecondary,
+.profileLiteOrdersEmptyState .cabinetPrimary,
+.profileLiteOrdersEmptyState .cabinetSecondary,
+.profileLiteOrdersHelperList a {
+  min-height: 40px;
+}
+
+.profileLiteOrdersEmptyState {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 238, 225, 0.78));
+}
+
+.profileLiteOrdersEmptyState h3,
+.profileLiteOrdersEmptyState p {
+  margin: 0;
+}
+
+.profileLiteOrdersEmptyState .cabinetActions {
+  margin-top: 4px;
+}
+
+.profileLiteOrdersHelperPanel {
+  align-self: start;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.82);
+}
+
+.profileLiteOrdersHelperPanel h3 {
+  margin: 0;
+}
+
+.profileLiteOrdersHelperList {
+  display: grid;
+  gap: 8px;
+}
+
+.profileLiteOrdersHelperList a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  border-radius: 10px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #3c2b1c;
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgba(184, 121, 29, 0.14);
+  transition-property: background-color, box-shadow, color, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+.profileLiteOrdersHelperList a::after {
+  content: "›";
+  color: #8a5512;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.profileLiteOrdersHelperList a:hover {
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 121, 29, 0.28),
+    0 6px 14px rgba(136, 84, 20, 0.1);
+  color: #7c4d0e;
+}
+
+.profileLiteOrdersHelperList a:active {
+  transform: scale(0.96);
 }
 
 .profileLiteMediaThumb {
@@ -1927,6 +2140,9 @@
   .profileLiteDiagnostics,
   .profileLiteOverview,
   .profileLiteMetricGrid,
+  .profileLiteOrdersClientLayout,
+  .profileLiteOrdersServiceCta,
+  .profileLiteOrdersServiceSearch,
   .cabinetTwoColumns,
   .adminParticipantRow,
   .masterCatalogCard,
