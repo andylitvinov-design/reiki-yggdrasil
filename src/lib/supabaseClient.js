@@ -345,7 +345,7 @@ export async function listProfilesForAdmin(session = getStoredSession(), search 
   ];
 
   if (term) {
-    query.push(`or=${encodeURIComponent(`(display_name.ilike.*${term}*)`)}`);
+    query.push(`or=${encodeURIComponent(`(display_name.ilike.*${term}*,email.ilike.*${term}*)`)}`);
   }
 
   return request(`/rest/v1/${PROFILES_TABLE}?${query.join("&")}`, {

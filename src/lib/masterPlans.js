@@ -17,7 +17,7 @@ export const MASTER_PLAN_CONFIG = [
       compositions: 7,
       dailyPhotoUploads: 7,
       clients: 5,
-      clientPhotos: 5,
+      clientPhotos: 10,
       trialServices: 0,
       paidServices: 0,
       hiddenPublications: 0,
