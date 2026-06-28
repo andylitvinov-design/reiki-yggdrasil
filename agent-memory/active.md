@@ -1,18 +1,14 @@
 # Active Agent Memory
 
-This file contains only high-value active rules that should be loaded before `/delivery`, `/audit`, and `/save`.
+This file contains only high-value rules that are safe to load before `/delivery`, `/audit`, `/save`, `/memory`, `/memory-review`, and `/learn-pass`.
 
-Hard cap:
+Hard cap: 30–50 active rules. If this file grows beyond the cap, run `/memory-review` before adding more.
 
-```txt
-30–50 active rules maximum
-```
-
-If this file grows beyond the cap, run `/memory-review`.
+Do not store weak candidates, long evidence, or one-time product tweaks here.
 
 ---
 
-## Memory system rule
+## 2026-06-28 — Run memory as a compact lifecycle
 
 Type: rule  
 Memory type: procedural  
@@ -21,35 +17,38 @@ Priority: high
 Status: active  
 
 User signal:
-> Project uses the reusable `/save` learning loop.
+> Project uses repo-local agent memory with `/save`, `/learn-pass`, and `/memory-review`.
 
 Evidence:
-- Linked brain spec: `ai-projects-brain/agent-skills/save.md`
+- Canonical brain specs: `ai-projects-brain/agent-skills/save.md`, `agent-skills/learn-pass.md`, `agent-skills/memory-review.md`
 
 Lesson:
-Memory is not a raw log. Agents must save only reusable, scoped, checkable lessons. `/save` must behave as upsert, not append.
+Agent memory is a compact instruction system, not a transcript. Use `/save` for user-directed durable rules, `/learn-pass` for candidate lessons and metrics, and `/memory-review` for merge/replace/archive. Always upsert instead of appending duplicates.
 
 Apply when:
-- Running `/save`
-- Running `/delivery`
-- Running `/audit`
-- Updating agent-memory files
+- Running `/delivery`, `/audit`, `/save`, `/memory`, `/memory-review`, or `/learn-pass`
+- Editing `agent-memory/` files
+- Updating memory-related command/skill instructions
 
 Check:
-- New memory items include `Apply when`, `Check`, and `Failure if ignored`.
-- Similar rules are merged instead of duplicated.
+- Every active rule has `Apply when`, `Check`, and `Failure if ignored`.
+- Similar or conflicting memory items are merged, narrowed, replaced, or archived instead of duplicated.
+- Weak or single-signal lessons go to `candidates.md`, not `active.md`.
+- `archive.md`, `candidates.md`, and `metrics.md` are not loaded by default.
 
 Failure if ignored:
-- Agent memory may become a giant instruction dump that agents stop reading or applying.
+- Memory can become noisy, causing agents to miss important rules or repeat known mistakes.
 
 Avoid:
-- Raw chat dumps
-- Duplicate rules
+- Duplicate rules with different wording
 - Contradictory active rules
 - One-time visual tweaks in active memory
+- Promoting weak candidates without evidence
 
 Last applied:
-- never
+- 2026-06-28 — Memory Optimizer pass
 
 Related files/components:
-- agent-memory/index.md
+- `agent-memory/index.md`
+- `agent-memory/candidates.md`
+- `agent-memory/metrics.md`
