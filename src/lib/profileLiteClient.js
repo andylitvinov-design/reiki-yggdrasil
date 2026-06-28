@@ -6,8 +6,8 @@ export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "err
 
 export const PROFILE_LITE_TABS = [
   { id: "mandalas", label: "Мастерская", href: "/profile/mandalas" },
-  { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
-  { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
+  { id: "profile", label: "Профиль", href: "/profile/profile" },
+  { id: "media", label: "Фото / Медиа", href: "/profile/photos" },
   { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
   { id: "masterProfile", label: "Профиль Мастера", href: "/profile?tab=masterProfile" },
   { id: "courses", label: "Курсы", href: "/profile/courses" },
@@ -99,6 +99,8 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
   const routeTabMap = {
     "/profile/mandalas": "mandalas",
     "/profile/courses": "courses",
+    "/profile/photos": "media",
+    "/profile/profile": "profile",
     "/profile/services": "services",
     "/profile/orders": "orders",
     "/profile/chats": "chats",

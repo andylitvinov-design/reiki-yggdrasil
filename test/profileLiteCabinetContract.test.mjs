@@ -43,8 +43,8 @@ assert.deepEqual(
   PROFILE_LITE_TABS.map((tab) => [tab.id, tab.href]),
   [
     ["mandalas", "/profile/mandalas"],
-    ["profile", "/profile?tab=profile"],
-    ["media", "/profile?tab=media"],
+    ["profile", "/profile/profile"],
+    ["media", "/profile/photos"],
     ["materials", "/profile?tab=materials"],
     ["masterProfile", "/profile?tab=masterProfile"],
     ["courses", "/profile/courses"],
@@ -70,11 +70,14 @@ assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
 assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
 assert.equal(getProfileLiteRouteByTabId("settings"), "/profile/settings");
 assert.equal(getProfileLiteRouteByTabId("diagnostics"), "/profile?tab=diagnostics");
-assert.equal(getProfileLiteRouteByTabId("media"), "/profile?tab=media");
+assert.equal(getProfileLiteRouteByTabId("media"), "/profile/photos");
+assert.equal(getProfileLiteRouteByTabId("profile"), "/profile/profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/photos", ""), "media");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/profile", ""), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=masterProfile"), "masterProfile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");

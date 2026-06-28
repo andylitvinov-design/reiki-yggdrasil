@@ -12,6 +12,7 @@ Last updated: 2026-06-27
 - Changed:
   - added `Мои курсы` to the real client-cabinet role navigation;
   - included `courses` in the client role tab allowlist;
+  - added `/profile/photos` and `/profile/profile` as stable path aliases for the existing `Мои фото` and `Профиль` tabs;
   - rendered the existing `AdminCoursesPanel` inside the authenticated in-cabinet `Админ` tab, while keeping `/profile/admin` as the direct admin route;
   - extended route/nav contract tests for the real courses tab and `/profile/courses?...` deep-link support.
 - Verification status:

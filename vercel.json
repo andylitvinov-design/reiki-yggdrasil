@@ -24,6 +24,14 @@
       "destination": "/"
     },
     {
+      "source": "/profile/photos",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/profile",
+      "destination": "/"
+    },
+    {
       "source": "/profile/services",
       "destination": "/"
     },
