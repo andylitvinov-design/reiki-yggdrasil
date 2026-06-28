@@ -23,15 +23,17 @@
         align-items: center !important;
         align-content: center !important;
       }
-      .profileLitePowerPlace .powerPlaceExternalTitle,
-      .powerPlacePdfOnlyArea .powerPlaceExternalTitle {
-        order: -10 !important;
-        align-self: end !important;
-        margin: 0 auto 10px !important;
-      }
       .profileLitePowerPlace .powerMandalaPanel > .powerPrintMeta,
       .powerPlacePdfOnlyArea .powerMandalaPanel > .powerPrintMeta {
         display: none !important;
+      }
+      .profileLitePowerPlace .powerMandalaPanel > .powerPlaceMentalicaBrand,
+      .powerPlacePdfOnlyArea .powerMandalaPanel > .powerPlaceMentalicaBrand {
+        position: absolute !important;
+        left: clamp(14px, 3.2vw, 28px) !important;
+        bottom: clamp(12px, 2.8vw, 24px) !important;
+        z-index: 30 !important;
+        pointer-events: none !important;
       }
       .profileLitePowerPlace .powerMandalaPanel.field-layout-square,
       .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-square {

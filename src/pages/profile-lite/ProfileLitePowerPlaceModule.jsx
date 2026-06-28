@@ -21,17 +21,6 @@ const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
 const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
 const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
 
-const CONSTRUCTOR_LABELS = {
-  zodiac: "Зодиак",
-  star: "Звезда",
-  chess: "Шахматы",
-  client: "Мандала",
-  altar: "Алтарь",
-  business: "Бизнес",
-  dao: "ДАО",
-  "dao-layout": "ДАО-Макет"
-};
-
 function coverOffsetValue(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return 50;
@@ -371,31 +360,6 @@ function profileLiteFitFixStyles(innerOffsetX, innerOffsetY, outerOffsetX, outer
   --power-center-image-scale: ${centerImageScale * centerImageZoom};
   --power-center-frame-scale: ${centerFrameScale};
   --power-center-bg-pos: ${centerImageOffsetX}% ${centerImageOffsetY}%;
-}
-.profileLitePowerPlace .powerPlaceExternalTitle,
-.powerPlacePdfOnlyArea .powerPlaceExternalTitle {
-  order: -3;
-  width: min(520px, 94%);
-  margin: 0 auto 8px;
-  text-align: center;
-  pointer-events: none;
-}
-.profileLitePowerPlace .powerPlaceExternalTitle p,
-.powerPlacePdfOnlyArea .powerPlaceExternalTitle p {
-  margin: 0 0 2px;
-  color: #8a5308;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.profileLitePowerPlace .powerPlaceExternalTitle h3,
-.powerPlacePdfOnlyArea .powerPlaceExternalTitle h3 {
-  margin: 0;
-  color: #5b3b12;
-  font-size: clamp(24px, 5vw, 38px);
-  line-height: 1;
-  text-shadow: 0 1px 10px rgba(255, 246, 215, 0.72);
 }
 .profileLitePowerPlace .powerMandalaPanel[style] > .powerPrintMeta,
 .powerPlacePdfOnlyArea .powerMandalaPanel[style] > .powerPrintMeta {
@@ -866,7 +830,6 @@ function normalizeLayeredCoverRef(coverRef) {
 
 export default function ProfileLitePowerPlaceModule(props) {
   const [powerPanelNode, setPowerPanelNode] = useState(null);
-  const [printAreaNode, setPrintAreaNode] = useState(null);
   const [layoutPanelNode, setLayoutPanelNode] = useState(null);
   const objectRefs = cleanRefs(props.compositionDraft?.object_refs);
   const innerCoverOffsetX = coverOffsetValue(objectRefs[INNER_COVER_OFFSET_X_REF_KEY]);
@@ -889,7 +852,6 @@ export default function ProfileLitePowerPlaceModule(props) {
   const daoLayoutOptions = normalizeDaoLayoutOptions(objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || objectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
   const zodiacStyle = zodiacStyleValue(objectRefs[ZODIAC_STYLE_REF_KEY]);
   const daoTalismanNodeCount = daoTalismanNodeCountValue(objectRefs[DAO_TALISMAN_NODE_COUNT_REF_KEY]);
-  const formatLabel = CONSTRUCTOR_LABELS[constructorType || ""] || "Место силы";
   const fitStyleText = useMemo(
     () => profileLiteFitFixStyles(innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerCoverZoom, outerCoverZoom, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom),
     [innerCoverOffsetX, innerCoverOffsetY, outerCoverOffsetX, outerCoverOffsetY, innerCoverZoom, outerCoverZoom, innerFieldScale, centerImageScale, centerFrameScale, centerShape, centerImageOffsetX, centerImageOffsetY, centerImageZoom]
@@ -899,7 +861,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     if (typeof document === "undefined") return undefined;
     const refreshNodes = () => {
       setPowerPanelNode(document.querySelector(".profileLitePowerPlace .powerMandalaPanel") || null);
-      setPrintAreaNode(document.querySelector(".profileLitePowerPlace .powerPlacePrintArea") || null);
       setLayoutPanelNode(document.querySelector(".profileLitePowerPlace .layoutCenterCell") || null);
     };
     refreshNodes();
@@ -988,13 +949,6 @@ export default function ProfileLitePowerPlaceModule(props) {
     cover_ref: normalizeLayeredCoverRef(props.compositionDraft?.cover_ref)
   }), [centerFrameScale, centerImageOffsetX, centerImageOffsetY, centerImageScale, centerImageZoom, constructorType, daoStyle, daoTalismanNodeCount, innerFieldScale, mandalaStyle, props.compositionDraft, zodiacStyle]);
 
-  const externalTitle = (
-    <div className="powerPlaceExternalTitle" aria-label="Название формата мандалы">
-      <p>Формат</p>
-      <h3>{formatLabel}</h3>
-    </div>
-  );
-
   const centerShapeControl = (
     <div className="centerShapeControl" aria-label="Форма центра">
       <span>Центр</span>
@@ -1012,7 +966,6 @@ export default function ProfileLitePowerPlaceModule(props) {
   const templatePanel = (
     <>
       <style data-profile-lite-fit-fixes>{fitStyleText}</style>
-      {printAreaNode ? createPortal(externalTitle, printAreaNode) : null}
       {layoutPanelNode ? createPortal(centerShapeControl, layoutPanelNode) : null}
       {props.shellChrome}
     </>

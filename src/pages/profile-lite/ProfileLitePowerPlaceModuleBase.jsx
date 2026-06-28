@@ -3387,10 +3387,7 @@ export default function ProfileLitePowerPlaceModule({
 
               <div className={`powerPlacePrintArea field-layout-${compositionDraft.field_layout || "square"}`} style={sourceSlotScaleStyle}>
                 <div className={[`powerMandalaPanel field-layout-${compositionDraft.field_layout || "square"} outer-cover-${outerCover?.type === "image" ? "image" : outerCover?.tone || "none"} ${outerCoverClass} ${outerCoverFitClassName}${outerCoverGestureClass}`, !visibilitySettings.center ? "power-place-hide-center" : "", !visibilitySettings.slots ? "power-place-hide-slots" : "", !visibilitySettings.outer_cover ? "power-place-hide-outer-cover" : "", !visibilitySettings.inner_cover ? "power-place-hide-inner-cover" : ""].filter(Boolean).join(" ")} style={{ ...(outerCover?.type === "image" ? { "--power-outer-cover-image": `url(${coverDisplaySrc(outerCover)})` } : {}), ...sourceSlotScaleStyle }} {...outerCoverGestureHandlers}>
-                  <div className="powerPrintMeta">
-                    <p className="cabinetEyebrow">Формат</p>
-                    <h3>{formatLabel(compositionDraft.constructor_type)}</h3>
-                  </div>
+                  <div className="powerPlaceMentalicaBrand" aria-label="Бренд Mentalica">Mentalica</div>
                   {compositionDraft.constructor_type === "client" ? (
                     <div className={`powerMandala geometry-${compositionDraft.geometry || slots.length} ${coverToneClass(innerCover)} constructor-client mandala-${compositionDraft.__mandala_style || "style-1"} ${innerCoverClass}${innerCoverGestureClass}`.trim()} style={innerCoverImageStyle(innerCover, coverDisplaySrc(innerCover))} {...innerCoverGestureHandlers}>
                       {renderCenterPhotoWithMode("powerCenterPhoto")}

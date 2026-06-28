@@ -728,7 +728,8 @@ assert.match(profileLitePageSource, /updateOwnService\(serviceForm\.id/, "saving
 assert.match(profileLitePageSource, /handleServiceStatusChange[\s\S]*published[\s\S]*draft[\s\S]*archived/, "services manager should expose safe publish/draft/archive status actions");
 assert.match(powerPlaceSource, /!reportEnabled \? null :|reportEnabled && \(/, "Без отчёта should hide the lower report body fields and actions");
 assert.match(powerPlaceBaseSource, /renderFieldLayoutSelector\(\)[\s\S]*<div className="coverSelector coverPickerPanel"[\s\S]*renderReportModule\(\)/, "right column should render layout controls above background and report below background");
-assert.match(powerPlaceSource, /"dao-layout": "ДАО-Макет"/, "Profile Lite Power Place UI should expose ДАО-Макет as a dedicated format label");
+assert.match(powerPlaceBaseSource, /\{ value: "dao-layout", label: "ДАО-Макет" \}/, "Profile Lite Power Place UI should expose ДАО-Макет as a dedicated selector label");
+assert.doesNotMatch(powerPlaceWrapperSource, /CONSTRUCTOR_LABELS/, "Profile Lite Power Place wrapper must not reuse constructor labels as preview/export watermarks");
 assert.doesNotMatch(powerPlaceBaseSource, /\{ value: DAO_LAYOUT_TEMPLATE_STYLE_ID, label: "ДАО: Макет" \}/, "ДАО-Макет must not remain registered as a normal DAO style");
 assert.doesNotMatch(powerPlaceSource, /className="resourceComparisonPanel"/, "resource comparison mini-block should not be visible in the React report/settings UI");
 assert.doesNotMatch(powerPlaceSource, /<span className="cabinetStatus">\{mediaStatus\}<\/span>/, "Power Place header should not show raw media status text");
