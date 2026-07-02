@@ -25,6 +25,16 @@
       ]
     }
   ],
+  "git": {
+    "deploymentEnabled": {
+      "codex/**": false,
+      "claude/**": false,
+      "feat/**": false,
+      "fix/**": false,
+      "chore/**": false,
+      "config/**": false
+    }
+  },
   "rewrites": [
     {
       "source": "/profile",
