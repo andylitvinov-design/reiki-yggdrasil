@@ -47,6 +47,9 @@ AGENTS.md
 .claude/commands/audit.md
 .claude/commands/audit-fin.md
 .claude/commands/delivery.md
+.claude/commands/delivery-big.md
+.codex/commands/delivery-big.md
+.codex/skills/delivery-big/SKILL.md
 ```
 
 When a command is not relevant to a project, the local command file may route to the shared docs and state the limitation instead of duplicating a full protocol.
@@ -81,6 +84,9 @@ For each active repo, check:
 git remote -v
 test -f AGENTS.md
 test -f .claude/commands/delivery.md
+test -f .claude/commands/delivery-big.md
+test -f .codex/commands/delivery-big.md
+test -f .codex/skills/delivery-big/SKILL.md
 test -f .claude/commands/audit.md || true
 test -f .claude/commands/audit-fin.md || true
 rg -n "global-agent-settings|global-command-protocols|global-project-adapters|global-agent-skills" AGENTS.md .claude docs
