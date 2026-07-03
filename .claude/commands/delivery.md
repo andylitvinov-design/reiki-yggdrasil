@@ -11,11 +11,12 @@ Read in order:
 3. `docs/global-project-adapters.md` - URL/repo routing and future project adapter rules
 4. `docs/global-agent-skills.md` - shared skill/fallback behavior
 5. `AGENTS.md` - Reiki project adapter and safety rules
-6. `docs/delivery-auth-boundary-standard.md` - auth-gated live verification and `SUCCESS_WITH_AUTH_LIMITATION`
-7. `docs/delivery-loop-program.md` - local full delivery loop
-8. `docs/delivery-loop-technical-details.md` - local checks, scripts, CI/CD details
-9. `docs/delivery-loop-source-patterns-and-live-proof.md` - local live proof contract
-10. `docs/delivery-design-quality-gate.md` - local UI/design gate details
+6. `docs/global-delivery-big-protocol.md` when the task escalates to `/delivery-big`
+7. `docs/delivery-auth-boundary-standard.md` - auth-gated live verification and `SUCCESS_WITH_AUTH_LIMITATION`
+8. `docs/delivery-loop-program.md` - local full delivery loop
+9. `docs/delivery-loop-technical-details.md` - local checks, scripts, CI/CD details
+10. `docs/delivery-loop-source-patterns-and-live-proof.md` - local live proof contract
+11. `docs/delivery-design-quality-gate.md` - local UI/design gate details
 
 If a local source file is missing, report `needs verification`; do not invent replacement rules.
 
@@ -51,6 +52,19 @@ UI POLISH / FEEL-BETTER PASS
 ```
 
 Never touch secrets, env values, billing, production data, auth/OAuth/security rules, or finance formulas unless the user explicitly requests that scope.
+
+## Escalation to /delivery-big
+
+If the prompt or source issue has more than 3 independent requirements, touches
+more than 2 system areas, or asks for an autonomous/overnight repair loop,
+escalate internally to `/delivery-big` behavior. Read
+`.claude/commands/delivery-big.md` and `docs/global-delivery-big-protocol.md`,
+then use the Task Manifest, Scope Contract, Verification Matrix, and Repair Loop.
+Report the escalation explicitly:
+
+```txt
+Escalated to /delivery-big mode because: <reason>
+```
 
 Final status must be one of:
 

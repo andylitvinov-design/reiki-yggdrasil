@@ -89,7 +89,7 @@ If a file is missing, report `not found`.
 
 This repo hosts the shared global agent settings layer for active projects.
 
-Use these shared docs as the source of truth for `/audit`, `/audit-fin`, `/delivery`, UI polish, design quality gates, deep technical issue writing, deep numeric implementation trace, project routing, and future active project adapters:
+Use these shared docs as the source of truth for `/audit`, `/audit-fin`, `/delivery`, `/delivery-big`, UI polish, design quality gates, deep technical issue writing, deep numeric implementation trace, project routing, and future active project adapters:
 
 - `docs/global-agent-settings.md`
 - `docs/global-command-protocols.md`
@@ -111,8 +111,14 @@ Reiki-specific local protocol details still live in:
 - `docs/delivery-loop-program.md`
 - `docs/delivery-loop-technical-details.md`
 - `docs/delivery-loop-source-patterns-and-live-proof.md`
+- `docs/global-delivery-big-protocol.md`
 
 Local `.claude/commands/*` files must reference the shared global docs first, then this Reiki adapter and project-specific docs. Do not duplicate the full shared protocol in local command files.
+
+`/delivery-big` is the large-task delivery mode. It inherits `/delivery` and
+adds a Task Manifest, Scope Contract, Verification Matrix, Repair Loop, and
+strict DONE gate. Claude uses `.claude/commands/delivery-big.md`; Codex uses
+`.codex/commands/delivery-big.md` and `.codex/skills/delivery-big/SKILL.md`.
 
 ## Terminal prompt safety rules
 

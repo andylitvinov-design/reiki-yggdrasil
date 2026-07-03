@@ -1,6 +1,6 @@
 # Global Command Protocols
 
-Status: shared behavior for `/audit`, `/audit-ui`, `/audit-fin`, `/delivery`, UI polish, design quality gates, and deep technical issue writing.
+Status: shared behavior for `/audit`, `/audit-ui`, `/audit-fin`, `/delivery`, `/delivery-big`, UI polish, design quality gates, and deep technical issue writing.
 
 ## `/audit`
 
@@ -165,6 +165,38 @@ UI POLISH / FEEL-BETTER PASS
 ```
 
 If a UI gate item is `FAIL` or `NOT VERIFIED`, continue an improvement loop or report the exact blocker/auth limitation. Do not claim success.
+
+### Escalation to /delivery-big
+
+If a `/delivery` prompt or issue has more than 3 independent requirements,
+touches more than 2 system areas, or asks for an autonomous/overnight repair
+loop, escalate internally to `/delivery-big` behavior and report:
+
+```txt
+Escalated to /delivery-big mode because: <reason>
+```
+
+This escalation does not weaken any `/delivery` rule.
+
+## `/delivery-big`
+
+Purpose: own large autonomous delivery without dropping requirements.
+
+`/delivery-big` inherits `/delivery` and adds:
+
+- Task Manifest with stable Task IDs and source tracking;
+- Scope Contract with included/excluded Task IDs, non-goals, likely files, and risk gates;
+- Phase Plan;
+- Verification Matrix with evidence for every included Task ID;
+- Repair Loop before final reporting;
+- strict DONE gate: every included Task ID must be `PASS`.
+
+Canonical details live in `docs/global-delivery-big-protocol.md`; local adapters
+are `.claude/commands/delivery-big.md`, `.codex/commands/delivery-big.md`, and
+`.codex/skills/delivery-big/SKILL.md`.
+
+Audit/planner-style handoffs should recommend `/delivery-big` instead of
+`/delivery` when the issue is large by the same threshold above.
 
 ## UI Polish Skill
 
