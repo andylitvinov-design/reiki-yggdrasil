@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO fu paper slip contour</title>
+  <desc id="desc">Decorative Daoist-inspired paper slip silhouette with contour frame only; not a ritual formula or sacred text.</desc>
+  <path d="M22 12h76v336H22z" fill="#fff0b8" opacity=".76"/>
+  <g fill="none" stroke="#7a3f15" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M23 14h74v332H23z" stroke-width="2.4"/>
+    <path d="M29 21h62v318H29z" stroke-width="1.25" opacity=".58"/>
+  </g>
+</svg>

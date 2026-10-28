@@ -6,6 +6,22 @@ This project uses GitHub Actions as a fallback production deploy path for Vercel
 
 If Vercel auto-deploy does not trigger or production remains stale after merge/push, agents must use this workflow before asking the user to run any local terminal deploy.
 
+## Release-workflow alignment
+
+This repo uses the draft/clean release model from `docs/release-workflow.md`.
+
+Target meaning after the release workflow is implemented:
+
+```text
+main        = draft/test branch, deployed to 2mentalica
+production  = clean/client live branch
+release/*   = frozen release branches between main and production
+```
+
+Therefore the fallback production deploy must normally deploy `production`, not `main`.
+
+Use `main` with this workflow only if the owner explicitly asks to bypass the release model or if the repo has not yet completed the production-branch migration.
+
 Target production URL:
 
 ```text
@@ -48,11 +64,11 @@ Use fallback deploy when:
 
 ```text
 1. The intended commit is already committed and pushed.
-2. The intended production ref is known, normally main.
+2. The intended production ref is known, normally production.
 3. Production is stale after push/merge.
 4. Vercel auto-deploy did not start, failed, or deployed the wrong commit.
-5. The user says live does not show the completed changes.
-6. Domain migration verification requires forcing the current main to production.
+5. The user says live does not show the completed release.
+6. Domain migration verification requires forcing the current production ref to the production project.
 ```
 
 ## When not to use
@@ -66,6 +82,7 @@ Do not use fallback deploy when:
 4. npm run check fails.
 5. Production already serves the expected version.
 6. There is a risk of deploying an old ref over a newer production build.
+7. The ref is main and the change has not passed owner QA / release approval.
 ```
 
 ## Required GitHub Secrets
@@ -80,12 +97,24 @@ These secrets must exist in the GitHub repository settings. Do not commit secret
 
 ## Standard command
 
+Default production fallback command after release workflow migration:
+
+```bash
+gh workflow run deploy-production.yml \
+  --ref production \
+  -f ref=production \
+  -f expected_sha=<expected_production_commit_sha> \
+  -f reason="fallback deploy after stale production release"
+```
+
+Temporary legacy command, only before the `production` branch / Vercel migration is implemented or with explicit owner approval:
+
 ```bash
 gh workflow run deploy-production.yml \
   --ref main \
   -f ref=main \
-  -f expected_sha=<expected_commit_sha> \
-  -f reason="fallback deploy after stale production"
+  -f expected_sha=<expected_main_commit_sha> \
+  -f reason="temporary legacy fallback deploy from main"
 ```
 
 Then watch the run:
@@ -101,12 +130,13 @@ Before fallback deploy:
 
 ```text
 1. Identify repo.
-2. Identify target ref, normally main.
+2. Identify target ref, normally production.
 3. Identify expected commit SHA.
 4. Confirm changes are committed and pushed.
-5. Check production URL and legacy URL if relevant.
-6. Check workflow/deploy evidence and available live endpoints.
-7. If production is stale, trigger deploy-production.yml.
+5. Confirm the release was approved if ref is production.
+6. Check production URL and legacy URL if relevant.
+7. Check workflow/deploy evidence and available live endpoints.
+8. If production is stale, trigger deploy-production.yml.
 ```
 
 After fallback deploy:
@@ -134,6 +164,8 @@ Never ask the user to check the current live version manually.
 Never run fallback deploy until the target commit is committed, pushed and identified.
 
 Never claim production is updated without checking production after deploy.
+
+Never deploy `main` to production unless explicitly approved or the production-branch migration is not implemented yet.
 
 Never claim commit-level live verification for this project until a status/build-info endpoint exists.
 

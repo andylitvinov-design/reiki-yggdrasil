@@ -120,6 +120,166 @@
   color: #fff0cd;
 }
 
+.profileLiteCompositionList,
+.profileLiteServicesList {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteCompositionItem {
+  min-width: 0;
+}
+
+.profileLiteCompositionItem--card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 253, 248, 0.76);
+  box-shadow: 0 10px 24px rgba(79, 54, 18, 0.08);
+}
+
+.profileLiteCompositionCard--horizontal {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.profileLiteCompositionPreview {
+  flex: 0 0 108px;
+  width: 108px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(184, 121, 29, 0.2);
+  border-radius: 16px;
+  background:
+    repeating-radial-gradient(circle at 50% 48%, rgba(184, 121, 29, 0.18) 0 2px, transparent 3px 12px),
+    linear-gradient(135deg, #21170d, #8f5a14 52%, #f0d595);
+  background-size: cover;
+  background-position: center;
+  color: #fff0cd;
+  font-size: 26px;
+  font-weight: 900;
+  overflow: hidden;
+}
+
+.profileLiteCompositionPreview.hasImage {
+  color: transparent;
+}
+
+.profileLiteCompositionBody {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.profileLiteCompositionBody b,
+.profileLiteCompositionBody span,
+.profileLiteCompositionBody small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteCompositionBody b {
+  color: #2b1b0c;
+  font-size: 15px;
+}
+
+.profileLiteCompositionBody span {
+  color: #6f4b1b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileLiteCompositionBody small {
+  color: #7a674f;
+  font-size: 12px;
+}
+
+.profileLiteCompositionActions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.profileLiteCompositionActions button,
+.profileLiteServiceLinkedStatus {
+  white-space: nowrap;
+}
+
+.profileLiteServiceLinkedStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(51, 121, 82, 0.24);
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: rgba(229, 246, 235, 0.72);
+  color: #2f6f4d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profileLiteServicesItem {
+  grid-template-columns: 108px minmax(0, 1fr) auto;
+}
+
+.profileLiteShellChrome {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.profileLiteTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profileLiteTabs a {
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  border-radius: 14px;
+  padding: 9px 12px;
+  background: rgba(255, 253, 248, 0.72);
+  color: #5d3c12;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.profileLiteTabs a.active {
+  background: rgba(71, 42, 11, 0.1);
+  color: #2b1b0c;
+}
+
+.profileLiteStatusRail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #745327;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .mandalaModeSidebar,
 .chatPlaceholderWorkspace {
   min-width: 0;
@@ -147,6 +307,8 @@
 
 .materialFilterList,
 .chatModeNav,
+.profileLiteRoleNav,
+.profileLiteRoleSwitcher,
 .powerLibraryGroups,
 .powerLibraryGroupList,
 .powerSavedImageList {
@@ -155,7 +317,10 @@
 }
 
 .materialFilterList button,
-.chatModeNav button {
+.chatModeNav button,
+.chatMasterPicker button,
+.profileLiteRoleNav a,
+.profileLiteRoleSwitcher button {
   width: 100%;
   display: flex;
   align-items: center;
@@ -168,13 +333,74 @@
   color: #5d3c12;
   font-weight: 800;
   text-align: left;
+  text-decoration: none;
 }
 
 .materialFilterList button.active,
-.chatModeNav button:first-child {
+.chatModeNav button.active,
+.chatMasterPicker button:hover,
+.profileLiteRoleNav a.active,
+.profileLiteRoleSwitcher button.active {
   background: linear-gradient(180deg, #f2d492, #d39a32);
   color: #24180e;
   box-shadow: 0 10px 22px rgba(141, 83, 10, 0.14);
+}
+
+.chatMasterPicker {
+  display: grid;
+  gap: 8px;
+}
+
+.chatMasterPicker button {
+  display: grid;
+  justify-items: start;
+}
+
+.chatEmptyCompact {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 14px;
+  padding: 11px 12px;
+  background: rgba(255, 253, 248, 0.72);
+  color: #6b4d28;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.chatEmptyCompact b {
+  color: #2b1b0c;
+}
+
+.profileLiteChats .cabinetCard {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLiteChats textarea {
+  resize: vertical;
+}
+
+.profileLiteRoleSwitcher {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profileLiteShell > .profileLiteRoleSwitcher {
+  margin: 14px 18px 0;
+}
+
+.profileLiteRoleSwitcher button {
+  justify-content: center;
+  min-height: 42px;
+  text-align: center;
+}
+
+.profileLiteRoleNav {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.profileLiteRoleNav a {
+  min-height: 40px;
 }
 
 .materialFilterList b {
@@ -1168,6 +1394,53 @@
   font-weight: 800;
 }
 
+.profileLitePowerPlace .powerPlaceMotionControls {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 251, 241, 0.68);
+}
+
+.profileLitePowerPlace .powerPlaceVideoControls {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.profileLitePowerPlace .powerPlaceVideoControls span,
+.profileLitePowerPlace .powerPlaceVideoHint {
+  color: #744c17;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.profileLitePowerPlace .powerPlaceVideoControls button {
+  min-height: 32px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #744c17;
+  font-weight: 800;
+}
+
+.profileLitePowerPlace .powerPlaceVideoControls button.active,
+.profileLitePowerPlace .powerPlaceVideoControls button:hover {
+  background: #c9a84c;
+  color: #fff;
+}
+
+.profileLitePowerPlace .powerPlaceVideoControls--export button {
+  border-color: rgba(107, 80, 34, 0.3);
+  background: #2f2418;
+  color: #f6dc98;
+}
+
 .geometrySelector button {
   width: 38px;
   height: 34px;
@@ -1260,6 +1533,27 @@
   color: #fff0cd;
   font-size: 20px;
   line-height: 1.1;
+}
+
+.powerPlaceMentalicaBrand {
+  position: absolute;
+  left: clamp(14px, 3.2vw, 28px);
+  bottom: clamp(12px, 2.8vw, 24px);
+  z-index: 30;
+  pointer-events: none;
+  color: rgba(116, 84, 57, 0.82);
+  font-size: clamp(11px, 1.8vw, 14px);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-shadow: 0 1px 8px rgba(255, 248, 232, 0.8);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.profileLitePowerPlace .powerMandalaPanel > .powerPlaceMentalicaBrand,
+.powerPlacePdfOnlyArea .powerMandalaPanel > .powerPlaceMentalicaBrand {
+  display: block;
 }
 
 .powerMandala {
@@ -1533,6 +1827,145 @@
 .geometry-12 .source-11 { left: 85%; top: 85%; }
 .geometry-12 .source-12 { left: 15%; top: 85%; }
 
+/* ── Mandala style-2: diagonal / rotated positions ──────────────────────── */
+.powerMandala.mandala-style-2.geometry-2 .source-1 { left: 25%; top: 25%; }
+.powerMandala.mandala-style-2.geometry-2 .source-2 { left: 75%; top: 75%; }
+
+.powerMandala.mandala-style-2.geometry-4 .source-1 { left: 25%; top: 25%; }
+.powerMandala.mandala-style-2.geometry-4 .source-2 { left: 75%; top: 25%; }
+.powerMandala.mandala-style-2.geometry-4 .source-3 { left: 75%; top: 75%; }
+.powerMandala.mandala-style-2.geometry-4 .source-4 { left: 25%; top: 75%; }
+
+.powerMandala.mandala-style-2.geometry-6 .source-1 { left: 50%; top: 8%; }
+.powerMandala.mandala-style-2.geometry-6 .source-2 { left: 88%; top: 74%; }
+.powerMandala.mandala-style-2.geometry-6 .source-3 { left: 12%; top: 74%; }
+.powerMandala.mandala-style-2.geometry-6 .source-4 { left: 50%; top: 92%; }
+.powerMandala.mandala-style-2.geometry-6 .source-5 { left: 12%; top: 26%; }
+.powerMandala.mandala-style-2.geometry-6 .source-6 { left: 88%; top: 26%; }
+
+.powerMandala.mandala-style-2.geometry-8 .source-1 { left: 25%; top: 14%; }
+.powerMandala.mandala-style-2.geometry-8 .source-2 { left: 75%; top: 14%; }
+.powerMandala.mandala-style-2.geometry-8 .source-3 { left: 86%; top: 50%; }
+.powerMandala.mandala-style-2.geometry-8 .source-4 { left: 75%; top: 86%; }
+.powerMandala.mandala-style-2.geometry-8 .source-5 { left: 25%; top: 86%; }
+.powerMandala.mandala-style-2.geometry-8 .source-6 { left: 14%; top: 50%; }
+.powerMandala.mandala-style-2.geometry-8 .source-7 { left: 25%; top: 25%; }
+.powerMandala.mandala-style-2.geometry-8 .source-8 { left: 75%; top: 25%; }
+
+.powerMandala.mandala-style-2.geometry-12 .source-1 { left: 50%; top: 8%; }
+.powerMandala.mandala-style-2.geometry-12 .source-2 { left: 79%; top: 21%; }
+.powerMandala.mandala-style-2.geometry-12 .source-3 { left: 92%; top: 50%; }
+.powerMandala.mandala-style-2.geometry-12 .source-4 { left: 79%; top: 79%; }
+.powerMandala.mandala-style-2.geometry-12 .source-5 { left: 50%; top: 92%; }
+.powerMandala.mandala-style-2.geometry-12 .source-6 { left: 21%; top: 79%; }
+.powerMandala.mandala-style-2.geometry-12 .source-7 { left: 8%; top: 50%; }
+.powerMandala.mandala-style-2.geometry-12 .source-8 { left: 21%; top: 21%; }
+.powerMandala.mandala-style-2.geometry-12 .source-9 { left: 50%; top: 20%; }
+.powerMandala.mandala-style-2.geometry-12 .source-10 { left: 80%; top: 50%; }
+.powerMandala.mandala-style-2.geometry-12 .source-11 { left: 50%; top: 80%; }
+.powerMandala.mandala-style-2.geometry-12 .source-12 { left: 20%; top: 50%; }
+
+/* ── Mandala style-3: compact inner ring ─────────────────────────────────── */
+.powerMandala.mandala-style-3.geometry-2 .source-1 { left: 50%; top: 28%; }
+.powerMandala.mandala-style-3.geometry-2 .source-2 { left: 50%; top: 72%; }
+
+.powerMandala.mandala-style-3.geometry-4 .source-1 { left: 50%; top: 24%; }
+.powerMandala.mandala-style-3.geometry-4 .source-2 { left: 76%; top: 50%; }
+.powerMandala.mandala-style-3.geometry-4 .source-3 { left: 50%; top: 76%; }
+.powerMandala.mandala-style-3.geometry-4 .source-4 { left: 24%; top: 50%; }
+
+.powerMandala.mandala-style-3.geometry-6 .source-1 { left: 50%; top: 18%; }
+.powerMandala.mandala-style-3.geometry-6 .source-2 { left: 75%; top: 36%; }
+.powerMandala.mandala-style-3.geometry-6 .source-3 { left: 75%; top: 64%; }
+.powerMandala.mandala-style-3.geometry-6 .source-4 { left: 50%; top: 82%; }
+.powerMandala.mandala-style-3.geometry-6 .source-5 { left: 25%; top: 64%; }
+.powerMandala.mandala-style-3.geometry-6 .source-6 { left: 25%; top: 36%; }
+
+.powerMandala.mandala-style-3.geometry-8 .source-1 { left: 50%; top: 16%; }
+.powerMandala.mandala-style-3.geometry-8 .source-2 { left: 72%; top: 28%; }
+.powerMandala.mandala-style-3.geometry-8 .source-3 { left: 84%; top: 50%; }
+.powerMandala.mandala-style-3.geometry-8 .source-4 { left: 72%; top: 72%; }
+.powerMandala.mandala-style-3.geometry-8 .source-5 { left: 50%; top: 84%; }
+.powerMandala.mandala-style-3.geometry-8 .source-6 { left: 28%; top: 72%; }
+.powerMandala.mandala-style-3.geometry-8 .source-7 { left: 16%; top: 50%; }
+.powerMandala.mandala-style-3.geometry-8 .source-8 { left: 28%; top: 28%; }
+
+.powerMandala.mandala-style-3.geometry-12 .source-1 { left: 50%; top: 14%; }
+.powerMandala.mandala-style-3.geometry-12 .source-2 { left: 70%; top: 20%; }
+.powerMandala.mandala-style-3.geometry-12 .source-3 { left: 84%; top: 36%; }
+.powerMandala.mandala-style-3.geometry-12 .source-4 { left: 90%; top: 56%; }
+.powerMandala.mandala-style-3.geometry-12 .source-5 { left: 84%; top: 74%; }
+.powerMandala.mandala-style-3.geometry-12 .source-6 { left: 70%; top: 86%; }
+.powerMandala.mandala-style-3.geometry-12 .source-7 { left: 50%; top: 90%; }
+.powerMandala.mandala-style-3.geometry-12 .source-8 { left: 30%; top: 84%; }
+.powerMandala.mandala-style-3.geometry-12 .source-9 { left: 16%; top: 72%; }
+.powerMandala.mandala-style-3.geometry-12 .source-10 { left: 10%; top: 55%; }
+.powerMandala.mandala-style-3.geometry-12 .source-11 { left: 16%; top: 38%; }
+.powerMandala.mandala-style-3.geometry-12 .source-12 { left: 30%; top: 22%; }
+
+/* ── Mandala style selector compact pill buttons ────────────────────────── */
+.profileLitePowerPlace .mandalaStyleSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.profileLitePowerPlace .mandalaStyleSelector button {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #c9a84c;
+  background: transparent;
+  color: #7a5c1e;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.profileLitePowerPlace .mandalaStyleSelector button.active,
+.profileLitePowerPlace .mandalaStyleSelector button:hover {
+  background: #c9a84c;
+  color: #fff;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptions {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 251, 241, 0.68);
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptionRow {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptionRow > span,
+.profileLitePowerPlace .daoLayoutTemplateCheckbox {
+  color: #6d5436;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateOptionRow > span {
+  min-width: 104px;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profileLitePowerPlace .daoLayoutTemplateCheckbox input {
+  accent-color: #9d1d13;
+}
+
 .altarMandalaSheet {
   position: relative;
   width: min(500px, 100%);
@@ -1695,6 +2128,45 @@
     repeating-radial-gradient(circle, rgba(212, 151, 47, 0.12) 0 1px, transparent 2px 32px),
     radial-gradient(circle at 50% 50%, rgba(255, 253, 246, 0.98) 0 16%, rgba(246, 231, 199, 0.9) 17% 62%, rgba(151, 114, 58, 0.16) 63% 100%);
   box-shadow: inset 0 0 46px rgba(255, 255, 255, 0.78), 0 0 54px rgba(224, 173, 71, 0.14);
+}
+
+.profileLitePowerPlace .powerMandala,
+.profileLitePowerPlace .altarMandalaSheet,
+.profileLitePowerPlace .businessMandalaSheet,
+.profileLitePowerPlace .daoMandalaSheet,
+.profileLitePowerPlace .zodiacMandalaSheet,
+.profileLitePowerPlace .starMandalaSheet,
+.profileLitePowerPlace .power-place-chess,
+.profileLitePowerPlace .power-place-chess__board {
+  position: relative;
+}
+
+.profileLitePowerPlace .powerPlaceMotionLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.profileLitePowerPlace .powerPlaceMotionPhoto {
+  position: absolute;
+  width: clamp(42px, 13%, 76px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255, 239, 195, 0.9);
+  border-radius: 50%;
+  background-color: #fff8e6;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: 0 10px 22px rgba(83, 51, 12, 0.22), 0 0 0 4px rgba(255, 225, 156, 0.18);
+  opacity: 0.92;
+  transition: left 240ms ease, top 240ms ease;
+}
+
+.profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
+  width: clamp(34px, 11.5%, 60px);
 }
 
 .businessMandalaSheet {
@@ -1870,6 +2342,1560 @@
   border-radius: 50%;
   transform: scale(var(--power-source-slot-scale));
   transform-origin: center;
+}
+
+.daoMandalaSheet .daoElementImage {
+  border-color: rgba(139, 55, 26, 0.34);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 238, 178, 0.94) 0 40%, rgba(177, 95, 39, 0.88) 41% 58%, rgba(101, 40, 25, 0.92) 59% 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 247, 207, 0.44),
+    0 1px 4px rgba(64, 29, 10, 0.16);
+}
+
+/* ── DAO Talisman 1 — Wu Xing circular scroll frame ────────────────────── */
+
+/* Outer surface stays .daoMandalaSheet so field_scale, print/PDF, cover
+   contracts are inherited. .dao-talisman overrides shape and aspect-ratio.
+   .daoTalismanScroll is nested inside and provides the vertical layout. */
+
+.daoMandalaSheet.dao-talisman {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(336px, 92%) !important;
+  margin: 0 auto;
+  background:
+    linear-gradient(180deg,
+      rgba(120, 60, 10, 0.55) 0%,
+      rgba(120, 60, 10, 0.55) 3.5%,
+      rgba(253, 240, 190, 0.97) 3.5%,
+      rgba(255, 252, 220, 0.98) 50%,
+      rgba(253, 240, 190, 0.97) 96.5%,
+      rgba(120, 60, 10, 0.55) 96.5%,
+      rgba(120, 60, 10, 0.55) 100%),
+    radial-gradient(circle at 50% 47%, rgba(177, 42, 22, 0.09), transparent 28%),
+    repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(139, 72, 20, 0.035) 30px, rgba(139, 72, 20, 0.035) 31px) !important;
+  border-top: 6px solid rgba(100, 45, 5, 0.82) !important;
+  border-bottom: 6px solid rgba(100, 45, 5, 0.82) !important;
+  border-left: 3px solid rgba(160, 90, 15, 0.65) !important;
+  border-right: 3px solid rgba(160, 90, 15, 0.65) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(245, 210, 100, 0.18),
+    inset -3px 0 0 rgba(245, 210, 100, 0.18),
+    inset 0 4px 12px rgba(100, 60, 10, 0.12),
+    0 8px 32px rgba(80, 40, 5, 0.22) !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Left and right side rails */
+.daoMandalaSheet.dao-talisman::before,
+.daoMandalaSheet.dao-talisman::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+  z-index: 10;
+}
+.daoMandalaSheet.dao-talisman::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(160, 90, 15, 0.22) 0%, rgba(245, 210, 100, 0.06) 100%);
+  border-right: 1px solid rgba(139, 90, 15, 0.28);
+}
+.daoMandalaSheet.dao-talisman::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(160, 90, 15, 0.22) 0%, rgba(245, 210, 100, 0.06) 100%);
+  border-left: 1px solid rgba(139, 90, 15, 0.28);
+}
+
+/* Parchment inner scroll container */
+.daoTalismanScroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Subtle central axis — decorative only */
+.daoTalismanAxis {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  bottom: 18%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent 0%, rgba(139, 90, 15, 0.15) 20%, rgba(139, 90, 15, 0.18) 80%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Header / roof ─────────────────────────────────────────────────────── */
+
+.daoTalismanRoof {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 14px 7px;
+  background: linear-gradient(180deg, rgba(180, 120, 20, 0.28) 0%, rgba(200, 150, 30, 0.10) 60%, transparent 100%);
+  border-bottom: 1.5px solid rgba(139, 90, 15, 0.35);
+  position: relative;
+  z-index: 5;
+}
+
+.daoTalismanPureMarks {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.42em;
+  color: rgba(140, 70, 8, 0.92);
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(255, 230, 160, 0.5);
+}
+
+.daoTalismanThreePure {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(120, 70, 10, 0.62);
+  letter-spacing: 0.28em;
+  line-height: 1;
+}
+
+/* ─── Body: center photo + 4 corner slots + top slot ───────────────────── */
+
+.daoTalismanBody {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+}
+
+.daoTalismanBody::before,
+.daoTalismanBody::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.daoTalismanBody::before {
+  width: min(80%, 230px);
+  aspect-ratio: 1;
+  border: 1.5px solid rgba(130, 54, 24, 0.28);
+  box-shadow:
+    inset 0 0 0 9px rgba(255, 245, 210, 0.14),
+    inset 0 0 0 22px rgba(151, 58, 23, 0.035),
+    0 0 0 1px rgba(255, 255, 255, 0.28);
+}
+
+.daoTalismanBody::after {
+  width: min(46%, 134px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(143, 44, 22, 0.18);
+  box-shadow: 0 0 0 8px rgba(168, 86, 28, 0.035);
+}
+
+/* Center photo — visually dominant, centered in body */
+.daoTalismanCenterArea {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+}
+
+.daoTalismanCenterArea .daoCenterPhoto {
+  width: clamp(68px, 30%, 92px) !important;
+  height: clamp(68px, 30%, 92px) !important;
+}
+
+/* Individual slot positions — evenly around center (Wu Xing circle) */
+.daoTalismanSlot {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 20%;
+}
+
+/* water: top center */
+.daoTalismanSlot--water {
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* wood: upper right */
+.daoTalismanSlot--wood {
+  top: 26%;
+  right: 8%;
+}
+
+/* metal: upper left */
+.daoTalismanSlot--metal {
+  top: 26%;
+  left: 8%;
+}
+
+/* fire: lower right */
+.daoTalismanSlot--fire {
+  bottom: 16%;
+  right: 15%;
+}
+
+/* earth: lower left */
+.daoTalismanSlot--earth {
+  bottom: 16%;
+  left: 15%;
+}
+
+.daoTalismanSlot b {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(100, 55, 10, 0.78);
+  white-space: nowrap;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoTalismanSlot .daoElementImage {
+  width: clamp(32px, 76%, 42px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  border-width: 1.5px;
+}
+
+/* ─── Bottom seal ───────────────────────────────────────────────────────── */
+
+.daoTalismanSeal {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0 9px;
+  background: linear-gradient(0deg, rgba(180, 120, 20, 0.28) 0%, rgba(200, 150, 30, 0.10) 60%, transparent 100%);
+  border-top: 1.5px solid rgba(139, 90, 15, 0.35);
+  position: relative;
+  z-index: 5;
+}
+
+.daoTalismanSealCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(160, 30, 15, 0.62);
+  font-size: 15px;
+  font-weight: 900;
+  color: rgba(150, 25, 10, 0.82);
+  background: rgba(255, 235, 200, 0.72);
+  box-shadow: 0 1px 4px rgba(160, 30, 15, 0.18);
+}
+
+/* ─── Print / PDF rules for Талисман 1 ─────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(336px, 92%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ─── Mobile sizing for Талисман 1 ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-talisman {
+    width: min(252px, 88%) !important;
+  }
+
+  .daoTalismanSlot .daoElementImage {
+    width: clamp(30px, 78%, 36px);
+  }
+
+  .daoTalismanCenterArea .daoCenterPhoto {
+    width: clamp(58px, 28%, 72px) !important;
+    height: clamp(58px, 28%, 72px) !important;
+  }
+
+  .daoTalismanSlot b {
+    font-size: 8px;
+    max-width: 54px;
+  }
+
+  .daoTalismanPureMarks {
+    font-size: 13px;
+  }
+}
+
+/* ── DAO Talisman 2 — vertical Taoist formula scroll ───────────────────── */
+
+.daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(292px, 88%) !important;
+  margin: 0 auto;
+  background:
+    linear-gradient(180deg,
+      rgba(100, 40, 5, 0.70) 0%,
+      rgba(100, 40, 5, 0.70) 5%,
+      rgba(252, 238, 185, 0.98) 5%,
+      rgba(255, 250, 215, 0.99) 50%,
+      rgba(252, 238, 185, 0.98) 95%,
+      rgba(100, 40, 5, 0.70) 95%,
+      rgba(100, 40, 5, 0.70) 100%),
+    repeating-linear-gradient(90deg, transparent, transparent 22px, rgba(139, 72, 20, 0.035) 22px, rgba(139, 72, 20, 0.035) 23px) !important;
+  border-top: 7px solid rgba(90, 35, 4, 0.88) !important;
+  border-bottom: 7px solid rgba(90, 35, 4, 0.88) !important;
+  border-left: 3px solid rgba(150, 80, 12, 0.65) !important;
+  border-right: 3px solid rgba(150, 80, 12, 0.65) !important;
+  box-shadow:
+    inset 3px 0 0 rgba(240, 200, 90, 0.16),
+    inset -3px 0 0 rgba(240, 200, 90, 0.16),
+    0 10px 36px rgba(70, 30, 4, 0.28) !important;
+  overflow: hidden !important;
+  position: relative;
+}
+
+/* Left and right side rails */
+.daoMandalaSheet.dao-talisman-2::before,
+.daoMandalaSheet.dao-talisman-2::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  pointer-events: none;
+  z-index: 10;
+}
+.daoMandalaSheet.dao-talisman-2::before {
+  left: 0;
+  background: linear-gradient(90deg, rgba(150, 80, 12, 0.20) 0%, transparent 100%);
+  border-right: 1px solid rgba(139, 90, 15, 0.24);
+}
+.daoMandalaSheet.dao-talisman-2::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(150, 80, 12, 0.20) 0%, transparent 100%);
+  border-left: 1px solid rgba(139, 90, 15, 0.24);
+}
+
+/* Talisman 2 inner scroll shares the base class for the roof/seal shared elements */
+.daoTalisman2Scroll {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Roof: slightly taller for Talisman 2 to feel header-heavy */
+.daoTalisman2Roof {
+  flex-shrink: 0;
+  padding: 13px 14px 10px !important;
+  background: linear-gradient(180deg, rgba(160, 100, 15, 0.32) 0%, rgba(200, 150, 30, 0.12) 65%, transparent 100%) !important;
+  border-bottom: 2px solid rgba(130, 75, 10, 0.40) !important;
+}
+
+/* Vertical column of nodes */
+.daoTalisman2Body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 17px;
+  position: relative;
+}
+
+.daoTalisman2CenterArea {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34%;
+  min-width: 64px;
+  max-width: 90px;
+  margin-bottom: 5px;
+}
+
+.daoTalisman2CenterArea .daoCenterPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: clamp(58px, 100%, 88px) !important;
+  height: clamp(58px, 100%, 88px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex: 0 0 auto;
+}
+
+/* Central spine line behind the nodes */
+.daoTalisman2Body::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  bottom: 4%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent 0%, rgba(118, 47, 20, 0.16) 15%, rgba(118, 47, 20, 0.20) 85%, transparent 100%);
+  pointer-events: none;
+}
+
+.daoTalisman2Body::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  bottom: 9%;
+  width: 34%;
+  min-width: 54px;
+  max-width: 86px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(140, 76, 14, 0.16);
+  border-top: 0;
+  border-bottom: 0;
+  pointer-events: none;
+}
+
+/* Each node row */
+.daoTalisman2Node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: relative;
+  z-index: 2;
+  width: 30%;
+  min-width: 50px;
+  max-width: 76px;
+  padding: 1px 0 2px;
+  border-radius: 999px;
+  background: rgba(255, 246, 214, 0.2);
+}
+
+.daoTalisman2Node b {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(100, 55, 10, 0.78);
+  white-space: nowrap;
+  max-width: 76px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoTalisman2Node .daoElementImage {
+  width: clamp(28px, 70%, 38px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  border-width: 1.5px;
+}
+
+.daoFieldCoverLayer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--power-field-scale, 78%);
+  height: calc(var(--power-field-scale, 78%) * 1.55);
+  max-width: 88%;
+  max-height: 82%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--dao-field-cover-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 0;
+  border-radius: 0;
+  opacity: var(--dao-field-cover-opacity, 0);
+  mix-blend-mode: multiply;
+}
+
+/* ── DAO layout template — configurable talisman outline overlay ─────────── */
+
+.daoMandalaSheet.dao-layout-template,
+.daoMandalaSheet.dao-shared-stage {
+  position: relative;
+  overflow: visible !important;
+}
+
+.daoSharedStage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: visible;
+  isolation: isolate;
+  --dao-shared-stack-top: 31%;
+  --dao-shared-stack-bottom: 11%;
+  --dao-shared-stack-width: min(138px, 48%);
+  --dao-shared-center-size: 58px;
+  --dao-shared-mini-size: 38px;
+  --dao-shared-mini-gap: 3px;
+  --dao-shared-marker-top: 15%;
+}
+
+.daoSharedStage--dao-fu-wide-gate-roof,
+.daoSharedStage--dao-fu-grand-gate-p {
+  --dao-shared-stack-top: 30%;
+  --dao-shared-stack-bottom: 10%;
+  --dao-shared-stack-width: min(150px, 42%);
+  --dao-shared-center-size: 60px;
+  --dao-shared-mini-size: 38px;
+}
+
+.daoSharedStage--dao-fu-narrow-banner-roof,
+.daoSharedStage--dao-fu-bottle-p,
+.daoSharedStage--dao-fu-node-column,
+.daoSharedStage--dao-fu-soft-shoulder-banner {
+  --dao-shared-stack-top: 32%;
+  --dao-shared-stack-bottom: 10%;
+  --dao-shared-stack-width: min(116px, 48%);
+  --dao-shared-center-size: 54px;
+  --dao-shared-mini-size: 34px;
+  --dao-shared-mini-gap: 2px;
+}
+
+.daoSharedStage .daoSharedFieldLayer {
+  z-index: 0;
+  max-width: 82%;
+  max-height: 80%;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateInnerStack {
+  position: absolute;
+  left: 50%;
+  top: var(--dao-shared-stack-top, 31%);
+  bottom: var(--dao-shared-stack-bottom, 11%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: var(--dao-shared-stack-width, min(138px, 48%));
+  transform: translateX(-50%);
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea {
+  display: grid;
+  place-items: center;
+  width: calc(var(--dao-shared-center-size, 58px) + 20px);
+  margin-bottom: 4px;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea .daoCenterPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  min-width: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  max-width: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  height: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  min-height: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  max-height: calc(var(--dao-shared-center-size, 58px) * var(--power-center-frame-scale, 1)) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--dao-shared-mini-gap, 3px);
+  width: 100%;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  z-index: 2;
+  width: calc(var(--dao-shared-mini-size, 38px) + 4px);
+  padding: 0;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot .daoElementImage {
+  width: var(--dao-shared-mini-size, 38px) !important;
+  min-width: var(--dao-shared-mini-size, 38px) !important;
+  max-width: var(--dao-shared-mini-size, 38px) !important;
+  height: var(--dao-shared-mini-size, 38px) !important;
+  min-height: var(--dao-shared-mini-size, 38px) !important;
+  max-height: var(--dao-shared-mini-size, 38px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+}
+
+.profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot b,
+.profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot b {
+  display: none;
+}
+
+.daoSharedTalismanOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.daoSharedTalismanOverlay .daoFuReferenceOutline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.daoSharedTopMarker {
+  top: var(--dao-shared-marker-top, 15%);
+}
+
+.daoLayoutTemplateOverlay {
+  position: absolute;
+  inset: -8% -5% -6%;
+  z-index: 14;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.daoLayoutTemplateBody {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 23%;
+  bottom: 7%;
+  border: 4px solid rgba(150, 25, 12, 0.92);
+  border-bottom: 0;
+  border-radius: 45% 45% 34% 34% / 18% 18% 12% 12%;
+  background: transparent;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 220, 190, 0.18),
+    0 8px 24px rgba(90, 18, 8, 0.08);
+}
+
+.daoLayoutTemplateBody::before,
+.daoLayoutTemplateBody::after {
+  content: "";
+  position: absolute;
+  top: 7%;
+  bottom: 0;
+  width: 24%;
+  pointer-events: none;
+}
+
+.daoLayoutTemplateBody::before {
+  left: -4px;
+  border-left: 3px solid rgba(190, 44, 22, 0.72);
+  border-radius: 100% 0 0 34% / 50% 0 0 12%;
+}
+
+.daoLayoutTemplateBody::after {
+  right: -4px;
+  border-right: 3px solid rgba(190, 44, 22, 0.72);
+  border-radius: 0 100% 34% 0 / 0 50% 12% 0;
+}
+
+.daoLayoutTemplateCrown {
+  position: absolute;
+  left: 50%;
+  top: 3%;
+  z-index: 4;
+  width: 58%;
+  height: 15%;
+  transform: translateX(-50%);
+}
+
+.daoLayoutTemplateTopMarker {
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 34px;
+  transform: translateX(-50%);
+  color: rgba(136, 22, 12, 0.96);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 240, 210, 0.72);
+}
+
+.daoLayoutTemplateRoofLine {
+  position: absolute;
+  top: 50%;
+  width: 52%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(155, 28, 13, 0.94);
+  transform-origin: center;
+}
+
+.daoLayoutTemplateRoofLine.roof-left {
+  left: 1%;
+  transform: rotate(-26deg);
+}
+
+.daoLayoutTemplateRoofLine.roof-right {
+  right: 1%;
+  transform: rotate(26deg);
+}
+
+.daoLayoutTemplateRoofNode,
+.daoLayoutTemplateSideNode {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid rgba(152, 24, 12, 0.94);
+  background: rgba(255, 247, 226, 0.82);
+  box-shadow: 0 2px 8px rgba(110, 18, 7, 0.12);
+}
+
+.daoLayoutTemplateRoofNode {
+  width: 15px;
+  height: 15px;
+}
+
+.daoLayoutTemplateRoofNode.node-left {
+  left: 3%;
+  top: 58%;
+}
+
+.daoLayoutTemplateRoofNode.node-top {
+  left: 50%;
+  top: 13%;
+  transform: translateX(-50%);
+}
+
+.daoLayoutTemplateRoofNode.node-right {
+  right: 3%;
+  top: 58%;
+}
+
+.daoLayoutTemplateCheck {
+  position: absolute;
+  top: 34%;
+  width: 22px;
+  height: 14px;
+  border-left: 4px solid rgba(155, 28, 13, 0.94);
+  border-bottom: 4px solid rgba(155, 28, 13, 0.94);
+  border-radius: 0 0 0 5px;
+  transform: rotate(-42deg);
+}
+
+.daoLayoutTemplateCheck.check-1 { left: 11%; }
+.daoLayoutTemplateCheck.check-2 { left: 50%; transform: translateX(-50%) rotate(-42deg); }
+.daoLayoutTemplateCheck.check-3 { right: 11%; }
+
+.daoLayoutTemplateSideNode {
+  width: 20px;
+  height: 20px;
+  z-index: 5;
+}
+
+.daoLayoutTemplateSideNode.left {
+  left: -18px;
+}
+
+.daoLayoutTemplateSideNode.right {
+  right: -18px;
+}
+
+.daoLayoutTemplateSideNode.node-1 { top: 26%; }
+.daoLayoutTemplateSideNode.node-2 { top: 58%; }
+.daoLayoutTemplateSideNode.node-3 { top: 42%; }
+
+.daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-1 { top: 22%; }
+.daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-2 { top: 48%; }
+.daoLayoutTemplateBody[data-side-node-count="3"] .daoLayoutTemplateSideNode.node-3 { top: 74%; }
+
+.daoLayoutTemplateOverlay.side-nodes-hidden .daoLayoutTemplateSideNode {
+  display: none;
+}
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-layout-template {
+  overflow: visible !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+@media (max-width: 640px) {
+  .daoLayoutTemplateOverlay {
+    inset: -7% -4% -5%;
+  }
+
+  .daoSharedStage {
+    --dao-shared-stack-top: 39%;
+    --dao-shared-stack-bottom: 11%;
+    --dao-shared-stack-width: min(118px, 50%);
+    --dao-shared-center-size: 46px;
+    --dao-shared-mini-size: 30px;
+    --dao-shared-mini-gap: 2px;
+  }
+
+  .daoSharedStage--dao-fu-wide-gate-roof,
+  .daoSharedStage--dao-fu-grand-gate-p {
+    --dao-shared-stack-top: 37%;
+    --dao-shared-stack-bottom: 10%;
+    --dao-shared-stack-width: min(118px, 44%);
+    --dao-shared-center-size: 46px;
+    --dao-shared-mini-size: 30px;
+  }
+
+  .daoSharedStage--dao-fu-narrow-banner-roof,
+  .daoSharedStage--dao-fu-bottle-p,
+  .daoSharedStage--dao-fu-node-column,
+  .daoSharedStage--dao-fu-soft-shoulder-banner {
+    --dao-shared-stack-top: 38%;
+    --dao-shared-stack-bottom: 10%;
+    --dao-shared-stack-width: min(92px, 48%);
+    --dao-shared-center-size: 42px;
+    --dao-shared-mini-size: 27px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateInnerStack,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateInnerStack {
+    top: var(--dao-shared-stack-top, 39%);
+    bottom: var(--dao-shared-stack-bottom, 11%);
+    width: var(--dao-shared-stack-width, min(118px, 50%));
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea {
+    width: calc(var(--dao-shared-center-size, 46px) + 12px);
+    margin-bottom: 2px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateCenterArea .daoCenterPhoto,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateCenterArea .daoCenterPhoto {
+    width: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    min-width: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    max-width: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    height: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    min-height: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+    max-height: calc(var(--dao-shared-center-size, 46px) * var(--power-center-frame-scale, 1)) !important;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniStack,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniStack {
+    gap: var(--dao-shared-mini-gap, 2px);
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot {
+    width: calc(var(--dao-shared-mini-size, 30px) + 2px);
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-layout-template .daoLayoutTemplateMiniSlot .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-shared-stage .daoLayoutTemplateMiniSlot .daoElementImage {
+    width: var(--dao-shared-mini-size, 30px) !important;
+    min-width: var(--dao-shared-mini-size, 30px) !important;
+    max-width: var(--dao-shared-mini-size, 30px) !important;
+    height: var(--dao-shared-mini-size, 30px) !important;
+    min-height: var(--dao-shared-mini-size, 30px) !important;
+    max-height: var(--dao-shared-mini-size, 30px) !important;
+  }
+
+  .daoLayoutTemplateBody {
+    top: 23%;
+    border-width: 3px;
+  }
+
+  .daoLayoutTemplateTopMarker {
+    top: 15%;
+    font-size: 28px;
+  }
+
+  .daoLayoutTemplateSideNode {
+    width: 17px;
+    height: 17px;
+  }
+
+  .daoLayoutTemplateRoofNode {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* ─── Print / PDF rules for Талисман 2 ─────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-talisman-2 {
+  aspect-ratio: 9 / 16 !important;
+  border-radius: 12px 12px 8px 8px !important;
+  width: min(292px, 88%) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ─── Mobile sizing for Талисман 2 ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-talisman-2 {
+    width: min(232px, 86%) !important;
+  }
+
+  .daoTalisman2Node .daoElementImage {
+    width: clamp(26px, 68%, 34px);
+  }
+
+  .daoTalisman2Node b {
+    font-size: 8px;
+    max-width: 58px;
+  }
+
+  .daoTalisman2Body {
+    padding: 8px 0;
+  }
+
+  .daoTalisman2CenterArea {
+    min-width: 52px;
+    max-width: 70px;
+    margin-bottom: 3px;
+  }
+
+  .daoTalisman2CenterArea .daoCenterPhoto {
+    width: clamp(50px, 100%, 68px) !important;
+    height: clamp(50px, 100%, 68px) !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50% !important;
+  }
+
+  .daoTalisman2Scroll[data-node-count="9"] .daoTalisman2Node {
+    gap: 1px;
+    padding: 1px 0;
+  }
+}
+
+/* ── end DAO Talisman styles ────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DAO Fulu styles — single empty contour form
+   The SVG contour is the only visible talisman frame for these styles.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.daoMandalaSheet.dao-fulu,
+.daoMandalaSheet.dao-fu-paper-slip,
+.daoMandalaSheet.dao-cloud-register,
+.daoMandalaSheet.dao-thunder-tablet,
+.daoMandalaSheet.dao-taofu-charm {
+  --dao-fulu-contour-image: none;
+  --dao-fulu-user-cover-image: none;
+  --dao-fulu-color: rgba(104, 54, 16, 0.78);
+  aspect-ratio: 1 / 2.9 !important;
+  height: min(536px, calc(100% - 42px)) !important;
+  width: auto !important;
+  max-width: 56% !important;
+  margin: 0 auto;
+  overflow: visible !important;
+  position: relative;
+  align-self: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent;
+  clip-path: none !important;
+}
+
+.daoMandalaSheet.dao-fu-paper-slip.cover-image,
+.daoMandalaSheet.dao-cloud-register.cover-image,
+.daoMandalaSheet.dao-thunder-tablet.cover-image,
+.daoMandalaSheet.dao-taofu-charm.cover-image {
+  background: transparent;
+}
+
+.daoMandalaSheet.dao-fu-paper-slip {
+  --dao-fulu-color: rgba(133, 53, 20, 0.78);
+}
+
+.daoMandalaSheet.dao-cloud-register {
+  --dao-fulu-color: rgba(72, 104, 54, 0.76);
+}
+
+.daoMandalaSheet.dao-thunder-tablet {
+  --dao-fulu-color: rgba(72, 55, 22, 0.82);
+}
+
+.daoMandalaSheet.dao-taofu-charm {
+  --dao-fulu-color: rgba(152, 36, 22, 0.8);
+}
+
+.daoFuluScroll {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.daoFuluContourLayer {
+  position: absolute;
+  inset: 1.5% 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: var(--dao-fulu-contour-image);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: var(--dao-fulu-color);
+  filter: drop-shadow(0 8px 13px rgba(70, 36, 10, 0.13));
+}
+
+.daoFuluUserCoverLayer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--power-field-scale, 78%);
+  height: calc(var(--power-field-scale, 78%) * 1.92);
+  max-width: 82%;
+  max-height: 78%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--dao-fulu-user-cover-image, none), var(--dao-field-cover-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--dao-field-cover-opacity, 0);
+  mix-blend-mode: multiply;
+}
+
+.daoMandalaSheet.dao-style-2 {
+  --dao-field-cover-image: none;
+  aspect-ratio: 1 / 2.9 !important;
+  height: min(536px, calc(100% - 42px)) !important;
+  width: auto !important;
+  max-width: 56% !important;
+  margin: 0 auto;
+  overflow: hidden !important;
+  position: relative;
+  align-self: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  clip-path: none !important;
+}
+
+.daoStyle2Scroll {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.daoStyle2UserCoverLayer {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--power-field-scale, 78%);
+  height: calc(var(--power-field-scale, 78%) * 1.92);
+  max-width: 84%;
+  max-height: 80%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--dao-field-cover-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 0;
+  opacity: var(--dao-field-cover-opacity, 0);
+  mix-blend-mode: multiply;
+}
+
+.daoStyle2Body {
+  position: absolute;
+  inset: 8% 20% 12%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.daoStyle2CenterArea {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  margin: 0 0 7%;
+  width: 58%;
+  min-width: 76px;
+  max-width: 112px;
+}
+
+.daoStyle2CenterArea .daoCenterPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: clamp(74px, 100%, 108px) !important;
+  height: clamp(74px, 100%, 108px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex: 0 0 auto;
+}
+
+.daoStyle2NodeColumn {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.daoStyle2Slot {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 36%;
+  min-width: 48px;
+}
+
+.daoStyle2Slot b {
+  max-width: 54px;
+  font-size: 7px;
+  font-weight: 700;
+  color: rgba(63, 49, 28, 0.66);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoStyle2Slot .daoElementImage {
+  width: clamp(26px, 74%, 34px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  border-width: 1.5px;
+}
+
+.daoFuluBody {
+  position: absolute;
+  inset: 13% 20% 15%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.daoFuluCenterArea {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  margin: 4% 0 7%;
+}
+
+.daoFuluCenterArea .daoCenterPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: clamp(52px, 32%, 78px) !important;
+  height: clamp(52px, 32%, 78px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex: 0 0 auto;
+}
+
+.daoFuluNodeColumn {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+/* Slot base */
+
+.daoFuluSlot {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 32%;
+  min-width: 44px;
+}
+
+.daoFuluSlot b {
+  max-width: 50px;
+  font-size: 6.5px;
+  font-weight: 700;
+  color: rgba(91, 46, 15, 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoFuluSlot .daoElementImage {
+  width: clamp(24px, 72%, 31px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  border-width: 1.5px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 246, 218, 0.48),
+    0 1px 4px rgba(55, 28, 8, 0.12);
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 235, 171, 0.94) 0 39%, rgba(168, 64, 31, 0.9) 40% 58%, rgba(89, 36, 25, 0.92) 59% 100%);
+}
+
+/* ── Print / PDF ────────────────────────────────────────────────────────── */
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-fu-paper-slip,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-cloud-register,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-thunder-tablet,
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-taofu-charm {
+  aspect-ratio: 1 / 2.9 !important;
+  height: min(536px, calc(100% - 42px)) !important;
+  width: auto !important;
+  max-width: 56% !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+/* ── Mobile sizing for fulu styles ──────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-fu-paper-slip,
+  .daoMandalaSheet.dao-cloud-register,
+  .daoMandalaSheet.dao-thunder-tablet,
+  .daoMandalaSheet.dao-taofu-charm {
+    height: min(430px, calc(100% - 44px)) !important;
+    width: auto !important;
+    max-width: 58vw !important;
+    aspect-ratio: 1 / 2.9 !important;
+  }
+
+  .daoFuluSlot .daoElementImage {
+    width: clamp(24px, 72%, 30px);
+  }
+
+  .daoFuluCenterArea .daoCenterPhoto {
+    width: clamp(46px, 15vw, 64px) !important;
+    height: clamp(46px, 15vw, 64px) !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50% !important;
+  }
+
+  .daoFuluBody {
+    inset: 14% 19% 16%;
+  }
+
+  .daoFuluSlot b {
+    max-width: 42px;
+    font-size: 6.5px;
+  }
+}
+
+/* ── Slot image size cap for fulu styles ────────────────────────────────── */
+
+.daoMandalaSheet.dao-fu-paper-slip .daoElementImage,
+.daoMandalaSheet.dao-cloud-register .daoElementImage,
+.daoMandalaSheet.dao-thunder-tablet .daoElementImage,
+.daoMandalaSheet.dao-taofu-charm .daoElementImage {
+  width: clamp(26px, 6vw, 36px) !important;
+  min-width: 26px;
+  aspect-ratio: 1;
+}
+
+/* ── Field-layout overrides: keep fulu styles tall, never square ─────────── */
+
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-square .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-vertical .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-horizontal .daoMandalaSheet.dao-taofu-charm,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-fu-paper-slip,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-cloud-register,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-thunder-tablet,
+.powerMandalaPanel.field-layout-rectangle .daoMandalaSheet.dao-taofu-charm {
+  width: min(260px, 64%) !important;
+  max-width: min(260px, 64%) !important;
+  aspect-ratio: 1 / 2.9 !important;
+  overflow: visible !important;
+}
+
+/* ── end DAO Fulu styles ─────────────────────────────────────────────────── */
+
+/* ─── DAO reference fu outlines — empty red contour templates ───────────── */
+
+.daoMandalaSheet.dao-fu-outline {
+  --dao-fu-outline-red: #e00000;
+  width: min(340px, 88%) !important;
+  max-width: min(340px, 88%) !important;
+  margin: 0 auto;
+  overflow: visible !important;
+  align-self: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  clip-path: none !important;
+}
+
+.daoFuOutlineFieldLayer {
+  z-index: 0;
+  width: var(--power-field-scale, 78%);
+  height: calc(var(--power-field-scale, 78%) * 1.55);
+  max-width: 92%;
+  max-height: 88%;
+  background-image: var(--dao-field-cover-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--dao-field-cover-opacity, 0);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.daoFuOutlineScroll {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.daoFuOutlineScroll .daoFuReferenceOutline {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.daoFuOutlineBody {
+  position: absolute;
+  inset: 15% 22% 9%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.daoFuOutlineCenterArea {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 56%;
+  min-width: 56px;
+  max-width: 92px;
+  margin: 0 0 7%;
+}
+
+.daoFuOutlineCenterArea .daoCenterPhoto {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: clamp(52px, 35%, 86px) !important;
+  height: clamp(52px, 35%, 86px) !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex: 0 0 auto;
+}
+
+.daoFuOutlineNodeColumn {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.daoFuOutlineSlot {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 36%;
+  min-width: 42px;
+}
+
+.daoFuOutlineSlot b {
+  max-width: 52px;
+  font-size: 6.5px;
+  font-weight: 700;
+  color: rgba(90, 0, 0, 0.64);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  line-height: 1;
+}
+
+.daoFuOutlineSlot .daoElementImage {
+  width: clamp(24px, 72%, 32px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  border-width: 1.5px;
+}
+
+.daoFuReferenceOutline {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  color: var(--dao-fu-outline-red);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 4px 7px rgba(118, 0, 0, 0.12));
+}
+
+.daoFuReferenceOutline circle {
+  fill: rgba(255, 255, 255, 0.96);
+  stroke: currentColor;
+  stroke-width: 4.5;
+}
+
+.daoFuReferenceOutline .daoFuCurvedRoofLine {
+  stroke-width: 3.8;
+}
+
+.daoFuReferenceOutline .daoFuTopSignP {
+  fill: currentColor;
+  stroke: none;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 42px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.daoMandalaSheet.dao-fu-bottle-p .daoFuTopSignP {
+  font-size: 34px;
+}
+
+.powerPlacePdfOnlyArea .daoMandalaSheet.dao-fu-outline {
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+@media (max-width: 640px) {
+  .daoMandalaSheet.dao-fu-wide-gate-roof,
+  .daoMandalaSheet.dao-fu-grand-gate-p {
+    width: min(292px, 92%) !important;
+    max-width: min(292px, 92%) !important;
+  }
+
+  .daoMandalaSheet.dao-fu-narrow-banner-roof,
+  .daoMandalaSheet.dao-fu-bottle-p,
+  .daoMandalaSheet.dao-fu-node-column,
+  .daoMandalaSheet.dao-fu-soft-shoulder-banner {
+    width: min(220px, 72%) !important;
+    max-width: min(220px, 72%) !important;
+  }
+
+  .daoFuReferenceOutline {
+    stroke-width: 4;
+  }
+
+  .daoFuOutlineBody {
+    inset: 15% 21% 10%;
+  }
+
+  .daoFuOutlineCenterArea .daoCenterPhoto {
+    width: clamp(46px, 15vw, 66px) !important;
+    height: clamp(46px, 15vw, 66px) !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 50% !important;
+  }
+
+  .daoFuOutlineSlot .daoElementImage {
+    width: clamp(23px, 70%, 30px);
+  }
+
+  .daoFuOutlineSlot b {
+    max-width: 42px;
+    font-size: 6px;
+  }
 }
 
 .zodiacMandalaSheet {
@@ -2144,6 +4170,63 @@
   display: none;
 }
 
+.starMandalaSheet.star-2-format {
+  overflow: visible;
+}
+
+.starMandalaSheet.star-2-format .starGuide::before {
+  inset: 13%;
+}
+
+.starMandalaSheet.star-2-format .starPositionImage {
+  width: min(62px, 100%);
+}
+
+.starAdditionalPosition {
+  position: absolute;
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 15%;
+  transform: translate(-50%, -50%);
+}
+
+.starAdditionalPositionImage {
+  width: min(46px, 100%);
+  min-width: 30px;
+  min-height: 30px;
+  aspect-ratio: 1;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 226, 148, 0.8);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 45% 35%, #fff4ce, #c28a2b 62%, #38220b 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0;
+  box-shadow: 0 0 18px rgba(128, 114, 54, 0.24);
+}
+
+.starAdditionalPosition.hasImage .starAdditionalPositionImage span {
+  display: none;
+}
+
+.starAdditionalPosition.extra-1 { left: 50%; top: 26%; }
+.starAdditionalPosition.extra-2 { left: 69%; top: 41%; }
+.starAdditionalPosition.extra-3 { left: 62%; top: 65%; }
+.starAdditionalPosition.extra-4 { left: 38%; top: 65%; }
+.starAdditionalPosition.extra-5 { left: 31%; top: 41%; }
+
 .starPosition b {
   max-width: 100%;
   color: #513512;
@@ -2297,6 +4380,72 @@
   pointer-events: none;
 }
 
+.slotPhotoEditor {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 250, 238, 0.72);
+  margin-top: 12px;
+}
+
+.slotPhotoEditor .cabinetEyebrow {
+  margin: 0;
+}
+
+.slotPhotoEditorControl {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: #392512;
+}
+
+.slotPhotoEditorControl input[type="range"] {
+  width: 100%;
+  accent-color: #b8791d;
+}
+
+.slotPhotoEditorControl span {
+  font-size: 11px;
+  color: #744c17;
+  font-weight: 700;
+  justify-self: end;
+}
+
+.slotPhotoEditorRotate {
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) 64px 64px 42px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  color: #392512;
+}
+
+.slotPhotoEditorRotate button {
+  min-width: 0;
+  width: 64px;
+  min-height: 30px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.slotPhotoEditorRotate small {
+  min-width: 0;
+  color: #744c17;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.slotPhotoEditorReset {
+  justify-self: start;
+  margin-top: 2px;
+}
+
 .coverSelector {
   display: grid;
   gap: 10px;
@@ -2349,6 +4498,93 @@
     linear-gradient(135deg, #09070c, #241a3d 58%, #8a5a13);
 }
 
+.coverPreview.tone-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520);
+}
+
+.coverPreview.tone-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d);
+}
+
+.coverPreview.tone-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a);
+}
+
+.coverPreview.tone-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00);
+}
+
+.coverPreview.tone-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499);
+}
+
+/* ─── Gradient cover swatch buttons ─────────────────────────────────────────── */
+
+.coverVariantSwatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 6px;
+  border: 2px solid rgba(184, 121, 29, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  min-width: 52px;
+  vertical-align: top;
+}
+
+.coverVariantSwatch:hover {
+  border-color: rgba(184, 121, 29, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.coverVariantSwatch.active {
+  border-color: rgba(245, 198, 106, 0.9);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.4);
+  background: rgba(255, 250, 235, 0.95);
+}
+
+.coverVariantSwatchPreview {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.coverVariantSwatchLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #5b3b12;
+  text-align: center;
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.coverVariantSwatch--gradient-gold .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520);
+}
+
+.coverVariantSwatch--gradient-forest .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d);
+}
+
+.coverVariantSwatch--gradient-night .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a);
+}
+
+.coverVariantSwatch--gradient-fire .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00);
+}
+
+.coverVariantSwatch--gradient-water .coverVariantSwatchPreview {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499);
+}
+
 .coverUploadButton {
   position: relative;
   display: inline-flex;
@@ -2388,9 +4624,26 @@
 
 .profileLitePowerPlace .powerPlaceActions button:disabled {
   cursor: not-allowed;
-  opacity: 0.48;
+  opacity: 0.55;
   filter: grayscale(0.35);
   box-shadow: none;
+}
+
+.profileLitePowerPlace .powerPlaceActions--save,
+.profileLitePowerPlace .powerPlaceActions--export,
+.profileLitePowerPlace .powerPlaceActions--service {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 0;
+}
+
+.profileLitePowerPlace .powerPlaceActions--save button,
+.profileLitePowerPlace .powerPlaceActions--export button,
+.profileLitePowerPlace .powerPlaceActions--service button {
+  flex: 1 1 calc(50% - 8px);
 }
 
 .profileLitePowerPlace .powerPlaceActionsMeta {
@@ -2418,8 +4671,59 @@
   order: 4;
 }
 
-.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPrintColorHint {
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPlaceFeedProjection {
   order: 5;
+}
+
+.profileLitePowerPlace .profileLitePowerPlaceActions > .powerPrintColorHint {
+  order: 6;
+}
+
+.powerPlaceFeedProjection {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(138, 83, 8, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 250, 239, 0.72);
+}
+
+.powerPlaceFeedProjection label {
+  display: grid;
+  gap: 6px;
+  color: #6b5338;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.powerPlaceFeedProjection input,
+.powerPlaceFeedProjection textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(92, 61, 24, 0.18);
+  border-radius: 10px;
+  padding: 10px 11px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #2d2419;
+  font: inherit;
+}
+
+.powerPlaceFeedProjection textarea {
+  resize: vertical;
+}
+
+.powerPlaceFeedProjectionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .powerPlaceFeedProjectionGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .powerPlanNote {
@@ -2695,6 +4999,110 @@
   font-weight: 900;
 }
 
+.savedCompositionsPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(184, 121, 29, 0.22);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(244, 196, 100, 0.12), transparent 26%),
+    rgba(255, 251, 243, 0.84);
+}
+
+.savedCompositionsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.savedCompositionsHeader h3 {
+  margin: 4px 0 0;
+  color: #2f2012;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.savedCompositionsCounter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  padding: 7px 12px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 247, 232, 0.9);
+  color: #6a4715;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.savedCompositionsList {
+  display: grid;
+  gap: 10px;
+}
+
+.savedCompositionCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.savedCompositionCard.selected {
+  border-color: rgba(184, 121, 29, 0.48);
+  box-shadow: 0 12px 24px rgba(90, 61, 18, 0.08);
+  background: rgba(255, 248, 234, 0.92);
+}
+
+.savedCompositionBody {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.savedCompositionBody b,
+.savedCompositionBody span,
+.savedCompositionBody small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.savedCompositionBody b {
+  color: #2f2012;
+}
+
+.savedCompositionBody span {
+  color: #7b531d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.savedCompositionBody small,
+.savedCompositionsEmpty {
+  color: #7a674f;
+  font-size: 12px;
+}
+
+.savedCompositionActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.savedCompositionActions button {
+  white-space: nowrap;
+}
+
 .powerLibraryGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2846,6 +5254,114 @@
     radial-gradient(circle at 50% 45%, rgba(255, 243, 204, 0.86) 0 18%, rgba(67, 46, 91, 0.42) 42%, rgba(28, 19, 44, 0.72) 100%),
     repeating-conic-gradient(from 0deg, rgba(232, 179, 68, 0.16) 0 8deg, transparent 9deg 18deg);
 }
+
+.powerMandala.cover-gradient-gold,
+.altarMandalaSheet.cover-gradient-gold,
+.businessMandalaSheet.cover-gradient-gold,
+.zodiacMandalaSheet.cover-gradient-gold,
+.starMandalaSheet.cover-gradient-gold,
+.power-place-chess.cover-gradient-gold,
+.daoMandalaSheet.cover-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520) !important;
+}
+
+.powerMandala.cover-gradient-forest,
+.altarMandalaSheet.cover-gradient-forest,
+.businessMandalaSheet.cover-gradient-forest,
+.zodiacMandalaSheet.cover-gradient-forest,
+.starMandalaSheet.cover-gradient-forest,
+.power-place-chess.cover-gradient-forest,
+.daoMandalaSheet.cover-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d) !important;
+}
+
+.powerMandala.cover-gradient-night,
+.altarMandalaSheet.cover-gradient-night,
+.businessMandalaSheet.cover-gradient-night,
+.zodiacMandalaSheet.cover-gradient-night,
+.starMandalaSheet.cover-gradient-night,
+.power-place-chess.cover-gradient-night,
+.daoMandalaSheet.cover-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a) !important;
+}
+
+.powerMandala.cover-gradient-fire,
+.altarMandalaSheet.cover-gradient-fire,
+.businessMandalaSheet.cover-gradient-fire,
+.zodiacMandalaSheet.cover-gradient-fire,
+.starMandalaSheet.cover-gradient-fire,
+.power-place-chess.cover-gradient-fire,
+.daoMandalaSheet.cover-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00) !important;
+}
+
+.powerMandala.cover-gradient-water,
+.altarMandalaSheet.cover-gradient-water,
+.businessMandalaSheet.cover-gradient-water,
+.zodiacMandalaSheet.cover-gradient-water,
+.starMandalaSheet.cover-gradient-water,
+.power-place-chess.cover-gradient-water,
+.daoMandalaSheet.cover-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499) !important;
+}
+
+/* gradient tones in print/PDF area */
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-gold,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-gold,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-gold,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-gold {
+  background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-forest,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-forest,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-forest,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-forest {
+  background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-night,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-night,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-night,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-night {
+  background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-fire,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-fire,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-fire,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-fire {
+  background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00) !important;
+}
+
+.powerPlacePdfOnlyArea .powerMandala.cover-gradient-water,
+.powerPlacePdfOnlyArea .altarMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .businessMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .zodiacMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .starMandalaSheet.cover-gradient-water,
+.powerPlacePdfOnlyArea .power-place-chess.cover-gradient-water,
+.powerPlacePdfOnlyArea .daoMandalaSheet.cover-gradient-water {
+  background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499) !important;
+}
+
+/* outer panel gradient tones */
+.powerMandalaPanel.outer-cover-gradient-gold { background: linear-gradient(135deg, #b8860b, #ffd700 50%, #daa520); }
+.powerMandalaPanel.outer-cover-gradient-forest { background: linear-gradient(135deg, #1a3a1a, #4a8a4a 50%, #2d6a2d); }
+.powerMandalaPanel.outer-cover-gradient-night { background: linear-gradient(135deg, #0a0a1a, #1a1a4a 50%, #0d0d2a); }
+.powerMandalaPanel.outer-cover-gradient-fire { background: linear-gradient(135deg, #8b0000, #ff4500 50%, #ff8c00); }
+.powerMandalaPanel.outer-cover-gradient-water { background: linear-gradient(135deg, #001a33, #0066cc 50%, #004499); }
 
 .powerMandala.cover-gold,
 .altarMandalaSheet.cover-gold,
@@ -3187,6 +5703,16 @@
     flex-direction: column;
   }
 
+  .savedCompositionsHeader,
+  .savedCompositionActions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .savedCompositionCard {
+    grid-template-columns: 1fr;
+  }
+
   .constructorControls,
   .constructorTypeSelector,
   .geometrySelector,
@@ -3296,6 +5822,13 @@
   .zodiacPositionImage,
   .starPositionImage {
     width: min(50px, 100%);
+  }
+
+  .starMandalaSheet.star-2-format .starAdditionalPositionImage {
+    width: min(34px, 100%);
+    min-width: 30px;
+    min-height: 30px;
+    font-size: 9px;
   }
 
   .starPosition {
@@ -3488,6 +6021,193 @@
 
 .coverPickerButton:hover {
   background: rgba(255, 244, 218, 0.92);
+}
+
+.powerSymbolLibraryPanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 248, 232, 0.78);
+}
+
+.powerSymbolLibraryHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(128px, 0.6fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.powerSymbolLibraryHeader small {
+  display: block;
+  color: #6b5537;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.powerSymbolLibraryModeToggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  width: min(100%, 210px);
+  margin: 4px 0 6px;
+  padding: 3px;
+  border: 1px solid rgba(150, 97, 31, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 252, 245, 0.82);
+}
+
+.powerSymbolLibraryModeToggle button {
+  min-width: 0;
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: transparent;
+  color: #6a4a1d;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.powerSymbolLibraryModeToggle button.active {
+  background: linear-gradient(180deg, rgba(255, 243, 211, 0.96), rgba(238, 201, 122, 0.72));
+  color: #2c1d0c;
+  box-shadow: inset 0 0 0 1px rgba(184, 121, 29, 0.2);
+}
+
+.powerSymbolLibraryHeader label {
+  display: grid;
+  gap: 5px;
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.powerSymbolLibraryHeader select {
+  width: 100%;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fffdf7;
+  color: #2c1d0c;
+  font: inherit;
+  font-weight: 850;
+}
+
+.powerSymbolLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.powerSymbolLibraryItem {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 8px;
+  padding: 7px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #4a3012;
+  font: inherit;
+  text-align: left;
+  cursor: grab;
+}
+
+.powerSymbolLibraryItem:active {
+  cursor: grabbing;
+}
+
+.powerSymbolLibraryItem:hover,
+.powerSymbolLibraryItem:focus-visible {
+  border-color: rgba(184, 121, 29, 0.54);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.18);
+}
+
+.powerSymbolLibraryThumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 7px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
+    #fffaf0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.powerSymbolLibraryItem b,
+.powerSymbolLibraryItem small {
+  overflow-wrap: anywhere;
+}
+
+.powerSymbolLibraryItem b {
+  font-size: 12px;
+}
+
+.powerSymbolLibraryItem small {
+  color: #756149;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.powerSymbolLibraryEmpty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 10px;
+  border: 1px dashed rgba(150, 97, 31, 0.2);
+  border-radius: 8px;
+  color: #6b5537;
+  font-size: 12px;
+  line-height: 1.35;
+  background: rgba(255, 253, 247, 0.62);
+}
+
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerSymbolLibraryPanel {
+    order: 2 !important;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .profileLitePowerPlace .coverPickerPanel {
+    order: 3 !important;
+  }
+
+  .profileLitePowerPlace .reportSettingsPanel {
+    order: 4 !important;
+  }
+
+  .profileLitePowerPlace .profileLitePowerPlaceActions {
+    order: 5 !important;
+  }
+
+  .profileLitePowerPlace .mandalaModeSidebar {
+    order: 6 !important;
+  }
+
+  .profileLitePowerPlace .objectImageEditor {
+    order: 7 !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .powerSymbolLibraryHeader {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .powerSymbolLibraryModeToggle {
+    width: 100%;
+  }
+
+  .powerSymbolLibraryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 
@@ -3724,19 +6444,30 @@
     linear-gradient(180deg, #fffaf0, #f2dfbd) !important;
 }
 
-/* Inner "Без фона": remove the decorative mandala map and make the inside light/transparent. */
+/* Inner "Без фона": remove the decorative mandala map and make the inside transparent. */
+.profileLitePowerPlace .powerMandala.cover-none,
+.profileLitePowerPlace .altarMandalaSheet.cover-none,
+.profileLitePowerPlace .businessMandalaSheet.cover-none,
+.profileLitePowerPlace .zodiacMandalaSheet.cover-none,
+.profileLitePowerPlace .starMandalaSheet.cover-none,
+.profileLitePowerPlace .power-place-chess.cover-none,
+.profileLitePowerPlace .daoMandalaSheet.cover-none,
 .powerMandala.cover-none,
 .altarMandalaSheet.cover-none,
 .businessMandalaSheet.cover-none,
 .zodiacMandalaSheet.cover-none,
 .daoMandalaSheet.cover-none,
 .starMandalaSheet.cover-none {
-  background: rgba(255, 255, 255, 0.18) !important;
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
   box-shadow: none !important;
 }
 
 .power-place-chess.cover-none {
   background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
   box-shadow: none !important;
 }
 
@@ -4352,6 +7083,72 @@
 .clientPhotoPickerModeTabs button.active {
   background: linear-gradient(180deg, #2a1a09, #8c570d);
   color: #fff0cd;
+}
+
+.profileLiteMaterialTaxonomyGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.profileLiteMaterialGroupField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  grid-column: 1 / -1;
+  min-width: 0;
+  color: #7c5520;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.imagePickerMaterialGroupTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.imagePickerMaterialGroupTabs button {
+  min-width: 0;
+  border: 1px solid rgba(184, 121, 29, 0.36);
+  border-radius: 999px;
+  padding: 9px 14px;
+  background: rgba(255, 253, 248, 0.9);
+  color: #6e4b1b;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.imagePickerMaterialGroupTabs button.active,
+.imagePickerMaterialGroupTabs button[aria-selected="true"] {
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+}
+
+.imagePickerMaterialGroupTabs button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.profileLiteMaterialTaxonomyField {
+  min-width: 0;
+}
+
+.profileLiteMaterialTaxonomyField select {
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .profileLiteMaterialTaxonomyGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .imagePickerMaterialGroupTabs button {
+    flex: 1 1 88px;
+    padding-inline: 10px;
+  }
 }
 
 .compactPhotoUploadForm {
@@ -5163,6 +7960,7 @@
   width: min(820px, calc(100vw - 24px));
   max-width: 100%;
   overflow-x: hidden;
+  padding-top: max(16px, env(safe-area-inset-top));
 }
 
 .profileLiteImagePicker .clientPhotoPickerHeader > button:disabled,
@@ -5171,11 +7969,95 @@
   cursor: wait;
 }
 
+.profileLiteImagePicker .clientPhotoPickerHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  margin: -16px -16px 0;
+  padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+  background: rgba(255, 250, 240, 0.97);
+  border-bottom: 1px solid rgba(147, 93, 22, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.profileLiteImagePickerCloseButton {
+  width: 44px !important;
+  min-width: 44px;
+  height: 44px !important;
+  border-color: rgba(147, 72, 18, 0.36) !important;
+  background: #fff8e8 !important;
+  color: #3b2610 !important;
+  font-size: 34px !important;
+  font-weight: 900;
+  line-height: 0.9 !important;
+}
+
 .imagePickerModeBar {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.imagePickerSourceGroups {
+  align-items: stretch;
+}
+
+.imagePickerSourceButton {
+  min-height: 38px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.imagePickerSecondLevel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(147, 93, 22, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.imagePickerSecondLevel button {
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #5b3a12;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.imagePickerSecondLevel button.active {
+  background: linear-gradient(180deg, #3a250e, #98600e);
+  border-color: rgba(255, 216, 128, 0.58);
+  color: #fff2ce;
+}
+
+.imagePickerSecondLevel button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.imagePickerSecondLevelSelect {
+  display: grid;
+  grid-template-columns: minmax(74px, max-content) minmax(0, 1fr);
+  align-items: center;
+  color: #6a4a1d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.imagePickerSecondLevelSelect select {
+  width: 100%;
+  border: 1px solid rgba(147, 93, 22, 0.2);
+  border-radius: 7px;
+  padding: 8px 10px;
+  background: #fffdf8;
+  color: #3b2610;
+  font: inherit;
 }
 
 .imagePickerDestinationTabs {
@@ -5231,9 +8113,18 @@
 }
 
 .profileLiteImagePickerGrid {
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
   justify-content: stretch;
   max-width: 100%;
+}
+
+.profileLiteImagePickerGrid .clientPhotoPickerEmpty {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 112px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
 }
 
 .profileLiteImagePickerCard {
@@ -5250,9 +8141,9 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  gap: 7px;
+  gap: 4px;
   border: 0;
-  padding: 9px;
+  padding: 5px;
   background: transparent;
   color: #4a3012;
   text-align: left;
@@ -5261,11 +8152,11 @@
 .profileLiteImagePickerSelect > span:first-child {
   width: 100%;
   height: auto;
-  min-height: 116px;
+  min-height: 38px;
   display: grid;
   place-items: center;
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: 7px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 230, 190, 0.9)),
     repeating-linear-gradient(45deg, rgba(184, 121, 29, 0.12) 0 8px, rgba(255, 255, 255, 0.18) 8px 16px);
@@ -5294,6 +8185,8 @@
 .profileLiteImagePickerCard b,
 .profileLiteImagePickerCard small {
   text-align: left;
+  font-size: 10px;
+  line-height: 1.18;
 }
 
 .profileLiteImagePickerDiagnostic {
@@ -5334,11 +8227,17 @@
     width: calc(100vw - 18px);
     max-height: calc(100vh - 18px);
     padding: 12px;
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .profileLiteImagePicker .clientPhotoPickerHeader {
+    margin: -12px -12px 0;
+    padding: max(12px, env(safe-area-inset-top)) 12px 10px;
   }
 
   .imagePickerModeBar {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   }
 
   .profileLiteUploadFields {
@@ -5350,7 +8249,7 @@
   }
 
   .profileLiteImagePickerGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .profileLiteImagePickerSelect {
@@ -5358,7 +8257,7 @@
   }
 
   .profileLiteImagePickerSelect > span:first-child {
-    min-height: 104px;
+    min-height: 34px;
   }
 }
 
@@ -5428,6 +8327,528 @@
 .profileLiteLegacyColumns .mandalaMaterialCard,
 .profileLitePowerPlace .powerSavedImageCard {
   min-width: 0;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm,
+.profileLiteServices .profileLiteClientDatabase,
+.profileLiteServices .profileLiteServiceEditorForm {
+  min-width: 0;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm label,
+.profileLiteServices .profileLiteClientDatabase label,
+.profileLiteServices .profileLiteServiceEditorForm label {
+  min-width: 0;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  width: 100%;
+  color: #5f3e12;
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm input,
+.profileLitePowerPlace .profileLiteClientSaveForm select,
+.profileLitePowerPlace .profileLiteClientSaveForm textarea {
+  box-sizing: border-box;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  justify-content: start;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+}
+
+.profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions button,
+.profileLitePowerPlace .profileLiteClientSaveNewButton {
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+.profileLiteServices .profileLiteClientDatabaseBody {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientWorkspace,
+.profileLiteServices .profileLiteSecondaryServices,
+.profileLiteServices .profileLiteEditorClosedCard,
+.profileLiteServices .profileLiteServiceEditorForm {
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientWorkspace {
+  border-color: rgba(116, 76, 24, 0.34);
+  box-shadow: 0 16px 34px rgba(71, 44, 14, 0.1);
+}
+
+.profileLiteServices .profileLiteClientsColumns {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.profileLiteServices .profileLiteServicesColumns {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.36fr);
+}
+
+.profileLiteOrdersClientMode {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.profileLiteOrdersServiceCta,
+.profileLiteOrdersEmptyState {
+  background: rgba(255, 252, 246, 0.92);
+  border: 1px solid rgba(150, 97, 31, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(71, 44, 14, 0.08);
+  min-width: 0;
+}
+
+.profileLiteOrdersServiceCta {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(130px, 0.42fr) minmax(0, 1fr);
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.profileLiteOrdersServiceCta h3,
+.profileLiteOrdersServiceCta p,
+.profileLiteOrdersEmptyState h3,
+.profileLiteOrdersEmptyState p {
+  margin: 0;
+}
+
+.profileLiteOrdersServiceSearch {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  min-width: 0;
+}
+
+.profileLiteOrdersServiceSearch input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.profileLiteOrdersServiceSearch .cabinetPrimary,
+.profileLiteOrdersServiceSearch .cabinetSecondary {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.profileLiteOrdersEmptyState {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+}
+
+.profileLiteServices .profileLiteClientEmptyState {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 0 2px;
+}
+
+.profileLiteServices .profileLiteClientEmptyState h4,
+.profileLiteServices .profileLiteClientEmptyState p,
+.profileLiteServices .profileLiteEditorClosedCard h2,
+.profileLiteServices .profileLiteEditorClosedCard p {
+  margin: 0;
+}
+
+.profileLiteServices .profileLiteClientSummaryGrid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientSummaryGrid span {
+  background: rgba(255, 252, 246, 0.88);
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  color: rgba(44, 29, 12, 0.7);
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 9px 10px;
+  overflow-wrap: anywhere;
+}
+
+.profileLiteServices .profileLiteClientSummaryGrid b {
+  color: #2c1d0c;
+  font-size: 1.05rem;
+}
+
+.profileLiteServices .profileLiteMaterialFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteMaterialFilters button {
+  background: rgba(255, 252, 246, 0.84);
+  border: 1px solid rgba(150, 97, 31, 0.22);
+  border-radius: 999px;
+  color: #684416;
+  font-size: 0.78rem;
+  font-weight: 850;
+  min-height: 32px;
+  padding: 7px 11px;
+}
+
+.profileLiteServices .profileLiteMaterialFilters button.active {
+  background: #2c1d0c;
+  border-color: #2c1d0c;
+  color: #fff3d6;
+}
+
+.profileLiteServices .profileLiteClientMandalaCard {
+  align-items: start;
+  grid-template-columns: 128px minmax(0, 1fr);
+}
+
+.profileLiteServices .profileLiteMandalaPreview {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 246, 0.92), rgba(246, 232, 204, 0.72));
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 14px;
+  color: rgba(44, 29, 12, 0.68);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 850;
+  justify-content: center;
+  line-height: 1.25;
+  min-width: 0;
+  overflow: hidden;
+  padding: 10px;
+  text-align: center;
+  width: 128px;
+}
+
+.profileLiteServices .profileLiteMandalaPreview img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteClientMandalaBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientMandalaHeader {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientMandalaHeader h4,
+.profileLiteServices .profileLiteClientMandalaHeader p {
+  margin: 0;
+}
+
+.profileLiteServices .profileLiteClientMandalaHeader p {
+  color: rgba(44, 29, 12, 0.66);
+  font-size: 0.82rem;
+}
+
+.profileLiteServices .profileLiteClientResultActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteMandalaOpenLink {
+  text-decoration: none;
+}
+
+.profileLiteServices .profileLiteClientSelector {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteClientSelectorLabel {
+  color: rgba(44, 29, 12, 0.72);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton,
+.profileLiteServices .profileLiteClientOption {
+  align-items: center;
+  background: #fffdf8;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 14px;
+  color: #2c1d0c;
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+  min-width: 0;
+  padding: 11px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton span,
+.profileLiteServices .profileLiteClientOption span,
+.profileLiteServices .profileLiteClientSelectorButton small,
+.profileLiteServices .profileLiteClientOption small {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton span,
+.profileLiteServices .profileLiteClientOption span {
+  font-weight: 900;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton small,
+.profileLiteServices .profileLiteClientOption small {
+  color: rgba(44, 29, 12, 0.62);
+  font-size: 0.76rem;
+}
+
+.profileLiteServices .profileLiteClientSelectorButton:hover,
+.profileLiteServices .profileLiteClientOption:hover,
+.profileLiteServices .profileLiteClientOption.active {
+  border-color: rgba(116, 76, 24, 0.44);
+  box-shadow: 0 8px 18px rgba(90, 58, 20, 0.08);
+}
+
+.profileLiteServices .profileLiteClientSelectorPanel {
+  background: rgba(255, 252, 246, 0.92);
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 16px;
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  min-width: 0;
+  overflow: auto;
+  padding: 8px;
+}
+
+.profileLiteServices .profileLiteClientSearch {
+  background: #fffdf8;
+  border: 1px solid rgba(150, 97, 31, 0.24);
+  border-radius: 12px;
+  color: #2c1d0c;
+  min-width: 0;
+  padding: 10px 11px;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteSecondaryServices {
+  background: rgba(255, 252, 246, 0.54);
+  border: 1px solid rgba(150, 97, 31, 0.16);
+  border-radius: 16px;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.profileLiteServices .chatPlaceholderHeader {
+  gap: 6px;
+}
+
+.profileLiteServicesView .mandalaHero {
+  min-height: 0;
+  padding: 16px;
+}
+
+.profileLiteServicesView .mandalaHeroSeal {
+  opacity: 0.22;
+}
+
+.profileLiteServicesView .mandalaHero h2,
+.profileLiteServices .chatPlaceholderHeader h2 {
+  text-wrap: balance;
+}
+
+.profileLiteServices .profileLiteServiceList {
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteServices .profileLiteServiceGroup {
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(150, 97, 31, 0.14);
+  border-radius: 14px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.profileLiteServices .profileLiteServiceCard {
+  align-items: start;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteServiceCard.active {
+  border-color: rgba(116, 76, 24, 0.42);
+  box-shadow: 0 14px 30px rgba(79, 54, 18, 0.13);
+}
+
+.profileLiteServices .profileLiteServiceThumb {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(245, 198, 86, 0.44), transparent 34%),
+    linear-gradient(135deg, rgba(44, 29, 12, 0.94), rgba(142, 89, 18, 0.84));
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  color: #fff3d6;
+  display: grid;
+  flex: 0 0 88px;
+  font-size: 1.45rem;
+  font-weight: 900;
+  justify-content: center;
+  min-height: 88px;
+  overflow: hidden;
+  width: 88px;
+}
+
+.profileLiteServices .profileLiteServiceThumb img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.profileLiteServices .profileLiteServiceCardBody {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteServiceCardHeader {
+  align-items: start;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteServiceCardHeader h3 {
+  margin-bottom: 3px;
+}
+
+.profileLiteServices .profileLiteServiceCardHeader .cabinetStatus {
+  white-space: nowrap;
+}
+
+.profileLiteServices .profileLiteServiceMeta {
+  color: rgba(44, 29, 12, 0.66);
+  font-weight: 850;
+}
+
+.profileLiteServices .profileLiteServiceCard h3,
+.profileLiteServices .profileLiteServiceCard p {
+  margin-top: 0;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.profileLiteServices .profileLiteServiceCardActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.profileLiteServices .profileLiteEditorClosedCard,
+.profileLiteServices .profileLiteServiceEditorForm {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLiteServices .profileLiteServiceEditorForm input,
+.profileLiteServices .profileLiteServiceEditorForm textarea {
+  min-width: 0;
+}
+
+.profileLiteServices .profileLiteFormatCards {
+  border: 1px solid rgba(150, 97, 31, 0.2);
+  border-radius: 14px;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 12px;
+}
+
+.profileLiteServices .profileLiteFormatCards legend {
+  color: #5b3b12;
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0 4px;
+}
+
+.profileLiteServices .profileLiteFormatOption {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.86);
+  border: 1px solid rgba(150, 97, 31, 0.18);
+  border-radius: 12px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  padding: 9px 10px;
+}
+
+.profileLiteServices .profileLiteFormatOption span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .profileLiteLegacyColumns .materialCard h3,
@@ -5626,8 +9047,11 @@
 }
 
 .profileLitePowerPlace .profileLitePowerPlaceActions {
+  grid-column: 2;
   width: min(560px, 100%);
   justify-self: center;
+  display: grid;
+  gap: 10px;
 }
 
 .profileLitePowerPlace .profileLiteAdvancedJson {
@@ -5657,22 +9081,22 @@
 
 .profileLitePowerPlace .compactFieldLayoutSwitch {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+  gap: 6px;
   align-items: stretch;
-  padding: 8px;
+  padding: 6px;
 }
 
 .profileLitePowerPlace .layoutCenterCell,
 .profileLitePowerPlace .layoutBackgroundCell {
   min-width: 0;
-  min-height: 74px;
+  min-height: 64px;
   display: grid;
-  gap: 6px;
+  gap: 5px;
   align-content: space-between;
   border: 1px solid rgba(184, 121, 29, 0.18);
   border-radius: 12px;
-  padding: 8px;
+  padding: 6px;
   background: rgba(255, 250, 240, 0.72);
   overflow: hidden;
 }
@@ -5703,6 +9127,14 @@
   gap: 6px;
 }
 
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .profileLitePowerPlace .centerShapeButtons button,
 .profileLitePowerPlace .mandalaFieldLayoutButtons button {
   min-width: 0;
@@ -5711,37 +9143,75 @@
   overflow: hidden;
 }
 
-.profileLitePowerPlace .centerFrameScaleControl,
-.profileLitePowerPlace .photoScaleControl,
-.profileLitePowerPlace .innerFieldScaleControl {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(170px, 220px) 28px minmax(240px, 1fr) 28px;
-  gap: 6px;
-  align-items: center;
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
+  display: grid !important;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 !important;
+  border-radius: 9px;
 }
 
-.profileLitePowerPlace .centerFrameScaleControl span,
-.profileLitePowerPlace .photoScaleControl span,
-.profileLitePowerPlace .innerFieldScaleControl span {
+.profileLitePowerPlace .sourceSlotScaleControl,
+.profileLitePowerPlace .innerFieldScaleControl,
+.profileLitePowerPlace .centerFrameScaleControl,
+.profileLitePowerPlace .photoScaleControl {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(140px, 190px) 28px minmax(180px, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLitePowerPlace .inlineVisibilityScaleToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+  color: var(--text-main, #3b2200);
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .inlineVisibilityScaleToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--accent, #b87a1d);
+}
+
+.profileLitePowerPlace .inlineVisibilityScaleToggle span {
   min-width: 0;
   white-space: nowrap;
 }
 
-.profileLitePowerPlace .centerFrameScaleControl input,
-.profileLitePowerPlace .photoScaleControl input,
-.profileLitePowerPlace .innerFieldScaleControl input {
+.profileLitePowerPlace .inlineVisibilityScaleToggle.power-place-layer-hidden span,
+.profileLitePowerPlace .coverOuterVisibilityToggle.power-place-layer-hidden span {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.profileLitePowerPlace .sourceSlotScaleControl > input[type="range"],
+.profileLitePowerPlace .innerFieldScaleControl > input[type="range"],
+.profileLitePowerPlace .centerFrameScaleControl > input[type="range"],
+.profileLitePowerPlace .photoScaleControl > input[type="range"] {
   width: 100%;
   min-width: 0;
 }
 
+.profileLitePowerPlace .sourceSlotScaleControl button,
+.profileLitePowerPlace .innerFieldScaleControl button,
 .profileLitePowerPlace .centerFrameScaleControl button,
-.profileLitePowerPlace .photoScaleControl button,
-.profileLitePowerPlace .innerFieldScaleControl button {
+.profileLitePowerPlace .photoScaleControl button {
   width: 28px;
   min-width: 28px;
   height: 28px;
+  min-height: 28px;
   padding: 0;
+  display: grid;
+  place-items: center;
+  line-height: 1;
 }
 
 .profileLitePowerPlace .reportModeToggle,
@@ -5861,6 +9331,41 @@
   color: #fff0cd;
 }
 
+.profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 6px;
+  border: 2px solid rgba(184, 121, 29, 0.24);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #5b3b12;
+  min-width: 52px;
+}
+
+.profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch:hover {
+  border-color: rgba(184, 121, 29, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch.active {
+  border-color: rgba(245, 198, 106, 0.9);
+  background: rgba(255, 250, 235, 0.95);
+  box-shadow: 0 0 0 2px rgba(245, 198, 106, 0.4);
+  color: #3b2208;
+}
+
+.profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
+  display: grid !important;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 !important;
+  border-radius: 9px;
+}
+
 @media (max-width: 1180px) {
   .profileLiteLegacyColumns {
     grid-template-columns: minmax(210px, 240px) minmax(0, 1fr);
@@ -5884,6 +9389,164 @@
 
   .profileLiteLegacyColumns .chatPlaceholderWorkspace {
     min-height: 0;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetFormHeader,
+  .profileLiteServices .profileLiteClientDatabase .cabinetFormHeader,
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetFormHeader {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetStatus,
+  .profileLiteServices .profileLiteClientDatabase .cabinetStatus,
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetStatus {
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm label {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteClientDatabase label,
+  .profileLiteServices .profileLiteServiceEditorForm label,
+  .profileLiteServices .profileLiteServiceEditorForm fieldset {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm input,
+  .profileLitePowerPlace .profileLiteClientSaveForm select,
+  .profileLitePowerPlace .profileLiteClientSaveForm textarea,
+  .profileLiteServices .profileLiteClientDatabase select,
+  .profileLiteServices .profileLiteServiceEditorForm input,
+  .profileLiteServices .profileLiteServiceEditorForm select,
+  .profileLiteServices .profileLiteServiceEditorForm textarea {
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm input,
+  .profileLitePowerPlace .profileLiteClientSaveForm select {
+    min-height: 38px;
+    padding: 8px 10px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm textarea {
+    min-height: 70px;
+    padding: 8px 10px;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteServiceEditorForm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteClientMandalaCard {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .profileLiteServices .profileLiteMandalaPreview {
+    min-height: 96px;
+    width: 96px;
+  }
+
+  .profileLiteServices .profileLiteClientMandalaHeader {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .profileLiteServices .profileLiteClientSummaryGrid {
+    gap: 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileLiteServices .profileLiteClientSummaryGrid span {
+    border-radius: 10px;
+    padding: 7px 8px;
+  }
+
+  .profileLiteServices .profileLiteClientDatabase,
+  .profileLiteServices .profileLiteSecondaryServices,
+  .profileLiteServices .profileLiteServiceGroup {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .profileLiteServices .profileLiteServiceThumb {
+    flex-basis: 38px;
+    min-height: 38px;
+    width: 38px;
+  }
+
+  .profileLiteServices .profileLiteServiceCardHeader {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .profileLiteServices .profileLiteServiceCardHeader .cabinetStatus {
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .profileLiteServices .profileLiteServiceCard h3,
+  .profileLiteServices .profileLiteServiceCard p,
+  .profileLiteServices .profileLiteClientMandalaHeader h4,
+  .profileLiteServices .profileLiteClientMandalaBody p {
+    margin-bottom: 5px;
+  }
+
+  .profileLiteServices .profileLiteClientResultActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetTwoColumns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetActions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .profileLiteClientSaveForm .cabinetActions button,
+  .profileLitePowerPlace .profileLiteClientSaveNewButton,
+  .profileLiteServices .profileLiteServiceEditorForm .cabinetActions button {
+    width: 100%;
   }
 
   .profileLitePowerPlace .powerPlacePrintArea.field-layout-square .powerMandalaPanel {
@@ -5969,33 +9632,48 @@
   }
 
   .profileLitePowerPlace .coverPickerPanel {
-    order: 2 !important;
-  }
-
-  .profileLitePowerPlace .profileLitePowerPlaceActions {
     order: 3 !important;
-    grid-column: 1;
   }
 
   .profileLitePowerPlace .reportSettingsPanel {
     order: 4 !important;
   }
 
+  .profileLitePowerPlace .profileLitePowerPlaceActions {
+    order: 5 !important;
+    grid-column: 1;
+  }
+
+  .profileLitePowerPlace .powerLibrarySidebar {
+    order: 99 !important;
+  }
+
+  /* Ensure layout, cover, and report panels stretch to the full single-column width */
+  .profileLitePowerPlace .powerLayoutPanel.compactFieldLayoutSwitch,
+  .profileLitePowerPlace .coverPickerPanel,
+  .profileLitePowerPlace .reportSettingsPanel {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .profileLitePowerPlace .sourceSlotScaleControl,
+  .profileLitePowerPlace .innerFieldScaleControl,
   .profileLitePowerPlace .centerFrameScaleControl,
-  .profileLitePowerPlace .photoScaleControl,
-  .profileLitePowerPlace .innerFieldScaleControl {
-    grid-template-columns: minmax(0, 120px) 24px minmax(0, 1fr) 24px;
+  .profileLitePowerPlace .photoScaleControl {
+    grid-template-columns: minmax(0, 1fr) 28px minmax(110px, 1fr) 28px;
   }
 
+  .profileLitePowerPlace .sourceSlotScaleControl button,
+  .profileLitePowerPlace .innerFieldScaleControl button,
   .profileLitePowerPlace .centerFrameScaleControl button,
-  .profileLitePowerPlace .photoScaleControl button,
-  .profileLitePowerPlace .innerFieldScaleControl button {
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
+  .profileLitePowerPlace .photoScaleControl button {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
   }
 
-  .profileLitePowerPlace .mandalaModeSidebar {
+  .profileLitePowerPlace .mandalaModeSidebar:not(.powerLibrarySidebar) {
     order: 5 !important;
     position: static;
   }
@@ -6015,6 +9693,50 @@
 
   .profileLitePowerPlace .powerPlacePrintArea .powerMandala {
     width: min(350px, 88vw) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .profileLitePowerPlace .sourceSlotScaleControl,
+  .profileLitePowerPlace .innerFieldScaleControl,
+  .profileLitePowerPlace .centerFrameScaleControl,
+  .profileLitePowerPlace .photoScaleControl {
+    grid-template-columns: minmax(0, 1fr) 28px minmax(110px, 1fr) 28px;
+    gap: 8px;
+  }
+
+  .profileLitePowerPlace .sourceSlotScaleControl button,
+  .profileLitePowerPlace .innerFieldScaleControl button,
+  .profileLitePowerPlace .centerFrameScaleControl button,
+  .profileLitePowerPlace .photoScaleControl button {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    min-height: 28px;
+  }
+
+  .profileLiteCompositionItem--card,
+  .profileLiteServicesItem {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .profileLiteCompositionCard--horizontal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteCompositionPreview {
+    width: 100%;
+    height: 120px;
+  }
+
+  .profileLiteCompositionActions {
+    justify-content: stretch;
+  }
+
+  .profileLiteCompositionActions button,
+  .profileLiteServiceLinkedStatus {
+    width: 100%;
   }
 }
 
@@ -6149,6 +9871,20 @@
 .power-place-chess__center.selected {
   outline: 3px solid rgba(248, 194, 78, 0.82);
   outline-offset: 2px;
+}
+
+.profileLitePowerPlace .powerSavedImageCard[draggable="true"] {
+  cursor: grab;
+}
+
+.profileLitePowerPlace .powerSavedImageCard[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.profileLitePowerPlace .power-place-slot--drag-over {
+  outline: 3px solid rgba(184, 121, 29, 0.72);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(255, 222, 147, 0.28), 0 10px 28px rgba(98, 58, 12, 0.18);
 }
 
 .power-place-chess--classic-14 .power-place-chess__board,
@@ -6369,6 +10105,12 @@
   background-repeat: no-repeat;
 }
 
+.profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain {
+  background-size: auto, contain, auto !important;
+  background-repeat: no-repeat !important;
+  background-position: center, center, center !important;
+}
+
 .profileLitePowerPlace .has-custom-inner-cover {
   background-size: cover;
   background-position: center;
@@ -6388,6 +10130,42 @@
   gap: 6px;
 }
 
+.profileLitePowerPlace .coverLayerTabShell {
+  position: relative;
+  min-width: 0;
+  display: block;
+}
+
+.profileLitePowerPlace .coverLayerTabShell > .coverLayerTabButton {
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 26px;
+}
+
+.profileLitePowerPlace .coverLayerTabs button.power-place-slot--drag-over {
+  border-style: solid;
+  border-color: #b8791d;
+  background: rgba(255, 239, 194, 0.96);
+  box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.18);
+}
+
+.profileLitePowerPlace .coverOuterVisibilityToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--text-main, #3b2200);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.profileLitePowerPlace .coverOuterVisibilityToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--accent, #b87a1d);
+}
+
 .profileLitePowerPlace .coverLayerTabs button,
 .profileLitePowerPlace .coverPickerButton,
 .profileLitePowerPlace .coverUploadButton,
@@ -6401,9 +10179,7 @@
 }
 
 .profileLitePowerPlace .coverVariantsGrid {
-  max-height: 168px;
-  overflow: auto;
-  padding-right: 2px;
+  overflow: visible;
 }
 
 .profileLitePowerPlace .coverPreview {
@@ -6438,6 +10214,27 @@
   padding: 0;
   background: rgba(255, 250, 239, 0.96);
   color: #5c3b12;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.profileLitePowerPlace .coverLayerDeleteButton {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(92, 59, 18, 0.3);
+  border-radius: 50%;
+  padding: 0;
+  background: rgba(255, 250, 239, 0.97);
+  color: #5c3b12;
+  box-shadow: 0 2px 8px rgba(80, 48, 8, 0.12);
   font-size: 14px;
   line-height: 1;
 }
@@ -6498,6 +10295,8 @@
 @media (max-width: 760px) {
   .profileLiteShell .profileLiteTabs a,
   .profileLiteShell .profileLiteShellChrome .profileLiteTabs a,
+  .profileLiteShell .profileLiteRoleSwitcher button,
+  .profileLiteShell .profileLiteRoleNav a,
   .profileLitePowerPlace .workspaceTabs button,
   .profileLitePowerPlace .powerPlaceActions button,
   .profileLitePowerPlace .reportActions button,
@@ -6514,6 +10313,14 @@
     border-radius: 12px !important;
     font-size: 12px !important;
     line-height: 1.15 !important;
+  }
+
+  .profileLitePowerPlace .coverVariantsGrid .coverVariantSwatch {
+    min-height: unset !important;
+    padding: 4px 4px 6px !important;
+    border-radius: 10px !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
   }
 
   .profileLitePowerPlace .workspaceTabs,
@@ -6539,6 +10346,51 @@
     width: 100%;
     flex-basis: 100%;
     font-size: 11px;
+  }
+
+  .profileLiteCompositionItem--card,
+  .profileLiteServicesItem {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .profileLiteCompositionCard--horizontal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteCompositionPreview {
+    width: 100%;
+    height: 120px;
+  }
+
+  .profileLiteCompositionBody b,
+  .profileLiteCompositionBody span,
+  .profileLiteCompositionBody small {
+    white-space: normal;
+  }
+
+  .profileLiteCompositionActions {
+    justify-content: stretch;
+  }
+
+  .profileLiteCompositionActions button,
+  .profileLiteServiceLinkedStatus {
+    width: 100%;
+  }
+
+  .profileLitePowerPlace .compactFieldLayoutSwitch {
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr);
+  }
+
+  .profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons {
+    gap: 3px;
+  }
+
+  .profileLitePowerPlace .compactFieldLayoutSwitch .mandalaFieldLayoutButtons button {
+    flex-basis: 26px;
+    width: 26px;
+    height: 26px;
+    min-height: 26px !important;
   }
 
   .profileLitePowerPlace .coverPreview {
@@ -6581,5 +10433,1740 @@
 
   .profileLitePowerPlace .power-place-chess--compact-5 .power-place-chess__slot {
     width: 25%;
+  }
+}
+
+/* ── Profile Lite Media Module layout ──────────────────────────────────────── */
+
+.profileLiteMediaModule .profileLiteMediaLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaMain {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadPanel {
+  min-width: 0;
+  align-self: start;
+}
+
+.profileLiteMediaModule .profileLiteMediaBrowser {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.profileLiteMediaModule .profileLiteFileManager {
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolders {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  border: 1px solid rgba(184, 121, 29, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.9);
+  color: #513823;
+  padding: 9px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton small {
+  color: #9a7450;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton.active,
+.profileLiteMediaModule .profileLiteMediaFolderButton--dragOver {
+  background: #2f210f;
+  border-color: rgba(184, 121, 29, 0.65);
+  color: #fff4da;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesPanel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: end;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesHeader h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilesHeader small {
+  max-width: 320px;
+  color: #826a52;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.profileLiteMediaModule .profileLiteMediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaBrowserCard {
+  display: grid;
+  gap: 12px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button {
+  min-height: 52px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 8px;
+  background: #fffaf2;
+  color: #4d3724;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button.active,
+.profileLiteMediaModule .profileLiteMediaFolderRail button:hover:not(:disabled) {
+  border-color: rgba(136, 86, 20, 0.58);
+  background: #2c2017;
+  color: #fff2d2;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaFolderRail button b {
+  flex: 0 0 auto;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(184, 121, 29, 0.14);
+}
+
+.profileLiteMediaModule .profileLiteMediaMoveNotice {
+  margin: 0;
+  padding: 9px 11px;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  align-content: start;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard[draggable="true"] {
+  cursor: grab;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard h3 {
+  font-size: 13px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard p {
+  font-size: 12px;
+  margin: 0;
+  color: #7a6450;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.profileLiteMediaModule .profileLiteMediaPreviewStatus {
+  color: #9a4f22 !important;
+}
+
+.profileLiteMediaModule .profileLiteMediaCard small {
+  font-size: 11px;
+  color: #92775d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileLiteMediaModule .profileLiteMediaCardActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+}
+
+.profileLiteMediaModule .profileLiteMediaCardActions label {
+  display: grid;
+  gap: 3px;
+  color: #71543b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profileLiteMediaModule .profileLiteMediaCardActions select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d4c0a8;
+  border-radius: 6px;
+  background: #fff;
+  color: #3c2c20;
+  padding: 5px 7px;
+  font-size: 12px;
+}
+
+.profileLiteMediaModule .profileLiteMediaThumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: #f0e8dc;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: #c0a080;
+  overflow: hidden;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+  padding: 10px 14px;
+  background: #f9f4ee;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e8ddd0;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 140px;
+  max-width: 260px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterField label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7a6450;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profileLiteMediaModule .profileLiteMediaFilterField select {
+  font-size: 13px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d4c0a8;
+  background: #fff;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadCard {
+  display: grid;
+  gap: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaDestinationTabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 14px;
+}
+
+.profileLiteMediaModule .profileLiteMediaDestinationTabs button {
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(184, 121, 29, 0.3);
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: rgba(255, 253, 248, 0.86);
+  color: #6e4b1b;
+  font-weight: 900;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.profileLiteMediaModule .profileLiteMediaDestinationTabs button.active {
+  background: linear-gradient(180deg, #2a1a09, #8c570d);
+  color: #fff0cd;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm {
+  display: grid;
+  gap: 10px;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5a3e28;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm input,
+.profileLiteMediaModule .profileLiteMediaUploadForm select,
+.profileLiteMediaModule .profileLiteMediaUploadForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #d4c0a8;
+  background: #fff;
+  min-width: 0;
+}
+
+.profileLiteMediaModule .profileLiteMediaUploadForm textarea {
+  resize: vertical;
+}
+
+.profileLiteMediaModule .profileLiteMediaFormError {
+  margin-bottom: 10px;
+}
+
+.profileLiteMediaModule .profileLiteMediaFormHint {
+  font-size: 11px;
+  color: #9a7a5a;
+  margin: 2px 0 6px;
+}
+
+/* Custom file input label — hides the raw input, styles the label as a button */
+.profileLiteMediaModule .profileLiteFileInput {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: dashed;
+  border-color: #b8a090;
+  background: #f9f4ee;
+  cursor: pointer;
+  font-size: 13px;
+  color: #5a4030;
+  margin: 4px 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.profileLiteMediaModule .profileLiteFileInput input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+
+.profileLiteMediaModule .profileLiteFileInput:hover {
+  border-color: #8a6848;
+  background: #f4ede4;
+}
+
+@media (max-width: 980px) {
+  .profileLiteMediaModule .profileLiteMediaLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteMediaModule .profileLiteFileManager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFolders {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFilesHeader {
+    display: grid;
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFilterBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profileLiteMediaModule .profileLiteMediaFilterField {
+    max-width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .profileLiteMediaModule .profileLiteMediaGrid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .profileLiteMediaModule .profileLiteMediaFolders {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteMediaModule .profileLiteMediaGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Grimoire module ── */
+
+.profileLiteGrimoireModule .grimoireFilterSidebar {
+  min-width: 0;
+}
+
+.profileLiteGrimoireModule .mandalaHero {
+  overflow: hidden;
+  grid-template-columns: 126px minmax(0, 1fr) minmax(260px, 0.72fr) !important;
+  background:
+    linear-gradient(135deg, rgba(43, 31, 24, 0.94), rgba(100, 66, 38, 0.9)),
+    radial-gradient(circle at 82% 12%, rgba(236, 193, 105, 0.3), transparent 34%);
+  color: #fff8e8;
+}
+
+.profileLiteGrimoireModule .mandalaHero h2,
+.profileLiteGrimoireModule .mandalaHero p {
+  color: inherit;
+}
+
+.profileLiteGrimoireModule .mandalaHero .cabinetEyebrow {
+  color: #f1d28a;
+}
+
+.profileLiteGrimoireModule .mandalaHeroSeal {
+  background: rgba(255, 248, 232, 0.12);
+  border-color: rgba(241, 210, 138, 0.48);
+  color: #f1d28a;
+}
+
+.profileLiteGrimoireModule .mandalaHeroStats span {
+  background: rgba(255, 248, 232, 0.12);
+  border-color: rgba(241, 210, 138, 0.34);
+  color: #fff8e8;
+}
+
+.profileLiteGrimoireModule .mandalaHeroStats {
+  display: grid !important;
+}
+
+.profileLiteGrimoireModule .mandalaHeroStats b {
+  color: #f1d28a;
+}
+
+.grimoireFilterList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.grimoireFilterBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid #d4b896;
+  background: #fdf8f0;
+  color: #5a4030;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.grimoireFilterBtn:hover {
+  background: #f5e8d4;
+  border-color: #b89060;
+}
+
+.grimoireFilterBtn.active {
+  background: #e8c87a;
+  border-color: #b8902a;
+  color: #2f2418;
+  font-weight: 600;
+}
+
+.grimoireFilterCount {
+  font-size: 11px;
+  color: #a08060;
+  min-width: 18px;
+  text-align: right;
+}
+
+.grimoireCenterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.grimoireRecordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grimoireRecordCard {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+  background: linear-gradient(180deg, #fffaf1, #f8ecd9);
+  border: 1px solid #d4b896;
+  border-radius: 12px;
+  padding: 14px;
+  min-width: 0;
+  box-shadow: 0 12px 28px rgba(68, 45, 25, 0.08);
+}
+
+.grimoireRecordCard--uncategorized {
+  border-color: #d9a84c;
+  background: linear-gradient(180deg, #fff8e6, #f8ead0);
+}
+
+.grimoireCardPreview {
+  width: 108px;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(45, 35, 25, 0.1), rgba(216, 176, 96, 0.28)),
+    #ede0c8 center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(176, 128, 70, 0.28);
+}
+
+.grimoireCardIcon {
+  font-size: 30px;
+  color: #8d6745;
+}
+
+.grimoireCardBody {
+  min-width: 0;
+}
+
+.grimoireCardChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.grimoireChipType,
+.grimoireWorkBadge {
+  font-size: 11px;
+  line-height: 1;
+  padding: 5px 8px;
+  background: #efe0bf;
+  border-radius: 20px;
+  color: #2f2418;
+  border: 1px solid rgba(158, 112, 45, 0.22);
+}
+
+.grimoireChipType--uncategorized,
+.grimoireWorkBadge {
+  background: #fff3c7;
+  color: #7a4f12;
+  border-color: rgba(200, 145, 42, 0.36);
+}
+
+.grimoireCardTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2f2418;
+  margin: 0 0 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grimoireCardNote {
+  font-size: 13px;
+  line-height: 1.42;
+  color: #5a4030;
+  margin: 0 0 7px;
+  padding: 9px 11px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(180, 132, 66, 0.18);
+  border-radius: 8px;
+}
+
+.grimoireCardNote--empty {
+  color: #92785b;
+  font-style: italic;
+}
+
+.grimoireCardMeta {
+  font-size: 11px;
+  color: #a08060;
+  display: block;
+}
+
+.grimoireCardActions {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.grimoireActionBtn {
+  padding: 6px 9px;
+  font-size: 12px;
+  border: 1px solid #d4b896;
+  background: rgba(255, 255, 255, 0.72);
+  color: #5a4030;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.grimoireActionBtn:hover {
+  background: #f5e8d4;
+}
+
+.grimoireActionBtnDelete {
+  color: #c0392b;
+  border-color: #e0a090;
+}
+
+.grimoireActionBtnDelete:hover {
+  background: #fdf0ee;
+}
+
+.grimoireUploaderCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.grimoireUploaderHint {
+  font-size: 13px;
+  color: #5a4030;
+  margin: 0;
+}
+
+.grimoireFileInputLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 176px;
+  padding: 18px;
+  border: 1px dashed #b98a49;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff8ec, #f4e2c7);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.grimoireFileInputLabel:hover {
+  border-color: #8c6334;
+  background: linear-gradient(180deg, #fffaf0, #efd8b6);
+  transform: translateY(-1px);
+}
+
+.grimoireFileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.grimoireFileInputText {
+  display: block;
+  max-width: 260px;
+  color: #2f2418;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.grimoireFileInputLabel small {
+  color: #8f765a;
+  font-size: 12px;
+}
+
+.grimoireSelectedFiles {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fffaf1;
+  border: 1px solid rgba(180, 132, 66, 0.24);
+}
+
+.grimoireSelectedFiles b {
+  display: block;
+  margin-bottom: 6px;
+  color: #2f2418;
+  font-size: 13px;
+}
+
+.grimoireSelectedFiles ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grimoireSelectedFiles li {
+  min-width: 0;
+  overflow: hidden;
+  color: #5a4030;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grimoireUploadPrimary {
+  width: 100%;
+  justify-content: center;
+}
+
+.grimoireUploadStatus {
+  font-size: 13px;
+  color: #5a4030;
+  margin: 0;
+  padding: 6px 10px;
+  background: #f5e8d4;
+  border-radius: 6px;
+}
+
+.grimoireUploaderFormats {
+  font-size: 11px;
+  color: #a08060;
+  margin: 0;
+}
+
+.grimoireEditBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.grimoireEditModal {
+  background: #fdf8f0;
+  border: 1px solid #d4b896;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 460px;
+  max-height: min(760px, calc(100vh - 32px));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grimoireEditModal h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #2f2418;
+}
+
+.grimoireEditModal label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #5a4030;
+}
+
+.grimoireEditModal input,
+.grimoireEditModal textarea,
+.grimoireEditModal select {
+  padding: 8px 10px;
+  border: 1px solid #d4b896;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: #2f2418;
+}
+
+.grimoireEditActions {
+  align-items: center;
+}
+
+.grimoireEditActions .grimoireActionBtnDelete {
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .profileLiteGrimoireModule .mandalaHero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .profileLiteGrimoireModule .workspaceMainColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .profileLiteGrimoireModule .grimoireUploaderColumn {
+    order: 1;
+  }
+
+  .profileLiteGrimoireModule .grimoireFilterSidebar {
+    order: 2;
+  }
+
+  .profileLiteGrimoireModule .workspaceCenterColumn {
+    order: 3;
+  }
+
+  .grimoireRecordCard {
+    grid-template-columns: 74px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .grimoireCardPreview {
+    width: 74px;
+  }
+
+  .grimoireCardActions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .grimoireFileInputLabel {
+    min-height: 148px;
+  }
+}
+
+/* ── In-mandala cover drop targets ──────────────────────────────────────── */
+
+.profileLitePowerPlace .powerMandalaCoverDropTargets {
+  width: min(560px, 100%);
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.profileLitePowerPlace .powerMandalaCoverDropTarget {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  border-radius: 12px;
+  border: 1.5px dashed rgba(160, 120, 50, 0.55);
+  background: rgba(255, 248, 225, 0.82);
+  color: rgba(90, 60, 10, 0.85);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  backdrop-filter: blur(2px);
+}
+
+.profileLitePowerPlace .powerMandalaCoverDropTarget:hover {
+  background: rgba(255, 240, 190, 0.97);
+  border-color: rgba(180, 120, 20, 0.8);
+}
+
+.profileLitePowerPlace .powerMandalaCoverDropTarget.power-place-slot--drag-over {
+  border-style: solid;
+  border-color: #b8791d;
+  background: rgba(255, 239, 194, 0.98);
+  box-shadow: 0 0 0 2px rgba(184, 121, 29, 0.22);
+}
+
+.profileLitePowerPlace .powerMandalaCoverGestureTarget {
+  touch-action: none;
+  cursor: grab;
+}
+
+.profileLitePowerPlace .powerMandalaCoverGestureTarget.is-panning,
+.profileLitePowerPlace .powerMandalaCoverGestureTarget.is-pinching {
+  cursor: grabbing;
+}
+
+/* Slot image pan/zoom: grab cursor only on assigned images */
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage {
+  position: relative;
+  overflow: hidden;
+  background-image: none;
+  cursor: grab;
+}
+
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage::before,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--slot-bg-image, none);
+  background-repeat: no-repeat;
+  background-position: var(--slot-bg-pos, center);
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto;
+  transform: rotate(var(--slot-bg-rotate, 0deg));
+  transform-origin: center;
+}
+
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage > span,
+.powerPlacePdfOnlyArea .slotImagePanZoomTarget.hasImage > span {
+  display: none;
+}
+
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage.is-panning,
+.profileLitePowerPlace .slotImagePanZoomTarget.hasImage.is-pinching {
+  cursor: grabbing;
+}
+
+/* Central photo pan/zoom: grab cursor and isolated touch-action */
+.profileLitePowerPlace .powerCenterPhoto.hasImage,
+.profileLitePowerPlace .altarCenterPhoto.hasImage,
+.profileLitePowerPlace .businessCenterPhoto.hasImage,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage,
+.profileLitePowerPlace .starCenterPhoto.hasImage,
+.profileLitePowerPlace .daoCenterPhoto.hasImage,
+.profileLitePowerPlace .power-place-chess__center.hasImage {
+  cursor: grab;
+}
+.profileLitePowerPlace .powerCenterPhoto.hasImage:active,
+.profileLitePowerPlace .altarCenterPhoto.hasImage:active,
+.profileLitePowerPlace .businessCenterPhoto.hasImage:active,
+.profileLitePowerPlace .zodiacCenterPhoto.hasImage:active,
+.profileLitePowerPlace .starCenterPhoto.hasImage:active,
+.profileLitePowerPlace .daoCenterPhoto.hasImage:active,
+.profileLitePowerPlace .power-place-chess__center.hasImage:active {
+  cursor: grabbing;
+}
+
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerMandalaCoverDropTargets {
+    order: 2;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .profileLitePowerPlace .powerMandalaCoverDropTarget {
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .profileLitePowerPlace .powerPlaceMotionControls {
+    padding: 7px;
+  }
+
+  .profileLitePowerPlace .powerPlaceVideoControls {
+    gap: 6px;
+  }
+
+  .profileLitePowerPlace .powerPlaceVideoControls button {
+    min-height: 30px;
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+
+  .profileLitePowerPlace .powerPlaceMotionPhoto {
+    width: clamp(30px, 11vw, 52px);
+  }
+
+  .profileLitePowerPlace .powerPlaceMotionPhoto--count-4 {
+    width: clamp(30px, 11vw, 52px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profileLitePowerPlace .powerPlaceMotionPhoto {
+    transition: none;
+  }
+}
+
+/* ── Mobile DAO scale overflow — allow inner mandala to exceed card width ── */
+@media (max-width: 640px) {
+  .profileLitePowerPlace .powerMandalaPanel {
+    overflow: hidden;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet {
+    width: min(var(--power-field-scale, 96%), 150vw) !important;
+    max-width: none !important;
+    flex: 0 0 auto;
+  }
+
+  .profileLitePowerPlace .daoElementImage {
+    width: min(86px, 100%);
+  }
+
+  .profileLitePowerPlace .daoCenterPhoto {
+    width: calc(28% * var(--power-center-frame-scale, 1));
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-talisman {
+    width: min(calc(var(--power-field-scale, 96%) * 1.98), 70vw) !important;
+    max-width: min(calc(var(--power-field-scale, 96%) * 1.98), 70vw) !important;
+    aspect-ratio: 9 / 16 !important;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-talisman-2 {
+    width: min(calc(var(--power-field-scale, 96%) * 1.98), 70vw) !important;
+    max-width: min(calc(var(--power-field-scale, 96%) * 1.98), 70vw) !important;
+    aspect-ratio: 9 / 16 !important;
+  }
+
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-fu-paper-slip,
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-cloud-register,
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-thunder-tablet,
+  .profileLitePowerPlace .powerMandalaPanel .daoMandalaSheet.dao-taofu-charm {
+    width: min(calc(var(--power-field-scale, 96%) * 2.28), 58vw) !important;
+    max-width: min(calc(var(--power-field-scale, 96%) * 2.28), 58vw) !important;
+    aspect-ratio: 1 / 2.9 !important;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-talisman-2 .daoTalisman2Node .daoElementImage {
+    width: clamp(24px, 66%, 32px) !important;
+    min-width: 26px;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-talisman .daoTalismanSlot .daoElementImage {
+    width: clamp(28px, 74%, 34px) !important;
+  }
+
+  .profileLitePowerPlace .daoMandalaSheet.dao-fu-paper-slip .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-cloud-register .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-thunder-tablet .daoElementImage,
+  .profileLitePowerPlace .daoMandalaSheet.dao-taofu-charm .daoElementImage {
+    width: clamp(23px, 70%, 29px) !important;
+    min-width: 24px;
+  }
+}
+
+/* ── Visibility hide rules ────────────────────────────────────────────────── */
+.powerMandalaPanel.power-place-hide-center .powerCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .altarCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .daoCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .chessCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .zodiacCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .starCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .clientCenterPhoto,
+.powerMandalaPanel.power-place-hide-center .centerPhotoWrap,
+.powerMandalaPanel.power-place-hide-center .powerCenterFrame {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.powerMandalaPanel.power-place-hide-outer-cover {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+.powerMandalaPanel.power-place-hide-inner-cover .zodiacMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .starMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .daoMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .businessMandalaSheet,
+.powerMandalaPanel.power-place-hide-inner-cover .power-place-chess,
+.powerMandalaPanel.power-place-hide-inner-cover .powerMandala,
+.powerMandalaPanel.power-place-hide-inner-cover .altarMandalaSheet {
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.powerMandalaPanel.power-place-hide-slots .powerSource,
+.powerMandalaPanel.power-place-hide-slots .altarTopSource,
+.powerMandalaPanel.power-place-hide-slots .altarSupportSource,
+.powerMandalaPanel.power-place-hide-slots .businessVertexZone,
+.powerMandalaPanel.power-place-hide-slots .zodiacPositionImage,
+.powerMandalaPanel.power-place-hide-slots .zodiacFieldPlusPositionImage,
+.powerMandalaPanel.power-place-hide-slots .starPositionImage,
+.powerMandalaPanel.power-place-hide-slots .starAdditionalPositionImage,
+.powerMandalaPanel.power-place-hide-slots .daoElementImage,
+.powerMandalaPanel.power-place-hide-slots .daoTalismanSlot,
+.powerMandalaPanel.power-place-hide-slots .power-place-chess__slot {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ── Mobile order for visibility panel ───────────────────────────────────── */
+@media (max-width: 980px) {
+  .profileLitePowerPlace .powerLayoutPanel.compactFieldLayoutSwitch,
+  .profileLitePowerPlace .coverPickerPanel,
+  .profileLitePowerPlace .reportSettingsPanel {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* ── Зодиак 2 format ─────────────────────────────────────────────────────── */
+.zodiacMandalaSheet.zodiac-2-format {
+  overflow: hidden;
+}
+
+.zodiacMandalaSheet.zodiac-2-format .zodiacClockFace {
+  inset: 12%;
+  opacity: 0.8;
+}
+
+.zodiacInnerPosition {
+  position: absolute;
+  z-index: 7;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 13%;
+  transform: translate(-50%, -50%);
+}
+
+.zodiacInnerPositionImage {
+  width: min(28px, 100%);
+  aspect-ratio: 1;
+  transform: scale(var(--power-source-slot-scale, 1));
+  transform-origin: center;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 213, 117, 0.74);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 45% 35%, #fff0bd, #a66f20 62%, #242b3c 100%);
+  background-size: cover;
+  background-position: center;
+  color: #211407;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 0;
+  box-shadow: 0 0 16px rgba(128, 114, 54, 0.22);
+}
+
+.zodiacMandalaSheet.zodiac-2-format .zodiacInnerPositionImage {
+  transform: scale(calc(var(--power-source-slot-scale, 1) * 1.5));
+}
+
+.zodiacInnerPosition.hasImage .zodiacInnerPositionImage span {
+  display: none;
+}
+
+.zodiacInnerPosition.inner-1  { left: 50%; top: 24%; }
+.zodiacInnerPosition.inner-2  { left: 63%; top: 27%; }
+.zodiacInnerPosition.inner-3  { left: 73%; top: 37%; }
+.zodiacInnerPosition.inner-4  { left: 76%; top: 50%; }
+.zodiacInnerPosition.inner-5  { left: 73%; top: 63%; }
+.zodiacInnerPosition.inner-6  { left: 63%; top: 73%; }
+.zodiacInnerPosition.inner-7  { left: 50%; top: 76%; }
+.zodiacInnerPosition.inner-8  { left: 37%; top: 73%; }
+.zodiacInnerPosition.inner-9  { left: 27%; top: 63%; }
+.zodiacInnerPosition.inner-10 { left: 24%; top: 50%; }
+.zodiacInnerPosition.inner-11 { left: 27%; top: 37%; }
+.zodiacInnerPosition.inner-12 { left: 37%; top: 27%; }
+
+.zodiacMandalaSheet.zodiac-2-format .zodiacPositionImage {
+  width: min(60px, 100%);
+}
+
+@media (max-width: 640px) {
+  .zodiacInnerPosition {
+    width: 12%;
+  }
+
+  .zodiacInnerPositionImage {
+    width: min(18px, 100%);
+    font-size: 9px;
+  }
+
+  .zodiacMandalaSheet.zodiac-2-format .zodiacPositionImage {
+    width: min(48px, 100%);
+  }
+}
+
+/* ─── Zodiac style: Звёзды ──────────────────────────────────────────────────── */
+
+.zodiacMandalaSheet.zodiac-style-stars .zodiacPositionImage,
+.zodiacMandalaSheet.zodiac-style-stars .zodiacInnerPositionImage,
+.zodiacMandalaSheet.zodiac-style-stars .zodiacFieldPlusPositionImage {
+  clip-path: polygon(
+    50% 0%, 61% 35%, 93% 7%, 65% 39%, 100% 50%,
+    65% 61%, 93% 93%, 61% 65%, 50% 100%,
+    39% 65%, 7% 93%, 35% 61%, 0% 50%,
+    35% 39%, 7% 7%, 39% 35%
+  );
+  border-radius: 0 !important;
+  overflow: visible;
+}
+
+/* ─── Zodiac style: Лента ───────────────────────────────────────────────────── */
+
+.zodiacRibbonSheet {
+  position: relative;
+  width: 100%;
+  aspect-ratio: auto !important;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #f5e8c4;
+}
+
+.zodiacRibbonSheet .zodiacCenterPhoto {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.zodiacRibbonTrack {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  flex: 1;
+  align-items: stretch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 121, 29, 0.4) transparent;
+}
+
+.zodiacRibbonCell {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px 4px;
+  border-right: 1px solid rgba(184, 121, 29, 0.22);
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.zodiacRibbonCell:last-child {
+  border-right: none;
+}
+
+.zodiacRibbonCell.selected,
+.zodiacRibbonCell.power-place-slot--drag-over {
+  background: rgba(245, 198, 86, 0.14);
+}
+
+.zodiacRibbonCell b {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6b4712;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 64px;
+}
+
+.zodiacRibbonCellImage {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(184, 121, 29, 0.38);
+  background-color: rgba(255, 246, 215, 0.72);
+  background-size: calc(100% * var(--slot-bg-zoom, 1)) auto;
+  background-repeat: no-repeat;
+  background-position: var(--slot-bg-pos, center);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  color: rgba(184, 121, 29, 0.72);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.zodiacRibbonCellImage.selected {
+  border-color: rgba(245, 198, 106, 0.9);
+  box-shadow: 0 0 0 3px rgba(255, 246, 215, 0.48), 0 0 14px rgba(245, 198, 86, 0.52);
+}
+
+.zodiacRibbonCellImage.power-place-slot--drag-over {
+  border-color: #f5c656;
+  box-shadow: 0 0 0 2px rgba(245, 198, 86, 0.5);
+}
+
+.zodiacRibbonCell.hasImage .zodiacRibbonCellImage {
+  border-color: rgba(245, 198, 86, 0.6);
+}
+
+@media (max-width: 640px) {
+  .zodiacInnerPositionImage {
+    width: min(34px, 100%);
+  }
+
+  .zodiacMandalaSheet.zodiac-2-format .zodiacInnerPositionImage {
+    width: min(18px, 100%);
+  }
+
+  .zodiacRibbonCellImage {
+    width: 48px;
+    height: 48px;
+  }
+
+  .zodiacRibbonCell b {
+    max-width: 48px;
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profileLiteServices {
+    gap: 10px;
+  }
+
+  .profileLiteServicesView .mandalaHero {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .profileLiteServicesView .mandalaHeroSeal {
+    display: none;
+  }
+
+  .profileLiteServicesView .mandalaHero h2 {
+    font-size: clamp(1.32rem, 6vw, 1.72rem);
+    line-height: 1.08;
+    margin-bottom: 4px;
+  }
+
+  .profileLiteServicesView .mandalaHero p {
+    line-height: 1.35;
+    margin-bottom: 0;
+  }
+
+  .profileLiteServices .profileLiteServicesColumns {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .profileLiteOrdersServiceCta {
+    align-items: stretch;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .profileLiteOrdersServiceSearch {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profileLiteOrdersServiceSearch .cabinetSecondary {
+    grid-column: 1 / -1;
+    justify-self: start;
+    min-height: 34px;
+  }
+
+  .profileLiteServices .profileLiteServicesColumns .workspaceCenterColumn,
+  .profileLiteServices .profileLiteServicesColumns .workspaceRightColumn,
+  .profileLiteServices .profileLiteServicesColumns .chatPlaceholderWorkspace,
+  .profileLiteServices .profileLiteSecondaryServices,
+  .profileLiteServices .profileLiteServiceList,
+  .profileLiteServices .profileLiteServiceGroup {
+    width: 100%;
+  }
+
+  .profileLiteServices .mandalaHeroStats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+
+  .profileLiteServices .mandalaHeroStats span {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .profileLiteServices .profileLiteClientMandalaCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileLiteServices .profileLiteMandalaPreview {
+    width: 100%;
+    max-width: 160px;
+    min-height: 118px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard {
+    align-items: start;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .profileLiteServices .profileLiteServiceThumb {
+    border-radius: 12px;
+    flex-basis: 82px;
+    min-height: 82px;
+    width: 82px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard .cabinetActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .profileLiteServices .profileLiteServiceCard .cabinetActions button {
+    min-height: 38px;
+    white-space: normal;
+  }
+
+  .profileLiteOrdersEmptyState h3,
+  .profileLiteOrdersEmptyState p {
+    margin: 0 0 6px;
+  }
+}
+
+@media (max-width: 760px) {
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns .workspaceCenterColumn,
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns .workspaceRightColumn,
+  .profileLiteServices.profileLiteServicesView .profileLiteServicesColumns .chatPlaceholderWorkspace,
+  .profileLiteServices.profileLiteServicesView .profileLiteSecondaryServices,
+  .profileLiteServices.profileLiteServicesView .profileLiteServiceList,
+  .profileLiteServices.profileLiteServicesView .profileLiteServiceGroup {
+    width: 100%;
+  }
+}
+/* Issue #97: compact mobile client registry. Keep this late so it wins over older service-card mobile rules. */
+.profileLiteServices.profileLiteClientsView .profileLiteClientsColumns {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientSelectorRow {
+  align-items: stretch;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  min-width: 0;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientAddButton,
+.profileLiteServices.profileLiteClientsView .profileLiteClientInviteClose {
+  white-space: nowrap;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientInviteForm {
+  background: rgba(255, 252, 246, 0.9);
+  border-color: rgba(150, 97, 31, 0.22);
+  box-shadow: none;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientInviteForm label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientInviteForm input,
+.profileLiteServices.profileLiteClientsView .profileLiteClientInviteForm select {
+  width: 100%;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientMandalaCard {
+  align-items: stretch;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteMandalaPreview {
+  border-radius: 12px;
+  height: 96px;
+  min-height: 96px;
+  width: 96px;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientMandalaBody > p {
+  color: rgba(44, 29, 12, 0.66);
+  display: -webkit-box;
+  font-size: 0.84rem;
+  line-height: 1.3;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.profileLiteServices.profileLiteClientsView .profileLiteClientMandalaBody small {
+  color: rgba(44, 29, 12, 0.58);
+  font-size: 0.74rem;
+}
+
+@media (max-width: 700px) {
+  .profileLiteServices.profileLiteClientsView .mandalaHero {
+    padding: 12px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .mandalaHero p,
+  .profileLiteServices.profileLiteClientsView .mandalaHeroStats,
+  .profileLiteServices.profileLiteClientsView .chatPlaceholderHeader > .cabinetEyebrow,
+  .profileLiteServices.profileLiteClientsView .chatPlaceholderHeader > span {
+    display: none;
+  }
+
+  .profileLiteServices.profileLiteClientsView .chatPlaceholderHeader {
+    margin-bottom: 8px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .chatPlaceholderHeader h2 {
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientWorkspace {
+    border-radius: 12px;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientWorkspace > .cabinetFormHeader {
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientWorkspace > .cabinetFormHeader .cabinetMuted {
+    display: none;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientWorkspace > .cabinetFormHeader h3 {
+    font-size: 1rem;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSelector {
+    gap: 6px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSelectorRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSelectorButton {
+    border-radius: 12px;
+    min-height: 42px;
+    padding: 8px 10px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientAddButton {
+    min-height: 42px;
+    padding: 8px 10px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSummaryGrid {
+    display: block;
+    color: rgba(44, 29, 12, 0.68);
+    font-size: 0.78rem;
+    font-weight: 850;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSummaryGrid span {
+    background: transparent;
+    border: 0;
+    display: inline;
+    padding: 0;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSummaryGrid span:not(:last-child)::after {
+    content: " · ";
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientSummaryGrid b {
+    font-size: inherit;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteMaterialFilters {
+    flex-wrap: nowrap;
+    gap: 5px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteMaterialFilters button {
+    flex: 0 0 auto;
+    min-height: 30px;
+    padding: 6px 9px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientMandalaCard {
+    border-radius: 12px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 9px;
+    padding: 8px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteMandalaPreview {
+    align-self: start;
+    border-radius: 10px;
+    height: 72px;
+    min-height: 72px;
+    padding: 6px;
+    width: 72px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientMandalaBody {
+    gap: 5px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientMandalaHeader {
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientMandalaHeader h4 {
+    font-size: 0.92rem;
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientMandalaHeader p {
+    font-size: 0.76rem;
+    line-height: 1.2;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientMandalaHeader .cabinetStatus {
+    justify-self: start;
+    padding: 4px 7px;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientResultActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    width: 100%;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientResultActions .cabinetMuted,
+  .profileLiteServices.profileLiteClientsView .profileLiteClientResultActions .cabinetNotice {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientResultActions .cabinetPrimary,
+  .profileLiteServices.profileLiteClientsView .profileLiteClientResultActions .cabinetSecondary {
+    min-height: 30px;
+    padding: 6px 8px;
+    width: auto;
+  }
+
+  .profileLiteServices.profileLiteClientsView .profileLiteClientInviteForm {
+    border-radius: 12px;
+    padding: 9px;
   }
 }

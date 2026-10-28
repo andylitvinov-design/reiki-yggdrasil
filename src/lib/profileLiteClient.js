@@ -1,21 +1,59 @@
+import { normalizeMasterPlan, resolveProfileMasterPlan } from "./masterPlans.js";
+import { supabaseEnv } from "./supabaseClient.js";
+
 export const PROFILE_LITE_AUTH_STATUSES = ["idle", "loading", "success", "error"];
 export const PROFILE_LITE_PROFILE_STATUSES = ["idle", "loading", "success", "error"];
 
 export const PROFILE_LITE_TABS = [
-  { id: "mandalas", label: "Мои мандалы", href: "/profile/mandalas" },
-  { id: "profile", label: "Профиль", href: "/profile?tab=profile" },
-  { id: "media", label: "Фото / Медиа", href: "/profile?tab=media" },
-  { id: "materials", label: "Материалы", href: "/profile?tab=materials" },
+  { id: "mandalas", label: "Мастерская", href: "/profile/mandalas" },
+  { id: "profile", label: "Профиль", href: "/profile/profile" },
+  { id: "media", label: "Фото / Медиа", href: "/profile/photos" },
+  { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
+  { id: "masterProfile", label: "Профиль Мастера", href: "/profile?tab=masterProfile" },
+  { id: "courses", label: "Курсы", href: "/profile/courses" },
   { id: "services", label: "Услуги", href: "/profile/services" },
+  { id: "clients", label: "Клиенты", href: "/profile?tab=clients" },
   { id: "orders", label: "Заказы", href: "/profile/orders" },
-  { id: "chats", label: "Чаты", href: "/profile/chats" },
+  { id: "chats", label: "Чаты", href: "/profile/chats" }
+];
+
+export const PROFILE_LITE_CABINET_ROLES = [
+  { id: "client", label: "Кабинет Личный", defaultTabId: "orders" },
+  { id: "master", label: "Кабинет Мастера", defaultTabId: "mandalas" }
+];
+
+export const PROFILE_LITE_ROLE_NAV = {
+  client: [
+    { label: "Мои заказы", tabId: "orders" },
+    { label: "Мои курсы", tabId: "courses" },
+    { label: "Мои фото", tabId: "media" },
+    { label: "Чаты", tabId: "chats" },
+    { label: "Профиль", tabId: "profile" }
+  ],
+  master: [
+    { label: "Мастерская", tabId: "mandalas" },
+    { label: "Услуги", tabId: "services" },
+    { label: "Клиенты", tabId: "clients" },
+    { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" },
+    { label: "Гримуар", tabId: "materials" },
+    { label: "Профиль Мастера", tabId: "masterProfile" }
+  ]
+};
+
+const PROFILE_LITE_ROLE_TAB_IDS = {
+  client: ["orders", "courses", "media", "chats", "profile"],
+  master: ["mandalas", "services", "clients", "materials", "masterProfile", "orders"]
+};
+
+const PROFILE_LITE_INTERNAL_TABS = [
+  ...PROFILE_LITE_TABS,
+  { id: "admin", label: "Админ", href: "/profile?tab=admin" },
   { id: "settings", label: "Настройки", href: "/profile/settings" },
   { id: "diagnostics", label: "Диагностика", href: "/profile?tab=diagnostics" }
 ];
 
 const SAFE_STATUS_VALUES = ["draft", "pending", "approved", "rejected"];
 const SAVE_STATUS_VALUES = ["draft", "pending"];
-const SAFE_PLAN_VALUES = ["start", "pro"];
 const SESSION_CREDENTIAL_FIELD = ["access", "token"].join("_");
 
 function hasText(value) {
@@ -29,16 +67,40 @@ export function normalizeProfileLiteStatus(value, fallback = "idle") {
 }
 
 export function getProfileLiteTabById(tabId) {
-  return PROFILE_LITE_TABS.find((tab) => tab.id === tabId) || PROFILE_LITE_TABS[0];
+  return PROFILE_LITE_INTERNAL_TABS.find((tab) => tab.id === tabId) || PROFILE_LITE_TABS[0];
 }
 
 export function getProfileLiteRouteByTabId(tabId) {
   return getProfileLiteTabById(tabId).href;
 }
 
+export function getProfileLiteRoleById(roleId) {
+  return PROFILE_LITE_CABINET_ROLES.find((role) => role.id === roleId) || PROFILE_LITE_CABINET_ROLES[0];
+}
+
+export function getProfileLiteRoleForTab(tabId, preferredRole = "") {
+  if (tabId === "admin") return preferredRole || "client";
+  if (tabId === "orders" && preferredRole === "master") return "master";
+  return ["mandalas", "services", "clients", "materials", "masterProfile"].includes(tabId) ? "master" : "client";
+}
+
+export function getProfileLiteRoleNav(roleId) {
+  const role = getProfileLiteRoleById(roleId);
+  return PROFILE_LITE_ROLE_NAV[role.id] || PROFILE_LITE_ROLE_NAV.client;
+}
+
+export function getProfileLiteTabsForRole(roleId) {
+  const role = getProfileLiteRoleById(roleId);
+  const allowedIds = PROFILE_LITE_ROLE_TAB_IDS[role.id] || PROFILE_LITE_ROLE_TAB_IDS.client;
+  return PROFILE_LITE_TABS.filter((tab) => allowedIds.includes(tab.id));
+}
+
 export function getProfileLiteInitialTabFromLocation(pathname = "/profile", search = "") {
   const routeTabMap = {
     "/profile/mandalas": "mandalas",
+    "/profile/courses": "courses",
+    "/profile/photos": "media",
+    "/profile/profile": "profile",
     "/profile/services": "services",
     "/profile/orders": "orders",
     "/profile/chats": "chats",
@@ -49,10 +111,19 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
 
   if (pathname === "/profile" || pathname === "/profile-lite") {
     const queryTab = new URLSearchParams(search).get("tab");
-    return getProfileLiteTabById(queryTab).id;
+    return queryTab ? getProfileLiteTabById(queryTab).id : getProfileLiteRoleById("client").defaultTabId;
   }
 
   return "mandalas";
+}
+
+export function getProfileLiteInitialRoleFromLocation(pathname = "/profile", search = "") {
+  const tabId = getProfileLiteInitialTabFromLocation(pathname, search);
+  const params = new URLSearchParams(search);
+  const requestedRole = params.get("role") || params.get("cabinet");
+  if (requestedRole === "master" && tabId === "orders") return "master";
+  if (requestedRole === "client" && tabId === "orders") return "client";
+  return getProfileLiteRoleForTab(tabId);
 }
 
 export function hasProfileLiteSessionCredential(session) {
@@ -68,6 +139,19 @@ export function shortUserId(value) {
 
 export function safeProfileLiteError(error, fallback = "Не удалось загрузить данные кабинета.") {
   const message = hasText(error?.message) ? error.message : fallback;
+  const lowerMessage = message.toLowerCase();
+  if (
+    lowerMessage.includes("schema cache")
+    && lowerMessage.includes("profile_cabinet_publications")
+    && (
+      lowerMessage.includes("'category'")
+      || lowerMessage.includes("category")
+      || lowerMessage.includes("material_group")
+      || lowerMessage.includes("subcategory")
+    )
+  ) {
+    return "В Supabase не применена миграция таксономии материалов: отсутствует колонка category в profile_cabinet_publications. Нужно применить migration 20260617120000_profile_cabinet_publication_material_taxonomy.sql на staging/2mentalica.";
+  }
   return message
     .replace(/https?:\/\/\S+/gi, "[url hidden]")
     .replace(/[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}\.[A-Za-z0-9_-]{3,}/g, "[token hidden]")
@@ -106,7 +190,7 @@ export function createProfileLiteForm(profile = null, user = null) {
     telegram: profile?.telegram || "",
     website: profile?.website || "",
     avatar_url: profile?.avatar_url || "",
-    account_plan: SAFE_PLAN_VALUES.includes(profile?.account_plan) ? profile.account_plan : "start",
+    account_plan: resolveProfileMasterPlan(profile, user, supabaseEnv.adminEmail),
     status: SAFE_STATUS_VALUES.includes(profile?.status) ? profile.status : "draft"
   };
 }
@@ -121,7 +205,7 @@ export function createProfileLiteSavePayload(form = {}, user = null, requestedSt
     telegram: String(form.telegram || "").trim(),
     website: String(form.website || "").trim(),
     avatar_url: String(form.avatar_url || "").trim(),
-    account_plan: SAFE_PLAN_VALUES.includes(form.account_plan) ? form.account_plan : "start",
+    account_plan: normalizeMasterPlan(form.account_plan),
     status: SAVE_STATUS_VALUES.includes(requestedStatus) ? requestedStatus : "draft"
   };
 }

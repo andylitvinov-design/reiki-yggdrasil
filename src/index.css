@@ -33,6 +33,124 @@ button {
   cursor: pointer;
 }
 
+.publicServicesPage {
+  min-height: 100vh;
+  padding: 18px;
+  background: linear-gradient(180deg, #fbf6ee, #f0e3ce);
+}
+
+.publicServicesHeader {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.publicServicesHeader button,
+.publicServiceCard button,
+.publicServiceDetail button {
+  border: 1px solid rgba(152, 96, 24, 0.35);
+  border-radius: 8px;
+  background: #fff9ee;
+  color: #332418;
+  padding: 9px 13px;
+}
+
+.publicServicesHero,
+.publicServiceDetail {
+  max-width: 1120px;
+  margin: 0 auto 18px;
+}
+
+.publicServicesHero h1,
+.publicServiceDetail h1 {
+  margin: 0 0 10px;
+  font-size: 36px;
+  line-height: 1.08;
+}
+
+.publicServicesState {
+  max-width: 1120px;
+  margin: 12px auto;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 249, 238, 0.86);
+}
+
+.publicServicesGrid {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.publicServiceCard,
+.publicServiceDetail {
+  border: 1px solid rgba(184, 121, 29, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.94);
+  box-shadow: 0 16px 36px rgba(79, 54, 18, 0.1);
+  overflow: hidden;
+}
+
+.publicServiceCard img,
+.publicServiceDetail img,
+.publicServicePreview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  background: #171716;
+}
+
+.publicServicePreview {
+  display: grid;
+  place-items: center;
+  color: #f4be5d;
+  font-size: 42px;
+}
+
+.publicServicePreviewLarge {
+  min-height: 320px;
+}
+
+.publicServiceCard > div,
+.publicServiceDetailBody {
+  padding: 18px;
+}
+
+.publicServiceCard h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.publicServiceCard p,
+.publicServiceDetail p {
+  color: #5f5041;
+}
+
+.publicServiceDetail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+}
+
+@media (max-width: 760px) {
+  .publicServicesPage {
+    padding: 12px;
+  }
+
+  .publicServiceDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .publicServicesHero h1,
+  .publicServiceDetail h1 {
+    font-size: 30px;
+  }
+}
+
 .appShell {
   min-height: 100vh;
   position: relative;
@@ -723,7 +841,7 @@ button {
 }
 
 .practicePanel {
-  padding: 15px;
+  padding: 15px 12px;
   background: linear-gradient(180deg, rgba(255, 248, 236, 0.94), rgba(244, 232, 212, 0.93));
 }
 
@@ -835,23 +953,25 @@ button {
 
 .exerciseList {
   display: grid;
-  gap: 10px;
+  gap: 9px;
 }
 
 .exerciseCard {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr) 34px;
+  grid-template-columns: 60px minmax(0, 1fr) 38px;
   gap: 10px;
   align-items: center;
-  padding: 9px;
+  min-height: 86px;
+  padding: 8px 10px;
   border-radius: 13px;
   background: linear-gradient(180deg, #171614, #070706);
-  border: 1px solid rgba(212, 151, 47, 0.5);
+  border: 1px solid rgba(212, 151, 47, 0.58);
+  box-shadow: inset 0 0 0 1px rgba(255, 222, 139, 0.06), 0 8px 18px rgba(36, 24, 8, 0.16);
 }
 
 .exercisePreview {
-  width: 76px;
-  height: 52px;
+  width: 60px;
+  height: 46px;
   border-radius: 8px;
   background: radial-gradient(circle at 60% 45%, rgba(255, 205, 94, 0.65), transparent 22%),
     linear-gradient(135deg, #142418, #0b0a08 60%, #7d5517);
@@ -867,7 +987,7 @@ button {
 .exerciseText p {
   margin: 4px 0;
   font-size: 12px;
-  line-height: 1.32;
+  line-height: 1.28;
   color: rgba(255, 244, 215, 0.78);
 }
 
@@ -877,12 +997,27 @@ button {
 }
 
 .play {
-  width: 34px;
-  height: 34px;
+  position: relative;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
-  border: 1px solid rgba(226, 178, 86, 0.55);
-  background: #050504;
-  color: #f5c66a;
+  border: 1px solid rgba(226, 178, 86, 0.7);
+  background: radial-gradient(circle at 35% 28%, rgba(255, 233, 166, 0.18), transparent 38%), #050504;
+  color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 222, 139, 0.08), 0 0 12px rgba(184, 121, 29, 0.18);
+}
+
+.play::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 9px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 13px solid #f5c66a;
+  filter: drop-shadow(0 0 6px rgba(245, 198, 106, 0.45));
 }
 
 .allExercises {
@@ -1062,6 +1197,21 @@ button {
 
   .practiceGuideGrid {
     grid-template-columns: 1fr;
+  }
+
+  .practicePanel {
+    padding: 15px 10px;
+  }
+
+  .exerciseCard {
+    grid-template-columns: 58px minmax(0, 1fr) 36px;
+    min-height: 82px;
+    padding: 8px 9px;
+  }
+
+  .exercisePreview {
+    width: 58px;
+    height: 44px;
   }
 
   .infoGrid {

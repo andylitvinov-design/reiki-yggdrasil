@@ -22,6 +22,18 @@ npm run build
 
 The frontend OAuth redirect flow uses `window.location.origin`, so the app should work on the active Vercel domain after the domain alias and Supabase Auth redirects are configured. Keep both target and legacy redirect URLs during the migration window.
 
+## Release workflow: черновой и чистовой сайт
+
+The deployment concept is documented in `docs/release-workflow.md`.
+
+Target model:
+
+- `main` → черновой/test-сайт for owner QA, expected Vercel project `2mentalica`, expected URL `https://2mentalica.vercel.app`.
+- `production` → чистовой/client live-сайт for stable client access.
+- `release/*` → frozen release branches created from `main` after owner QA and merged into `production` only after final checks.
+
+Normal work should target `main`. Client-facing releases should go through `release/*` and then `production`. Do not expose env values or change production domains during normal development.
+
 ## Profile cabinet setup
 
 The profile cabinet MVP is routed at `/profile`, `/masters`, and `/profile/admin`.
@@ -37,25 +49,48 @@ Do not put env values or service-role keys in the repository or frontend.
 
 Supabase setup steps:
 
-1. Apply `supabase/migrations/20260524_profile_cabinet_mvp.sql`.
-2. Apply `supabase/migrations/20260524_profile_cabinet_rls_followup.sql`.
-3. Apply `supabase/migrations/20260526_profile_cabinet_publication_step_fields.sql`.
-4. Apply `supabase/migrations/20260526_profile_cabinet_security_lints.sql`.
-5. Apply `supabase/migrations/20260526_power_place_persistence.sql`.
-6. Apply `supabase/migrations/20260526_power_place_upgrade_5_business_dao.sql`.
-7. Apply `supabase/migrations/20260526_power_place_upgrade_6_zodiac_chat.sql`.
-8. Apply `supabase/migrations/20260527_profile_cabinet_media_storage.sql`.
+1. Apply `supabase/migrations/20260526063307_profile_cabinet_mvp.sql`.
+2. Apply `supabase/migrations/20260526063321_profile_cabinet_rls_followup.sql`.
+3. Apply `supabase/migrations/20260526064404_profile_cabinet_security_lints.sql`.
+4. Apply `supabase/migrations/20260526121859_profile_cabinet_publication_step_fields.sql`.
+5. Apply `supabase/migrations/20260527070251_20260526_power_place_persistence.sql`.
+6. Apply `supabase/migrations/20260527070310_20260526_power_place_upgrade_5_business_dao.sql`.
+7. Apply `supabase/migrations/20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql`.
+8. Apply `supabase/migrations/20260527120000_profile_cabinet_media_storage.sql`.
 9. Apply `supabase/migrations/20260527143000_power_place_star_format.sql`.
-10. Apply `supabase/migrations/20260531090000_power_place_chess_format.sql`.
-11. Apply `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql`.
-12. Add these auth redirect URLs in Supabase for the target domain:
+10. Apply `supabase/migrations/20260529090000_master_services_orders_mvp.sql`.
+11. Apply `supabase/migrations/20260531090000_power_place_chess_format.sql`.
+12. Apply `supabase/migrations/20260602120000_power_place_chess_compact_variant.sql`.
+13. Apply `supabase/migrations/20260605120000_grimoire_publication_types.sql`.
+14. Apply `supabase/migrations/20260605153000_service_orders_client_phase4.sql`.
+15. Apply `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`.
+16. Apply `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`.
+17. Apply `supabase/migrations/20260609_profile_client_photo_categories.sql`.
+18. Apply `supabase/migrations/20260615123000_power_place_dao_layout_format.sql`.
+19. Apply `supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql`.
+20. Apply `supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`.
+21. Apply `supabase/migrations/20260624120000_power_place_star_format_variant.sql`.
+22. Apply `supabase/migrations/20260627190000_profile_course_audio_invites.sql`.
+23. Verify `profile_cabinet_publications` has `material_group`, `material_type`, `category`, and `subcategory`, then reload PostgREST if needed:
+    ```sql
+    select column_name
+    from information_schema.columns
+    where table_name = 'profile_cabinet_publications'
+    order by ordinal_position;
+
+    notify pgrst, 'reload schema';
+    ```
+23. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-13. Keep these legacy auth redirect URLs until the migration is fully verified:
+24. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-14. Add the Vercel production env vars named above.
-15. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+25. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
+    - `https://2mentalica.vercel.app/profile`
+    - `https://2mentalica.vercel.app/profile/admin`
+26. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
+27. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -79,6 +114,7 @@ Google OAuth setup:
    - `https://reiki-yggdrasil.vercel.app/profile`
    - `https://reiki-yggdrasil.vercel.app/profile/admin`
 6. For preview deployments, add the relevant Vercel preview URL if testing OAuth on preview.
+7. For the `2mentalica` staging site, also add the `https://2mentalica.vercel.app/profile` and `https://2mentalica.vercel.app/profile/admin` redirect URLs before OAuth QA.
 
 ## Domain migration checklist
 
@@ -105,33 +141,21 @@ Before switching production traffic to `https://mentalica.vercel.app`:
 
 Power Place persistence setup:
 
-- `20260526_power_place_persistence.sql` adds the profile `account_plan`, client/goal photo references, tradition image references, and saved Power Place compositions.
-- `20260526_power_place_upgrade_5_business_dao.sql` extends saved compositions for `Бизнес-мандала`, `ДАО`, business vertex zone count, and resource comparison comments.
-- `20260526_power_place_upgrade_6_zodiac_chat.sql` extends saved compositions for `Зодиак` with `zodiac_visible_count` and `zodiac-*` object refs in the existing `object_refs` JSON payload.
-- `20260527_profile_cabinet_media_storage.sql` creates private bucket `profile-cabinet-media`, owner-only Storage policies, and durable media path columns for client/goal and tradition images.
+- `20260527070251_20260526_power_place_persistence.sql` adds the profile `account_plan`, client/goal photo references, tradition image references, and saved Power Place compositions.
+- `20260527070310_20260526_power_place_upgrade_5_business_dao.sql` extends saved compositions for `Бизнес-мандала`, `ДАО`, business vertex zone count, and resource comparison comments.
+- `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql` extends saved compositions for `Зодиак` with `zodiac_visible_count` and `zodiac-*` object refs in the existing `object_refs` JSON payload.
+- `20260527120000_profile_cabinet_media_storage.sql` creates private bucket `profile-cabinet-media`, owner-only Storage policies, and durable media path columns for client/goal and tradition images.
 - `20260527143000_power_place_star_format.sql` extends saved compositions for `Звезда` with `star_variant` values `closed` / `open` and `star-*` object refs in the existing `object_refs` JSON payload.
+- `20260624120000_power_place_star_format_variant.sql` extends saved compositions for `Звезда` with `star_format_variant` values `classic` / `star-2-10`.
 - `20260531090000_power_place_chess_format.sql` extends saved compositions for `Шахматы` with `chess_variant` values `classic-14` / `classic-8` / `plus-8` and allows `constructor_type='chess'`.
 - `20260602120000_power_place_chess_compact_variant.sql` allows the Profile Lite `compact-5` chess variant used by the 6-photo UI format.
+- `20260605153000_service_orders_client_phase4.sql` extends service orders for authenticated client drafts, `photo_required`, order format, selected client photo, and client/master RLS.
+- `20260605184500_service_orders_result_delivery_phase5.sql` extends service orders for draft/final result composition delivery, `ready_for_review`, `sent_at`, and final-result-only client composition reads.
+- `20260607120000_profile_courses_individual_access_mvp.sql` adds private course, step, lesson, and individual access tables with admin RLS plus profile-owner reads for personally accessible published content.
+- `20260627190000_profile_course_audio_invites.sql` adds course step/lesson slugs, lesson audio Storage metadata, private course-audio Storage policies, course invite hash storage, and create/claim RPCs.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
+- Course audio uploads use the same private bucket with paths like `courses/magic-money/degree-1/<lesson-id>/<uuid>-audio.mp3`; the app resolves signed URLs only for authenticated users with active course/step access.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.
 
 Master chat setup:
-
-- `20260526_power_place_upgrade_6_zodiac_chat.sql` also adds authenticated chat tables for conversations, participants, messages, and favorite chats.
-- Chat RLS has no anon access: only authenticated conversation participants can read messages/conversation rows, only participants can send messages, and favorite chats are owner-only.
-- The cabinet-visible master ID is derived from the existing profile UUID as `RY-<first 8 chars>`; no extra secret or service-role key is required.
-
-Supabase migration runner:
-
-- `npm run supabase:migrations:apply` runs `scripts/apply-reiki-supabase-migrations.mjs`.
-- The runner reads only `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` from the local wallet at `http://127.0.0.1:${SECRET_VAULT_PORT || 8790}/api/secrets/read`.
-- The runner allowlists only the committed Power Place and media Storage migrations listed above and stops if the wallet is unavailable, secrets are missing, migration files are dirty, or `supabase db push --dry-run` reports unrelated pending migrations.
-- The runner redacts token-shaped values and prints only secret presence, never secret values.
-
-## Deploy
-
-The repository includes:
-
-- `vercel.json` for Vercel deployment
-- `.github/workflows/deploy-pages.yml` for GitHub Pages deployment

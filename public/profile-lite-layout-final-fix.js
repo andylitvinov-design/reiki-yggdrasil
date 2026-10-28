@@ -23,15 +23,17 @@
         align-items: center !important;
         align-content: center !important;
       }
-      .profileLitePowerPlace .powerPlaceExternalTitle,
-      .powerPlacePdfOnlyArea .powerPlaceExternalTitle {
-        order: -10 !important;
-        align-self: end !important;
-        margin: 0 auto 10px !important;
-      }
       .profileLitePowerPlace .powerMandalaPanel > .powerPrintMeta,
       .powerPlacePdfOnlyArea .powerMandalaPanel > .powerPrintMeta {
         display: none !important;
+      }
+      .profileLitePowerPlace .powerMandalaPanel > .powerPlaceMentalicaBrand,
+      .powerPlacePdfOnlyArea .powerMandalaPanel > .powerPlaceMentalicaBrand {
+        position: absolute !important;
+        left: clamp(14px, 3.2vw, 28px) !important;
+        bottom: clamp(12px, 2.8vw, 24px) !important;
+        z-index: 30 !important;
+        pointer-events: none !important;
       }
       .profileLitePowerPlace .powerMandalaPanel.field-layout-square,
       .powerPlacePdfOnlyArea .powerMandalaPanel.field-layout-square {
@@ -69,8 +71,21 @@
         justify-self: center !important;
         align-self: center !important;
         overflow: visible !important;
-        max-width: min(440px, var(--profile-lite-inner-field-scale, 78%)) !important;
-        width: min(440px, var(--profile-lite-inner-field-scale, 78%)) !important;
+        max-width: var(--profile-lite-inner-field-scale, 78%) !important;
+        width: var(--profile-lite-inner-field-scale, 78%) !important;
+      }
+      @media (max-width: 640px) {
+        .profileLitePowerPlace .powerMandalaPanel,
+        .powerPlacePdfOnlyArea .powerMandalaPanel {
+          overflow: hidden !important;
+        }
+        .profileLitePowerPlace .zodiacPositionImage,
+        .profileLitePowerPlace .zodiacFieldPlusPositionImage {
+          width: min(94px, 100%) !important;
+        }
+        .profileLitePowerPlace .daoElementImage {
+          width: min(96px, 100%) !important;
+        }
       }
       .profileLitePowerPlace .powerMandalaPanel.center-shape-circle > .power-place-chess,
       .profileLitePowerPlace .powerMandalaPanel.center-shape-circle > .powerMandala,
@@ -101,10 +116,10 @@
     document.head.appendChild(style);
   }
 
-  function preferMandalasRoute() {
+  function preferClientCabinetRoute() {
     if (window.location.pathname !== "/profile" && window.location.pathname !== "/profile-lite") return;
     if (window.location.search || window.location.hash) return;
-    window.history.replaceState({}, "", "/profile/mandalas");
+    window.history.replaceState({}, "", "/profile/orders");
     window.dispatchEvent(new Event("reiki-route-change"));
   }
 
@@ -131,22 +146,6 @@
     return true;
   }
 
-  function clampCoverOffset(value) {
-    const next = Number(value);
-    if (!Number.isFinite(next)) return 50;
-    return Math.min(80, Math.max(20, next));
-  }
-
-  function nudgeInnerCover(dx, dy) {
-    const refs = parseObjectRefs();
-    const x = clampCoverOffset(refs.__inner_cover_offset_x);
-    const y = clampCoverOffset(refs.__inner_cover_offset_y);
-    return updateObjectRefs({
-      __inner_cover_offset_x: String(clampCoverOffset(x + dx)),
-      __inner_cover_offset_y: String(clampCoverOffset(y + dy))
-    });
-  }
-
   function mergeReportAndAnalysis() {
     const root = document.querySelector('.profileLitePowerPlace');
     if (!root) return;
@@ -162,52 +161,55 @@
     report.appendChild(analysis);
   }
 
-  function tuneInnerCoverArrows() {
-    const group = document.querySelector('.profileLitePowerPlace .coverOffsetCornerGroup.inner');
-    if (!group || group.dataset.diagonalOnly === 'true') return;
-    const buttons = Array.from(group.querySelectorAll('button'));
-    if (buttons.length < 4) return;
-    const arrows = [
-      { text: '↖', label: 'Сдвинуть внутренний фон вверх и влево', dx: -5, dy: -5 },
-      { text: '↗', label: 'Сдвинуть внутренний фон вверх и вправо', dx: 5, dy: -5 },
-      { text: '↙', label: 'Сдвинуть внутренний фон вниз и влево', dx: -5, dy: 5 },
-      { text: '↘', label: 'Сдвинуть внутренний фон вниз и вправо', dx: 5, dy: 5 }
-    ];
-    group.dataset.diagonalOnly = 'true';
-    buttons.slice(0, 4).forEach((button, index) => {
-      const arrow = arrows[index];
-      button.textContent = arrow.text;
-      button.setAttribute('aria-label', arrow.label);
-      button.setAttribute('title', arrow.label);
-      button.addEventListener('click', (event) => {
-        if (!nudgeInnerCover(arrow.dx, arrow.dy)) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        requestAnimationFrame(applyState);
-      }, true);
-    });
+  function isolatedDaoGeometry(sheet) {
+    if (!sheet?.classList?.contains('daoMandalaSheet')) return null;
+    if (sheet.classList.contains('dao-shared-stage')) {
+      return { width: 'auto', maxWidth: '92%' };
+    }
+    const isMobile = window.innerWidth <= 640;
+    if (sheet.classList.contains('dao-talisman')) {
+      const width = isMobile ? 'min(190px, 64%)' : 'min(336px, 82%)';
+      return { width, maxWidth: width };
+    }
+    if (sheet.classList.contains('dao-talisman-2')) {
+      const width = isMobile ? 'min(190px, 64%)' : 'min(292px, 78%)';
+      return { width, maxWidth: width };
+    }
+    if (
+      sheet.classList.contains('dao-fu-paper-slip') ||
+      sheet.classList.contains('dao-cloud-register') ||
+      sheet.classList.contains('dao-thunder-tablet') ||
+      sheet.classList.contains('dao-taofu-charm')
+    ) {
+      const width = isMobile ? 'min(220px, 58vw)' : 'min(248px, 60%)';
+      return { width, maxWidth: width };
+    }
+    return null;
   }
 
   function applyState() {
     injectStyle();
     mergeReportAndAnalysis();
-    tuneInnerCoverArrows();
     const refs = parseObjectRefs();
     const scaleRaw = Number(refs.__inner_field_scale);
-    const scale = Number.isFinite(scaleRaw) ? Math.min(100, Math.max(48, scaleRaw)) : 78;
+    const scale = Number.isFinite(scaleRaw) ? Math.min(230, Math.max(48, scaleRaw)) : 78;
     const shape = refs.__center_shape === 'circle' ? 'circle' : 'square';
 
     document.querySelectorAll('.profileLitePowerPlace .powerMandalaPanel, .powerPlacePdfOnlyArea .powerMandalaPanel').forEach((panel) => {
       panel.style.setProperty('--profile-lite-inner-field-scale', `${scale}%`);
+      panel.style.setProperty('overflow', 'hidden', 'important');
       panel.classList.toggle('center-shape-circle', shape === 'circle');
       panel.classList.toggle('center-shape-square', shape !== 'circle');
       panel.querySelectorAll(INNER_SELECTOR).forEach((inner) => {
+        const daoGeometry = isolatedDaoGeometry(inner);
         inner.style.setProperty('overflow', 'visible', 'important');
+        inner.style.setProperty('width', daoGeometry?.width || `${scale}%`, 'important');
+        inner.style.setProperty('max-width', daoGeometry?.maxWidth || `${scale}%`, 'important');
       });
     });
 
     document.querySelectorAll('.innerFieldScaleControl input[type="range"]').forEach((input) => {
-      input.max = '100';
+      input.max = '230';
       if (Number(input.value) !== scale) input.value = String(scale);
     });
   }
@@ -217,7 +219,7 @@
       const input = event.target;
       if (!(input instanceof HTMLInputElement)) return;
       if (!input.closest('.innerFieldScaleControl')) return;
-      const scale = Math.min(100, Math.max(48, Number(input.value) || 78));
+      const scale = Math.min(230, Math.max(48, Number(input.value) || 78));
       updateObjectRefs({ __inner_field_scale: String(scale) });
       requestAnimationFrame(applyState);
     }, true);
@@ -232,7 +234,7 @@
   }
 
   function start() {
-    preferMandalasRoute();
+    preferClientCabinetRoute();
     injectStyle();
     wireControls();
     applyState();

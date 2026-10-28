@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Git ref to deploy"
+        description: "Git ref to deploy. Use production for client live releases; main is the draft/test branch in the release workflow."
         required: false
-        default: "main"
+        default: "production"
       expected_sha:
         description: "Expected commit SHA to verify before deploy"
         required: false

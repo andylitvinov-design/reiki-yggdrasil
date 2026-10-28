@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO thunder tablet contour</title>
+  <desc id="desc">Decorative Daoist-inspired thunder tablet silhouette with contour frame only; not a ritual formula or sacred text.</desc>
+  <path d="M60 11l20 22h12l7 16v297H21V49l7-16h12z" fill="#f1df9c" opacity=".7"/>
+  <g fill="none" stroke="#483716" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 12l20 22h12l7 16v296H21V50l7-16h12z" stroke-width="2.55"/>
+    <path d="M60 23l14 17h10l5 12v283H31V52l5-12h10z" stroke-width="1.35" opacity=".66"/>
+  </g>
+</svg>

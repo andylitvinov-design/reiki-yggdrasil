@@ -1,0 +1,102 @@
+{
+  "projectName": "reiki-yggdrasil",
+  "repository": "andylitvinov-design/reiki-yggdrasil",
+  "defaultBranch": "main",
+  "targetBranch": "main",
+  "packageManager": "npm",
+  "framework": "vite-react",
+  "commands": {
+    "install": "npm ci",
+    "build": "npm run build",
+    "lint": null,
+    "typecheck": null,
+    "test": null,
+    "check": "npm run check",
+    "smokeLive": "node scripts/live-smoke-test.mjs"
+  },
+  "ci": {
+    "provider": "github-actions",
+    "required": true
+  },
+  "deployment": {
+    "provider": "vercel",
+    "productionUrl": "https://2mentalica.vercel.app",
+    "secondaryProductionUrl": "https://mentalica.vercel.app",
+    "legacyFallbackUrl": "https://reiki-yggdrasil.vercel.app",
+    "previewUrl": null,
+    "requiresDashboardAccess": true,
+    "autoDeployBranch": "main",
+    "defaultDeliveryTarget": "productionUrl"
+  },
+  "github": {
+    "usePullRequests": true,
+    "allowAutoMerge": false,
+    "requireHumanReview": false,
+    "branchProtectionExpected": false
+  },
+  "liveVerification": {
+    "required": true,
+    "method": "browser-or-smoke-test",
+    "defaultExpectedText": null,
+    "routes": [
+      "/",
+      "/masters",
+      "/profile"
+    ]
+  },
+  "security": {
+    "neverPrintSecrets": true,
+    "blockedSecretNames": [
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_ANON_KEY",
+      "VITE_ADMIN_EMAIL"
+    ]
+  },
+  "delivery": {
+    "final_result_verification_gate": {
+      "enabled": true,
+      "requireOriginalRequestContract": true,
+      "requireRequirementVerificationTable": true,
+      "statuses": [
+        "PASS",
+        "PARTIAL",
+        "FAIL",
+        "NOT VERIFIED"
+      ],
+      "completionBlockingStatuses": [
+        "PARTIAL",
+        "FAIL",
+        "NOT VERIFIED"
+      ],
+      "maxRepairAttempts": 2,
+      "completionBlockingStatusesNote": "NOT VERIFIED blocks SUCCESS unless the only missing item is authenticated post-login proof covered by SUCCESS_WITH_AUTH_LIMITATION."
+    },
+    "final_statuses": [
+      "SUCCESS",
+      "SUCCESS_WITH_AUTH_LIMITATION",
+      "BLOCKED"
+    ],
+    "auth_boundary_status": "SUCCESS_WITH_AUTH_LIMITATION",
+    "auth_boundary_is_not_blocked": true,
+    "live_verification_modes": [
+      "PUBLIC_LIVE",
+      "PREVIEW_DEPLOYMENT",
+      "LOCAL_AUTH_SIMULATION",
+      "AUTH_BOUNDARY",
+      "OWNER_REQUIRED"
+    ],
+    "auth_boundaries": [
+      "NONE",
+      "GOOGLE_OAUTH_EXPECTED",
+      "SUPABASE_AUTH_EXPECTED",
+      "PRIVATE_CABINET_EXPECTED",
+      "OWNER_SESSION_REQUIRED"
+    ],
+    "post_login_statuses": [
+      "VERIFIED",
+      "SKIPPED_EXPECTED_AUTH_BOUNDARY",
+      "OWNER_REQUIRED",
+      "NOT_APPLICABLE"
+    ]
+  }
+}

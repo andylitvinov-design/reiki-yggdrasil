@@ -6,6 +6,14 @@ import {
   parseStorageRef,
 } from "./profileMediaClient.js";
 import { getStoredSession, supabaseEnv } from "./supabaseClient.js";
+import {
+  MASTER_PLAN_CONFIG,
+  canCreateWithinPlanLimit,
+  getMasterPlan,
+  getMasterPlanLimit,
+  masterPlanLimitMessage,
+  normalizeMasterPlan
+} from "./masterPlans.js";
 
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
@@ -15,14 +23,14 @@ const CLIENT_PHOTOS_TABLE = "profile_cabinet_client_goal_photos";
 const TRADITION_ASSETS_TABLE = "profile_cabinet_tradition_assets";
 const COMPOSITIONS_TABLE = "profile_cabinet_power_place_compositions";
 
-const VALID_PLANS = ["start", "pro"];
-const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "zodiac", "star", "chess"];
+const VALID_CONSTRUCTOR_TYPES = ["client", "altar", "business", "dao", "dao-layout", "zodiac", "star", "chess"];
 const VALID_GEOMETRIES = [2, 4, 5, 6, 8, 9, 12];
 const VALID_ZODIAC_VISIBLE_COUNTS = [2, 4, 6, 8, 12];
 const VALID_ALTAR_RATIOS = ["1", "1-5", "2", "3"];
 const VALID_BUSINESS_ZONE_COUNTS = [1, 3];
 const VALID_RESOURCE_COMPARISON_MODES = ["client_photo", "photo_mandala"];
 const VALID_STAR_VARIANTS = ["closed", "open"];
+const VALID_STAR_FORMAT_VARIANTS = ["classic", "star-2-10"];
 const VALID_CHESS_VARIANTS = ["classic-14", "classic-8", "plus-8", "compact-5"];
 const PROFILE_LITE_REPORT_REF_KEY = "__profile_lite_report";
 const SLOT_SCALE_REF_KEY = "__slot_scale";
@@ -35,13 +43,43 @@ const INNER_COVER_OFFSET_X_REF_KEY = "__inner_cover_offset_x";
 const INNER_COVER_OFFSET_Y_REF_KEY = "__inner_cover_offset_y";
 const OUTER_COVER_OFFSET_X_REF_KEY = "__outer_cover_offset_x";
 const OUTER_COVER_OFFSET_Y_REF_KEY = "__outer_cover_offset_y";
+const CENTER_IMAGE_OFFSET_X_REF_KEY = "__center_image_offset_x";
+const CENTER_IMAGE_OFFSET_Y_REF_KEY = "__center_image_offset_y";
+const CENTER_IMAGE_ZOOM_REF_KEY = "__center_image_zoom";
+const MOTION_SETTINGS_REF_KEY = "__motion_settings";
+const SLOT_TRANSFORMS_REF_KEY = "__slot_transforms";
+const VISIBILITY_SETTINGS_REF_KEY = "__visibility_settings";
+const DAO_LAYOUT_OPTIONS_REF_KEY = "__dao_layout_options";
+const DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY = "__dao_layout_template_options";
+const CLIENT_WORK_REF_KEY = "__client_work";
 const VALID_FIELD_LAYOUTS = ["square", "vertical", "horizontal", "rectangle"];
+const VALID_MOTION_MODES = ["photo", "video"];
+const VALID_VIDEO_COUNTS = [1, 4];
+const VALID_VIDEO_DIRECTIONS = ["clockwise", "counterclockwise"];
+const VALID_VIDEO_STEP_SECONDS = [1, 2, 3];
+const VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS = ["roof_double_line", "three_checks"];
+const VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS = [2, 3];
+const DEFAULT_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
+};
 const HYDRATION_TIMEOUT_MS = 8000;
 
-export const ACCOUNT_PLANS = [
-  { value: "start", label: "Start" },
-  { value: "pro", label: "Pro" }
+const VALID_CLIENT_PHOTO_CATEGORIES = [
+  "all",
+  "client-1",
+  "client-2",
+  "client-3",
+  "pro-more-clients"
 ];
+
+export const ACCOUNT_PLANS = MASTER_PLAN_CONFIG.map((plan) => ({
+  value: plan.value,
+  label: plan.label
+}));
 
 function powerPlaceError(message, details = null) {
   const error = new Error(message);
@@ -76,17 +114,174 @@ function isDataImage(value) {
   return cleanText(value).startsWith("data:image/");
 }
 
+function isDataVideo(value) {
+  return cleanText(value).startsWith("data:video/");
+}
+
+function isSignedStorageUrl(value) {
+  const ref = cleanText(value);
+  return /\/storage\/v1\/object\/sign\//.test(ref) || /[?&]token=/.test(ref);
+}
+
 function isPersistableImageRef(value) {
   const ref = cleanText(value);
-  return Boolean(ref && !isDataImage(ref));
+  return Boolean(ref && !isDataImage(ref) && !isDataVideo(ref) && !isSignedStorageUrl(ref));
+}
+
+function normalizeMotionSettings(value) {
+  const source = cleanJsonObject(value);
+  const mode = VALID_MOTION_MODES.includes(cleanText(source.mode)) ? cleanText(source.mode) : DEFAULT_MOTION_SETTINGS.mode;
+  const count = Number(source.count);
+  const direction = VALID_VIDEO_DIRECTIONS.includes(cleanText(source.direction)) ? cleanText(source.direction) : DEFAULT_MOTION_SETTINGS.direction;
+  const stepSeconds = Number(source.step_seconds);
+  const videoBackgroundRef = cleanText(source.video_background_ref);
+
+  return {
+    mode,
+    count: VALID_VIDEO_COUNTS.includes(count) ? count : DEFAULT_MOTION_SETTINGS.count,
+    direction,
+    step_seconds: VALID_VIDEO_STEP_SECONDS.includes(stepSeconds) ? stepSeconds : DEFAULT_MOTION_SETTINGS.step_seconds,
+    video_background_ref: isPersistableImageRef(videoBackgroundRef) && isStorageRef(videoBackgroundRef) ? videoBackgroundRef : ""
+  };
+}
+
+function normalizeDaoLayoutTemplateOptions(value) {
+  const source = cleanJsonObject(value);
+  const topCrown = cleanText(source.topCrown);
+  const sideNodeCount = Number(source.sideNodeCount);
+
+  return {
+    topCrown: VALID_DAO_LAYOUT_TEMPLATE_TOP_CROWNS.includes(topCrown) ? topCrown : "roof_double_line",
+    sideNodesVisible: source.sideNodesVisible === false ? false : true,
+    sideNodeCount: VALID_DAO_LAYOUT_TEMPLATE_SIDE_NODE_COUNTS.includes(sideNodeCount) ? sideNodeCount : 2
+  };
+}
+
+function clampSlotOffset(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(80, Math.max(20, n)) : 50;
+}
+
+function clampSlotZoom(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(1.8, Math.max(0.65, n)) : 1;
+}
+
+function clampSlotRotation(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.round(n / 90) * 90;
+}
+
+function normalizeSlotTransforms(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const result = {};
+  for (const [slotId, raw] of Object.entries(value)) {
+    const id = cleanText(slotId);
+    if (!id || !raw || typeof raw !== "object") continue;
+    result[id] = {
+      x: clampSlotOffset(raw.x),
+      y: clampSlotOffset(raw.y),
+      zoom: clampSlotZoom(raw.zoom),
+      rotate: clampSlotRotation(raw.rotate ?? raw.rotation)
+    };
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
 }
 
 function cleanObjectRefs(value) {
-  return Object.fromEntries(
-    Object.entries(cleanJsonObject(value))
-      .map(([key, item]) => [cleanText(key), cleanText(item)])
-      .filter(([key, item]) => key && isPersistableImageRef(item))
-  );
+  const refs = {};
+  for (const [rawKey, rawItem] of Object.entries(cleanJsonObject(value))) {
+    const key = cleanText(rawKey);
+    if (!key) continue;
+    if (key === CLIENT_WORK_REF_KEY) {
+      const normalized = normalizeClientWorkRef(rawItem);
+      if (normalized) refs[CLIENT_WORK_REF_KEY] = normalized;
+      continue;
+    }
+    if (key === MOTION_SETTINGS_REF_KEY) {
+      refs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(rawItem);
+      continue;
+    }
+    if (key === SLOT_TRANSFORMS_REF_KEY) {
+      const normalized = normalizeSlotTransforms(rawItem);
+      if (normalized) refs[SLOT_TRANSFORMS_REF_KEY] = normalized;
+      continue;
+    }
+    if (key === VISIBILITY_SETTINGS_REF_KEY) {
+      if (rawItem && typeof rawItem === "object" && !Array.isArray(rawItem)) {
+        refs[VISIBILITY_SETTINGS_REF_KEY] = rawItem;
+      }
+      continue;
+    }
+    if (key === DAO_LAYOUT_OPTIONS_REF_KEY || key === DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY) {
+      refs[key] = normalizeDaoLayoutTemplateOptions(rawItem);
+      continue;
+    }
+    if (rawItem && typeof rawItem === "object") continue;
+    const item = cleanText(rawItem);
+    if (isPersistableImageRef(item)) refs[key] = item;
+  }
+  return refs;
+}
+
+function normalizeClientWorkRef(value) {
+  const source = cleanJsonObject(value);
+  const clientName = cleanText(source.client_name);
+  const clientProfileId = cleanText(source.client_profile_id);
+  if (!clientName && !clientProfileId) return null;
+  const explicitClientKey = cleanText(source.client_key).replace(/^(client|name):\s+/, "$1:");
+
+  return {
+    client_key: explicitClientKey || (clientProfileId ? `client:${clientProfileId}` : `name:${clientName}`),
+    client_profile_id: clientProfileId,
+    client_name: clientName || "Без имени",
+    client_photo_id: cleanText(source.client_photo_id),
+    request_text: cleanText(source.request_text),
+    source_composition_id: cleanText(source.source_composition_id),
+    result_composition_id: cleanText(source.result_composition_id),
+    status: cleanText(source.status) || "saved_for_client"
+  };
+}
+
+function legacyClientWorkFromTitle(composition = {}) {
+  const title = cleanText(composition?.title);
+  const match = title.match(/^(.+?)\s+·\s+(.+)$/);
+  if (!match) return null;
+
+  const clientName = cleanText(match[2]);
+  if (!clientName) return null;
+
+  return {
+    client_key: `name:${clientName}`,
+    client_profile_id: "",
+    client_name: clientName,
+    client_photo_id: "",
+    request_text: "",
+    source_composition_id: "",
+    result_composition_id: cleanText(composition?.id),
+    status: "saved_for_client",
+    legacy_inferred: true
+  };
+}
+
+export function getPowerPlaceClientWorkMeta(composition = {}) {
+  const explicit = normalizeClientWorkRef(composition?.object_refs?.[CLIENT_WORK_REF_KEY]);
+  if (explicit) {
+    return {
+      ...explicit,
+      result_composition_id: explicit.result_composition_id || cleanText(composition?.id)
+    };
+  }
+  return legacyClientWorkFromTitle(composition);
+}
+
+export function isClientScopedPowerPlaceComposition(composition = {}) {
+  return Boolean(getPowerPlaceClientWorkMeta(composition));
+}
+
+export function filterMasterPowerPlaceCompositions(compositions = []) {
+  return (compositions || []).filter((composition) => !isClientScopedPowerPlaceComposition(composition));
 }
 
 function clampNumericRef(value, min, max) {
@@ -273,6 +468,7 @@ const DB_COMPOSITION_COLUMNS = new Set([
   "altar_center_ratio",
   "business_vertex_zone_count",
   "star_variant",
+  "star_format_variant",
   "chess_variant",
   "cover_ref",
   "object_refs",
@@ -307,14 +503,21 @@ export const __testPowerPlaceClient = {
 };
 
 export function normalizeAccountPlan(plan) {
-  const normalized = cleanText(plan).toLowerCase();
-  return VALID_PLANS.includes(normalized) ? normalized : "start";
+  return normalizeMasterPlan(plan);
 }
 
 export function getPlanLimits(plan) {
-  return normalizeAccountPlan(plan) === "pro"
-    ? { compositions: 20, clientPhotos: 30 }
-    : { compositions: 7, clientPhotos: 25 };
+  const activePlan = getMasterPlan(plan);
+  return {
+    compositions: getMasterPlanLimit(activePlan.value, "compositions"),
+    clientPhotos: getMasterPlanLimit(activePlan.value, "clientPhotos"),
+    dailyPhotoUploads: getMasterPlanLimit(activePlan.value, "dailyPhotoUploads"),
+    clients: getMasterPlanLimit(activePlan.value, "clients"),
+    trialServices: getMasterPlanLimit(activePlan.value, "trialServices"),
+    paidServices: getMasterPlanLimit(activePlan.value, "paidServices"),
+    hiddenPublications: getMasterPlanLimit(activePlan.value, "hiddenPublications"),
+    serviceItems: getMasterPlanLimit(activePlan.value, "serviceItems")
+  };
 }
 
 export function normalizeClientGoalPhoto(photo) {
@@ -322,6 +525,8 @@ export function normalizeClientGoalPhoto(photo) {
   const imagePath = cleanText(photo?.image_path);
   const imageBucket = cleanText(photo?.image_bucket) || PROFILE_MEDIA_BUCKET;
   if (!isPersistableImageRef(imageUrl) && !imagePath) throw powerPlaceError("Добавьте фото клиента или цели.");
+
+  const clientCategory = cleanText(photo?.client_category);
 
   return {
     profile_id: cleanText(photo?.profile_id),
@@ -331,6 +536,7 @@ export function normalizeClientGoalPhoto(photo) {
     image_path: imagePath,
     mime_type: cleanText(photo?.mime_type),
     file_size_bytes: Number(photo?.file_size_bytes) || 0,
+    client_category: VALID_CLIENT_PHOTO_CATEGORIES.includes(clientCategory) ? clientCategory : "all",
     notes: cleanText(photo?.notes)
   };
 }
@@ -359,29 +565,38 @@ export function normalizeCoverRef(coverRef) {
   const cover = cleanJsonObject(coverRef);
   const id = cleanText(cover.id);
   if (!id) return null;
+  const cleanCoverSrc = (value) => {
+    const src = cleanText(value);
+    return isPersistableImageRef(src) ? src : "";
+  };
+  const cleanCoverFit = (...values) => values.some((value) => cleanText(value) === "contain") ? "contain" : "";
 
   const normalizeLayer = (layer, fallback = {}) => {
     const source = cleanJsonObject(layer);
     const layerId = cleanText(source.id) || cleanText(fallback.id) || "no-cover";
     const rawType = cleanText(source.type) || cleanText(fallback.type);
     const type = rawType === "image" ? "image" : rawType === "none" ? "none" : "placeholder";
+    const fit = cleanCoverFit(source.fit, source.cover_fit, source.coverFit, fallback.fit, fallback.cover_fit, fallback.coverFit);
 
     return {
       id: layerId,
       label: cleanText(source.label) || cleanText(fallback.label) || (type === "none" ? "Без фона" : "Заставка места силы"),
       type,
       tone: cleanText(source.tone) || cleanText(fallback.tone),
-      src: cleanText(source.src) || cleanText(fallback.src)
+      src: cleanCoverSrc(source.src) || cleanCoverSrc(fallback.src),
+      ...(fit ? { fit, cover_fit: fit } : {})
     };
   };
 
   const type = cleanText(cover.type) === "image" ? "image" : cleanText(cover.type) === "none" ? "none" : "placeholder";
+  const fit = cleanCoverFit(cover.fit, cover.cover_fit, cover.coverFit);
   const legacy = {
     id,
     label: cleanText(cover.label) || "Заставка места силы",
     type,
     tone: cleanText(cover.tone),
-    src: cleanText(cover.src)
+    src: cleanCoverSrc(cover.src),
+    ...(fit ? { fit, cover_fit: fit } : {})
   };
 
   if (!cover.inner && !cover.outer) return legacy;
@@ -393,18 +608,31 @@ export function normalizeCoverRef(coverRef) {
   };
 }
 
+const SLOT_SCALE_MIN = 0.35;
+const SLOT_SCALE_MAX = 1.85;
+const FIELD_SCALE_MIN = 48;
+const FIELD_SCALE_MAX = 145;
+const CENTER_IMAGE_SCALE_MIN = 0.65;
+const CENTER_IMAGE_SCALE_MAX = 4;
+const CENTER_FRAME_SCALE_MIN = 0.72;
+const CENTER_FRAME_SCALE_MAX = 3.7;
+
 export function normalizePowerPlaceComposition(composition) {
-  const constructorType = VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
-    ? composition.constructor_type
-    : "client";
+  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
+  const legacyDaoLayout = sourceObjectRefs.__dao_style === "dao-layout-template";
+  const constructorType = legacyDaoLayout
+    ? "dao-layout"
+    : VALID_CONSTRUCTOR_TYPES.includes(composition?.constructor_type)
+      ? composition.constructor_type
+      : "client";
   const geometry = Number(composition?.geometry);
   const ratio = cleanText(composition?.altar_center_ratio);
   const businessZoneCount = Number(composition?.business_vertex_zone_count);
   const zodiacVisibleCount = Number(composition?.zodiac_visible_count);
   const resourceComparisonMode = cleanText(composition?.resource_comparison_mode);
   const starVariant = cleanText(composition?.star_variant);
+  const starFormatVariant = cleanText(composition?.star_format_variant);
   const chessVariant = cleanText(composition?.chess_variant);
-  const sourceObjectRefs = cleanJsonObject(composition?.object_refs);
   const slotScale = composition?.slot_scale ?? sourceObjectRefs[SLOT_SCALE_REF_KEY];
   const fieldScale = composition?.field_scale ?? sourceObjectRefs[INNER_FIELD_SCALE_REF_KEY];
   const centerImageScale = composition?.__center_image_scale ?? sourceObjectRefs[CENTER_IMAGE_SCALE_REF_KEY];
@@ -413,16 +641,16 @@ export function normalizePowerPlaceComposition(composition) {
   const fieldLayout = normalizeFieldLayout(composition?.field_layout ?? sourceObjectRefs[FIELD_LAYOUT_REF_KEY]);
   const report = sourceObjectRefs[PROFILE_LITE_REPORT_REF_KEY];
   if (slotScale !== undefined || Object.hasOwn(sourceObjectRefs, SLOT_SCALE_REF_KEY)) {
-    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, 0.7, 1.18, 1);
+    objectRefs[SLOT_SCALE_REF_KEY] = normalizeNumericRef(slotScale, SLOT_SCALE_MIN, SLOT_SCALE_MAX, 1);
   }
   if (fieldScale !== undefined || Object.hasOwn(sourceObjectRefs, INNER_FIELD_SCALE_REF_KEY)) {
-    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, 48, 92, 78);
+    objectRefs[INNER_FIELD_SCALE_REF_KEY] = normalizeNumericRef(fieldScale, FIELD_SCALE_MIN, FIELD_SCALE_MAX, 78);
   }
   if (centerImageScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_SCALE_REF_KEY)) {
-    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, 0.65, 1.45, 1);
+    objectRefs[CENTER_IMAGE_SCALE_REF_KEY] = normalizeNumericRef(centerImageScale, CENTER_IMAGE_SCALE_MIN, CENTER_IMAGE_SCALE_MAX, 1);
   }
   if (centerFrameScale !== undefined || Object.hasOwn(sourceObjectRefs, CENTER_FRAME_SCALE_REF_KEY)) {
-    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, 0.72, 1.4, 1);
+    objectRefs[CENTER_FRAME_SCALE_REF_KEY] = normalizeNumericRef(centerFrameScale, CENTER_FRAME_SCALE_MIN, CENTER_FRAME_SCALE_MAX, 1);
   }
   if (Object.hasOwn(sourceObjectRefs, CENTER_SHAPE_REF_KEY)) {
     objectRefs[CENTER_SHAPE_REF_KEY] = normalizeCenterShape(sourceObjectRefs[CENTER_SHAPE_REF_KEY]);
@@ -430,9 +658,26 @@ export function normalizePowerPlaceComposition(composition) {
   for (const key of [INNER_COVER_OFFSET_X_REF_KEY, INNER_COVER_OFFSET_Y_REF_KEY, OUTER_COVER_OFFSET_X_REF_KEY, OUTER_COVER_OFFSET_Y_REF_KEY]) {
     if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
   }
+  for (const key of [CENTER_IMAGE_OFFSET_X_REF_KEY, CENTER_IMAGE_OFFSET_Y_REF_KEY]) {
+    if (Object.hasOwn(sourceObjectRefs, key)) objectRefs[key] = normalizeNumericRef(sourceObjectRefs[key], 20, 80, 50);
+  }
+  if (Object.hasOwn(sourceObjectRefs, CENTER_IMAGE_ZOOM_REF_KEY)) {
+    objectRefs[CENTER_IMAGE_ZOOM_REF_KEY] = normalizeNumericRef(sourceObjectRefs[CENTER_IMAGE_ZOOM_REF_KEY], 0.65, 1.8, 1);
+  }
   objectRefs[FIELD_LAYOUT_REF_KEY] = fieldLayout;
   if (report && typeof report === "object" && !Array.isArray(report)) {
     objectRefs[PROFILE_LITE_REPORT_REF_KEY] = normalizeProfileLiteReport(report);
+  }
+  objectRefs[MOTION_SETTINGS_REF_KEY] = normalizeMotionSettings(sourceObjectRefs[MOTION_SETTINGS_REF_KEY]);
+  if (legacyDaoLayout) {
+    objectRefs.__dao_style = "style-1";
+  }
+  if (Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_OPTIONS_REF_KEY) || Object.hasOwn(sourceObjectRefs, DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY)) {
+    objectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] = normalizeDaoLayoutTemplateOptions(sourceObjectRefs[DAO_LAYOUT_OPTIONS_REF_KEY] || sourceObjectRefs[DAO_LAYOUT_TEMPLATE_OPTIONS_REF_KEY]);
+  }
+  if (Object.hasOwn(sourceObjectRefs, SLOT_TRANSFORMS_REF_KEY)) {
+    const slotTransforms = normalizeSlotTransforms(sourceObjectRefs[SLOT_TRANSFORMS_REF_KEY]);
+    if (slotTransforms) objectRefs[SLOT_TRANSFORMS_REF_KEY] = slotTransforms;
   }
 
   return {
@@ -444,6 +689,9 @@ export function normalizePowerPlaceComposition(composition) {
     altar_center_ratio: VALID_ALTAR_RATIOS.includes(ratio) ? ratio : "1",
     business_vertex_zone_count: VALID_BUSINESS_ZONE_COUNTS.includes(businessZoneCount) ? businessZoneCount : 1,
     star_variant: VALID_STAR_VARIANTS.includes(starVariant) ? starVariant : "closed",
+    ...(constructorType === "star"
+      ? { star_format_variant: VALID_STAR_FORMAT_VARIANTS.includes(starFormatVariant) ? starFormatVariant : "classic" }
+      : {}),
     chess_variant: VALID_CHESS_VARIANTS.includes(chessVariant) ? chessVariant : "classic-14",
     cover_ref: normalizeCoverRef(composition?.cover_ref),
     object_refs: objectRefs,
@@ -453,6 +701,35 @@ export function normalizePowerPlaceComposition(composition) {
     resource_comparison_mode: VALID_RESOURCE_COMPARISON_MODES.includes(resourceComparisonMode) ? resourceComparisonMode : "client_photo",
     resource_without_mandala_comment: cleanText(composition?.resource_without_mandala_comment),
     resource_with_mandala_comment: cleanText(composition?.resource_with_mandala_comment)
+  };
+}
+
+
+export function buildStorageRefFromMediaRow(row = {}) {
+  const path = cleanText(row.image_path);
+  const bucket = cleanText(row.image_bucket) || PROFILE_MEDIA_BUCKET;
+  if (path) return `storage://${bucket}/${path}`;
+  const imageUrl = cleanText(row.image_url || row.image_ref);
+  return isPersistableImageRef(imageUrl) ? imageUrl : "";
+}
+
+export function clonePowerPlaceCompositionForOrder({ template, masterProfileId, serviceTitle, clientLabel, clientPhoto } = {}) {
+  if (!template?.id) throw powerPlaceError("Не найден шаблон мандалы услуги.");
+  if (!masterProfileId) throw powerPlaceError("Не найден профиль мастера для результата заказа.");
+  const centerRef = buildStorageRefFromMediaRow(clientPhoto);
+  if (!centerRef) throw powerPlaceError("Фото клиента не выбрано для результата заказа.");
+
+  const objectRefs = { ...cleanJsonObject(template.object_refs) };
+  objectRefs.__center_image = centerRef;
+
+  return {
+    ...template,
+    id: undefined,
+    profile_id: cleanText(masterProfileId),
+    title: `Заказ: ${cleanText(serviceTitle) || "Услуга"} / ${cleanText(clientLabel) || "клиент"}`,
+    object_refs: objectRefs,
+    object_ref_urls: { ...cleanJsonObject(template.object_ref_urls), ...(clientPhoto?.display_url ? { [centerRef]: clientPhoto.display_url } : {}) },
+    central_photo_id: cleanText(clientPhoto?.id) || null
   };
 }
 
@@ -469,9 +746,9 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
   requireSession(session);
   const payload = normalizeClientGoalPhoto(photo);
   const count = await countRows(CLIENT_PHOTOS_TABLE, payload.profile_id, session);
-  const limits = getPlanLimits(plan);
-  if (count >= limits.clientPhotos) {
-    throw powerPlaceError(`Лимит ${limits.clientPhotos} фото клиентов / целей для плана ${normalizeAccountPlan(plan) === "pro" ? "Pro" : "Start"} достигнут.`);
+  const entitlement = canCreateWithinPlanLimit(plan, "clientPhotos", count);
+  if (!entitlement.allowed) {
+    throw powerPlaceError(entitlement.message);
   }
 
   const rows = await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}`, {
@@ -479,6 +756,28 @@ export async function createClientGoalPhoto(photo, plan, session = getStoredSess
     session,
     prefer: "return=representation",
     body: payload
+  });
+
+  const hydrated = await hydrateMediaRows(rows, session);
+  return hydrated?.[0] || null;
+}
+
+export async function updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session = getStoredSession()) {
+  requireSession(session);
+  const cleanPhotoId = cleanText(photoId);
+  const cleanProfileId = cleanText(profileId);
+  const normalizedCategory = cleanText(clientCategory) || "all";
+
+  if (!cleanPhotoId || !cleanProfileId) throw powerPlaceError("Не удалось определить фото для перемещения.");
+  if (!VALID_CLIENT_PHOTO_CATEGORIES.includes(normalizedCategory)) {
+    throw powerPlaceError("Неизвестная папка фото клиента.");
+  }
+
+  const rows = await request(`/rest/v1/${CLIENT_PHOTOS_TABLE}?id=eq.${encodeURIComponent(cleanPhotoId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`, {
+    method: "PATCH",
+    session,
+    prefer: "return=representation",
+    body: { client_category: normalizedCategory }
   });
 
   const hydrated = await hydrateMediaRows(rows, session);
@@ -532,6 +831,16 @@ export async function listPowerPlaceCompositions(profileId, session = getStoredS
   return hydrateCompositionRows(rows, session);
 }
 
+
+export async function getPowerPlaceCompositionById(compositionId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanId = cleanText(compositionId);
+  if (!cleanId) throw powerPlaceError("Не удалось определить мандалу.");
+  const rows = await request(`/rest/v1/${COMPOSITIONS_TABLE}?id=eq.${encodeURIComponent(cleanId)}&select=*&limit=1`, { session });
+  const hydrated = await hydrateCompositionRows(rows, session);
+  return hydrated?.[0] || null;
+}
+
 export async function createPowerPlaceComposition(composition, plan, session = getStoredSession(), options = {}) {
   return createPowerPlaceCompositionWithDependencies(composition, plan, session, {
     onStage: options.onStage,
@@ -563,9 +872,9 @@ export async function createPowerPlaceCompositionWithDependencies(composition, p
       error: safeErrorText(error)
     });
   }
-  const limits = getPlanLimits(plan);
-  if (count >= limits.compositions) {
-    throw powerPlaceError(`Лимит ${limits.compositions} сохранённых мест силы для плана ${normalizeAccountPlan(plan) === "pro" ? "Pro" : "Start"} достигнут.`);
+  const entitlement = canCreateWithinPlanLimit(plan, "compositions", count);
+  if (!entitlement.allowed) {
+    throw powerPlaceError(masterPlanLimitMessage(plan, "compositions"));
   }
 
   let rows = null;
@@ -618,4 +927,28 @@ export async function updatePowerPlaceComposition(compositionId, composition, se
 
   const hydrated = await hydrateCompositionRows(rows, session);
   return hydrated?.[0] || null;
+}
+
+export async function deletePowerPlaceComposition(compositionId, profileId, session = getStoredSession()) {
+  requireSession(session);
+  const cleanCompositionId = cleanText(compositionId);
+  const cleanProfileId = cleanText(profileId);
+  if (!cleanCompositionId || !cleanProfileId) throw powerPlaceError("Не удалось определить мандалу.");
+
+  try {
+    await request(
+      `/rest/v1/${COMPOSITIONS_TABLE}?id=eq.${encodeURIComponent(cleanCompositionId)}&profile_id=eq.${encodeURIComponent(cleanProfileId)}`,
+      {
+        method: "DELETE",
+        session
+      }
+    );
+  } catch (error) {
+    throw powerPlaceError("Не удалось удалить мандалу.", {
+      stage: "DELETE",
+      error: safeErrorText(error)
+    });
+  }
+
+  return true;
 }

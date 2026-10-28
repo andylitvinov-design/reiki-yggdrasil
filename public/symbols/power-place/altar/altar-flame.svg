@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Draft altar flame symbol">
+  <rect width="120" height="120" rx="20" fill="#fff8e8"/>
+  <path d="M62 18c8 20-13 25-3 42 6-11 18-15 25-5 10 15 0 39-24 39S25 76 37 57c7-11 19-18 25-39Z" fill="#f5c66a" stroke="#2f2418" stroke-width="5" stroke-linejoin="round"/>
+  <text x="60" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#7b5b24">draft</text>
+</svg>
