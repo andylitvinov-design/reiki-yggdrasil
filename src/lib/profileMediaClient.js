@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 
 export const PROFILE_MEDIA_BUCKET = "profile-cabinet-media";
 export const PROFILE_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
+export const PROFILE_AUDIO_MAX_BYTES = 100 * 1024 * 1024;
 export const PROFILE_MEDIA_ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
@@ -21,6 +22,16 @@ export const PROFILE_MEDIA_ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ];
 export const PROFILE_MEDIA_ALLOWED_GRIMOIRE_TYPES = PROFILE_MEDIA_ALLOWED_TYPES;
+export const PROFILE_AUDIO_ALLOWED_TYPES = [
+  "audio/mpeg",
+  "audio/mp4",
+  "audio/wav",
+  "audio/webm",
+  "audio/ogg",
+  "audio/aac",
+  "audio/flac",
+  "audio/x-m4a"
+];
 export const MEDIA_SIGNING_ERROR_MESSAGE = "signed URL не создан — проверьте Storage/RLS";
 
 function mediaError(message, details = null) {
@@ -88,6 +99,16 @@ export function validateGrimoireFile(file) {
   }
 }
 
+export function validateProfileAudioFile(file) {
+  if (!file) throw mediaError("Выберите аудиофайл.");
+  if (!PROFILE_AUDIO_ALLOWED_TYPES.includes(file.type)) {
+    throw mediaError("Недопустимый тип аудио. Поддерживаются MP3, M4A, WAV, WEBM, OGG, AAC и FLAC.");
+  }
+  if (file.size > PROFILE_AUDIO_MAX_BYTES) {
+    throw mediaError("Файл слишком большой. Максимальный размер аудио — 100 MB.");
+  }
+}
+
 export function buildProfileMediaPath(file, context = {}, uuid = randomUuid()) {
   const profileId = cleanText(context.profileId);
   const kind = cleanText(context.kind);
@@ -123,6 +144,15 @@ export function buildProfileMediaPath(file, context = {}, uuid = randomUuid()) {
   throw mediaError("Неизвестный тип загрузки изображения.");
 }
 
+export function buildCourseAudioPath(file, context = {}, uuid = randomUuid()) {
+  const courseSlug = cleanSegment(context.courseSlug) || "course";
+  const stepSlug = cleanSegment(context.stepSlug) || "step";
+  const lessonId = cleanSegment(context.lessonId) || "draft";
+  const safeFilename = sanitizeMediaFilename(file?.name || "audio");
+
+  return `courses/${courseSlug}/${stepSlug}/${lessonId}/${uuid}-${safeFilename}`;
+}
+
 export function encodeStorageObjectPath(path) {
   return cleanText(path)
     .split("/")
@@ -147,7 +177,7 @@ export function toStorageRef(bucket, path) {
 }
 
 export function isStorageRef(value) {
-  return cleanText(value).startsWith(`storage://${PROFILE_MEDIA_BUCKET}/`);
+  return cleanText(value).startsWith("storage://");
 }
 
 export function parseStorageRef(value) {
@@ -239,6 +269,71 @@ export async function createSignedMediaUrl(path, session, bucket = PROFILE_MEDIA
   const signedURL = data?.signedURL || data?.signedUrl;
   if (!signedURL) throw mediaError("Supabase не вернул ссылку на изображение.");
   return normalizeSignedStorageUrl(signedURL);
+}
+
+export async function uploadCourseAudio(file, context = {}, session) {
+  requireStorageConfig(session);
+  validateProfileAudioFile(file);
+
+  const path = buildCourseAudioPath(file, context);
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${PROFILE_MEDIA_BUCKET}/${encodeStorageObjectPath(path)}`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": file.type,
+      "x-upsert": "false"
+    },
+    body: file
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw mediaError(data?.message || data?.msg || "Не удалось загрузить аудио.", data);
+
+  const signedUrl = await createSignedMediaUrl(path, session);
+
+  return {
+    bucket: PROFILE_MEDIA_BUCKET,
+    path,
+    ref: toStorageRef(PROFILE_MEDIA_BUCKET, path),
+    signedUrl,
+    metadata: {
+      filename: sanitizeMediaFilename(file.name),
+      originalFilename: file.name,
+      mimeType: file.type,
+      size: file.size
+    }
+  };
+}
+
+export async function createSignedCourseAudioUrl(refOrPath, session, expiresIn = 3600) {
+  const parsed = parseStorageRef(refOrPath);
+  const bucket = parsed?.bucket || PROFILE_MEDIA_BUCKET;
+  const path = parsed?.path || cleanText(refOrPath);
+  if (!path) return "";
+  return createSignedMediaUrl(path, session, bucket, expiresIn);
+}
+
+export async function resolveLessonAudioDisplayUrl(lesson = {}, session, signer = createSignedCourseAudioUrl) {
+  const storageRef = lesson.audio_storage_path
+    ? toStorageRef(lesson.audio_storage_bucket || PROFILE_MEDIA_BUCKET, lesson.audio_storage_path)
+    : cleanText(lesson.audio_url);
+
+  if (!storageRef) {
+    return { audioUrl: "", status: "missing", error: "" };
+  }
+
+  if (/^https?:\/\//i.test(storageRef) && !storageRef.includes("/storage/v1/object/sign/")) {
+    return { audioUrl: storageRef, status: "external", error: "" };
+  }
+
+  try {
+    const audioUrl = await signer(storageRef, session);
+    return audioUrl
+      ? { audioUrl, status: "signed", error: "" }
+      : { audioUrl: "", status: "error", error: MEDIA_SIGNING_ERROR_MESSAGE };
+  } catch {
+    return { audioUrl: "", status: "error", error: MEDIA_SIGNING_ERROR_MESSAGE };
+  }
 }
 
 export async function uploadProfileMedia(file, context = {}, session) {

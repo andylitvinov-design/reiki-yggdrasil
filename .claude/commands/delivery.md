@@ -1,0 +1,81 @@
+# /delivery
+
+`/delivery` is full safe delivery delegation for the resolved project: implement, check, PR, merge when green/permitted, deploy, and verify the requested behavior on the target environment or documented auth-safe substitute.
+
+## Source of truth
+
+Read in order:
+
+1. `docs/global-agent-settings.md`
+2. `docs/global-command-protocols.md` - shared `/delivery`, UI polish, design quality gate, and final report requirements
+3. `docs/global-project-adapters.md` - URL/repo routing and future project adapter rules
+4. `docs/global-agent-skills.md` - shared skill/fallback behavior
+5. `AGENTS.md` - Reiki project adapter and safety rules
+6. `docs/global-delivery-big-protocol.md` when the task escalates to `/delivery-big`
+7. `docs/delivery-auth-boundary-standard.md` - auth-gated live verification and `SUCCESS_WITH_AUTH_LIMITATION`
+8. `docs/delivery-loop-program.md` - local full delivery loop
+9. `docs/delivery-loop-technical-details.md` - local checks, scripts, CI/CD details
+10. `docs/delivery-loop-source-patterns-and-live-proof.md` - local live proof contract
+11. `docs/delivery-design-quality-gate.md` - local UI/design gate details
+
+If a local source file is missing, report `needs verification`; do not invent replacement rules.
+
+## Input
+
+```txt
+Task:
+$ARGUMENTS
+```
+
+## Reiki project adapter
+
+- Repository: `andylitvinov-design/reiki-yggdrasil`
+- Default branch: `main`
+- Target branch: `main` for normal feature work; `production` only for explicit client release tasks
+- Package manager: `npm`
+- Framework: Vite + React SPA
+- Build: `npm run build`
+- Check: `npm run check`
+- CI: GitHub Actions
+- Deployment: Vercel from GitHub
+- Default delivery target: `https://2mentalica.vercel.app`
+- Secondary production URL: `https://mentalica.vercel.app`
+- Legacy URL during migration: `https://reiki-yggdrasil.vercel.app`
+
+## Required behavior
+
+Follow the shared `/delivery` chain and preserve all explicit do-not-touch rules. For UI tasks, the final report must include:
+
+```txt
+DESIGN QUALITY GATE
+UI POLISH / FEEL-BETTER PASS
+```
+
+Never touch secrets, env values, billing, production data, auth/OAuth/security rules, or finance formulas unless the user explicitly requests that scope.
+
+## Escalation to /delivery-big
+
+If the prompt or source issue has more than 3 independent requirements, touches
+more than 2 system areas, or asks for an autonomous/overnight repair loop,
+escalate internally to `/delivery-big` behavior. Read
+`.claude/commands/delivery-big.md` and `docs/global-delivery-big-protocol.md`,
+then use the Task Manifest, Scope Contract, Verification Matrix, and Repair Loop.
+Report the escalation explicitly:
+
+```txt
+Escalated to /delivery-big mode because: <reason>
+```
+
+Final status must be one of:
+
+```txt
+STATUS: SUCCESS
+STATUS: SUCCESS_WITH_AUTH_LIMITATION
+STATUS: BLOCKED
+```
+
+## Final Result Verification Gate compatibility
+
+Before any completion claim, build an Original Request Contract from the user's task and verify every requirement. Allowed verification statuses: `PASS`, `PARTIAL`, `FAIL`, `NOT VERIFIED`. Implementation is not completion.
+
+Run the Spiral Validator-Critic Loop from the shared delivery docs when a repair pass needs requirement-by-requirement critique before merge/deploy.

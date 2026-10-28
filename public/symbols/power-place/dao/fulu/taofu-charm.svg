@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 360" role="img" aria-labelledby="title desc">
+  <title id="title">DAO taofu charm contour</title>
+  <desc id="desc">Decorative Daoist-inspired narrow taofu charm silhouette with contour frame only; not a ritual formula or sacred text.</desc>
+  <path d="M31 13h58v32h7v301H24V45h7z" fill="#f8e8a6" opacity=".72"/>
+  <g fill="none" stroke="#982416" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M31 14h58v32h7v300H24V46h7z" stroke-width="2.5"/>
+    <path d="M36 24h48v18H36zM32 55h56v278H32z" stroke-width="1.55" opacity=".62"/>
+  </g>
+</svg>

@@ -20,15 +20,28 @@ const ALLOWED_MIGRATIONS = Object.freeze([
   "supabase/migrations/20260602120000_power_place_chess_compact_variant.sql",
   "supabase/migrations/20260529090000_master_services_orders_mvp.sql",
   "supabase/migrations/20260605153000_service_orders_client_phase4.sql",
-  "supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql"
+  "supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql",
+  "supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql",
+  "supabase/migrations/20260609_profile_client_photo_categories.sql",
+  "supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql",
+  "supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql",
+  "supabase/migrations/20260623120000_service_orders_personal_schema_fix.sql",
+  "supabase/migrations/20260624120000_power_place_star_format_variant.sql",
+  "supabase/migrations/20260625120000_profile_master_plan_modes.sql",
+  "supabase/migrations/20260627190000_profile_course_audio_invites.sql"
 ]);
 const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_profiles_account_plan: false,
+  profile_cabinet_profiles_account_plan_allows_practic_master: false,
+  profile_cabinet_admins_own_policy: false,
+  profile_cabinet_profiles_admin_select_policy: false,
+  profile_cabinet_profiles_admin_update_policy: false,
   profile_cabinet_client_goal_photos: false,
   profile_cabinet_tradition_assets: false,
   profile_cabinet_power_place_compositions: false,
   zodiac_visible_count: false,
   star_variant: false,
+  star_format_variant: false,
   chess_variant: false,
   profile_cabinet_chat_conversations: false,
   profile_cabinet_chat_participants: false,
@@ -39,7 +52,15 @@ const SCHEMA_CHECKS = Object.freeze({
   profile_cabinet_tradition_assets_image_path: false,
   profile_cabinet_media_storage_policy: false,
   profile_cabinet_services: false,
-  profile_cabinet_service_orders: false
+  profile_cabinet_service_orders: false,
+  profile_cabinet_courses: false,
+  profile_cabinet_course_steps: false,
+  profile_cabinet_course_lessons: false,
+  profile_cabinet_course_access: false,
+  profile_cabinet_publications_material_group: false,
+  profile_cabinet_publications_material_type: false,
+  profile_cabinet_publications_category: false,
+  profile_cabinet_publications_subcategory: false
 });
 
 function redact(text = "", secrets = {}) {
@@ -214,6 +235,41 @@ select
     where table_schema = 'public' and table_name = 'profile_cabinet_profiles' and column_name = 'account_plan'
   ) as profile_cabinet_profiles_account_plan,
   exists (
+    select 1
+    from pg_constraint con
+    join pg_class rel on rel.oid = con.conrelid
+    join pg_namespace nsp on nsp.oid = rel.relnamespace
+    where nsp.nspname = 'public'
+      and rel.relname = 'profile_cabinet_profiles'
+      and con.contype = 'c'
+      and pg_get_constraintdef(con.oid) like '%account_plan%'
+      and pg_get_constraintdef(con.oid) like '%start%'
+      and pg_get_constraintdef(con.oid) like '%pro%'
+      and pg_get_constraintdef(con.oid) like '%practic%'
+      and pg_get_constraintdef(con.oid) like '%master%'
+  ) as profile_cabinet_profiles_account_plan_allows_practic_master,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profile_cabinet_admins'
+      and policyname = 'admins read own admin row'
+      and cmd = 'SELECT'
+  ) as profile_cabinet_admins_own_policy,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profile_cabinet_profiles'
+      and policyname = 'admin reads all profiles'
+      and cmd = 'SELECT'
+  ) as profile_cabinet_profiles_admin_select_policy,
+  exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profile_cabinet_profiles'
+      and policyname = 'admin moderates profiles'
+      and cmd = 'UPDATE'
+  ) as profile_cabinet_profiles_admin_update_policy,
+  exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_client_goal_photos'
   ) as profile_cabinet_client_goal_photos,
@@ -233,6 +289,10 @@ select
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'star_variant'
   ) as star_variant,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'star_format_variant'
+  ) as star_format_variant,
   exists (
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'profile_cabinet_power_place_compositions' and column_name = 'chess_variant'
@@ -278,7 +338,39 @@ select
   exists (
     select 1 from information_schema.tables
     where table_schema = 'public' and table_name = 'profile_cabinet_service_orders'
-  ) as profile_cabinet_service_orders
+  ) as profile_cabinet_service_orders,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_courses'
+  ) as profile_cabinet_courses,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_course_steps'
+  ) as profile_cabinet_course_steps,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_course_lessons'
+  ) as profile_cabinet_course_lessons,
+  exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'profile_cabinet_course_access'
+  ) as profile_cabinet_course_access,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'material_group'
+  ) as profile_cabinet_publications_material_group,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'material_type'
+  ) as profile_cabinet_publications_material_type,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'category'
+  ) as profile_cabinet_publications_category,
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profile_cabinet_publications' and column_name = 'subcategory'
+  ) as profile_cabinet_publications_subcategory
 `.trim();
 }
 

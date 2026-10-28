@@ -2,6 +2,39 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "codex/**": false,
+      "claude/**": false,
+      "feat/**": false,
+      "fix/**": false,
+      "chore/**": false,
+      "config/**": false
+    }
+  },
   "rewrites": [
     {
       "source": "/profile",
@@ -17,6 +50,18 @@
     },
     {
       "source": "/profile/mandalas",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/courses",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/photos",
+      "destination": "/"
+    },
+    {
+      "source": "/profile/profile",
       "destination": "/"
     },
     {

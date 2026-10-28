@@ -1,36 +1,685 @@
 # Reiki Yggdrasil — STATE
 
-Last updated: 2026-06-06
+Last updated: 2026-06-28
 
-## 2026-06-06 — Master chats links MVP
+## 2026-06-28 — Issue #490 admin mobile UX and participant email search
 
-- Branch: `codex/master-chats-links-mvp-rebased`, from `origin/main` at `8b7491f` (PR #299 merge).
-- Scope: add "Подтянуть ссылку" link-insertion panel to `/profile/chats` and a pure helper `src/lib/masterChatLinks.js`; add idempotent chat RLS migration. Realtime, payments, attachments, notifications, unread counters, and product cards were not implemented.
+- Branch target: `codex/issue490-admin-mobile-search`.
+- Live target: `https://2mentalica.vercel.app/profile/admin`.
+- Scope: `/profile/admin` and in-cabinet admin participant/course controls only; Supabase env values, RLS policies, auth redirects, public routes, and Vercel rewrites were not changed.
+- Root cause:
+  - Issue #490 documented that participant search failed for `Andy.litvinov@gmail.com` because the previous helper searched only `display_name`;
+  - fresh `origin/main` already included PR #491 adding `email.ilike`, but the search term still needed lowercase normalization and the panel still loaded generic/all-profile states before a query;
+  - the mobile admin course panel used desktop grid/form controls with limited mobile constraints, so course/access form rows could squeeze and overflow on iPhone width.
 - Changed:
-  - added `src/lib/masterChatLinks.js`: pure helpers `getMasterPagePath`, `getMasterPageUrl`, `getServicePath`, `getServiceUrl`, `getMasterPageInsertText`, `getServiceInsertText`, `filterPublishedServices`; generates only `/masters/:id` and `/services/:id` public paths; never exposes `storage://`, signed URLs, `image_bucket`, `image_path`, or private refs;
-  - updated `src/pages/profile-lite/ProfileLiteChatsModule.jsx`: right column now shows "Подтянуть ссылку" panel with "Моя страница мастера" button and list of own published services; clicking inserts plain-text link into the draft without auto-sending;
-  - no new Supabase migration: chat tables, RLS enable, and all six RLS policies (`participants read conversations`, `profile owners create conversations`, `participants read participant rows`, `owners join own conversations`, `participants read messages`, `participants send messages`, `owners manage chat favorites`) already exist in `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql` using the `profile_cabinet_owns_profile` and `profile_cabinet_is_chat_participant` UUID-based helpers; the initially added `20260606120000_master_chats_links_mvp.sql` was removed because it contained incorrect `auth.uid()::text` UUID comparisons and was redundant;
-  - updated `README.md` with migration description and master chat setup notes;
-  - added `test/masterChatLinks.test.mjs` with 17 pure-function assertions.
-- Verification:
-  - `node test/masterChatLinks.test.mjs` exited `0` (17/17 passed);
-  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:public-master`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
-  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
-- Local browser QA:
-  - preview server: `http://localhost:4380/`;
-  - Chrome browser MCP used;
-  - desktop `1280x920` and mobile `390x900` checked for all six routes: `/profile/chats`, `/profile/services`, `/services/test-service`, `/masters`, `/masters/demo-master`, `/profile/admin`;
-  - horizontal overflow was `0` on all routes at both viewports;
-  - console errors were `0`;
-  - DOM/HTML for all routes contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `image_bucket`, `image_path`, `object_refs`, `object_ref_urls`, or `Bearer`;
-  - Node.js script confirmed: `getMasterPageInsertText("test-profile-123")` → `/masters/test-profile-123` (no private refs); `getServiceInsertText({id:"svc-abc",title:"Зодиак"})` → `Зодиак: /services/svc-abc` (no private refs).
-- Supabase migration: no new migration needed; chat RLS already created by `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql`.
+  - admin participant search now trims/lowercases/sanitizes the PostgREST term and keeps display-name plus email `ilike` search with existing limit/order/auth;
+  - participant admin states now show explicit no-query, loading, not-found, and safe error copy;
+  - participant result rows use the clearer primary CTA `Сохранить уровень`;
+  - admin course/access cards now have mobile card hooks, one-column field rows below 760px, wrapped actions, full-width mobile CTAs, and access-first mobile ordering with `Сохранить доступ`.
+- Verification status:
+  - focused admin contract RED check failed before implementation on lowercase normalization, then passed after the patch;
+  - `npm ci`, `npm run test:master-plans`, `npm run test:profile-lite`, and `npm run build` passed locally;
+  - local mocked browser at 390x844 reached `/profile/admin`, showed the no-query guidance, found `andy.litvinov@gmail.com` after mixed-case `Andy.litvinov@gmail.com` input, and showed `Сохранить уровень` / `Сохранить доступ`.
 - Not verified:
-  - authenticated browser QA at `/profile/chats` with real sessions, real threads, and real service rows (Supabase not configured locally);
+  - real authenticated Supabase search/save on `https://2mentalica.vercel.app/profile/admin`;
+  - real iPhone Safari keyboard behavior;
+  - complete browser select/save interaction, because the MCP browser transport closed while changing comboboxes.
+
+## 2026-06-28 — Issue #480 Profile Lite courses nav integration
+
+- Branch target: `codex/profile-courses-nav-480`.
+- Live target: `https://2mentalica.vercel.app`.
+- Root cause:
+  - `/profile/courses`, query deep-links, and `ProfileLiteCoursesModule` already existed, but the real `Кабинет Личный` navigation is driven by `PROFILE_LITE_ROLE_NAV.client`;
+  - that role nav exposed `Мои заказы`, `Мои фото`, `Чаты`, `Профиль`, and admin-only `Админ`, but did not include the existing `courses` tab.
+- Changed:
+  - added `Мои курсы` to the real client-cabinet role navigation;
+  - included `courses` in the client role tab allowlist;
+  - added `/profile/photos` and `/profile/profile` as stable path aliases for the existing `Мои фото` and `Профиль` tabs;
+  - rendered the existing `AdminCoursesPanel` inside the authenticated in-cabinet `Админ` tab, while keeping `/profile/admin` as the direct admin route;
+  - extended route/nav contract tests for the real courses tab and `/profile/courses?...` deep-link support.
+- Verification status:
+  - `npm ci`, `npm run test:profile-lite`, `node test/profileLiteRoute.test.mjs`, `node test/profileLiteCabinetContract.test.mjs`, `node test/profileCoursesClient.test.mjs`, `node test/profileCourseInviteContract.test.mjs`, `npm run build`, `npm run check`, `npm run delivery:checks`, and `git diff --check` passed locally;
+  - retained existing warnings: one high-severity npm audit item, `RY-L04-S04` / `RY-L04-S05` video placeholder warnings, and Vite large-chunk / plugin timing warnings.
+- Not verified:
+  - post-merge live authenticated click-through on `https://2mentalica.vercel.app/profile/orders`;
+  - real admin course upload/grant/invite workflow through the deployed UI after this nav fix deploys.
+
+## 2026-06-28 — Issue #482 Personal Cabinet orders UI polish
+
+- Branch target: `codex/profile-orders-ui-polish`.
+- Live target: `https://2mentalica.vercel.app/profile/orders`.
+- Scope: authenticated Profile Lite Personal Cabinet `/profile/orders` UI polish only; auth/session/data flows and existing cabinet routes were not changed.
+- CURRENT_STATE before implementation:
+  - `/profile/orders` rendered the correct client orders module but felt sparse when empty;
+  - client role navigation omitted the existing Courses module entry even though `/profile/courses` and `ProfileLiteCoursesModule` existed;
+  - orders search/empty guidance was functional but too flat for a premium personal cabinet surface.
+- Changed:
+  - added `Мои курсы` to Personal Cabinet role navigation and allowed client-role routing to the existing `courses` tab;
+  - updated client orders hero and section copy to `Мои заказы и материалы` with guidance for orders, audio, mandalas, and master responses;
+  - improved the services search block, empty orders state, and desktop helper panel `Что можно сделать сейчас`;
+  - strengthened active tab and orders-surface CSS with scoped hover/press states, balanced wrapping, tabular counters, card shadows, and mobile single-column behavior.
+- Verification status:
+  - focused Profile Lite route/contracts, `npm ci`, `npm run test:profile-lite`, standalone route/contract tests, `npm run build`, `npm run check`, `npm run delivery:checks`, and `git diff --check` passed locally;
+  - local mocked-auth browser QA passed for `/profile/orders` at desktop 1280px, mobile 390px, and mobile 430px with horizontal overflow `0`.
+- Not verified:
+  - real authenticated staging session on `https://2mentalica.vercel.app/profile/orders`;
+  - post-merge Vercel deploy/alias proof.
+
+## 2026-06-27 — Issue #480 course audio access for Магия Денег / Градус 1
+
+- Branch target: `codex/full-course-audio-access-480`.
+- Live target: `https://2mentalica.vercel.app`.
+- Scope: extend the existing private Courses MVP in Profile Lite and `/profile/admin` for the course `Магия Денег` (`magic-money`) and step `Градус 1` (`degree-1`), with private audio and invite/claim links.
+- CURRENT_STATE before implementation:
+  - Courses tab: found;
+  - Admin course editor: partial;
+  - Course access UI: partial;
+  - Deep-link handling: partial;
+  - Audio upload/rendering: partial;
+  - Invite/claim infrastructure: partial;
+  - Storage RLS: needs migration.
+- Changed:
+  - added migration `20260627190000_profile_course_audio_invites.sql` for step/lesson slugs, lesson audio metadata, private course audio Storage policies, course invite table, and create/claim RPCs;
+  - extended `profileCoursesClient` with `magic-money` quick-create helpers, slug intent parsing, pending claim intent storage, invite link helpers, course invite claim/create RPC helpers, and audio attach patching;
+  - extended `profileMediaClient` with 100 MB audio validation, course audio upload paths, private upload/sign helpers, and lesson audio display resolution;
+  - Profile Lite now preserves `/profile?tab=courses&course=magic-money&step=degree-1`, selects requested course/step by slug, stores invite intent across Google OAuth, claims `/profile?claim=<token>...`, clears `claim` from URL, and signs accessible lesson audio before rendering;
+  - `/profile/admin` can quick-create `Магия Денег / Градус 1`, edit lesson audio metadata, upload/attach private audio, grant/revoke access, and create invite links.
+- Verification status:
+  - `npm ci`, `npm run test:profile-media`, `npm run test:profile-lite`, `node test/profileCoursesClient.test.mjs`, `node test/profileCourseInviteContract.test.mjs`, `npm run build`, `npm run check`, `npm run delivery:checks`, and `git diff --check` passed locally;
+  - local route smoke returned `200` for `/`, `/profile`, `/profile?tab=courses&course=magic-money&step=degree-1`, `/profile?claim=test-token&tab=courses&course=magic-money&step=degree-1`, `/masters`, `/profile/admin`, and `/profile/mandalas`.
+- Not verified:
+  - live Supabase migration application;
+  - real authenticated admin upload/attach, grant/revoke, invite claim, and audio playback on `https://2mentalica.vercel.app`;
+  - live Vercel deploy/commit proof.
+
+## 2026-06-27 — Admin participant cabinet-level management
+
+- Branch target: `codex/admin-cabinet-levels-20260627`.
+- Live target: `https://2mentalica.vercel.app`.
+- Scope: add `/profile/admin` controls for searching participant profiles and changing `profile_cabinet_profiles.account_plan` between Start, Практик, and Мастер.
+- Admin access:
+  - `/profile/admin` now accepts either the existing `VITE_ADMIN_EMAIL` fallback or the current authenticated user's row in `profile_cabinet_admins`;
+  - frontend reads only the current admin row through the existing `admins read own admin row` RLS policy.
+- Supabase:
+  - repo migration `20260625120000_profile_master_plan_modes.sql` is included in the migration runner allowlist;
+  - live Supabase project `dvzioccidlwfuuqbfhjl` now has migration `20260627085634 profile_master_plan_modes`;
+  - read-only live checks confirmed `account_plan` allows `start`, `pro`, `practic`, and `master`, and confirmed admin self-read plus profile admin select/update policies.
+- Verification:
+  - `npm install`, `npm run test:master-plans`, `npm run test:profile-lite`, `npm run check`, `npm run build`, and `npm run delivery:checks` passed;
+  - existing warnings remain: 1 high npm audit issue, `RY-L04-S04` / `RY-L04-S05` video placeholders, and Vite large chunk warning.
+- Not verified:
+  - real browser login as owner/admin on `https://2mentalica.vercel.app/profile/admin`;
+  - changing a participant plan through the deployed UI after merge/deploy;
+  - participant-side `/profile` display after an admin-level change.
+
+## 2026-06-27 — Admin panel inside Profile Lite cabinet
+
+- Branch target: `codex/profile-admin-tab-20260627`.
+- UX clarification:
+  - the primary admin management surface belongs inside the authenticated Profile Lite cabinet;
+  - `/profile/admin` remains a direct compatibility route.
+- Changed:
+  - extracted participant management into reusable `ProfileAdminPanel`;
+  - Profile Lite shows an `Админ` nav item only when the current authenticated user is an admin;
+  - admin detection checks `profile_cabinet_admins` first and uses `VITE_ADMIN_EMAIL` only as fallback;
+  - `/profile?tab=admin` renders the shared panel inside the existing cabinet shell;
+  - the shared panel can update both participant `account_plan` and profile `status`.
+- Verification:
+  - focused admin/Profile Lite contracts, `npm run build`, `npm run check`, and `npm run delivery:checks` passed locally.
+- Not verified:
+  - authenticated live admin session in the cabinet;
+  - real participant status/plan save through the deployed UI after merge/deploy.
+
+## 2026-06-26 — Master profile tab in master cabinet
+
+- Branch target: `codex/master-profile-tab-packages`.
+- Live target: `https://2mentalica.vercel.app`.
+- Scope: add the master-cabinet button `Профиль Мастера` after `Гримуар` and route it to the profile editor panel.
+- Persistence: reuses existing `profile_cabinet_profiles.bio` for `О себе` and existing `profile_cabinet_profiles.account_plan` for Start / Практик / Мастер through `src/lib/masterPlans.js`; no new backend table is introduced.
+- Notes:
+  - current `main` includes migration `20260625120000_profile_master_plan_modes.sql`, expanding `account_plan` to `start`, `pro`, `practic`, `master`;
+  - the tab is implemented as `masterProfile` and renders the existing profile save flow with the requested master-profile heading/helper copy;
+  - live authenticated Supabase save remains to be verified after merge/deploy.
+
+## 2026-06-24 — Grimoire multi-photo parent gallery
+
+- Branch: `codex/issue104-multi-photo-gallery`, based on `origin/main` at `927e875`.
+- Tracker/source check:
+  - task referenced `andylitvinov-design/report#104`, but live `https://2mentalica.vercel.app` serves the Reiki Yggdrasil bundle and `andylitvinov-design/report` `main` does not contain the `Мастерская` renderer;
+  - patch was applied to `andylitvinov-design/reiki-yggdrasil`, the codebase that currently serves the observed `2mentalica` Grimoire surface.
+- Scope: Profile Lite Grimoire material batching, card gallery rendering, attachment normalization, and contract tests only; Supabase env values, auth/RLS, public home page, report/PsiTherapy flows, and historical separate draft rows were not changed.
+- Changed:
+  - composer and bulk Grimoire uploads now create one parent material per selected batch instead of one material per file;
+  - parent materials normalize photo metadata to `attachments[]` in the app model and persist reload-safe metadata through the existing description field, avoiding a staging-schema dependency;
+  - Grimoire cards render a square responsive gallery with 1, 2, 3, 4, and 5+ photo states, including a `+N` overlay;
+  - edit/display paths strip hidden attachment metadata from the visible note text and keep post-level actions once.
+- Verification:
+  - focused material and Profile Lite contract tests passed;
+  - `npm ci`, `npm run build`, and `npm run delivery:check` passed;
+  - `npm test` is not defined in this repo.
+- Not verified:
+  - authenticated live multi-photo upload/reload on `https://2mentalica.vercel.app`;
+  - post-merge deploy and live visual QA.
+- Risk:
+  - existing historical separate photo drafts are intentionally not merged because there is no reliable shared parent key.
+
+## 2026-06-24 — Services mobile card/hero repair
+
+- Branch: `codex/issue97-services-mobile-live-20260624`, based on `origin/main` at `c704d2e`.
+- Tracker: `andylitvinov-design/report#97`; live source check showed `https://2mentalica.vercel.app` serves the Reiki Yggdrasil bundle, not the `report` repo bundle.
+- Scope: Profile Lite Services mobile layout, service-card thumbnail rendering, card-level status actions, and contract assertions only; storage/auth/Supabase schema, service data model, public home page, `production`, env values, and live data were not changed.
+- Changed:
+  - shortened the Services hero/title copy to `Услуги и шаблоны` with one compact helper line;
+  - removed the squeezed mobile split for the Services tab and forced the services workspace/list/groups to full width on mobile;
+  - service cards now render an existing `display_url` / `image_url` as the left thumbnail and use a designed placeholder when no image exists;
+  - service cards expose `Редактировать`, `Опубликовать`, and `Спрятать` actions while preserving the existing save/update/status handlers.
+- Verification:
+  - focused Profile Lite and Services tests passed;
+  - `npm ci`, `npm run build`, `npm run check`, and `npm run delivery:checks` passed;
+  - `npm test` and `npm run delivery:check` are not defined in this repo (`delivery:checks` is the actual script);
+  - local Chrome DevTools QA with mocked auth/Supabase at the Services route confirmed no horizontal overflow, compact hero, two service cards, 82px left thumbnails, and full-width 390px cards.
+- Not verified:
+  - real authenticated live Services save/edit/publish/hide against `2mentalica`;
+  - post-merge live deployment, because this entry records local branch state before merge/deploy.
+
+## 2026-06-24 — Grimoire mobile Facebook-like feed repair
+
+- Branch: `codex/issue97-grimoire-feed-clean`, based on `origin/main` at `5f59977`.
+- Scope: Profile Lite Grimoire layout/CSS and contract assertions only; storage helpers, Supabase schema, save/upload/edit/delete handlers, public home page, `production`, env values, and live data were not changed.
+- Root cause:
+  - `GrimoireRecordCard` already rendered Facebook-like `grimoirePost*` classes, but the stylesheet only had legacy `.grimoireRecordCard` side-rail rules for cards and actions.
+  - The composer file input was functionally wrapped but still lacked scoped hidden-input styling in the composer path.
+- Changed:
+  - added scoped post-card rules for header/avatar/date/status, single-column body, media preview, wrapping text, and footer actions;
+  - hid the native composer file input behind the styled drop/button area;
+  - made long filenames, categories, tags, status text, and action rows wrap on 390/430px mobile;
+  - added contract checks for post-card layout, handler wiring, mobile no-side-rail behavior, and hidden raw input.
+- Verification:
+  - `npm ci`, focused Profile Lite contract test, `npm run build`, `npm run check`, and `npm run delivery:checks` passed;
+  - live `https://2mentalica.vercel.app` still lacks `build-info.json`;
+  - live CSS asset still contains the legacy side-rail Grimoire card and lacks the new `grimoirePost*` CSS, so current live is stale until this branch is merged/deployed.
+- Not verified:
+  - real authenticated browser save/upload/edit/delete on live;
+  - local screenshot QA, because Playwright Chromium launch was blocked by macOS sandbox Mach-port permission.
+
+## 2026-06-19 — 2mentalica publication taxonomy live schema fix
+
+- Branch: `codex/live-schema-fix-main`, based on `origin/main` at `b4ae5cc`.
+- Scope: Supabase migration runner/contract only, plus live staging schema repair for `https://2mentalica.vercel.app`; Profile Lite UI, routes, auth/session/storage flows, env values, and `production` were not changed.
+- Root cause confirmed:
+  - `2mentalica` frontend bundle points to Supabase project `dvzioccidlwfuuqbfhjl`;
+  - live `profile_cabinet_publications` initially had none of `material_group`, `material_type`, `category`, or `subcategory`;
+  - the repo migrations existed, but `scripts/apply-reiki-supabase-migrations.mjs` did not allow the two publication taxonomy migrations and did not verify the four publication taxonomy columns.
+- Changed:
+  - added the two publication taxonomy migrations to the migration runner allowlist;
+  - added schema verification booleans for the four `profile_cabinet_publications` taxonomy columns;
+  - added contract assertions for runner allowlist and schema checks.
+- Live fix:
+  - applied the idempotent taxonomy recovery SQL to Supabase project `dvzioccidlwfuuqbfhjl`;
+  - ran `notify pgrst, 'reload schema';`;
+  - read-only schema check then returned `category`, `material_group`, `material_type`, and `subcategory`.
+- Verification:
+  - focused profile/material/media tests, `npm run check`, and `npm run build` passed;
+  - public live routes `/`, `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` returned `200`;
+  - live PostgREST select for `material_group`, `material_type`, `category`, and `subcategory` returned `200`.
+- Not verified:
+  - real authenticated mobile upload through the center image picker, because no owner/authenticated browser session was available in this run.
+- Risk:
+  - code deployment alone was not sufficient; the live project needed actual Supabase schema repair. Future runs should use `npm run supabase:migrations:apply`, but this local run could not use the vault-backed runner because the Secret Vault endpoint was unavailable.
+
+## 2026-06-18 — Profile publication taxonomy schema-cache recovery
+
+- Branch: `fix/profile-publications-category-schema-cache`, based on `origin/main` at `985a347`.
+- Scope: Supabase migration/docs/contracts only; public home page, RU UI, routes, Vercel rewrites, Supabase auth/session flow, and Profile Lite layouts were not changed.
+- Root cause:
+  - the mandala center image picker material upload path POSTs to `profile_cabinet_publications` with `material_group`, `material_type`, `category`, and `subcategory`;
+  - the repo already had an idempotent migration adding those columns, but live `2mentalica` can still fail if that migration was not applied or PostgREST kept a stale schema cache.
+- Changed:
+  - added `20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`, which safely re-adds the four taxonomy columns, preserves the taxonomy index, and runs `notify pgrst, 'reload schema';`;
+  - added a contract check that publication taxonomy migrations include idempotent columns and a PostgREST schema-cache reload;
+  - updated README Supabase setup with the required column check and schema-cache reload SQL.
+- Not verified:
+  - production/staging Supabase column state for `https://2mentalica.vercel.app`;
+  - real authenticated mobile upload/select in the live center image modal.
+- Risk:
+  - code deployment alone will not fix the production error unless the migration is applied to the Supabase project used by `2mentalica.vercel.app`.
+
+## 2026-06-18 — Profile Lite center photo scale control
+
+- Branch: `codex/fix-center-photo-scale-20260618`, based on `origin/main` at `985a347`.
+- Scope: `/profile/mandalas` Profile Lite Power Place center controls only; public homepage, `/profile`, `/masters`, `/profile/admin`, Supabase auth/data flows, migrations, Vercel rewrites, DAO geometry, and saved composition persistence were not changed.
+- Root cause:
+  - `ProfileLitePowerPlaceModuleBase.jsx` already read `__center_image_scale` and CSS already used `--power-center-image-scale`, but the constructor rendered only `Размер центра` for `__center_frame_scale`.
+  - `ProfileLitePowerPlaceModule.jsx` handled `__center_frame_scale` in `handleDraftChange`, but did not handle the existing `CENTER_IMAGE_SCALE_REF_KEY`.
+- Changed:
+  - added the visible `Масштаб фото` slider directly after `Размер центра`;
+  - mapped `Масштаб фото` to `object_refs.__center_image_scale` with the existing `0.65..2` clamp;
+  - kept `Размер центра` mapped to `object_refs.__center_frame_scale`;
+  - preserved center wheel/pinch zoom via `__center_image_zoom` and center image offsets.
+- Verification:
+  - `node test/profileLiteCabinetContract.test.mjs` failed before implementation on the missing constructor control contract, then passed after the fix;
+  - `node test/profileLiteCabinetContract.test.mjs`, `node test/powerPlaceStyleContract.test.mjs`, `npm run test:profile-lite`, `npm run test:power-place`, `npm run check`, and `npm run build` exited `0`;
+  - `npm install` was attempted but failed with local disk `ENOSPC`; final verification used the canonical checkout `node_modules` symlink;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning.
+- Local browser QA:
+  - mocked Supabase endpoint: `http://127.0.0.1:5999`;
+  - dev server: `http://127.0.0.1:4361/profile/mandalas`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop snapshot confirmed `Размер центра` and `Масштаб фото` controls render separately, `Масштаб фото` uses `photoScaleControl`, the mocked center photo source appears in the workspace, `ДАО` and `ДАО-Макет` remain visible, and horizontal overflow was `0`.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - physical browser slider drag after the Playwright MCP transport closed during click-based interaction;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+- Risk:
+  - live proof still depends on the `main` deploy reaching the `2mentalica` project and on authenticated owner/session QA for real saved compositions.
+
+## 2026-06-18 — Profile Lite client photo folder browser and moves
+
+- Branch: `codex/client-photo-browser-20260618`, based on `origin/main` at `0ce51f0`.
+- Scope: `/profile?tab=media`, `/profile/mandalas` image picker upload category behavior, client photo metadata update client, focused tests, and scoped media CSS only.
+- Root cause:
+  - constructor uploads for center/object/cover used the shared client-photo upload helper without a client category, so those photos were saved as `all`;
+  - the image picker reset the selected client folder to `all` after upload, so uploads made from a selected client folder did not stay visible in that folder;
+  - the media tab listed photos but had no metadata-only move action for existing `all` rows.
+- Changed:
+  - added `updateClientGoalPhotoCategory(photoId, profileId, clientCategory, session)` for `PATCH profile_cabinet_client_goal_photos` by `id` and `profile_id`;
+  - added a media file-browser rail with `Все файлы`, `Клиенты / Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`, disabled `Больше клиентов / Pro`, and `Материалы`;
+  - one mixed grid can show client photos and materials together under `Все файлы`, with materials view-only in the move system;
+  - client photo cards now show kind/category, preview status, keep delete, support drag/drop to folder targets, and include a move select fallback;
+  - Start plan cannot move into `pro-more-clients` and shows the existing Pro message;
+  - image picker preserves selected client category after upload instead of resetting to `all`.
+- Verification:
+  - `npm install`, `npm run test:profile-media`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run check`, and `npm run build` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the Vite large-chunk warning;
+  - mocked local browser QA with fake public Supabase env and mock REST/Auth/Storage confirmed desktop media folders/cards/materials, mixed `Все файлы`, dropdown move to `Клиент 2`, drag/drop to `Клиент 2`, disabled Pro target, mobile `390x900` horizontal overflow `0`, `/profile/mandalas` rendering, and console warnings/errors `0`.
+- Not verified:
+  - real authenticated staging Supabase upload/reload or drag/drop with a physical mouse;
+  - live `https://2mentalica.vercel.app` after merge/deploy.
+- Risks:
+  - live Supabase must already have `20260609_profile_client_photo_categories.sql` applied for the category column/constraint;
+  - existing `all` rows are intentionally not auto-backfilled and must be moved manually when the real client is known.
+
+## 2026-06-18 — Profile Lite Zodiac 2 dynamic count
+
+- Branch: `codex/fix-zodiac2-dynamic-count-and-inner-size`, based on `origin/main` at `0ce51f0`.
+- Scope: `/profile/mandalas` Profile Lite Power Place Zodiac React/CSS/contracts only; Supabase env values, auth/data flows, Vercel routing, public home page, `/profile`, `/masters`, and `/profile/admin` were not changed.
+- Root cause:
+  - `ProfileLitePowerPlaceModuleBase.jsx` hardcoded `ZODIAC_2_INNER_SLOTS` to 12 slots.
+  - `buildSlotList` forced `baseVisibleCount` to 12 for Zodiac 2 and returned the fixed inner slot array.
+  - The old single Zodiac selector reset `zodiac_visible_count` to 12 when selecting Zodiac 2.
+- Changed:
+  - split Zodiac format choice (`Зодиак 1`, `Зодиак 2`, `8+`) from count choice (`2`, `4`, `6`, `8`, `12`);
+  - kept legacy `zodiac-2-12` as the Zodiac 2 format value;
+  - made Zodiac 2 outer and inner slots use the selected `zodiac_visible_count`;
+  - preserved fallback `12` for old saved Zodiac 2 compositions without `zodiac_visible_count`;
+  - scaled only `.zodiac-2-format .zodiacInnerPositionImage` by `1.5`.
+- Verification:
+  - `npm install`, `node test/profileLiteCabinetContract.test.mjs`, `node test/powerPlaceStyleContract.test.mjs`, `node test/powerPlaceClient.test.mjs`, `npm run check`, and `npm run build` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and the existing Vite large-chunk warning;
+  - `npm install` reported one high-severity npm audit item; no dependency fix was applied because it would be unrelated churn.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4351/profile/mandalas`;
+  - mock Supabase: `http://127.0.0.1:4352`;
+  - fake public Supabase env/session and mocked Auth/REST responses only;
+  - desktop 1280x920 and mobile 390x900 confirmed Zodiac 1 renders 2/4/6/8/12 outer slots with no inner slots;
+  - desktop 1280x920 and mobile 390x900 confirmed Zodiac 2 renders 2+2, 4+4, 6+6, 8+8, and 12+12 outer/inner slots;
+  - computed transform for Zodiac 2 inner slots was `matrix(1.5, 0, 0, 1.5, 0, 0)`;
+  - horizontal overflow was `0` and captured runtime errors were `0`;
+  - a mocked legacy saved composition with `zodiac_variant: "zodiac-2-12"` and no `zodiac_visible_count` opened as 12 outer + 12 inner slots.
+- Not verified:
+  - real authenticated Supabase save/update/reload against live data;
+  - Vercel preview/main deployment and live `https://2mentalica.vercel.app/profile/mandalas` behavior.
+
+## 2026-06-17 — Profile Lite material picker taxonomy fix
+
+- Branch: `codex/fix-profile-lite-material-picker-categories`, based on `origin/main` at `b5f2136`.
+- Scope: `/profile/mandalas` Profile Lite image picker, material publication metadata client, saved-image mapping, focused tests, and Supabase migration only.
+- Changed:
+  - saved Materials picker keeps the top tabs `Клиенты`, `Материалы`, `Символы`, `Загрузить своё`;
+  - Materials tab now filters by the same four fields as material upload: `Группа`, `Тип материала`, `Категория / ступень`, `Подкатегория`;
+  - material image metadata is normalized from snake_case and camelCase fields: `material_group` / `materialGroup` / `group`, `material_type` / `materialType` / `type`, `step_id` / `stepId`, `step_title` / `stepTitle`, `setting_title` / `settingTitle`, `category`, `subcategory`;
+  - legacy rows without structured metadata remain visible under `Все` and non-strict fallback matching;
+  - `profile_cabinet_publications` gets `material_group`, `material_type`, `category`, and `subcategory` columns in migration `20260617120000_profile_cabinet_publication_material_taxonomy.sql`.
+- Verification:
+  - focused material and Profile Lite contract tests passed;
+  - `npm run check` and `npm run build` passed using the clean worktree with the canonical `node_modules` symlink after local disk space blocked a fresh install;
+  - mocked local browser QA on `/profile/mandalas` confirmed desktop and 390px mobile picker controls, selected `Каналы / Мандала / RY-L01-S01 / Лечение`, old material fallback under `Все`, horizontal overflow `0`, and no console warnings/errors.
+- Not verified:
+  - real authenticated upload/reload against live Supabase data;
+  - live `https://2mentalica.vercel.app` behavior before deploy.
+- Risk:
+  - live Supabase must apply the new migration before new material taxonomy columns can be written there.
+
+## 2026-06-15 — DAO layout vertical stack refinement
+
+- Branch: `codex/dao-layout-stack-refine-20260615`, based on `origin/main` at `e601811` after PR #381.
+- Scope: `ДАО-Макет` composition only; normal `ДАО`, public homepage, Vercel routing/domains, env values, Supabase RLS, and database schema were not changed.
+- Root cause:
+  - `dao-layout` reused the normal DAO renderer, so the standalone center photo could remain visually independent from the layout outline.
+  - The vertical DAO option contract was still tied to the normal `[3, 5, 7, 9]` count set instead of the requested `ДАО-Макет` inner mini-mandala order.
+- Changed:
+  - added a dedicated `ДАО-Макет` inner stack: central client photo first, then mini-mandalas `3`, `4`, `5`, `7`;
+  - rendered a Latin `P` marker in the upper standalone marker position above the outline body;
+  - shifted the `ДАО-Макет` outline body downward and sized the desktop/mobile stack so the center photo and mini-mandalas stay inside the body;
+  - preserved `object_refs.__dao_layout_options` and legacy `object_refs.__dao_layout_template_options` behavior;
+  - kept normal `ДАО` render branches and the old DAO count selector unchanged.
+- Verification:
+  - `npm install`, focused contract tests, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - local mocked browser QA on `http://localhost:5185/profile/mandalas` confirmed desktop and mobile geometry: `P` above body, center photo area inside body, slot order `3,4,5,7`, vertical order continuous, horizontal overflow `0`, console errors `0`;
+  - center image selection through the mocked picker rendered inside the `ДАО-Макет` body.
+- Not verified:
+  - real authenticated staging Supabase save/reload;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+- Risks:
+  - headless local picker QA did not complete mini-slot image selection because of modal hit-testing; saved/ref persistence for mini slots is covered by `test/powerPlaceClient.test.mjs`.
+
+## 2026-06-15 — DAO layout format split and mobile photo/window restore
+
+- Branch: `codex/dao-layout-format-20260615`, based on `origin/main` at `31b8574` after PR #379 (`0bf0daf`) and PR #378.
+- Scope: Profile Lite Power Place DAO constructor runtime, persistence normalization, focused tests, and one minimal Supabase constraint migration; public homepage, `/profile`, `/masters`, `/profile/admin`, env values, Vercel routing, and non-DAO formats were not changed.
+- Root cause:
+  - PR #379 registered `dao-layout-template` as a DAO style and routed it to `renderDaoLayoutTemplate()` before the normal DAO style branches.
+  - That branch rendered only the empty talisman outline, so the central photo and mini-mandala window layer were replaced instead of overlaid.
+- Changed:
+  - added separate constructor format `dao-layout` with UI label `ДАО-Макет`;
+  - kept normal `dao` / `ДАО` behavior separate and without the layout-options block;
+  - `ДАО-Макет` uses the same DAO style picker library as `ДАО`;
+  - layout options render only for `dao-layout` or legacy saved `dao-layout-template`;
+  - layout outline is drawn by `.daoLayoutTemplateOverlay` with `pointer-events: none`, after the selected DAO base style;
+  - center photo, DAO element window slots, inner/outer cover layers, and scale controls remain visible under the overlay;
+  - new persistence key is `object_refs.__dao_layout_options`;
+  - legacy `object_refs.__dao_layout_template_options` is still read;
+  - legacy saved `object_refs.__dao_style: "dao-layout-template"` normalizes at runtime to `constructor_type: "dao-layout"` with base `__dao_style: "style-1"`;
+  - added migration `20260615123000_power_place_dao_layout_format.sql` to allow `constructor_type='dao-layout'` in the existing check constraint.
+- Verification:
+  - `npm install` exited `0`;
+  - `node test/profileLiteCabinetContract.test.mjs`, `node test/powerPlaceClient.test.mjs`, and `node test/powerPlaceStyleContract.test.mjs` exited `0`;
+  - `npm run check` exited `0`;
+  - `npm run build` exited `0`;
+  - retained known warnings: `RY-L04-S04` / `RY-L04-S05` video placeholders and Vite large-chunk warning.
+- Local browser QA:
+  - no-env dev server at `http://localhost:5173/profile/mandalas` showed the expected Supabase-not-configured gate and console errors `0`;
+  - mock Supabase server at `http://127.0.0.1:5999` plus env-backed dev server at `http://localhost:5174/profile/mandalas`;
+  - desktop/mock QA confirmed `ДАО-Макет` format option, DAO style picker, layout options, five DAO slot buttons, center layer, overlay `pointer-events: none`, horizontal overflow `0`, and console errors `0`;
+  - saved mock `dao-layout` composition with center and DAO window refs loaded with center image `hasImage=true`, five slots, two saved mini-window images, overlay present, and console errors `0`;
+  - mobile emulation `390x900` confirmed `ДАО-Макет`, center image `hasImage=true`, five slots, two saved mini-window images, overlay present, `pointer-events: none`, horizontal overflow `0`, and console errors `0`;
+  - normal `ДАО` confirmed heading `ДАО`, five DAO slots, and layout options hidden.
+- Not verified:
+  - real authenticated Supabase save/update/reload against live staging data;
+  - Vercel deployment and live `https://2mentalica.vercel.app` behavior until PR is merged/deployed.
+- Risks:
+  - live Supabase must apply the new check-constraint migration before newly saved `dao-layout` compositions can persist; old saved `dao-layout-template` rows still render through runtime normalization.
+
+## 2026-06-15 — DAO reference fu outline style library
+
+- Branch: `codex/dao-fu-reference-outlines`, based on fresh `origin/main` at `803d924`.
+- Scope: `/profile/mandalas` DAO style library only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase schema/RLS/migrations, env values, Vercel routing/domains, object-ref storage rewrite, or production branch changes.
+- Changed:
+  - added six selectable DAO outline style IDs: `dao-fu-wide-gate-roof`, `dao-fu-narrow-banner-roof`, `dao-fu-grand-gate-p`, `dao-fu-bottle-p`, `dao-fu-node-column`, and `dao-fu-soft-shoulder-banner`;
+  - rendered the new styles as empty transparent red SVG contours with roofs, side nodes/stubs, rectangular/banner/cylinder bodies, and no internal Chinese/Japanese text, copied calligraphy, trigrams, seals, or sigils;
+  - placed the Latin `P` only in the top gap between roof and body for `dao-fu-grand-gate-p` and `dao-fu-bottle-p`;
+  - extended the Profile Lite DAO style normalizer so saved compositions can reopen these new stable `__dao_style` values.
+- Verification:
+  - `npm install` was attempted first but failed locally with `ENOSPC`; verification used the canonical checkout `node_modules` symlink because the machine had about 116 MB free;
+  - `npm run test:power-place`, `npm run check`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - mocked Supabase/session dev server with dummy local env names: `http://localhost:4424/profile/mandalas`;
+  - desktop `1280x920` and mobile `390x900`: DAO selector showed all six new labels, each variant selected and rendered `.daoFuReferenceOutline`, no CJK text appeared, no center/slot buttons appeared inside the empty contours, the two `P` variants kept `P` in the top roof/body gap, mobile horizontal overflow was `0`, and console warnings/errors were `0`;
+  - routes `/`, `/profile`, `/masters`, `/profile/admin`, and `/profile/mandalas` rendered without framework overlay in the local mocked browser session.
+- Not verified yet:
+  - deployed `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy;
+  - real authenticated staging Supabase save/reopen of compositions using the new DAO style IDs.
+
+## 2026-06-15 — Mobile Power Place UX fix
+
+- Branch: `codex/mobile-power-place-ux-373`, based on fresh `origin/main` at `e81b254`.
+- Scope: `/profile/mandalas` Power Place mobile layout only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase schema/RLS/migrations, env names/values, Vercel routing/domains, or `production` branch changes.
+- Changed:
+  - moved `Внутрь / Снаружи` cover layer drop targets out of `.powerPlacePrintArea` / `.powerMandalaPanel`;
+  - rendered those targets as a horizontal control below the mandala preview while preserving `cover_ref.inner` / `cover_ref.outer` picker and drag/drop handlers;
+  - moved the title/save/update/create/print/PDF/service action card after the right-side modules in source order so mobile shows it after `Библиотека`, `Фон Места Силы`, and `Отчёт`;
+  - hid the visible `Публичная проекция` form behind `SHOW_POWER_PLACE_FEED_PROJECTION = false` while leaving feed handlers/form code in place;
+  - made `openPowerPlacePdfPrintView()` return its double-RAF/image/font promise and made print/PDF handlers await it, so async clone/load failures surface in the UI message.
+- Verification:
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm install` was attempted first but failed locally with `ENOSPC`; verification used the canonical checkout `node_modules` symlink because the machine had about 126 MB free;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings.
+- Local browser QA:
+  - mocked Supabase/session dev server with dummy local env names: `http://localhost:4423/profile/mandalas`;
+  - mobile `390x844` and `390x900`: DAO rendered, `Внутрь / Снаружи` appeared horizontally below the mandala preview, the controls were not inside `.powerPlacePrintArea`, actions appeared after `Библиотека`, `Фон Места Силы`, and `Отчёт`, `Публичная проекция` was hidden, service buttons remained visible, horizontal overflow was `0`, and console errors were `0`;
+  - mobile Print and Download PDF popup captures both cloned `.powerPlacePrintArea` with latest `--power-source-slot-scale: 1.85`, `--power-field-scale: 145%`, and `--power-center-frame-scale: 1.85`, and the clones did not include `.powerMandalaCoverDropTargets`;
+  - desktop `1280x920`: DAO rendered, three-column widths were `260 / 620 / 340`, horizontal overflow was `0`, and console errors were `0`.
+- Not verified yet:
+  - deployed `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy;
+  - real authenticated Supabase drag/drop against staging Storage/RLS.
+
+## 2026-06-15 — DAO talisman visual authenticity v3
+
+- Branch: `codex/dao-talisman-authenticity-v3`, based on fresh `origin/main` at `c3f6cf5`.
+- Scope: `/profile/mandalas` DAO visual polish only; no React constructor rewrite, Supabase schema, routes, save behavior, object refs, env names/values, picker, drag/drop, pan/zoom, print/PDF flow, production branch, or deploy fallback changes.
+- Changed:
+  - replaced the four fulu contour SVGs with paper-like decorative Daoist-inspired abstract forms: `Фу-лист`, `Облачный реестр`, `Громовая табличка`, and `Таофу`;
+  - kept SVG marks as abstract pseudo-calligraphy only, with no readable sacred script or copied talisman formulas;
+  - flattened DAO nodes into smaller red-gold seal-like stamps and reduced glossy orb styling;
+  - refined `talisman-1` circular seal spacing and `talisman-2` vertical node spacing for 3/5/7/9 nodes;
+  - strengthened `test/powerPlaceStyleContract.test.mjs` to require distinct fulu SVGs, no readable sacred script, paper-like surfaces, abstract linework, and scoped DAO node rules.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings.
+- Local browser QA:
+  - dev server: `http://127.0.0.1:4412`;
+  - unauthenticated `/profile/mandalas` rendered the expected Supabase-not-configured fallback, so real authenticated builder UI was not reachable locally;
+  - CSS/DOM harness using the actual app CSS checked all 7 DAO styles at desktop `1280x920` and mobile `390x900`: style-1 had no fulu contour, talisman-1 stayed circular/seal-like, talisman-2 rendered 3/5/7/9 nodes, all four fulu assets were distinct, horizontal overflow was `0`, and console warnings/errors were `0`.
+- Not verified yet:
+  - real authenticated builder UI in staging/test Supabase;
+  - Vercel preview and `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
+## 2026-06-14 — DAO background reference assets fit the outer cover
+
+- Branch: `codex/fix-dao-background-contain-fit`, based on fresh `origin/main` at `3ec0b47`.
+- Scope: `/profile/mandalas` Power Place DAO background library fit behavior only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase migrations, Vercel routing, env values, symbol mode behavior, inner cover behavior, or layout structure changes.
+- Changed:
+  - marked the four DAO reference backgrounds `Фу-лист`, `Облачный реестр`, `Громовая табличка`, and `Таофу` with `fit: "contain"`;
+  - preserved fit metadata through library click/drag payloads, cover state, and additive `cover_ref.outer.fit` / `cover_ref.outer.cover_fit` normalization;
+  - added scoped `.profileLitePowerPlace .powerMandalaPanel.has-custom-outer-cover.outer-cover-fit-contain` CSS so only opt-in outer covers use contain sizing.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite plugin timing warning.
+- Local browser QA:
+  - mocked Supabase/session dev server: `http://localhost:4407`;
+  - desktop `1280x920`: selected DAO, `Библиотека → Фон → ДАО`, clicked all 4 backgrounds; each applied to the outer cover with `background-size: auto, contain, auto`, centered/no-repeat layers, DAO asset present, selected mini-cell background unchanged, horizontal overflow `0`, console errors `0`;
+  - mobile `390x900`: all 4 DAO backgrounds visible, `Фу-лист` and the other DAO backgrounds applied with contain sizing, horizontal overflow `0`, console errors `0`.
+- Not verified yet:
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
+## 2026-06-14 — DAO fulu single-contour render contract
+
+- Branch: `codex/fix-dao-fulu-single-contour`, based on fresh `origin/main` at `3ec0b47`.
+- Scope: `/profile/mandalas` DAO fulu visual styles only; no Supabase schema, routes, save/update/create-new, print/PDF actions, drag/drop, picker, pan/zoom, object ref keys, Mandala styles, or classic DAO `style-1` changes.
+- Changed:
+  - kept the four DAO style values `fu-paper-slip`, `cloud-register`, `thunder-tablet`, and `taofu-charm`;
+  - replaced the public `/symbols/power-place/dao/fulu/*.svg` assets with empty outline-only talisman contours;
+  - removed the fulu fallback paper, side rails, top/base bars, header marks, footer seal, and style pseudo-element overlays from the fulu render/CSS path;
+  - kept one `daoFuluContourLayer` as the only visible fulu frame, with existing center/node slot ids and interactions inside the empty talisman area.
+- Verification:
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run build` retained the existing Vite large-chunk warning;
+  - local CSS/DOM browser harness at `http://localhost:4408/profile/mandalas` checked `Фу-лист`, `Облачный реестр`, `Громовая табличка`, and `Таофу`: one contour layer each, removed overlay classes `0`, outer sheet border `0px`, transparent sheet background, slots inside sheet, desktop/mobile harness overflow `0`.
+- Not verified yet:
+  - real authenticated builder UI in local/staging Supabase;
+  - live `https://2mentalica.vercel.app/profile/mandalas` after merge/deploy.
+
+## 2026-06-14 — DAO background reference assets restored
+
+- Branch: `codex/restore-dao-reference-backgrounds`, based on fresh `origin/main` at `c21ad5c`.
+- Scope: `/profile/mandalas` Power Place background library assets only; no homepage, `/profile`, `/masters`, `/profile/admin`, Supabase migrations, Vercel routing, env values, save/update persistence, symbol mode behavior, or layout structure changes.
+- Source references:
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-fu-paper-slip.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-lu-register-document.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-lingpai-command-tablet.svg`;
+  - `origin/docs/dao-fulu-scroll-shape-examples-20260609:docs/product/assets/dao-fulu-scroll-shapes/dao-taofu-wood-charm.svg`.
+- Changed:
+  - replaced the four generated DAO background placeholder SVGs under `public/symbols/power-place/dao/backgrounds/` with the saved reference contour SVGs;
+  - preserved durable public runtime paths and labels `Фу-лист`, `Облачный реестр`, `Громовая табличка`, `Таофу`;
+  - kept `kind: "power-place-background"` and `shelf: "dao"`;
+  - updated background metadata/tests from draft placeholders to reference backgrounds.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run build` and `npm run check` retained the existing Vite large-chunk warning;
+  - `npm run check` retained the existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings;
+  - local mocked Supabase/session browser QA at `http://localhost:4399/profile/mandalas` passed desktop `1280x920` and mobile `390x900`: `Библиотека` above `ФОН МЕСТА СИЛЫ`, background mode `ДАО` showed all 4 reference backgrounds, desktop clicks updated only the outer cover `4/4`, selected mini-cell did not receive a background, horizontal overflow was `0`, and console errors were `0`.
+- Risks:
+  - source SVG descriptions still state they are decorative draft references, not ritual formulas;
+  - live `https://2mentalica.vercel.app/profile/mandalas` verification depends on merge/deploy.
+
+## 2026-06-11 — Power Place static symbol library and mobile picker sources
+
+- Branch: `codex/power-place-symbol-library`, based on fresh `origin/main` at `1f1e5a7`.
+- Scope: `/profile/mandalas` Power Place constructor and image picker only; no homepage, production branch/domain, Supabase env/auth redirects, Vercel rewrites, Supabase migration, or save/update persistence contract changes.
+- Changed:
+  - added static `src/data/powerPlaceSymbolLibrary.js` with shelves `zodiac`, `star`, `chess`, `client`, `altar`, `business`, `dao`;
+  - added 14 draft SVG public assets under `public/symbols/power-place/**`, all marked `draft / needs review` and stored as durable `/symbols/...svg` paths;
+  - added the `Библиотека` module directly below `Фон Места Силы`, with `Полка` dropdown defaulting from `compositionDraft.constructor_type`;
+  - manual shelf selection is preserved when the Power Place format changes in the same session;
+  - symbol clicks use existing `chooseImage` / `assignPowerPlaceSlotImage`, and desktop drag uses existing `handleSavedImageDragStart` plus slot drop handlers;
+  - updated mobile picker sources to `Клиенты`, `Материалы`, `Символы`, `Загрузить своё`;
+  - added client second level `Все`, `Клиент 1`, `Клиент 2`, `Клиент 3`, and disabled `Больше клиентов / Pro mode /` unless `accountPlan === "pro"`;
+  - added materials category dropdown default `Новые` and symbols `Полка` dropdown defaulting from constructor type;
+  - kept client upload fields to `Название фото` and `Подкатегория`;
+  - reduced only image-picker thumbnails with scoped `.profileLiteImagePicker*` CSS and added a sticky safe-area header plus large `×` close button.
+- Verification:
+  - `npm install` exited `0`;
+  - `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run build`, and `git diff --check` exited `0`;
+  - `npm run build` retained the existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4392/`;
+  - `/profile/mandalas` opened and rendered the expected Supabase-not-configured fallback in the no-env local session;
+  - mobile viewport `390x900` screenshot saved to `profile-mandalas-mobile-390x900-symbol-library.png`;
+  - browser console warnings/errors: `0`.
+- Not verified:
+  - real authenticated builder UI with staging Supabase data/session;
+  - real drag/drop into mini-mandala cells in browser against authenticated data;
+  - Vercel preview/test site deployment and live `https://2mentalica.vercel.app/profile/mandalas` verification.
+- Risks:
+  - symbol artwork is placeholder-only and intentionally needs review;
+  - live visual QA still depends on the staging/test Supabase env and deployment after merge.
+
+## 2026-06-08 — Power Place Фото / Видео mode Phase 1-3
+
+- Branch: `codex/power-place-video-mode-20260608`, based on `origin/main` at `d88ae81`.
+- Scope: `/profile/mandalas` Power Place constructor only; no homepage, `/masters` public logic, `/profile/admin`, Supabase auth, Vercel rewrites, env values, production branch/deploy config, or Supabase migration changes.
+- Persistence:
+  - video settings are stored only in `object_refs.__motion_settings`;
+  - shape: `{ mode, count, direction, step_seconds, video_background_ref }`;
+  - `Фото` defaults to `{ mode: "photo", count: 1, direction: "clockwise", step_seconds: 2, video_background_ref: "" }`;
+  - `data:image`, `data:video`, Supabase signed URLs, and unknown nested object refs are stripped; durable scalar refs continue to persist.
+- Changed:
+  - added `Фото / Видео` controls to the constructor while keeping `Фото` as the default mode;
+  - added `Видео 1 / Видео 4`, `По часовой / Против часовой`, and `1 сек / 2 сек / 3 сек` controls with stable data markers;
+  - added interval-driven motion copies from the central photo;
+  - added honest Phase 1-3 placeholders: `Видео-фон: needs implementation` and `Экспорт видео: needs implementation`;
+  - added scoped motion CSS with `pointer-events: none`, mobile sizing, and reduced-motion transition disabling.
+- Supported motion mappings:
+  - client: visible `geometry` count;
+  - zodiac: visible zodiac count;
+  - star: 5 fixed star points;
+  - dao: 5 clock-like points;
+  - business: 3 vertices;
+  - altar: 5 top + 2 bottom support points;
+  - chess: `compact-5`, `plus-8`, `classic-8`, and `classic-14` without center traversal.
+- Verification:
+  - `npm install`, `npm run test:power-place`, `npm run test:profile-lite`, `npm run test:profile-media`, `npm run test:profile-services`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and Vite large-chunk warning.
+- Local browser QA:
+  - unauthenticated/no-env route rendered safe Supabase-not-configured fallback;
+  - mocked Supabase/session dev server at `http://127.0.0.1:4389/`;
+  - routes `/`, `/profile`, `/profile/mandalas`, `/profile/services`, `/masters`, and `/profile/admin` returned `200`;
+  - desktop `/profile/mandalas`: client `4/12`, zodiac `12`, star, dao, business, altar, chess `compact-5`, `plus-8`, `classic-8`, and `classic-14` all showed video controls, active count/direction/timing markers, honest video-background/export text, and horizontal overflow `0`;
+  - mocked center-photo selection rendered `Видео 4` with 4 motion copies and horizontal overflow `0`;
+  - mobile `390x900` with mocked center photo kept horizontal overflow `0`, motion controls `1`, motion copies `4`, and export button `1`;
+  - browser console logs contained only React DevTools info messages.
+- Not verified:
+  - real authenticated Supabase save/reload/update/service conversion with production or staging data;
+  - real drag/drop upload and center-photo edit persistence against Storage/RLS;
   - Vercel preview, production/legacy live URLs, and Google OAuth.
-- Security:
-  - insert text contains only public `/masters/:id` or `/services/:id` paths;
-  - `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `image_bucket`, `image_path`, `object_refs`, `object_ref_urls`, `Bearer`, and env values are not referenced anywhere in the new code.
+- Risks:
+  - local manual QA used a mock Supabase server and fake session, so live RLS/storage behavior still needs environment verification;
+  - no real video upload/export exists in Phase 1-3 by design.
+
+## 2026-06-07 — Private Courses MVP with individual access
+
+- Branch: `codex/profile-courses-individual-access-mvp`, clean worktree from `origin/main` at `0b0584c`.
+- Scope: private Courses MVP inside the existing Profile Lite cabinet and `/profile/admin`; no payments, progress, certificates, homework, quizzes, comments, notifications, drip access, public course catalog, public feed integration, public master-page course cards, private video upload, production deploy, or live Supabase migration.
+- Migration added:
+  - `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`;
+  - adds `profile_cabinet_courses`, `profile_cabinet_course_steps`, `profile_cabinet_course_lessons`, and `profile_cabinet_course_access`;
+  - uses individual access only: `access_scope='course'` + `step_id is null` for full course access, `access_scope='step'` + `step_id` for step access, lessons inherit parent-step access, revoked rows keep `status='revoked'`;
+  - RLS reuses existing `profile_cabinet_is_admin()` for admin CRUD and allows profile owners to read only personally accessible published courses/steps/lessons/access rows.
+- Changed:
+  - added `src/lib/profileCoursesClient.js` with normalizers, RU labels, `buildCourseAccessIndex`, admin CRUD, grant/revoke, and available-course/step/lesson loaders;
+  - added `/profile/courses` manual route and Vercel SPA rewrite;
+  - added visible Profile Lite tab `Курсы` between `Гримуар` and `Услуги`;
+  - added `ProfileLiteCoursesModule.jsx` with left course list, center selected course/steps/lessons, and right access note;
+  - wired separate course, step, and lesson effects into `ProfileLitePage.jsx`;
+  - extracted `src/pages/admin/AdminCoursesPanel.jsx` for compact course, step, lesson, access manager, and current access list inside `/profile/admin`;
+  - updated migration apply allowlist/schema checks and README setup list.
+- Master UI behavior:
+  - `/profile/courses` shows only loaded accessible published courses, available published steps, and published lessons inside the selected accessible step;
+  - lesson `body` renders as plain text, YouTube/Vimeo iframe embeds are allowed, other safe public video URLs render as external links, and audio renders only for safe `http/https` URLs;
+  - storage refs, signed URL markers, bearer markers, and env values are filtered from course media rendering.
+- Admin UI behavior:
+  - `/profile/admin` now has `Курсы и доступы`;
+  - admin can create/update courses, steps, lessons, grant full-course or specific-step access, view current access rows, and revoke by patching `status='revoked'`;
+  - approved master profile selector uses display name and `user_id` fallback because profile rows do not store email.
+- Verification:
+  - `node test/profileCoursesClient.test.mjs` exited `0`;
+  - `npm run test:profile-lite`, `npm run test:profile-services`, `npm run test:profile-materials`, `npm run test:profile-feed`, `npm run test:public-master`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning;
+  - local preview route HTTP checks returned `200` for `/`, `/profile/courses`, `/profile/admin`, `/profile`, `/profile/services`, and `/masters`.
+- Not verified:
+  - live Supabase migration application, authenticated admin CRUD/grant/revoke against real Supabase, authenticated master course access with real rows, Vercel preview, production/legacy live URLs, Google OAuth, desktop/mobile visual browser QA.
+- Tooling note:
+  - `npm install` in the clean worktree failed with `ENOSPC`; validation used a temporary symlink to the canonical checkout `node_modules`, then removed it;
+  - Playwright MCP browser transport was closed and Chrome DevTools MCP reported a profile conflict, so visual/browser QA could not be completed in this turn.
+- Risks:
+  - live course UI remains empty or `needs-verification` until the new migration is applied and course/access rows exist;
+  - admin writes depend on real `profile_cabinet_admins` membership and live RLS state;
+  - real course media URLs should be reviewed to avoid storing private signed URLs in lesson fields.
+
+## 2026-06-06 — Public Master Page visual polish
+
+- Branch: `codex/public-master-page-polish-20260606`, based on `origin/main` at `8b7491f`.
+- Scope: visual/UI polish only for `/masters/demo-master` and the existing public master page components; no Supabase migration, no production branch changes, no deploy/fallback workflow.
+- Changed:
+  - replaced the dark empty cover with a lighter parchment/gold/green textured hero;
+  - moved avatar, name, role, city, bio, counters, and actions into one Facebook-like master header;
+  - changed the demo/fallback avatar from a mandala symbol to a portrait-style placeholder;
+  - made tabs compact, horizontal, icon-led, and underline-active;
+  - changed feed cards from large blog cards to compact list rows with left thumbnails, right content, date, category, and CTA alignment;
+  - tightened the right sidebar into compact public cards for `О мастере`, contacts, quote, status, safety, and navigation;
+  - removed visible technical private-reference wording from public sidebar copy.
+- Verification:
+  - `npm run test:public-master`, `node test/profileLiteRoute.test.mjs`, `npm run build`, `npm run check`, and `git diff --check` exited `0`;
+  - `npm run check` retained existing `RY-L04-S04` / `RY-L04-S05` video placeholder warnings and existing Vite large-chunk warning.
+- Local browser QA:
+  - dev server: `http://localhost:4370/`;
+  - screenshots captured for `/masters/demo-master` at desktop `1280x920` and mobile `390x900`;
+  - desktop `1280x920`: hero, tabs, right rail, and 2 visible compact feed cards were in the first viewport; after scroll position from the screenshot run, 3 feed cards were visible; horizontal overflow `0`;
+  - mobile `390x900`: stacked hero/tabs/sidebar flow had horizontal overflow `0`;
+  - route sweep checked `/`, `/masters`, `/masters/demo-master`, `/profile`, `/profile/services`, and `/profile/admin` at desktop and mobile for route rendering, no framework overlay, and horizontal overflow `0`;
+  - `/masters/demo-master` DOM/text contained no `storage://`, `profile-cabinet-media`, `/storage/v1/object/sign`, `signedURL`, `signed URL`, `object_refs`, `object refs`, bearer token markers, or composition JSON markers;
+  - Playwright desktop aggregate console check showed errors `0` and warnings `0`; the MCP browser target closed before the final mobile aggregate console pull, but each mobile route rendered without framework overlay.
+- Not verified:
+  - real Supabase public rows, Vercel preview, production/legacy live URLs, Google OAuth, and staging/client dashboard setup.
+- Risks:
+  - the demo portrait is CSS-generated, not a real uploaded master photo;
+  - real master rows still depend on public-safe approved data from Supabase.
 
 ## 2026-06-06 — PR #299 conflict resolution
 

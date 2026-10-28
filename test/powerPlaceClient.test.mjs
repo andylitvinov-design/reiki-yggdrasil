@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
 
+import { supabaseEnv } from "../src/lib/supabaseClient.js";
 import {
   __testPowerPlaceClient,
   clonePowerPlaceCompositionForOrder,
   createPowerPlaceCompositionWithDependencies,
+  deletePowerPlaceComposition,
+  filterMasterPowerPlaceCompositions,
   getPlanLimits,
+  getPowerPlaceClientWorkMeta,
   normalizeAccountPlan,
   normalizeClientGoalPhoto,
   normalizeCoverRef,
   normalizePowerPlaceComposition,
-  normalizeTraditionAsset
+  normalizeTraditionAsset,
+  updateClientGoalPhotoCategory
 } from "../src/lib/powerPlaceClient.js";
 
 const storageRefs = {
@@ -19,6 +24,19 @@ const storageRefs = {
   innerCover: "storage://profile-cabinet-media/profile-1/underlays/inner.png",
   outerCover: "storage://profile-cabinet-media/profile-1/underlays/outer.png"
 };
+const DEFAULT_MOTION_SETTINGS = {
+  mode: "photo",
+  count: 1,
+  direction: "clockwise",
+  step_seconds: 2,
+  video_background_ref: ""
+};
+
+function normalizePowerPlaceCompositionWithoutDefaultMotion(composition) {
+  const normalized = normalizePowerPlaceComposition(composition);
+  delete normalized.object_refs.__motion_settings;
+  return normalized;
+}
 
 const compositionRefs = __testPowerPlaceClient.collectCompositionStorageRefs({
     object_refs: {
@@ -43,6 +61,136 @@ assert.deepEqual(
   compositionRefs.sort(),
   [storageRefs.center, storageRefs.innerCover, storageRefs.legacyCover, storageRefs.outerCover, storageRefs.slot].sort(),
   "composition hydration should collect only string storage refs from object_refs and all cover layers"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({ object_refs: {} }).object_refs.__motion_settings,
+  DEFAULT_MOTION_SETTINGS,
+  "old compositions should load with default Фото motion settings"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceComposition({
+    object_refs: {
+      __motion_settings: {
+        mode: "video",
+        count: 4,
+        direction: "counterclockwise",
+        step_seconds: 3,
+        video_background_ref: storageRefs.innerCover
+      }
+    }
+  }).object_refs.__motion_settings,
+  {
+    mode: "video",
+    count: 4,
+    direction: "counterclockwise",
+    step_seconds: 3,
+    video_background_ref: storageRefs.innerCover
+  },
+  "valid motion settings should survive normalization inside object_refs.__motion_settings"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    object_refs: {
+      __slot_transforms: {
+        "chess-1": { x: 42, y: 58, zoom: 1.2, rotate: 90 },
+        "chess-2": { x: 50, y: 50, zoom: 1, rotation: -90 }
+      }
+    }
+  }).object_refs.__slot_transforms,
+  {
+    "chess-1": { x: 42, y: 58, zoom: 1.2, rotate: 90 },
+    "chess-2": { x: 50, y: 50, zoom: 1, rotate: -90 }
+  },
+  "slot photo rotation must persist inside object_refs.__slot_transforms"
+);
+
+const normalizedUnsafeMotionRefs = normalizePowerPlaceComposition({
+  object_refs: {
+    __motion_settings: {
+      mode: "gif",
+      count: 99,
+      direction: "sideways",
+      step_seconds: 9,
+      video_background_ref: "data:video/mp4;base64,local"
+    },
+    nested_unknown: { src: storageRefs.slot },
+    "client-1": "data:image/png;base64,local",
+    "client-2": "data:video/mp4;base64,local",
+    "client-3": "https://example.supabase.co/storage/v1/object/sign/profile-cabinet-media/private.png?token=signed",
+    "client-4": "https://example.com/durable.jpg"
+  }
+}).object_refs;
+
+assert.deepEqual(
+  normalizedUnsafeMotionRefs.__motion_settings,
+  DEFAULT_MOTION_SETTINGS,
+  "invalid motion settings should normalize to defaults"
+);
+assert.equal(normalizedUnsafeMotionRefs.nested_unknown, undefined, "arbitrary nested object_refs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-1"], undefined, "data:image object refs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-2"], undefined, "data:video object refs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-3"], undefined, "signed storage URLs should not persist");
+assert.equal(normalizedUnsafeMotionRefs["client-4"], "https://example.com/durable.jpg", "ordinary durable refs should continue to persist");
+
+const normalizedClientWorkRefs = normalizePowerPlaceComposition({
+  id: "client-composition-1",
+  title: "Кора · 1",
+  object_refs: {
+    __client_work: {
+      client_key: " name: 1 ",
+      client_profile_id: " client-profile-1 ",
+      client_name: " 1 ",
+      client_photo_id: " photo-1 ",
+      request_text: " личный запрос ",
+      source_composition_id: " source-1 ",
+      result_composition_id: " result-1 ",
+      status: "saved_for_client",
+      ignored_object: { nested: true }
+    }
+  }
+}).object_refs;
+assert.deepEqual(
+  normalizedClientWorkRefs.__client_work,
+  {
+    client_key: "name:1",
+    client_profile_id: "client-profile-1",
+    client_name: "1",
+    client_photo_id: "photo-1",
+    request_text: "личный запрос",
+    source_composition_id: "source-1",
+    result_composition_id: "result-1",
+    status: "saved_for_client"
+  },
+  "save-for-client metadata should survive object_refs normalization and persist through refresh"
+);
+
+assert.deepEqual(
+  getPowerPlaceClientWorkMeta({ id: "legacy-kora-1", title: "Кора · 1", object_refs: {} }),
+  {
+    client_key: "name:1",
+    client_profile_id: "",
+    client_name: "1",
+    client_photo_id: "",
+    request_text: "",
+    source_composition_id: "",
+    result_composition_id: "legacy-kora-1",
+    status: "saved_for_client",
+    legacy_inferred: true
+  },
+  "legacy rows written by the old save-for-client title format should be recoverable as client work"
+);
+
+assert.deepEqual(
+  filterMasterPowerPlaceCompositions([
+    { id: "global-1", title: "Глобальный шаблон", object_refs: {} },
+    { id: "client-explicit", title: "Кора · 1", object_refs: { __client_work: { client_name: "1" } } },
+    { id: "client-legacy", title: "Кора · 2", object_refs: {} }
+  ]).map((item) => item.id),
+  ["global-1"],
+  "main saved mandala/template lists should exclude explicit and safely inferred client-scoped rows"
 );
 
 const hydratedComposition = __testPowerPlaceClient.hydrateCompositionRowsWithSignedUrls([
@@ -196,12 +344,116 @@ await assert.rejects(
   assert.match(created.__hydration_error, /signed URL service stalled/);
 }
 
-assert.equal(normalizeAccountPlan("pro"), "pro");
+assert.equal(normalizeAccountPlan("pro"), "practic");
+assert.equal(normalizeAccountPlan("master"), "master");
 assert.equal(normalizeAccountPlan("unknown"), "start");
 
-assert.deepEqual(getPlanLimits("start"), { compositions: 7, clientPhotos: 25 });
-assert.deepEqual(getPlanLimits("pro"), { compositions: 20, clientPhotos: 30 });
-assert.deepEqual(getPlanLimits("enterprise"), { compositions: 7, clientPhotos: 25 });
+assert.deepEqual(getPlanLimits("start"), {
+  compositions: 7,
+  clientPhotos: 10,
+  dailyPhotoUploads: 7,
+  clients: 5,
+  trialServices: 0,
+  paidServices: 0,
+  hiddenPublications: 0,
+  serviceItems: 0
+});
+assert.equal(getPlanLimits("practic").compositions, 25);
+assert.equal(getPlanLimits("pro").clientPhotos, 10);
+assert.equal(getPlanLimits("master").compositions, 50);
+assert.equal(getPlanLimits("enterprise").compositions, 7);
+
+{
+  const originalFetch = globalThis.fetch;
+  const originalConfigured = supabaseEnv.isConfigured;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    return {
+      ok: true,
+      text: async () => ""
+    };
+  };
+  supabaseEnv.isConfigured = true;
+
+  try {
+    const result = await deletePowerPlaceComposition(
+      "composition-1",
+      "profile-1",
+      { access_token: "session-token" }
+    );
+
+    assert.equal(result, true);
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      "/rest/v1/profile_cabinet_power_place_compositions?id=eq.composition-1&profile_id=eq.profile-1"
+    );
+    assert.equal(calls[0].options.method, "DELETE");
+    assert.equal(calls[0].options.headers.Authorization, "Bearer session-token");
+  } finally {
+    globalThis.fetch = originalFetch;
+    supabaseEnv.isConfigured = originalConfigured;
+  }
+}
+
+await assert.rejects(
+  () => deletePowerPlaceComposition("composition-1", "profile-1", null),
+  /Нужно войти в кабинет/,
+  "delete should require a session"
+);
+
+{
+  const originalFetch = globalThis.fetch;
+  const originalConfigured = supabaseEnv.isConfigured;
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    return {
+      ok: true,
+      text: async () => JSON.stringify([{
+        id: "photo-1",
+        profile_id: "profile-1",
+        title: "Client",
+        image_url: "https://example.com/client.jpg",
+        image_bucket: "profile-cabinet-media",
+        image_path: "",
+        client_category: "client-2",
+        notes: ""
+      }])
+    };
+  };
+  supabaseEnv.isConfigured = true;
+
+  try {
+    const updated = await updateClientGoalPhotoCategory(
+      "photo-1",
+      "profile-1",
+      "client-2",
+      { access_token: "session-token" }
+    );
+
+    assert.equal(updated.client_category, "client-2");
+    assert.equal(calls.length, 1);
+    assert.equal(
+      calls[0].url,
+      "/rest/v1/profile_cabinet_client_goal_photos?id=eq.photo-1&profile_id=eq.profile-1"
+    );
+    assert.equal(calls[0].options.method, "PATCH");
+    assert.equal(calls[0].options.headers.Authorization, "Bearer session-token");
+    assert.equal(calls[0].options.headers.Prefer, "return=representation");
+    assert.deepEqual(JSON.parse(calls[0].options.body), { client_category: "client-2" });
+  } finally {
+    globalThis.fetch = originalFetch;
+    supabaseEnv.isConfigured = originalConfigured;
+  }
+}
+
+await assert.rejects(
+  () => updateClientGoalPhotoCategory("photo-1", "profile-1", "zodiac", { access_token: "session-token" }),
+  /Неизвестная папка фото/,
+  "move should reject constructor-specific categories outside the client-category constraint"
+);
 
 assert.deepEqual(
   normalizeCoverRef({
@@ -216,8 +468,9 @@ assert.deepEqual(
     label: "Своё изображение",
     type: "image",
     tone: "",
-    src: "data:image/png;base64,cover"
-  }
+    src: ""
+  },
+  "data:image cover refs should not persist"
 );
 
 assert.deepEqual(
@@ -235,6 +488,7 @@ assert.deepEqual(
     image_path: "",
     mime_type: "",
     file_size_bytes: 0,
+    client_category: "all",
     notes: "Задача клиента"
   }
 );
@@ -256,6 +510,7 @@ assert.deepEqual(
     image_path: "profile-1/client-goal/uuid-client.jpg",
     mime_type: "image/jpeg",
     file_size_bytes: 1234,
+    client_category: "all",
     notes: "Durable"
   }
 );
@@ -319,7 +574,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Алтарь цели ",
     constructor_type: "altar",
@@ -382,7 +637,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Новый черновик ",
     constructor_type: "client",
@@ -404,7 +659,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Сохранённый отчёт ",
     constructor_type: "client",
@@ -429,7 +684,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "",
     constructor_type: "client",
@@ -463,7 +718,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Бизнес-цель ",
     constructor_type: "business",
@@ -508,7 +763,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " ДАО ",
     constructor_type: "dao",
@@ -517,7 +772,12 @@ assert.deepEqual(
       "dao-water": "https://example.com/water.jpg",
       "dao-fire": "https://example.com/fire.jpg",
       "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
-      "dao-metal": "data:image/png;base64,local"
+      "dao-metal": "data:image/png;base64,local",
+      __dao_layout_template_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      }
     },
     central_photo_id: "photo-4",
     resource_comparison_mode: "bad"
@@ -537,6 +797,16 @@ assert.deepEqual(
       "dao-water": "https://example.com/water.jpg",
       "dao-fire": "https://example.com/fire.jpg",
       "dao-earth": "storage://profile-cabinet-media/profile-1/power-place/draft/dao-earth-uuid-earth.png",
+      __dao_layout_template_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      },
+      __dao_layout_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      },
       __field_layout: "square"
     },
     central_photo_id: "photo-4",
@@ -549,7 +819,56 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    profile_id: "profile-1",
+    title: " ДАО Макет ",
+    constructor_type: "dao-layout",
+    object_refs: {
+      __dao_style: "talisman-2",
+      __center_image: "https://example.com/center.jpg",
+      "dao-talisman-2-3": "https://example.com/mini-3.jpg",
+      "dao-talisman-2-4": "https://example.com/mini-4.jpg",
+      "dao-talisman-2-5": "https://example.com/mini-5.jpg",
+      "dao-talisman-2-7": "https://example.com/mini-7.jpg",
+      __dao_layout_options: {
+        topCrown: "three_checks",
+        sideNodesVisible: false,
+        sideNodeCount: 3
+      }
+    },
+    central_photo_id: "photo-5"
+  }).object_refs,
+  {
+    __dao_style: "talisman-2",
+    __center_image: "https://example.com/center.jpg",
+    "dao-talisman-2-3": "https://example.com/mini-3.jpg",
+    "dao-talisman-2-4": "https://example.com/mini-4.jpg",
+    "dao-talisman-2-5": "https://example.com/mini-5.jpg",
+    "dao-talisman-2-7": "https://example.com/mini-7.jpg",
+    __dao_layout_options: {
+      topCrown: "three_checks",
+      sideNodesVisible: false,
+      sideNodeCount: 3
+    },
+    __field_layout: "square"
+  }
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    profile_id: "profile-1",
+    constructor_type: "dao",
+    object_refs: {
+      __dao_style: "dao-layout-template",
+      __dao_layout_template_options: { topCrown: "three_checks", sideNodeCount: 3 }
+    }
+  }).constructor_type,
+  "dao-layout",
+  "legacy dao-layout-template style should normalize to dao-layout format"
+);
+
+assert.deepEqual(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Зодиак цели ",
     constructor_type: "zodiac",
@@ -590,7 +909,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Зодиак fallback ",
     constructor_type: "zodiac",
@@ -625,16 +944,18 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Звезда цели ",
     constructor_type: "star",
     geometry: 8,
     zodiac_visible_count: 6,
     star_variant: "open",
+    star_format_variant: "star-2-10",
     object_refs: {
       "star-1": " https://example.com/star-top.jpg ",
       "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png",
+      "star-extra-1": "https://example.com/star-extra-1.jpg",
       "star-5": "data:image/png;base64,local"
     },
     central_photo_id: "photo-7",
@@ -650,11 +971,13 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "open",
+    star_format_variant: "star-2-10",
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
       "star-1": "https://example.com/star-top.jpg",
       "star-2": "storage://profile-cabinet-media/profile-1/power-place/draft/star-2-uuid.png",
+      "star-extra-1": "https://example.com/star-extra-1.jpg",
       __field_layout: "square"
     },
     central_photo_id: "photo-7",
@@ -667,11 +990,12 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Звезда fallback ",
     constructor_type: "star",
     star_variant: "wide",
+    star_format_variant: "wide",
     object_refs: {
       "star-3": "https://example.com/star-left.jpg"
     },
@@ -686,6 +1010,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    star_format_variant: "classic",
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: {
@@ -702,7 +1027,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Центр из мандалы ",
     constructor_type: "client",
@@ -740,7 +1065,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Шахматы силы ",
     constructor_type: "chess",
@@ -780,7 +1105,7 @@ assert.deepEqual(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: " Фото-макет 1 ",
     constructor_type: "client",
@@ -821,12 +1146,12 @@ assert.deepEqual(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
+  normalizePowerPlaceCompositionWithoutDefaultMotion({ constructor_type: "chess", chess_variant: "wide" }).chess_variant,
   "classic-14"
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Вертикальный макет",
     constructor_type: "client",
@@ -840,7 +1165,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Неверный макет",
     constructor_type: "client",
@@ -854,7 +1179,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Макет по умолчанию",
     constructor_type: "client",
@@ -867,7 +1192,7 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Макет из object_refs",
     constructor_type: "client",
@@ -879,7 +1204,7 @@ assert.equal(
   "object_refs.__field_layout should be preserved when loading/saving"
 );
 
-const normalizedServiceRefsComposition = normalizePowerPlaceComposition({
+const normalizedServiceRefsComposition = normalizePowerPlaceCompositionWithoutDefaultMotion({
   profile_id: "profile-1",
   title: "Служебные настройки",
   constructor_type: "client",
@@ -918,7 +1243,7 @@ assert.deepEqual(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Центр из enhanced draft",
     constructor_type: "client",
@@ -931,7 +1256,7 @@ assert.equal(
 );
 
 assert.deepEqual(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Неверные служебные настройки",
     constructor_type: "client",
@@ -948,7 +1273,7 @@ assert.deepEqual(
     central_photo_id: ""
   }).object_refs,
   {
-    "__center_frame_scale": "1.4",
+    "__center_frame_scale": "3.7",
     "__center_image_scale": "1",
     "__center_shape": "square",
     "__inner_cover_offset_x": "20",
@@ -960,7 +1285,7 @@ assert.deepEqual(
   "invalid numeric service refs should clamp or fall back safely"
 );
 
-const compactChessComposition = normalizePowerPlaceComposition({
+const compactChessComposition = normalizePowerPlaceCompositionWithoutDefaultMotion({
   profile_id: "profile-1",
   title: " Компактные шахматы ",
   constructor_type: "chess",
@@ -976,19 +1301,19 @@ assert.equal(compactChessComposition.chess_variant, "compact-5", "compact-5 shou
 assert.equal(compactChessComposition.object_refs.__slot_scale, "1.14", "shared slot scale should persist inside object_refs without requiring a schema migration");
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "zodiac",
-    slot_scale: "0.83",
+    slot_scale: "0.35",
     object_refs: {
       "zodiac-1": "https://example.com/zodiac-1.jpg"
     }
   }).object_refs.__slot_scale,
-  "0.83",
-  "shared slot scale should survive save normalization from the top-level slot_scale field"
+  "0.35",
+  "zodiac slot scale should preserve the smaller new minimum"
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "star",
     object_refs: {
       __slot_scale: "1.12",
@@ -1000,13 +1325,105 @@ assert.equal(
 );
 
 assert.equal(
-  normalizePowerPlaceComposition({
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
     constructor_type: "chess",
     chess_variant: "plus-8",
     object_refs: { __slot_scale: "9" }
   }).object_refs.__slot_scale,
-  "1.18",
-  "shared slot scale persisted in object_refs should be clamped"
+  "1.85",
+  "shared slot scale persisted in object_refs should be clamped to new max"
+);
+
+// ── Scale limits: enlarged zodiac slider ranges ──────────────────────────────
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __slot_scale: "1.85" }
+  }).object_refs.__slot_scale,
+  "1.85",
+  "slot scale at new max 1.85 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "zodiac",
+    object_refs: { __slot_scale: "0.35" }
+  }).object_refs.__slot_scale,
+  "0.35",
+  "zodiac slot scale at new min 0.35 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "zodiac",
+    object_refs: { __slot_scale: "0.2" }
+  }).object_refs.__slot_scale,
+  "0.35",
+  "zodiac slot scale below new min should clamp to 0.35"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __slot_scale: "2" }
+  }).object_refs.__slot_scale,
+  "1.85",
+  "slot scale above new max should clamp to 1.85"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __inner_field_scale: "145" }
+  }).object_refs.__inner_field_scale,
+  "145",
+  "field scale at new max 145 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __inner_field_scale: "200" }
+  }).object_refs.__inner_field_scale,
+  "145",
+  "field scale above new max should clamp to 145"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_image_scale: "4" }
+  }).object_refs.__center_image_scale,
+  "4",
+  "center image scale at new max 4 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_image_scale: "5" }
+  }).object_refs.__center_image_scale,
+  "4",
+  "center image scale above new max should clamp to 4"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_frame_scale: "3.7" }
+  }).object_refs.__center_frame_scale,
+  "3.7",
+  "center frame scale at new max 3.7 should be preserved"
+);
+
+assert.equal(
+  normalizePowerPlaceCompositionWithoutDefaultMotion({
+    constructor_type: "client",
+    object_refs: { __center_frame_scale: "4" }
+  }).object_refs.__center_frame_scale,
+  "3.7",
+  "center frame scale above new max should clamp to 3.7"
 );
 
 // ── Cover ref data contract ───────────────────────────────────────────────────
@@ -1015,7 +1432,7 @@ assert.equal(
 {
   const innerRef = "storage://profile-cabinet-media/profile-1/underlays/inner.png";
   const outerRef = "storage://profile-cabinet-media/profile-1/underlays/outer.png";
-  const comp = normalizePowerPlaceComposition({
+  const comp = normalizePowerPlaceCompositionWithoutDefaultMotion({
     profile_id: "profile-1",
     title: "Test",
     constructor_type: "client",
@@ -1027,6 +1444,32 @@ assert.equal(
   });
   assert.equal(comp.cover_ref.inner?.src, innerRef, "cover_ref.inner.src must survive normalization");
   assert.equal(comp.cover_ref.outer?.src, outerRef, "cover_ref.outer.src must survive normalization");
+}
+
+{
+  const daoOuterRef = "/symbols/power-place/dao/backgrounds/fu-paper-slip.svg";
+  const comp = normalizePowerPlaceCompositionWithoutDefaultMotion({
+    profile_id: "profile-1",
+    title: "DAO contain fit",
+    constructor_type: "dao",
+    cover_ref: {
+      id: "custom-cover",
+      type: "none",
+      src: "",
+      inner: { id: "no-cover", type: "none", src: "" },
+      outer: {
+        id: "background-dao-fu-paper-slip-reference",
+        label: "Фу-лист",
+        type: "image",
+        src: daoOuterRef,
+        fit: "contain",
+        cover_fit: "contain"
+      }
+    }
+  });
+  assert.equal(comp.cover_ref.outer?.src, daoOuterRef, "DAO library outer cover src must survive normalization");
+  assert.equal(comp.cover_ref.outer?.fit, "contain", "DAO library outer cover fit must survive normalization");
+  assert.equal(comp.cover_ref.outer?.cover_fit, "contain", "DAO library outer cover cover_fit alias must survive normalization");
 }
 
 {
@@ -1052,4 +1495,98 @@ assert.equal(
     }
   ], { [durableRef]: signedUrl })[0];
   assert.equal(hydrated.object_ref_urls[durableRef], signedUrl, "object_ref_urls must be keyed by durable storage ref");
+}
+
+// ─── gradient cover_ref persistence ──────────────────────────────────────────
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "cover-gradient-gold",
+    label: "Золото",
+    type: "placeholder",
+    tone: "gradient-gold",
+    src: ""
+  }),
+  {
+    id: "cover-gradient-gold",
+    label: "Золото",
+    type: "placeholder",
+    tone: "gradient-gold",
+    src: ""
+  },
+  "gradient placeholder covers should persist via tone"
+);
+
+assert.deepEqual(
+  normalizeCoverRef({
+    id: "cover-gradient-water",
+    label: "Вода",
+    type: "placeholder",
+    tone: "gradient-water",
+    src: "",
+    inner: { id: "cover-gradient-water", type: "placeholder", tone: "gradient-water", src: "" },
+    outer: { id: "cover-gradient-fire", type: "placeholder", tone: "gradient-fire", src: "" }
+  }),
+  {
+    id: "cover-gradient-water",
+    label: "Вода",
+    type: "placeholder",
+    tone: "gradient-water",
+    src: "",
+    inner: { id: "cover-gradient-water", label: "Вода", type: "placeholder", tone: "gradient-water", src: "" },
+    outer: { id: "cover-gradient-fire", label: "Без фона", type: "placeholder", tone: "gradient-fire", src: "" }
+  },
+  "nested inner/outer gradient placeholder covers should persist via tone"
+);
+
+// ── __visibility_settings persistence ────────────────────────────────────────
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility test",
+    constructor_type: "zodiac",
+    object_refs: {
+      __visibility_settings: {
+        center: false,
+        slots: false,
+        outer_cover: false,
+        inner_cover: false
+      }
+    }
+  });
+  assert.deepEqual(
+    comp.object_refs.__visibility_settings,
+    { center: false, slots: false, outer_cover: false, inner_cover: false },
+    "__visibility_settings with all false must survive normalization"
+  );
+}
+
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility defaults",
+    constructor_type: "zodiac",
+    object_refs: {}
+  });
+  assert.equal(
+    comp.object_refs.__visibility_settings,
+    undefined,
+    "old composition without __visibility_settings should not inject the key"
+  );
+}
+
+{
+  const comp = normalizePowerPlaceComposition({
+    profile_id: "profile-1",
+    title: "Visibility partial",
+    constructor_type: "zodiac",
+    object_refs: {
+      __visibility_settings: { center: false }
+    }
+  });
+  assert.deepEqual(
+    comp.object_refs.__visibility_settings,
+    { center: false },
+    "partial __visibility_settings should be preserved as-is through normalization"
+  );
 }

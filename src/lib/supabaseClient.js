@@ -1,3 +1,5 @@
+import { normalizeMasterPlan } from "./masterPlans.js";
+
 const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL?.replace(/\/$/, "") || "";
 const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const ADMIN_EMAIL = import.meta.env?.VITE_ADMIN_EMAIL || "";
@@ -5,6 +7,7 @@ const ADMIN_EMAIL = import.meta.env?.VITE_ADMIN_EMAIL || "";
 const SESSION_KEY = "reiki-yggdrasil-session";
 const PKCE_VERIFIER_KEY = "reiki-yggdrasil-pkce-verifier";
 const PROFILES_TABLE = "profile_cabinet_profiles";
+const ADMINS_TABLE = "profile_cabinet_admins";
 const REQUEST_TIMEOUT_MS = 12000;
 
 export const supabaseEnv = {
@@ -259,6 +262,31 @@ export function isAdminUser(user) {
   return Boolean(user?.email && ADMIN_EMAIL && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
 }
 
+export async function getCurrentAdmin(session = getStoredSession(), currentUser = null) {
+  if (!session?.access_token) return null;
+
+  const user = currentUser?.id ? currentUser : await getCurrentUser(session);
+  if (!user?.id) return null;
+
+  const rows = await request(`/rest/v1/${ADMINS_TABLE}?user_id=eq.${encodeURIComponent(user.id)}&select=user_id,email&limit=1`, {
+    accessToken: session.access_token
+  });
+
+  return rows?.[0] || null;
+}
+
+export async function isCurrentUserAdmin(session = getStoredSession(), currentUser = null) {
+  if (!session?.access_token) return false;
+
+  const user = currentUser?.id ? currentUser : await getCurrentUser(session);
+  if (!user?.id) return false;
+
+  const adminRow = await getCurrentAdmin(session, user);
+  if (adminRow) return true;
+
+  return isAdminUser(user);
+}
+
 export async function getOwnProfile(userId, session = getStoredSession()) {
   if (!userId || !session?.access_token) return null;
 
@@ -298,6 +326,34 @@ export async function listPendingProfiles(session = getStoredSession()) {
   });
 }
 
+function safePostgrestSearch(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[,%*()]/g, " ")
+    .replace(/\s+/g, " ")
+    .slice(0, 80);
+}
+
+export async function listProfilesForAdmin(session = getStoredSession(), search = "") {
+  if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
+
+  const term = safePostgrestSearch(search);
+  const query = [
+    "select=*",
+    "order=updated_at.desc",
+    "limit=30"
+  ];
+
+  if (term) {
+    query.push(`or=${encodeURIComponent(`(display_name.ilike.*${term}*,email.ilike.*${term}*)`)}`);
+  }
+
+  return request(`/rest/v1/${PROFILES_TABLE}?${query.join("&")}`, {
+    accessToken: session.access_token
+  });
+}
+
 export async function updateProfileStatus(profileId, status, session = getStoredSession()) {
   if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
 
@@ -306,6 +362,32 @@ export async function updateProfileStatus(profileId, status, session = getStored
     accessToken: session.access_token,
     prefer: "return=representation",
     body: { status }
+  });
+
+  return rows?.[0] || null;
+}
+
+export async function updateProfileAccountPlan(profileId, accountPlan, session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
+  if (!profileId) throw cabinetError("Профиль участника не выбран.");
+
+  return updateProfileAdminFields(profileId, { accountPlan }, session);
+}
+
+export async function updateProfileAdminFields(profileId, { accountPlan, status } = {}, session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужен вход администратора.");
+  if (!profileId) throw cabinetError("Профиль участника не выбран.");
+
+  const body = {};
+  if (accountPlan !== undefined) body.account_plan = normalizeMasterPlan(accountPlan);
+  if (status !== undefined) body.status = status;
+  if (!Object.keys(body).length) throw cabinetError("Нет изменений для сохранения.");
+
+  const rows = await request(`/rest/v1/${PROFILES_TABLE}?id=eq.${encodeURIComponent(profileId)}`, {
+    method: "PATCH",
+    accessToken: session.access_token,
+    prefer: "return=representation",
+    body
   });
 
   return rows?.[0] || null;

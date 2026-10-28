@@ -64,17 +64,33 @@ Supabase setup steps:
 13. Apply `supabase/migrations/20260605120000_grimoire_publication_types.sql`.
 14. Apply `supabase/migrations/20260605153000_service_orders_client_phase4.sql`.
 15. Apply `supabase/migrations/20260605184500_service_orders_result_delivery_phase5.sql`.
-16. Add these auth redirect URLs in Supabase for the target domain:
+16. Apply `supabase/migrations/20260607120000_profile_courses_individual_access_mvp.sql`.
+17. Apply `supabase/migrations/20260609_profile_client_photo_categories.sql`.
+18. Apply `supabase/migrations/20260615123000_power_place_dao_layout_format.sql`.
+19. Apply `supabase/migrations/20260617120000_profile_cabinet_publication_material_taxonomy.sql`.
+20. Apply `supabase/migrations/20260618133000_profile_cabinet_publication_taxonomy_schema_cache.sql`.
+21. Apply `supabase/migrations/20260624120000_power_place_star_format_variant.sql`.
+22. Apply `supabase/migrations/20260627190000_profile_course_audio_invites.sql`.
+23. Verify `profile_cabinet_publications` has `material_group`, `material_type`, `category`, and `subcategory`, then reload PostgREST if needed:
+    ```sql
+    select column_name
+    from information_schema.columns
+    where table_name = 'profile_cabinet_publications'
+    order by ordinal_position;
+
+    notify pgrst, 'reload schema';
+    ```
+23. Add these auth redirect URLs in Supabase for the target domain:
     - `https://mentalica.vercel.app/profile`
     - `https://mentalica.vercel.app/profile/admin`
-17. Keep these legacy auth redirect URLs until the migration is fully verified:
+24. Keep these legacy auth redirect URLs until the migration is fully verified:
     - `https://reiki-yggdrasil.vercel.app/profile`
     - `https://reiki-yggdrasil.vercel.app/profile/admin`
-18. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
+25. For the `2mentalica` staging project, add these auth redirect URLs if OAuth is tested there:
     - `https://2mentalica.vercel.app/profile`
     - `https://2mentalica.vercel.app/profile/admin`
-19. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
-20. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
+26. Add the Vercel production or staging env vars named above, depending on the target Vercel project.
+27. After the first admin login, insert that user's `user_id` and email into `profile_cabinet_admins`.
 
 Use the production `VITE_ADMIN_EMAIL` value in the placeholder below. Do not commit or paste the real email into the repo:
 
@@ -130,18 +146,16 @@ Power Place persistence setup:
 - `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql` extends saved compositions for `Зодиак` with `zodiac_visible_count` and `zodiac-*` object refs in the existing `object_refs` JSON payload.
 - `20260527120000_profile_cabinet_media_storage.sql` creates private bucket `profile-cabinet-media`, owner-only Storage policies, and durable media path columns for client/goal and tradition images.
 - `20260527143000_power_place_star_format.sql` extends saved compositions for `Звезда` with `star_variant` values `closed` / `open` and `star-*` object refs in the existing `object_refs` JSON payload.
+- `20260624120000_power_place_star_format_variant.sql` extends saved compositions for `Звезда` with `star_format_variant` values `classic` / `star-2-10`.
 - `20260531090000_power_place_chess_format.sql` extends saved compositions for `Шахматы` with `chess_variant` values `classic-14` / `classic-8` / `plus-8` and allows `constructor_type='chess'`.
 - `20260602120000_power_place_chess_compact_variant.sql` allows the Profile Lite `compact-5` chess variant used by the 6-photo UI format.
 - `20260605153000_service_orders_client_phase4.sql` extends service orders for authenticated client drafts, `photo_required`, order format, selected client photo, and client/master RLS.
 - `20260605184500_service_orders_result_delivery_phase5.sql` extends service orders for draft/final result composition delivery, `ready_for_review`, `sent_at`, and final-result-only client composition reads.
+- `20260607120000_profile_courses_individual_access_mvp.sql` adds private course, step, lesson, and individual access tables with admin RLS plus profile-owner reads for personally accessible published content.
+- `20260627190000_profile_course_audio_invites.sql` adds course step/lesson slugs, lesson audio Storage metadata, private course-audio Storage policies, course invite hash storage, and create/claim RPCs.
 - Account limits are profile-level only: Start allows 7 saved compositions and 10 client/goal photos; Pro allows 20 saved compositions and 30 client/goal photos.
 - Client/goal photos, tradition assets, Power Place slot images, and underlay covers upload through the authenticated user's anon-token session. The frontend stores bucket/path or `storage://profile-cabinet-media/...` refs and resolves private signed URLs only for display.
+- Course audio uploads use the same private bucket with paths like `courses/magic-money/degree-1/<lesson-id>/<uuid>-audio.mp3`; the app resolves signed URLs only for authenticated users with active course/step access.
 - Legacy external image URLs still load. Local `data:image` previews are filtered out of saved Power Place payloads.
 
 Master chat setup:
-
-- Chat tables and all RLS policies are in `20260527070353_20260526_power_place_upgrade_6_zodiac_chat.sql` (conversations, participants, messages, favorites, RLS enabled, six policies using `profile_cabinet_owns_profile` and `profile_cabinet_is_chat_participant` helpers).
-- `/profile/chats` shows the 3-column chat UI: left conversation list, center messages, right composer.
-- The right column includes "Подтянуть ссылку": one-click insert of the master's public page link (`/masters/:profileId`) or any published service link (`/services/:serviceId`) into the draft. Links are plain text; no auto-send.
-- `src/lib/masterChatLinks.js` is a pure helper for public URL/text generation; it never exposes storage refs, signed URLs, or private composition data.
-

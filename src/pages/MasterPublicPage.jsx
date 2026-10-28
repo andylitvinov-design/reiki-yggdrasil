@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ExternalLink, Globe2, MessageCircle, ShieldCheck } from "lucide-react";
+import { ExternalLink, Globe2, MapPin, MessageCircle, Quote, ShieldCheck, Sprout } from "lucide-react";
 import {
   fetchPublicMasterPage,
   normalizePublicMasterProfile
@@ -126,7 +126,12 @@ export default function MasterPublicPage({ masterId, onNavigateHome, onNavigateM
               <section className="masterPageAsideCard">
                 <h2>О мастере</h2>
                 <p>{profile?.bio || DEMO_PROFILE.bio}</p>
-                {profileLocation(profile || DEMO_PROFILE) && <span>{profileLocation(profile || DEMO_PROFILE)}</span>}
+                {profileLocation(profile || DEMO_PROFILE) && (
+                  <span>
+                    <MapPin size={15} aria-hidden="true" />
+                    {profileLocation(profile || DEMO_PROFILE)}
+                  </span>
+                )}
               </section>
 
               <section className="masterPageAsideCard">
@@ -147,9 +152,19 @@ export default function MasterPublicPage({ masterId, onNavigateHome, onNavigateM
                 </div>
               </section>
 
+              <section className="masterPageAsideCard masterPageQuoteCard">
+                <Quote size={21} aria-hidden="true" />
+                <p>Корни дают силу, ветви — мудрость, а свет внутри — путь.</p>
+              </section>
+
+              <section className="masterPageAsideCard masterPageStatusCard">
+                <h2><Sprout size={17} aria-hidden="true" /> Статус практики</h2>
+                <p>Работаю онлайн и очно. Запись открывается через услуги мастера.</p>
+              </section>
+
               <section className="masterPageAsideCard masterPageSafetyCard">
                 <h2><ShieldCheck size={17} aria-hidden="true" /> Публичная зона</h2>
-                <p>На этой странице выводятся только одобренные профили, опубликованные материалы и размещённые услуги. Приватный Гримуар, черновики, object refs и signed URLs не показываются.</p>
+                <p>Здесь видны только одобренные профильные материалы, открытые публикации и размещённые услуги мастера.</p>
               </section>
 
               <section className="masterPageAsideCard">

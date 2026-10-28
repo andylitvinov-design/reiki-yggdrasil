@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Draft dao balance symbol">
+  <rect width="120" height="120" rx="20" fill="#fff8e8"/>
+  <circle cx="60" cy="60" r="38" fill="#f5c66a" stroke="#2f2418" stroke-width="6"/>
+  <path d="M60 22a38 38 0 0 1 0 76 19 19 0 0 0 0-38 19 19 0 0 1 0-38Z" fill="#2f2418"/>
+  <circle cx="60" cy="41" r="6" fill="#f5c66a"/>
+  <circle cx="60" cy="79" r="6" fill="#2f2418"/>
+  <text x="60" y="114" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#7b5b24">draft</text>
+</svg>

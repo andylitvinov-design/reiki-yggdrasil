@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpenText, BriefcaseBusiness, FileText, Image, NotebookText, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpenText, BriefcaseBusiness, CalendarDays, Download, FileText, Image, NotebookText, Sparkles } from "lucide-react";
 
 const KIND_LABELS = {
   note: "Заметка",
@@ -30,19 +30,20 @@ function formatPrice(item) {
   return `${item.priceAmount} ${item.priceCurrency || "EUR"}`;
 }
 
+function actionLabel(item) {
+  if (item.kind === "service") return "Записаться";
+  if (item.kind === "material") return "Скачать";
+  return "Читать далее";
+}
+
 export default function MasterPagePostCard({ item }) {
   const Icon = KIND_ICONS[item.kind] || Image;
   const price = formatPrice(item);
   const serviceHref = item.kind === "service" && item.id ? `/services/${encodeURIComponent(item.id)}` : "";
+  const ActionIcon = item.kind === "material" ? Download : ArrowRight;
 
   return (
     <article className={`masterPagePost masterPagePost--${item.kind}`}>
-      <div className="masterPagePostMeta">
-        <span className="masterPagePostBadge"><Icon size={15} aria-hidden="true" /> {KIND_LABELS[item.kind] || "Публикация"}</span>
-        {item.isFallback && <span className="masterPagePostBadge masterPagePostBadge--demo">пример раздела</span>}
-        {price && <span className="masterPagePostBadge masterPagePostBadge--price">{price}</span>}
-      </div>
-
       {item.imageUrl ? (
         <div className="masterPagePostImage" style={{ backgroundImage: `url("${item.imageUrl}")` }} aria-label={item.title} />
       ) : (
@@ -52,17 +53,33 @@ export default function MasterPagePostCard({ item }) {
       )}
 
       <div className="masterPagePostBody">
-        <h2>{item.title}</h2>
+        <div className="masterPagePostMeta">
+          <span className="masterPagePostBadge"><Icon size={15} aria-hidden="true" /> {KIND_LABELS[item.kind] || "Публикация"}</span>
+          {item.isFallback && <span className="masterPagePostBadge masterPagePostBadge--demo">пример</span>}
+          {price && <span className="masterPagePostBadge masterPagePostBadge--price">{price}</span>}
+        </div>
+        <div className="masterPagePostTitleRow">
+          <h2>{item.title}</h2>
+          <span className="masterPagePostDate">
+            <CalendarDays size={15} aria-hidden="true" />
+            {formatDate(item.createdAt || item.updatedAt)}
+          </span>
+        </div>
         <p>{item.description || "Описание готовится для публичной страницы мастера."}</p>
         <div className="masterPagePostFooter">
-          <span>{formatDate(item.createdAt || item.updatedAt)}</span>
           {item.category && <span>{item.category}</span>}
+          {serviceHref ? (
+            <a className="masterPagePostLink" href={serviceHref}>
+              {actionLabel(item)}
+              <ActionIcon size={15} aria-hidden="true" />
+            </a>
+          ) : (
+            <span className="masterPagePostLink">
+              {actionLabel(item)}
+              <ActionIcon size={15} aria-hidden="true" />
+            </span>
+          )}
         </div>
-        {serviceHref && (
-          <a className="masterPagePostLink" href={serviceHref}>
-            Открыть услугу
-          </a>
-        )}
       </div>
     </article>
   );

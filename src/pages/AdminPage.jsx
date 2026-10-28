@@ -11,13 +11,15 @@ import {
   clearStoredSession,
   getCurrentUser,
   getStoredSession,
-  isAdminUser,
+  isCurrentUserAdmin,
   listPendingProfiles,
   sendMagicLink,
   storeSessionFromUrlHash,
   supabaseEnv,
   updateProfileStatus
 } from "../lib/supabaseClient.js";
+import AdminCoursesPanel from "./admin/AdminCoursesPanel.jsx";
+import ProfileAdminPanel from "./profile-lite/ProfileAdminPanel.jsx";
 
 const EMPTY_TEST_EVENT = {
   activity_type: "master_update",
@@ -44,6 +46,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
   const [email, setEmail] = useState("");
   const [session, setSession] = useState(() => getStoredSession());
   const [user, setUser] = useState(null);
+  const [adminAccess, setAdminAccess] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [pendingEvents, setPendingEvents] = useState([]);
   const [testEventForm, setTestEventForm] = useState(EMPTY_TEST_EVENT);
@@ -75,9 +78,11 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
 
       try {
         const currentUser = await getCurrentUser(session);
-        if (!isAdminUser(currentUser)) {
+        const hasAdminAccess = await isCurrentUserAdmin(session, currentUser);
+        if (!hasAdminAccess) {
           if (!cancelled) {
             setUser(currentUser);
+            setAdminAccess(false);
             setProfiles([]);
           }
           return;
@@ -89,6 +94,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
         ]);
         if (!cancelled) {
           setUser(currentUser);
+          setAdminAccess(true);
           setProfiles(profileRows || []);
           setPendingEvents(eventRows || []);
         }
@@ -173,6 +179,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
     clearStoredSession();
     setSession(null);
     setUser(null);
+    setAdminAccess(false);
     setProfiles([]);
     setMessage("Вы вышли из админ-раздела.");
   };
@@ -204,7 +211,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           <form className="cabinetCard authCard" onSubmit={handleMagicLink}>
             <p className="cabinetEyebrow">Вход администратора</p>
             <h2>Войдите email администратора</h2>
-            <p>Доступ к модерации проверяется по VITE_ADMIN_EMAIL. Значение env не выводится в интерфейс.</p>
+            <p>Доступ к модерации проверяется по записи администратора или резервному VITE_ADMIN_EMAIL. Значение env не выводится в интерфейс.</p>
             <label>
               Email
               <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="admin@example.com" />
@@ -213,7 +220,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </form>
         )}
 
-        {!loading && user && !isAdminUser(user) && (
+        {!loading && user && !adminAccess && (
           <div className="cabinetError">
             <b>Доступ закрыт.</b>
             <p>Этот раздел доступен только администратору проекта.</p>
@@ -221,14 +228,14 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </div>
         )}
 
-        {!loading && user && isAdminUser(user) && profiles.length === 0 && (
+        {!loading && user && adminAccess && profiles.length === 0 && (
           <div className="cabinetNotice">
             <b>Нет профилей на модерации.</b>
             <p>Новые заявки появятся здесь после отправки из кабинета мастера.</p>
           </div>
         )}
 
-        {!loading && user && isAdminUser(user) && profiles.length > 0 && (
+        {!loading && user && adminAccess && profiles.length > 0 && (
           <div className="moderationList">
             {profiles.map((profile) => (
               <article className="cabinetCard moderationCard" key={profile.id}>
@@ -250,7 +257,15 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </div>
         )}
 
-        {!loading && user && isAdminUser(user) && (
+        {!loading && user && adminAccess && (
+          <ProfileAdminPanel session={session} />
+        )}
+
+        {!loading && user && adminAccess && (
+          <AdminCoursesPanel session={session} />
+        )}
+
+        {!loading && user && adminAccess && (
           <section className="cabinetCard adminTestEventCard" aria-label="Тестовое событие ленты">
             <div className="cabinetFormHeader">
               <div>
@@ -297,7 +312,7 @@ export default function AdminPage({ onNavigateHome, onNavigateMasters }) {
           </section>
         )}
 
-        {!loading && user && isAdminUser(user) && (
+        {!loading && user && adminAccess && (
           <section className="moderationList adminActivityModeration" aria-label="Публикации и события на модерации">
             <div className="cabinetFormHeader">
               <div>

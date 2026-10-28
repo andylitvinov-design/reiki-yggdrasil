@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import {
+  buildClientInviteUrl,
+  buildClientDirectoryFromOrders,
+  buildCompositionResultUrl,
   buildCompositionServicePayload,
   buildServiceCartItem,
   buildServicePublicUrl,
@@ -9,10 +12,15 @@ import {
   buildServiceOrderDraftPayload,
   buildSendOrderResultPayload,
   buildServiceOrderSubmitPayload,
+  claimClientInvite,
+  clientMandalaStatusText,
+  createClientInvite,
   createEmptyServiceForm,
   createServiceCartStore,
   filterPublishedServices,
   formatServicePrice,
+  getClientDisplayName,
+  getClientMandalaPreviewState,
   getServicePublicLinkState,
   groupServicesByStatus,
   isPendingServiceCartFresh,
@@ -127,10 +135,25 @@ assert.equal(order.id, "order-1");
 assert.equal(order.status, "sent");
 assert.equal(order.service.title, "Услуга");
 assert.equal(order.service.price_amount, 90);
+assert.equal(order.result_image_url, "https://example.com/result.jpg");
+assert.deepEqual(getClientMandalaPreviewState(order), { src: "https://example.com/result.jpg", message: "" });
 assert.equal(order.draft_result_composition_id, "", "missing draft result should normalize to empty string");
 assert.equal(order.final_result_composition_id, "", "missing final result should normalize to empty string");
 assert.equal(serviceStatusText("published"), "Размещено");
 assert.equal(orderStatusText("in_progress"), "В работе");
+assert.equal(clientMandalaStatusText("ready_for_review"), "Готово к отправке");
+assert.equal(clientMandalaStatusText("sent"), "Отправлено клиенту");
+assert.equal(clientMandalaStatusText("saved_for_client"), "Сохранено для клиента");
+assert.equal(clientMandalaStatusText("send_error"), "Ошибка сохранения/отправки");
+assert.deepEqual(
+  getClientMandalaPreviewState({ result_image_bucket: "profile-cabinet-media", result_image_path: "orders/result.png" }),
+  { src: "", message: "Превью недоступно" },
+  "private storage result refs should not be exposed as preview URLs without signed display data"
+);
+assert.deepEqual(
+  getClientMandalaPreviewState({}),
+  { src: "", message: "Превью мандалы пока не создано" }
+);
 assert.equal(formatServicePrice({ price_amount: null, price_currency: "EUR" }), "Бесплатно");
 assert.equal(formatServicePrice({ price_amount: "", price_currency: "EUR" }), "Бесплатно");
 assert.equal(formatServicePrice({ price_amount: 0, price_currency: "EUR" }), "Бесплатно");
@@ -179,6 +202,142 @@ const groupedServices = groupServicesByStatus([
 assert.deepEqual(groupedServices.draft.map((item) => item.id), ["draft-1", "draft-2"]);
 assert.deepEqual(groupedServices.published.map((item) => item.id), ["published-1"]);
 assert.deepEqual(groupedServices.archived.map((item) => item.id), ["archived-1"]);
+
+const clientDirectory = buildClientDirectoryFromOrders([
+  normalizeServiceOrder({
+    id: "order-a",
+    client_profile_id: "client-profile-a",
+    client_name: " Анна ",
+    request_text: "Запрос 1"
+  }),
+  normalizeServiceOrder({
+    id: "order-b",
+    client_profile_id: "client-profile-a",
+    client_name: "Анна",
+    request_text: "Запрос 2"
+  }),
+  normalizeServiceOrder({
+    id: "order-c",
+    client_name: " Борис ",
+    final_result_composition_id: "final-c",
+    status: "sent"
+  })
+]);
+assert.deepEqual(
+  clientDirectory.map((client) => [client.key, client.client_name, client.orders.map((order) => order.id)]),
+  [
+    ["client:client-profile-a", "Анна", ["order-a", "order-b"]],
+    ["name:Борис", "Борис", ["order-c"]]
+  ],
+  "client directory should group by client_profile_id first and client_name fallback second"
+);
+
+const clientDirectoryWithSavedWork = buildClientDirectoryFromOrders([], [], [
+  {
+    id: "composition-for-client",
+    title: "Клиентская мандала",
+    object_refs: {
+      __client_work: {
+        client_name: "Вера",
+        request_text: "личный запрос",
+        result_composition_id: "composition-for-client",
+        status: "saved_for_client"
+      },
+      __center_image: "storage://profile-cabinet-media/compositions/center.png"
+    },
+    object_ref_urls: {
+      "storage://profile-cabinet-media/compositions/center.png": "https://signed.example/center.png"
+    }
+  }
+]);
+assert.equal(clientDirectoryWithSavedWork[0].client_name, "Вера");
+assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].result_composition_id, "composition-for-client");
+assert.equal(clientDirectoryWithSavedWork[0].clientWorks[0].preview_url, "https://signed.example/center.png");
+assert.deepEqual(
+  getClientMandalaPreviewState(clientDirectoryWithSavedWork[0].clientWorks[0]),
+  { src: "https://signed.example/center.png", message: "" }
+);
+
+const clientDirectoryWithLegacySavedWork = buildClientDirectoryFromOrders([], [], [
+  {
+    id: "legacy-kora-1",
+    title: "Кора · 1",
+    object_refs: {
+      __center_image: "storage://profile-cabinet-media/compositions/kora-1.png"
+    },
+    object_ref_urls: {
+      "storage://profile-cabinet-media/compositions/kora-1.png": "https://signed.example/kora-1.png"
+    }
+  },
+  {
+    id: "global-template",
+    title: "Шаблон мастера",
+    object_refs: {}
+  }
+]);
+assert.equal(clientDirectoryWithLegacySavedWork.length, 1, "legacy wrongly-routed client mandalas should prevent an empty Clients tab");
+assert.equal(clientDirectoryWithLegacySavedWork[0].client_name, "1");
+assert.equal(clientDirectoryWithLegacySavedWork[0].clientWorks[0].result_composition_id, "legacy-kora-1");
+assert.deepEqual(
+  getClientMandalaPreviewState(clientDirectoryWithLegacySavedWork[0].clientWorks[0]),
+  { src: "https://signed.example/kora-1.png", message: "" },
+  "legacy client mandalas should still use signed composition previews in Clients"
+);
+
+const clientDirectoryWithFilenameNames = buildClientDirectoryFromOrders([
+  normalizeServiceOrder({
+    id: "order-img",
+    client_name: "IMG_2481.jpeg",
+    client_photo_id: "photo-2481"
+  }),
+  normalizeServiceOrder({
+    id: "order-human",
+    client_name: " Мария Север "
+  })
+]);
+assert.deepEqual(
+  clientDirectoryWithFilenameNames.map((client) => [client.key, client.client_name, client.client_display_name, client.client_display_note]),
+  [
+    ["name:IMG_2481.jpeg", "IMG_2481.jpeg", "Клиент без имени", "Имя клиента не заполнено"],
+    ["name:Мария Север", "Мария Север", "Мария Север", ""]
+  ],
+  "client directory should keep stable raw keys but use safe display names for filename-like client names"
+);
+assert.equal(getClientDisplayName({ client_name: "IMG_2482.jpeg" }), "Клиент без имени");
+assert.equal(getClientDisplayName({ client_name: "Анна" }), "Анна");
+
+const clientDirectoryWithPhotosOnly = buildClientDirectoryFromOrders([], [
+  { id: "photo-a", title: "IMG_1842.jpeg", notes: "цель клиента" },
+  { id: "photo-b", title: "Фото цели" }
+], []);
+assert.deepEqual(
+  clientDirectoryWithPhotosOnly,
+  [],
+  "client selector should not list client/goal photo titles or filenames as clients"
+);
+
+const clientDirectoryWithInvites = buildClientDirectoryFromOrders([], [], [], [
+  {
+    id: "invite-1",
+    client_name: "Анна",
+    invite_token: "token-1",
+    status: "pending"
+  }
+]);
+assert.equal(clientDirectoryWithInvites[0].invites.length, 1, "client directory should include pending invites");
+assert.equal(clientDirectoryWithInvites[0].status, "pending", "pending invite should keep pending status until claim");
+assert.equal(
+  buildClientInviteUrl(clientDirectoryWithInvites[0].invites[0], "https://2mentalica.vercel.app"),
+  "https://2mentalica.vercel.app/profile/orders?invite=token-1",
+  "invite URL should point to authenticated orders claim route"
+);
+
+assert.equal(buildCompositionResultUrl("", "https://mentalica.vercel.app"), "");
+assert.equal(
+  buildCompositionResultUrl("final result 1", "https://mentalica.vercel.app/"),
+  "https://mentalica.vercel.app/profile/mandalas?composition=final%20result%201",
+  "composition result links should be authenticated internal cabinet links"
+);
 
 const archivedStatus = normalizeServiceForm({ profile_id: "p1", title: "Archived" }, "archived");
 assert.equal(archivedStatus.status, "archived", "archive action should normalize to archived status safely");
@@ -388,5 +547,37 @@ assert.match(phase5Migration, /ready_for_review/, "Phase 5 migration should allo
 assert.match(phase5Migration, /sent_at/, "Phase 5 migration should add sent_at");
 assert.match(phase5Migration, /client reads own sent final result compositions/, "RLS assumptions should document client final-only visibility");
 assert.doesNotMatch(phase5Migration, /drop table|drop column|alter column .* type/i, "Phase 5 migration must stay additive");
+
+const personalOrdersSchemaMigration = readFileSync(new URL("../supabase/migrations/20260623120000_service_orders_personal_schema_fix.sql", import.meta.url), "utf8");
+for (const columnName of [
+  "client_profile_id",
+  "template_composition_id",
+  "draft_result_composition_id",
+  "final_result_composition_id",
+  "order_format",
+  "client_photo_id",
+  "sent_at"
+]) {
+  assert.match(personalOrdersSchemaMigration, new RegExp(`add column if not exists ${columnName}\\b`), `personal orders schema migration should add ${columnName}`);
+}
+assert.match(personalOrdersSchemaMigration, /profile_cabinet_service_orders_client_profile_id_idx/, "personal orders schema migration should index client_profile_id");
+assert.match(personalOrdersSchemaMigration, /draft[\s\S]*photo_required[\s\S]*ready_for_review[\s\S]*sent/, "personal orders schema migration should allow the current client/master status flow");
+assert.match(personalOrdersSchemaMigration, /client reads own service orders/, "personal orders schema migration should add authenticated client read policy");
+assert.match(personalOrdersSchemaMigration, /client updates own service orders/, "personal orders schema migration should add authenticated client update policy");
+assert.match(personalOrdersSchemaMigration, /owner reads own service orders/, "personal orders schema migration should preserve master read policy");
+assert.match(personalOrdersSchemaMigration, /owner updates own service orders/, "personal orders schema migration should preserve master update policy");
+assert.match(personalOrdersSchemaMigration, /public creates orders for published services/, "personal orders schema migration should preserve legacy public order creation policy");
+assert.doesNotMatch(personalOrdersSchemaMigration, /drop table|drop column|alter column .* type/i, "personal orders schema migration must stay additive");
+
+const inviteMigration = readFileSync(new URL("../supabase/migrations/20260622190000_profile_client_invites.sql", import.meta.url), "utf8");
+assert.match(inviteMigration, /profile_cabinet_client_invites/, "invite migration should add client invite table");
+assert.match(inviteMigration, /invite_token_hash/, "invite migration should store token hash, not raw token");
+assert.match(inviteMigration, /create_client_invite/, "invite migration should expose master invite RPC");
+assert.match(inviteMigration, /claim_client_invite/, "invite migration should expose client claim RPC");
+assert.match(inviteMigration, /enable row level security/, "invite table must keep RLS enabled");
+assert.doesNotMatch(inviteMigration, /service_role/i, "invite implementation must not require a frontend service-role key");
+assert.doesNotMatch(inviteMigration, /client_name\s*=/i, "claim flow must not link by name-only matching");
+assert.equal(typeof createClientInvite, "function", "services client should expose createClientInvite RPC helper");
+assert.equal(typeof claimClientInvite, "function", "services client should expose claimClientInvite RPC helper");
 
 console.log("profileServicesClient: all assertions passed.");

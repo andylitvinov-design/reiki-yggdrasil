@@ -1,6 +1,9 @@
 import React from "react";
+import { getMasterPlan } from "../../lib/masterPlans.js";
 
 export default function ProfileLiteSettingsModule({ onReset, profile, shellChrome }) {
+  const activePlan = getMasterPlan(profile?.account_plan);
+
   return (
     <section className="profileLiteModule profileLiteSettings mandalaWorkspace" aria-label="Настройки">
       <div className="mandalaHero">
@@ -11,7 +14,7 @@ export default function ProfileLiteSettingsModule({ onReset, profile, shellChrom
           <p>План, reference routes и локальные действия кабинета остаются в безопасной публичной оболочке.</p>
         </div>
         <div className="mandalaHeroStats">
-          <span><b>{profile?.account_plan || "start"}</b> План</span>
+          <span><b>{activePlan.label}</b> План</span>
           <span><b>old</b> Reference</span>
           <span><b>Lite</b> Shell</span>
         </div>
@@ -23,7 +26,11 @@ export default function ProfileLiteSettingsModule({ onReset, profile, shellChrom
         <dl className="profileLiteSettingsList">
           <div>
             <dt>План</dt>
-            <dd>{profile?.account_plan || "start"}</dd>
+            <dd>{activePlan.label} · {activePlan.priceLabel}</dd>
+          </div>
+          <div>
+            <dt>Лимиты</dt>
+            <dd>{activePlan.limits.compositions} мандал, {activePlan.limits.clientPhotos} фото клиентов, {activePlan.limits.serviceItems} услуг</dd>
           </div>
           <div>
             <dt>Старый кабинет</dt>

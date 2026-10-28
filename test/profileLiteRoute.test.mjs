@@ -42,6 +42,9 @@ assertRouteMapsTo("/profile-lite", "ProfileLitePage");
 assertRouteMapsTo("/profile-old", "ProfilePage");
 assertProfilePageHasKey("/profile-old", "profile-old");
 assertRouteMapsToProfileLiteTab("/profile/mandalas", "mandalas");
+assertRouteMapsToProfileLiteTab("/profile/courses", "courses");
+assertRouteMapsToProfileLiteTab("/profile/photos", "media");
+assertRouteMapsToProfileLiteTab("/profile/profile", "profile");
 assertRouteMapsToProfileLiteTab("/profile/services", "services");
 assertRouteMapsToProfileLiteTab("/profile/orders", "orders");
 assertRouteMapsToProfileLiteTab("/profile/chats", "chats");
@@ -71,8 +74,13 @@ assert.match(
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=media"), "media");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=materials"), "materials");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=courses&course=magic-money&step=degree-1"), "courses");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=diagnostics"), "diagnostics");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", "?course=magic-money&step=degree-1"), "courses");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/photos", ""), "media");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/profile", ""), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/services", ""), "services");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/orders", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/chats", ""), "chats");
@@ -90,6 +98,9 @@ assert.ok(
 
 for (const [path, initialTab] of [
   ["/profile/mandalas", "mandalas"],
+  ["/profile/courses", "courses"],
+  ["/profile/photos", "media"],
+  ["/profile/profile", "profile"],
   ["/profile/services", "services"],
   ["/profile/orders", "orders"],
   ["/profile/chats", "chats"],
@@ -120,6 +131,9 @@ assert.ok(
 
 for (const path of [
   "/profile/mandalas",
+  "/profile/courses",
+  "/profile/photos",
+  "/profile/profile",
   "/profile/services",
   "/profile/orders",
   "/profile/chats",
