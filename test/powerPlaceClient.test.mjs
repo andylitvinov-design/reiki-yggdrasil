@@ -1610,6 +1610,7 @@ assert.deepEqual(
     altar_center_ratio: "1",
     business_vertex_zone_count: 1,
     star_variant: "closed",
+    star_format_variant: "classic",
     chess_variant: "classic-14",
     cover_ref: null,
     object_refs: { __field_layout: "square" },
