@@ -1,4 +1,9 @@
 import React from "react";
+import {
+  filterPublishedServices,
+  getMasterPageInsertText,
+  getServiceInsertText
+} from "../../lib/masterChatLinks.js";
 
 export default function ProfileLiteChatsModule({
   approvedChatProfiles = [],
@@ -11,12 +16,32 @@ export default function ProfileLiteChatsModule({
   onChatDraftChange,
   onSendMessage,
   onStartChatWithMaster,
+  profile,
+  services,
   shellChrome,
   onThreadSelect,
   selectedThreadId
 }) {
   const selectedThread = chatThreads.find((thread) => thread.conversation_id === selectedThreadId) || chatThreads[0] || null;
   const hasDraft = Boolean(String(chatDraft || "").trim());
+  const publishedServices = filterPublishedServices(services);
+
+  function insertIntoDraft(text) {
+    if (!text) return;
+    const separator = String(chatDraft || "") && !String(chatDraft || "").endsWith("\n") ? "\n" : "";
+    onChatDraftChange(String(chatDraft || "") + separator + text);
+  }
+
+  function handleInsertMasterPage() {
+    const text = getMasterPageInsertText(profile?.id);
+    if (text) insertIntoDraft(text);
+  }
+
+  function handleInsertService(service) {
+    const text = getServiceInsertText(service);
+    if (text) insertIntoDraft(text);
+  }
+
   const statusLabel = chatsStatus === "loading"
     ? "Загрузка"
     : chatsStatus === "needs-verification"
@@ -118,6 +143,44 @@ export default function ProfileLiteChatsModule({
             </label>
             <button className="cabinetPrimary" type="submit" disabled={!selectedThread || !hasDraft}>Отправить</button>
           </form>
+          <div className="cabinetCard chatLinkInsert" aria-label="Подтянуть ссылку">
+            <p className="cabinetEyebrow">Подтянуть ссылку</p>
+            <div className="chatLinkInsertActions">
+              {profile?.id && (
+                <button
+                  type="button"
+                  className="cabinetSecondary chatInsertMasterPage"
+                  onClick={handleInsertMasterPage}
+                  title="Вставить ссылку на свою страницу мастера"
+                >
+                  Моя страница мастера
+                </button>
+              )}
+              {!profile?.id && (
+                <span className="cabinetNotice">Войдите в кабинет, чтобы вставить ссылку на страницу мастера.</span>
+              )}
+            </div>
+            {publishedServices.length > 0 && (
+              <div className="chatLinkServiceList">
+                <p className="cabinetEyebrow">Опубликованные услуги</p>
+                {publishedServices.map((service) => (
+                  <button
+                    key={service.id}
+                    type="button"
+                    className="cabinetSecondary chatInsertService"
+                    onClick={() => handleInsertService(service)}
+                    title={`Вставить ссылку на услугу: ${service.title || service.id}`}
+                  >
+                    {service.title || service.id}
+                  </button>
+                ))}
+              </div>
+            )}
+            {publishedServices.length === 0 && profile?.id && (
+              <p className="cabinetNotice">Нет опубликованных услуг. Опубликуйте услугу в разделе «Услуги», чтобы вставить ссылку.</p>
+            )}
+          </div>
+
         </div>
       </div>
     </section>
