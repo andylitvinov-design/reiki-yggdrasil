@@ -77,6 +77,10 @@
       "destination": "/"
     },
     {
+      "source": "/profile/coaching-plan",
+      "destination": "/"
+    },
+    {
       "source": "/profile/settings",
       "destination": "/"
     },
