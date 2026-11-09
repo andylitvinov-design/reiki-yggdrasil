@@ -125,7 +125,7 @@ export default function ProfileLiteCoachingPlanModule({ clientOrders = [], sessi
       <div className="mandalaHero">
         <div className="mandalaHeroSeal">◎</div>
         <div>
-          <p className="cabinetEyebrow">Личный кабинет</p>
+          <p className="cabinetEyebrow">Мой план</p>
           <h2>My Coaching Plan</h2>
           <p>Ваш персональный план жизни, целей и изменений. Он развивается вместе с вами и результатами встреч со специалистами.</p>
         </div>
