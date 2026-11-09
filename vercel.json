@@ -103,6 +103,10 @@
     {
       "source": "/profile/admin",
       "destination": "/"
+    },
+    {
+      "source": "/profile/coaching-plan",
+      "destination": "/"
     }
   ]
 }
