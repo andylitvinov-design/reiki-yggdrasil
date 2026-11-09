@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { listApprovedProfiles, supabaseEnv } from "../lib/supabaseClient.js";
 
+const CATALOG_LOAD_ERROR = "Не удалось загрузить каталог мастеров. Проверьте соединение и попробуйте ещё раз.";
+
 export default function MastersPage({ onNavigateHome, onNavigateProfile, onNavigateMaster }) {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(Boolean(supabaseEnv.isConfigured));
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -21,8 +24,8 @@ export default function MastersPage({ onNavigateHome, onNavigateProfile, onNavig
       try {
         const rows = await listApprovedProfiles();
         if (!cancelled) setProfiles(rows || []);
-      } catch (err) {
-        if (!cancelled) setError(err.message || "Не удалось загрузить каталог мастеров.");
+      } catch (_error) {
+        if (!cancelled) setError(CATALOG_LOAD_ERROR);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -33,7 +36,7 @@ export default function MastersPage({ onNavigateHome, onNavigateProfile, onNavig
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   return (
     <div className="cabinetShell">
@@ -55,7 +58,14 @@ export default function MastersPage({ onNavigateHome, onNavigateProfile, onNavig
         )}
 
         {loading && <div className="cabinetNotice">Загружаю мастеров...</div>}
-        {error && <div className="cabinetError">{error}</div>}
+        {error && (
+          <div className="cabinetError" role="alert">
+            <p>{error}</p>
+            <button type="button" onClick={() => setReloadKey((value) => value + 1)}>
+              Повторить
+            </button>
+          </div>
+        )}
 
         {!loading && supabaseEnv.isConfigured && profiles.length === 0 && !error && (
           <div className="cabinetNotice">
