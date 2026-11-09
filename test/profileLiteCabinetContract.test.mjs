@@ -27,7 +27,7 @@ const expectedTabs = [
   ["materials", "Гримуар"],
   ["masterProfile", "Профиль Мастера"],
   ["courses", "Курсы"],
-  ["coachingPlan", "Мой план"],
+  ["coachingPlan", "My Coaching Plan"],
   ["services", "Услуги"],
   ["clients", "Клиенты"],
   ["orders", "Заказы"],
