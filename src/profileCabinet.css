@@ -2343,3 +2343,15 @@
   .coachingPlanEmpty .cabinetActions { display:grid; grid-template-columns:1fr; }
   .coachingPlanEmpty .cabinetActions > * { width:100%; text-align:center; justify-content:center; }
 }
+
+.coachingPlanRecommendation { display:grid; gap:10px; margin:0 18px 18px; padding:16px; border:1px solid var(--cabinet-border, #dedbd2); border-radius:14px; background:rgba(36, 60, 53, 0.035); }
+.coachingPlanRecommendation h4 { margin:0; font-size:16px; }
+.coachingPlanRecommendation > p { margin:0; line-height:1.5; }
+.coachingPlanJourney { display:grid; gap:10px; }
+.coachingPlanJourneyStep { display:grid; grid-template-columns:28px minmax(0, 1fr); gap:10px; align-items:start; }
+.coachingPlanJourneyStep > span { display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#243c35; color:#fff; font-size:12px; }
+.coachingPlanJourneyStep > div { display:grid; gap:4px; }
+.coachingPlanJourneyStep small { color:var(--muted, #777); }
+.coachingPlanJourneyStep p { margin:0; font-size:13px; line-height:1.5; }
+.coachingPlanRecommendation > a { justify-self:start; }
+@media (max-width:700px) { .coachingPlanRecommendation { margin:0 12px 12px; padding:13px; } .coachingPlanRecommendation > a { width:100%; text-align:center; } }
