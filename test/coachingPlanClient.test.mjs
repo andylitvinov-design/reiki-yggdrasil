@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   COACHING_PLAN_SECTIONS,
   getClientVisibleConsultationReports,
@@ -44,3 +45,10 @@ const reports = getClientVisibleConsultationReports([
 assert.deepEqual(reports.map((report) => report.id), ["sent-newer", "sent-older"]);
 assert.deepEqual(getClientVisibleConsultationReports(null), []);
 console.log("coachingPlanClient tests passed");
+
+
+const lifePlanMigration = readFileSync("supabase/migrations/20261109120000_profile_client_life_plans.sql", "utf8");
+assert.match(lifePlanMigration, /create table if not exists public\\.profile_cabinet_life_plans/);
+assert.match(lifePlanMigration, /auth\\.uid\\(\\) = user_id/);
+assert.match(lifePlanMigration, /alter table public\\.profile_cabinet_life_plans enable row level security/);
+assert.match(lifePlanMigration, /revoke all on public\\.profile_cabinet_life_plans from anon/);
