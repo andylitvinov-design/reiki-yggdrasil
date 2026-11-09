@@ -27,5 +27,8 @@ jobs:
       - name: Validate Reiki knowledge base
         run: npm run validate:knowledge
 
+      - name: Run client cabinet contract tests
+        run: npm run test:profile-lite
+
       - name: Build
         run: npm run build
