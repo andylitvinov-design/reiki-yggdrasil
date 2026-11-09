@@ -3,6 +3,7 @@ import { getOwnLifePlan, saveOwnLifePlan } from "../../lib/supabaseClient.js";
 import {
   COACHING_PLAN_SECTIONS,
   getClientVisibleConsultationReports,
+  getCoachingPlanRecommendation,
   hasCoachingPlanContent,
   normalizeCoachingPlanSections
 } from "../../lib/coachingPlanClient.js";
@@ -154,6 +155,7 @@ export default function ProfileLiteCoachingPlanModule({ clientOrders = [], sessi
                 <div className="coachingPlanSections">
                   {COACHING_PLAN_SECTIONS.map((section) => {
                     const value = sections[section.id];
+                    const recommendation = getCoachingPlanRecommendation(section.id);
                     return (
                       <details className="cabinetCard coachingPlanSection" key={section.id} open={section.id === "direction" || editorOpen}>
                         <summary>
@@ -180,6 +182,26 @@ export default function ProfileLiteCoachingPlanModule({ clientOrders = [], sessi
                             {value.notes && <p><strong>Заметки:</strong> {value.notes}</p>}
                             {!value.current_state && !value.desired_state && !value.next_steps && !value.notes && <p>Этот раздел пока не заполнен.</p>}
                           </div>
+                        )}
+                        {recommendation && (
+                          <aside className="coachingPlanRecommendation">
+                            <p className="cabinetEyebrow">Рекомендуемый маршрут из двух встреч</p>
+                            <h4>{recommendation.heading}</h4>
+                            <div className="coachingPlanJourney">
+                              {recommendation.sessions.map((item, index) => (
+                                <div className="coachingPlanJourneyStep" key={item.specialist}>
+                                  <span>{index + 1}</span>
+                                  <div>
+                                    <strong>{item.specialist}</strong>
+                                    <small>{item.format}</small>
+                                    <p>{item.outcome}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <a className="cabinetSecondary" href="/profile/services">Посмотреть доступных специалистов</a>
+                            <small className="coachingPlanPrivacyNote">Это рекомендации по типу специалиста, а не подтверждение его доступности. Вы сами выбираете встречи; передача содержания плана специалисту требует отдельного согласия.</small>
+                          </aside>
                         )}
                       </details>
                     );
