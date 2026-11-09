@@ -101,7 +101,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
-  ["Мои заказы", "Мой план", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
+  ["Мои заказы", "My Coaching Plan", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
   "client cabinet nav should expose personal course access between orders and photos"
 );
 
