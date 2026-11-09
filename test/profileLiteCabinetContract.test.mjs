@@ -30,7 +30,8 @@ const expectedTabs = [
   ["services", "Услуги"],
   ["clients", "Клиенты"],
   ["orders", "Заказы"],
-  ["chats", "Чаты"]
+  ["chats", "Чаты"],
+  ["coachingPlan", "My Coaching Plan"]
 ];
 
 assert.deepEqual(
@@ -51,7 +52,8 @@ assert.deepEqual(
     ["services", "/profile/services"],
     ["clients", "/profile?tab=clients"],
     ["orders", "/profile/orders"],
-    ["chats", "/profile/chats"]
+    ["chats", "/profile/chats"],
+    ["coachingPlan", "/profile/coaching-plan"]
   ],
   "Profile Lite tabs must be backed by stable URL paths or query strings"
 );
@@ -68,6 +70,7 @@ assert.equal(getProfileLiteRouteByTabId("courses"), "/profile/courses");
 assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
 assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
 assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
+assert.equal(getProfileLiteRouteByTabId("coachingPlan"), "/profile/coaching-plan");
 assert.equal(getProfileLiteRouteByTabId("settings"), "/profile/settings");
 assert.equal(getProfileLiteRouteByTabId("diagnostics"), "/profile?tab=diagnostics");
 assert.equal(getProfileLiteRouteByTabId("media"), "/profile/photos");
@@ -97,7 +100,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
-  ["Мои заказы", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
+  ["Мои заказы", "My Coaching Plan", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
   "client cabinet nav should expose personal course access between orders and photos"
 );
 
@@ -115,7 +118,7 @@ assert.equal(getProfileLiteRoleForTab("services"), "master");
 assert.equal(getProfileLiteRoleForTab("clients"), "master");
 assert.equal(getProfileLiteRoleForTab("masterProfile"), "master");
 assert.equal(getProfileLiteRoleForTab("profile"), "client");
-assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "courses", "media", "chats", "profile"]);
+assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "coachingPlan", "courses", "media", "chats", "profile"]);
 assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "clients", "orders", "materials", "masterProfile"]);
 assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" });
 
