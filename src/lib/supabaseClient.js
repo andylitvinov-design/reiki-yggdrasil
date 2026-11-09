@@ -7,6 +7,7 @@ const ADMIN_EMAIL = import.meta.env?.VITE_ADMIN_EMAIL || "";
 const SESSION_KEY = "reiki-yggdrasil-session";
 const PKCE_VERIFIER_KEY = "reiki-yggdrasil-pkce-verifier";
 const PROFILES_TABLE = "profile_cabinet_profiles";
+const LIFE_PLANS_TABLE = "profile_cabinet_life_plans";
 const ADMINS_TABLE = "profile_cabinet_admins";
 const REQUEST_TIMEOUT_MS = 12000;
 
@@ -390,5 +391,26 @@ export async function updateProfileAdminFields(profileId, { accountPlan, status 
     body
   });
 
+  return rows?.[0] || null;
+}
+
+
+export async function getOwnLifePlan(session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужно войти в личный кабинет.");
+  const rows = await request(`/rest/v1/${LIFE_PLANS_TABLE}?select=id,user_id,sections,created_at,updated_at&limit=1`, {
+    accessToken: session.access_token
+  });
+  return rows?.[0] || null;
+}
+
+export async function saveOwnLifePlan(sections = {}, session = getStoredSession()) {
+  if (!session?.access_token) throw cabinetError("Нужно войти в личный кабинет.");
+  const safeSections = sections && typeof sections === "object" && !Array.isArray(sections) ? sections : {};
+  const rows = await request(`/rest/v1/${LIFE_PLANS_TABLE}?on_conflict=user_id`, {
+    method: "POST",
+    accessToken: session.access_token,
+    prefer: "resolution=merge-duplicates,return=representation",
+    body: { sections: safeSections }
+  });
   return rows?.[0] || null;
 }
