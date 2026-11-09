@@ -306,7 +306,7 @@ assert.match(profileOrdersModuleSource, /Не удалось загрузить 
 assert.doesNotMatch(profileOrdersModuleSource, /clientGoalPhotos\.length\}\/4/, "orders photo summary must not render raw count slash limit text");
 assert.doesNotMatch(profileOrdersModuleSource, /aria-label="Кабинет Личный Мои фото"/, "client orders must not render the separate media/photo panel");
 assert.doesNotMatch(profileOrdersModuleSource, /Название фото|Загрузить фото/, "client orders must not render media upload form fields");
-assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "courses", "media", "chats", "profile"]);
+assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "coachingPlan", "courses", "media", "chats", "profile"]);
 assert.match(profileOrdersModuleSource, /Мои заказы и материалы[\s\S]*Здесь появляются ваши заказы, аудио, мандалы и ответы мастера\./, "client orders should use warmer personal materials copy");
 assert.match(profileOrdersModuleSource, /profileLiteOrdersServiceCta[\s\S]*Подбор практики[\s\S]*Например: мандала, консультация, аудио[\s\S]*\/profile\/services/, "client orders should include a guided services search CTA");
 assert.match(profileOrdersModuleSource, /Пока здесь нет заказов[\s\S]*Когда мастер примет заявку или отправит материал[\s\S]*Найти услугу[\s\S]*Открыть мои курсы/, "client orders empty state should guide the next actions");
