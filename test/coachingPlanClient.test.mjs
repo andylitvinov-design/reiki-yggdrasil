@@ -48,7 +48,7 @@ console.log("coachingPlanClient tests passed");
 
 
 const lifePlanMigration = readFileSync("supabase/migrations/20261109120000_profile_client_life_plans.sql", "utf8");
-assert.match(lifePlanMigration, /create table if not exists public\\.profile_cabinet_life_plans/);
-assert.match(lifePlanMigration, /auth\\.uid\\(\\) = user_id/);
-assert.match(lifePlanMigration, /alter table public\\.profile_cabinet_life_plans enable row level security/);
-assert.match(lifePlanMigration, /revoke all on public\\.profile_cabinet_life_plans from anon/);
+assert.match(lifePlanMigration, /create table if not exists public\.profile_cabinet_life_plans/);
+assert.match(lifePlanMigration, /auth\.uid\(\) = user_id/);
+assert.match(lifePlanMigration, /alter table public\.profile_cabinet_life_plans enable row level security/);
+assert.match(lifePlanMigration, /revoke all on public\.profile_cabinet_life_plans from anon/);
