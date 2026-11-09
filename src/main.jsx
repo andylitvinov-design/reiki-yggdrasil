@@ -224,6 +224,10 @@ function RootRouter() {
     return <ProfileLitePage initialTab="chats" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path === "/profile/coaching-plan") {
+    return <ProfileLitePage initialTab="coachingPlan" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
   if (path === "/profile/settings") {
     return <ProfileLitePage initialTab="settings" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
