@@ -117,6 +117,7 @@ import ProfileLiteMaterialsModule from "./profile-lite/ProfileLiteMaterialsModul
 import ProfileLiteCoursesModule from "./profile-lite/ProfileLiteCoursesModule.jsx";
 import ProfileLiteServicesModule from "./profile-lite/ProfileLiteServicesModule.jsx";
 import ProfileLiteOrdersModule from "./profile-lite/ProfileLiteOrdersModule.jsx";
+import ProfileLiteCoachingPlanModule from "./profile-lite/ProfileLiteCoachingPlanModule.jsx";
 import ProfileLiteChatsModule from "./profile-lite/ProfileLiteChatsModule.jsx";
 import ProfileLiteSettingsModule from "./profile-lite/ProfileLiteSettingsModule.jsx";
 import ProfileLiteDiagnosticsModule from "./profile-lite/ProfileLiteDiagnosticsModule.jsx";
@@ -3009,6 +3010,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
         onStatusChange={handleServiceStatusChange}
       />
     ),
+    coachingPlan: <ProfileLiteCoachingPlanModule {...moduleProps} />,
     orders: (
       <ProfileLiteOrdersModule
         {...moduleProps}
