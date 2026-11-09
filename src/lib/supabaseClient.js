@@ -111,6 +111,10 @@ async function request(path, options = {}) {
   return data;
 }
 
+export function supabaseRequest(path, options = {}) {
+  return request(path, options);
+}
+
 function storeSession(session) {
   if (!session?.access_token) return null;
 
