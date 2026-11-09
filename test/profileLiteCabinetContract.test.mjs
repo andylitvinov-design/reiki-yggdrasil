@@ -222,6 +222,7 @@ for (const file of [
   "ProfileLiteImagePicker.jsx",
   "ProfileLiteServicesModule.jsx",
   "ProfileLiteOrdersModule.jsx",
+  "ProfileLiteCoachingPlanModule.jsx",
   "ProfileLiteChatsModule.jsx",
   "ProfileLiteSettingsModule.jsx",
   "ProfileLiteDiagnosticsModule.jsx"
@@ -234,6 +235,7 @@ const moduleSource = readdirSync(moduleDir)
   .map((file) => readFileSync(join(moduleDir, file), "utf8"))
   .join("\n");
 const profileLitePageSource = readFileSync("src/pages/ProfileLitePage.jsx", "utf8");
+const coachingPlanModuleSource = readFileSync(join(moduleDir, "ProfileLiteCoachingPlanModule.jsx"), "utf8");
 const profileMaterialsClientSource = readFileSync("src/lib/profileMaterialsClient.js", "utf8");
 const powerPlaceClientSource = readFileSync("src/lib/powerPlaceClient.js", "utf8");
 const profileServicesClientSource = readFileSync("src/lib/profileServicesClient.js", "utf8");
@@ -2114,3 +2116,13 @@ assert.doesNotMatch(
 );
 
 console.log("Zodiac style selector contract: all assertions passed.");
+
+
+assert.match(profileLitePageSource, /coachingPlan:\s*<ProfileLiteCoachingPlanModule/);
+assert.match(profileLitePageSource, /import ProfileLiteCoachingPlanModule/);
+assert.match(coachingPlanModuleSource, /getClientVisibleConsultationReports/);
+assert.match(coachingPlanModuleSource, /getOwnLifePlan/);
+assert.match(coachingPlanModuleSource, /saveOwnLifePlan/);
+assert.match(coachingPlanModuleSource, /Найти специалиста и начать сессию/);
+assert.match(coachingPlanModuleSource, /Отчёты и консультации/);
+assert.match(coachingPlanModuleSource, /Сохранить план/);
