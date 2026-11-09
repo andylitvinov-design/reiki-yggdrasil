@@ -220,6 +220,10 @@ function RootRouter() {
     return <ProfileLitePage initialRole={profileQueryRole} initialTab="orders" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
 
+  if (path === "/profile/coaching-plan") {
+    return <ProfileLitePage initialTab="coachingPlan" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
+  }
+
   if (path === "/profile/chats") {
     return <ProfileLitePage initialTab="chats" onNavigateHome={() => navigateTo("/")} onNavigateMasters={() => navigateTo("/masters")} />;
   }
