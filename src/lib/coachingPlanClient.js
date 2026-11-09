@@ -25,10 +25,10 @@ export function normalizeCoachingPlanSections(value = {}) {
   return Object.fromEntries(COACHING_PLAN_SECTIONS.map(({ id }) => {
     const item = source[id] && typeof source[id] === "object" && !Array.isArray(source[id]) ? source[id] : {};
     return [id, {
-      current_state: String(item.current_state || ""),
-      desired_state: String(item.desired_state || ""),
-      next_steps: String(item.next_steps || ""),
-      notes: String(item.notes || ""),
+      current_state: String(item.current_state || "").trim(),
+      desired_state: String(item.desired_state || "").trim(),
+      next_steps: String(item.next_steps || "").trim(),
+      notes: String(item.notes || "").trim(),
       visibility: "private"
     }];
   }));
