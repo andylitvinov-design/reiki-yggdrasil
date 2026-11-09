@@ -21,7 +21,7 @@ function EmptyPlan({ onEdit }) {
       <h2>Создайте персональный план жизни</h2>
       <p>Начните с коучинговой или консультационной сессии. Вместе со специалистом вы сможете определить важные направления, цели и первые действия. После встречи результат можно будет перенести в соответствующие разделы плана.</p>
       <div className="cabinetActions">
-        <a className="cabinetPrimary" href="/profile/services">Найти специалиста и начать сессию</a>
+        <a className="cabinetPrimary" href="/shop">Найти специалиста и начать сессию</a>
         <button className="cabinetSecondary" type="button" onClick={onEdit}>Заполнить план самостоятельно</button>
       </div>
     </section>
@@ -34,7 +34,7 @@ function ReportsView({ reports }) {
       <div className="cabinetCard">
         <h3>Пока нет завершённых консультаций</h3>
         <p>Здесь появятся результаты услуг и консультаций, которые специалист уже передал вам через кабинет.</p>
-        <a className="cabinetSecondary" href="/profile/services">Найти консультацию</a>
+        <a className="cabinetSecondary" href="/shop">Найти консультацию</a>
       </div>
     );
   }
@@ -172,7 +172,7 @@ export default function ProfileLiteCoachingPlanModule({ clientOrders = [], sessi
                             <label>Следующие шаги<textarea rows="3" value={value.next_steps} onChange={(event) => updateSection(section.id, "next_steps", event.target.value)} placeholder="Действия, сроки и небольшие этапы…" /></label>
                             <label>Мои заметки<textarea rows="2" value={value.notes} onChange={(event) => updateSection(section.id, "notes", event.target.value)} placeholder="Личные наблюдения и изменения…" /></label>
                             <small className="coachingPlanPrivacyNote">Личные заметки видны только вам. При добавлении рекомендаций из отчётов система предложит подтвердить каждое изменение отдельно.</small>
-                            <a className="text-link" href="/profile/services">Подобрать специалиста для этого направления</a>
+                            <a className="text-link" href="/shop">Подобрать специалиста для этого направления</a>
                           </div>
                         ) : (
                           <div className="coachingPlanSectionPreview">
@@ -199,7 +199,7 @@ export default function ProfileLiteCoachingPlanModule({ clientOrders = [], sessi
                                 </div>
                               ))}
                             </div>
-                            <a className="cabinetSecondary" href="/profile/services">Посмотреть доступных специалистов</a>
+                            <a className="cabinetSecondary" href="/shop">Посмотреть доступных специалистов</a>
                             <small className="coachingPlanPrivacyNote">Это рекомендации по типу специалиста, а не подтверждение его доступности. Вы сами выбираете встречи; передача содержания плана специалисту требует отдельного согласия.</small>
                           </aside>
                         )}
