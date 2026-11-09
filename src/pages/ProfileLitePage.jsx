@@ -110,6 +110,7 @@ import {
 } from "../lib/masterPlans.js";
 import ProfileLiteShell from "./profile-lite/ProfileLiteShell.jsx";
 import ProfileLiteOverview from "./profile-lite/ProfileLiteOverview.jsx";
+import MyCoachingPlanModule from "./profile-lite/MyCoachingPlanModule.jsx";
 import ProfileLiteProfileModule from "./profile-lite/ProfileLiteProfileModule.jsx";
 import ProfileLiteMandalasModule from "./profile-lite/ProfileLiteMandalasModule.jsx";
 import ProfileLiteMediaModule from "./profile-lite/ProfileLiteMediaModule.jsx";
@@ -2881,6 +2882,7 @@ export default function ProfileLitePage({ initialRole = "", initialTab = "overvi
 
   const renderedModule = {
     overview: <ProfileLiteOverview {...moduleProps} />,
+    coachingPlan: <MyCoachingPlanModule {...moduleProps} />,
     profile: (
       <ProfileLiteProfileModule
         {...moduleProps}
