@@ -27,6 +27,7 @@ const expectedTabs = [
   ["materials", "Гримуар"],
   ["masterProfile", "Профиль Мастера"],
   ["courses", "Курсы"],
+  ["coachingPlan", "Мой план"],
   ["services", "Услуги"],
   ["clients", "Клиенты"],
   ["orders", "Заказы"],
@@ -48,6 +49,7 @@ assert.deepEqual(
     ["materials", "/profile?tab=materials"],
     ["masterProfile", "/profile?tab=masterProfile"],
     ["courses", "/profile/courses"],
+    ["coachingPlan", "/profile/coaching-plan"],
     ["services", "/profile/services"],
     ["clients", "/profile?tab=clients"],
     ["orders", "/profile/orders"],
@@ -65,6 +67,7 @@ assert.equal(getProfileLiteTabById("settings").label, "Настройки");
 assert.equal(getProfileLiteTabById("diagnostics").label, "Диагностика");
 assert.equal(getProfileLiteRouteByTabId("mandalas"), "/profile/mandalas");
 assert.equal(getProfileLiteRouteByTabId("courses"), "/profile/courses");
+assert.equal(getProfileLiteRouteByTabId("coachingPlan"), "/profile/coaching-plan");
 assert.equal(getProfileLiteRouteByTabId("services"), "/profile/services");
 assert.equal(getProfileLiteRouteByTabId("orders"), "/profile/orders");
 assert.equal(getProfileLiteRouteByTabId("chats"), "/profile/chats");
@@ -76,6 +79,7 @@ assert.equal(getProfileLiteInitialTabFromLocation("/profile", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile-lite", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/mandalas", ""), "mandalas");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/courses", ""), "courses");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/coaching-plan", ""), "coachingPlan");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/photos", ""), "media");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/profile", ""), "profile");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile", "?tab=profile"), "profile");
@@ -97,7 +101,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   PROFILE_LITE_ROLE_NAV.client.map((item) => item.label),
-  ["Мои заказы", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
+  ["Мои заказы", "Мой план", "Мои курсы", "Мои фото", "Чаты", "Профиль"],
   "client cabinet nav should expose personal course access between orders and photos"
 );
 
@@ -115,7 +119,8 @@ assert.equal(getProfileLiteRoleForTab("services"), "master");
 assert.equal(getProfileLiteRoleForTab("clients"), "master");
 assert.equal(getProfileLiteRoleForTab("masterProfile"), "master");
 assert.equal(getProfileLiteRoleForTab("profile"), "client");
-assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "courses", "media", "chats", "profile"]);
+assert.equal(getProfileLiteRoleForTab("coachingPlan"), "client");
+assert.deepEqual(getProfileLiteRoleNav("client").map((item) => item.tabId), ["orders", "coachingPlan", "courses", "media", "chats", "profile"]);
 assert.deepEqual(getProfileLiteRoleNav("master").map((item) => item.tabId), ["mandalas", "services", "clients", "orders", "materials", "masterProfile"]);
 assert.deepEqual(getProfileLiteRoleNav("master").find((item) => item.label === "Заявки"), { label: "Заявки", tabId: "orders", role: "master", href: "/profile/orders?role=master" });
 
