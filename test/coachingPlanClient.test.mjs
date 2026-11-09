@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   COACHING_PLAN_SECTIONS,
   getClientVisibleConsultationReports,
+  getCoachingPlanRecommendation,
   hasCoachingPlanContent,
   normalizeCoachingPlanSections
 } from "../src/lib/coachingPlanClient.js";
@@ -52,3 +53,12 @@ assert.match(lifePlanMigration, /create table if not exists public\.profile_cabi
 assert.match(lifePlanMigration, /auth\.uid\(\) = user_id/);
 assert.match(lifePlanMigration, /alter table public\.profile_cabinet_life_plans enable row level security/);
 assert.match(lifePlanMigration, /revoke all on public\.profile_cabinet_life_plans from anon/);
+
+for (const section of COACHING_PLAN_SECTIONS) {
+  const recommendation = getCoachingPlanRecommendation(section.id);
+  assert.ok(recommendation, `section ${section.id} should have a specialist journey`);
+  assert.equal(recommendation.sessions.length, 2);
+  assert.ok(recommendation.sessions[0].specialist);
+  assert.ok(recommendation.sessions[1].specialist);
+  assert.notEqual(recommendation.sessions[0].specialist, recommendation.sessions[1].specialist);
+}
