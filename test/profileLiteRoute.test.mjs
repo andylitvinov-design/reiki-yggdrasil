@@ -48,6 +48,7 @@ assertRouteMapsToProfileLiteTab("/profile/profile", "profile");
 assertRouteMapsToProfileLiteTab("/profile/services", "services");
 assertRouteMapsToProfileLiteTab("/profile/orders", "orders");
 assertRouteMapsToProfileLiteTab("/profile/chats", "chats");
+assertRouteMapsToProfileLiteTab("/profile/coaching-plan", "coachingPlan");
 assertRouteMapsToProfileLiteTab("/profile/settings", "settings");
 assertRouteMapsTo("/profile/admin", "AdminPage");
 assertRouteMapsTo("/masters", "MastersPage");
@@ -84,6 +85,7 @@ assert.equal(getProfileLiteInitialTabFromLocation("/profile/profile", ""), "prof
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/services", ""), "services");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/orders", ""), "orders");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/chats", ""), "chats");
+assert.equal(getProfileLiteInitialTabFromLocation("/profile/coaching-plan", ""), "coachingPlan");
 assert.equal(getProfileLiteInitialTabFromLocation("/profile/settings", ""), "settings");
 
 assert.ok(
@@ -104,6 +106,7 @@ for (const [path, initialTab] of [
   ["/profile/services", "services"],
   ["/profile/orders", "orders"],
   ["/profile/chats", "chats"],
+  ["/profile/coaching-plan", "coachingPlan"],
   ["/profile/settings", "settings"]
 ]) {
   assertRouteMapsToProfileLiteTab(path, initialTab);
