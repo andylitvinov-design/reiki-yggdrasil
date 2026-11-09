@@ -11,6 +11,7 @@ export const PROFILE_LITE_TABS = [
   { id: "materials", label: "Гримуар", href: "/profile?tab=materials" },
   { id: "masterProfile", label: "Профиль Мастера", href: "/profile?tab=masterProfile" },
   { id: "courses", label: "Курсы", href: "/profile/courses" },
+  { id: "coachingPlan", label: "Мой план", href: "/profile/coaching-plan" },
   { id: "services", label: "Услуги", href: "/profile/services" },
   { id: "clients", label: "Клиенты", href: "/profile?tab=clients" },
   { id: "orders", label: "Заказы", href: "/profile/orders" },
@@ -25,6 +26,7 @@ export const PROFILE_LITE_CABINET_ROLES = [
 export const PROFILE_LITE_ROLE_NAV = {
   client: [
     { label: "Мои заказы", tabId: "orders" },
+    { label: "Мой план", tabId: "coachingPlan" },
     { label: "Мои курсы", tabId: "courses" },
     { label: "Мои фото", tabId: "media" },
     { label: "Чаты", tabId: "chats" },
@@ -41,7 +43,7 @@ export const PROFILE_LITE_ROLE_NAV = {
 };
 
 const PROFILE_LITE_ROLE_TAB_IDS = {
-  client: ["orders", "courses", "media", "chats", "profile"],
+  client: ["orders", "coachingPlan", "courses", "media", "chats", "profile"],
   master: ["mandalas", "services", "clients", "materials", "masterProfile", "orders"]
 };
 
@@ -104,6 +106,7 @@ export function getProfileLiteInitialTabFromLocation(pathname = "/profile", sear
     "/profile/services": "services",
     "/profile/orders": "orders",
     "/profile/chats": "chats",
+    "/profile/coaching-plan": "coachingPlan",
     "/profile/settings": "settings"
   };
 
